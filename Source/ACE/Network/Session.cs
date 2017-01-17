@@ -1,5 +1,4 @@
 ﻿using ACE.Cryptography;
-using System;
 using System.Net;
 
 namespace ACE.Network

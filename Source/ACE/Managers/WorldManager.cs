@@ -1,5 +1,4 @@
 ﻿using ACE.Network;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -54,8 +53,6 @@ namespace ACE.Managers
             var worldTickTimer = new Stopwatch();
             while (!pendingWorldStop)
             {
-                var now = DateTime.Now;
-
                 worldTickTimer.Restart();
 
                 foreach (var session in sessionStore)
