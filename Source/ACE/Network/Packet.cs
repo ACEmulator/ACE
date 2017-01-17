@@ -21,7 +21,7 @@ namespace ACE.Network
         ConnectRequest    = 0x00040000,
         ConnectResponse   = 0x00080000,
         CICMDCommand      = 0x00400000,
-        TimeSync          = 0x01000000,
+        TimeSynch         = 0x01000000,
         EchoRequest       = 0x02000000,
         EchoResponse      = 0x04000000,
         Flow              = 0x08000000
@@ -169,6 +169,47 @@ namespace ACE.Network
         public bool HasFlag(PacketHeaderFlags flags) { return (flags & Flags) != 0; }
     }
 
+    public class PacketHeaderOptional
+    {
+        public uint Size { get; private set; }
+
+        public uint Sequence { get; private set; }
+        public double TimeSynch { get; private set; }
+        public float ClientTime { get; private set; }
+
+        public PacketHeaderOptional(BinaryReader payload, PacketHeader header)
+        {
+            Size = (uint)payload.BaseStream.Position;
+
+            if (header.HasFlag(PacketHeaderFlags.ServerSwitch))
+                payload.Skip(8);
+
+            if (header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                payload.Skip(payload.ReadUInt32() * sizeof(uint));
+
+            if (header.HasFlag(PacketHeaderFlags.RejectRetransmit))
+                payload.Skip(payload.ReadUInt32() * sizeof(uint));
+
+            if (header.HasFlag(PacketHeaderFlags.AckSequence))
+                Sequence = payload.ReadUInt32();
+
+            if (header.HasFlag(PacketHeaderFlags.CICMDCommand))
+                payload.Skip(8);
+
+            if (header.HasFlag(PacketHeaderFlags.TimeSynch))
+                TimeSynch = payload.ReadDouble();
+
+            if (header.HasFlag(PacketHeaderFlags.EchoRequest))
+                ClientTime = payload.ReadSingle();
+
+            if (header.HasFlag(PacketHeaderFlags.Flow))
+                payload.Skip(6);
+
+            Size = (uint)payload.BaseStream.Position - Size;
+            payload.BaseStream.Position -= Size;
+        }
+    }
+
     public abstract class Packet
     {
         public static uint MaxPacketSize { get; } = 484u;
@@ -186,7 +227,7 @@ namespace ACE.Network
             uint headerChecksum = 0u;
             Header.CalculateHash32(out headerChecksum);
 
-            uint xor = (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? session.GetIssacValue(Direction, Header.Sequence) : 0u);
+            uint xor = (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? session.GetIssacValue(Direction) : 0u);
             return headerChecksum + (CalculatePayloadChecksum() ^ xor);
         }
 
@@ -213,6 +254,7 @@ namespace ACE.Network
     public class ClientPacket : Packet
     {
         public BinaryReader Payload { get; }
+        public PacketHeaderOptional HeaderOptional { get; }
 
         public ClientPacket(byte[] data, bool debug = false)
         {
@@ -222,54 +264,14 @@ namespace ACE.Network
             {
                 using (var reader = new BinaryReader(stream))
                 {
-                    Header  = new PacketHeader(reader);
-                    Data    = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
-                    Payload = new BinaryReader(Data);
+                    Header         = new PacketHeader(reader);
+                    Data           = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
+                    Payload        = new BinaryReader(Data);
+                    HeaderOptional = new PacketHeaderOptional(Payload, Header);
                 }
             }
 
-            ReadOptionalHeaderData();
             ReadFragments();
-        }
-
-        private void ReadOptionalHeaderData()
-        {
-            optionalHeaderSize = (uint)Payload.BaseStream.Position;
-
-            if (Header.HasFlag(PacketHeaderFlags.ServerSwitch))
-                Payload.Skip(8);
-
-            if (Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                uint dataSize = Payload.ReadUInt32();
-                Payload.Skip(dataSize);
-            }
-
-            if (Header.HasFlag(PacketHeaderFlags.RejectRetransmit))
-            {
-                uint dataSize = Payload.ReadUInt32();
-                Payload.Skip(dataSize);
-            }
-
-            if (Header.HasFlag(PacketHeaderFlags.AckSequence))
-                Payload.Skip(4);
-
-            if (Header.HasFlag(PacketHeaderFlags.CICMDCommand))
-                Payload.Skip(8);
-
-            if (Header.HasFlag(PacketHeaderFlags.TimeSync))
-                Payload.Skip(8);
-
-            if (Header.HasFlag(PacketHeaderFlags.EchoRequest))
-                Payload.Skip(4);
-
-            if (Header.HasFlag(PacketHeaderFlags.EchoResponse))
-                Payload.Skip(8);
-
-            if (Header.HasFlag(PacketHeaderFlags.Flow))
-                Payload.Skip(6);
-
-            optionalHeaderSize = (uint)Payload.BaseStream.Position - optionalHeaderSize;
         }
 
         private void ReadFragments()

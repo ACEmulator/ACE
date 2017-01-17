@@ -90,7 +90,7 @@ namespace ACE.Network
 
             #region DEBUG
                 uint checksum = packet.CalculateChecksum(session);
-                Console.WriteLine($"Received: Size: {data.Length}, Server Hash: 0x{checksum.ToString("X4")}, Client Hash: 0x{ packet.Header.Checksum.ToString("X4")}, Fragments: {packet.Fragments.Count}, Encrypted: {packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum)}");
+                Console.WriteLine($"Received: Size: {data.Length}, Hash: 0x{checksum.ToString("X8")} 0x{ packet.Header.Checksum.ToString("X8")}, Fragments: {packet.Fragments.Count}, Flags: {packet.Header.Flags}");
             #endregion
 
             Listen();
@@ -157,7 +157,7 @@ namespace ACE.Network
                     packet.Header.Sequence = session.PacketSequence++;
                     packet.Header.Size     = (ushort)(packetWriter.BaseStream.Length - PacketHeader.HeaderSize);
                     packet.Header.Table    = 0x14;
-                    packet.Header.Time     = (ushort)session.PacketSequence; // properly calculate server time ticks
+                    packet.Header.Time     = (ushort)session.ServerTime;
                     packet.Header.Checksum = packet.CalculateChecksum(session);
 
                     packetWriter.Seek(0, SeekOrigin.Begin);

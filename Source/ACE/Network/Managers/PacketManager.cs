@@ -26,6 +26,28 @@ namespace ACE.Network
 
         public static void HandleLoginPacket(ClientPacket packet, Session session)
         {
+            // CLinkStatusAverages::OnPingResponse
+            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
+            {
+                // used to calculate round trip time (ping)
+                // client calculates: currentTime - requestTime - serverDrift
+                var echoResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.EchoResponse);
+                echoResponse.Payload.Write(packet.HeaderOptional.ClientTime);
+                echoResponse.Payload.Write((float)session.ServerTime - packet.HeaderOptional.ClientTime);
+
+                NetworkMgr.SendLoginPacket(echoResponse, session);
+            }
+
+            // ClientNet::HandleTimeSynch
+            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+            {
+                // used to update time at client and check for overspeed (60s desync and client will disconenct with speed hack warning)
+                var timeSynchResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.TimeSynch);
+                timeSynchResponse.Payload.Write(session.ServerTime);
+
+                NetworkMgr.SendLoginPacket(timeSynchResponse, session);
+            }
+
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
                 HandleLoginRequest(packet, session);
 

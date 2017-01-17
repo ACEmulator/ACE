@@ -7,6 +7,8 @@ namespace ACE.Cryptography
         public static byte[] ClientSeed { get; } = { 0x60, 0xAF, 0x54, 0x6D }; // C->S
         public static byte[] ServerSeed { get; } = { 0xCD, 0xD7, 0xEB, 0x45 }; // S->C
 
+        private uint offset;
+
         private uint a, b, c;
         private uint[] mm;
         private uint[] randRsl;
@@ -15,19 +17,23 @@ namespace ACE.Cryptography
         {
             mm      = new uint[256];
             randRsl = new uint[256];
+            offset  = 255u;
 
             Initialise(seed);
         }
 
-        public uint GetOffset(uint offset)
+        public uint GetOffset()
         {
-            if (offset > 255)
+            var issacValue = randRsl[offset];
+            if (offset > 0)
+                offset--;
+            else
             {
                 IsaacScramble();
-                offset = 2;
+                offset = 255u;
             }
 
-            return randRsl[255 - (offset - 2)];
+            return issacValue;
         }
 
         private void Initialise(byte[] keyBytes)

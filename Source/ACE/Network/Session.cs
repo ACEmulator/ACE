@@ -1,4 +1,5 @@
 ﻿using ACE.Cryptography;
+using System;
 using System.Net;
 
 namespace ACE.Network
@@ -8,6 +9,8 @@ namespace ACE.Network
         public IPEndPoint EndPoint { get; }
         public uint PacketSequence { get; set; }
         public uint FragmentSequence { get; set; }
+
+        public double ServerTime { get; private set; }
 
         private ISAAC issacClient;
         private ISAAC issacServer;
@@ -19,11 +22,11 @@ namespace ACE.Network
             issacServer = new ISAAC(ISAAC.ServerSeed);
         }
 
-        public uint GetIssacValue(PacketDirection direction, uint sequence)
+        public void Update(double lastTick)
         {
-            if (sequence >= 2u)
-                return (direction == PacketDirection.Client ? issacClient.GetOffset(sequence) : issacServer.GetOffset(sequence));
-            return 0u;
+            ServerTime += lastTick;
         }
+
+        public uint GetIssacValue(PacketDirection direction) { return (direction == PacketDirection.Client ? issacClient.GetOffset() : issacServer.GetOffset()); }
     }
 }

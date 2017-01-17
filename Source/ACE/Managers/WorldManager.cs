@@ -1,5 +1,7 @@
 ﻿using ACE.Network;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -47,8 +49,20 @@ namespace ACE.Managers
 
         private static void UpdateWorld()
         {
+            double lastTick = 0d;
+
+            var worldTickTimer = new Stopwatch();
             while (!pendingWorldStop)
             {
+                var now = DateTime.Now;
+
+                worldTickTimer.Restart();
+
+                foreach (var session in sessionStore)
+                    session.Update(lastTick);
+
+                Thread.Sleep(1);
+                lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
             }
         }
     }
