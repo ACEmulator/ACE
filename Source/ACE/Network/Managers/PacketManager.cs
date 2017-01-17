@@ -48,11 +48,15 @@ namespace ACE.Network
 
         private static void HandleLoginRequest(ClientPacket packet, Session session)
         {
+            string testMe = BitConverter.ToString(packet.Data.ToArray()).Replace("-", "");
+
             string someString = packet.Payload.ReadString16L();
-            packet.Payload.Skip(14);
+            packet.Payload.ReadUInt32(); // data length left in packet including ticket
+            packet.Payload.ReadUInt32();
+            packet.Payload.ReadUInt32();
             uint timestamp    = packet.Payload.ReadUInt32();
             string account    = packet.Payload.ReadString16L();
-            packet.Payload.Skip(5);
+            packet.Payload.ReadUInt32();
             string glsTicket  = packet.Payload.ReadString32L();
 
             var connectResponse = new ServerPacket(0x0B, PacketHeaderFlags.ConnectRequest);
@@ -82,14 +86,14 @@ namespace ACE.Network
             {
                 characterFragment.Payload.Write(123u);
                 characterFragment.Payload.WriteString16L("Test Character");
-                characterFragment.Payload.Write(0u);
+                characterFragment.Payload.Write(0u /*secondsGreyedOut*/);
             }
 
             characterFragment.Payload.Write(0u);
             characterFragment.Payload.Write(11u /*slotCount*/);
             characterFragment.Payload.WriteString16L("accountname");
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(0u);
+            characterFragment.Payload.Write(0u /*useTurbineChat*/);
+            characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
             characterList.Fragments.Add(characterFragment);
 
             NetworkMgr.SendLoginPacket(characterList, session);
