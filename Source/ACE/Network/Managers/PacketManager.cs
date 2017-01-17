@@ -48,8 +48,6 @@ namespace ACE.Network
 
         private static void HandleLoginRequest(ClientPacket packet, Session session)
         {
-            string testMe = BitConverter.ToString(packet.Data.ToArray()).Replace("-", "");
-
             string someString = packet.Payload.ReadString16L();
             packet.Payload.ReadUInt32(); // data length left in packet including ticket
             packet.Payload.ReadUInt32();
