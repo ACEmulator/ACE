@@ -39,9 +39,10 @@ namespace ACE.Managers
 
         public static void Remove(Session session)
         {
-            /*lock (sessionLock)
+            lock (sessionLock)
             {
-            }*/
+                sessionStore.Remove(session);
+            }
         }
 
         public static void StopWorld() { pendingWorldStop = true; }
