@@ -16,7 +16,7 @@ namespace ACE.Network
         RequestRetransmit = 0x00001000,
         RejectRetransmit  = 0x00002000,
         AckSequence       = 0x00004000,
-        Disconenct        = 0x00008000,
+        Disconnect        = 0x00008000,
         LoginRequest      = 0x00010000,
         ConnectRequest    = 0x00040000,
         ConnectResponse   = 0x00080000,

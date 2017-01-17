@@ -1,4 +1,5 @@
 ﻿using ACE.Cryptography;
+using ACE.Managers;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -54,6 +55,9 @@ namespace ACE.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
                 HandleConnectResponse(packet, session);
 
+            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
+                HandleDisconnectResponse(packet, session);
+            
             foreach (ClientPacketFragment fragment in packet.Fragments)
             {
                 var opcode = (FragmentOpcode)fragment.Payload.ReadUInt32();
@@ -148,5 +152,11 @@ namespace ACE.Network
 
             NetworkMgr.SendLoginPacket(patchStatus, session);
         }
+
+        private static void HandleDisconnectResponse(ClientPacket packet, Session session)
+        {
+            WorldManager.Remove(session);
+        }
+
     }
 }
