@@ -1,6 +1,7 @@
 # ACEmulator Core Server
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
  * MySQL and MariaDB are used as the database engine.
+ * Latest client supported.
 
 ***
 
@@ -16,3 +17,4 @@
 ## Contact
 
 - [ACEmulator Forums](http://acemulator.org/forums)
+- [Discord Channel](https://discord.gg/mVtGhSv)
