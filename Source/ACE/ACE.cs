@@ -1,4 +1,5 @@
-﻿using ACE.Managers;
+﻿using ACE.Database;
+using ACE.Managers;
 using ACE.Network;
 using System;
 
@@ -10,6 +11,8 @@ namespace ACE
         {
             Console.Title = "ACEmulator";
 
+            ConfigManager.Initialise();
+            DatabaseManager.Initialise();
             PacketManager.Initialise();
             NetworkMgr.Initialise();
             WorldManager.Initalise();
