@@ -206,7 +206,6 @@ namespace ACE.Network
                 payload.Skip(6);
 
             Size = (uint)payload.BaseStream.Position - Size;
-            payload.BaseStream.Position -= Size;
         }
     }
 
@@ -216,11 +215,10 @@ namespace ACE.Network
         public static uint MaxDataSize { get; } = 448u;
 
         public PacketHeader Header { get; protected set; }
+        public PacketHeaderOptional HeaderOptional { get; protected set; }
         public MemoryStream Data { get; protected set; }
         public PacketDirection Direction { get; protected set; } = PacketDirection.None;
         public List<PacketFragment> Fragments { get; } = new List<PacketFragment>();
-
-        protected uint optionalHeaderSize { get; set; } = 0u;
 
         public uint CalculateChecksum(Session session)
         {
@@ -236,11 +234,15 @@ namespace ACE.Network
             uint checksum = 0u;
             if (Header.HasFlag(PacketHeaderFlags.BlobFragments))
             {
-                // FIXME: packets with both optional headers and fragments fail to verify
-                byte[] optionalHeader = new byte[optionalHeaderSize];
-                Buffer.BlockCopy(Data.ToArray(), 0, optionalHeader, 0, (int)optionalHeaderSize);
+                if (HeaderOptional != null)
+                {
+                    // FIXME: packets with both optional headers and fragments fail to verify
+                    byte[] optionalHeader = new byte[HeaderOptional.Size];
+                    Buffer.BlockCopy(Data.ToArray(), 0, optionalHeader, 0, (int)HeaderOptional.Size);
 
-                checksum += Hash32.Calculate(optionalHeader, (int)optionalHeaderSize);
+                    checksum += Hash32.Calculate(optionalHeader, (int)HeaderOptional.Size);
+                }
+
                 foreach (var fragment in Fragments)
                     checksum += Hash32.Calculate(fragment.Header.GetRaw(), (int)PacketFragementHeader.HeaderSize) + Hash32.Calculate(fragment.Data.ToArray(), fragment.Header.Size - (int)PacketFragementHeader.HeaderSize);
             }
@@ -254,7 +256,6 @@ namespace ACE.Network
     public class ClientPacket : Packet
     {
         public BinaryReader Payload { get; }
-        public PacketHeaderOptional HeaderOptional { get; }
 
         public ClientPacket(byte[] data, bool debug = false)
         {
