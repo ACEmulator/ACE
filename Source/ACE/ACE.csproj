@@ -66,6 +66,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Command\CommandHandlerAttribute.cs" />
+    <Compile Include="Command\CommandManager.cs" />
+    <Compile Include="Command\Handlers\AccountCommands.cs" />
+    <Compile Include="Cryptography\SHA2.cs" />
     <Compile Include="Database\Nodes\WorldDatabase.cs" />
     <Compile Include="Managers\ConfigManager.cs" />
     <Compile Include="Cryptography\Hash32.cs" />

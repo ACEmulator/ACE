@@ -1,4 +1,5 @@
-﻿using ACE.Database;
+﻿using ACE.Command;
+using ACE.Database;
 using ACE.Managers;
 using ACE.Network;
 using System;
@@ -16,6 +17,7 @@ namespace ACE
             PacketManager.Initialise();
             NetworkMgr.Initialise();
             WorldManager.Initalise();
+            CommandManager.Initialise();
         }
     }
 }

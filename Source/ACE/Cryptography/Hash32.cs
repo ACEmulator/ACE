@@ -2,7 +2,7 @@
 
 namespace ACE.Cryptography
 {
-    public class Hash32
+    public static class Hash32
     {
         public static uint Calculate(byte[] data, int length)
         {

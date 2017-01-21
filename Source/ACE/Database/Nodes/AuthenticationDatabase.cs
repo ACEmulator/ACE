@@ -6,6 +6,7 @@ namespace ACE.Database
     public enum AuthenticationPreparedStatement
     {
         AccountInsert,
+        AccountMaxIndex,
         AccountSelect
     }
 
@@ -16,6 +17,7 @@ namespace ACE.Database
         protected override void InitialisePreparedStatements()
         {
             AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `password`, `salt`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString, MySqlDbType.VarString);
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
             AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT * FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
         }
     }
