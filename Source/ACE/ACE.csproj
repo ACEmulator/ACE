@@ -87,7 +87,7 @@
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
-    <Compile Include="Network\Managers\NetworkMgr.cs" />
+    <Compile Include="Network\Managers\NetworkManager.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\Session.cs" />
     <Compile Include="ACE.cs" />

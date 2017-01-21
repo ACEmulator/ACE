@@ -97,7 +97,7 @@ namespace ACE.Network
         }
     }
 
-    public static class NetworkMgr
+    public static class NetworkManager
     {
         public static int LoginPort { get; } = 9000;
 

@@ -15,8 +15,8 @@ namespace ACE
             ConfigManager.Initialise();
             DatabaseManager.Initialise();
             PacketManager.Initialise();
-            NetworkMgr.Initialise();
-            WorldManager.Initalise();
+            NetworkManager.Initialise();
+            WorldManager.Initialise();
             CommandManager.Initialise();
         }
     }

@@ -16,7 +16,7 @@ namespace ACE.Managers
 
         private static volatile bool pendingWorldStop;
 
-        public static void Initalise()
+        public static void Initialise()
         {
             var thread = new Thread(new ThreadStart(UpdateWorld));
             thread.Start();

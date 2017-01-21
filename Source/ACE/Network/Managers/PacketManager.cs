@@ -36,7 +36,7 @@ namespace ACE.Network
                 echoResponse.Payload.Write(packet.HeaderOptional.ClientTime);
                 echoResponse.Payload.Write((float)session.ServerTime - packet.HeaderOptional.ClientTime);
 
-                NetworkMgr.SendLoginPacket(echoResponse, session);
+                NetworkManager.SendLoginPacket(echoResponse, session);
             }
 
             // ClientNet::HandleTimeSynch
@@ -46,7 +46,7 @@ namespace ACE.Network
                 var timeSynchResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.TimeSynch);
                 timeSynchResponse.Payload.Write(session.ServerTime);
 
-                NetworkMgr.SendLoginPacket(timeSynchResponse, session);
+                NetworkManager.SendLoginPacket(timeSynchResponse, session);
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
@@ -93,7 +93,7 @@ namespace ACE.Network
             connectResponse.Payload.Write(ISAAC.ClientSeed);
             connectResponse.Payload.Write(0u);
 
-            NetworkMgr.SendLoginPacket(connectResponse, session);
+            NetworkManager.SendLoginPacket(connectResponse, session);
         }
 
         private static void HandleConnectResponse(ClientPacket packet, Session session)
@@ -120,7 +120,7 @@ namespace ACE.Network
             characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
             characterList.Fragments.Add(characterFragment);
 
-            NetworkMgr.SendLoginPacket(characterList, session);
+            NetworkManager.SendLoginPacket(characterList, session);
 
             var serverName         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
@@ -130,7 +130,7 @@ namespace ACE.Network
             serverNameFragment.Payload.WriteString16L("ACEmulator");
             serverName.Fragments.Add(serverNameFragment);
 
-            NetworkMgr.SendLoginPacket(serverName, session);
+            NetworkManager.SendLoginPacket(serverName, session);
 
             // looks like account settings/info, expansion information ect?
             var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
@@ -145,12 +145,12 @@ namespace ACE.Network
             packet75e5Fragment.Payload.Write(1u);
             packet75e5.Fragments.Add(packet75e5Fragment);
 
-            NetworkMgr.SendLoginPacket(serverName, session);
+            NetworkManager.SendLoginPacket(serverName, session);
 
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
 
-            NetworkMgr.SendLoginPacket(patchStatus, session);
+            NetworkManager.SendLoginPacket(patchStatus, session);
         }
 
         private static void HandleDisconnectResponse(ClientPacket packet, Session session)

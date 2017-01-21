@@ -122,7 +122,7 @@
 
             serverName.Fragments.Add(serverNameFragment);
 
-            NetworkMgr.SendLoginPacket(serverName, session);
+            NetworkManager.SendLoginPacket(serverName, session);
         }
     }
 }
