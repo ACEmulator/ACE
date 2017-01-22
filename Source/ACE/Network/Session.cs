@@ -1,4 +1,5 @@
 ﻿using ACE.Cryptography;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 
@@ -9,6 +10,9 @@ namespace ACE.Network
         public uint Id { get; private set; }
         public string Account { get; private set; }
         public bool Authenticated { get; private set; }
+
+        // contains references to the character guid by client slot id
+        public Dictionary<byte /*slotId*/, uint /*characterGuid*/> CharacterSlots { get; } = new Dictionary<byte, uint>();
 
         public double ServerTime { get; private set; }
 

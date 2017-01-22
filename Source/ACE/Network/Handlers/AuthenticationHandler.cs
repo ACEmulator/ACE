@@ -98,13 +98,17 @@ namespace ACE.Network
             characterFragment.Payload.Write(0u);
             characterFragment.Payload.Write(result.Count);
 
-            for (uint i = 0; i < result.Count; i++)
+            session.CharacterSlots.Clear();
+            for (byte i = 0; i < result.Count; i++)
             {
-                characterFragment.Payload.Write(result.Read<uint>(i, "guid"));
+                uint guid = result.Read<uint>(i, "guid");
+                characterFragment.Payload.Write(guid);
                 characterFragment.Payload.WriteString16L(result.Read<string>(i, "name"));
 
                 ulong deleteTime = result.Read<ulong>(i, "deleteTime");
                 characterFragment.Payload.Write(deleteTime != 0ul ? (uint)(WorldManager.GetUnixTime() - deleteTime) : 0u);
+
+                session.CharacterSlots.Add(i, guid);
             }
 
             characterFragment.Payload.Write(0u);

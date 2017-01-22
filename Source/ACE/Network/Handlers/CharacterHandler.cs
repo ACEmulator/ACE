@@ -1,27 +1,43 @@
 ﻿using ACE.Database;
-using System.IO;
+using ACE.Managers;
 
 namespace ACE.Network
 {
     public static class CharacterHandler
     {
         [Fragment(FragmentOpcode.CharacterDelete)]
-        public static void CharacterDelete(PacketFragment fragment, Session session)
+        public static void CharacterDelete(ClientPacketFragment fragment, Session session)
         {
-            BinaryReader reader = new BinaryReader(fragment.Data);
-            string account = reader.ReadString16L();
-            uint charSlot = reader.ReadUInt32();
+            string account     = fragment.Payload.ReadString16L();
+            uint characterSlot = fragment.Payload.ReadUInt32();
 
-            var charDeleteResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
+            if (account != session.Account)
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
+            uint guid;
+            if (!session.CharacterSlots.TryGetValue((byte)characterSlot, out guid))
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
+            // TODO: check if character is already pending removal
+
+            var characterDelete         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var characterDeleteFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterDelete);
-            charDeleteResponse.Fragments.Add(characterDeleteFragment);
-            NetworkManager.SendLoginPacket(charDeleteResponse, session);
+            characterDelete.Fragments.Add(characterDeleteFragment);
 
+            NetworkManager.SendLoginPacket(characterDelete, session);
+
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDelete, WorldManager.GetUnixTime() + 3600ul, guid);
             DatabaseManager.Character.SelectPreparedStatementAsync(AuthenticationHandler.CharacterListSelectCallback, session, CharacterPreparedStatement.CharacterListSelect, session.Id);
         }
 
         [Fragment(FragmentOpcode.CharacterCreate)]
-        public static void CharacterCreate(PacketFragment fragment, Session session)
+        public static void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
             //fragment.OutputDataToConsole(false, true, false, 4);
 

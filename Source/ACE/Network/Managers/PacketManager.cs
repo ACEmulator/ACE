@@ -7,7 +7,7 @@ namespace ACE.Network
 {
     class PacketManager
     {
-        delegate void FragmentHandler(PacketFragment fragement, Session session);
+        delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
         private static Dictionary<FragmentOpcode, FragmentHandler> fragmentHandlers;
 
         public static void Initialise()
