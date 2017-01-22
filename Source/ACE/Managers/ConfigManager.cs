@@ -4,6 +4,11 @@ using System.IO;
 
 namespace ACE.Managers
 {
+    public struct ConfigServer
+    {
+        public string WorldName { get; set; }
+    }
+
     public struct ConfigMySqlDatabase
     {
         public string Host { get; set; }
@@ -22,6 +27,7 @@ namespace ACE.Managers
 
     public struct Config
     {
+        public ConfigServer Server { get; set; }
         public ConfigMySql MySql { get; set; }
     }
 

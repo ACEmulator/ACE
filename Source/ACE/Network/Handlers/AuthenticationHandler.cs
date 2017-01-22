@@ -120,7 +120,7 @@ namespace ACE.Network
             var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
             serverNameFragment.Payload.Write(0u);
             serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.WriteString16L("ACEmulator");
+            serverNameFragment.Payload.WriteString16L(ConfigManager.Config.Server.WorldName);
             serverName.Fragments.Add(serverNameFragment);
 
             NetworkManager.SendLoginPacket(serverName, session);
