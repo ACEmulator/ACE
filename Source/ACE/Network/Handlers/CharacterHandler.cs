@@ -1,10 +1,26 @@
-﻿namespace ACE.Network
+﻿using System.IO;
+
+namespace ACE.Network
 {
     public class CharacterHandler
     {
         [Fragment(FragmentOpcode.CharacterDelete)]
         public static void CharacterDelete(PacketFragment fragment, Session session)
         {
+            BinaryReader reader = new BinaryReader(fragment.Data);
+            string account = reader.ReadString16L();
+            uint charSlot = reader.ReadUInt32();
+
+            var charDeleteResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
+            var characterDeleteFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterDelete);
+            charDeleteResponse.Fragments.Add(characterDeleteFragment);
+            NetworkManager.SendLoginPacket(charDeleteResponse, session);
+
+            var characterList = PacketManager.ConstructCharacterListPacket(true);
+            NetworkManager.SendLoginPacket(characterList, session);
+
+            var serverName = PacketManager.ConstructServerNamePacket();
+            NetworkManager.SendLoginPacket(serverName, session);
         }
 
         [Fragment(FragmentOpcode.CharacterCreate)]

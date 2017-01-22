@@ -100,36 +100,10 @@ namespace ACE.Network
         {
             ulong check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
 
-            var characterList     = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterList);
-
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(1u /*characterCount*/);
-
-            // character loop
-            {
-                characterFragment.Payload.Write(123u);
-                characterFragment.Payload.WriteString16L("Test Character");
-                characterFragment.Payload.Write(0u /*secondsGreyedOut*/);
-            }
-
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(11u /*slotCount*/);
-            characterFragment.Payload.WriteString16L("accountname");
-            characterFragment.Payload.Write(0u /*useTurbineChat*/);
-            characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
-            characterList.Fragments.Add(characterFragment);
-
+            var characterList      = ConstructCharacterListPacket(false);
             NetworkManager.SendLoginPacket(characterList, session);
 
-            var serverName         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
-
-            serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.WriteString16L("ACEmulator");
-            serverName.Fragments.Add(serverNameFragment);
-
+            var serverName         = ConstructServerNamePacket();
             NetworkManager.SendLoginPacket(serverName, session);
 
             // looks like account settings/info, expansion information ect?
@@ -145,7 +119,7 @@ namespace ACE.Network
             packet75e5Fragment.Payload.Write(1u);
             packet75e5.Fragments.Add(packet75e5Fragment);
 
-            NetworkManager.SendLoginPacket(serverName, session);
+            //NetworkManager.SendLoginPacket(serverName, session);
 
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
@@ -156,6 +130,46 @@ namespace ACE.Network
         private static void HandleDisconnectResponse(ClientPacket packet, Session session)
         {
             WorldManager.Remove(session);
+        }
+
+        public static ServerPacket ConstructCharacterListPacket(bool deletedCharacter)
+        {
+            var characterList = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
+            var characterFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterList);
+
+            characterFragment.Payload.Write(0u);
+            characterFragment.Payload.Write(1u /*characterCount*/);
+
+            // character loop
+            {
+                characterFragment.Payload.Write(123u);
+                characterFragment.Payload.WriteString16L("Test Character");
+
+                uint secondsGreyedout = deletedCharacter ? 3600u : 0u;
+                characterFragment.Payload.Write(secondsGreyedout);
+            }
+
+            characterFragment.Payload.Write(0u);
+            characterFragment.Payload.Write(11u /*slotCount*/);
+            characterFragment.Payload.WriteString16L("accountname");
+            characterFragment.Payload.Write(0u /*useTurbineChat*/);
+            characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
+            characterList.Fragments.Add(characterFragment);
+
+            return characterList;
+        }
+
+        public static ServerPacket ConstructServerNamePacket()
+        {
+            var serverName = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
+            var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
+
+            serverNameFragment.Payload.Write(0u);
+            serverNameFragment.Payload.Write(0u);
+            serverNameFragment.Payload.WriteString16L("ACEmulator");
+            serverName.Fragments.Add(serverNameFragment);
+
+            return serverName;
         }
 
     }
