@@ -1,4 +1,5 @@
 ﻿using ACE.Network;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -37,6 +38,12 @@ namespace ACE.Managers
             }
         }
 
+        public static Session Find(string account)
+        {
+            lock (sessionLock)
+                return sessionStore.SingleOrDefault(s => s.Account == account);
+        }
+
         public static void Remove(Session session)
         {
             lock (sessionLock)
@@ -63,5 +70,7 @@ namespace ACE.Managers
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
             }
         }
+
+        public static ulong GetUnixTime() { return (ulong)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds; }
     }
 }

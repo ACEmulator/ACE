@@ -16,8 +16,9 @@ namespace ACE.Command
             Debug.Assert(result != null);
 
             uint accountId = result.Read<uint>(0, "MAX(`id`)") + 1;
-            string salt    = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
-            string digest  = SHA2.Hash(SHA2Type.SHA256, parameters[1] + salt);
+            string salt     = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
+            string password = SHA2.Hash(SHA2Type.SHA256, parameters[1]);
+            string digest   = SHA2.Hash(SHA2Type.SHA256, password + salt);
 
             DatabaseManager.Authentication.ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, accountId, parameters[0], digest, salt);
         }

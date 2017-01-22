@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿using ACE.Database;
+using System.IO;
 
 namespace ACE.Network
 {
-    public class CharacterHandler
+    public static class CharacterHandler
     {
         [Fragment(FragmentOpcode.CharacterDelete)]
         public static void CharacterDelete(PacketFragment fragment, Session session)
@@ -16,11 +17,7 @@ namespace ACE.Network
             charDeleteResponse.Fragments.Add(characterDeleteFragment);
             NetworkManager.SendLoginPacket(charDeleteResponse, session);
 
-            var characterList = PacketManager.ConstructCharacterListPacket(true);
-            NetworkManager.SendLoginPacket(characterList, session);
-
-            var serverName = PacketManager.ConstructServerNamePacket();
-            NetworkManager.SendLoginPacket(serverName, session);
+            DatabaseManager.Character.SelectPreparedStatementAsync(AuthenticationHandler.CharacterListSelectCallback, session, CharacterPreparedStatement.CharacterListSelect, session.Id);
         }
 
         [Fragment(FragmentOpcode.CharacterCreate)]

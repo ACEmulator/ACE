@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using ACE.Network;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -189,8 +190,45 @@ namespace ACE.Database
             return null;
         }
 
-        /*public void SelectPreparedStatementAsync<T>(T id, params object[] parameters)
+        public delegate void SelectPreparedStatementAsyncCallback(MySqlResult result, Session session);
+
+        public async void SelectPreparedStatementAsync<T>(SelectPreparedStatementAsyncCallback callback, Session session, T id, params object[] parameters)
         {
-        }*/
+            Debug.Assert(typeof(T) == GetPreparedStatementType());
+
+            StoredPreparedStatement preparedStatement;
+            Debug.Assert(preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement));
+
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    using (var command = new MySqlCommand(preparedStatement.Query, connection))
+                    {
+                        for (int i = 0; i < preparedStatement.Types.Count; i++)
+                            command.Parameters.Add("", preparedStatement.Types[i]).Value = parameters[i];
+
+                        await connection.OpenAsync();
+                        await Task.Run(() =>
+                        {
+                            using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                            {
+                                using (var result = new MySqlResult())
+                                {
+                                    result.Load(commandReader);
+                                    result.Count = (uint)result.Rows.Count;
+                                    return result;
+                                }
+                            }
+                        }).ContinueWith((task) => callback(task.Result, session));
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"An exception occured while selecting prepared statement {id.ToString()}!");
+                Console.WriteLine($"Exception: {exception.Message}");
+            }
+        }
     }
 }

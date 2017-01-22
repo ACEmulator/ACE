@@ -3,9 +3,10 @@
     public enum FragmentOpcode
     {
         None                    = 0x0000,
+        CharacterCreate         = 0xF656,
         CharacterCreateResponse = 0xF643,
         CharacterDelete         = 0xF655,
-        CharacterCreate         = 0xF656,
+        CharacterError          = 0xF659,
         CharacterList           = 0xF658,
         PatchStatus             = 0xF7EA,
         ServerName              = 0xF7E1,

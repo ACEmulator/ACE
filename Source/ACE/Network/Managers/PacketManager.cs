@@ -1,5 +1,4 @@
-﻿using ACE.Cryptography;
-using ACE.Managers;
+﻿using ACE.Managers;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -50,10 +49,16 @@ namespace ACE.Network
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-                HandleLoginRequest(packet, session);
+            {
+                AuthenticationHandler.HandleLoginRequest(packet, session);
+                return;
+            }
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-                HandleConnectResponse(packet, session);
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && session.Authenticated)
+            {
+                AuthenticationHandler.HandleConnectResponse(packet, session);
+                return;
+            }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse(packet, session);
@@ -72,105 +77,9 @@ namespace ACE.Network
             }
         }
 
-        private static void HandleLoginRequest(ClientPacket packet, Session session)
-        {
-            string someString = packet.Payload.ReadString16L();
-            packet.Payload.ReadUInt32(); // data length left in packet including ticket
-            packet.Payload.ReadUInt32();
-            packet.Payload.ReadUInt32();
-            uint timestamp    = packet.Payload.ReadUInt32();
-            string account    = packet.Payload.ReadString16L();
-            packet.Payload.ReadUInt32();
-            string glsTicket  = packet.Payload.ReadString32L();
-
-            var connectResponse = new ServerPacket(0x0B, PacketHeaderFlags.ConnectRequest);
-            connectResponse.Payload.Write(0u);
-            connectResponse.Payload.Write(0u);
-            connectResponse.Payload.Write(13626398284849559039ul); // some sort of check value?
-            connectResponse.Payload.Write((ushort)0);
-            connectResponse.Payload.Write((ushort)0);
-            connectResponse.Payload.Write(ISAAC.ServerSeed);
-            connectResponse.Payload.Write(ISAAC.ClientSeed);
-            connectResponse.Payload.Write(0u);
-
-            NetworkManager.SendLoginPacket(connectResponse, session);
-        }
-
-        private static void HandleConnectResponse(ClientPacket packet, Session session)
-        {
-            ulong check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
-
-            var characterList      = ConstructCharacterListPacket(false);
-            NetworkManager.SendLoginPacket(characterList, session);
-
-            var serverName         = ConstructServerNamePacket();
-            NetworkManager.SendLoginPacket(serverName, session);
-
-            // looks like account settings/info, expansion information ect?
-            var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var packet75e5Fragment = new ServerPacketFragment(9, FragmentOpcode.Unknown75E5);
-
-            packet75e5Fragment.Payload.Write(0u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5Fragment.Payload.Write(2u);
-            packet75e5Fragment.Payload.Write(0u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5.Fragments.Add(packet75e5Fragment);
-
-            //NetworkManager.SendLoginPacket(serverName, session);
-
-            var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
-
-            NetworkManager.SendLoginPacket(patchStatus, session);
-        }
-
         private static void HandleDisconnectResponse(ClientPacket packet, Session session)
         {
             WorldManager.Remove(session);
         }
-
-        public static ServerPacket ConstructCharacterListPacket(bool deletedCharacter)
-        {
-            var characterList = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterList);
-
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(1u /*characterCount*/);
-
-            // character loop
-            {
-                characterFragment.Payload.Write(123u);
-                characterFragment.Payload.WriteString16L("Test Character");
-
-                uint secondsGreyedout = deletedCharacter ? 3600u : 0u;
-                characterFragment.Payload.Write(secondsGreyedout);
-            }
-
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(11u /*slotCount*/);
-            characterFragment.Payload.WriteString16L("accountname");
-            characterFragment.Payload.Write(0u /*useTurbineChat*/);
-            characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
-            characterList.Fragments.Add(characterFragment);
-
-            return characterList;
-        }
-
-        public static ServerPacket ConstructServerNamePacket()
-        {
-            var serverName = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
-
-            serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.WriteString16L("ACEmulator");
-            serverName.Fragments.Add(serverNameFragment);
-
-            return serverName;
-        }
-
     }
 }
