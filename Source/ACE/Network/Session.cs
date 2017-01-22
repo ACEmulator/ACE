@@ -14,6 +14,8 @@ namespace ACE.Network
         // contains references to the character guid by client slot id
         public Dictionary<byte /*slotId*/, uint /*characterGuid*/> CharacterSlots { get; } = new Dictionary<byte, uint>();
 
+        public Dictionary<uint /*characterGuid*/, string /* characterName */> CharacterNames { get; } = new Dictionary<uint, string>();
+
         public double ServerTime { get; private set; }
 
         public IPEndPoint EndPoint { get; }

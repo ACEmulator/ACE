@@ -32,13 +32,31 @@ namespace ACE.Network
 
             NetworkManager.SendLoginPacket(characterDelete, session);
 
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDelete, WorldManager.GetUnixTime() + 3600ul, guid);
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, WorldManager.GetUnixTime() + 3600ul, guid);
             DatabaseManager.Character.SelectPreparedStatementAsync(AuthenticationHandler.CharacterListSelectCallback, session, CharacterPreparedStatement.CharacterListSelect, session.Id);
+        }
+
+        [Fragment(FragmentOpcode.CharacterRestore)]
+        public static void CharacterRestore(ClientPacketFragment fragment, Session session)
+        {
+            uint guid = fragment.Payload.ReadUInt32();
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, 0, guid);
+
+            var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
+            var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
+            characterRestoreFragment.Payload.Write(1u /* Verification OK flag */);
+            characterRestoreFragment.Payload.Write(guid);
+            characterRestoreFragment.Payload.WriteString16L(session.CharacterNames[guid]);
+            characterRestoreFragment.Payload.Write(0u /* secondsGreyedOut */);
+            characterRestore.Fragments.Add(characterRestoreFragment);
+
+            NetworkManager.SendLoginPacket(characterRestore, session);
         }
 
         [Fragment(FragmentOpcode.CharacterCreate)]
         public static void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
+
             //fragment.OutputDataToConsole(false, true, false, 4);
 
             /*
