@@ -1,5 +1,8 @@
 ﻿using ACE.Database;
 using ACE.Managers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Network
 {
@@ -40,6 +43,11 @@ namespace ACE.Network
         public static void CharacterRestore(ClientPacketFragment fragment, Session session)
         {
             uint guid = fragment.Payload.ReadUInt32();
+            if (!session.CharacterNames.ContainsKey(guid))
+            {
+                return;
+            }
+
             DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, 0, guid);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
@@ -56,7 +64,6 @@ namespace ACE.Network
         [Fragment(FragmentOpcode.CharacterCreate)]
         public static void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
-
             //fragment.OutputDataToConsole(false, true, false, 4);
 
             /*
@@ -121,8 +128,8 @@ namespace ACE.Network
             This is the footwear main color circle selected.
 
             [Skills]
-            UnusableUntrained	00
-            UseableUntrained	01
+            Invalid / Retired	00
+            Untrained       	01
             Trained				02
             Specialized			03
 
@@ -139,8 +146,60 @@ namespace ACE.Network
             I believe this to be a checksum of sorts
             */
 
+            var newCharacter         = new NewCharacter();
 
+            newCharacter.AccountName = fragment.Payload.ReadString16L();
 
+            fragment.Payload.Skip(4); /* Unknown constant (1) */
+
+            newCharacter.Race           = fragment.Payload.ReadUInt32();
+            newCharacter.Gender         = fragment.Payload.ReadUInt32();
+            newCharacter.Eyes           = fragment.Payload.ReadUInt32();
+            newCharacter.Nose           = fragment.Payload.ReadUInt32();
+            newCharacter.Mouth          = fragment.Payload.ReadUInt32();
+            newCharacter.Haircolor      = fragment.Payload.ReadUInt32();
+            newCharacter.EyeColor       = fragment.Payload.ReadUInt32();
+            newCharacter.HairStyle      = fragment.Payload.ReadUInt32();
+            newCharacter.HeadgearStyle  = fragment.Payload.ReadUInt32();
+            newCharacter.HeadgearColor  = fragment.Payload.ReadUInt32();
+            newCharacter.ShirtStyle     = fragment.Payload.ReadUInt32();
+            newCharacter.ShirtColor     = fragment.Payload.ReadUInt32();
+            newCharacter.PantsStyle     = fragment.Payload.ReadUInt32();
+            newCharacter.PantsColor     = fragment.Payload.ReadUInt32();
+            newCharacter.FootwearStyle  = fragment.Payload.ReadUInt32();
+            newCharacter.FootwearColor  = fragment.Payload.ReadUInt32();
+            newCharacter.SkinHue        = fragment.Payload.ReadDouble();
+            newCharacter.HairHue        = fragment.Payload.ReadDouble();
+            newCharacter.HeadgearHue    = fragment.Payload.ReadDouble();
+            newCharacter.ShirtHue       = fragment.Payload.ReadDouble();
+            newCharacter.PantsHue       = fragment.Payload.ReadDouble();
+            newCharacter.FootwearHue    = fragment.Payload.ReadDouble();
+            newCharacter.TemplateOption = fragment.Payload.ReadUInt32();
+            newCharacter.Strength       = fragment.Payload.ReadUInt32();
+            newCharacter.Endurance      = fragment.Payload.ReadUInt32();
+            newCharacter.Coordination   = fragment.Payload.ReadUInt32();
+            newCharacter.Quickness      = fragment.Payload.ReadUInt32();
+            newCharacter.Focus          = fragment.Payload.ReadUInt32();
+            newCharacter.Self           = fragment.Payload.ReadUInt32();
+            newCharacter.Slot           = fragment.Payload.ReadUInt32();
+            newCharacter.ClassId        = fragment.Payload.ReadUInt32();
+
+            uint numOfSkills = fragment.Payload.ReadUInt32();
+            for (uint i = 0; i < numOfSkills; i++)
+            {
+                if (new[] {0u, 1u, 2u, 3u, 4u, 5u, 8u, 9u, 10u, 11u, 12u, 13u, 17u, 25u, 26u, 42u, 53u}.Contains(i))   /* Inactive / retired  skills */
+                {
+                    fragment.Payload.Skip(4);
+                    continue;
+                }
+                newCharacter.AddSkill(i, fragment.Payload.ReadUInt32());
+            }
+
+            newCharacter.CharacterName    = fragment.Payload.ReadString16L();
+            newCharacter.StartArea        = fragment.Payload.ReadUInt32();
+            newCharacter.IsAdmin          = Convert.ToBoolean(fragment.Payload.ReadUInt32());
+            newCharacter.IsEnvoy          = Convert.ToBoolean(fragment.Payload.ReadUInt32());
+            newCharacter.TotalSkillPoints = fragment.Payload.ReadUInt32();
 
             /*
             SERVER -> CLIENT RESPONSE
@@ -166,10 +225,117 @@ namespace ACE.Network
             // Not sure what this is 0x9E, 0x16, 0x14, 0x50
             // This is the newly created characters name 0x0F, 0x00, 0x4D, 0x61, 0x67, 0x2D, 0x6E, 0x75, 0x73, 0x61, 0x73, 0x64, 0x66, 0x61, 0x73, 0x64, 0x66 "Mag-nusasdfasdf"
             serverNameFragment.Payload.Write(new byte[] { 0x01, 0x00, 0x00, 0x00, 0x9E, 0x16, 0x14, 0x50, 0x0F, 0x00, 0x4D, 0x61, 0x67, 0x2D, 0x6E, 0x75, 0x73, 0x61, 0x73, 0x64, 0x66, 0x61, 0x73, 0x64, 0x66, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
-
             serverName.Fragments.Add(serverNameFragment);
 
             NetworkManager.SendLoginPacket(serverName, session);
         }
+    }
+
+    public class NewCharacter
+    {
+        private List<NewCharacterSkill> Skills = new List<NewCharacterSkill>();
+
+        public string AccountName { get; set; }
+        public uint Race { get; set; }
+        public uint Gender { get; set; }
+        public uint Eyes { get; set; }
+        public uint Nose { get; set; }
+        public uint Mouth { get; set; }
+        public uint Haircolor { get; set; }
+        public uint EyeColor { get; set; }
+        public uint HairStyle { get; set; }
+        public uint HeadgearStyle { get; set; }
+        public uint HeadgearColor { get; set; }
+        public uint ShirtStyle { get; set; }
+        public uint ShirtColor { get; set; }
+        public uint PantsStyle { get; set; }
+        public uint PantsColor { get; set; }
+        public uint FootwearStyle { get; set; }
+        public uint FootwearColor { get; set; }
+        public double SkinHue { get; set; }
+        public double HairHue { get; set; }
+        public double HeadgearHue { get; set; }
+        public double ShirtHue { get; set; }
+        public double PantsHue { get; set; }
+        public double FootwearHue { get; set; }
+        public uint TemplateOption { get; set; }
+        public uint Strength { get; set; }
+        public uint Endurance { get; set; }
+        public uint Coordination { get; set; }
+        public uint Quickness { get; set; }
+        public uint Focus { get; set; }
+        public uint Self { get; set; }
+        public uint Slot { get; set; }
+        public uint ClassId { get; set; }
+        public string CharacterName { get; set; }
+        public uint StartArea { get; set; }
+        public bool IsAdmin { get; set; }
+        public bool IsEnvoy { get; set; }
+        public uint TotalSkillPoints { get; set; }
+
+        public void AddSkill(uint skill, uint status)
+        {
+            var newSkill = new NewCharacterSkill();
+            newSkill.Skill = (CharacterSkill) skill;
+            newSkill.Status = (SkillStatus) status;
+            Skills.Add(newSkill);
+        }
+
+        private class NewCharacterSkill
+        {
+            public CharacterSkill Skill { get; set; }
+            public SkillStatus Status { get; set; }
+        }
+
+    }
+
+    public enum CharacterSkill
+    {
+        MELEE_DEFENSE = 6,
+        MISSILE_DEFENSE = 7,
+        ARCANE_LORE = 14,
+        MAGIC_DEFENSE = 15,
+        MANA_CONVERSION = 16,
+        ITEM_TINKERING = 18,
+        ASSESS_PERSON = 19,
+        DECEPTION = 20,
+        HEALING = 21,
+        JUMP = 22,
+        LOCKPICK = 23,
+        RUN = 24,
+        ASSESS_CREATURE = 27,
+        WEAPON_TINKERING = 28,
+        ARMOR_TINKERING = 29,
+        MAGIC_ITEM_TINKERING = 30,
+        CREATURE_ENHANCEMENT = 31,
+        ITEM_ENHANCEMENT = 32,
+        LIFE_MAGIC = 33,
+        WAR_MAGIC = 34,
+        LEADERSHIP = 35,
+        LOYALTY = 36,
+        FLETCHING = 37,
+        ALCHEMY = 38,
+        COOKING = 39,
+        SALVAGING = 40,
+        TWO_HANDED_COMBAT = 41,
+        VOID_MAGIC = 43,
+        HEAVY_WEAPONS = 44,
+        LIGHT_WEAPONS = 45,
+        FINESSE_WEAPONS = 46,
+        MISSILE_WEAPONS = 47,
+        SHIELD = 48,
+        DUAL_WIELD = 49,
+        RECKLESSNESS = 50,
+        SNEAK_ATTACK = 51,
+        DIRTY_FIGHTING = 52,
+        SUMMONING = 54
+    }
+
+    public enum SkillStatus
+    {
+        INVALID_RETIRED,
+        UNTRAINED,
+        TRAINED,
+        SPECIALIZED 
     }
 }
