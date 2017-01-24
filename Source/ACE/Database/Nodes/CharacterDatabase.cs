@@ -15,8 +15,8 @@ namespace ACE.Database
 
         protected override void InitialisePreparedStatements()
         {
-            AddPreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, "UPDATE `character` SET `deleteTime` = ? WHERE `guid` = ?;", MySqlDbType.UInt64, MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `id` = ? ORDER BY `name` ASC;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, "UPDATE `characters` SET `DeleteTime` = ? WHERE `Character_ID` = ?;", MySqlDbType.UInt64, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `Character_ID`, `Name`, `DeleteTime` FROM `characters` WHERE `Character_ID` = ? ORDER BY `name` ASC;", MySqlDbType.UInt32);
         }
     }
 }
