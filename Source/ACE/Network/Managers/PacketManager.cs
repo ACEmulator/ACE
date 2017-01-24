@@ -1,4 +1,5 @@
-﻿using ACE.Managers;
+﻿using ACE.Cryptography;
+using ACE.Managers;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -24,50 +25,71 @@ namespace ACE.Network
                         fragmentHandlers[fragmentHandlerAttribute.Opcode] = (FragmentHandler)Delegate.CreateDelegate(typeof(FragmentHandler), methodInfo);
         }
 
-        public static void HandleLoginPacket(ClientPacket packet, Session session)
+        public static void HandlePacket(ConnectionType type, ClientPacket packet, Session session)
         {
             // CLinkStatusAverages::OnPingResponse
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
             {
+                var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
+
                 // used to calculate round trip time (ping)
                 // client calculates: currentTime - requestTime - serverDrift
                 var echoResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.EchoResponse);
                 echoResponse.Payload.Write(packet.HeaderOptional.ClientTime);
-                echoResponse.Payload.Write((float)session.ServerTime - packet.HeaderOptional.ClientTime);
+                echoResponse.Payload.Write((float)connectionData.ServerTime - packet.HeaderOptional.ClientTime);
 
-                NetworkManager.SendLoginPacket(echoResponse, session);
+                NetworkManager.SendPacket(type, echoResponse, session);
             }
 
             // ClientNet::HandleTimeSynch
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
+                var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
+
                 // used to update time at client and check for overspeed (60s desync and client will disconenct with speed hack warning)
                 var timeSynchResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.TimeSynch);
-                timeSynchResponse.Payload.Write(session.ServerTime);
+                timeSynchResponse.Payload.Write(connectionData.ServerTime);
 
-                NetworkManager.SendLoginPacket(timeSynchResponse, session);
+                NetworkManager.SendPacket(type, timeSynchResponse, session);
             }
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            if (type == ConnectionType.Login)
             {
-                AuthenticationHandler.HandleLoginRequest(packet, session);
-                return;
-            }
+                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+                {
+                    AuthenticationHandler.HandleLoginRequest(packet, session);
+                    return;
+                }
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && session.Authenticated)
+                if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && session.Authenticated)
+                {
+                    AuthenticationHandler.HandleConnectResponse(packet, session);
+                    return;
+                }
+            }
+            else
             {
-                AuthenticationHandler.HandleConnectResponse(packet, session);
-                return;
+                if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
+                {
+                    AuthenticationHandler.HandleWorldLoginRequest(packet, session);
+                    return;
+                }
+
+                if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
+                {
+                    AuthenticationHandler.HandleWorldConnectResponse(packet, session);
+                    return;
+                }
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse(packet, session);
-            
+
             foreach (ClientPacketFragment fragment in packet.Fragments)
             {
                 var opcode = (FragmentOpcode)fragment.Payload.ReadUInt32();
                 if (!fragmentHandlers.ContainsKey(opcode))
-                    Console.WriteLine($"Received unhandled fragment opcode: 0x{((int)opcode).ToString("X4")}");
+                    Console.WriteLine($"Received unhandled fragment opcode: 0x{((uint)opcode).ToString("X4")}");
                 else
                 {
                     FragmentHandler fragmentHandler;

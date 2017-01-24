@@ -3,11 +3,59 @@ using ACE.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace ACE.Network
 {
     public static class CharacterHandler
     {
+        [Fragment(FragmentOpcode.CharacterEnterWorldRequest)]
+        public static void CharacterEnterWorldRequest(ClientPacketFragment fragment, Session session)
+        {
+            var characterEnterWorldServerReady = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
+            characterEnterWorldServerReady.Fragments.Add(new ServerPacketFragment(9, FragmentOpcode.CharacterEnterWorldServerReady));
+
+            NetworkManager.SendPacket(ConnectionType.Login, characterEnterWorldServerReady, session);
+        }
+
+        [Fragment(FragmentOpcode.CharacterEnterWorld)]
+        public static void CharacterEnterWorld(ClientPacketFragment fragment, Session session)
+        {
+            uint guid      = fragment.Payload.ReadUInt32();
+            string account = fragment.Payload.ReadString16L();
+
+            if (account != session.Account)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
+
+            string name;
+            if (!session.CharacterNames.TryGetValue(guid, out name))
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
+
+            // this isn't really that necessary since ACE doesn't split login/world to multiple daemons, handle it anyway
+            byte[] connectionKey = new byte[sizeof(ulong)];
+            RandomNumberGenerator.Create().GetNonZeroBytes(connectionKey);
+
+            session.WorldConnectionKey = BitConverter.ToUInt64(connectionKey, 0);
+
+            var referralPacket = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.Referral);
+            referralPacket.Payload.Write(session.WorldConnectionKey);
+            referralPacket.Payload.Write((ushort)2);
+            referralPacket.Payload.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
+            referralPacket.Payload.Write(ConfigManager.Host);
+            referralPacket.Payload.Write(0ul);
+            referralPacket.Payload.Write((ushort)24);
+            referralPacket.Payload.Write((ushort)0);
+            referralPacket.Payload.Write(0u);
+
+            NetworkManager.SendPacket(ConnectionType.Login, referralPacket, session);
+        }
+
         [Fragment(FragmentOpcode.CharacterDelete)]
         public static void CharacterDelete(ClientPacketFragment fragment, Session session)
         {
@@ -33,7 +81,7 @@ namespace ACE.Network
             var characterDeleteFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterDelete);
             characterDelete.Fragments.Add(characterDeleteFragment);
 
-            NetworkManager.SendLoginPacket(characterDelete, session);
+            NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
             DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, WorldManager.GetUnixTime() + 3600ul, guid);
             DatabaseManager.Character.SelectPreparedStatementAsync(AuthenticationHandler.CharacterListSelectCallback, session, CharacterPreparedStatement.CharacterListSelect, session.Id);
@@ -58,7 +106,7 @@ namespace ACE.Network
             characterRestoreFragment.Payload.Write(0u /* secondsGreyedOut */);
             characterRestore.Fragments.Add(characterRestoreFragment);
 
-            NetworkManager.SendLoginPacket(characterRestore, session);
+            NetworkManager.SendPacket(ConnectionType.Login, characterRestore, session);
         }
 
         [Fragment(FragmentOpcode.CharacterCreate)]
@@ -227,7 +275,7 @@ namespace ACE.Network
             serverNameFragment.Payload.Write(new byte[] { 0x01, 0x00, 0x00, 0x00, 0x9E, 0x16, 0x14, 0x50, 0x0F, 0x00, 0x4D, 0x61, 0x67, 0x2D, 0x6E, 0x75, 0x73, 0x61, 0x73, 0x64, 0x66, 0x61, 0x73, 0x64, 0x66, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
             serverName.Fragments.Add(serverNameFragment);
 
-            NetworkManager.SendLoginPacket(serverName, session);
+            NetworkManager.SendPacket(ConnectionType.Login, serverName, session);
         }
     }
 

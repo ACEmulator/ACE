@@ -1,6 +1,11 @@
 ﻿{
     "Server": {
-        "WorldName": "ACEmulator"
+        "WorldName": "ACEmulator",
+        "Network": {
+            "Host": "127.0.0.1",
+            "LoginPort": 9000,
+            "WorldPort": 9008
+        }
     },
     "MySql": {
         "Authentication": {

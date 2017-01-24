@@ -32,6 +32,12 @@ namespace ACE.Network
             return length != 0u ? new string(reader.ReadChars((int)length)) : string.Empty;
         }
 
+        public static void WriteUInt16BE(this BinaryWriter writer, ushort value)
+        {
+            ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
+            writer.Write(beValue);
+        }
+
         public static void Skip(this BinaryReader reader, uint length) { reader.BaseStream.Position += length; }
 
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }

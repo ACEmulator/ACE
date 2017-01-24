@@ -13,11 +13,13 @@ namespace ACE.Network
         EncryptedChecksum = 0x00000002, // can't be paired with 0x00000001, see FlowQueue::DequeueAck
         BlobFragments     = 0x00000004,
         ServerSwitch      = 0x00000100,
+        Referral          = 0x00000800,
         RequestRetransmit = 0x00001000,
         RejectRetransmit  = 0x00002000,
         AckSequence       = 0x00004000,
         Disconnect        = 0x00008000,
         LoginRequest      = 0x00010000,
+        WorldLoginRequest = 0x00020000,
         ConnectRequest    = 0x00040000,
         ConnectResponse   = 0x00080000,
         CICMDCommand      = 0x00400000,
@@ -220,12 +222,12 @@ namespace ACE.Network
         public PacketDirection Direction { get; protected set; } = PacketDirection.None;
         public List<PacketFragment> Fragments { get; } = new List<PacketFragment>();
 
-        public uint CalculateChecksum(Session session)
+        public uint CalculateChecksum(Session session, ConnectionType type)
         {
             uint headerChecksum = 0u;
             Header.CalculateHash32(out headerChecksum);
 
-            uint xor = (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? session.GetIssacValue(Direction) : 0u);
+            uint xor = (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? session.GetIssacValue(Direction, type) : 0u);
             return headerChecksum + (CalculatePayloadChecksum() ^ xor);
         }
 

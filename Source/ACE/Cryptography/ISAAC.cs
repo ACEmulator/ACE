@@ -6,6 +6,8 @@ namespace ACE.Cryptography
     {
         public static byte[] ClientSeed { get; } = { 0x60, 0xAF, 0x54, 0x6D }; // C->S
         public static byte[] ServerSeed { get; } = { 0xCD, 0xD7, 0xEB, 0x45 }; // S->C
+        public static byte[] WorldClientSeed { get; } = { 0xC4, 0x90, 0xF7, 0x78 };
+        public static byte[] WorldServerSeed { get; } = { 0x18, 0xA1, 0xEB, 0x11 };
 
         private uint offset;
 

@@ -32,7 +32,7 @@ namespace ACE.Network
             connectResponse.Payload.Write(ISAAC.ClientSeed);
             connectResponse.Payload.Write(0u);
 
-            NetworkManager.SendLoginPacket(connectResponse, session);
+            NetworkManager.SendPacket(ConnectionType.Login, connectResponse, session);
 
             if (result.Count == 0)
             {
@@ -88,7 +88,7 @@ namespace ACE.Network
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
 
-            NetworkManager.SendLoginPacket(patchStatus, session);
+            NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
         }
 
         public static void CharacterListSelectCallback(MySqlResult result, Session session)
@@ -122,7 +122,7 @@ namespace ACE.Network
             characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
             characterList.Fragments.Add(characterFragment);
 
-            NetworkManager.SendLoginPacket(characterList, session);
+            NetworkManager.SendPacket(ConnectionType.Login, characterList, session);
 
             var serverName         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
@@ -131,7 +131,38 @@ namespace ACE.Network
             serverNameFragment.Payload.WriteString16L(ConfigManager.Config.Server.WorldName);
             serverName.Fragments.Add(serverNameFragment);
 
-            NetworkManager.SendLoginPacket(serverName, session);
+            NetworkManager.SendPacket(ConnectionType.Login, serverName, session);
+        }
+
+        public static void HandleWorldLoginRequest(ClientPacket packet, Session session)
+        {
+            ulong connectionKey = packet.Payload.ReadUInt64();
+            if (connectionKey != session.WorldConnectionKey || connectionKey == 0)
+            {
+                session.SendCharacterError(CharacterError.EnterGamePlayerAccountMissing);
+                return;
+            }
+
+            session.WorldConnection = new SeasonConnectionData(ConnectionType.World);
+
+            var connectResponse = new ServerPacket(0x18, PacketHeaderFlags.ConnectRequest);
+            connectResponse.Payload.Write(0u);
+            connectResponse.Payload.Write(0u);
+            connectResponse.Payload.Write(13626398284849559039ul); // some sort of check value?
+            connectResponse.Payload.Write((ushort)0);
+            connectResponse.Payload.Write((ushort)0);
+            connectResponse.Payload.Write(ISAAC.WorldServerSeed);
+            connectResponse.Payload.Write(ISAAC.WorldClientSeed);
+            connectResponse.Payload.Write(0u);
+
+            NetworkManager.SendPacket(ConnectionType.World, connectResponse, session);
+        }
+
+        public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
+        {
+            var serverSwitch = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch);
+            serverSwitch.Payload.Write(6ul);
+            NetworkManager.SendPacket(ConnectionType.World, serverSwitch, session);
         }
     }
 }

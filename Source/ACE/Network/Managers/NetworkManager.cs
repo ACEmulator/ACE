@@ -19,10 +19,10 @@ namespace ACE.Network
 
         private ConnectionType listenerType;
 
-        private int listeningPort;
+        private uint listeningPort;
         private byte[] buffer = new byte[Packet.MaxPacketSize];
 
-        public ConnectionListener(int port, ConnectionType type)
+        public ConnectionListener(uint port, ConnectionType type)
         {
             listenerType  = type;
             listeningPort = port;
@@ -34,7 +34,7 @@ namespace ACE.Network
             {
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                Socket.Bind(new IPEndPoint(IPAddress.Any, listeningPort));
+                Socket.Bind(new IPEndPoint(IPAddress.Any, (int)listeningPort));
                 Listen();
             }
             catch (Exception exception)
@@ -83,14 +83,11 @@ namespace ACE.Network
             var session = WorldManager.Find((IPEndPoint)clientEndPoint);
 
             var packet = new ClientPacket(data);
-            if (listenerType == ConnectionType.Login)
-                PacketManager.HandleLoginPacket(packet, session);
-            /*else
-                PacketManager.HandleWorldPacket(packet, WorldManager.Find(clientEndPoint));*/
+            PacketManager.HandlePacket(listenerType, packet, session);
 
             #region DEBUG
-                uint checksum = packet.CalculateChecksum(session);
-                Console.WriteLine($"Received: Size: {data.Length}, Hash: 0x{checksum.ToString("X8")} 0x{ packet.Header.Checksum.ToString("X8")}, Fragments: {packet.Fragments.Count}, Flags: {packet.Header.Flags}");
+                uint checksum = packet.CalculateChecksum(session, listenerType);
+                Console.WriteLine($"Received({listenerType.ToString()}): Size: {data.Length}, Hash: 0x{checksum.ToString("X8")} 0x{ packet.Header.Checksum.ToString("X8")}, Fragments: {packet.Fragments.Count}, Flags: {packet.Header.Flags}");
             #endregion
 
             Listen();
@@ -99,18 +96,22 @@ namespace ACE.Network
 
     public static class NetworkManager
     {
-        public static int LoginPort { get; } = 9000;
-
         private static List<ConnectionListener> loginListeners = new List<ConnectionListener>();
-        //private static List<ConnectionListener> worldListeners = new List<ConnectionListener>();
+        private static List<ConnectionListener> worldListeners = new List<ConnectionListener>();
 
         public static void Initialise()
         {
-            loginListeners.Add(new ConnectionListener(LoginPort, ConnectionType.Login));
-            loginListeners.Add(new ConnectionListener(LoginPort + 1, ConnectionType.Login));
+            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.LoginPort, ConnectionType.Login));
+            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.LoginPort + 1, ConnectionType.Login));
 
             foreach (var loginListener in loginListeners)
                 loginListener.Start();
+
+            worldListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.WorldPort, ConnectionType.World));
+            worldListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.WorldPort + 1, ConnectionType.World));
+
+            foreach (var worldListener in worldListeners)
+                worldListener.Start();
         }
         
         private static Socket GetSocket(ConnectionType type)
@@ -118,13 +119,12 @@ namespace ACE.Network
             if (type == ConnectionType.Login)
                 return loginListeners[0].Socket;
             else // ConnectionListenerType.World
-                return null;
+                return worldListeners[0].Socket;
         }
 
-        public static void SendPacket(ConnectionType type, Session session, byte[] data) { GetSocket(type).SendTo(data, session.EndPoint); }
-
-        public static void SendLoginPacket(ServerPacket packet, Session session)
+        private static byte[] ConstructPacket(ConnectionType type, Packet packet, Session session)
         {
+            var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
             using (var packetStream = new MemoryStream())
             {
                 using (var packetWriter = new BinaryWriter(packetStream))
@@ -139,7 +139,7 @@ namespace ACE.Network
                         for (int i = 0; i < packet.Fragments.Count; i++)
                         {
                             var fragment = (ServerPacketFragment)packet.Fragments[i];
-                            fragment.Header.Sequence = session.FragmentSequence++;
+                            fragment.Header.Sequence = connectionData.FragmentSequence++;
                             fragment.Header.Count    = 1;
                             fragment.Header.Size     = (ushort)(PacketFragementHeader.HeaderSize + fragment.Payload.BaseStream.Length);
                             fragment.Header.Index    = (ushort)i;
@@ -151,26 +151,26 @@ namespace ACE.Network
                         }
                     }
 
-                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && session.PacketSequence < 2)
-                        session.PacketSequence = 2;
+                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && connectionData.PacketSequence < 2)
+                        connectionData.PacketSequence = 2;
 
-                    packet.Header.Sequence = session.PacketSequence++;
+                    packet.Header.Sequence = connectionData.PacketSequence++;
                     packet.Header.Size     = (ushort)(packetWriter.BaseStream.Length - PacketHeader.HeaderSize);
                     packet.Header.Table    = 0x14;
-                    packet.Header.Time     = (ushort)session.ServerTime;
-                    packet.Header.Checksum = packet.CalculateChecksum(session);
+                    packet.Header.Time     = (ushort)connectionData.ServerTime;
+                    packet.Header.Checksum = packet.CalculateChecksum(session, type);
 
                     packetWriter.Seek(0, SeekOrigin.Begin);
                     packetWriter.Write(packet.Header.GetRaw());
 
-                    SendPacket(ConnectionType.Login, session, packetStream.ToArray());
+                    return packetStream.ToArray();
                 }
             }
         }
 
-        /*public static void SendWorldPacket(ServerPacket packet, Session session)
+        public static void SendPacket(ConnectionType type, ServerPacket packet, Session session)
         {
-
-        }*/
+            GetSocket(type).SendTo(ConstructPacket(type, packet, session), session.EndPoint);
+        }
     }
 }
