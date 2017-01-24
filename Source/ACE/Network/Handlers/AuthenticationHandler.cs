@@ -41,7 +41,7 @@ namespace ACE.Network
             }
 
             uint accountId = result.Read<uint>(0, "id");
-            string account = result.Read<string>(0, "account");
+            string account = result.Read<string>(0, "UserName");
 
             if (WorldManager.Find(account) != null)
             {

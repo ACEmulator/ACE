@@ -16,9 +16,9 @@ namespace ACE.Database
 
         protected override void InitialisePreparedStatements()
         {
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `password`, `salt`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString, MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `password`, `salt` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `user_accounts` (`UserName`, `Password`, `salt`) VALUES (?, ?, ?);", MySqlDbType.VarString, MySqlDbType.VarString, MySqlDbType.VarString);
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `user_accounts`;");
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `UserName`, `password`, `salt` FROM `user_accounts` WHERE `UserName` = ?;", MySqlDbType.VarString);
         }
     }
 }
