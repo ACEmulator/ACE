@@ -13,9 +13,17 @@
 -- Dumping structure for テーブル ace_character.character
 CREATE TABLE IF NOT EXISTS `character` (
   `guid` int(10) unsigned NOT NULL DEFAULT '0',
-  `id` int(10) unsigned NOT NULL DEFAULT '0',
+  `accountId` int(10) unsigned NOT NULL DEFAULT '0',
   `name` varchar(32) NOT NULL DEFAULT '',
+  `templateOption` tinyint(1) unsigned NOT NULL, 
+  `startArea` tinyint(1) unsigned NOT NULL, 
+  `birth` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleteTime` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `IsAdmin` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `IsEnvoy` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `totalLogins` int(10) unsigned NOT NULL DEFAULT '0',
+  UNIQUE KEY `name` (`name`),
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
