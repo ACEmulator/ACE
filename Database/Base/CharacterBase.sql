@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS `character` (
   `birth` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleteTime` bigint(20) unsigned NOT NULL DEFAULT '0',
   `deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `IsAdmin` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `IsEnvoy` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `isAdmin` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `isEnvoy` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `totalLogins` int(10) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `name` (`name`),
   PRIMARY KEY (`guid`)
