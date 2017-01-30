@@ -31,12 +31,14 @@ namespace ACE.Network
                 return;
             }
 
-            string name;
-            if (!session.CharacterNames.TryGetValue(guid, out name))
+            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.LowGuid == guid);
+            if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
             }
+
+            session.CharacterRequested = cachedCharacter;
 
             // this isn't really that necessary since ACE doesn't split login/world to multiple daemons, handle it anyway
             byte[] connectionKey = new byte[sizeof(ulong)];
@@ -50,7 +52,7 @@ namespace ACE.Network
             referralPacket.Payload.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
             referralPacket.Payload.Write(ConfigManager.Host);
             referralPacket.Payload.Write(0ul);
-            referralPacket.Payload.Write((ushort)24);
+            referralPacket.Payload.Write((ushort)0x18);
             referralPacket.Payload.Write((ushort)0);
             referralPacket.Payload.Write(0u);
 
@@ -58,7 +60,7 @@ namespace ACE.Network
         }
 
         [Fragment(FragmentOpcode.CharacterDelete)]
-        public static void CharacterDelete(ClientPacketFragment fragment, Session session)
+        public static async void CharacterDelete(ClientPacketFragment fragment, Session session)
         {
             string account     = fragment.Payload.ReadString16L();
             uint characterSlot = fragment.Payload.ReadUInt32();
@@ -69,8 +71,8 @@ namespace ACE.Network
                 return;
             }
 
-            uint guid;
-            if (!session.CharacterSlots.TryGetValue((byte)characterSlot, out guid))
+            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.SlotId == characterSlot);
+            if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.Delete);
                 return;
@@ -84,18 +86,20 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, WorldManager.GetUnixTime() + 3600ul, guid);
-            DatabaseManager.Character.SelectPreparedStatementAsync(AuthenticationHandler.CharacterListSelectCallback, session, CharacterPreparedStatement.CharacterListSelect, session.Id);
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, WorldManager.GetUnixTime() + 3600ul, cachedCharacter.LowGuid);
+
+            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, session.Id);
+            AuthenticationHandler.CharacterListSelectCallback(result, session);
         }
 
         [Fragment(FragmentOpcode.CharacterRestore)]
         public static void CharacterRestore(ClientPacketFragment fragment, Session session)
         {
             uint guid = fragment.Payload.ReadUInt32();
-            if (!session.CharacterNames.ContainsKey(guid))
-            {
+
+            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.LowGuid == guid);
+            if (cachedCharacter == null)
                 return;
-            }
 
             DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, 0, guid);
 
@@ -103,7 +107,7 @@ namespace ACE.Network
             var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
             characterRestoreFragment.Payload.Write(1u /* Verification OK flag */);
             characterRestoreFragment.Payload.Write(guid);
-            characterRestoreFragment.Payload.WriteString16L(session.CharacterNames[guid]);
+            characterRestoreFragment.Payload.WriteString16L(cachedCharacter.Name);
             characterRestoreFragment.Payload.Write(0u /* secondsGreyedOut */);
             characterRestore.Fragments.Add(characterRestoreFragment);
 
@@ -198,7 +202,7 @@ namespace ACE.Network
 
             // TODO : Persist appearance, stats and skills.
 
-            session.CharacterNames.Add(guid, characterName);
+            // session.CharacterNames.Add(guid, characterName);
 
             sendCharacterCreateResponse(session, 1, guid, characterName);
         }

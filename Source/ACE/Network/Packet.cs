@@ -10,6 +10,7 @@ namespace ACE.Network
     public enum PacketHeaderFlags : uint
     {
         None              = 0x00000000,
+        Retransmission    = 0x00000001,
         EncryptedChecksum = 0x00000002, // can't be paired with 0x00000001, see FlowQueue::DequeueAck
         BlobFragments     = 0x00000004,
         ServerSwitch      = 0x00000100,
@@ -37,7 +38,7 @@ namespace ACE.Network
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class PacketFragementHeader
+    public class PacketFragmentHeader
     {
         public static uint HeaderSize { get; } = 16u;
 
@@ -48,9 +49,9 @@ namespace ACE.Network
         public ushort Index { get; set; }
         public ushort Group { get; set; }
 
-        public PacketFragementHeader() { }
+        public PacketFragmentHeader() { }
 
-        public PacketFragementHeader(BinaryReader payload)
+        public PacketFragmentHeader(BinaryReader payload)
         {
             Sequence = payload.ReadUInt32();
             Id       = payload.ReadUInt32();
@@ -65,7 +66,7 @@ namespace ACE.Network
             var headerHandle = GCHandle.Alloc(this, GCHandleType.Pinned);
             try
             {
-                byte[] bytes = new byte[Marshal.SizeOf(typeof(PacketFragementHeader))];
+                byte[] bytes = new byte[Marshal.SizeOf(typeof(PacketFragmentHeader))];
                 Marshal.Copy(headerHandle.AddrOfPinnedObject(), bytes, 0, bytes.Length);
                 return bytes;
             }
@@ -79,8 +80,9 @@ namespace ACE.Network
     public abstract class PacketFragment
     {
         public static uint MaxFragementSize { get; } = 464u; // Packet.MaxPacketSize - PacketHeader.HeaderSize
+        public static uint MaxFragmentDataSize { get; } = 448u; // Packet.MaxPacketSize - PacketHeader.HeaderSize - PacketFragmentHeader.HeaderSize
 
-        public PacketFragementHeader Header { get; protected set; }
+        public PacketFragmentHeader Header { get; protected set; }
         public MemoryStream Data { get; protected set; }
     }
 
@@ -90,8 +92,8 @@ namespace ACE.Network
 
         public ClientPacketFragment(BinaryReader payload)
         {
-            Header  = new PacketFragementHeader(payload);
-            Data    = new MemoryStream(payload.ReadBytes((int)(Header.Size - PacketFragementHeader.HeaderSize)));
+            Header  = new PacketFragmentHeader(payload);
+            Data    = new MemoryStream(payload.ReadBytes((int)(Header.Size - PacketFragmentHeader.HeaderSize)));
             Payload = new BinaryReader(Data);
         }
     }
@@ -105,9 +107,9 @@ namespace ACE.Network
         {
             Opcode  = opcode;
 
-            Data    = new MemoryStream((int)MaxFragementSize);
+            Data    = new MemoryStream((int)MaxFragmentDataSize);
             Payload = new BinaryWriter(Data);
-            Header  = new PacketFragementHeader()
+            Header  = new PacketFragmentHeader()
             {
                 Group = group
             };
@@ -179,6 +181,8 @@ namespace ACE.Network
         public double TimeSynch { get; private set; }
         public float ClientTime { get; private set; }
 
+        public List<uint> RetransmitData { get; } = new List<uint>();
+
         public PacketHeaderOptional(BinaryReader payload, PacketHeader header)
         {
             Size = (uint)payload.BaseStream.Position;
@@ -187,7 +191,11 @@ namespace ACE.Network
                 payload.Skip(8);
 
             if (header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-                payload.Skip(payload.ReadUInt32() * sizeof(uint));
+            {
+                uint retransmitCount = payload.ReadUInt32();
+                for (uint i = 0u; i < retransmitCount; i++)
+                    RetransmitData.Add(payload.ReadUInt32());
+            }
 
             if (header.HasFlag(PacketHeaderFlags.RejectRetransmit))
                 payload.Skip(payload.ReadUInt32() * sizeof(uint));
@@ -214,7 +222,6 @@ namespace ACE.Network
     public abstract class Packet
     {
         public static uint MaxPacketSize { get; } = 484u;
-        public static uint MaxDataSize { get; } = 448u;
 
         public PacketHeader Header { get; protected set; }
         public PacketHeaderOptional HeaderOptional { get; protected set; }
@@ -222,13 +229,13 @@ namespace ACE.Network
         public PacketDirection Direction { get; protected set; } = PacketDirection.None;
         public List<PacketFragment> Fragments { get; } = new List<PacketFragment>();
 
-        public uint CalculateChecksum(Session session, ConnectionType type)
+        public uint CalculateChecksum(Session session, ConnectionType type, uint overrideXor, out uint issacXor)
         {
             uint headerChecksum = 0u;
             Header.CalculateHash32(out headerChecksum);
 
-            uint xor = (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? session.GetIssacValue(Direction, type) : 0u);
-            return headerChecksum + (CalculatePayloadChecksum() ^ xor);
+            issacXor = (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? (overrideXor != 0u ? overrideXor : session.GetIssacValue(Direction, type)) : 0u);
+            return headerChecksum + (CalculatePayloadChecksum() ^ issacXor);
         }
 
         private uint CalculatePayloadChecksum()
@@ -246,7 +253,7 @@ namespace ACE.Network
                 }
 
                 foreach (var fragment in Fragments)
-                    checksum += Hash32.Calculate(fragment.Header.GetRaw(), (int)PacketFragementHeader.HeaderSize) + Hash32.Calculate(fragment.Data.ToArray(), fragment.Header.Size - (int)PacketFragementHeader.HeaderSize);
+                    checksum += Hash32.Calculate(fragment.Header.GetRaw(), (int)PacketFragmentHeader.HeaderSize) + Hash32.Calculate(fragment.Data.ToArray(), fragment.Header.Size - (int)PacketFragmentHeader.HeaderSize);
             }
             else
                 checksum += Hash32.Calculate(Data.ToArray(), (int)Data.Length);

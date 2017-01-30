@@ -1,96 +1,19 @@
 ﻿using ACE.Managers;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 
 namespace ACE.Network
 {
-    public enum ConnectionType
+    public class CachedPacket
     {
-        Login,
-        World
-    }
+        public uint IssacXor { get; }
+        public ServerPacket Packet { get; }
 
-    public class ConnectionListener
-    {
-        public Socket Socket { get; private set; }
-
-        private ConnectionType listenerType;
-
-        private uint listeningPort;
-        private byte[] buffer = new byte[Packet.MaxPacketSize];
-
-        public ConnectionListener(uint port, ConnectionType type)
+        public CachedPacket(uint issacXor, ServerPacket packet)
         {
-            listenerType  = type;
-            listeningPort = port;
-        }
-
-        public void Start()
-        {
-            try
-            {
-                Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                Socket.Bind(new IPEndPoint(IPAddress.Any, (int)listeningPort));
-                Listen();
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
-            }
-        }
-
-        public void Shutdown()
-        {
-            if (Socket != null && Socket.IsBound)
-                Socket.Close();
-        }
-
-        private void Listen()
-        {
-            try
-            {
-                EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
-            }
-        }
-
-        private void OnDataReceieve(IAsyncResult result)
-        {
-            EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-            byte[] data;
-            try
-            {
-                int dataSize = Socket.EndReceiveFrom(result, ref clientEndPoint);
-
-                data = new byte[dataSize];
-                Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
-                return;
-            }
-
-            var session = WorldManager.Find((IPEndPoint)clientEndPoint);
-
-            var packet = new ClientPacket(data);
-            PacketManager.HandlePacket(listenerType, packet, session);
-
-            #region DEBUG
-                uint checksum = packet.CalculateChecksum(session, listenerType);
-                Console.WriteLine($"Received({listenerType.ToString()}): Size: {data.Length}, Hash: 0x{checksum.ToString("X8")} 0x{ packet.Header.Checksum.ToString("X8")}, Fragments: {packet.Fragments.Count}, Flags: {packet.Header.Flags}");
-            #endregion
-
-            Listen();
+            IssacXor = issacXor;
+            Packet   = packet;
         }
     }
 
@@ -122,7 +45,8 @@ namespace ACE.Network
                 return worldListeners[0].Socket;
         }
 
-        private static byte[] ConstructPacket(ConnectionType type, Packet packet, Session session)
+        // TODO: packet pipe really needs a rework...
+        private static bool ConstructPacket(out byte[] buffer, ConnectionType type, ServerPacket packet, Session session, bool useHeaders = false)
         {
             var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
             using (var packetStream = new MemoryStream())
@@ -139,12 +63,52 @@ namespace ACE.Network
                         for (int i = 0; i < packet.Fragments.Count; i++)
                         {
                             var fragment = (ServerPacketFragment)packet.Fragments[i];
-                            fragment.Header.Sequence = connectionData.FragmentSequence++;
-                            fragment.Header.Count    = 1;
-                            fragment.Header.Size     = (ushort)(PacketFragementHeader.HeaderSize + fragment.Payload.BaseStream.Length);
-                            fragment.Header.Index    = (ushort)i;
-                            //fragment.Header.Group    = 5;
-                            fragment.Header.Id       = 0x30B0008; // this seems to be a global incremental value
+
+                            uint fragmentsRequired = ((uint)fragment.Data.Length / PacketFragment.MaxFragmentDataSize);
+                            if ((fragment.Data.Length % PacketFragment.MaxFragmentDataSize) != 0)
+                                fragmentsRequired++;
+
+                            if (fragmentsRequired > 1u)
+                            {
+                                fragment.Data.Seek(0L, SeekOrigin.Begin);
+
+                                uint dataToSend  = (uint)fragment.Data.Length;
+                                uint fragmentSeq = connectionData.FragmentSequence++;
+
+                                for (uint j = 0u; j < fragmentsRequired; j++)
+                                {
+                                    uint fragmentSize = dataToSend > PacketFragment.MaxFragmentDataSize ? PacketFragment.MaxFragmentDataSize : dataToSend;
+
+                                    byte[] data = new byte[fragmentSize];
+                                    fragment.Data.Read(data, 0, (int)fragmentSize);
+
+                                    var newPacket   = new ServerPacket(packet.Header.Id, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.BlobFragments);
+                                    var newFragment = new ServerPacketFragment(fragment.Header.Group);
+                                    newFragment.Header.Sequence = fragmentSeq;
+                                    newFragment.Header.Id       = 0x80000000;
+                                    newFragment.Header.Count    = (ushort)fragmentsRequired;
+                                    newFragment.Header.Index    = (ushort)j;
+                                    newFragment.Data.Write(data, 0, (int)fragmentSize);
+                                    newPacket.Fragments.Add(newFragment);
+
+                                    SendPacket(type, newPacket, session, true);
+
+                                    dataToSend -= fragmentSize;
+                                }
+
+                                buffer = null;
+                                return false;
+                            }
+
+                            fragment.Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + fragment.Payload.BaseStream.Length);
+
+                            if (!useHeaders)
+                            {
+                                fragment.Header.Sequence = connectionData.FragmentSequence++;
+                                fragment.Header.Id       = 0x80000000; // this seems to be a global incremental value
+                                fragment.Header.Count    = 1;
+                                fragment.Header.Index    = (ushort)i;
+                            }
 
                             packetWriter.Write(fragment.Header.GetRaw());
                             packetWriter.Write(fragment.Data.ToArray());
@@ -158,19 +122,29 @@ namespace ACE.Network
                     packet.Header.Size     = (ushort)(packetWriter.BaseStream.Length - PacketHeader.HeaderSize);
                     packet.Header.Table    = 0x14;
                     packet.Header.Time     = (ushort)connectionData.ServerTime;
-                    packet.Header.Checksum = packet.CalculateChecksum(session, type);
+
+                    uint issacXor;
+                    packet.Header.Checksum = packet.CalculateChecksum(session, type, 0u, out issacXor);
 
                     packetWriter.Seek(0, SeekOrigin.Begin);
                     packetWriter.Write(packet.Header.GetRaw());
 
-                    return packetStream.ToArray();
+                    if (type == ConnectionType.World && packet.Header.Sequence >= 2u)
+                        session.CachedPackets.TryAdd(packet.Header.Sequence, new CachedPacket(issacXor, packet));
+
+                    buffer = packetStream.ToArray();
+                    return true;
                 }
             }
         }
 
-        public static void SendPacket(ConnectionType type, ServerPacket packet, Session session)
+        public static void SendPacketDirect(ConnectionType type, ServerPacket packet, Session session) { GetSocket(type).SendTo(packet.Data.ToArray(), session.EndPoint); }
+
+        public static void SendPacket(ConnectionType type, ServerPacket packet, Session session, bool useHeaders = false)
         {
-            GetSocket(type).SendTo(ConstructPacket(type, packet, session), session.EndPoint);
+            byte[] buffer;
+            if (ConstructPacket(out buffer, type, packet, session, useHeaders))
+                GetSocket(type).SendTo(buffer, session.EndPoint);
         }
     }
 }

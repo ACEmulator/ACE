@@ -1,11 +1,13 @@
 ﻿using ACE.Cryptography;
+using ACE.Entity;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 
 namespace ACE.Network
 {
-    public class SeasonConnectionData
+    public class SessionConnectionData
     {
         public uint PacketSequence { get; set; }
         public uint FragmentSequence { get; set; }
@@ -14,10 +16,24 @@ namespace ACE.Network
 
         public double ServerTime { get; set; }
 
-        public SeasonConnectionData(ConnectionType type)
+        public SessionConnectionData(ConnectionType type)
         {
             IssacClient = new ISAAC(type == ConnectionType.Login ? ISAAC.ClientSeed : ISAAC.WorldClientSeed);
             IssacServer = new ISAAC(type == ConnectionType.Login ? ISAAC.ServerSeed : ISAAC.WorldServerSeed);
+        }
+    }
+
+    public class CachedCharacter
+    {
+        public uint LowGuid { get; }
+        public byte SlotId { get; }
+        public string Name { get; }
+
+        public CachedCharacter(uint lowGuid, byte slotId, string name)
+        {
+            LowGuid = lowGuid;
+            SlotId  = slotId;
+            Name    = name;
         }
     }
 
@@ -27,16 +43,18 @@ namespace ACE.Network
         public string Account { get; private set; }
         public bool Authenticated { get; private set; }
 
-        // contains references to the character guid by client slot id
-        public Dictionary<byte /*slotId*/, uint /*characterGuid*/> CharacterSlots { get; } = new Dictionary<byte, uint>();
-
-        public Dictionary<uint /*characterGuid*/, string /* characterName */> CharacterNames { get; } = new Dictionary<uint, string>();
+        public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
+        public CachedCharacter CharacterRequested { get; set; }
+        public Player Character { get; set; }
 
         // connection related
         public IPEndPoint EndPoint { get; }
-        public SeasonConnectionData LoginConnection { get; } = new SeasonConnectionData(ConnectionType.Login);
-        public SeasonConnectionData WorldConnection { get; set; }
+        public SessionConnectionData LoginConnection { get; } = new SessionConnectionData(ConnectionType.Login);
+        public SessionConnectionData WorldConnection { get; set; }
         public ulong WorldConnectionKey { get; set; }
+        public uint GameEventSequence { get; set; }
+
+        public ConcurrentDictionary<uint /*seq*/, CachedPacket> CachedPackets { get; } = new ConcurrentDictionary<uint, CachedPacket>();
 
         public Session(IPEndPoint endPoint)
         {
