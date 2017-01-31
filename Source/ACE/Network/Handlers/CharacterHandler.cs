@@ -202,7 +202,7 @@ namespace ACE.Network
 
             // TODO : Persist appearance, stats and skills.
 
-            // session.CharacterNames.Add(guid, characterName);
+            session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, characterName));
 
             sendCharacterCreateResponse(session, 1, guid, characterName);
         }
