@@ -1,12 +1,14 @@
 ﻿using ACE.Cryptography;
 using ACE.Database;
+using ACE.Entity;
 using ACE.Managers;
+using ACE.Network.GameEvent;
 
 namespace ACE.Network
 {
     public static class AuthenticationHandler
     {
-        public static void HandleLoginRequest(ClientPacket packet, Session session)
+        public static async void HandleLoginRequest(ClientPacket packet, Session session)
         {
             string someString = packet.Payload.ReadString16L();
             packet.Payload.ReadUInt32(); // data length left in packet including ticket
@@ -17,7 +19,8 @@ namespace ACE.Network
             packet.Payload.ReadUInt32();
             string glsTicket  = packet.Payload.ReadString32L();
 
-            DatabaseManager.Authentication.SelectPreparedStatementAsync(AccountSelectCallback, session, AuthenticationPreparedStatement.AccountSelect, account);
+            var result = await DatabaseManager.Authentication.SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, account);
+            AccountSelectCallback(result, session);
         }
 
         private static void AccountSelectCallback(MySqlResult result, Session session)
@@ -65,25 +68,25 @@ namespace ACE.Network
             session.SetAccount(accountId, account);
         }
 
-        public static void HandleConnectResponse(ClientPacket packet, Session session)
+        public static async void HandleConnectResponse(ClientPacket packet, Session session)
         {
             ulong check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
 
-            DatabaseManager.Character.SelectPreparedStatementAsync(CharacterListSelectCallback, session, CharacterPreparedStatement.CharacterListSelect, session.Id);
+            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, session.Id);
+            CharacterListSelectCallback(result, session);
 
-            // looks like account settings/info, expansion information ect?
+            // looks like account settings/info, expansion information ect? (this is needed for world entry)
             var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var packet75e5Fragment = new ServerPacketFragment(9, FragmentOpcode.Unknown75E5);
-            packet75e5Fragment.Payload.Write(0u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5Fragment.Payload.Write(1u);
-            packet75e5Fragment.Payload.Write(2u);
-            packet75e5Fragment.Payload.Write(0u);
-            packet75e5Fragment.Payload.Write(1u);
+            var packet75e5Fragment = new ServerPacketFragment(5, FragmentOpcode.Unknown75E5);
+            packet75e5Fragment.Payload.Write(1ul);
+            packet75e5Fragment.Payload.Write(1ul);
+            packet75e5Fragment.Payload.Write(1ul);
+            packet75e5Fragment.Payload.Write(2ul);
+            packet75e5Fragment.Payload.Write(0ul);
+            packet75e5Fragment.Payload.Write(1ul);
             packet75e5.Fragments.Add(packet75e5Fragment);
 
-            //NetworkManager.SendLoginPacket(packet75e5, session);
+            NetworkManager.SendPacket(ConnectionType.Login, packet75e5, session);
 
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
@@ -98,21 +101,19 @@ namespace ACE.Network
             characterFragment.Payload.Write(0u);
             characterFragment.Payload.Write(result.Count);
 
-            session.CharacterSlots.Clear();
-            session.CharacterNames.Clear();
+            session.CachedCharacters.Clear();
             for (byte i = 0; i < result.Count; i++)
             {
-                uint guid = result.Read<uint>(i, "guid");
-                string name = result.Read<string>(i, "name");
+                uint lowGuid = result.Read<uint>(i, "guid");
+                string name  = result.Read<string>(i, "name");
 
-                characterFragment.Payload.Write(guid);
+                characterFragment.Payload.Write(lowGuid);
                 characterFragment.Payload.WriteString16L(name);
 
                 ulong deleteTime = result.Read<ulong>(i, "deleteTime");
                 characterFragment.Payload.Write(deleteTime != 0ul ? (uint)(WorldManager.GetUnixTime() - deleteTime) : 0u);
 
-                session.CharacterSlots.Add(i, guid);
-                session.CharacterNames.Add(guid, name);
+                session.CachedCharacters.Add(new CachedCharacter(lowGuid, i, name));
             }
 
             characterFragment.Payload.Write(0u);
@@ -143,7 +144,9 @@ namespace ACE.Network
                 return;
             }
 
-            session.WorldConnection = new SeasonConnectionData(ConnectionType.World);
+            session.WorldConnection    = new SessionConnectionData(ConnectionType.World);
+            session.Character          = new Player(session);
+            session.CharacterRequested = null;
 
             var connectResponse = new ServerPacket(0x18, PacketHeaderFlags.ConnectRequest);
             connectResponse.Payload.Write(0u);
@@ -161,8 +164,13 @@ namespace ACE.Network
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
             var serverSwitch = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch);
-            serverSwitch.Payload.Write(6ul);
+            serverSwitch.Payload.Write((uint)0x18);
+            serverSwitch.Payload.Write((uint)0x00);
+
             NetworkManager.SendPacket(ConnectionType.World, serverSwitch, session);
+
+            new GameEventPopupString(session, ConfigManager.Config.Server.Welcome).Send();
+            session.Character.Load();
         }
     }
 }

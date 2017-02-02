@@ -14,6 +14,7 @@ namespace ACE.Managers
     public struct ConfigServer
     {
         public string WorldName { get; set; }
+        public string Welcome { get; set; }
         public ConfigServerNetwork Network { get; set; }
     }
 

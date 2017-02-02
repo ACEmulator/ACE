@@ -42,6 +42,11 @@ namespace ACE.Network
 
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }
 
+        public static void Align(this BinaryWriter writer)
+        {
+            writer.Pad(CalculatePadMultiple((uint)writer.BaseStream.Length, 4u));
+        }
+
         /// <summary>
         /// This will output bytesToOutput bytes of fragment.Data (starting from startPosition) to the console.<para />
         /// The original Data.Position will be restored after the data is output. 
@@ -76,6 +81,14 @@ namespace ACE.Network
             if (outputASCII) Console.WriteLine(asciiOutput);
 
             fragment.Data.Position = originalPosition;
+        }
+
+        public static void WritePosition(this BinaryWriter writer, uint value, long position)
+        {
+            long originalPosition = writer.BaseStream.Position;
+            writer.BaseStream.Position = position;
+            writer.Write(value);
+            writer.BaseStream.Position = originalPosition;
         }
     }
 }

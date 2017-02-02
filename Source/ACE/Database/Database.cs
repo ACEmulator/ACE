@@ -190,9 +190,7 @@ namespace ACE.Database
             return null;
         }
 
-        public delegate void SelectPreparedStatementAsyncCallback(MySqlResult result, Session session);
-
-        public async void SelectPreparedStatementAsync<T>(SelectPreparedStatementAsyncCallback callback, Session session, T id, params object[] parameters)
+        public async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
         {
             Debug.Assert(typeof(T) == GetPreparedStatementType());
 
@@ -209,7 +207,7 @@ namespace ACE.Database
                             command.Parameters.Add("", preparedStatement.Types[i]).Value = parameters[i];
 
                         await connection.OpenAsync();
-                        await Task.Run(() =>
+                        return await Task.Run(() =>
                         {
                             using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                             {
@@ -220,7 +218,7 @@ namespace ACE.Database
                                     return result;
                                 }
                             }
-                        }).ContinueWith((task) => callback(task.Result, session));
+                        });
                     }
                 }
             }
@@ -229,6 +227,8 @@ namespace ACE.Database
                 Console.WriteLine($"An exception occured while selecting prepared statement {id.ToString()}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
+
+            return new MySqlResult();
         }
     }
 }
