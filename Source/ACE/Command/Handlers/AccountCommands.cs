@@ -1,5 +1,6 @@
 ﻿using ACE.Cryptography;
 using ACE.Database;
+using ACE.Entity;
 using ACE.Network;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +10,7 @@ namespace ACE.Command
     public static class AccountCommands
     {
         // accountcreate username password
-        [CommandHandler("accountcreate", 2)]
+        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2)]
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
             var result = DatabaseManager.Authentication.SelectPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex);

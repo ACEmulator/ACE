@@ -12,7 +12,7 @@ namespace ACE.Database
 
     public class AuthenticationDatabase : Database
     {
-        protected override Type GetPreparedStatementType() { return typeof(AuthenticationPreparedStatement); }
+        protected override Type preparedStatementType { get { return typeof(AuthenticationPreparedStatement); } }
 
         protected override void InitialisePreparedStatements()
         {

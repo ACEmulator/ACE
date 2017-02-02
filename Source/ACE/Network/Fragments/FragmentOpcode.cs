@@ -20,8 +20,10 @@
         ObjectDelete                   = 0xF747,
         PatchStatus                    = 0xF7EA,
         PlayerCreate                   = 0xF746,
+        PlayerTeleport                 = 0xF751,
         ServerName                     = 0xF7E1,
         SetState                       = 0xF74B,
+        TextboxString                  = 0xF7E0,
         UpdatePosition                 = 0xF748,
 
         // to be named...

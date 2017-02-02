@@ -34,6 +34,8 @@ namespace ACE.Entity
             Session           = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
             Name              = session.CharacterRequested.Name;
+
+            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
         }
 
         public async void Load()
@@ -180,6 +182,47 @@ namespace ACE.Entity
         {
             Debug.Assert(property < PropertyString.Count);
             propertiesString[property] = value;
+        }
+
+        public void SetPhysicsState(PhysicsState state, bool packet = true)
+        {
+            PhysicsState = state;
+
+            if (packet)
+            {
+                var setState         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+                var setStateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetState);
+                setStateFragment.Payload.Write(Guid.Full);
+                setStateFragment.Payload.Write((uint)state);
+                setStateFragment.Payload.Write((ushort)LoginIndex);
+                setStateFragment.Payload.Write((ushort)++PortalIndex);
+                setState.Fragments.Add(setStateFragment);
+
+                // TODO: this should be broadcast
+                NetworkManager.SendPacket(ConnectionType.World, setState, Session);
+            }
+        }
+
+        public void Teleport(Position newPosition)
+        {
+            if (!InWorld)
+                return;
+
+            InWorld = false;
+            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
+
+            var playerTeleport         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            var playerTeleportFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerTeleport);
+            playerTeleportFragment.Payload.Write(++TeleportIndex);
+            playerTeleportFragment.Payload.Write(0u);
+            playerTeleportFragment.Payload.Write(0u);
+            playerTeleportFragment.Payload.Write((ushort)0);
+            playerTeleport.Fragments.Add(playerTeleportFragment);
+
+            NetworkManager.SendPacket(ConnectionType.World, playerTeleport, Session);
+
+            // must be sent after the teleport packet
+            UpdatePosition(newPosition);
         }
     }
 }

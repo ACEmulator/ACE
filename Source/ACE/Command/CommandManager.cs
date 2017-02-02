@@ -6,15 +6,33 @@ using System.Threading;
 
 namespace ACE.Command
 {
+    [Flags]
+    public enum CommandHandlerFlag
+    {
+        None          = 0x00,
+        ConsoleInvoke = 0x01,
+        RequiresWorld = 0x02
+    }
+
+    public enum CommandHandlerResponse
+    {
+        Ok,
+        InvalidCommand,
+        NoConsoleInvoke,
+        InvalidParameterCount,
+        NotInWorld
+    }
+
     public class CommandHandlerInfo
     {
         public Delegate Handler { get; set; }
         public CommandHandlerAttribute Attribute { get; set; }
     }
 
+    public delegate void CommandHandler(Session session, params string[] parameters);
+
     public static class CommandManager
     {
-        delegate void CommandHandler(Session session, params string[] parameters);
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
         public static void Initialise()
@@ -56,13 +74,13 @@ namespace ACE.Command
                 string[] parameters;
                 ParseCommand(commandLine, out command, out parameters);
 
-                var commandHandler = GetCommandHandler(null, command, parameters);
-                if (commandHandler != null)
+                CommandHandlerInfo commandHandler;
+                if (GetCommandHandler(null, command, parameters, out commandHandler) == CommandHandlerResponse.Ok)
                     ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
             }
         }
 
-        private static void ParseCommand(string commandLine, out string command, out string[] parameters)
+        public static void ParseCommand(string commandLine, out string command, out string[] parameters)
         {
             var commandSplit = commandLine.Split(' ');
             command    = commandSplit[0];
@@ -71,19 +89,21 @@ namespace ACE.Command
             Array.Copy(commandSplit, 1, parameters, 0, commandSplit.Length - 1);
         }
 
-        private static CommandHandlerInfo GetCommandHandler(Session session, string command, string[] parameters)
+        public static CommandHandlerResponse GetCommandHandler(Session session, string command, string[] parameters, out CommandHandlerInfo commandInfo)
         {
-            CommandHandlerInfo commandInfo;
             if (!commandHandlers.TryGetValue(command, out commandInfo))
-                return null;
+                return CommandHandlerResponse.InvalidCommand;
 
-            if (session == null && !commandInfo.Attribute.ConsoleInvoke)
-                return null;
+            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) == 0 && session == null)
+                return CommandHandlerResponse.NoConsoleInvoke;
 
             if (commandInfo.Attribute.ParameterCount != -1 && parameters.Length < commandInfo.Attribute.ParameterCount)
-                return null;
+                return CommandHandlerResponse.InvalidParameterCount;
 
-            return commandInfo;
+            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Character == null || !session.Character.InWorld))
+                return CommandHandlerResponse.NotInWorld;
+
+            return CommandHandlerResponse.Ok;
         }
     }
 }
