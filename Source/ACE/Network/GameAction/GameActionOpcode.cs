@@ -8,6 +8,7 @@
         LoginComplete      = 0x00A1,
         MoveToState        = 0xF61C,
         PingRequest        = 0x01E9,
+        Talk               = 0x0015,
         UpdateRequest      = 0x001F
     }
 }

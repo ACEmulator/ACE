@@ -15,7 +15,7 @@ namespace ACE.Database
 
     public class CharacterDatabase : Database
     {
-        protected override Type GetPreparedStatementType() { return typeof(CharacterPreparedStatement); }
+        protected override Type preparedStatementType { get { return typeof(CharacterPreparedStatement); } }
 
         protected override void InitialisePreparedStatements()
         {
