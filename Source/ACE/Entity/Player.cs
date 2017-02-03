@@ -40,16 +40,7 @@ namespace ACE.Entity
 
         public async void Load()
         {
-            var positionResult = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPositionSelect, Guid.GetLow());
-            if (positionResult.Count == 0)
-            {
-                // Session.SendCharacterError(CharacterError.EnterGameCorruptCharacter);
-                // use fallback position if position information doesn't exist in the DB, show error in the future
-                Position = new Position(0x7F0401AD, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
-            }
-            else
-                Position = new Position(positionResult.Read<uint>(0, "cell"), positionResult.Read<float>(0, "positionX"), positionResult.Read<float>(0, "positionY"), positionResult.Read<float>(0, "positionZ"),
-                    positionResult.Read<float>(0, "rotationX"), positionResult.Read<float>(0, "rotationY"), positionResult.Read<float>(0, "rotationZ"), positionResult.Read<float>(0, "rotationW"));
+            Position = await DatabaseManager.Character.GetPosition(Guid.GetLow());
 
             // need to load the rest of the player information from DB in this async method, this is just temporary and is what is sent by the retail server
             SetPropertyInt(PropertyInt.Unknown384, 0);

@@ -74,7 +74,11 @@
     <Compile Include="Command\Handlers\AccountCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Cryptography\SHA2.cs" />
+    <Compile Include="Database\IAuthenticationDatabase.cs" />
+    <Compile Include="Database\ICharacterDatabase.cs" />
+    <Compile Include="Database\IWorldDatabase.cs" />
     <Compile Include="Database\Nodes\WorldDatabase.cs" />
+    <Compile Include="Entity\Account.cs" />
     <Compile Include="Entity\Enum\AccessLevel.cs" />
     <Compile Include="Entity\Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Entity\Enum\ObjectType.cs" />
@@ -87,6 +91,7 @@
     <Compile Include="Entity\Enum\Skill.cs" />
     <Compile Include="Entity\ObjectGuid.cs" />
     <Compile Include="Entity\Position.cs" />
+    <Compile Include="Entity\TeleportLocation.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ConnectionListener.cs" />

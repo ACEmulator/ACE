@@ -86,9 +86,9 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, WorldManager.GetUnixTime() + 3600ul, cachedCharacter.LowGuid);
+            DatabaseManager.Character.DeleteOrRestore(WorldManager.GetUnixTime() + 3600ul, cachedCharacter.LowGuid);
 
-            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, session.Id);
+            var result = await DatabaseManager.Character.GetByAccount(session.Id);
             AuthenticationHandler.CharacterListSelectCallback(result, session);
         }
 
@@ -101,7 +101,7 @@ namespace ACE.Network
             if (cachedCharacter == null)
                 return;
 
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, 0, guid);
+            DatabaseManager.Character.DeleteOrRestore(0, guid);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
@@ -184,25 +184,19 @@ namespace ACE.Network
             // TODO : profanity filter 
             // sendCharacterCreateError(session, 4);
 
-            var result = DatabaseManager.Character.SelectPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, characterName);
-            Debug.Assert(result != null);
-
-            uint charsWithName = result.Read<uint>(0, "cnt");
-            if (charsWithName > 0)
+            var isAvailable = DatabaseManager.Character.IsNameAvailable(characterName);
+            if (!isAvailable)
             {
                 sendCharacterCreateResponse(session, 3);    /* Name already in use. */
                 return;
             }
 
-            result = DatabaseManager.Character.SelectPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex);
-            Debug.Assert(result != null);
-
-            uint guid = result.Read<uint>(0, "MAX(`guid`)") + 1;
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterInsert, guid, session.Id, characterName, templateOption, startArea, isAdmin, isEnvoy);
+            uint guid = DatabaseManager.Character.GetMaxId();
+            DatabaseManager.Character.CreateCharacter(guid, session.Id, characterName, templateOption, startArea, isAdmin, isEnvoy);
 
             // TODO : Persist appearance, stats and skills.
 
-            session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, characterName));
+            session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, characterName, 0));
 
             sendCharacterCreateResponse(session, 1, guid, characterName);
         }
