@@ -87,9 +87,9 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, WorldManager.GetUnixTime() + 3600ul, cachedCharacter.LowGuid);
+            DatabaseManager.Character.DeleteOrRestore(WorldManager.GetUnixTime() + 3600ul, cachedCharacter.LowGuid);
 
-            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, session.Id);
+            var result = await DatabaseManager.Character.GetByAccount(session.Id);
             AuthenticationHandler.CharacterListSelectCallback(result, session);
         }
 
@@ -102,7 +102,7 @@ namespace ACE.Network
             if (cachedCharacter == null)
                 return;
 
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, 0, guid);
+            DatabaseManager.Character.DeleteOrRestore(0, guid);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
@@ -118,6 +118,9 @@ namespace ACE.Network
         [Fragment(FragmentOpcode.CharacterCreate)]
         public static async void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
+            // known issues:
+            // 1. getting the "next" character id is not thread-safe
+
             string account = fragment.Payload.ReadString16L();
 
             if (account != session.Account)
@@ -125,91 +128,25 @@ namespace ACE.Network
                 return;
             }
 
-            fragment.Payload.Skip(4);   /* Unknown constant (1) */
-
-            uint race             = fragment.Payload.ReadUInt32();
-            uint gender           = fragment.Payload.ReadUInt32();
-            uint eyes             = fragment.Payload.ReadUInt32();
-            uint nose             = fragment.Payload.ReadUInt32();
-            uint mouth            = fragment.Payload.ReadUInt32();
-            uint hairColor        = fragment.Payload.ReadUInt32();
-            uint eyeColor         = fragment.Payload.ReadUInt32();
-            uint hairStyle        = fragment.Payload.ReadUInt32();
-            uint headgearStyle    = fragment.Payload.ReadUInt32();
-            uint headgearColor    = fragment.Payload.ReadUInt32();
-            uint shirtStyle       = fragment.Payload.ReadUInt32();
-            uint shirtColor       = fragment.Payload.ReadUInt32();
-            uint pantsStyle       = fragment.Payload.ReadUInt32();
-            uint pantsColor       = fragment.Payload.ReadUInt32();
-            uint footwearStyle    = fragment.Payload.ReadUInt32();
-            uint footwearColor    = fragment.Payload.ReadUInt32();
-            double skinHue        = fragment.Payload.ReadDouble();
-            double hairHue        = fragment.Payload.ReadDouble();
-            double headgearHue    = fragment.Payload.ReadDouble();
-            double shirtHue       = fragment.Payload.ReadDouble();
-            double pantsHue       = fragment.Payload.ReadDouble();
-            double footwearHue    = fragment.Payload.ReadDouble();
-            uint templateOption   = fragment.Payload.ReadUInt32();
-            uint strength         = fragment.Payload.ReadUInt32();
-            uint endurance        = fragment.Payload.ReadUInt32();
-            uint coordination     = fragment.Payload.ReadUInt32();
-            uint quickness        = fragment.Payload.ReadUInt32();
-            uint focus            = fragment.Payload.ReadUInt32();
-            uint self             = fragment.Payload.ReadUInt32();
-            uint slot             = fragment.Payload.ReadUInt32();
-            uint classId          = fragment.Payload.ReadUInt32();
-
-            var characterSkills = new List<Tuple<Skill, SkillStatus>>();
-
-            uint numOfSkills = fragment.Payload.ReadUInt32();
-            for (uint i = 0; i < numOfSkills; i++)
-            {
-                var skill = new Tuple<Skill, SkillStatus>((Skill) i, (SkillStatus) fragment.Payload.ReadUInt32());
-                characterSkills.Add(skill);
-            }
-
-            string characterName    = fragment.Payload.ReadString16L();
-            uint startArea          = fragment.Payload.ReadUInt32();
-            bool isAdmin            = Convert.ToBoolean(fragment.Payload.ReadUInt32());
-            bool isEnvoy            = Convert.ToBoolean(fragment.Payload.ReadUInt32());
-            uint totalSkillPoints   = fragment.Payload.ReadUInt32();
-
+            Character character = Character.CreateFromClientFragment(fragment, session.Id);
+            
             // TODO: profanity filter 
             // sendCharacterCreateResponse(session, 4);
-
-            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterUniqueNameSelect, characterName);
-            Debug.Assert(result != null);
-
-            uint charsWithName = result.Read<uint>(0, "cnt");
-            if (charsWithName > 0)
+            
+            bool isAvailable = DatabaseManager.Character.IsNameAvailable(character.Name);
+            if (!isAvailable)
             {
                 SendCharacterCreateResponse(session, 3);    /* Name already in use. */
                 return;
             }
+            
+            uint guid = DatabaseManager.Character.GetMaxId() + 1;
+            character.Id = guid;
 
-            result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterMaxIndex);
-            Debug.Assert(result != null);
+            await DatabaseManager.Character.CreateCharacter(character);
+            session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, character.Name, 0));
 
-            uint guid = result.Read<uint>(0, "MAX(`guid`)") + 1;
-
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterInsert, guid, session.Id, characterName, templateOption, startArea, isAdmin, isEnvoy);
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterAppearanceInsert, guid, race, gender, eyes, nose, mouth, eyeColor, hairColor, hairStyle, hairHue, skinHue);
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterStatsInsert, guid, strength, endurance, coordination, quickness, focus, self);
-
-            for (int i = 0; i < characterSkills.Count; i++)
-            {
-                var skill = characterSkills[i];
-                DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert, guid, skill.Item1, skill.Item2, 0u);
-            }
-
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, guid, headgearStyle, headgearColor, headgearHue, 
-                                                                                                                            shirtStyle, shirtColor, shirtHue, 
-                                                                                                                            pantsStyle, pantsColor, pantsHue, 
-                                                                                                                            footwearStyle, footwearColor, footwearHue);
-
-            session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, characterName));
-
-            SendCharacterCreateResponse(session, 1, guid, characterName);
+            SendCharacterCreateResponse(session, 1, guid, character.Name);
         }
 
         private static void SendCharacterCreateResponse(Session session, uint responseCode, uint guid = 0, string charName = null)
