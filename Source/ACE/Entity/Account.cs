@@ -8,20 +8,13 @@ namespace ACE.Entity
 
         public string Name { get; private set; }
 
-        public string Salt { get; private set; }
+        public HashedPassword HashedPassword { get; private set; }
 
-        public string Digest { get; private set; }
-
-        public string Password { private get; set; }
-
-        public Account(uint accountId, string name, string salt, string password)
+        public Account(uint accountId, string name, HashedPassword hp)
         {
             AccountId = accountId;
             Name = name;
-            Salt = salt;
-            Password = password;
-            Digest = SHA2.Hash(SHA2Type.SHA256, password + salt);
+            HashedPassword = hp;
         }
-
     }
 }

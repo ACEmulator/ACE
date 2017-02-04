@@ -6,7 +6,8 @@
             "Host": "127.0.0.1",
             "LoginPort": 9000,
             "WorldPort": 9008
-        }
+        },
+	"DevMode": true
     },
     "MySql": {
         "Authentication": {

@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.GameEvent;
 using System.Collections.Generic;
+using System;
 
 namespace ACE.Network
 {
@@ -61,6 +62,16 @@ namespace ACE.Network
             }*/
 
             // TODO: check for account bans
+
+            // TODO: check account password
+            /*
+            if (!account.HashedPassword.Verify("don't know where to get the password"))
+            {
+                Console.WriteLine($"Received bad password");
+                // this also doesn't seem to be the right error
+                session.SendCharacterError(CharacterError.AccountLogon);
+                return;
+            }*/
 
             session.SetAccount(account.AccountId, account.Name);
         }

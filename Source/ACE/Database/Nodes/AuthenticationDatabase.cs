@@ -20,9 +20,9 @@ namespace ACE.Database
 
         protected override void InitialisePreparedStatements()
         {
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `password`, `salt`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString, MySqlDbType.VarString);
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `hashed_password`) VALUES (?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString);
             AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `password`, `salt` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `hashed_password` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
         }
 
         public uint GetMaxId()
@@ -34,7 +34,7 @@ namespace ACE.Database
 
         public void CreateAccount(Account account)
         {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.Salt, account.Digest);
+            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.HashedPassword.Hash);
         }
 
         public async Task<Account> GetAccountByName(string accountName)
@@ -43,10 +43,12 @@ namespace ACE.Database
 
             uint id = result.Read<uint>(0, "id");
             string name = result.Read<string>(0, "account");
-            string password = result.Read<string>(0, "password");
-            string salt = result.Read<string>(0, "salt");
+            string hashedPassword = result.Read<string>(0, "hashed_password");
 
-            Account account = new Account(id, name, salt, password);
+            var hp = new HashedPassword();
+            hp.Hash = hashedPassword;
+
+            Account account = new Account(id, name, hp);
             return account;
         }
     }
