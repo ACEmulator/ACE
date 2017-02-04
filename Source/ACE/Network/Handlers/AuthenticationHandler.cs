@@ -20,6 +20,13 @@ namespace ACE.Network
             string glsTicket  = packet.Payload.ReadString32L();
 
             var result = await DatabaseManager.Authentication.SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, account);
+            if (result.Count == 0 & !ConfigManager.Config.Server.EnableAutoAccountCreate)
+            {
+                string password = System.Convert.ToString(glsTicket);
+                // TODO: convert password to normal string
+                Command.AccountCommands.HandleAccountCreate(session, account, password);
+                result = await DatabaseManager.Authentication.SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, account);
+            }
             AccountSelectCallback(result, session);
         }
 
