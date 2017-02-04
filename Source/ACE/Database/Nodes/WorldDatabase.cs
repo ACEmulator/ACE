@@ -29,9 +29,9 @@ namespace ACE.Database
             {
                 locations.Add(new TeleportLocation()
                 {
-                    Location = result.Read<string>(0, "location"),
-                    Position = new Position(result.Read<uint>(0, "cell"), result.Read<float>(0, "x"), result.Read<float>(0, "y"),
-                    result.Read<float>(0, "z"), result.Read<float>(0, "qx"), result.Read<float>(0, "qy"), result.Read<float>(0, "qz"), result.Read<float>(0, "qw"))
+                    Location = result.Read<string>(i, "location"),
+                    Position = new Position(result.Read<uint>(i, "cell"), result.Read<float>(i, "x"), result.Read<float>(i, "y"),
+                    result.Read<float>(i, "z"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
                 });
             }
 
