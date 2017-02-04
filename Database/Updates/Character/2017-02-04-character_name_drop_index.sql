@@ -1,2 +1,2 @@
-ALTER TABLE `ace_character`.`character` 
+ALTER TABLE `character` 
 DROP INDEX `name` ;
