@@ -1,6 +1,7 @@
 ﻿using ACE.Entity;
 using ACE.Managers;
 using ACE.Network;
+using System;
 
 namespace ACE.Command
 {
@@ -17,7 +18,8 @@ namespace ACE.Command
         [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleDebugTeleportLocation(Session session, params string[] parameters)
         {
-            var teleportLocation = AssetManager.GetTeleport(parameters[0]);
+            var location = String.Join(" ", parameters);
+            var teleportLocation = AssetManager.GetTeleport(location);
             if (teleportLocation == null)
                 return;
 
