@@ -142,6 +142,7 @@ namespace ACE.Network
             
             uint guid = DatabaseManager.Character.GetMaxId() + 1;
             character.Id = guid;
+            character.AccountId = session.Id;
 
             await DatabaseManager.Character.CreateCharacter(character);
             session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, character.Name, 0));
