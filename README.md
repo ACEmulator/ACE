@@ -9,13 +9,13 @@
 ## Getting Started
 
 * Install MySQL
-* Create three databases named 'ace_auth', 'ace_character', and 'ace_world'.
+* Create three databases named `ace_auth`, `ace_character`, and `ace_world`.
 * Load AuthenticationBase.sql and CharacterBase.sql for their respective databases. 
 * Load all incremental SQL updates in the Database\Updates sub directories. 
-* Edit Config.json to modify database settings, such as your database password.
+* Copy `Config.json.example` to `Config.json` and modify database settings, such as your database password.
 * Build and run ACE.
-* Create an account at the prompt - "accountcreate testaccount testpassword"
-* Launch AC - "acclient.exe -a testaccount -h 127.0.0.1:9000 -glsticketdirect testpassword"
+* Create an account at the prompt - `accountcreate testaccount testpassword`
+* Launch AC - `acclient.exe -a testaccount -h 127.0.0.1:9000 -glsticketdirect testpassword`
 
 ## Contributions
 
