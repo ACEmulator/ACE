@@ -102,7 +102,13 @@ namespace ACE.Network
             if (cachedCharacter == null)
                 return;
 
-            DatabaseManager.Character.DeleteOrRestore(0, guid);
+            bool isAvailable = DatabaseManager.Character.IsNameAvailable(cachedCharacter.Name);
+            if (!isAvailable)
+            {
+                SendCharacterCreateResponse(session, 3);    /* Name already in use. */
+                return;
+            }
+                        DatabaseManager.Character.DeleteOrRestore(0, guid);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
@@ -142,6 +148,7 @@ namespace ACE.Network
             
             uint guid = DatabaseManager.Character.GetMaxId() + 1;
             character.Id = guid;
+            character.AccountId = session.Id;
 
             await DatabaseManager.Character.CreateCharacter(character);
             session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, character.Name, 0));
