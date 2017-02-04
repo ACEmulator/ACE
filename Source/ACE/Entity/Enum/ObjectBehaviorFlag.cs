@@ -34,7 +34,7 @@ namespace ACE.Entity
         AdditionFlags          = 0x04000000,
         BindStone              = 0x08000000,
         VolatileRare           = 0x10000000,
-        WeildOnUse             = 0x20000000,
-        WeildLeft              = 0x40000000,
+        WieldOnUse             = 0x20000000,
+        WieldLeft              = 0x40000000,
     }
 }
