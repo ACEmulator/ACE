@@ -10,13 +10,10 @@ namespace ACE.Managers
 
         public static void Initialise()
         {
-            using (var result = DatabaseManager.World.SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect))
+            var locations = DatabaseManager.World.GetLocations();
+            foreach(var loc in locations)
             {
-                for (uint i = 0u; i < result.Count; i++)
-                {
-                    teleportLocations.Add(result.Read<string>(0, "location"), new Position(result.Read<uint>(0, "cell"), result.Read<float>(0, "x"), result.Read<float>(0, "y"),
-                        result.Read<float>(0, "z"), result.Read<float>(0, "qx"), result.Read<float>(0, "qy"), result.Read<float>(0, "qz"), result.Read<float>(0, "qw")));
-                }
+                teleportLocations.Add(loc.Location, loc.Position);
             }
         }
 
