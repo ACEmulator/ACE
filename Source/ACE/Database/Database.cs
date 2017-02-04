@@ -9,13 +9,6 @@ using System.Threading.Tasks;
 
 namespace ACE.Database
 {
-    public enum DatabaseType
-    {
-        Authentication,
-        Character,
-        World
-    }
-
     public class StoredPreparedStatement
     {
         public uint Id { get; }
@@ -37,7 +30,7 @@ namespace ACE.Database
 
         protected abstract Type preparedStatementType { get; }
 
-        public void Initialise(DatabaseType type, string host, uint port, string user, string password, string database)
+        public void Initialise(string host, uint port, string user, string password, string database)
         {
             var connectionBuilder = new MySqlConnectionStringBuilder()
             {
@@ -59,13 +52,13 @@ namespace ACE.Database
                     using (var connection = new MySqlConnection(connectionString))
                         connection.Open();
 
-                    Console.WriteLine($"Successfully connected to {type.ToString()} database.");
+                    Console.WriteLine($"Successfully connected to {database} database.");
                     break;
                 }
                 catch (Exception exception)
                 {
                     Console.WriteLine($"Exception: {exception.Message}");
-                    Console.WriteLine($"Attempting to reconnect to {type.ToString()} database in 5 seconds...");
+                    Console.WriteLine($"Attempting to reconnect to {database} database in 5 seconds...");
 
                     Thread.Sleep(5000);
                 }
@@ -106,16 +99,16 @@ namespace ACE.Database
             }
         }
 
-        public void ExecutePreparedStatement<T>(T id, params object[] parameters)
+        protected void ExecutePreparedStatement<T>(T id, params object[] parameters)
         {
             ExecutePreparedStatement(false, id, parameters);
         }
 
-        public void ExecutePreparedStatementAsync<T>(T id, params object[] parameters)
+        protected async Task ExecutePreparedStatementAsync<T>(T id, params object[] parameters)
         {
-            ExecutePreparedStatement(true, id, parameters);
+            await Task.Run(() => ExecutePreparedStatement(true, id, parameters));
         }
-
+        
         private async void ExecutePreparedStatement<T>(bool async, T id, params object[] parameters)
         {
             Debug.Assert(typeof(T) == preparedStatementType);
@@ -152,7 +145,7 @@ namespace ACE.Database
             }
         }
 
-        public MySqlResult SelectPreparedStatement<T>(T id, params object[] parameters)
+        protected MySqlResult SelectPreparedStatement<T>(T id, params object[] parameters)
         {
             Debug.Assert(typeof(T) == preparedStatementType);
 
@@ -190,7 +183,7 @@ namespace ACE.Database
             return null;
         }
 
-        public async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
+        protected async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
         {
             Debug.Assert(typeof(T) == preparedStatementType);
 
