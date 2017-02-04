@@ -11,6 +11,7 @@
 * Install MySQL
 * Create three databases named 'ace_auth', 'ace_character', and 'ace_world'.
 * Load AuthenticationBase.sql and CharacterBase.sql for their respective databases. 
+* Load all incremental SQL updates in the Database\Updates sub directories. 
 * Edit Config.json to modify database settings, such as your database password.
 * Build and run ACE.
 * Create an account at the prompt - "accountcreate testaccount testpassword"
