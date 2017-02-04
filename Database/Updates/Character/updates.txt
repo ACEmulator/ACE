@@ -1,0 +1,4 @@
+2/3/2017
+--------
+- Added four new tables - character_appearance, character_stats, character_skills and character_startup_gear.
+

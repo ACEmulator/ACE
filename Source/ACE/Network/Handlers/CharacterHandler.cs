@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Diagnostics;
+using ACE.Entity;
 
 namespace ACE.Network
 {
@@ -115,7 +116,7 @@ namespace ACE.Network
         }
 
         [Fragment(FragmentOpcode.CharacterCreate)]
-        public static void CharacterCreate(ClientPacketFragment fragment, Session session)
+        public static async void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
             string account = fragment.Payload.ReadString16L();
 
@@ -158,21 +159,13 @@ namespace ACE.Network
             uint slot             = fragment.Payload.ReadUInt32();
             uint classId          = fragment.Payload.ReadUInt32();
 
-            List<NewCharacterSkill> skills = new List<NewCharacterSkill>();
+            var characterSkills = new List<Tuple<Skill, SkillStatus>>();
 
             uint numOfSkills = fragment.Payload.ReadUInt32();
             for (uint i = 0; i < numOfSkills; i++)
             {
-                if (new[] {0u, 1u, 2u, 3u, 4u, 5u, 8u, 9u, 10u, 11u, 12u, 13u, 17u, 25u, 26u, 42u, 53u}.Contains(i))   /* Inactive / retired  skills */
-                {
-                    fragment.Payload.Skip(4);
-                    continue;
-                }
-
-                var newSkill = new NewCharacterSkill();
-                newSkill.Skill = (CharacterSkill) i;
-                newSkill.Status = (SkillStatus) fragment.Payload.ReadUInt32();
-                skills.Add(newSkill);
+                var skill = new Tuple<Skill, SkillStatus>((Skill) i, (SkillStatus) fragment.Payload.ReadUInt32());
+                characterSkills.Add(skill);
             }
 
             string characterName    = fragment.Payload.ReadString16L();
@@ -181,33 +174,45 @@ namespace ACE.Network
             bool isEnvoy            = Convert.ToBoolean(fragment.Payload.ReadUInt32());
             uint totalSkillPoints   = fragment.Payload.ReadUInt32();
 
-            // TODO : profanity filter 
-            // sendCharacterCreateError(session, 4);
+            // TODO: profanity filter 
+            // sendCharacterCreateResponse(session, 4);
 
-            var result = DatabaseManager.Character.SelectPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, characterName);
+            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterUniqueNameSelect, characterName);
             Debug.Assert(result != null);
 
             uint charsWithName = result.Read<uint>(0, "cnt");
             if (charsWithName > 0)
             {
-                sendCharacterCreateResponse(session, 3);    /* Name already in use. */
+                SendCharacterCreateResponse(session, 3);    /* Name already in use. */
                 return;
             }
 
-            result = DatabaseManager.Character.SelectPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex);
+            result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterMaxIndex);
             Debug.Assert(result != null);
 
             uint guid = result.Read<uint>(0, "MAX(`guid`)") + 1;
-            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterInsert, guid, session.Id, characterName, templateOption, startArea, isAdmin, isEnvoy);
 
-            // TODO : Persist appearance, stats and skills.
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterInsert, guid, session.Id, characterName, templateOption, startArea, isAdmin, isEnvoy);
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterAppearanceInsert, guid, race, gender, eyes, nose, mouth, eyeColor, hairColor, hairStyle, hairHue, skinHue);
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterStatsInsert, guid, strength, endurance, coordination, quickness, focus, self);
+
+            for (int i = 0; i < characterSkills.Count; i++)
+            {
+                var skill = characterSkills[i];
+                DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert, guid, skill.Item1, skill.Item2, 0u);
+            }
+
+            DatabaseManager.Character.ExecutePreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, guid, headgearStyle, headgearColor, headgearHue, 
+                                                                                                                            shirtStyle, shirtColor, shirtHue, 
+                                                                                                                            pantsStyle, pantsColor, pantsHue, 
+                                                                                                                            footwearStyle, footwearColor, footwearHue);
 
             session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, characterName));
 
-            sendCharacterCreateResponse(session, 1, guid, characterName);
+            SendCharacterCreateResponse(session, 1, guid, characterName);
         }
 
-        private static void sendCharacterCreateResponse(Session session, uint responseCode, uint guid = 0, string charName = null)
+        private static void SendCharacterCreateResponse(Session session, uint responseCode, uint guid = 0, string charName = null)
         {
             var charCreateResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var charCreateFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterCreateResponse);
@@ -228,59 +233,4 @@ namespace ACE.Network
 
     }
 
-    public class NewCharacterSkill
-    {
-        public CharacterSkill Skill { get; set; }
-        public SkillStatus Status { get; set; }
-    }
-
-    public enum CharacterSkill
-    {
-        MELEE_DEFENSE = 6,
-        MISSILE_DEFENSE = 7,
-        ARCANE_LORE = 14,
-        MAGIC_DEFENSE = 15,
-        MANA_CONVERSION = 16,
-        ITEM_TINKERING = 18,
-        ASSESS_PERSON = 19,
-        DECEPTION = 20,
-        HEALING = 21,
-        JUMP = 22,
-        LOCKPICK = 23,
-        RUN = 24,
-        ASSESS_CREATURE = 27,
-        WEAPON_TINKERING = 28,
-        ARMOR_TINKERING = 29,
-        MAGIC_ITEM_TINKERING = 30,
-        CREATURE_ENHANCEMENT = 31,
-        ITEM_ENHANCEMENT = 32,
-        LIFE_MAGIC = 33,
-        WAR_MAGIC = 34,
-        LEADERSHIP = 35,
-        LOYALTY = 36,
-        FLETCHING = 37,
-        ALCHEMY = 38,
-        COOKING = 39,
-        SALVAGING = 40,
-        TWO_HANDED_COMBAT = 41,
-        VOID_MAGIC = 43,
-        HEAVY_WEAPONS = 44,
-        LIGHT_WEAPONS = 45,
-        FINESSE_WEAPONS = 46,
-        MISSILE_WEAPONS = 47,
-        SHIELD = 48,
-        DUAL_WIELD = 49,
-        RECKLESSNESS = 50,
-        SNEAK_ATTACK = 51,
-        DIRTY_FIGHTING = 52,
-        SUMMONING = 54
-    }
-
-    public enum SkillStatus
-    {
-        INVALID_RETIRED,
-        UNTRAINED,
-        TRAINED,
-        SPECIALIZED 
-    }
 }

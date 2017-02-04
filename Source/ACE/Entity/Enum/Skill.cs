@@ -3,36 +3,36 @@
     public enum Skill
     {
         None,
-        Axe,
-        Bow,
-        Crossbow,
-        Dagger,
-        Mace,
+        Axe,                 /* Retired */
+        Bow,                 /* Retired */
+        Crossbow,            /* Retired */
+        Dagger,              /* Retired */
+        Mace,                /* Retired */
         MeleeDefense,
         MissileDefense,
-        Sling,
-        Spear,
-        Staff,
-        Sword,
-        ThrownWeapon,
-        UnarmedCombat,
+        Sling,               /* Retired */
+        Spear,               /* Retired */
+        Staff,               /* Retired */
+        Sword,               /* Retired */
+        ThrownWeapon,        /* Retired */
+        UnarmedCombat,       /* Retired */
         ArcaneLore,
         MagicDefense,
         ManaConversion,
-        Spellcraft,
-        ItemAppraisal,
-        PersonalAppraisal,
+        Spellcraft,          /* Unimplemented */
+        ItemTinkering,     
+        AssessPerson, 
         Deception,
         Healing,
         Jump,
         Lockpick,
         Run,
-        Awareness,
-        ArmsAndArmorRepair,
-        CreatureAppraisal,
-        WeaponAppraisal,
-        ArmorAppraisal,
-        MagicItemAppraisal,
+        Awareness,           /* Unimplemented */
+        ArmsAndArmorRepair,  /* Unimplemented */
+        AssessCreature,
+        WeaponTinkering,
+        ArmorTinkering,
+        MagicItemTinkering,
         CreatureEnchantment,
         ItemEnchantment,
         LifeMagic,
@@ -43,8 +43,8 @@
         Alchemy,
         Cooking,
         Salvaging,
-        TwoHandedCombat,
-        Gearcraft,
+        TwoHandedCombat,    
+        Gearcraft,           /* Retired */
         VoidMagic,
         HeavyWeapons,
         LightWeapons,
@@ -55,7 +55,15 @@
         Recklessness,
         SneakAttack,
         DirtyFighting,
-        Challenge,
+        Challenge,          /* Unimplemented */
         Summoning
+    }
+
+    public enum SkillStatus
+    {
+        Inactive,
+        Untrained,
+        Trained,
+        Specialized
     }
 }
