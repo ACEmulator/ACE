@@ -43,7 +43,7 @@ namespace ACE.Database
             // world entry
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `endurance`, `coordination`, `quickness`, `focus`, `self` WHERE `id` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `endurance`, `coordination`, `quickness`, `focus`, `self` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
         }
 
         public uint GetMaxId()
