@@ -1,4 +1,5 @@
-INSERT INTO `teleport_location` VALUES 
+DELETE FROM `teleport_location` WHERE `location` IN ('Aerlinthe', 'Ahurenga', 'Al-Arqas', 'Al-Jalima', 'Arwic', 'Ayan Baqur', 'Baishi', 'Bandit Castle', 'Beach Fort', 'Bluespire', 'Candeth Keep', 'Caul', 'Cragstone', 'Crater', 'Dryreach', 'Eastham', 'Fort Tethana', 'Freehold', 'Glenden Wood', 'Greenspire', 'Hebian-to', 'Holtburg', 'Kara', 'Khayyaban', 'Kryst', 'Lin', 'Linvak Tukal', 'Lytelthorpe', 'Mayoi', 'Nanto', 'Neydisa', 'Outpost', 'Plateau', 'Qalabar', 'Redspire', 'Refuge', 'Rithwic', 'Samsur', 'Sawato', 'Shoushi', 'Stonehold', 'Timaru', 'Tou-Tou', 'Tufa', 'Underground', 'Uziz', 'Wai Jhou', 'Xarabydun', 'Yanshi', 'Yaraq', 'Zaikhal');
+INSERT INTO `teleport_location` (`location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw`) VALUES 
   ('Aerlinthe',3135766557,84,105,26,0,0,-1,0),
   ('Ahurenga',263782409,43,8.6,0,0,0,-0.2,-0.98),
   ('Al-Arqas',2404909115,183.85,60.18,9.33,0,0,-0.71,0.71),
