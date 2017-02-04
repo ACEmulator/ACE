@@ -1,8 +1,6 @@
-﻿using ACE.Network;
-using System;
+﻿using ACE.Entity;
+using ACE.Network;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ACE.Database
@@ -19,6 +17,8 @@ namespace ACE.Database
 
         bool IsNameAvailable(string name);
 
-        void CreateCharacter(uint id, uint accountId, string name, uint templateOption, uint startArea, bool isAdmin, bool isEnvoy);
+        // void CreateCharacter(uint id, uint accountId, string name, uint templateOption, uint startArea, bool isAdmin, bool isEnvoy);
+
+        Task CreateCharacter(Character character);
     }
 }

@@ -104,11 +104,11 @@ namespace ACE.Database
             ExecutePreparedStatement(false, id, parameters);
         }
 
-        protected void ExecutePreparedStatementAsync<T>(T id, params object[] parameters)
+        protected async Task ExecutePreparedStatementAsync<T>(T id, params object[] parameters)
         {
-            ExecutePreparedStatement(true, id, parameters);
+            await Task.Run(() => ExecutePreparedStatement(true, id, parameters));
         }
-
+        
         private async void ExecutePreparedStatement<T>(bool async, T id, params object[] parameters)
         {
             Debug.Assert(typeof(T) == preparedStatementType);
