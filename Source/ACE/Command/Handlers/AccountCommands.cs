@@ -21,5 +21,19 @@ namespace ACE.Command
 
             DatabaseManager.Authentication.CreateAccount(acc);
         }
+
+        // enable-autoaccountcreate
+        [CommandHandler("enable-autoaccountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
+        public static void HandleEnableAutoAccountCreate(Session session, params string[] parameters)
+        {
+            //TODO: setup bool flipper code
+
+            var config = Managers.ConfigManager.Config.Server.EnableAutoAccountCreate;
+            if (config != true)
+            {
+                // Managers.ConfigManager.Config.Server.EnableAutoAccountCreate = true;
+            }
+            System.Console.WriteLine("Enabled Automatic Account Creation for this server");
+        }
     }
 }
