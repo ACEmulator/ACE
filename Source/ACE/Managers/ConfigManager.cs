@@ -16,6 +16,7 @@ namespace ACE.Managers
         public string WorldName { get; set; }
         public string Welcome { get; set; }
         public ConfigServerNetwork Network { get; set; }
+        public bool DevMode { get; set; }
     }
 
     public struct ConfigMySqlDatabase

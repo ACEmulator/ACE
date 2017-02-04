@@ -15,9 +15,9 @@ namespace ACE.Command
         {
             uint accountId = DatabaseManager.Authentication.GetMaxId() + 1;
             string account  = parameters[0].ToLower();
-            string salt     = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
-            string password = SHA2.Hash(SHA2Type.SHA256, parameters[1]);
-            Account acc = new Account(accountId, account, salt, password);
+            HashedPassword hp = PasswordHasher.HashPassword(parameters[1]);
+
+            Account acc = new Account(accountId, account, hp);
 
             DatabaseManager.Authentication.CreateAccount(acc);
         }
