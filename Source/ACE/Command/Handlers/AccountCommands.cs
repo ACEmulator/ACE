@@ -29,17 +29,6 @@ namespace ACE.Command
         [CommandHandler("enable-autoaccountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
         public static void HandleEnableAutoAccountCreate(Session session, params string[] parameters)
         {
-            //var result = DatabaseManager.Authentication.SelectPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex);
-            //Debug.Assert(result != null);
-
-            //uint accountId = result.Read<uint>(0, "MAX(`id`)") + 1;
-            //string account = parameters[0].ToLower();
-            //string salt = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
-            //string password = SHA2.Hash(SHA2Type.SHA256, parameters[1]);
-            //string digest = SHA2.Hash(SHA2Type.SHA256, password + salt);
-
-            //DatabaseManager.Authentication.ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, accountId, account, digest, salt);
-
             //TODO: setup bool flipper code
 
             var config = Managers.ConfigManager.Config.Server.EnableAutoAccountCreate;
