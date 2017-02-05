@@ -1,10 +1,8 @@
 ﻿using ACE.Entity.Enum;
-using ACE.Managers;
 using ACE.Network;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace ACE.Entity
 {

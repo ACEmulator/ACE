@@ -74,10 +74,13 @@
     <Compile Include="Command\Handlers\AccountCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Cryptography\SHA2.cs" />
+    <Compile Include="Database\IGlobalDatabase.cs" />
     <Compile Include="Database\IAuthenticationDatabase.cs" />
     <Compile Include="Database\ICharacterDatabase.cs" />
     <Compile Include="Database\IWorldDatabase.cs" />
     <Compile Include="Database\WorldDatabase.cs" />
+    <Compile Include="Database\MySqlCommandSplitter.cs" />
+    <Compile Include="Database\GlobalDatabase.cs" />
     <Compile Include="Entity\Appearance.cs" />
     <Compile Include="Entity\DbObject.cs" />
     <Compile Include="Entity\Enum\Ability.cs" />
@@ -192,5 +195,9 @@
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>XCOPY "$(SolutionDir)\..\Database" "$(TargetDir)\Database\" /S /Y
+</PostBuildEvent>
   </PropertyGroup>
 </Project>

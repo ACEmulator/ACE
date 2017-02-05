@@ -1,5 +1,5 @@
-﻿using ACE.Cryptography;
 using ACE.Entity;
+using ACE.Managers;
 using MySql.Data.MySqlClient;
 using System;
 using System.Diagnostics;
@@ -13,16 +13,28 @@ namespace ACE.Database
         {
             AccountInsert,
             AccountMaxIndex,
-            AccountSelect
+            AccountSelect,
+            AccountTableExistenceCheck
         }
 
-        protected override Type preparedStatementType { get { return typeof(AuthenticationPreparedStatement); } }
+        protected override Type preparedStatementType => typeof(AuthenticationPreparedStatement);
+        protected override string nodeName { get { return "Authentication";  } }
 
         protected override void InitialisePreparedStatements()
         {
             AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `password`, `salt`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString, MySqlDbType.VarString);
             AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
             AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `password`, `salt` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
+        }
+
+        protected override bool BaseSqlExecuted()
+        {
+            AddPreparedStatement(AuthenticationPreparedStatement.AccountTableExistenceCheck, "SELECT table_name FROM information_schema.tables WHERE table_schema = ? AND table_name = 'account';", MySqlDbType.VarChar);
+
+            var config = ConfigManager.Config.MySql;
+            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountTableExistenceCheck, config.Authentication.Database);
+
+            return (result.Count > 0);
         }
 
         public uint GetMaxId()
