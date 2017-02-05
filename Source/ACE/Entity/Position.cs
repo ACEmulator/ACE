@@ -28,24 +28,24 @@ public class Position
         Facing  = new Quaternion(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle(), qw);
     }
 
-    public Position(float NorthSouth, float EastWest)
+    public Position(float northSouth, float eastWest)
     {
-        NorthSouth -= 0.5f;
-        EastWest -= 0.5f;
-        NorthSouth *= 10.0f;
-        EastWest *= 10.0f;
+        northSouth -= 0.5f;
+        eastWest -= 0.5f;
+        northSouth *= 10.0f;
+        eastWest *= 10.0f;
 
-        uint basex = (uint)(EastWest + 0x400);
-        uint basey = (uint)(NorthSouth + 0x400);
+        uint baseX = (uint)(eastWest + 0x400);
+        uint baseY = (uint)(northSouth + 0x400);
 
-        if (basex < 0 || basex >= 0x7F8 || basey < 0 || basey >= 0x7F8)
+        if (baseX < 0 || baseX >= 0x7F8 || baseY < 0 || baseY >= 0x7F8)
             throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
 
-        float xOffset = ((basex & 7) * 24.0f) + 12;
-        float yOffset = ((basey & 7) * 24.0f) + 12;
+        float xOffset = ((baseX & 7) * 24.0f) + 12;
+        float yOffset = ((baseY & 7) * 24.0f) + 12;
         float zOffset = GetZFromCellXY(Cell, xOffset, yOffset);
 
-        Cell = GetCellFromBase(basex, basey);
+        Cell = GetCellFromBase(baseX, baseY);
         Offset = new Vector3(xOffset, yOffset, zOffset);
         Facing = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);        
     }
@@ -72,15 +72,15 @@ public class Position
         return 200.0f; 
     }
 
-    private uint GetCellFromBase(uint basex, uint basey)
+    private uint GetCellFromBase(uint baseX, uint baseY)
     {
-        byte blockx = (byte)(basex >> 3);
-        byte blocky = (byte)(basey >> 3);
-        byte cellx = (byte)(basex & 7);
-        byte celly = (byte)(basey & 7);
+        byte blockX = (byte)(baseX >> 3);
+        byte blockY = (byte)(baseY >> 3);
+        byte cellX = (byte)(baseX & 7);
+        byte cellY = (byte)(baseY & 7);
 
-        uint block = (uint)((blockx << 8) | blocky);
-        uint cell = (uint)((cellx << 3) | celly);
+        uint block = (uint)((blockX << 8) | blockY);
+        uint cell = (uint)((cellX << 3) | cellY);
 
         return (block << 16) | (cell + 1);
     }

@@ -52,38 +52,38 @@ namespace ACE.Command
         [CommandHandler("teleto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
         public static void HandleDebugTeleportCoords(Session session, params string[] parameters)
         {
-            string ns = parameters[0].ToLower();
-            string ew = parameters[1].ToLower();
+            string northSouth = parameters[0].ToLower();
+            string eastWest = parameters[1].ToLower();
 
-            if (!ns.EndsWith("n") && !ns.EndsWith("s"))
+            if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
             {
                 ChatPacket.SendSystemMessage(session, "Missing n or s indicator on first parameter");
                 return;
             }
 
-            if (!ew.EndsWith("e") && !ew.EndsWith("w"))
+            if (!eastWest.EndsWith("e") && !eastWest.EndsWith("w"))
             {
                 ChatPacket.SendSystemMessage(session, "Missing e or w indicator on second parameter");
                 return;
             }
 
             float coordNS;
-            if (!float.TryParse(ns.Substring(0, ns.Length - 1), out coordNS))
+            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out coordNS))
             {
                 ChatPacket.SendSystemMessage(session, "North/South coordinate is not a valid number.");
                 return;
             }
 
             float coordEW;
-            if (!float.TryParse(ew.Substring(0, ew.Length - 1), out coordEW))
+            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out coordEW))
             {
                 ChatPacket.SendSystemMessage(session, "East/West coordinate is not a valid number.");
                 return;
             }
 
-            if (ns.EndsWith("s"))
+            if (northSouth.EndsWith("s"))
                 coordNS *= -1.0f;
-            if (ew.EndsWith("w"))
+            if (eastWest.EndsWith("w"))
                 coordEW *= -1.0f;
 
             Position position = null;
