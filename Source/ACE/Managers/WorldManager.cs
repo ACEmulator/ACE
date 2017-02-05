@@ -17,9 +17,11 @@ namespace ACE.Managers
 
         private static volatile bool pendingWorldStop;
 
+        public static DateTime WorldStartTime { get; } = DateTime.Now;
+
         public static void Initialise()
         {
-            var thread = new Thread(new ThreadStart(UpdateWorld));
+            var thread = new Thread(UpdateWorld);
             thread.Start();
         }
 

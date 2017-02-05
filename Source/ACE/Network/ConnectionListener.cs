@@ -83,12 +83,6 @@ namespace ACE.Network
             var packet = new ClientPacket(data);
             PacketManager.HandlePacket(listenerType, packet, session);
 
-            #region DEBUG
-                uint issacXor;
-                uint checksum = packet.CalculateChecksum(session, listenerType, 0u, out issacXor);
-                Console.WriteLine($"Received({listenerType.ToString()}): Size: {data.Length}, Hash: 0x{checksum.ToString("X8")} 0x{ packet.Header.Checksum.ToString("X8")}, Fragments: {packet.Fragments.Count}, Flags: {packet.Header.Flags}");
-            #endregion
-
             Listen();
         }
     }

@@ -63,6 +63,7 @@ namespace ACE.Network
             // TODO: check for account bans
 
             session.SetAccount(account.AccountId, account.Name);
+            session.State = SessionState.AuthConnectResponse;
         }
 
         public static async void HandleConnectResponse(ClientPacket packet, Session session)
@@ -89,6 +90,8 @@ namespace ACE.Network
             patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
 
             NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
+
+            session.State = SessionState.AuthConnected;
         }
 
         public static void CharacterListSelectCallback(List<CachedCharacter> characters, Session session)
@@ -141,6 +144,7 @@ namespace ACE.Network
             session.WorldConnection    = new SessionConnectionData(ConnectionType.World);
             session.Character          = new Player(session);
             session.CharacterRequested = null;
+            session.State              = SessionState.WorldConnectResponse;
 
             var connectResponse = new ServerPacket(0x18, PacketHeaderFlags.ConnectRequest);
             connectResponse.Payload.Write(0u);
@@ -157,6 +161,8 @@ namespace ACE.Network
 
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
+            session.State = SessionState.WorldConnected;
+
             var serverSwitch = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch);
             serverSwitch.Payload.Write((uint)0x18);
             serverSwitch.Payload.Write((uint)0x00);

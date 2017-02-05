@@ -11,7 +11,7 @@ namespace ACE.Network
 {
     public static class CharacterHandler
     {
-        [Fragment(FragmentOpcode.CharacterEnterWorldRequest)]
+        [Fragment(FragmentOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public static void CharacterEnterWorldRequest(ClientPacketFragment fragment, Session session)
         {
             var characterEnterWorldServerReady = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
@@ -20,7 +20,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.Login, characterEnterWorldServerReady, session);
         }
 
-        [Fragment(FragmentOpcode.CharacterEnterWorld)]
+        [Fragment(FragmentOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
         public static void CharacterEnterWorld(ClientPacketFragment fragment, Session session)
         {
             uint guid      = fragment.Payload.ReadUInt32();
@@ -58,9 +58,11 @@ namespace ACE.Network
             referralPacket.Payload.Write(0u);
 
             NetworkManager.SendPacket(ConnectionType.Login, referralPacket, session);
+
+            session.State = SessionState.WorldLoginRequest;
         }
 
-        [Fragment(FragmentOpcode.CharacterDelete)]
+        [Fragment(FragmentOpcode.CharacterDelete, SessionState.AuthConnected)]
         public static async void CharacterDelete(ClientPacketFragment fragment, Session session)
         {
             string account     = fragment.Payload.ReadString16L();
@@ -93,7 +95,7 @@ namespace ACE.Network
             AuthenticationHandler.CharacterListSelectCallback(result, session);
         }
 
-        [Fragment(FragmentOpcode.CharacterRestore)]
+        [Fragment(FragmentOpcode.CharacterRestore, SessionState.AuthConnected)]
         public static void CharacterRestore(ClientPacketFragment fragment, Session session)
         {
             uint guid = fragment.Payload.ReadUInt32();
@@ -115,7 +117,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.Login, characterRestore, session);
         }
 
-        [Fragment(FragmentOpcode.CharacterCreate)]
+        [Fragment(FragmentOpcode.CharacterCreate, SessionState.AuthConnected)]
         public static async void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
             // known issues:

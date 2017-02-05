@@ -8,8 +8,14 @@ namespace ACE.Network
 {
     public static class PacketManager
     {
+        private class FragmentHandlerInfo
+        {
+            public FragmentHandler Handler { get; set; }
+            public FragmentAttribute Attribute { get; set; }
+        }
+
         delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
-        private static Dictionary<FragmentOpcode, FragmentHandler> fragmentHandlers;
+        private static Dictionary<FragmentOpcode, FragmentHandlerInfo> fragmentHandlers;
 
         private static Dictionary<GameActionOpcode, Type> actionHandlers;
 
@@ -21,11 +27,23 @@ namespace ACE.Network
 
         private static void DefineFragmentHandlers()
         {
-            fragmentHandlers = new Dictionary<FragmentOpcode, FragmentHandler>();
+            fragmentHandlers = new Dictionary<FragmentOpcode, FragmentHandlerInfo>();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
                 foreach (var methodInfo in type.GetMethods())
+                {
                     foreach (var fragmentHandlerAttribute in methodInfo.GetCustomAttributes<FragmentAttribute>())
-                        fragmentHandlers[fragmentHandlerAttribute.Opcode] = (FragmentHandler)Delegate.CreateDelegate(typeof(FragmentHandler), methodInfo);
+                    {
+                        var fragmentHandler = new FragmentHandlerInfo()
+                        {
+                            Handler   = (FragmentHandler)Delegate.CreateDelegate(typeof(FragmentHandler), methodInfo),
+                            Attribute = fragmentHandlerAttribute
+                        };
+
+                        fragmentHandlers[fragmentHandlerAttribute.Opcode] = fragmentHandler;
+                    }
+                }
+            }
         }
 
         private static void DefineActionHandlers()
@@ -36,8 +54,33 @@ namespace ACE.Network
                     actionHandlers[actionHandlerAttribute.Opcode] = type;
         }
 
+        private static bool CheckPacketHeader(ClientPacket packet, Session session)
+        {
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && session.State != SessionState.AuthLoginRequest)
+                return false;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && session.State != SessionState.AuthConnectResponse && session.State != SessionState.WorldConnectResponse)
+                return false;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && session.State == SessionState.AuthLoginRequest)
+                return false;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest) && session.State != SessionState.WorldLoginRequest)
+                return false;
+
+            return true;
+        }
+
         public static void HandlePacket(ConnectionType type, ClientPacket packet, Session session)
         {
+            if (!CheckPacketHeader(packet, session))
+            {
+                // server treats all packets sent during the first 30 seconds as invalid packets due to server crash, this will move clients to the disconnect screen
+                if (DateTime.Now < WorldManager.WorldStartTime.AddSeconds(30d))
+                    session.SendCharacterError(CharacterError.ServerCrash);
+                return;
+            }
+
             // CLinkStatusAverages::OnPingResponse
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
             {
@@ -84,33 +127,28 @@ namespace ACE.Network
                 }
             }
 
-            if (type == ConnectionType.Login)
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-                {
-                    AuthenticationHandler.HandleLoginRequest(packet, session);
-                    return;
-                }
+                AuthenticationHandler.HandleLoginRequest(packet, session);
+                return;
+            }
 
-                if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && session.Authenticated)
+            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
+            {
+                AuthenticationHandler.HandleWorldLoginRequest(packet, session);
+                return;
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
+            {
+                if (type == ConnectionType.Login)
                 {
                     AuthenticationHandler.HandleConnectResponse(packet, session);
                     return;
                 }
-            }
-            else
-            {
-                if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
-                {
-                    AuthenticationHandler.HandleWorldLoginRequest(packet, session);
-                    return;
-                }
 
-                if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-                {
-                    AuthenticationHandler.HandleWorldConnectResponse(packet, session);
-                    return;
-                }
+                AuthenticationHandler.HandleWorldConnectResponse(packet, session);
+                return;
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
@@ -120,12 +158,13 @@ namespace ACE.Network
             {
                 var opcode = (FragmentOpcode)fragment.Payload.ReadUInt32();
                 if (!fragmentHandlers.ContainsKey(opcode))
-                    Console.WriteLine($"Received unhandled fragment opcode: 0x{((uint)opcode).ToString("X4")}");
+                    Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
                 else
                 {
-                    FragmentHandler fragmentHandler;
-                    if (fragmentHandlers.TryGetValue(opcode, out fragmentHandler))
-                        fragmentHandler.Invoke(fragment, session);
+                    FragmentHandlerInfo fragmentHandlerInfo;
+                    if (fragmentHandlers.TryGetValue(opcode, out fragmentHandlerInfo))
+                        if (fragmentHandlerInfo.Attribute.State == session.State)
+                            fragmentHandlerInfo.Handler.Invoke(fragment, session);
                 }
             }
         }
@@ -133,7 +172,7 @@ namespace ACE.Network
         public static void HandleGameAction(GameActionOpcode opcode, ClientPacketFragment fragment, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))
-                Console.WriteLine($"Received unhandled action opcode: 0x{((uint)opcode).ToString("X4")}");
+                Console.WriteLine($"Received unhandled action opcode: 0x{(uint)opcode:X4}");
             else
             {
                 Type actionType;
