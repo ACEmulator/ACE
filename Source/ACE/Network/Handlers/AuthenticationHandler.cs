@@ -129,6 +129,9 @@ namespace ACE.Network
         public static void HandleWorldLoginRequest(ClientPacket packet, Session session)
         {
             ulong connectionKey = packet.Payload.ReadUInt64();
+            if (session.WorldConnectionKey == 0)
+                session = WorldManager.Find(connectionKey);
+
             if (connectionKey != session.WorldConnectionKey || connectionKey == 0)
             {
                 session.SendCharacterError(CharacterError.EnterGamePlayerAccountMissing);

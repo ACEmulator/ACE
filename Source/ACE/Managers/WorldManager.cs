@@ -44,12 +44,16 @@ namespace ACE.Managers
                 return sessionStore.SingleOrDefault(s => s.Account == account);
         }
 
+        public static Session Find(ulong connectionKey)
+        {
+            lock (sessionLock)
+                return sessionStore.SingleOrDefault(s => s.WorldConnectionKey == connectionKey);
+        }
+
         public static void Remove(Session session)
         {
             lock (sessionLock)
-            {
                 sessionStore.Remove(session);
-            }
         }
 
         public static void StopWorld() { pendingWorldStop = true; }
