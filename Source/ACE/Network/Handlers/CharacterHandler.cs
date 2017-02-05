@@ -53,9 +53,7 @@ namespace ACE.Network
             referralPacket.Payload.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
 
             string[] ConnectingIPAddress = session.EndPoint.Address.ToString().Split('.');
-
-            Debug.WriteLine(ConnectingIPAddress.ToString());
-            
+          
             if (ConnectingIPAddress[0] == "10" || (ConnectingIPAddress[0] == "172" && System.Convert.ToInt16(ConnectingIPAddress[1]) >= 16 && System.Convert.ToInt16(ConnectingIPAddress[1]) <= 31) || (ConnectingIPAddress[0] == "192" && ConnectingIPAddress[1] == "168"))
             {
                 var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
@@ -63,9 +61,7 @@ namespace ACE.Network
                 {
                     if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
-                        //Debug.WriteLine(ip.ToString());
                         byte[] WorldInternalIP = new byte[4];
-                        //Convert.ToByte
                         string[] hostSplit = ip.ToString().Split('.');
                         for (uint i = 0; i < 4; i++)
                             WorldInternalIP[i] = Convert.ToByte(hostSplit[i]);
