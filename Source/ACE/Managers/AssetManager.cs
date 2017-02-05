@@ -1,4 +1,5 @@
-﻿using ACE.Database;
+﻿using System;
+using ACE.Database;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,11 +13,9 @@ namespace ACE.Managers
         {
             var locations = DatabaseManager.World.GetLocations();
             foreach(var loc in locations)
-            {
                 teleportLocations.Add(loc.Location, loc.Position);
-            }
         }
 
-        public static Position GetTeleport(string location) { return teleportLocations.SingleOrDefault(t => t.Key == location).Value; }
+        public static Position GetTeleport(string location) { return teleportLocations.SingleOrDefault(t => string.Equals(t.Key, location, StringComparison.OrdinalIgnoreCase)).Value; }
     }
 }
