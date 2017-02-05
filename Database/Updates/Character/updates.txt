@@ -2,3 +2,7 @@
 --------
 - Added four new tables - character_appearance, character_stats, character_skills and character_startup_gear.
 
+2/5/2017
+--------
+- Changed character table - drop index for name.
+
