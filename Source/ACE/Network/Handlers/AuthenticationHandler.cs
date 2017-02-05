@@ -20,8 +20,26 @@ namespace ACE.Network
             packet.Payload.ReadUInt32();
             string glsTicket  = packet.Payload.ReadString32L();
 
-            var result = await DatabaseManager.Authentication.GetAccountByName(account);
-            AccountSelectCallback(result, session);
+            try
+            {
+                var result = await DatabaseManager.Authentication.GetAccountByName(account);
+                AccountSelectCallback(result, session);
+            }
+            catch (System.IndexOutOfRangeException ex)
+            {
+                if (ConfigManager.Config.Server.EnableAutoAccountCreate)
+                {
+                    string password = System.Convert.ToString(glsTicket);
+                    // TODO: convert password to normal string
+                    Command.AccountCommands.HandleAccountCreate(session, account, password);
+                    var result = await DatabaseManager.Authentication.GetAccountByName(account);
+                    AccountSelectCallback(result, session);
+                }
+                else
+                {
+                    AccountSelectCallback(null, session);
+                }
+            }
         }
 
         private static void AccountSelectCallback(Account account, Session session)
