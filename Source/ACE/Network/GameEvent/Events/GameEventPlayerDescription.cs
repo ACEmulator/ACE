@@ -160,7 +160,7 @@ namespace ACE.Network.GameEvent
 
             fragment.Payload.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
-            var vectorFlags = DescriptionVectorFlag.Attribute;
+            var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
             fragment.Payload.Write((uint)vectorFlags);
             fragment.Payload.Write(1u);
 
@@ -225,7 +225,7 @@ namespace ACE.Network.GameEvent
                     fragment.Payload.Write(0u);
                     fragment.Payload.Write(0u);
                     fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(1u);
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
@@ -240,16 +240,29 @@ namespace ACE.Network.GameEvent
             // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                fragment.Payload.Write((ushort)0u);
+                fragment.Payload.Write((ushort)2u); // num skills
                 fragment.Payload.Write((ushort)0x20);
 
+                // Run
                 {
-                    fragment.Payload.Write((uint)0);
-                    fragment.Payload.Write((ushort)0);
-                    fragment.Payload.Write((ushort)0);
+                    fragment.Payload.Write((uint)24);
+                    fragment.Payload.Write((ushort)208);
+                    fragment.Payload.Write((ushort)1);
+                    fragment.Payload.Write(2u); // training - Unusable = 0, untrained = 1, trained = 2, spec = 3
+                    fragment.Payload.Write(4203819496u); //exp
+                    fragment.Payload.Write(3000u); // bonus
                     fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(0d);
+                }
+
+                // Jump
+                {
+                    fragment.Payload.Write((uint)22);
+                    fragment.Payload.Write((ushort)208);
+                    fragment.Payload.Write((ushort)1);
+                    fragment.Payload.Write(2u);
+                    fragment.Payload.Write(4203819496u);
+                    fragment.Payload.Write(3000u);
                     fragment.Payload.Write(0u);
                     fragment.Payload.Write(0d);
                 }
