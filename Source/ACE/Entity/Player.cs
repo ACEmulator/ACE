@@ -17,11 +17,11 @@ namespace ACE.Entity
         public uint LoginIndex { get; set; } = 1u;  // total amount of times the player has logged into this character
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
 
-        public ReadOnlyDictionary<PropertyBool, bool> PropertiesBool { get { return new ReadOnlyDictionary<PropertyBool, bool>(propertiesBool); } }
-        public ReadOnlyDictionary<PropertyDouble, double> PropertiesDouble { get { return new ReadOnlyDictionary<PropertyDouble, double>(propertiesDouble); } }
-        public ReadOnlyDictionary<PropertyInt, uint> PropertiesInt { get { return new ReadOnlyDictionary<PropertyInt, uint>(propertiesInt); } }
-        public ReadOnlyDictionary<PropertyInt64, ulong> PropertiesInt64 { get { return new ReadOnlyDictionary<PropertyInt64, ulong>(propertiesInt64); } }
-        public ReadOnlyDictionary<PropertyString, string> PropertiesString { get { return new ReadOnlyDictionary<PropertyString, string>(propertiesString); } }
+        public ReadOnlyDictionary<PropertyBool, bool> PropertiesBool => new ReadOnlyDictionary<PropertyBool, bool>(propertiesBool);
+        public ReadOnlyDictionary<PropertyDouble, double> PropertiesDouble => new ReadOnlyDictionary<PropertyDouble, double>(propertiesDouble);
+        public ReadOnlyDictionary<PropertyInt, uint> PropertiesInt => new ReadOnlyDictionary<PropertyInt, uint>(propertiesInt);
+        public ReadOnlyDictionary<PropertyInt64, ulong> PropertiesInt64 => new ReadOnlyDictionary<PropertyInt64, ulong>(propertiesInt64);
+        public ReadOnlyDictionary<PropertyString, string> PropertiesString => new ReadOnlyDictionary<PropertyString, string>(propertiesString);
 
         private Dictionary<PropertyBool, bool> propertiesBool = new Dictionary<PropertyBool, bool>();
         private Dictionary<PropertyDouble, double> propertiesDouble = new Dictionary<PropertyDouble, double>();

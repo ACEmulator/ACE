@@ -1,4 +1,6 @@
-﻿namespace ACE.Network.GameAction
+﻿using ACE.Entity;
+
+namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.AdvocateTeleport)]
     public class GameActionAdvocateTeleport : GameActionPacket
@@ -10,15 +12,17 @@
 
         public override void Read()
         {
-
-            target = fragment.Payload.ReadString16L();
+            target   = fragment.Payload.ReadString16L();
             position = new Position(fragment.Payload);
-
         }
 
         public override void Handle()
         {
-            uint cell = position.Cell;
+            // this check is also done clientside, see: PlayerDesc::PlayerIsPSR
+            if (!session.Character.PropertiesBool.ContainsKey(PropertyBool.IsAdmin) && !session.Character.PropertiesBool.ContainsKey(PropertyBool.IsArch) && !session.Character.PropertiesBool.ContainsKey(PropertyBool.IsPsr))
+                return;
+
+            uint cell  = position.Cell;
             uint cellX = (cell >> 3);
 
             //TODO: Wrap command in a check to confirm session.character IsAdvocate or higher access level
