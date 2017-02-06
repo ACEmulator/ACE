@@ -3,7 +3,9 @@
     public enum AccessLevel
     {
         Player,
-        GameMaster,
+        Advocate,
+        Sentinel,
+        Envoy,
         Developer,
         Admin
     }
