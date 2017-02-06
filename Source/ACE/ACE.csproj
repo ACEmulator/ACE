@@ -106,6 +106,7 @@
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionLoginComplete.cs" />

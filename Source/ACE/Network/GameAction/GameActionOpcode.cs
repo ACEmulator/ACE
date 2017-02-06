@@ -9,6 +9,7 @@
         MoveToState        = 0xF61C,
         PingRequest        = 0x01E9,
         Talk               = 0x0015,
-        UpdateRequest      = 0x001F
+        UpdateRequest      = 0x001F,
+        AdvocateTeleport   = 0x00D6
     }
 }
