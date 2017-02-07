@@ -72,6 +72,8 @@
     <Compile Include="Command\CommandHandlerAttribute.cs" />
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
+    <Compile Include="Command\Handlers\AdminCommands.cs" />
+    <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Cryptography\SHA2.cs" />
     <Compile Include="Database\IAuthenticationDatabase.cs" />
