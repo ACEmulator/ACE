@@ -7,7 +7,7 @@ namespace ACE.Entity
         // because skill values are determined from stats, we need a reference to the character
         // so we can calculate.  this could be refactored into a better pattern, but it will
         // do for now.
-        private Character _character;
+        private Character character;
 
         public Skill Skill { get; private set; }
 
@@ -40,12 +40,12 @@ namespace ACE.Entity
                         uint foc = (uint)((abilities & Ability.Focus) > 0 ? 1 : 0);
                         uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
 
-                        abilityTotal += str * this._character.Strength.Value;
-                        abilityTotal += end * this._character.Endurance.Value;
-                        abilityTotal += coo * this._character.Coordination.Value;
-                        abilityTotal += qui * this._character.Quickness.Value;
-                        abilityTotal += foc * this._character.Focus.Value;
-                        abilityTotal += wil * this._character.Self.Value;
+                        abilityTotal += str * this.character.Strength.Value;
+                        abilityTotal += end * this.character.Endurance.Value;
+                        abilityTotal += coo * this.character.Coordination.Value;
+                        abilityTotal += qui * this.character.Quickness.Value;
+                        abilityTotal += foc * this.character.Focus.Value;
+                        abilityTotal += wil * this.character.Self.Value;
 
                         abilityTotal *= formula.AbilityMultiplier;
                     }
@@ -70,7 +70,7 @@ namespace ACE.Entity
 
         public CharacterSkill(Character character, Skill skill, SkillStatus status, uint ranks)
         {
-            _character = character;
+            this.character = character;
             Skill = skill;
             Status = status;
             Ranks = ranks;
