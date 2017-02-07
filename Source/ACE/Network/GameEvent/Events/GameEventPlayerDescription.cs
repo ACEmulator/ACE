@@ -5,6 +5,8 @@ namespace ACE.Network.GameEvent
 {
     public class GameEventPlayerDescription : GameEventPacket
     {
+        private Character _character;
+
         [Flags]
         private enum DescriptionPropertyFlag
         {
@@ -62,7 +64,11 @@ namespace ACE.Network.GameEvent
 
         public override GameEventOpcode Opcode { get { return GameEventOpcode.PlayerDescription; } }
 
-        public GameEventPlayerDescription(Session session) : base(session) { }
+        public GameEventPlayerDescription(Session session, Character character)
+            : base(session)
+        {
+            _character = character;
+        }
 
         protected override void WriteEventBody()
         {
@@ -160,11 +166,10 @@ namespace ACE.Network.GameEvent
 
             fragment.Payload.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
-            var vectorFlags = DescriptionVectorFlag.Attribute;
+            var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
             fragment.Payload.Write((uint)vectorFlags);
             fragment.Payload.Write(1u);
-
-            // TODO: need DB support for this
+            
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
                 var attributeFlags = DescriptionAttributeFlag.Full;
@@ -172,85 +177,87 @@ namespace ACE.Network.GameEvent
 
                 if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(1000u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Strength.Ranks); // ranks
+                    fragment.Payload.Write(_character.Strength.Value);
+                    fragment.Payload.Write(_character.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(1000u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Endurance.Ranks); // ranks
+                    fragment.Payload.Write(_character.Endurance.Value);
+                    fragment.Payload.Write(_character.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(1000u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Quickness.Ranks); // ranks
+                    fragment.Payload.Write(_character.Quickness.Value);
+                    fragment.Payload.Write(_character.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(1000u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Coordination.Ranks); // ranks
+                    fragment.Payload.Write(_character.Coordination.Value);
+                    fragment.Payload.Write(_character.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(1000u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Focus.Ranks); // ranks
+                    fragment.Payload.Write(_character.Focus.Value);
+                    fragment.Payload.Write(_character.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(1000u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Self.Ranks); // ranks
+                    fragment.Payload.Write(_character.Self.Value);
+                    fragment.Payload.Write(_character.Self.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Health.Ranks); // ranks
+                    fragment.Payload.Write(0u); // unknown
+                    fragment.Payload.Write(_character.Health.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(_character.Health.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Stamina.Ranks); // ranks
+                    fragment.Payload.Write(0u); // unknown
+                    fragment.Payload.Write(_character.Stamina.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(_character.Stamina.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write(_character.Mana.Ranks); // ranks
+                    fragment.Payload.Write(0u); // unknown
+                    fragment.Payload.Write(_character.Mana.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(_character.Mana.Current); // current value
                 }
             }
 
             // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                fragment.Payload.Write((ushort)0u);
-                fragment.Payload.Write((ushort)0x20);
+                
+                fragment.Payload.Write((ushort)_character.Skills.Count);
+                fragment.Payload.Write((ushort)0x20); // unknown
 
+                foreach (var skill in _character.Skills)
                 {
-                    fragment.Payload.Write((uint)0);
+                    fragment.Payload.Write((uint)skill.Key); // skill id
+                    fragment.Payload.Write((ushort)skill.Value.Ranks); // points raised
                     fragment.Payload.Write((ushort)0);
-                    fragment.Payload.Write((ushort)0);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0u);
+                    fragment.Payload.Write((uint)skill.Value.Status); // skill state
+                    fragment.Payload.Write((uint)skill.Value.ExperienceSpent); // xp spent on this skill
+                    fragment.Payload.Write(0u); // current bonus points applied (buffs) - not implemented
+                    fragment.Payload.Write(0u); // task difficulty
                     fragment.Payload.Write(0d);
                 }
             }

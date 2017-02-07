@@ -23,11 +23,16 @@ namespace ACE.Entity
             character.Self.Base = fragment.Payload.ReadUInt32();
             character.Slot = fragment.Payload.ReadUInt32();
             character.ClassId = fragment.Payload.ReadUInt32();
-            
+
+            // characters start with max vitals
+            character.Health.Current = character.Health.Value;
+            character.Stamina.Current = character.Stamina.Value;
+            character.Mana.Current = character.Mana.Value;
+
             uint numOfSkills = fragment.Payload.ReadUInt32();
             for (uint i = 0; i < numOfSkills; i++)
             {
-                character.AddSkill((Skill)i, (SkillStatus)fragment.Payload.ReadUInt32());
+                character.AddSkill((Skill)i, (SkillStatus)fragment.Payload.ReadUInt32(), 0);
             }
 
             character.Name = fragment.Payload.ReadString16L();
@@ -79,11 +84,13 @@ namespace ACE.Entity
 
         public Appearance Appearance { get; set; } = new Appearance();
 
+        public Position Position { get; set; }
+
         public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
 
-        private void AddSkill(Skill skill, SkillStatus status)
+        private void AddSkill(Skill skill, SkillStatus status, uint ranks)
         {
-            Skills.Add(skill, new CharacterSkill(this, skill, status));
+            Skills.Add(skill, new CharacterSkill(this, skill, status, ranks));
         }
 
         private Character()

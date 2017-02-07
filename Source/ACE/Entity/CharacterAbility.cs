@@ -15,6 +15,11 @@ namespace ACE.Entity
 
         public uint Ranks { get; set; }
 
+        /// <summary>
+        /// only applies to Health/Stam/Mana
+        /// </summary>
+        public uint Current { get; set; }
+
         public uint Value
         {
             get

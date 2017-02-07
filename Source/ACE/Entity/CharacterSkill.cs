@@ -68,11 +68,12 @@ namespace ACE.Entity
             }
         }
 
-        public CharacterSkill(Character character, Skill skill, SkillStatus status)
+        public CharacterSkill(Character character, Skill skill, SkillStatus status, uint ranks)
         {
             _character = character;
             Skill = skill;
             Status = status;
+            Ranks = ranks;
         }
     }
 }
