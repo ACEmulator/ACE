@@ -455,7 +455,7 @@ namespace ACE.Command
 
             ChatPacket.SendSystemMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]");
 
-            session.Character.Teleport(position);
+            session.Player.Teleport(position);
         }
 
         // teleto [char]
@@ -476,7 +476,7 @@ namespace ACE.Command
             if (teleportPOI == null)
                 return;
 
-            session.Character.Teleport(teleportPOI);
+            session.Player.Teleport(teleportPOI);
         }
 
         // teleloc cell x y z qx qy qz qw
@@ -497,7 +497,7 @@ namespace ACE.Command
                 positionData[i] = position;
             }
 
-            session.Character.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
         // time
@@ -765,6 +765,10 @@ namespace ACE.Command
             // @heal - Heals yourself(or the selected creature).
 
             //TODO: output
+            session.Player.Character.Health.Current = session.Player.Character.Health.Value;
+            session.Player.Character.Stamina.Current = session.Player.Character.Stamina.Value;
+            session.Player.Character.Mana.Current = session.Player.Character.Mana.Value;
+            //session.Player.Session.
         }
 
         // housekeep
