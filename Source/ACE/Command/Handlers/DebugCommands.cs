@@ -10,7 +10,7 @@ namespace ACE.Command
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
-            var position = session.Character.Position;
+            var position = session.Player.Position;
             ChatPacket.SendSystemMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]");
         }
 
@@ -23,7 +23,7 @@ namespace ACE.Command
             if (teleportLocation == null)
                 return;
 
-            session.Character.Teleport(teleportLocation);
+            session.Player.Teleport(teleportLocation);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -44,7 +44,7 @@ namespace ACE.Command
                 positionData[i] = position;
             }
 
-            session.Character.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
         // Example /teleto 40.0n 55.0w
@@ -100,7 +100,7 @@ namespace ACE.Command
 
             ChatPacket.SendSystemMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]");
 
-            session.Character.Teleport(position);
+            session.Player.Teleport(position);
         }
     }
 }

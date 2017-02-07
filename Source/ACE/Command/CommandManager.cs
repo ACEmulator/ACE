@@ -100,7 +100,7 @@ namespace ACE.Command
             if (commandInfo.Attribute.ParameterCount != -1 && parameters.Length < commandInfo.Attribute.ParameterCount)
                 return CommandHandlerResponse.InvalidParameterCount;
 
-            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Character == null || !session.Character.InWorld))
+            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Player == null || !session.Player.InWorld))
                 return CommandHandlerResponse.NotInWorld;
 
             return CommandHandlerResponse.Ok;

@@ -40,6 +40,8 @@ namespace ACE.Entity
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
         }
 
+        public Character Character { get { return _character; } }
+
         public async void Load()
         {
             _character = await DatabaseManager.Character.LoadCharacter(Guid.GetLow());
@@ -143,7 +145,7 @@ namespace ACE.Entity
 
             // TODO: gear and equip
 
-            new GameEventPlayerDescription(Session, _character).Send();
+            new GameEventPlayerDescription(Session).Send();
             new GameEventCharacterTitle(Session).Send();
         }
 
