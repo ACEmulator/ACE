@@ -29,6 +29,8 @@ namespace ACE.Entity
         private Dictionary<PropertyInt64, ulong> propertiesInt64 = new Dictionary<PropertyInt64, ulong>();
         private Dictionary<PropertyString, string> propertiesString = new Dictionary<PropertyString, string>();
 
+        private Character character;
+
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.LowGuid, GuidType.Player)
         {
             Session           = session;
@@ -38,9 +40,12 @@ namespace ACE.Entity
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
         }
 
+        public Character Character { get { return character; } }
+
         public async void Load()
         {
-            Position = await DatabaseManager.Character.GetPosition(Guid.GetLow());
+            character = await DatabaseManager.Character.LoadCharacter(Guid.GetLow());
+            Position = character.Position;
 
             // need to load the rest of the player information from DB in this async method, this is just temporary and is what is sent by the retail server
             SetPropertyInt(PropertyInt.Unknown384, 0);
@@ -109,7 +114,7 @@ namespace ACE.Entity
 
             SetPropertyBool(PropertyBool.IsPsr, false);
             SetPropertyBool(PropertyBool.ActdReceivedItems, true);
-            SetPropertyBool(PropertyBool.IsAdmin, true);
+            SetPropertyBool(PropertyBool.IsAdmin, character.IsAdmin);
             SetPropertyBool(PropertyBool.IsArch, false);
             SetPropertyBool(PropertyBool.IsSentinel, false);
             SetPropertyBool(PropertyBool.IsAdvocate, false);

@@ -142,7 +142,7 @@ namespace ACE.Network
             }
 
             session.WorldConnection    = new SessionConnectionData(ConnectionType.World);
-            session.Character          = new Player(session);
+            session.Player          = new Player(session);
             session.CharacterRequested = null;
             session.State              = SessionState.WorldConnectResponse;
 
@@ -170,7 +170,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.World, serverSwitch, session);
 
             new GameEventPopupString(session, ConfigManager.Config.Server.Welcome).Send();
-            session.Character.Load();
+            session.Player.Load();
         }
     }
 }

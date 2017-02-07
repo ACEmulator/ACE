@@ -9,8 +9,8 @@ namespace ACE.Network.GameAction
 
         public override void Handle()
         {
-            session.Character.InWorld = true;
-            session.Character.SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
+            session.Player.InWorld = true;
+            session.Player.SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
         }
     }
 }

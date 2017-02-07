@@ -16,9 +16,9 @@ namespace ACE.Database
         uint GetMaxId();
 
         bool IsNameAvailable(string name);
-
-        // void CreateCharacter(uint id, uint accountId, string name, uint templateOption, uint startArea, bool isAdmin, bool isEnvoy);
-
+        
         Task CreateCharacter(Character character);
+
+        Task<Character> LoadCharacter(uint id);
     }
 }

@@ -77,7 +77,7 @@
     <Compile Include="Database\IAuthenticationDatabase.cs" />
     <Compile Include="Database\ICharacterDatabase.cs" />
     <Compile Include="Database\IWorldDatabase.cs" />
-    <Compile Include="Database\Nodes\WorldDatabase.cs" />
+    <Compile Include="Database\WorldDatabase.cs" />
     <Compile Include="Entity\Appearance.cs" />
     <Compile Include="Entity\Enum\Ability.cs" />
     <Compile Include="Entity\Account.cs" />
@@ -121,10 +121,10 @@
     <Compile Include="Managers\ConfigManager.cs" />
     <Compile Include="Cryptography\Hash32.cs" />
     <Compile Include="Cryptography\ISAAC.cs" />
-    <Compile Include="Database\Nodes\CharacterDatabase.cs" />
+    <Compile Include="Database\CharacterDatabase.cs" />
     <Compile Include="Database\Database.cs" />
     <Compile Include="Database\DatabaseManager.cs" />
-    <Compile Include="Database\Nodes\AuthenticationDatabase.cs" />
+    <Compile Include="Database\AuthenticationDatabase.cs" />
     <Compile Include="Database\MySqlResult.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -153,6 +153,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Config.json.example" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -167,6 +170,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Database\Nodes\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

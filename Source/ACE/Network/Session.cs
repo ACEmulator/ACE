@@ -46,7 +46,7 @@ namespace ACE.Network
 
         public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
         public CachedCharacter CharacterRequested { get; set; }
-        public Player Character { get; set; }
+        public Player Player { get; set; }
 
         // connection related
         public IPEndPoint EndPoint { get; }

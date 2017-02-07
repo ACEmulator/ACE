@@ -7,13 +7,18 @@ namespace ACE.Entity
         // because health/stam/mana values are determined from stats, we need a reference to the character
         // so we can calculate.  this could be refactored into a better pattern, but it will
         // do for now.
-        private Character _character;
+        private Character character;
 
         public Ability Ability { get; private set; }
 
         public uint Base { get; set; }
 
         public uint Ranks { get; set; }
+
+        /// <summary>
+        /// only applies to Health/Stam/Mana
+        /// </summary>
+        public uint Current { get; set; }
 
         public uint Value
         {
@@ -34,8 +39,8 @@ namespace ACE.Entity
                     uint end = (uint)((abilities & Ability.Endurance) > 0 ? 1 : 0);
                     uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
                     
-                    derivationTotal += end * this._character.Endurance.Value;
-                    derivationTotal += wil * this._character.Self.Value;
+                    derivationTotal += end * this.character.Endurance.Value;
+                    derivationTotal += wil * this.character.Self.Value;
 
                     derivationTotal *= formula.AbilityMultiplier;
 
@@ -59,7 +64,7 @@ namespace ACE.Entity
 
         public CharacterAbility(Character character, Ability ability)
         {
-            _character = character;
+            this.character = character;
             Ability = ability;
         }
     }

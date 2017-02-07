@@ -19,7 +19,7 @@ namespace ACE.Network.GameAction
         public override void Handle()
         {
             // this check is also done clientside, see: PlayerDesc::PlayerIsPSR
-            if (!session.Character.PropertiesBool.ContainsKey(PropertyBool.IsAdmin) && !session.Character.PropertiesBool.ContainsKey(PropertyBool.IsArch) && !session.Character.PropertiesBool.ContainsKey(PropertyBool.IsPsr))
+            if (!session.Player.PropertiesBool.ContainsKey(PropertyBool.IsAdmin) && !session.Player.PropertiesBool.ContainsKey(PropertyBool.IsArch) && !session.Player.PropertiesBool.ContainsKey(PropertyBool.IsPsr))
                 return;
 
             uint cell  = position.Cell;
@@ -30,7 +30,7 @@ namespace ACE.Network.GameAction
             //TODO: Maybe output to chat window coords teleported to.
             //ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
             ChatPacket.SendSystemMessage(session, "Teleporting...");
-            session.Character.Teleport(position);
+            session.Player.Teleport(position);
         }
     }
 }
