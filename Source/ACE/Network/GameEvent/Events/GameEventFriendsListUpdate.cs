@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.GameEvent
 {
-    class GameEventFriendsListUpdate : GameEventPacket
+    public class GameEventFriendsListUpdate : GameEventPacket
     {
         [Flags]
         public enum FriendsUpdateTypeFlag
