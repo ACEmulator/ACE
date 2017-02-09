@@ -469,7 +469,7 @@ namespace ACE.Command
 
         // telepoi location
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleDebugTeleportPOI(Session session, params string[] parameters)
+        public static void HandleTeleportPOI(Session session, params string[] parameters)
         {
             var POI = String.Join(" ", parameters);
             var teleportPOI = AssetManager.GetTeleport(POI);
@@ -479,25 +479,51 @@ namespace ACE.Command
             session.Player.Teleport(teleportPOI);
         }
 
-        // teleloc cell x y z qx qy qz qw
-        [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 8)]
-        public static void HandleDebugTeleportLOC(Session session, params string[] parameters)
+        // teleloc cell x y z [qx qy qz qw]
+        [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 4)]
+        public static void HandleTeleportLOC(Session session, params string[] parameters)
         {
-            uint cell;
-            if (!uint.TryParse(parameters[0], out cell))
-                return;
-
-            var positionData = new float[7];
-            for (uint i = 0u; i < 7u; i++)
+            try
             {
-                float position;
-                if (!float.TryParse(parameters[i + 1], out position))
-                    return;
+                uint cell;
+                //System.Diagnostics.Debug.WriteLine(int.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber));
+                //if (!uint.TryParse(parameters[0], out cell))
+                //    return;
 
-                positionData[i] = position;
+                if (parameters[0].StartsWith("0x"))
+                {
+                    string strippedcell = parameters[0].Substring(2);
+                    cell = (uint)int.Parse(strippedcell, System.Globalization.NumberStyles.HexNumber);
+                }
+                else
+                {
+                    cell = (uint)int.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber);
+                }
+
+
+                var positionData = new float[7];
+                for (uint i = 0u; i < 7u; i++)
+                {
+                    float position;
+                    if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out position))
+                        return;
+
+                    positionData[i] = position;
+                }
+
+                //session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+                // ^ Zeroed out last 4 numbers due to odd results when portaling to the exact coords.
+
+                session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], 0, 0, 0, 0));
             }
-
-            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            catch (Exception ex)
+            {
+                ChatPacket.SendSystemMessage(session, "Invalid arguments for @teleloc");
+                ChatPacket.SendSystemMessage(session, "Usage: @teleloc cell x y z [qx qy qz qw]");
+                ChatPacket.SendSystemMessage(session, "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806");
+                ChatPacket.SendSystemMessage(session, "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806");
+                ChatPacket.SendSystemMessage(session, "Example: @teleloc 7F0401AD 12.319900 -28.482000 0.005000");
+            }
         }
 
         // time
