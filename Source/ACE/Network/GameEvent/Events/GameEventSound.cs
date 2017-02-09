@@ -2,14 +2,14 @@
 
 namespace ACE.Network.GameEvent
 {
-    public class GameEventSound : GameEventPacket
+    public class GameEventSound : GameEventFraglessPacket
     {
         private Sound soundId;
-        private uint volume;
+        private float volume;
 
         public override GameEventOpcode Opcode { get { return GameEventOpcode.Sound; } }
 
-        public GameEventSound(Session session, Sound soundId, uint volume) 
+        public GameEventSound(Session session, Sound soundId, float volume) 
             : base(session)
         {
             this.soundId = soundId;

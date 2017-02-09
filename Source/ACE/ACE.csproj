@@ -154,6 +154,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
     <Compile Include="Network\GameEvent\GameEventPacket.cs" />
+    <Compile Include="Network\GameEvent\GameEventFraglessPacket.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />

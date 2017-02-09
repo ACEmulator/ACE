@@ -195,7 +195,7 @@ namespace ACE.Entity
                     abilityUpdate = new GameEventPrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
-                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1);
+                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1f);
 
                 xpUpdate.Send();
                 abilityUpdate.Send();
@@ -219,7 +219,7 @@ namespace ACE.Entity
                 var status = character.Skills[skill].Status;
                 var xpUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 var ablityUpdate = new GameEventPrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1);
+                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1f);
 
                 xpUpdate.Send();
                 ablityUpdate.Send();
