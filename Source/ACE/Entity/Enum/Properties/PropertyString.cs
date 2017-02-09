@@ -1,9 +1,10 @@
 ﻿namespace ACE.Entity
 {
-    public enum PropertyString
+    public enum PropertyString : ushort
     {
         Undef,
         Name,
+        [PersistedProperty(true, typeof(Character), "Adventurer")]
         Title,
         Sex,
         HeritageGroup,
@@ -13,6 +14,7 @@
         ScribeName,
         VendorsName,
         Fellowship,
+        [PersistedProperty(true, typeof(Character), null)]
         MonarchsName,
         LockCode,
         KeyCode,
@@ -44,6 +46,7 @@
         TinkerName,
         ImbuerName,
         HouseOwnerAccount,
+        [PersistedProperty(true, typeof(Character), "[ Name ]")]
         DisplayName,
         DateOfBirth,
         ThirdPartyApi,
@@ -56,5 +59,13 @@
         UseSendsSignal,
         GearPlatingName,
         Count
+    }
+
+    public static class PropertyStringExtensions
+    {
+        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyString val)
+        {
+            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
+        }
     }
 }

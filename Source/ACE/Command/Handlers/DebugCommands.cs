@@ -102,5 +102,22 @@ namespace ACE.Command
 
             session.Player.Teleport(position);
         }
+
+
+        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandleGrantXp(Session session, params string[] parameters)
+        {
+            uint xp = 0;
+
+            if (parameters?.Length > 0 && uint.TryParse(parameters[0], out xp))
+            {
+                session.Player.GrantXp(xp);
+            }
+            else
+            {
+                ChatPacket.SendSystemMessage(session, "Usage: /grantxp 1234");
+                return;
+            }
+        }
     }
 }

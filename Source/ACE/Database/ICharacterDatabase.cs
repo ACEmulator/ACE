@@ -19,6 +19,8 @@ namespace ACE.Database
         
         Task CreateCharacter(Character character);
 
+        Task UpdateCharacter(Character character);
+
         Task<Character> LoadCharacter(uint id);
     }
 }

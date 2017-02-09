@@ -25,7 +25,8 @@ namespace ACE.Database
             CharacterPositionSelect,
             CharacterUniqueNameSelect,
             CharacterSkillsSelect,
-            CharacterStatsSelect
+            CharacterStatsSelect,
+            CharacterAppearanceSelect
         }
 
         protected override Type preparedStatementType { get { return typeof(CharacterPreparedStatement); } }
@@ -34,8 +35,8 @@ namespace ACE.Database
         {
             AddPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex, "SELECT MAX(`guid`) FROM `character`;");
             AddPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, "SELECT COUNT(`name`) as cnt FROM `character` WHERE BINARY `name` = ?;", MySqlDbType.VarString);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterInsert, "INSERT INTO `character` (`guid`, `accountId`, `name`, `templateOption`, `startArea`, `isAdmin`, `isEnvoy`) VALUES (?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceInsert, "INSERT INTO `character_appearance` (`id`, `race`, `gender`, `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.Double);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterInsert, "INSERT INTO `character` (`guid`, `accountId`, `name`, `templateOption`, `startArea`) VALUES (?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UByte, MySqlDbType.UByte);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceInsert, "INSERT INTO `character_appearance` (`id`, `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.Double);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsInsert, "INSERT INTO `character_stats` (`id`, `strength`, `endurance`, `coordination`, `quickness`, `focus`, `self`, `health_current`, `stamina_current`, `mana_current`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert, "INSERT INTO `character_skills` (`id`, `skillId`, `skillStatus`, `skillPoints`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UInt16);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, "INSERT INTO `character_startup_gear` (`id`, `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double);
@@ -43,10 +44,12 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `accountId` = ? ORDER BY `name` ASC;", MySqlDbType.UInt32);
 
             // world entry
-            AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `isAdmin`, `isEnvoy` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strength_ranks`, `endurance`, `endurance_ranks`, `coordination`, `coordination_ranks`, `quickness`, `quickness_ranks`, `focus`, `focus_ranks`, `self`, `self_ranks`, `health_ranks`, `health_current`, `stamina_ranks`, `stamina_current`, `mana_ranks`, `mana_current` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceSelect, "SELECT  `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue` FROM `character_appearance` WHERE `id` = ?;", MySqlDbType.UInt32);
+
         }
 
         public uint GetMaxId()
@@ -105,6 +108,12 @@ namespace ACE.Database
             return (charsWithName == 0);
         }
 
+        public Task UpdateCharacter(Character character)
+        {
+            // TODO: implement saving a character
+            return Task.Delay(0);
+        }
+
         public async Task CreateCharacter(Character character)
         {
             // first one can't be awaited
@@ -113,14 +122,10 @@ namespace ACE.Database
                 character.AccountId, 
                 character.Name, 
                 character.TemplateOption, 
-                character.StartArea, 
-                character.IsAdmin, 
-                character.IsEnvoy);
+                character.StartArea);
 
             await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterAppearanceInsert,
                 character.Id,
-                character.Appearance.Race,
-                character.Appearance.Gender,
                 character.Appearance.Eyes,
                 character.Appearance.Nose,
                 character.Appearance.Mouth,
@@ -165,6 +170,8 @@ namespace ACE.Database
                 character.Appearance.FootwearStyle,
                 character.Appearance.FootwearColor,
                 character.Appearance.FootwearHue);
+
+            DatabaseManager.World.SaveProperties(character);
         }
 
         public async Task<Character> LoadCharacter(uint id)
@@ -181,8 +188,6 @@ namespace ACE.Database
                 c.Name = result.Read<string>(0, "name");
                 c.TemplateOption = result.Read<uint>(0, "templateOption");
                 c.StartArea = result.Read<uint>(0, "startArea");
-                c.IsAdmin = result.Read<bool>(0, "isAdmin");
-                c.IsEnvoy = result.Read<bool>(0, "isEnvoy");
 
                 c.Position = await this.GetPosition(guid);
 
@@ -194,6 +199,21 @@ namespace ACE.Database
                     SkillStatus ss = result.Read<SkillStatus>(i, "skillStatus");
                     uint ranks = result.Read<uint>(i, "skillPoints");
                     c.Skills.Add(s, new CharacterSkill(c, s, ss, ranks));
+                }
+
+                result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterAppearanceSelect, id);
+
+                if (result?.Count > 0)
+                {
+                    c.Appearance = new Appearance();
+                    c.Appearance.Eyes = result.Read<uint>(0, "eyes");
+                    c.Appearance.Nose = result.Read<uint>(0, "nose");
+                    c.Appearance.Mouth = result.Read<uint>(0, "mouth");
+                    c.Appearance.EyeColor = result.Read<uint>(0, "eyeColor");
+                    c.Appearance.HairColor = result.Read<uint>(0, "hairColor");
+                    c.Appearance.HairStyle = result.Read<uint>(0, "hairStyle");
+                    c.Appearance.HairHue = result.Read<uint>(0, "hairHue");
+                    c.Appearance.SkinHue = result.Read<uint>(0, "skinHue");
                 }
 
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterStatsSelect, id);
@@ -220,6 +240,8 @@ namespace ACE.Database
                     c.Mana.Ranks = result.Read<uint>(0, "mana_ranks");
                     c.Mana.Current = result.Read<uint>(0, "mana_current");
                 }
+
+                DatabaseManager.World.LoadProperties(c);
             }
 
             return c;

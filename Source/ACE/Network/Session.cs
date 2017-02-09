@@ -54,6 +54,13 @@ namespace ACE.Network
         public SessionConnectionData WorldConnection { get; set; }
         public ulong WorldConnectionKey { get; set; }
         public uint GameEventSequence { get; set; }
+        public byte UpdateAttributeSequence { get; set; } = 0x0;
+        public byte UpdateSkillSequence { get; set; } = 0x0;
+        public byte UpdatePropertyInt64Sequence { get; set; } = 0x0;
+        public byte UpdatePropertyIntSequence { get; set; } = 0x0;
+        public byte UpdatePropertyStringSequence { get; set; } = 0x0;
+        public byte UpdatePropertyBoolSequence { get; set; } = 0x0;
+        public byte UpdatePropertyDoubleSequence { get; set; } = 0x0;
 
         public ConcurrentDictionary<uint /*seq*/, CachedPacket> CachedPackets { get; } = new ConcurrentDictionary<uint, CachedPacket>();
 
