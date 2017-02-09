@@ -86,6 +86,8 @@ namespace ACE.Entity
 
         public Position Position { get; set; }
 
+        public List<Friend> Friends { get; set; } = new List<Friend>();
+
         public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
 
         private void AddSkill(Skill skill, SkillStatus status, uint ranks)

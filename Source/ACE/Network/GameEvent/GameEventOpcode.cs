@@ -3,6 +3,7 @@
     // order by opcode name
     public enum GameEventOpcode
     {
+        FriendsListUpdate = 0x0021,
         CharacterTitle    = 0x0029,
         HouseStatus       = 0x0226,
         PingResponse      = 0x01EA,
