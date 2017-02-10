@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity
 {
-    public enum PropertyDouble
+    public enum PropertyDouble : uint
     {
         Undef,
         HeartbeatInterval,
@@ -127,6 +127,7 @@
         AiAcquireHealth,
         AiAcquireStamina,
         AiAcquireMana,
+        [PersistedProperty(true, typeof(Character), 1d)]
         ResistHealthDrain,
         LifestoneProtectionTimestamp,
         AiCounteractEnchantment,
@@ -173,7 +174,16 @@
         WeaponAuraOffense,
         WeaponAuraDefense,
         WeaponAuraElemental,
+        [PersistedProperty(true, typeof(Character), 1d)]
         WeaponAuraManaConv,
         Count
+    }
+
+    public static class PropertyDoubleExtensions
+    {
+        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyDouble val)
+        {
+            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
+        }
     }
 }

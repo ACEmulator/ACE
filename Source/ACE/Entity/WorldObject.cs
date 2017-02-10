@@ -114,13 +114,13 @@ namespace ACE.Entity
 
             objectCreateFragment.Payload.Write((ushort)MovementIndex);
             objectCreateFragment.Payload.Write((ushort)1);
-            objectCreateFragment.Payload.Write((ushort)(player != null ? player.PortalIndex : 0));
+            objectCreateFragment.Payload.Write((ushort)(player?.PortalIndex ?? 0));
             objectCreateFragment.Payload.Write((ushort)0);
             objectCreateFragment.Payload.Write((ushort)TeleportIndex);
             objectCreateFragment.Payload.Write((ushort)0);
             objectCreateFragment.Payload.Write((ushort)0);
             objectCreateFragment.Payload.Write((ushort)0);
-            objectCreateFragment.Payload.Write((ushort)(player != null ? player.LoginIndex : 0));
+            objectCreateFragment.Payload.Write((ushort)(player?.TotalLogins ?? 0));
 
             objectCreateFragment.Payload.Align();
 
@@ -290,7 +290,7 @@ namespace ACE.Entity
             }*/
 
             var player = Guid.IsPlayer() ? this as Player : null;
-            updatePositionFragment.Payload.Write((ushort)(player != null ? player.LoginIndex : 0));
+            updatePositionFragment.Payload.Write((ushort)(player?.TotalLogins ?? 0));
             updatePositionFragment.Payload.Write((ushort)++MovementIndex);
             updatePositionFragment.Payload.Write((ushort)TeleportIndex);
             updatePositionFragment.Payload.Write((ushort)0);

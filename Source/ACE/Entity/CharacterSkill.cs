@@ -1,4 +1,7 @@
 ﻿using ACE.Entity.Enum;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -15,7 +18,7 @@ namespace ACE.Entity
 
         public uint Ranks { get; set; } 
         
-        public uint Value
+        public uint UnbuffedValue
         {
             get
             {
@@ -40,12 +43,12 @@ namespace ACE.Entity
                         uint foc = (uint)((abilities & Ability.Focus) > 0 ? 1 : 0);
                         uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
 
-                        abilityTotal += str * this.character.Strength.Value;
-                        abilityTotal += end * this.character.Endurance.Value;
-                        abilityTotal += coo * this.character.Coordination.Value;
-                        abilityTotal += qui * this.character.Quickness.Value;
-                        abilityTotal += foc * this.character.Focus.Value;
-                        abilityTotal += wil * this.character.Self.Value;
+                        abilityTotal += str * this.character.Strength.UnbuffedValue;
+                        abilityTotal += end * this.character.Endurance.UnbuffedValue;
+                        abilityTotal += coo * this.character.Coordination.UnbuffedValue;
+                        abilityTotal += qui * this.character.Quickness.UnbuffedValue;
+                        abilityTotal += foc * this.character.Focus.UnbuffedValue;
+                        abilityTotal += wil * this.character.Self.UnbuffedValue;
 
                         abilityTotal *= formula.AbilityMultiplier;
                     }
@@ -59,14 +62,7 @@ namespace ACE.Entity
             }
         }
 
-        public uint ExperienceSpent
-        {
-            get
-            {
-                // TODO: Implement xp chart if property is necessary.
-                return 0;
-            }
-        }
+        public uint ExperienceSpent { get; set; }
 
         public CharacterSkill(Character character, Skill skill, SkillStatus status, uint ranks)
         {
@@ -74,6 +70,43 @@ namespace ACE.Entity
             Skill = skill;
             Status = status;
             Ranks = ranks;
+        }
+
+        /// <summary>
+        /// spends the xp on this skill.
+        /// </summary>
+        /// <returns>0 if it failed, total investment of the next rank if successful</returns>
+        public uint SpendXp(uint amount)
+        {
+            uint result = 0u;
+            List<Tuple<uint, uint, uint>> chart;
+
+            if (Status == SkillStatus.Trained)
+                chart = SkillExtensions.TrainedChart;
+            else if (Status == SkillStatus.Specialized)
+                chart = SkillExtensions.SpecializedChart;
+            else
+                return result;
+
+            uint rankUps = 0u;
+            uint currentXp = chart[Convert.ToInt32(this.Ranks)].Item2;
+            uint rank1 = chart[Convert.ToInt32(this.Ranks) + 1].Item3;
+            uint rank10 = chart[Convert.ToInt32(this.Ranks) + 10].Item2 - chart[Convert.ToInt32(this.Ranks)].Item2;
+
+            if (amount == rank1)
+                rankUps = 1u;
+            else if (amount == rank10)
+                rankUps = 10u;
+
+            if (rankUps > 0)
+            {
+                this.Ranks += rankUps;
+                this.ExperienceSpent += amount;
+                this.character.SpendXp(amount);
+                result = this.ExperienceSpent;
+            }
+
+            return result;
         }
     }
 }

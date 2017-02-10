@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity
 {
-    public enum PropertyBool
+    public enum PropertyBool : ushort
     {
         Undef,
         Stuck,
@@ -46,9 +46,13 @@
         ReportCollisionsAsEnvironment,
         AllowEdgeSlide,
         AdvocateQuest,
+        [PersistedProperty(true, typeof(Character), false)]
         IsAdmin,
+        [PersistedProperty(true, typeof(Character), false)]
         IsArch,
+        [PersistedProperty(true, typeof(Character), false)]
         IsSentinel,
+        [PersistedProperty(true, typeof(Character), false)]
         IsAdvocate,
         CurrentlyPoweringUp,
         GeneratorEnteredWorld,
@@ -99,6 +103,7 @@
         AppraisalHasAllowedActivator,
         ExistedBeforeAllegianceXpChanges,
         IsDeaf,
+        [PersistedProperty(true, typeof(Character), false)]
         IsPsr,
         Invincible,
         Ivoryable,
@@ -106,6 +111,7 @@
         CanGenerateRare,
         CorpseGeneratedRare,
         NonProjectileMagicImmune,
+        [PersistedProperty(true, typeof(Character), true)]
         ActdReceivedItems,
         Unknown105,
         FirstEnterWorldDone,
@@ -129,10 +135,19 @@
         NoHeldItemShown,
         LoginAtLifestone,
         OlthoiPk,
+        [PersistedProperty(true, typeof(Character), false)]
         Account15Days,
         HadNoVitae,
         NoOlthoiTalk,
         AutowieldLeft,
         Count
+    }
+
+    public static class PropertyBoolExtensions
+    {
+        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyBool val)
+        {
+            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
+        }
     }
 }

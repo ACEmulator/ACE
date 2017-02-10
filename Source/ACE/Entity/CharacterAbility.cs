@@ -1,4 +1,6 @@
 ﻿using ACE.Entity.Enum;
+using System;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
@@ -20,7 +22,7 @@ namespace ACE.Entity
         /// </summary>
         public uint Current { get; set; }
 
-        public uint Value
+        public uint UnbuffedValue
         {
             get
             {
@@ -38,9 +40,9 @@ namespace ACE.Entity
                     Ability abilities = formula.Abilities;
                     uint end = (uint)((abilities & Ability.Endurance) > 0 ? 1 : 0);
                     uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
-                    
-                    derivationTotal += end * this.character.Endurance.Value;
-                    derivationTotal += wil * this.character.Self.Value;
+
+                    derivationTotal += end * this.character.Endurance.UnbuffedValue;
+                    derivationTotal += wil * this.character.Self.UnbuffedValue;
 
                     derivationTotal *= formula.AbilityMultiplier;
 
@@ -53,19 +55,57 @@ namespace ACE.Entity
             }
         }
 
-        public uint ExperienceSpent
-        {
-            get
-            {
-                // TODO: Implement xp chart if property is necessary.
-                return 0;
-            }
-        }
+        public uint ExperienceSpent { get; set; }
 
         public CharacterAbility(Character character, Ability ability)
         {
             this.character = character;
             Ability = ability;
+        }
+
+        /// <summary>
+        /// spends the xp on this ability.
+        /// </summary>
+        /// <returns>0 if it failed, total investment of the next rank if successful</returns>
+        public uint SpendXp(uint amount)
+        {
+            uint result = 0;
+            bool addToCurrentValue = false;
+            List<Tuple<uint, uint, uint>> chart;
+
+            switch (this.Ability)
+            {
+                case Ability.Health:
+                case Ability.Stamina:
+                case Ability.Mana:
+                    chart = AbilityExtensions.SecondaryAbilityChart;
+                    addToCurrentValue = true;
+                    break;
+                default:
+                    chart = AbilityExtensions.PrimaryAbilityChart;
+                    break;
+            }
+
+            uint rankUps = 0u;
+            uint currentXp = chart[Convert.ToInt32(this.Ranks)].Item2;
+            uint rank1 = chart[Convert.ToInt32(this.Ranks) + 1].Item3;
+            uint rank10 = chart[Convert.ToInt32(this.Ranks) + 10].Item2 - chart[Convert.ToInt32(this.Ranks)].Item2;
+
+            if (amount == rank1)
+                rankUps = 1u;
+            else if (amount == rank10)
+                rankUps = 10u;
+
+            if (rankUps > 0)
+            {
+                this.Current += addToCurrentValue ? rankUps : 0u;
+                this.Ranks += rankUps;
+                this.ExperienceSpent += amount;
+                this.character.SpendXp(amount);
+                result = this.ExperienceSpent;
+            }
+
+            return result;
         }
     }
 }

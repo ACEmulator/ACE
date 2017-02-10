@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity
 {
-    public enum PropertyInt
+    public enum PropertyInt : ushort
     {
         Undef,
         ItemType,
@@ -9,6 +9,7 @@
         ClothingPriority,
         EncumbVal,
         ItemsCapacity,
+        [PersistedProperty(true, typeof(Character), 20u)]
         ContainersCapacity,
         Mass,
         Locations,
@@ -25,10 +26,13 @@
         CoinValue,
         TotalExperience,
         AvailableCharacter,
+        [PersistedProperty(true, typeof(Character), 0u)]
         TotalSkillCredits,
+        [PersistedProperty(true, typeof(Character), 0u)]
         AvailableSkillCredits,
+        [PersistedProperty(true, typeof(Character), 1u)]
         Level,
-        AccountRequirements,
+        AccountRequirements, // ToD Flag
         ArmorType,
         ArmorLevel,
         AllegianceCpPool,
@@ -45,6 +49,7 @@
         CombatMode,
         CurrentAttackHeight,
         CombatCollisions,
+        [PersistedProperty(true, typeof(Character), 0u)]
         NumDeaths,
         Damage,
         DamageType,
@@ -136,6 +141,7 @@
         MaterialType,
         NumAllegianceBreaks,
         ShowableOnRadar,
+        [PersistedProperty(true, typeof(Character), 2u)]
         PlayerKillerStatus,
         VendorHappyMaxItems,
         ScorePageNum,
@@ -328,6 +334,7 @@
         HealingBoostRating,
         HeritageSpecificArmor,
         AlternateRacialSkills,
+        [PersistedProperty(true, typeof(Character), 1u)] // because who doesn't like free buffs?
         AugmentationJackOfAllTrades,
         AugmentationResistanceNether,
         AugmentationInfusedVoidMagic,
@@ -356,6 +363,7 @@
         LifeResistRating,
         CloakWeaveProc,
         WeaponType,
+        [PersistedProperty(true, typeof(Character), 1u)]
         MeleeMastery,
         RangedMastery,
         SneakAttackRating,
@@ -394,5 +402,13 @@
         Unknown389,
         Unknown390,
         Count
+    }
+
+    public static class PropertyIntExtensions
+    {
+        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyInt val)
+        {
+            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
+        }
     }
 }
