@@ -102,5 +102,18 @@ namespace ACE.Command
 
             session.Player.Teleport(position);
         }
+
+        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandleDebugGrantXP(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 1)
+            {
+                ulong value;
+                if (UInt64.TryParse(parameters[0], out value))
+                {
+                    session.Player.AwardXP(value);
+                }
+            }
+        }
     }
 }
