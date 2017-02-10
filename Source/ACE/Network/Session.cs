@@ -2,7 +2,6 @@
 using ACE.Entity;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 
 namespace ACE.Network
@@ -28,12 +27,14 @@ namespace ACE.Network
         public uint LowGuid { get; }
         public byte SlotId { get; }
         public string Name { get; }
+        public ulong DeleteTime { get; }
 
-        public CachedCharacter(uint lowGuid, byte slotId, string name)
+        public CachedCharacter(uint lowGuid, byte slotId, string name, ulong deleteTime)
         {
             LowGuid = lowGuid;
             SlotId  = slotId;
             Name    = name;
+            DeleteTime = deleteTime;
         }
     }
 
@@ -41,11 +42,11 @@ namespace ACE.Network
     {
         public uint Id { get; private set; }
         public string Account { get; private set; }
-        public bool Authenticated { get; private set; }
+        public SessionState State { get; set; }
 
         public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
         public CachedCharacter CharacterRequested { get; set; }
-        public Player Character { get; set; }
+        public Player Player { get; set; }
 
         // connection related
         public IPEndPoint EndPoint { get; }
@@ -63,11 +64,8 @@ namespace ACE.Network
 
         public void SetAccount(uint accountId, string account)
         {
-            Debug.Assert(!Authenticated);
-
-            Id            = accountId;
-            Account       = account;
-            Authenticated = true;
+            Id      = accountId;
+            Account = account;
         }
 
         public void Update(double lastTick)
@@ -86,7 +84,7 @@ namespace ACE.Network
         public void SendCharacterError(CharacterError error)
         {
             var characterError         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterErrorFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterError);
+            var characterErrorFragment = new ServerPacketFragment(0x09, FragmentOpcode.CharacterError);
             characterErrorFragment.Payload.Write((uint)error);
             characterError.Fragments.Add(characterErrorFragment);
 

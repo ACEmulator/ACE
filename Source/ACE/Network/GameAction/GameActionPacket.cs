@@ -15,9 +15,10 @@
         public virtual void Read() { }
         public abstract void Handle();
 
-        [Fragment(FragmentOpcode.GameAction)]
+        [Fragment(FragmentOpcode.GameAction, SessionState.WorldConnected)]
         public static void HandleGameAction(ClientPacketFragment fragement, Session session)
         {
+            // TODO: verify sequence
             uint sequence = fragement.Payload.ReadUInt32();
             uint opcode   = fragement.Payload.ReadUInt32();
 

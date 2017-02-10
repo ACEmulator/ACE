@@ -17,9 +17,11 @@ namespace ACE.Managers
 
         private static volatile bool pendingWorldStop;
 
+        public static DateTime WorldStartTime { get; } = DateTime.Now;
+
         public static void Initialise()
         {
-            var thread = new Thread(new ThreadStart(UpdateWorld));
+            var thread = new Thread(UpdateWorld);
             thread.Start();
         }
 
@@ -44,12 +46,16 @@ namespace ACE.Managers
                 return sessionStore.SingleOrDefault(s => s.Account == account);
         }
 
+        public static Session Find(ulong connectionKey)
+        {
+            lock (sessionLock)
+                return sessionStore.SingleOrDefault(s => s.WorldConnectionKey == connectionKey);
+        }
+
         public static void Remove(Session session)
         {
             lock (sessionLock)
-            {
                 sessionStore.Remove(session);
-            }
         }
 
         public static void StopWorld() { pendingWorldStop = true; }

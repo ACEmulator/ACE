@@ -91,7 +91,7 @@ namespace ACE.Network.GameAction
 
         public override void Handle()
         {
-            session.Character.UpdatePosition(position);
+            session.Player.UpdatePosition(position);
         }
     }
 }

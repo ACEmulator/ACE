@@ -3,6 +3,7 @@ using ACE.Database;
 using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.GameEvent;
+using System.Collections.Generic;
 
 namespace ACE.Network
 {
@@ -19,11 +20,18 @@ namespace ACE.Network
             packet.Payload.ReadUInt32();
             string glsTicket  = packet.Payload.ReadString32L();
 
-            var result = await DatabaseManager.Authentication.SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, account);
-            AccountSelectCallback(result, session);
+            try
+            {
+                var result = await DatabaseManager.Authentication.GetAccountByName(account);
+                AccountSelectCallback(result, session);
+            }
+            catch (System.IndexOutOfRangeException ex)
+            {
+                AccountSelectCallback(null, session);
+            }
         }
 
-        private static void AccountSelectCallback(MySqlResult result, Session session)
+        private static void AccountSelectCallback(Account account, Session session)
         {
             var connectResponse = new ServerPacket(0x0B, PacketHeaderFlags.ConnectRequest);
             connectResponse.Payload.Write(0u);
@@ -37,22 +45,18 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, connectResponse, session);
 
-            if (result.Count == 0)
+            if (account == null)
             {
                 session.SendCharacterError(CharacterError.AccountDoesntExist);
                 return;
             }
-
-            uint accountId = result.Read<uint>(0, "id");
-            string account = result.Read<string>(0, "account");
-
-            if (WorldManager.Find(account) != null)
+            
+            if (WorldManager.Find(account.Name) != null)
             {
                 session.SendCharacterError(CharacterError.AccountInUse);
                 return;
             }
-
-            string digest = SHA2.Hash(SHA2Type.SHA256, result.Read<string>(0, "password") + result.Read<string>(0, "salt"));
+            
             /*if (glsTicket != digest)
             {
             }*/
@@ -65,14 +69,15 @@ namespace ACE.Network
 
             // TODO: check for account bans
 
-            session.SetAccount(accountId, account);
+            session.SetAccount(account.AccountId, account.Name);
+            session.State = SessionState.AuthConnectResponse;
         }
 
         public static async void HandleConnectResponse(ClientPacket packet, Session session)
         {
             ulong check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
 
-            var result = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, session.Id);
+            var result = await DatabaseManager.Character.GetByAccount(session.Id);
             CharacterListSelectCallback(result, session);
 
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
@@ -92,28 +97,24 @@ namespace ACE.Network
             patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
 
             NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
+
+            session.State = SessionState.AuthConnected;
         }
 
-        public static void CharacterListSelectCallback(MySqlResult result, Session session)
+        public static void CharacterListSelectCallback(List<CachedCharacter> characters, Session session)
         {
             var characterList     = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var characterFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterList);
             characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(result.Count);
+            characterFragment.Payload.Write(characters.Count);
 
             session.CachedCharacters.Clear();
-            for (byte i = 0; i < result.Count; i++)
+            foreach(var character in characters)
             {
-                uint lowGuid = result.Read<uint>(i, "guid");
-                string name  = result.Read<string>(i, "name");
-
-                characterFragment.Payload.Write(lowGuid);
-                characterFragment.Payload.WriteString16L(name);
-
-                ulong deleteTime = result.Read<ulong>(i, "deleteTime");
-                characterFragment.Payload.Write(deleteTime != 0ul ? (uint)(WorldManager.GetUnixTime() - deleteTime) : 0u);
-
-                session.CachedCharacters.Add(new CachedCharacter(lowGuid, i, name));
+                characterFragment.Payload.Write(character.LowGuid);
+                characterFragment.Payload.WriteString16L(character.Name);
+                characterFragment.Payload.Write(character.DeleteTime != 0ul ? (uint)(WorldManager.GetUnixTime() - character.DeleteTime) : 0u);
+                session.CachedCharacters.Add(character);
             }
 
             characterFragment.Payload.Write(0u);
@@ -138,6 +139,9 @@ namespace ACE.Network
         public static void HandleWorldLoginRequest(ClientPacket packet, Session session)
         {
             ulong connectionKey = packet.Payload.ReadUInt64();
+            if (session.WorldConnectionKey == 0)
+                session = WorldManager.Find(connectionKey);
+
             if (connectionKey != session.WorldConnectionKey || connectionKey == 0)
             {
                 session.SendCharacterError(CharacterError.EnterGamePlayerAccountMissing);
@@ -145,8 +149,9 @@ namespace ACE.Network
             }
 
             session.WorldConnection    = new SessionConnectionData(ConnectionType.World);
-            session.Character          = new Player(session);
+            session.Player          = new Player(session);
             session.CharacterRequested = null;
+            session.State              = SessionState.WorldConnectResponse;
 
             var connectResponse = new ServerPacket(0x18, PacketHeaderFlags.ConnectRequest);
             connectResponse.Payload.Write(0u);
@@ -163,6 +168,8 @@ namespace ACE.Network
 
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
+            session.State = SessionState.WorldConnected;
+
             var serverSwitch = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch);
             serverSwitch.Payload.Write((uint)0x18);
             serverSwitch.Payload.Write((uint)0x00);
@@ -170,7 +177,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.World, serverSwitch, session);
 
             new GameEventPopupString(session, ConfigManager.Config.Server.Welcome).Send();
-            session.Character.Load();
+            session.Player.Load();
         }
     }
 }

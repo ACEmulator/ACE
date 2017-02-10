@@ -17,11 +17,11 @@ namespace ACE.Entity
         public uint LoginIndex { get; set; } = 1u;  // total amount of times the player has logged into this character
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
 
-        public ReadOnlyDictionary<PropertyBool, bool> PropertiesBool { get { return new ReadOnlyDictionary<PropertyBool, bool>(propertiesBool); } }
-        public ReadOnlyDictionary<PropertyDouble, double> PropertiesDouble { get { return new ReadOnlyDictionary<PropertyDouble, double>(propertiesDouble); } }
-        public ReadOnlyDictionary<PropertyInt, uint> PropertiesInt { get { return new ReadOnlyDictionary<PropertyInt, uint>(propertiesInt); } }
-        public ReadOnlyDictionary<PropertyInt64, ulong> PropertiesInt64 { get { return new ReadOnlyDictionary<PropertyInt64, ulong>(propertiesInt64); } }
-        public ReadOnlyDictionary<PropertyString, string> PropertiesString { get { return new ReadOnlyDictionary<PropertyString, string>(propertiesString); } }
+        public ReadOnlyDictionary<PropertyBool, bool> PropertiesBool => new ReadOnlyDictionary<PropertyBool, bool>(propertiesBool);
+        public ReadOnlyDictionary<PropertyDouble, double> PropertiesDouble => new ReadOnlyDictionary<PropertyDouble, double>(propertiesDouble);
+        public ReadOnlyDictionary<PropertyInt, uint> PropertiesInt => new ReadOnlyDictionary<PropertyInt, uint>(propertiesInt);
+        public ReadOnlyDictionary<PropertyInt64, ulong> PropertiesInt64 => new ReadOnlyDictionary<PropertyInt64, ulong>(propertiesInt64);
+        public ReadOnlyDictionary<PropertyString, string> PropertiesString => new ReadOnlyDictionary<PropertyString, string>(propertiesString);
 
         private Dictionary<PropertyBool, bool> propertiesBool = new Dictionary<PropertyBool, bool>();
         private Dictionary<PropertyDouble, double> propertiesDouble = new Dictionary<PropertyDouble, double>();
@@ -29,25 +29,23 @@ namespace ACE.Entity
         private Dictionary<PropertyInt64, ulong> propertiesInt64 = new Dictionary<PropertyInt64, ulong>();
         private Dictionary<PropertyString, string> propertiesString = new Dictionary<PropertyString, string>();
 
+        private Character character;
+
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.LowGuid, GuidType.Player)
         {
             Session           = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
             Name              = session.CharacterRequested.Name;
+
+            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
         }
+
+        public Character Character { get { return character; } }
 
         public async void Load()
         {
-            var positionResult = await DatabaseManager.Character.SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPositionSelect, Guid.GetLow());
-            if (positionResult.Count == 0)
-            {
-                // Session.SendCharacterError(CharacterError.EnterGameCorruptCharacter);
-                // use fallback position if position information doesn't exist in the DB, show error in the future
-                Position = new Position(0x7F0401AD, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
-            }
-            else
-                Position = new Position(positionResult.Read<uint>(0, "cell"), positionResult.Read<float>(0, "positionX"), positionResult.Read<float>(0, "positionY"), positionResult.Read<float>(0, "positionZ"),
-                    positionResult.Read<float>(0, "rotationX"), positionResult.Read<float>(0, "rotationY"), positionResult.Read<float>(0, "rotationZ"), positionResult.Read<float>(0, "rotationW"));
+            character = await DatabaseManager.Character.LoadCharacter(Guid.GetLow());
+            Position = character.Position;
 
             // need to load the rest of the player information from DB in this async method, this is just temporary and is what is sent by the retail server
             SetPropertyInt(PropertyInt.Unknown384, 0);
@@ -116,7 +114,7 @@ namespace ACE.Entity
 
             SetPropertyBool(PropertyBool.IsPsr, false);
             SetPropertyBool(PropertyBool.ActdReceivedItems, true);
-            SetPropertyBool(PropertyBool.IsAdmin, true);
+            SetPropertyBool(PropertyBool.IsAdmin, character.IsAdmin);
             SetPropertyBool(PropertyBool.IsArch, false);
             SetPropertyBool(PropertyBool.IsSentinel, false);
             SetPropertyBool(PropertyBool.IsAdvocate, false);
@@ -180,6 +178,47 @@ namespace ACE.Entity
         {
             Debug.Assert(property < PropertyString.Count);
             propertiesString[property] = value;
+        }
+
+        public void SetPhysicsState(PhysicsState state, bool packet = true)
+        {
+            PhysicsState = state;
+
+            if (packet)
+            {
+                var setState         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+                var setStateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetState);
+                setStateFragment.Payload.Write(Guid.Full);
+                setStateFragment.Payload.Write((uint)state);
+                setStateFragment.Payload.Write((ushort)LoginIndex);
+                setStateFragment.Payload.Write((ushort)++PortalIndex);
+                setState.Fragments.Add(setStateFragment);
+
+                // TODO: this should be broadcast
+                NetworkManager.SendPacket(ConnectionType.World, setState, Session);
+            }
+        }
+
+        public void Teleport(Position newPosition)
+        {
+            if (!InWorld)
+                return;
+
+            InWorld = false;
+            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
+
+            var playerTeleport         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            var playerTeleportFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerTeleport);
+            playerTeleportFragment.Payload.Write(++TeleportIndex);
+            playerTeleportFragment.Payload.Write(0u);
+            playerTeleportFragment.Payload.Write(0u);
+            playerTeleportFragment.Payload.Write((ushort)0);
+            playerTeleport.Fragments.Add(playerTeleportFragment);
+
+            NetworkManager.SendPacket(ConnectionType.World, playerTeleport, Session);
+
+            // must be sent after the teleport packet
+            UpdatePosition(newPosition);
         }
     }
 }

@@ -250,3 +250,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Ignore customized Config.json
+Source/ACE/Config.json

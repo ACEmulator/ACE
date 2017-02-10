@@ -11,7 +11,7 @@ namespace ACE.Network.GameEvent
 
         public GameEventPacket(Session target)
         {
-            Debug.Assert(target.Character != null);
+            Debug.Assert(target.Player != null);
 
             session  = target;
             fragment = new ServerPacketFragment(9, FragmentOpcode.GameEvent);
@@ -20,7 +20,7 @@ namespace ACE.Network.GameEvent
         public void Send()
         {
             var gameEvent = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            fragment.Payload.Write(session.Character.Guid.Full);
+            fragment.Payload.Write(session.Player.Guid.Full);
             fragment.Payload.Write(session.GameEventSequence++);
             fragment.Payload.Write((uint)Opcode);
             WriteEventBody();
