@@ -1,4 +1,5 @@
-﻿using ACE.Network;
+﻿using ACE.Entity;
+using ACE.Network;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -50,6 +51,18 @@ namespace ACE.Managers
         {
             lock (sessionLock)
                 return sessionStore.SingleOrDefault(s => s.WorldConnectionKey == connectionKey);
+        }
+
+        public static Session Find(ObjectGuid characterGuid)
+        {
+            lock(sessionLock)
+                return sessionStore.SingleOrDefault(s => s.Player.Guid.GetLow() == characterGuid.GetLow());
+        }
+
+        public static List<Session> FindInverseFriends(ObjectGuid characterGuid)
+        {
+            lock(sessionLock)
+                return sessionStore.Where(s => s.Player.Character.Friends.FirstOrDefault(f => f.Id.GetLow() == characterGuid.GetLow()) != null).ToList();
         }
 
         public static void Remove(Session session)

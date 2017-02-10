@@ -13,10 +13,11 @@ namespace ACE.Entity
     {
         public Session Session { get; }
         public bool InWorld { get; set; }
-
+        public bool IsOnline { get; set; }
+        
         public uint LoginIndex { get; set; } = 1u;  // total amount of times the player has logged into this character
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
-
+        
         public ReadOnlyDictionary<PropertyBool, bool> PropertiesBool => new ReadOnlyDictionary<PropertyBool, bool>(propertiesBool);
         public ReadOnlyDictionary<PropertyDouble, double> PropertiesDouble => new ReadOnlyDictionary<PropertyDouble, double>(propertiesDouble);
         public ReadOnlyDictionary<PropertyInt, uint> PropertiesInt => new ReadOnlyDictionary<PropertyInt, uint>(propertiesInt);
@@ -28,9 +29,9 @@ namespace ACE.Entity
         private Dictionary<PropertyInt, uint> propertiesInt = new Dictionary<PropertyInt, uint>();
         private Dictionary<PropertyInt64, ulong> propertiesInt64 = new Dictionary<PropertyInt64, ulong>();
         private Dictionary<PropertyString, string> propertiesString = new Dictionary<PropertyString, string>();
-
+        
         private Character character;
-
+        
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.LowGuid, GuidType.Player)
         {
             Session           = session;
@@ -46,6 +47,7 @@ namespace ACE.Entity
         {
             character = await DatabaseManager.Character.LoadCharacter(Guid.GetLow());
             Position = character.Position;
+            IsOnline = true;
 
             // need to load the rest of the player information from DB in this async method, this is just temporary and is what is sent by the retail server
             SetPropertyInt(PropertyInt.Unknown384, 0);
@@ -130,6 +132,7 @@ namespace ACE.Entity
             SetPropertyString(PropertyString.Name, Name);
 
             SendSelf();
+            SendFriendStatusUpdates();
         }
 
         private void SendSelf()
@@ -147,6 +150,28 @@ namespace ACE.Entity
 
             new GameEventPlayerDescription(Session).Send();
             new GameEventCharacterTitle(Session).Send();
+            new GameEventFriendsListUpdate(Session).Send();
+        }
+
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        private void SendFriendStatusUpdates()
+        {
+            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
+
+            if (inverseFriends.Count > 0)
+            {                
+                Friend playerFriend = new Friend();
+                playerFriend.Id = Guid;
+                playerFriend.Name = Name;
+                
+                foreach (var friendSession in inverseFriends)
+                {
+                    if (friendSession.Player.IsOnline)
+                        new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, IsOnline).Send();    
+                }
+            }
         }
 
         // TODO: 4 packets, 2 for update (public and private) and 2 for removal for each property type

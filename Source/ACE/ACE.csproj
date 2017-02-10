@@ -94,6 +94,7 @@
     <Compile Include="Entity\Enum\Properties\PropertyInt64.cs" />
     <Compile Include="Entity\Enum\Properties\PropertyString.cs" />
     <Compile Include="Entity\Enum\Skill.cs" />
+    <Compile Include="Entity\Friend.cs" />
     <Compile Include="Entity\ObjectGuid.cs" />
     <Compile Include="Entity\Position.cs" />
     <Compile Include="Entity\CharacterSkill.cs" />
@@ -106,11 +107,13 @@
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionLoginComplete.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionPingRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionOpcode.cs" />
@@ -131,6 +134,7 @@
     <Compile Include="Managers\WorldManager.cs" />
     <Compile Include="Network\Enum\CharacterError.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventFriendsListUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
@@ -153,9 +157,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="Config.json.example" />
     <None Include="packages.config" />
   </ItemGroup>

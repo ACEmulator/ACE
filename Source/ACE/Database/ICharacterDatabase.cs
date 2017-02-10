@@ -20,5 +20,9 @@ namespace ACE.Database
         Task CreateCharacter(Character character);
 
         Task<Character> LoadCharacter(uint id);
+        Task<Character> GetCharacterByName(string name);
+
+        Task DeleteFriend(uint characterId, uint friendCharacterId);
+        Task AddFriend(uint characterId, uint friendCharacterId);
     }
 }

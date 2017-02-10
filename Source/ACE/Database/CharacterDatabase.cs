@@ -16,6 +16,7 @@ namespace ACE.Database
             CharacterDeleteOrRestore,
             CharacterInsert,
             CharacterSelect,
+            CharacterSelectByName,
             CharacterAppearanceInsert,
             CharacterStatsInsert,
             CharacterSkillsInsert,
@@ -25,7 +26,10 @@ namespace ACE.Database
             CharacterPositionSelect,
             CharacterUniqueNameSelect,
             CharacterSkillsSelect,
-            CharacterStatsSelect
+            CharacterStatsSelect,
+            CharacterFriendsSelect,            
+            CharacterFriendInsert,
+            CharacterFriendDelete            
         }
 
         protected override Type preparedStatementType { get { return typeof(CharacterPreparedStatement); } }
@@ -41,12 +45,16 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, "INSERT INTO `character_startup_gear` (`id`, `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double);
             AddPreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, "UPDATE `character` SET `deleteTime` = ? WHERE `guid` = ?;", MySqlDbType.UInt64, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `accountId` = ? ORDER BY `name` ASC;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterFriendInsert, "INSERT INTO `character_friends` (`id`, `friendId`) VALUES (?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterFriendDelete, "DELETE FROM  `character_friends` WHERE `id` = ? AND `friendId` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `isAdmin`, `isEnvoy` FROM `character` WHERE `deleted` = 0 AND `name` = ?;", MySqlDbType.VarString);
 
             // world entry
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `isAdmin`, `isEnvoy` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strength_ranks`, `endurance`, `endurance_ranks`, `coordination`, `coordination_ranks`, `quickness`, `quickness_ranks`, `focus`, `focus_ranks`, `self`, `self_ranks`, `health_ranks`, `health_current`, `stamina_ranks`, `stamina_current`, `mana_ranks`, `mana_current` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsSelect, "SELECT cf.`friendId`, c.`name` FROM `character_friends` cf JOIN `character` c ON (cf.`friendId` = c.`guid`) WHERE cf.`id` = ?;", MySqlDbType.UInt32);
         }
 
         public uint GetMaxId()
@@ -220,9 +228,56 @@ namespace ACE.Database
                     c.Mana.Ranks = result.Read<uint>(0, "mana_ranks");
                     c.Mana.Current = result.Read<uint>(0, "mana_current");
                 }
+
+                result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterFriendsSelect, id);
+
+                for (uint i = 0; i < result?.Count; i++)
+                {
+                    Friend f = new Friend();
+                    f.Id = new ObjectGuid(result.Read<uint>(i, "friendId"), GuidType.Player);
+                    f.Name = result.Read<string>(i, "name");                    
+
+                    // Not sure we want the actually load these next two values.  They are passed in the packet, but their purpose is unknown.
+                    f.FriendIdList = new List<ObjectGuid>();
+                    f.FriendOfIdList = new List<ObjectGuid>();  
+                    c.Friends.Add(f);
+                }
             }
 
             return c;
+        }
+
+        public async Task<Character> GetCharacterByName(string name)
+        {
+            MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, name);
+            Character c = null;
+
+            if (result?.Count > 0)
+            {
+                uint guid = result.Read<uint>(0, "guid");
+                uint accountId = result.Read<uint>(0, "accountId");
+
+                c = new Character(guid, accountId);
+                c.Name = result.Read<string>(0, "name");
+                c.TemplateOption = result.Read<uint>(0, "templateOption");
+                c.StartArea = result.Read<uint>(0, "startArea");
+                c.IsAdmin = result.Read<bool>(0, "isAdmin");
+                c.IsEnvoy = result.Read<bool>(0, "isEnvoy");
+
+                c.Position = await this.GetPosition(guid);
+            }
+
+            return c;
+        }
+
+        public async Task DeleteFriend(uint characterId, uint friendCharacterId)
+        {
+            await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterFriendDelete, characterId, friendCharacterId);
+        }
+
+        public async Task AddFriend(uint characterId, uint friendCharacterId)
+        {
+            await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterFriendInsert, characterId, friendCharacterId);
         }
     }
 }
