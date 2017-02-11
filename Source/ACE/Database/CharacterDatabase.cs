@@ -156,9 +156,7 @@ namespace ACE.Database
                 uint lowGuid = result.Result.Read<uint>(0, "guid");
 
                 if (boolId > 0)
-                {
                     ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, boolId, 1);
-                }
                 else
                 {
                     ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdvocate, 0);

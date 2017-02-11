@@ -66,9 +66,7 @@ namespace ACE.Command
                 }
             }
             else
-            {
                 level = AccessLevel.Player;
-            }
 
             uint charId = DatabaseManager.Character.TokenizeByName(parameters[0].ToLower(),level);
 
@@ -80,9 +78,7 @@ namespace ACE.Command
                 System.Console.WriteLine("Character " + parameters[0] + verbage + accessName + ".");
             }
             else
-            {
                 System.Console.WriteLine("There is no character by the name " + parameters[0] + " available. Has it been deleted?");
-            }
         }
 
         // renamechar oldcharactername newcharactername
@@ -93,33 +89,21 @@ namespace ACE.Command
             string fixupNewName = "";
 
             if (parameters[0].Remove(1) == "+")
-            {
                 fixupOldName = parameters[0].Remove(2).ToUpper() + parameters[0].Substring(2);
-            }
             else
-            {
                 fixupOldName = parameters[0].Remove(1).ToUpper() + parameters[0].Substring(1);
-            }
 
             if (parameters[1].Remove(1) == "+")
-            {
                 fixupNewName = parameters[1].Remove(2).ToUpper() + parameters[1].Substring(2);
-            }
             else
-            {
-               fixupNewName = parameters[1].Remove(1).ToUpper() + parameters[1].Substring(1);
-            }
+                fixupNewName = parameters[1].Remove(1).ToUpper() + parameters[1].Substring(1);
 
             uint charId = DatabaseManager.Character.RenameCharacter(fixupOldName, fixupNewName);
 
             if (charId > 0)
-            {
                 System.Console.WriteLine("Character " + fixupOldName + " has been renamed to " + fixupNewName + ".");
-            }
             else
-            {
                 System.Console.WriteLine("Either there is no character by the name " + fixupOldName + " currently in the database or " + fixupNewName + "is already taken as a name.");
-            }
         }
     }
 }
