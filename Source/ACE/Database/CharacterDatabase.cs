@@ -26,10 +26,22 @@ namespace ACE.Database
             CharacterUniqueNameSelect,
             CharacterSkillsSelect,
             CharacterStatsSelect,
-            CharacterAppearanceSelect
+            CharacterAppearanceSelect,
+
+            CharacterPropertiesBoolSelect,
+            CharacterPropertiesIntSelect,
+            CharacterPropertiesBigIntSelect,
+            CharacterPropertiesDoubleSelect,
+            CharacterPropertiesStringSelect,
+
+            CharacterPropertiesBoolInsert,
+            CharacterPropertiesIntInsert,
+            CharacterPropertiesBigIntInsert,
+            CharacterPropertiesDoubleInsert,
+            CharacterPropertiesStringInsert
         }
 
-        protected override Type preparedStatementType { get { return typeof(CharacterPreparedStatement); } }
+        protected override Type preparedStatementType => typeof(CharacterPreparedStatement);
 
         protected override void InitialisePreparedStatements()
         {
@@ -37,7 +49,7 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, "SELECT COUNT(`name`) as cnt FROM `character` WHERE BINARY `name` = ?;", MySqlDbType.VarString);
             AddPreparedStatement(CharacterPreparedStatement.CharacterInsert, "INSERT INTO `character` (`guid`, `accountId`, `name`, `templateOption`, `startArea`) VALUES (?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UByte, MySqlDbType.UByte);
             AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceInsert, "INSERT INTO `character_appearance` (`id`, `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.Double);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsInsert, "INSERT INTO `character_stats` (`id`, `strength`, `endurance`, `coordination`, `quickness`, `focus`, `self`, `health_current`, `stamina_current`, `mana_current`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsInsert, "INSERT INTO `character_stats` (`id`, `strength`, `endurance`, `coordination`, `quickness`, `focus`, `self`, `healthCurrent`, `staminaCurrent`, `manaCurrent`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UByte);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert, "INSERT INTO `character_skills` (`id`, `skillId`, `skillStatus`, `skillPoints`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UInt16);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, "INSERT INTO `character_startup_gear` (`id`, `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double);
             AddPreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, "UPDATE `character` SET `deleteTime` = ? WHERE `guid` = ?;", MySqlDbType.UInt64, MySqlDbType.UInt32);
@@ -47,9 +59,20 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strength_ranks`, `endurance`, `endurance_ranks`, `coordination`, `coordination_ranks`, `quickness`, `quickness_ranks`, `focus`, `focus_ranks`, `self`, `self_ranks`, `health_ranks`, `health_current`, `stamina_ranks`, `stamina_current`, `mana_ranks`, `mana_current` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthRanks`, `endurance`, `enduranceRanks`, `coordination`, `coordinationRanks`, `quickness`, `quicknessRanks`, `focus`, `focusRanks`, `self`, `selfRanks`, `healthRanks`, `healthCurrent`, `staminaRanks`, `staminaCurrent`, `manaRanks`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceSelect, "SELECT  `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue` FROM `character_appearance` WHERE `id` = ?;", MySqlDbType.UInt32);
 
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_bool` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_int` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_bigint` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_double` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_string` WHERE `guid` = ?;", MySqlDbType.UInt32);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, "INSERT INTO `character_properties_bool` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.Bit);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntInsert, "INSERT INTO `character_properties_int` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntInsert, "INSERT INTO `character_properties_bigint` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.UInt64);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleInsert, "INSERT INTO `character_properties_double` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.Double);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringInsert, "INSERT INTO `character_properties_string` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.VarChar);
         }
 
         public uint GetMaxId()
@@ -116,6 +139,8 @@ namespace ACE.Database
 
         public async Task CreateCharacter(Character character)
         {
+            // TODO: this should be a single async transaction
+
             // first one can't be awaited
             ExecutePreparedStatement(CharacterPreparedStatement.CharacterInsert, 
                 character.Id, 
@@ -171,7 +196,7 @@ namespace ACE.Database
                 character.Appearance.FootwearColor,
                 character.Appearance.FootwearHue);
 
-            DatabaseManager.World.SaveProperties(character);
+            SaveCharacterProperties(character);
         }
 
         public async Task<Character> LoadCharacter(uint id)
@@ -193,7 +218,7 @@ namespace ACE.Database
 
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSkillsSelect, id);
 
-                for(uint i = 0; i < result?.Count; i++)
+                for (uint i = 0; i < result?.Count; i++)
                 {
                     Skill s = result.Read<Skill>(i, "skillId");
                     SkillStatus ss = result.Read<SkillStatus>(i, "skillStatus");
@@ -221,30 +246,74 @@ namespace ACE.Database
                 if (result?.Count > 0)
                 {
                     c.Strength.Base = result.Read<uint>(0, "strength");
-                    c.Strength.Ranks = result.Read<uint>(0, "strength_ranks");
+                    c.Strength.Ranks = result.Read<uint>(0, "strengthRanks");
                     c.Endurance.Base = result.Read<uint>(0, "endurance");
-                    c.Endurance.Ranks = result.Read<uint>(0, "endurance_ranks");
+                    c.Endurance.Ranks = result.Read<uint>(0, "enduranceRanks");
                     c.Coordination.Base = result.Read<uint>(0, "coordination");
-                    c.Coordination.Ranks = result.Read<uint>(0, "coordination_ranks");
+                    c.Coordination.Ranks = result.Read<uint>(0, "coordinationRanks");
                     c.Quickness.Base = result.Read<uint>(0, "quickness");
-                    c.Quickness.Ranks = result.Read<uint>(0, "quickness_ranks");
+                    c.Quickness.Ranks = result.Read<uint>(0, "quicknessRanks");
                     c.Focus.Base = result.Read<uint>(0, "focus");
-                    c.Focus.Ranks = result.Read<uint>(0, "focus_ranks");
+                    c.Focus.Ranks = result.Read<uint>(0, "focusRanks");
                     c.Self.Base = result.Read<uint>(0, "self");
-                    c.Self.Ranks = result.Read<uint>(0, "self_ranks");
+                    c.Self.Ranks = result.Read<uint>(0, "selfRanks");
                     
-                    c.Health.Ranks = result.Read<uint>(0, "health_ranks");
-                    c.Health.Current = result.Read<uint>(0, "health_current");
-                    c.Stamina.Ranks = result.Read<uint>(0, "stamina_ranks");
-                    c.Stamina.Current = result.Read<uint>(0, "stamina_current");
-                    c.Mana.Ranks = result.Read<uint>(0, "mana_ranks");
-                    c.Mana.Current = result.Read<uint>(0, "mana_current");
+                    c.Health.Ranks = result.Read<uint>(0, "healthRanks");
+                    c.Health.Current = result.Read<uint>(0, "healthCurrent");
+                    c.Stamina.Ranks = result.Read<uint>(0, "staminaRanks");
+                    c.Stamina.Current = result.Read<uint>(0, "staminaCurrent");
+                    c.Mana.Ranks = result.Read<uint>(0, "manaRanks");
+                    c.Mana.Current = result.Read<uint>(0, "manaCurrent");
                 }
 
-                DatabaseManager.World.LoadProperties(c);
+                LoadCharacterProperties(c);
             }
 
             return c;
+        }
+
+        public async void LoadCharacterProperties(DbObject dbObject)
+        {
+            var results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolSelect, dbObject.Id);
+            for (uint i = 0; i < results.Count; i++)
+                dbObject.SetPropertyBool(results.Read<PropertyBool>(i, "propertyId"), results.Read<bool>(i, "propertyValue"));
+
+            results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesIntSelect, dbObject.Id);
+            for (uint i = 0; i < results.Count; i++)
+                dbObject.SetPropertyInt(results.Read<PropertyInt>(i, "propertyId"), results.Read<uint>(i, "propertyValue"));
+
+            results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBigIntSelect, dbObject.Id);
+            for (uint i = 0; i < results.Count; i++)
+                dbObject.SetPropertyInt64(results.Read<PropertyInt64>(i, "propertyId"), results.Read<ulong>(i, "propertyValue"));
+
+            results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesDoubleSelect, dbObject.Id);
+            for (uint i = 0; i < results.Count; i++)
+                dbObject.SetPropertyDouble(results.Read<PropertyDouble>(i, "propertyId"), results.Read<double>(i, "propertyValue"));
+
+            results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesStringSelect, dbObject.Id);
+            for (uint i = 0; i < results.Count; i++)
+                dbObject.SetPropertyString(results.Read<PropertyString>(i, "propertyId"), results.Read<string>(i, "propertyValue"));
+        }
+
+        public async void SaveCharacterProperties(DbObject dbObject)
+        {
+            // known issue: properties that were removed from the bucket will not updated.  this is a problem if we
+            // ever need to straight up "delete" a property.
+
+            foreach (var prop in dbObject.PropertiesBool)
+                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+
+            foreach (var prop in dbObject.PropertiesInt)
+                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+
+            foreach (var prop in dbObject.PropertiesInt64)
+                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBigIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+
+            foreach (var prop in dbObject.PropertiesDouble)
+                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesDoubleInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+
+            foreach (var prop in dbObject.PropertiesString)
+                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesStringInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
         }
     }
 }

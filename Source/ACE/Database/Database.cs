@@ -93,7 +93,7 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while preparing statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while preparing statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
                 Debug.Assert(false);
             }
@@ -140,7 +140,7 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
         }
@@ -176,7 +176,7 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while selecting prepared statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while selecting prepared statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
 
@@ -217,7 +217,7 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while selecting prepared statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while selecting prepared statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
 
