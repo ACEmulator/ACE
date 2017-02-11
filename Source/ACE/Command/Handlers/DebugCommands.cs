@@ -34,5 +34,22 @@ namespace ACE.Command
 
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
+
+      // grantxp amountofxp  
+      [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandleGrantXp(Session session, params string[] parameters)
+        {
+            uint xp = 0;
+
+            if (parameters?.Length > 0 && uint.TryParse(parameters[0], out xp))
+            {
+                session.Player.GrantXp(xp);
+            }
+            else
+            {
+                ChatPacket.SendSystemMessage(session, "Usage: /grantxp 1234");
+                return;
+            }
+        }
     }
 }

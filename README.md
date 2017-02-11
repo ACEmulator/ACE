@@ -20,6 +20,7 @@
 ## Contributions
 
 * The preferred way to contribute is to fork the repo and submit a pull request on GitHub.
+* Code style information can be found on the [Wiki](https://github.com/ACEmulator/ACE/wiki/Code-Style).
 
 ## Bug Reports
 
