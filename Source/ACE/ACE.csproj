@@ -167,9 +167,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="Config.json.example" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
