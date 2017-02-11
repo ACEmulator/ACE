@@ -28,6 +28,9 @@ namespace ACE.Database
             CharacterStatsSelect,
             CharacterAppearanceSelect,
 
+            CharacterSelectByName,
+            CharacterRename,
+
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
             CharacterPropertiesBigIntSelect,
@@ -54,6 +57,9 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, "INSERT INTO `character_startup_gear` (`id`, `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double);
             AddPreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, "UPDATE `character` SET `deleteTime` = ? WHERE `guid` = ?;", MySqlDbType.UInt64, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `accountId` = ? ORDER BY `name` ASC;", MySqlDbType.UInt32);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `deleteTime`, `deleted` FROM `character` WHERE `deleted` = 0 AND `deleteTime` = 0 AND `name` = ?;", MySqlDbType.VarString);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterRename, "UPDATE `character` SET `name` = ? WHERE `guid` = ?;", MySqlDbType.VarString, MySqlDbType.UInt32);
 
             // world entry
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
@@ -115,6 +121,92 @@ namespace ACE.Database
             }
 
             return characters;
+        }
+
+        public uint TokenizeByName(string characterName, AccessLevel accessLevel)
+        {
+            var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, characterName);
+            Debug.Assert(result != null);
+
+            uint boolId;
+            switch (accessLevel)
+            {
+                case AccessLevel.Advocate:
+                    boolId = (uint)PropertyBool.IsAdvocate;
+                    break;
+                case AccessLevel.Sentinel:
+                    boolId = (uint)PropertyBool.IsSentinel;
+                    break;
+                case AccessLevel.Envoy:
+                    boolId = (uint)PropertyBool.IsSentinel;
+                    break;
+                case AccessLevel.Developer:
+                    boolId = (uint)PropertyBool.IsArch;
+                    break;
+                case AccessLevel.Admin:
+                    boolId = (uint)PropertyBool.IsAdmin;
+                    break;
+                default:
+                    boolId = 0;
+                    break;
+            }
+
+            try
+            {
+                uint lowGuid = result.Result.Read<uint>(0, "guid");
+
+                if (boolId > 0)
+                {
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, boolId, 1);
+                }
+                else
+                {
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdvocate, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsSentinel, 0);
+                    //ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsEnvoy, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsArch, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdmin, 0);
+                }
+
+                return lowGuid;
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                return 0;
+            }
+        }
+
+        public uint RenameCharacter(string oldName, string newName)
+        {
+            var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, newName);
+            Debug.Assert(result != null);
+
+            try
+            {
+                uint lowGuid = result.Result.Read<uint>(0, "guid");
+
+                return 0; // newName already in use
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                //return 0;
+            }
+
+            result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, oldName);
+            Debug.Assert(result != null);
+
+            try
+            {
+                uint lowGuid = result.Result.Read<uint>(0, "guid");
+
+                ExecutePreparedStatement(CharacterPreparedStatement.CharacterRename, newName, lowGuid);
+         
+                return lowGuid;
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                return 0;
+            }
         }
 
         public void DeleteOrRestore(ulong unixTime, uint id)
@@ -266,13 +358,13 @@ namespace ACE.Database
                     c.Mana.Current = result.Read<uint>(0, "manaCurrent");
                 }
 
-                LoadCharacterProperties(c);
+                await LoadCharacterProperties(c);
             }
 
             return c;
         }
 
-        public async void LoadCharacterProperties(DbObject dbObject)
+        public async Task LoadCharacterProperties(DbObject dbObject)
         {
             var results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolSelect, dbObject.Id);
             for (uint i = 0; i < results.Count; i++)
