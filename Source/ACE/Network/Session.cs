@@ -24,16 +24,16 @@ namespace ACE.Network
 
     public class CachedCharacter
     {
-        public uint LowGuid { get; }
+        public ObjectGuid Guid { get; }
         public byte SlotId { get; }
         public string Name { get; }
         public ulong DeleteTime { get; }
 
-        public CachedCharacter(uint lowGuid, byte slotId, string name, ulong deleteTime)
+        public CachedCharacter(ObjectGuid guid, byte slotId, string name, ulong deleteTime)
         {
-            LowGuid = lowGuid;
-            SlotId  = slotId;
-            Name    = name;
+            Guid       = guid;
+            SlotId     = slotId;
+            Name       = name;
             DeleteTime = deleteTime;
         }
     }

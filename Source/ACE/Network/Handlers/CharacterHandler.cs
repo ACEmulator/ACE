@@ -23,8 +23,8 @@ namespace ACE.Network
         [Fragment(FragmentOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
         public static void CharacterEnterWorld(ClientPacketFragment fragment, Session session)
         {
-            uint guid      = fragment.Payload.ReadUInt32();
-            string account = fragment.Payload.ReadString16L();
+            ObjectGuid guid = fragment.Payload.ReadGuid();
+            string account  = fragment.Payload.ReadString16L();
 
             if (account != session.Account)
             {
@@ -32,7 +32,7 @@ namespace ACE.Network
                 return;
             }
 
-            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.LowGuid == guid);
+            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
             if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
@@ -89,7 +89,7 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
-            DatabaseManager.Character.DeleteOrRestore(WorldManager.GetUnixTime() + 3600ul, cachedCharacter.LowGuid);
+            DatabaseManager.Character.DeleteOrRestore(WorldManager.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
             AuthenticationHandler.CharacterListSelectCallback(result, session);
@@ -98,9 +98,9 @@ namespace ACE.Network
         [Fragment(FragmentOpcode.CharacterRestore, SessionState.AuthConnected)]
         public static void CharacterRestore(ClientPacketFragment fragment, Session session)
         {
-            uint guid = fragment.Payload.ReadUInt32();
+            ObjectGuid guid = fragment.Payload.ReadGuid();
 
-            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.LowGuid == guid);
+            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
             if (cachedCharacter == null)
                 return;
 
@@ -110,12 +110,12 @@ namespace ACE.Network
                 SendCharacterCreateResponse(session, 3);    /* Name already in use. */
                 return;
             }
-            DatabaseManager.Character.DeleteOrRestore(0, guid);
+            DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
             characterRestoreFragment.Payload.Write(1u /* Verification OK flag */);
-            characterRestoreFragment.Payload.Write(guid);
+            characterRestoreFragment.Payload.WriteGuid(guid);
             characterRestoreFragment.Payload.WriteString16L(cachedCharacter.Name);
             characterRestoreFragment.Payload.Write(0u /* secondsGreyedOut */);
             characterRestore.Fragments.Add(characterRestoreFragment);
@@ -130,11 +130,8 @@ namespace ACE.Network
             // 1. getting the "next" character id is not thread-safe
 
             string account = fragment.Payload.ReadString16L();
-
             if (account != session.Account)
-            {
                 return;
-            }
 
             Character character = Character.CreateFromClientFragment(fragment, session.Id);
             
@@ -144,39 +141,41 @@ namespace ACE.Network
             bool isAvailable = DatabaseManager.Character.IsNameAvailable(character.Name);
             if (!isAvailable)
             {
-                SendCharacterCreateResponse(session, 3);    /* Name already in use. */
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
                 return;
             }
-            
-            uint guid = DatabaseManager.Character.GetMaxId() + 1;
-            character.Id = guid;
+
+            uint lowGuid = DatabaseManager.Character.GetMaxId();
+            character.Id        = lowGuid;
             character.AccountId = session.Id;
 
-            await DatabaseManager.Character.CreateCharacter(character);
+            if (!await DatabaseManager.Character.CreateCharacter(character))
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
+                return;
+            }
+
+            var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, character.Name, 0));
 
-            SendCharacterCreateResponse(session, 1, guid, character.Name);
+            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
         }
 
-        private static void SendCharacterCreateResponse(Session session, uint responseCode, uint guid = 0, string charName = null)
+        private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = null, string charName = "")
         {
             var charCreateResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
             var charCreateFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterCreateResponse);
-            if (responseCode == 1)
+            charCreateFragment.Payload.Write((uint)response);
+
+            if (response == CharacterGenerationVerificationResponse.Ok)
             {
-                charCreateFragment.Payload.Write(responseCode);
-                charCreateFragment.Payload.Write(guid);
+                charCreateFragment.Payload.WriteGuid(guid);
                 charCreateFragment.Payload.WriteString16L(charName);
                 charCreateFragment.Payload.Write(0u);
             }
-            else
-            {
-                charCreateFragment.Payload.Write(responseCode);
-            }
+
             charCreateResponse.Fragments.Add(charCreateFragment);
             NetworkManager.SendPacket(ConnectionType.Login, charCreateResponse, session);
         }
-
     }
-
 }

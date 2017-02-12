@@ -18,7 +18,7 @@ namespace ACE.Network.GameEvent
 
         protected override void WriteEventBody()
         {
-            fragment.Payload.Write(session.Player.Guid.Full);
+            fragment.Payload.WriteGuid(session.Player.Guid);
             fragment.Payload.Write((uint)soundId);
             fragment.Payload.Write(volume);
         }

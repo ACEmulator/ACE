@@ -20,7 +20,7 @@ namespace ACE.Network.GameEvent
         public void Send()
         {
             var gameEvent = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            fragment.Payload.Write(session.Player.Guid.Full);
+            fragment.Payload.WriteGuid(session.Player.Guid);
             fragment.Payload.Write(session.GameEventSequence++);
             fragment.Payload.Write((uint)Opcode);
             WriteEventBody();
