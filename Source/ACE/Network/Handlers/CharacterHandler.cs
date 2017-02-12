@@ -51,7 +51,20 @@ namespace ACE.Network
             referralPacket.Payload.Write(session.WorldConnectionKey);
             referralPacket.Payload.Write((ushort)2);
             referralPacket.Payload.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
-            referralPacket.Payload.Write(ConfigManager.Host);
+
+            string[] ConnectingIPAddress = session.EndPoint.Address.ToString().Split('.');
+            if (ConfigManager.Config.Server.Network.SendInternalHostOnLocalNetwork && 
+                (ConnectingIPAddress[0] == "10" 
+                || (ConnectingIPAddress[0] == "172" && System.Convert.ToInt16(ConnectingIPAddress[1]) >= 16 && System.Convert.ToInt16(ConnectingIPAddress[1]) <= 31) 
+                || (ConnectingIPAddress[0] == "192" && ConnectingIPAddress[1] == "168")))
+            {
+                referralPacket.Payload.Write(ConfigManager.InternalHost);
+            }
+            else
+            {
+                referralPacket.Payload.Write(ConfigManager.Host);
+            }
+
             referralPacket.Payload.Write(0ul);
             referralPacket.Payload.Write((ushort)0x18);
             referralPacket.Payload.Write((ushort)0);
