@@ -32,6 +32,6 @@
 
         Sound                           = 0xF750,
 
-		UpdateTitle                     = 0x002B
-	}
+        UpdateTitle                     = 0x002B
+    }
 }

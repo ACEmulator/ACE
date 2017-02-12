@@ -290,12 +290,12 @@ namespace ACE.Entity
             UpdatePosition(newPosition);
         }
 
-		public void SetTitle(uint title)
-		{
-			var updateTitle = new GameEventUpdateTitle(Session, title);
-			updateTitle.Send();
+        public void SetTitle(uint title)
+        {
+            var updateTitle = new GameEventUpdateTitle(Session, title);
+            updateTitle.Send();
 
-			ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
-		}
-	}
+            ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
+        }
+    }
 }
