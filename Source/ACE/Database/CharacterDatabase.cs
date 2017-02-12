@@ -107,11 +107,11 @@ namespace ACE.Database
 
             for (byte i = 0; i < result.Count; i++)
             {
-                uint lowGuid = result.Read<uint>(i, "guid");
-                string name = result.Read<string>(i, "name");
+                uint lowGuid     = result.Read<uint>(i, "guid");
+                string name      = result.Read<string>(i, "name");
                 ulong deleteTime = result.Read<ulong>(i, "deleteTime");
 
-                characters.Add(new CachedCharacter(lowGuid, i, name, deleteTime));
+                characters.Add(new CachedCharacter(new ObjectGuid(lowGuid, GuidType.Player), i, name, deleteTime));
             }
 
             return characters;
@@ -137,19 +137,17 @@ namespace ACE.Database
             return Task.Delay(0);
         }
 
-        public async Task CreateCharacter(Character character)
+        public async Task<bool> CreateCharacter(Character character)
         {
-            // TODO: this should be a single async transaction
-
-            // first one can't be awaited
-            ExecutePreparedStatement(CharacterPreparedStatement.CharacterInsert, 
-                character.Id, 
-                character.AccountId, 
-                character.Name, 
-                character.TemplateOption, 
+            var transaction = BeginTransaction();
+            transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterInsert,
+                character.Id,
+                character.AccountId,
+                character.Name,
+                character.TemplateOption,
                 character.StartArea);
 
-            await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterAppearanceInsert,
+            transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceInsert,
                 character.Id,
                 character.Appearance.Eyes,
                 character.Appearance.Nose,
@@ -160,29 +158,27 @@ namespace ACE.Database
                 character.Appearance.HairHue,
                 character.Appearance.SkinHue);
 
-            await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterStatsInsert, 
+            transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterStatsInsert,
                 character.Id,
                 character.Strength.Base,
                 character.Endurance.Base,
                 character.Coordination.Base,
                 character.Quickness.Base,
-                character.Focus.Base, 
+                character.Focus.Base,
                 character.Self.Base,
                 character.Health.Current,
                 character.Stamina.Current,
                 character.Mana.Current);
 
-            foreach(var skill in character.Skills.Values)
-            {
-                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterSkillsInsert, 
-                    character.Id, 
-                    (uint)skill.Skill, 
-                    (uint)skill.Status, 
+            foreach (var skill in character.Skills.Values)
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert,
+                    character.Id,
+                    (uint)skill.Skill,
+                    (uint)skill.Status,
                     skill.Ranks);
-            }
 
-            await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterStartupGearInsert, 
-                character.Id, 
+            transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert,
+                character.Id,
                 character.Appearance.HeadgearStyle,
                 character.Appearance.HeadgearColor,
                 character.Appearance.HeadgearHue,
@@ -196,7 +192,9 @@ namespace ACE.Database
                 character.Appearance.FootwearColor,
                 character.Appearance.FootwearHue);
 
-            SaveCharacterProperties(character);
+            SaveCharacterProperties(character, transaction);
+
+            return await transaction.Commit();
         }
 
         public async Task<Character> LoadCharacter(uint id)
@@ -295,25 +293,25 @@ namespace ACE.Database
                 dbObject.SetPropertyString(results.Read<PropertyString>(i, "propertyId"), results.Read<string>(i, "propertyValue"));
         }
 
-        public async void SaveCharacterProperties(DbObject dbObject)
+        public void SaveCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
         {
             // known issue: properties that were removed from the bucket will not updated.  this is a problem if we
             // ever need to straight up "delete" a property.
 
             foreach (var prop in dbObject.PropertiesBool)
-                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
             foreach (var prop in dbObject.PropertiesInt)
-                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
             foreach (var prop in dbObject.PropertiesInt64)
-                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBigIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
             foreach (var prop in dbObject.PropertiesDouble)
-                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesDoubleInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
             foreach (var prop in dbObject.PropertiesString)
-                await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesStringInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
         }
     }
 }

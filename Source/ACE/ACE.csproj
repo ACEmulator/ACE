@@ -107,6 +107,7 @@
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
+    <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
