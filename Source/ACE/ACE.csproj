@@ -119,6 +119,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRaiseAbility.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRaiseSkill.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRaiseVital.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionOpcode.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventSound.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateAbility.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdatePropertyInt64.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
     <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
     <Compile Include="Network\Fragments\FragmentAttribute.cs" />
     <Compile Include="Network\Fragments\FragmentOpcode.cs" />

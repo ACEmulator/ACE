@@ -289,5 +289,13 @@ namespace ACE.Entity
             // must be sent after the teleport packet
             UpdatePosition(newPosition);
         }
-    }
+
+		public void SetTitle(uint title)
+		{
+			var updateTitle = new GameEventUpdateTitle(Session, title);
+			updateTitle.Send();
+
+			ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
+		}
+	}
 }
