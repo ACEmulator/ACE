@@ -2,3 +2,17 @@
 --------
 - Added four new tables - character_appearance, character_stats, character_skills and character_startup_gear.
 
+2/4/2017
+--------
+- Added new columns to character_stats table - strengthRanks, enduranceRanks, coordinationRanks, quicknessRanks, focusRanks, selfRanks, healthRanks, staminaRanks, manaRanks, healthCurrent, staminaCurrent, manaCurrent.
+
+2/7/2017
+--------
+- Added new columns columns to character_stats table - strengthXpSpent, enduranceXpSpent, coordinationXpSpent, quicknessXpSspent, focusXpSpent, selfXpSpent, healthXpSpent, staminaXpSpent, manaXpSpent.
+- Removed some columns from character and character_appearance tables - isAdmin, isEnvoy | race, gender.
+- Added five new tables - character_properties_bool, character_properties_int, character_properties_bigint, character_properties_double, character_properties_string
+
+2/11/2017
+--------
+- Changed character table - drop index for name column.
+- Added script to activate event_scheduler and create an event for character "deletion" after restore window has expired.
