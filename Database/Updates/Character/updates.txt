@@ -15,3 +15,4 @@
 2/11/2017
 --------
 - Changed character table - drop index for name column.
+- Added script to activate event_scheduler and create an event for character "deletion" after restore window has expired.
