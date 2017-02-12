@@ -1,11 +1,13 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace ACE.Database
 {
@@ -28,10 +30,15 @@ namespace ACE.Database
         private string connectionString;
         private Dictionary<uint, StoredPreparedStatement> preparedStatements = new Dictionary<uint, StoredPreparedStatement>();
 
+        protected string schemaName { get; set; }
+
         protected abstract Type preparedStatementType { get; }
+        protected abstract string nodeName { get; }
 
         public void Initialise(string host, uint port, string user, string password, string database)
         {
+            this.schemaName = database;
+
             var connectionBuilder = new MySqlConnectionStringBuilder()
             {
                 Server        = host,
@@ -64,10 +71,156 @@ namespace ACE.Database
                 }
             }
 
+            InitialiseTables();
+
+            InsertSchemaRow();
+
+            var dbSchema = DatabaseManager.Global.GetDBSchema(this.nodeName);
+            RunMigrations(dbSchema.SchemaRevision);
+
             InitialisePreparedStatements();
         }
 
+        protected void InsertSchemaRow()
+        {
+            var dbSchema = DatabaseManager.Global.GetDBSchema(this.nodeName);
+
+            if (dbSchema == null)
+                DatabaseManager.Global.InsertDBSchema(this.nodeName, this.schemaName);
+        }
+
+        protected virtual void InitialiseTables()
+        {
+            if (!BaseSqlExecuted())
+            {
+                RunBaseSql();
+            }
+        }
+
+        protected virtual void RunBaseSql()
+        {
+            string path = @".\Database\Base\" + this.nodeName + @"Base.sql";
+            Console.WriteLine("Running base SQL file: " + path);
+            RunSqlFile(path);
+        }
+
+        protected virtual bool BaseSqlExecuted()
+        {
+            return false;
+        }
+
+        protected List<DBMigration> GetAvailableMigrations()
+        {
+            var availableMigrations = new List<DBMigration>();
+            // 1_2017-02-03-character_stats.sql
+            var migrationFileNameRegex = @"^\d+_\d{4}-\d{2}-\d{2}-.+$";
+
+            try
+            {
+                Console.WriteLine(@"Database\Updates\" + this.nodeName, "*.sql");
+                var files = Directory.EnumerateFiles(@"Database\Updates\" + this.nodeName, "*.sql");
+
+                foreach (var f in files)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(f);
+
+                    var match = Regex.Match(fileName, migrationFileNameRegex);
+
+                    if (!match.Success)
+                    {
+                        Console.WriteLine("Found migration SQL that didn't match naming convention, skipping: " + fileName);
+                        continue;
+                    }
+
+                    char[] delimiter = { '_' };
+                    var fileNameParts = fileName.Split(delimiter, 2);
+
+                    var migration = new DBMigration();
+                    migration.MigrationPath = f;
+                    migration.MigrationNumber = Convert.ToUInt32(fileNameParts[0], 10);
+                    migration.MigrationName = fileNameParts[1];
+
+                    availableMigrations.Add(migration);
+                }
+
+                Console.WriteLine("{0} files found.", files.Count().ToString());
+            }
+            catch (UnauthorizedAccessException UAEx)
+            {
+                Console.WriteLine(UAEx.Message);
+            }
+            catch (PathTooLongException PathEx)
+            {
+                Console.WriteLine(PathEx.Message);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // no migrations folder exists for DB on disk
+            }
+
+            return availableMigrations;
+        }
+
+        protected void RunMigrations(uint currentRevision)
+        {
+            Console.WriteLine("");
+            Console.WriteLine("Running database schema migrations...");
+
+            // Run any migrations for the database
+            var availableMigrations = GetAvailableMigrations();
+
+            // now filter them by ones that are newer than current version
+            var migrationsToRun = availableMigrations.
+                Where(x => x.MigrationNumber > currentRevision).
+                OrderBy(x => x.MigrationNumber).
+                ToList();
+
+            Console.WriteLine("Running " + migrationsToRun.Count + " migrations for " + this.nodeName);
+
+            foreach (var migration in migrationsToRun)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("Running migration: " + migration.MigrationName);
+                RunSqlFile(migration.MigrationPath);
+                DatabaseManager.Global.UpdateSchemaRevision(this.nodeName, migration.MigrationNumber);
+            }
+        }
+
         protected virtual void InitialisePreparedStatements() { }
+
+        protected List<string> SplitSqlCommands(string allSql)
+        {
+            List<string> commands = new List<String>();
+
+            MySqlCommandSplitter splitter = new MySqlCommandSplitter(allSql);
+            splitter.ReadAllCommands(c => commands.Add(c));
+
+            return commands;
+        }
+
+        protected void RunSqlFile(string fileName)
+        {
+            var allSql = File.ReadAllText(fileName);
+
+            var commands = SplitSqlCommands(allSql);
+
+            // Todo: transaction with rollback?
+            foreach (var query in commands)
+            {
+                #region DEBUG
+                Console.WriteLine(query);
+                #endregion
+
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
 
         protected void AddPreparedStatement<T>(T id, string query, params MySqlDbType[] types)
         {
@@ -223,5 +376,13 @@ namespace ACE.Database
 
             return new MySqlResult();
         }
+    }
+
+    public class DBSchema
+    {
+        public string SchemaName { get; set; }
+        public uint SchemaRevision { get; set; }
+        public string NodeName { get; set; }
+        public DateTime DateUpdated { get; set; }
     }
 }

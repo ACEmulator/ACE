@@ -29,6 +29,13 @@
             "Database": "ace_world",
             "Username": "root",
             "Password": ""
-        }
+        },
+		"Global": {
+           "Host": "127.0.0.1",
+           "Port": 3306,
+           "Database": "ace_global",
+           "Username": "root",
+           "Password": ""
+		}
     }
 }

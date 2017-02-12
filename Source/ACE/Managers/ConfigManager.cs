@@ -32,6 +32,7 @@ namespace ACE.Managers
         public ConfigMySqlDatabase Authentication { get; set; }
         public ConfigMySqlDatabase Character { get; set; }
         public ConfigMySqlDatabase World { get; set; }
+        public ConfigMySqlDatabase Global { get; set; }
     }
 
     public struct Config
@@ -49,6 +50,7 @@ namespace ACE.Managers
         {
             try
             {
+                // should probably do validation of config data here
                 Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@".\Config.json"));
 
                 // cache this rather then calculating it each time a client is transfered to the world socket

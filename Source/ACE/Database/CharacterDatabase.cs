@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network;
 using MySql.Data.MySqlClient;
 using System;
@@ -38,10 +39,13 @@ namespace ACE.Database
             CharacterPropertiesIntInsert,
             CharacterPropertiesBigIntInsert,
             CharacterPropertiesDoubleInsert,
-            CharacterPropertiesStringInsert
+            CharacterPropertiesStringInsert,
+
+            CharacterTableExistenceCheck
         }
 
         protected override Type preparedStatementType => typeof(CharacterPreparedStatement);
+        protected override string nodeName { get { return "Character";  } }
 
         protected override void InitialisePreparedStatements()
         {
@@ -197,6 +201,16 @@ namespace ACE.Database
                 character.Appearance.FootwearHue);
 
             SaveCharacterProperties(character);
+        }
+
+        protected override bool BaseSqlExecuted()
+        {
+            AddPreparedStatement(CharacterPreparedStatement.CharacterTableExistenceCheck, "SELECT table_name FROM information_schema.tables WHERE table_schema = ? AND table_name = 'character';", MySqlDbType.VarChar);
+
+            var config = ConfigManager.Config.MySql;
+            var result = SelectPreparedStatement(CharacterPreparedStatement.CharacterTableExistenceCheck, config.Character.Database);
+
+            return (result.Count > 0);
         }
 
         public async Task<Character> LoadCharacter(uint id)
