@@ -147,7 +147,7 @@ namespace ACE.Entity
             set { character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.LowGuid, GuidType.Player)
+        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid)
         {
             Session           = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
@@ -158,8 +158,8 @@ namespace ACE.Entity
         
         public async void Load()
         {
-            character = await DatabaseManager.Character.LoadCharacter(Guid.GetLow());
-            Position = character.Position;
+            character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
+            Position  = character.Position;
             
             SendSelf();
         }
@@ -238,7 +238,7 @@ namespace ACE.Entity
 
             var playerCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             var playerCreateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerCreate);
-            playerCreateFragment.Payload.Write(Guid.Full);
+            playerCreateFragment.Payload.WriteGuid(Guid);
             playerCreate.Fragments.Add(playerCreateFragment);
 
             NetworkManager.SendPacket(ConnectionType.World, playerCreate, Session);
@@ -257,7 +257,7 @@ namespace ACE.Entity
             {
                 var setState         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
                 var setStateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetState);
-                setStateFragment.Payload.Write(Guid.Full);
+                setStateFragment.Payload.WriteGuid(Guid);
                 setStateFragment.Payload.Write((uint)state);
                 setStateFragment.Payload.Write((ushort)character.TotalLogins);
                 setStateFragment.Payload.Write((ushort)++PortalIndex);

@@ -16,7 +16,7 @@ namespace ACE.Database
             AccountSelect
         }
 
-        protected override Type preparedStatementType { get { return typeof(AuthenticationPreparedStatement); } }
+        protected override Type preparedStatementType => typeof(AuthenticationPreparedStatement);
 
         protected override void InitialisePreparedStatements()
         {

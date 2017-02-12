@@ -12,8 +12,8 @@ namespace ACE.Managers
     {
         private static uint sessionTimeout = 150u; // max time between packets before the client disconnects
 
-        private static List<Session> sessionStore = new List<Session>();
-        private static object sessionLock = new object();
+        private static readonly List<Session> sessionStore = new List<Session>();
+        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
         private static volatile bool pendingWorldStop;
 
@@ -27,35 +27,76 @@ namespace ACE.Managers
 
         public static Session Find(IPEndPoint endPoint)
         {
-            lock (sessionLock)
-            {
-                var session = sessionStore.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
-                if (session == null)
-                {
-                    session = new Session(endPoint);
-                    sessionStore.Add(session);
-                }
+            Session session;
 
-                return session;
+            sessionLock.EnterReadLock();
+            try
+            {
+                session = sessionStore.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
+                if (session != null)
+                    return session;
             }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+
+            sessionLock.EnterWriteLock();
+            try
+            {
+                // this needs to be checked again, another thread could of created a session between the read and write lock
+                session = sessionStore.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
+                if (session != null)
+                    return session;
+
+                session = new Session(endPoint);
+                sessionStore.Add(session);
+            }
+            finally
+            {
+                sessionLock.ExitWriteLock();
+            }
+
+            return session;
         }
 
         public static Session Find(string account)
         {
-            lock (sessionLock)
+            sessionLock.EnterReadLock();
+            try
+            {
                 return sessionStore.SingleOrDefault(s => s.Account == account);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
         }
 
         public static Session Find(ulong connectionKey)
         {
-            lock (sessionLock)
+            sessionLock.EnterReadLock();
+            try
+            {
                 return sessionStore.SingleOrDefault(s => s.WorldConnectionKey == connectionKey);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
         }
 
         public static void Remove(Session session)
         {
-            lock (sessionLock)
+            sessionLock.EnterWriteLock();
+            try
+            {
                 sessionStore.Remove(session);
+            }
+            finally
+            {
+                sessionLock.ExitWriteLock();
+            }
         }
 
         public static void StopWorld() { pendingWorldStop = true; }
@@ -69,8 +110,16 @@ namespace ACE.Managers
             {
                 worldTickTimer.Restart();
 
-                foreach (var session in sessionStore)
-                    session.Update(lastTick);
+                sessionLock.EnterReadLock();
+                try
+                {
+                    foreach (var session in sessionStore)
+                        session.Update(lastTick);
+                }
+                finally
+                {
+                    sessionLock.ExitReadLock();
+                }
 
                 Thread.Sleep(1);
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
