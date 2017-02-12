@@ -21,7 +21,7 @@ namespace ACE.Database
 
         uint RenameCharacter(string currentName, string newName);
 
-        Task CreateCharacter(Character character);
+        Task<bool> CreateCharacter(Character character);
 
         Task UpdateCharacter(Character character);
 
@@ -35,6 +35,6 @@ namespace ACE.Database
         /// <summary>
         /// saves all object properties in the provided db object
         /// </summary>
-        void SaveCharacterProperties(DbObject dbObject);
+        void SaveCharacterProperties(DbObject dbObject, Database.DatabaseTransaction transaction);
     }
 }

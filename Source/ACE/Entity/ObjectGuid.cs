@@ -11,6 +11,10 @@ namespace ACE.Entity
     public class ObjectGuid
     {
         public uint Full { get; }
+        public uint Low => Full & 0xFFFFFF;
+        public GuidType High => (GuidType)(Full >> 24);
+
+        public ObjectGuid(uint full) { Full = full; }
 
         public ObjectGuid(uint low, GuidType high)
         {
@@ -18,9 +22,6 @@ namespace ACE.Entity
             Full = low | ((uint)high << 24);
         }
 
-        public uint GetLow() { return Full & 0xFFFFFF; }
-        public GuidType GetHigh() { return (GuidType)(Full >> 24); }
-
-        public bool IsPlayer() { return GetHigh() == GuidType.Player; }
+        public bool IsPlayer() { return High == GuidType.Player; }
     }
 }

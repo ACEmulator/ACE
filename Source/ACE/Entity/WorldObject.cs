@@ -15,10 +15,10 @@ namespace ACE.Entity
         public uint MovementIndex { get; set; }
         public uint TeleportIndex { get; set; }
 
-        public WorldObject(ObjectType type, uint entry, GuidType high)
+        protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
-            Guid = new ObjectGuid(entry, high);
+            Guid = guid;
         }
 
         public ServerPacket BuildObjectCreate()
@@ -27,7 +27,7 @@ namespace ACE.Entity
 
             var objectCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             var objectCreateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.ObjectCreate);
-            objectCreateFragment.Payload.Write(Guid.Full);
+            objectCreateFragment.Payload.WriteGuid(Guid);
 
             // TODO: model information
             objectCreateFragment.Payload.Write((byte)0x11);
@@ -267,7 +267,7 @@ namespace ACE.Entity
 
             var updatePosition         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             var updatePositionFragment = new ServerPacketFragment(0x0A, FragmentOpcode.UpdatePosition);
-            updatePositionFragment.Payload.Write(Guid.Full);
+            updatePositionFragment.Payload.WriteGuid(Guid);
             updatePositionFragment.Payload.Write((uint)updatePositionFlags);
 
             newPosition.Write(updatePositionFragment.Payload, false);

@@ -3,6 +3,7 @@ using ACE.Database;
 using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.GameEvent;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Network
@@ -25,7 +26,7 @@ namespace ACE.Network
                 var result = await DatabaseManager.Authentication.GetAccountByName(account);
                 AccountSelectCallback(result, session);
             }
-            catch (System.IndexOutOfRangeException ex)
+            catch (IndexOutOfRangeException)
             {
                 AccountSelectCallback(null, session);
             }
@@ -111,7 +112,7 @@ namespace ACE.Network
             session.CachedCharacters.Clear();
             foreach(var character in characters)
             {
-                characterFragment.Payload.Write(character.LowGuid);
+                characterFragment.Payload.WriteGuid(character.Guid);
                 characterFragment.Payload.WriteString16L(character.Name);
                 characterFragment.Payload.Write(character.DeleteTime != 0ul ? (uint)(WorldManager.GetUnixTime() - character.DeleteTime) : 0u);
                 session.CachedCharacters.Add(character);
