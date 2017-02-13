@@ -79,6 +79,7 @@
     <Compile Include="Database\IWorldDatabase.cs" />
     <Compile Include="Database\WorldDatabase.cs" />
     <Compile Include="Entity\Appearance.cs" />
+    <Compile Include="Entity\DbObject.cs" />
     <Compile Include="Entity\Enum\Ability.cs" />
     <Compile Include="Entity\Account.cs" />
     <Compile Include="Entity\Character.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Entity\Enum\Properties\PropertyString.cs" />
     <Compile Include="Entity\Enum\Skill.cs" />
     <Compile Include="Entity\ObjectGuid.cs" />
+    <Compile Include="Entity\PersistedPropertyAttribute.cs" />
     <Compile Include="Entity\Position.cs" />
     <Compile Include="Entity\CharacterSkill.cs" />
     <Compile Include="Entity\SkillCostAttribute.cs" />
@@ -104,13 +106,20 @@
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
+    <Compile Include="Network\Enum\Ability.cs" />
+    <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
+    <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionLoginComplete.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionPingRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRaiseAbility.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRaiseSkill.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRaiseVital.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionOpcode.cs" />
@@ -133,6 +142,11 @@
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateSkill.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateVital.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventSound.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateAbility.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
     <Compile Include="Network\Fragments\FragmentAttribute.cs" />
     <Compile Include="Network\Fragments\FragmentOpcode.cs" />
@@ -141,6 +155,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
     <Compile Include="Network\GameEvent\GameEventPacket.cs" />
+    <Compile Include="Network\GameEvent\GameEventFraglessPacket.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />
@@ -157,7 +172,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Config.json.example" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
@@ -171,9 +188,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Database\Nodes\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

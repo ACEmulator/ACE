@@ -174,79 +174,80 @@ namespace ACE.Network.GameEvent
 
                 if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Strength.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Character.Strength.Value);
-                    fragment.Payload.Write(this.session.Player.Character.Strength.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Strength.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Strength.UnbuffedValue);
+                    fragment.Payload.Write(this.session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Endurance.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Character.Endurance.Value);
-                    fragment.Payload.Write(this.session.Player.Character.Endurance.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Endurance.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Endurance.UnbuffedValue);
+                    fragment.Payload.Write(this.session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Quickness.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Character.Quickness.Value);
-                    fragment.Payload.Write(this.session.Player.Character.Quickness.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Quickness.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Quickness.UnbuffedValue);
+                    fragment.Payload.Write(this.session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Coordination.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Character.Coordination.Value);
-                    fragment.Payload.Write(this.session.Player.Character.Coordination.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Coordination.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Coordination.UnbuffedValue);
+                    fragment.Payload.Write(this.session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Focus.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Character.Focus.Value);
-                    fragment.Payload.Write(this.session.Player.Character.Focus.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Focus.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Focus.UnbuffedValue);
+                    fragment.Payload.Write(this.session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Self.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Character.Self.Value);
-                    fragment.Payload.Write(this.session.Player.Character.Self.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Self.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Self.UnbuffedValue);
+                    fragment.Payload.Write(this.session.Player.Self.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Health.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Health.Ranks); // ranks
                     fragment.Payload.Write(0u); // unknown
-                    fragment.Payload.Write(this.session.Player.Character.Health.ExperienceSpent); // xp spent
-                    fragment.Payload.Write(this.session.Player.Character.Health.Current); // current value
+                    fragment.Payload.Write(this.session.Player.Health.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Health.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Stamina.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Stamina.Ranks); // ranks
                     fragment.Payload.Write(0u); // unknown
-                    fragment.Payload.Write(this.session.Player.Character.Stamina.ExperienceSpent); // xp spent
-                    fragment.Payload.Write(this.session.Player.Character.Stamina.Current); // current value
+                    fragment.Payload.Write(this.session.Player.Stamina.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Stamina.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Character.Mana.Ranks); // ranks
+                    fragment.Payload.Write(this.session.Player.Mana.Ranks); // ranks
                     fragment.Payload.Write(0u); // unknown
-                    fragment.Payload.Write(this.session.Player.Character.Mana.ExperienceSpent); // xp spent
-                    fragment.Payload.Write(this.session.Player.Character.Mana.Current); // current value
+                    fragment.Payload.Write(this.session.Player.Mana.ExperienceSpent); // xp spent
+                    fragment.Payload.Write(this.session.Player.Mana.Current); // current value
                 }
             }
 
             // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                
-                fragment.Payload.Write((ushort)this.session.Player.Character.Skills.Count);
+                var skills = this.session.Player.Skills;
+
+                fragment.Payload.Write((ushort)skills.Count);
                 fragment.Payload.Write((ushort)0x20); // unknown
 
-                foreach (var skill in this.session.Player.Character.Skills)
+                foreach (var skill in skills)
                 {
                     fragment.Payload.Write((uint)skill.Key); // skill id
                     fragment.Payload.Write((ushort)skill.Value.Ranks); // points raised

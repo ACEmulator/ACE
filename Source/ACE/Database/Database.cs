@@ -25,8 +25,88 @@ namespace ACE.Database
 
     public abstract class Database
     {
+        public class DatabaseTransaction
+        {
+            private readonly Database database;
+            private readonly List<Tuple<StoredPreparedStatement, object[]>> queries = new List<Tuple<StoredPreparedStatement, object[]>>();
+
+            public DatabaseTransaction(Database database) { this.database = database; }
+
+            public void AddPreparedStatement<T>(T id, params object[] parameters)
+            {
+                Debug.Assert(typeof(T) == database.preparedStatementType);
+
+                StoredPreparedStatement preparedStatement;
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                {
+                    Debug.Assert(preparedStatement != null);
+                    return;
+                }
+
+                queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
+            }
+
+            public async Task<bool> Commit()
+            {
+                if (queries.Count == 0)
+                    return false;
+
+                MySqlConnection connection = new MySqlConnection(database.connectionString);
+                MySqlTransaction transaction = null;
+
+                try
+                {
+                    await connection.OpenAsync();
+                    return await Task.Run(() =>
+                    {
+                        transaction = connection.BeginTransaction();
+                        foreach (var query in queries)
+                        {
+                            using (var command = new MySqlCommand(query.Item1.Query, connection, transaction))
+                            {
+                                for (int i = 0; i < query.Item2.Length; i++)
+                                    command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
+
+                                command.ExecuteNonQuery();
+                            }
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    });
+                }
+                catch (MySqlException transactionException)
+                {
+                    Console.WriteLine($"An exception occured while commiting a transaction of {queries.Count} queries, a rollback will be performed!");
+                    Console.WriteLine($"Exception: {transactionException.Message}");
+
+                    try
+                    {
+                        // serious problem if rollback also fails
+                        transaction?.Rollback();
+                    }
+                    catch (MySqlException rollbackException)
+                    {
+                        Console.WriteLine("An exception occured while rolling back transaction!");
+                        Console.WriteLine($"Exception: {rollbackException.Message}");
+                        Debug.Assert(false);
+                    }
+
+                    return false;
+                }
+                finally
+                {
+                    queries.Clear();
+
+                    // rollback will fail if connection or transaction is disposed before this
+                    connection.Dispose();
+                    transaction?.Dispose();
+                }
+            }
+        }
+
         private string connectionString;
-        private Dictionary<uint, StoredPreparedStatement> preparedStatements = new Dictionary<uint, StoredPreparedStatement>();
+        private readonly Dictionary<uint, StoredPreparedStatement> preparedStatements = new Dictionary<uint, StoredPreparedStatement>();
 
         protected abstract Type preparedStatementType { get; }
 
@@ -67,6 +147,8 @@ namespace ACE.Database
             InitialisePreparedStatements();
         }
 
+        public DatabaseTransaction BeginTransaction() { return new DatabaseTransaction(this); }
+
         protected virtual void InitialisePreparedStatements() { }
 
         protected void AddPreparedStatement<T>(T id, string query, params MySqlDbType[] types)
@@ -93,7 +175,7 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while preparing statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while preparing statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
                 Debug.Assert(false);
             }
@@ -114,7 +196,11 @@ namespace ACE.Database
             Debug.Assert(typeof(T) == preparedStatementType);
 
             StoredPreparedStatement preparedStatement;
-            Debug.Assert(preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement));
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null);
+                return;
+            }
 
             try
             {
@@ -140,7 +226,7 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
         }
@@ -150,7 +236,11 @@ namespace ACE.Database
             Debug.Assert(typeof(T) == preparedStatementType);
 
             StoredPreparedStatement preparedStatement;
-            Debug.Assert(preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement));
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null);
+                return null;
+            }
 
             try
             {
@@ -176,7 +266,7 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while selecting prepared statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while selecting prepared statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
 
@@ -188,7 +278,11 @@ namespace ACE.Database
             Debug.Assert(typeof(T) == preparedStatementType);
 
             StoredPreparedStatement preparedStatement;
-            Debug.Assert(preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement));
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null);
+                return null;
+            }
 
             try
             {
@@ -217,11 +311,11 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while selecting prepared statement {id.ToString()}!");
+                Console.WriteLine($"An exception occured while selecting prepared statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
             }
 
-            return new MySqlResult();
+            return null;
         }
     }
 }

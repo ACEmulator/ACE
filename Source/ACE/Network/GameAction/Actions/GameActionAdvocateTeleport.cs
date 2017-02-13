@@ -19,7 +19,7 @@ namespace ACE.Network.GameAction
         public override void Handle()
         {
             // this check is also done clientside, see: PlayerDesc::PlayerIsPSR
-            if (!session.Player.PropertiesBool.ContainsKey(PropertyBool.IsAdmin) && !session.Player.PropertiesBool.ContainsKey(PropertyBool.IsArch) && !session.Player.PropertiesBool.ContainsKey(PropertyBool.IsPsr))
+            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
                 return;
 
             uint cell  = position.Cell;

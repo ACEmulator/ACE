@@ -13,8 +13,6 @@ namespace ACE.Entity
         {
             Appearance appearance = new Appearance()
             {
-                Race = fragment.Payload.ReadUInt32(),
-                Gender = fragment.Payload.ReadUInt32(),
                 Eyes = fragment.Payload.ReadUInt32(),
                 Nose = fragment.Payload.ReadUInt32(),
                 Mouth = fragment.Payload.ReadUInt32(),
@@ -38,11 +36,7 @@ namespace ACE.Entity
             };
             return appearance;
         }
-
-        public uint Race { get; set; }
-
-        public uint Gender { get; set; }
-
+        
         public uint Eyes { get; set; }
 
         public uint Nose { get; set; }

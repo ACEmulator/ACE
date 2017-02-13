@@ -10,6 +10,9 @@
         PingRequest        = 0x01E9,
         Talk               = 0x0015,
         UpdateRequest      = 0x001F,
-        AdvocateTeleport   = 0x00D6
+        AdvocateTeleport   = 0x00D6,
+        RaiseVital         = 0x0044,
+        RaiseAbility       = 0x0045,
+        RaiseSkill         = 0x0046
     }
 }

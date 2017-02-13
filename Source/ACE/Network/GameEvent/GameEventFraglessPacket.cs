@@ -2,26 +2,24 @@
 
 namespace ACE.Network.GameEvent
 {
-    public abstract class GameEventPacket
+    public abstract class GameEventFraglessPacket
     {
         public abstract GameEventOpcode Opcode { get; }
 
         protected Session session;
         protected ServerPacketFragment fragment;
 
-        public GameEventPacket(Session target)
+        public GameEventFraglessPacket(Session target)
         {
             Debug.Assert(target.Player != null);
 
-            session  = target;
-            fragment = new ServerPacketFragment(9, FragmentOpcode.GameEvent);
+            session = target;
+            fragment = new ServerPacketFragment(0x0A, FragmentOpcode.None);
         }
 
         public void Send()
         {
             var gameEvent = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            fragment.Payload.WriteGuid(session.Player.Guid);
-            fragment.Payload.Write(session.GameEventSequence++);
             fragment.Payload.Write((uint)Opcode);
             WriteEventBody();
             gameEvent.Fragments.Add(fragment);

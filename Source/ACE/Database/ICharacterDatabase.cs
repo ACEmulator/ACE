@@ -17,8 +17,20 @@ namespace ACE.Database
 
         bool IsNameAvailable(string name);
         
-        Task CreateCharacter(Character character);
+        Task<bool> CreateCharacter(Character character);
+
+        Task UpdateCharacter(Character character);
 
         Task<Character> LoadCharacter(uint id);
+
+        /// <summary>
+        /// loads object properties into the provided db object
+        /// </summary>
+        void LoadCharacterProperties(DbObject dbObject);
+
+        /// <summary>
+        /// saves all object properties in the provided db object
+        /// </summary>
+        void SaveCharacterProperties(DbObject dbObject, Database.DatabaseTransaction transaction);
     }
 }
