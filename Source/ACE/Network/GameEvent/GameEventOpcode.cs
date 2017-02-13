@@ -32,6 +32,7 @@
 
         Sound                           = 0xF750,
 
-        UpdateTitle                     = 0x002B
+        UpdateTitle                     = 0x002B,
+        Emote                           = 0x01E2
     }
 }
