@@ -73,6 +73,9 @@
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
+    <None Include="Config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="Cryptography\SHA2.cs" />
     <Compile Include="Database\IAuthenticationDatabase.cs" />
     <Compile Include="Database\ICharacterDatabase.cs" />
@@ -168,9 +171,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="Config.json.example" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
