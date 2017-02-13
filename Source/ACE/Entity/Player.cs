@@ -109,8 +109,6 @@ namespace ACE.Entity
             SetPropertyInt(PropertyInt.DamageOverTime, 0);
             SetPropertyInt(PropertyInt.Unknown383, 0);
 
-            SetPropertyInt64(PropertyInt64.TotalExperience, 0);
-            SetPropertyInt64(PropertyInt64.AvailableExperience, 0);
             SetPropertyInt64(PropertyInt64.AvailableLuminance, 0);
             SetPropertyInt64(PropertyInt64.MaximumLuminance, 0);
 
@@ -170,44 +168,16 @@ namespace ACE.Entity
             propertiesInt[property] = value;
         }
 
-        byte propsequence = 0;
-
         public void SetPropertyInt64(PropertyInt64 property, ulong value, bool packet = false)
         {
             Debug.Assert(property < PropertyInt64.Count);
             propertiesInt64[property] = value;
-
-            if(packet)
-            {
-                var propUpdate = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-                var propUpdateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetCharacterQWord);
-                propUpdateFragment.Payload.Write(propsequence);
-                propUpdateFragment.Payload.Write((int)property);
-                propUpdateFragment.Payload.Write(value);
-                propUpdate.Fragments.Add(propUpdateFragment);
-
-                NetworkManager.SendPacket(ConnectionType.World, propUpdate, Session);
-                propsequence++;
-            }
-        }
-
-        public void AddToPropertyInt64(PropertyInt64 property, ulong value, bool packet = false)
-        {
-            Debug.Assert(property < PropertyInt64.Count);
-            ulong updated = propertiesInt64[property] + value;
-            SetPropertyInt64(property, updated, packet);
         }
 
         public void SetPropertyString(PropertyString property, string value, bool packet = false)
         {
             Debug.Assert(property < PropertyString.Count);
             propertiesString[property] = value;
-        }
-
-        public void AwardXP(ulong amount)
-        {
-            AddToPropertyInt64(PropertyInt64.TotalExperience, amount, true);
-            AddToPropertyInt64(PropertyInt64.AvailableExperience, amount, true);
         }
 
         public void SetPhysicsState(PhysicsState state, bool packet = true)

@@ -21,7 +21,6 @@
         PatchStatus                    = 0xF7EA,
         PlayerCreate                   = 0xF746,
         PlayerTeleport                 = 0xF751,
-        SetCharacterQWord              = 0x02CF,
         ServerName                     = 0xF7E1,
         SetState                       = 0xF74B,
         TextboxString                  = 0xF7E0,
