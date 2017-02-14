@@ -73,36 +73,6 @@
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
-    <Compile Include="Cryptography\SHA2.cs" />
-    <Compile Include="Database\IAuthenticationDatabase.cs" />
-    <Compile Include="Database\ICharacterDatabase.cs" />
-    <Compile Include="Database\IWorldDatabase.cs" />
-    <Compile Include="Database\WorldDatabase.cs" />
-    <Compile Include="Entity\Appearance.cs" />
-    <Compile Include="Entity\DbObject.cs" />
-    <Compile Include="Entity\Enum\Ability.cs" />
-    <Compile Include="Entity\Account.cs" />
-    <Compile Include="Entity\Character.cs" />
-    <Compile Include="Entity\CharacterAbility.cs" />
-    <Compile Include="Entity\Enum\AccessLevel.cs" />
-    <Compile Include="Entity\Enum\EnumHelper.cs" />
-    <Compile Include="Entity\Enum\ObjectBehaviorFlag.cs" />
-    <Compile Include="Entity\Enum\ObjectType.cs" />
-    <Compile Include="Entity\Enum\PhysicsState.cs" />
-    <Compile Include="Entity\Enum\Properties\PropertyBool.cs" />
-    <Compile Include="Entity\Enum\Properties\PropertyDouble.cs" />
-    <Compile Include="Entity\Enum\Properties\PropertyInt.cs" />
-    <Compile Include="Entity\Enum\Properties\PropertyInt64.cs" />
-    <Compile Include="Entity\Enum\Properties\PropertyString.cs" />
-    <Compile Include="Entity\Enum\Skill.cs" />
-    <Compile Include="Entity\ObjectGuid.cs" />
-    <Compile Include="Entity\PersistedPropertyAttribute.cs" />
-    <Compile Include="Entity\Position.cs" />
-    <Compile Include="Entity\CharacterSkill.cs" />
-    <Compile Include="Entity\SkillCostAttribute.cs" />
-    <Compile Include="Entity\AbilityFormulaAttribute.cs" />
-    <Compile Include="Entity\SkillUsableUntrainedAttribute.cs" />
-    <Compile Include="Entity\TeleportLocation.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
@@ -127,16 +97,6 @@
     <Compile Include="Network\Enum\WeenieHeaderFlags.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="Entity\WorldObject.cs" />
-    <Compile Include="Managers\ConfigManager.cs" />
-    <Compile Include="Cryptography\Hash32.cs" />
-    <Compile Include="Cryptography\ISAAC.cs" />
-    <Compile Include="Database\CharacterDatabase.cs" />
-    <Compile Include="Database\Database.cs" />
-    <Compile Include="Database\DatabaseManager.cs" />
-    <Compile Include="Database\AuthenticationDatabase.cs" />
-    <Compile Include="Database\MySqlResult.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Managers\WorldManager.cs" />
     <Compile Include="Network\Enum\CharacterError.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
@@ -167,13 +127,28 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="abilityXp.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
     <None Include="Config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Config.json.example" />
+    <None Include="levels.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="skillXp-Specialized.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="skillXp-Trained.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="vitalXp.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -188,7 +163,20 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
+      <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
+      <Name>ACE.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
+      <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
+      <Name>ACE.Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
+      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
+      <Name>ACE.Entity</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

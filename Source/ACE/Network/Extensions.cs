@@ -7,17 +7,7 @@ namespace ACE.Network
     public static class Extensions
     {
         private static uint CalculatePadMultiple(uint length, uint multiple) { return multiple * ((length + multiple - 1u) / multiple) - length; }
-
-        public static string ReadString16L(this BinaryReader reader)
-        {
-            ushort length = reader.ReadUInt16();
-            string rdrStr = (length != 0 ? new string(reader.ReadChars(length)) : string.Empty);
-
-            // client pads string length to be a multiple of 4 including the 2 bytes for length
-            reader.Skip(CalculatePadMultiple(sizeof(ushort) + (uint)length, 4u));
-            return rdrStr;
-        }
-
+        
         public static void WriteString16L(this BinaryWriter writer, string data)
         {
             writer.Write((ushort)data.Length);
@@ -26,21 +16,13 @@ namespace ACE.Network
             // client expects string length to be a multiple of 4 including the 2 bytes for length
             writer.Pad(CalculatePadMultiple(sizeof(ushort) + (uint)data.Length, 4u));
         }
-
-        public static string ReadString32L(this BinaryReader reader)
-        {
-            uint length = reader.ReadUInt32();
-            return length != 0u ? new string(reader.ReadChars((int)length)) : string.Empty;
-        }
-
+        
         public static void WriteUInt16BE(this BinaryWriter writer, ushort value)
         {
             ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
             writer.Write(beValue);
         }
-
-        public static void Skip(this BinaryReader reader, uint length) { reader.BaseStream.Position += length; }
-
+        
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }
 
         public static void Align(this BinaryWriter writer)
