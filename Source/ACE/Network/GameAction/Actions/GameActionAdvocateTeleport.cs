@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.AdvocateTeleport)]
-    public class GameActionAdvocateTeleport : GameActionPacket
+    public class GameActionAdvocateTeleport : GameActionMessage
     {
         private string target;
         private Position position;

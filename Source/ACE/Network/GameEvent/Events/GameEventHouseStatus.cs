@@ -1,15 +1,15 @@
 ﻿namespace ACE.Network.GameEvent
 {
-    public class GameEventHouseStatus : GameEventPacket
+    public class GameEventHouseStatus : GameEventMessage
     {
-        public override GameEventOpcode Opcode { get { return GameEventOpcode.HouseStatus; } }
+        public override GameEventOpcode EventType { get { return GameEventOpcode.HouseStatus; } }
 
         public GameEventHouseStatus(Session session) : base(session) { }
 
         protected override void WriteEventBody()
         {
             // TODO
-            fragment.Payload.Write(2u);
+            writer.Write(2u);
         }
     }
 }

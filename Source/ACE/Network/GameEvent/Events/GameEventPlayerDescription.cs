@@ -3,7 +3,7 @@ using System;
 
 namespace ACE.Network.GameEvent
 {
-    public class GameEventPlayerDescription : GameEventPacket
+    public class GameEventPlayerDescription : GameEventMessage
     {
         [Flags]
         private enum DescriptionPropertyFlag
@@ -60,7 +60,7 @@ namespace ACE.Network.GameEvent
             Unk400           = 0x0400,
         }
 
-        public override GameEventOpcode Opcode { get { return GameEventOpcode.PlayerDescription; } }
+        public override GameEventOpcode EventType { get { return GameEventOpcode.PlayerDescription; } }
 
         public GameEventPlayerDescription(Session session)
             : base(session)
@@ -70,22 +70,22 @@ namespace ACE.Network.GameEvent
         protected override void WriteEventBody()
         {
             var propertyFlags    = DescriptionPropertyFlag.None;
-            var propertyFlagsPos = fragment.Payload.BaseStream.Position;
-            fragment.Payload.Write(0u);
-            fragment.Payload.Write(0x0Au);
+            var propertyFlagsPos = writer.BaseStream.Position;
+            writer.Write(0u);
+            writer.Write(0x0Au);
 
             var propertiesInt = session.Player.PropertiesInt;
             if (propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
 
-                fragment.Payload.Write((ushort)propertiesInt.Count);
-                fragment.Payload.Write((ushort)0x40);
+                writer.Write((ushort)propertiesInt.Count);
+                writer.Write((ushort)0x40);
 
                 foreach (var uintProperty in propertiesInt)
                 {
-                    fragment.Payload.Write((uint)uintProperty.Key);
-                    fragment.Payload.Write(uintProperty.Value);
+                    writer.Write((uint)uintProperty.Key);
+                    writer.Write(uintProperty.Value);
                 }
             }
 
@@ -94,13 +94,13 @@ namespace ACE.Network.GameEvent
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
 
-                fragment.Payload.Write((ushort)propertiesInt64.Count);
-                fragment.Payload.Write((ushort)0x40);
+                writer.Write((ushort)propertiesInt64.Count);
+                writer.Write((ushort)0x40);
 
                 foreach (var uint64Property in propertiesInt64)
                 {
-                    fragment.Payload.Write((uint)uint64Property.Key);
-                    fragment.Payload.Write(uint64Property.Value);
+                    writer.Write((uint)uint64Property.Key);
+                    writer.Write(uint64Property.Value);
                 }
             }
 
@@ -109,13 +109,13 @@ namespace ACE.Network.GameEvent
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
 
-                fragment.Payload.Write((ushort)propertiesBool.Count);
-                fragment.Payload.Write((ushort)0x20);
+                writer.Write((ushort)propertiesBool.Count);
+                writer.Write((ushort)0x20);
 
                 foreach (var boolProperty in propertiesBool)
                 {
-                    fragment.Payload.Write((uint)boolProperty.Key);
-                    fragment.Payload.Write(Convert.ToUInt32(boolProperty.Value)); // just as fast as inlining
+                    writer.Write((uint)boolProperty.Key);
+                    writer.Write(Convert.ToUInt32(boolProperty.Value)); // just as fast as inlining
                 }
             }
 
@@ -124,13 +124,13 @@ namespace ACE.Network.GameEvent
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
 
-                fragment.Payload.Write((ushort)propertiesDouble.Count);
-                fragment.Payload.Write((ushort)0x20);
+                writer.Write((ushort)propertiesDouble.Count);
+                writer.Write((ushort)0x20);
 
                 foreach (var doubleProperty in propertiesDouble)
                 {
-                    fragment.Payload.Write((uint)doubleProperty.Key);
-                    fragment.Payload.Write(doubleProperty.Value);
+                    writer.Write((uint)doubleProperty.Key);
+                    writer.Write(doubleProperty.Value);
                 }
             }
 
@@ -139,13 +139,13 @@ namespace ACE.Network.GameEvent
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
 
-                fragment.Payload.Write((ushort)propertiesString.Count);
-                fragment.Payload.Write((ushort)0x10);
+                writer.Write((ushort)propertiesString.Count);
+                writer.Write((ushort)0x10);
 
                 foreach (var stringProperty in propertiesString)
                 {
-                    fragment.Payload.Write((uint)stringProperty.Key);
-                    fragment.Payload.WriteString16L(stringProperty.Value);
+                    writer.Write((uint)stringProperty.Key);
+                    writer.WriteString16L(stringProperty.Value);
                 }
             }
 
@@ -161,81 +161,81 @@ namespace ACE.Network.GameEvent
             {
             }*/
 
-            fragment.Payload.WritePosition((uint)propertyFlags, propertyFlagsPos);
+            writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
             var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
-            fragment.Payload.Write((uint)vectorFlags);
-            fragment.Payload.Write(1u);
+            writer.Write((uint)vectorFlags);
+            writer.Write(1u);
             
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
                 var attributeFlags = DescriptionAttributeFlag.Full;
-                fragment.Payload.Write((uint)attributeFlags);
+                writer.Write((uint)attributeFlags);
 
                 if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Strength.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Strength.UnbuffedValue);
-                    fragment.Payload.Write(this.session.Player.Strength.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Strength.Ranks); // ranks
+                    writer.Write(this.session.Player.Strength.UnbuffedValue);
+                    writer.Write(this.session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Endurance.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Endurance.UnbuffedValue);
-                    fragment.Payload.Write(this.session.Player.Endurance.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Endurance.Ranks); // ranks
+                    writer.Write(this.session.Player.Endurance.UnbuffedValue);
+                    writer.Write(this.session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Quickness.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Quickness.UnbuffedValue);
-                    fragment.Payload.Write(this.session.Player.Quickness.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Quickness.Ranks); // ranks
+                    writer.Write(this.session.Player.Quickness.UnbuffedValue);
+                    writer.Write(this.session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Coordination.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Coordination.UnbuffedValue);
-                    fragment.Payload.Write(this.session.Player.Coordination.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Coordination.Ranks); // ranks
+                    writer.Write(this.session.Player.Coordination.UnbuffedValue);
+                    writer.Write(this.session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Focus.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Focus.UnbuffedValue);
-                    fragment.Payload.Write(this.session.Player.Focus.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Focus.Ranks); // ranks
+                    writer.Write(this.session.Player.Focus.UnbuffedValue);
+                    writer.Write(this.session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Self.Ranks); // ranks
-                    fragment.Payload.Write(this.session.Player.Self.UnbuffedValue);
-                    fragment.Payload.Write(this.session.Player.Self.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Self.Ranks); // ranks
+                    writer.Write(this.session.Player.Self.UnbuffedValue);
+                    writer.Write(this.session.Player.Self.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Health.Ranks); // ranks
-                    fragment.Payload.Write(0u); // unknown
-                    fragment.Payload.Write(this.session.Player.Health.ExperienceSpent); // xp spent
-                    fragment.Payload.Write(this.session.Player.Health.Current); // current value
+                    writer.Write(this.session.Player.Health.Ranks); // ranks
+                    writer.Write(0u); // unknown
+                    writer.Write(this.session.Player.Health.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Health.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Stamina.Ranks); // ranks
-                    fragment.Payload.Write(0u); // unknown
-                    fragment.Payload.Write(this.session.Player.Stamina.ExperienceSpent); // xp spent
-                    fragment.Payload.Write(this.session.Player.Stamina.Current); // current value
+                    writer.Write(this.session.Player.Stamina.Ranks); // ranks
+                    writer.Write(0u); // unknown
+                    writer.Write(this.session.Player.Stamina.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Stamina.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
                 {
-                    fragment.Payload.Write(this.session.Player.Mana.Ranks); // ranks
-                    fragment.Payload.Write(0u); // unknown
-                    fragment.Payload.Write(this.session.Player.Mana.ExperienceSpent); // xp spent
-                    fragment.Payload.Write(this.session.Player.Mana.Current); // current value
+                    writer.Write(this.session.Player.Mana.Ranks); // ranks
+                    writer.Write(0u); // unknown
+                    writer.Write(this.session.Player.Mana.ExperienceSpent); // xp spent
+                    writer.Write(this.session.Player.Mana.Current); // current value
                 }
             }
 
@@ -244,30 +244,30 @@ namespace ACE.Network.GameEvent
             {
                 var skills = this.session.Player.Skills;
 
-                fragment.Payload.Write((ushort)skills.Count);
-                fragment.Payload.Write((ushort)0x20); // unknown
+                writer.Write((ushort)skills.Count);
+                writer.Write((ushort)0x20); // unknown
 
                 foreach (var skill in skills)
                 {
-                    fragment.Payload.Write((uint)skill.Key); // skill id
-                    fragment.Payload.Write((ushort)skill.Value.Ranks); // points raised
-                    fragment.Payload.Write((ushort)0);
-                    fragment.Payload.Write((uint)skill.Value.Status); // skill state
-                    fragment.Payload.Write((uint)skill.Value.ExperienceSpent); // xp spent on this skill
-                    fragment.Payload.Write(0u); // current bonus points applied (buffs) - not implemented
-                    fragment.Payload.Write(0u); // task difficulty
-                    fragment.Payload.Write(0d);
+                    writer.Write((uint)skill.Key); // skill id
+                    writer.Write((ushort)skill.Value.Ranks); // points raised
+                    writer.Write((ushort)0);
+                    writer.Write((uint)skill.Value.Status); // skill state
+                    writer.Write((uint)skill.Value.ExperienceSpent); // xp spent on this skill
+                    writer.Write(0u); // current bonus points applied (buffs) - not implemented
+                    writer.Write(0u); // task difficulty
+                    writer.Write(0d);
                 }
             }
 
             /*if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
             {
-                fragment.Payload.Write((ushort)spellCount);
-                fragment.Payload.Write((ushort)0x20);
+                writer.Write((ushort)spellCount);
+                writer.Write((ushort)0x20);
 
                 {
-                    fragment.Payload.Write(0u);
-                    fragment.Payload.Write(0.0f);
+                    writer.Write(0u);
+                    writer.Write(0.0f);
                 }
             }*/
 
@@ -276,24 +276,24 @@ namespace ACE.Network.GameEvent
             }*/
 
             var optionFlags = DescriptionOptionFlag.None;
-            fragment.Payload.Write((uint)optionFlags);
-            fragment.Payload.Write(0x11C4E56A);
+            writer.Write((uint)optionFlags);
+            writer.Write(0x11C4E56A);
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
             }*/
 
-            fragment.Payload.Write(0u);
+            writer.Write(0u);
 
             /*if ((optionFlags & DescriptionOptionFlag.SpellTab) != 0)
             {
                 // additional spell tabs 2-7
-                fragment.Payload.Write(0u);
-                fragment.Payload.Write(0u);
-                fragment.Payload.Write(0u);
-                fragment.Payload.Write(0u);
-                fragment.Payload.Write(0u);
-                fragment.Payload.Write(0u);
+                writer.Write(0u);
+                writer.Write(0u);
+                writer.Write(0u);
+                writer.Write(0u);
+                writer.Write(0u);
+                writer.Write(0u);
             }*/
 
             /*if ((optionFlags & DescriptionOptionFlag.Component) != 0)
@@ -301,10 +301,10 @@ namespace ACE.Network.GameEvent
             }*/
 
             if ((optionFlags & DescriptionOptionFlag.Unk20) != 0)
-                fragment.Payload.Write(0u);
+                writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                fragment.Payload.Write(0u);
+                writer.Write(0u);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {
@@ -318,8 +318,8 @@ namespace ACE.Network.GameEvent
             {
             }*/
 
-            fragment.Payload.Write(0u);
-            fragment.Payload.Write(0u);
+            writer.Write(0u);
+            writer.Write(0u);
         }
     }
 }

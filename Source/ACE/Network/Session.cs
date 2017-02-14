@@ -91,11 +91,30 @@ namespace ACE.Network
         public void SendCharacterError(CharacterError error)
         {
             var characterError         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterErrorFragment = new ServerPacketFragment(0x09, FragmentOpcode.CharacterError);
+            var characterErrorFragment = new ServerPacketFragment(0x09, GameMessageOpcode.CharacterError);
             characterErrorFragment.Payload.Write((uint)error);
             characterError.Fragments.Add(characterErrorFragment);
 
             NetworkManager.SendPacket(ConnectionType.Login, characterError, this);
+        }
+
+        public void SendWorldFragmentPacket(GameMessage message)
+        {
+            ServerPacketFragment fragment = new ServerPacketFragment(9, message);
+            var packet = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            packet.Fragments.Add(fragment);
+            NetworkManager.SendPacket(ConnectionType.World, packet, this);
+        }
+
+        public void SendWorldFragmentsPacket(IEnumerable<GameMessage> messages)
+        {
+            var packet = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            foreach (var message in messages)
+            {
+                ServerPacketFragment fragment = new ServerPacketFragment(9, message);
+                packet.Fragments.Add(fragment);
+            }
+            NetworkManager.SendPacket(ConnectionType.World, packet, this);
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace ACE.Network.GameEvent
 {
-    public class GameEventPopupString : GameEventPacket
+    public class GameEventPopupString : GameEventMessage
     {
-        public override GameEventOpcode Opcode { get { return GameEventOpcode.PopupString; } }
+        public override GameEventOpcode EventType { get { return GameEventOpcode.PopupString; } }
 
         private string message;
 
@@ -10,7 +10,7 @@
 
         protected override void WriteEventBody()
         {
-            fragment.Payload.WriteString16L(message);
+            writer.WriteString16L(message);
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿namespace ACE.Network.GameAction
 {
-    public abstract class GameActionPacket
+    public abstract class GameActionMessage
     {
         protected Session session;
         protected ClientPacketFragment fragment;
         
-        public GameActionPacket(Session session, ClientPacketFragment fragment)
+        public GameActionMessage(Session session, ClientPacketFragment fragment)
         {
             this.session  = session;
             this.fragment = fragment;
@@ -15,7 +15,7 @@
         public virtual void Read() { }
         public abstract void Handle();
 
-        [Fragment(FragmentOpcode.GameAction, SessionState.WorldConnected)]
+        [Fragment(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
         public static void HandleGameAction(ClientPacketFragment fragement, Session session)
         {
             // TODO: verify sequence

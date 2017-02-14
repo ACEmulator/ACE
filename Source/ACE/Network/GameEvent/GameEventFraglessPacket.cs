@@ -14,7 +14,7 @@ namespace ACE.Network.GameEvent
             Debug.Assert(target.Player != null);
 
             session = target;
-            fragment = new ServerPacketFragment(0x0A, FragmentOpcode.None);
+            fragment = new ServerPacketFragment(0x0A, GameMessageOpcode.None);
         }
 
         public void Send()

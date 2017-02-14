@@ -167,12 +167,10 @@ namespace ACE.Entity
         public void GrantXp(ulong amount)
         {
             character.GrantXp(amount);
-            var xpAvailUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-            var xpTotalUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-
-            xpAvailUpdate.Send();
-            xpTotalUpdate.Send();
-            ChatPacket.SendSystemMessage(Session, $"{amount} experience granted.");
+            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+            var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+            var message = new GameMessageSystemChat(Session, $"{amount} experience granted.");
+            Session.SendWorldFragmentsPacket(new GameMessage[] { xpAvailUpdate, xpTotalUpdate, message });
         }
 
         public void SpendXp(Enum.Ability ability, uint amount)
@@ -184,23 +182,20 @@ namespace ACE.Entity
             {
                 uint ranks = character.Abilities[ability].Ranks;
                 uint newValue = character.Abilities[ability].UnbuffedValue;
-                var xpUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                GameEventPacket abilityUpdate;
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                GameMessage abilityUpdate;
                 if (!isSecondary)
                 {
-                    abilityUpdate = new GameEventPrivateUpdateAbility(Session, ability, ranks, baseValue, result);
+                    abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, ranks, baseValue, result);
                 }
                 else
                 {
-                    abilityUpdate = new GameEventPrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
-                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1f);
-
-                xpUpdate.Send();
-                abilityUpdate.Send();
-                soundEvent.Send();
-                ChatPacket.SendSystemMessage(Session, $"Your base {ability} is now {newValue}!");
+                var soundEvent = new GameMessageSound(Session, Session.Player.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+                var message = new GameMessageSystemChat(Session, $"Your base {ability} is now {newValue}!");
+                Session.SendWorldFragmentsPacket(new GameMessage[] { xpUpdate, abilityUpdate, soundEvent, message });
             }
             else
             {
@@ -217,14 +212,12 @@ namespace ACE.Entity
                 uint ranks = character.Skills[skill].Ranks;
                 uint newValue = character.Skills[skill].UnbuffedValue;
                 var status = character.Skills[skill].Status;
-                var xpUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                var ablityUpdate = new GameEventPrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1f);
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
+                var soundEvent = new GameMessageSound(Session, Session.Player.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
 
-                xpUpdate.Send();
-                ablityUpdate.Send();
-                soundEvent.Send();
-                ChatPacket.SendSystemMessage(Session, $"Your base {skill} is now {newValue}!");
+                var message = new GameMessageSystemChat(Session, $"Your base {skill} is now {newValue}!");
+                Session.SendWorldFragmentsPacket(new GameMessage[] { xpUpdate, skillUpdate, soundEvent, message });
             }
             else
             {
@@ -237,7 +230,7 @@ namespace ACE.Entity
             NetworkManager.SendPacket(ConnectionType.World, BuildObjectCreate(), Session);
 
             var playerCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var playerCreateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerCreate);
+            var playerCreateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.PlayerCreate);
             playerCreateFragment.Payload.WriteGuid(Guid);
             playerCreate.Fragments.Add(playerCreateFragment);
 
@@ -245,8 +238,8 @@ namespace ACE.Entity
 
             // TODO: gear and equip
 
-            new GameEventPlayerDescription(Session).Send();
-            new GameEventCharacterTitle(Session).Send();
+            Session.SendWorldFragmentPacket(new GameEventPlayerDescription(Session));
+            Session.SendWorldFragmentPacket(new GameEventCharacterTitle(Session));
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
@@ -256,7 +249,7 @@ namespace ACE.Entity
             if (packet)
             {
                 var setState         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-                var setStateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetState);
+                var setStateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.SetState);
                 setStateFragment.Payload.WriteGuid(Guid);
                 setStateFragment.Payload.Write((uint)state);
                 setStateFragment.Payload.Write((ushort)character.TotalLogins);
@@ -277,7 +270,7 @@ namespace ACE.Entity
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
             var playerTeleport         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var playerTeleportFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerTeleport);
+            var playerTeleportFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.PlayerTeleport);
             playerTeleportFragment.Payload.Write(++TeleportIndex);
             playerTeleportFragment.Payload.Write(0u);
             playerTeleportFragment.Payload.Write(0u);

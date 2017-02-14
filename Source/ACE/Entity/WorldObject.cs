@@ -26,7 +26,7 @@ namespace ACE.Entity
             var player = Guid.IsPlayer() ? this as Player : null;
 
             var objectCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var objectCreateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.ObjectCreate);
+            var objectCreateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.ObjectCreate);
             objectCreateFragment.Payload.WriteGuid(Guid);
 
             // TODO: model information
@@ -266,7 +266,7 @@ namespace ACE.Entity
                 updatePositionFlags |= UpdatePositionFlag.NoQuaternionZ;*/
 
             var updatePosition         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var updatePositionFragment = new ServerPacketFragment(0x0A, FragmentOpcode.UpdatePosition);
+            var updatePositionFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.UpdatePosition);
             updatePositionFragment.Payload.WriteGuid(Guid);
             updatePositionFragment.Payload.Write((uint)updatePositionFlags);
 

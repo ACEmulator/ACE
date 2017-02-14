@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.PingRequest)]
-    public class GameActionPingRequest : GameActionPacket
+    public class GameActionPingRequest : GameActionMessage
     {
         public GameActionPingRequest(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 

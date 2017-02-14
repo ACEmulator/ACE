@@ -5,10 +5,10 @@ namespace ACE.Network
     [AttributeUsage(AttributeTargets.Method)]
     public class FragmentAttribute : Attribute
     {
-        public FragmentOpcode Opcode { get; }
+        public GameMessageOpcode Opcode { get; }
         public SessionState State { get; }
 
-        public FragmentAttribute(FragmentOpcode opcode, SessionState state)
+        public FragmentAttribute(GameMessageOpcode opcode, SessionState state)
         {
             Opcode = opcode;
             State  = state;
