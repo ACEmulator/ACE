@@ -108,7 +108,7 @@ namespace ACE.Network
             bool isAvailable = DatabaseManager.Character.IsNameAvailable(cachedCharacter.Name);
             if (!isAvailable)
             {
-                SendCharacterCreateResponse(session, 3);    /* Name already in use. */
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);    /* Name already in use. */
                 return;
             }
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
