@@ -1,6 +1,7 @@
 ﻿using ACE.Cryptography;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Extensions;
 using ACE.Managers;
 using ACE.Network.GameEvent;
 using System;
@@ -114,7 +115,7 @@ namespace ACE.Network
             {
                 characterFragment.Payload.WriteGuid(character.Guid);
                 characterFragment.Payload.WriteString16L(character.Name);
-                characterFragment.Payload.Write(character.DeleteTime != 0ul ? (uint)(WorldManager.GetUnixTime() - character.DeleteTime) : 0u);
+                characterFragment.Payload.Write(character.DeleteTime != 0ul ? (uint)(Time.GetUnixTime() - character.DeleteTime) : 0u);
                 session.CachedCharacters.Add(character);
             }
 

@@ -1,4 +1,5 @@
 ﻿using ACE.Database;
+using ACE.Extensions;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -89,7 +90,7 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
-            DatabaseManager.Character.DeleteOrRestore(WorldManager.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
+            DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
             AuthenticationHandler.CharacterListSelectCallback(result, session);
@@ -127,7 +128,7 @@ namespace ACE.Network
             if (account != session.Account)
                 return;
 
-            Character character = Character.CreateFromClientFragment(fragment, session.Id);
+            Character character = Character.CreateFromClientFragment(fragment.Payload, session.Id);
             
             // TODO: profanity filter 
             // sendCharacterCreateResponse(session, 4);
