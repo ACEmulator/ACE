@@ -74,6 +74,8 @@
     <Compile Include="Command\CommandHandlerAttribute.cs" />
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
+    <Compile Include="Command\Handlers\AdminCommands.cs" />
+    <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
@@ -133,9 +135,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
-    <None Include="Config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="Config.json.example" />
     <None Include="default.ruleset" />
     <None Include="levels.json">

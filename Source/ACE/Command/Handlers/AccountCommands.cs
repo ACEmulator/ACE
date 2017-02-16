@@ -2,7 +2,7 @@
 using ACE.Database;
 using ACE.Entity;
 using ACE.Network;
-using System.Diagnostics;
+using System;
 using System.IO;
 
 namespace ACE.Command
@@ -20,6 +20,8 @@ namespace ACE.Command
             Account acc = new Account(accountId, account, salt, password);
 
             DatabaseManager.Authentication.CreateAccount(acc);
+
+            Console.WriteLine("Account successfully created for " + account + ".");
         }
     }
 }
