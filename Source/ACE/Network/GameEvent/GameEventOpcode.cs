@@ -30,6 +30,9 @@
         PrivateUpdateVital              = 0x02E7,
         PublicUpdateVital               = 0x02E8,
 
-        Sound                           = 0xF750
+        Sound                           = 0xF750,
+
+        UpdateTitle                     = 0x002B,
+        Emote                           = 0x01E2
     }
 }
