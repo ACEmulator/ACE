@@ -1,4 +1,6 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿using ACE.Extensions;
+
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.Emote)]
     public class GameActionEmote : GameActionPacket
