@@ -188,7 +188,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <PreBuildEvent>copy $(ProjectDir)config.json $(TargetDir)config.json</PreBuildEvent>
   </PropertyGroup>
 </Project>
