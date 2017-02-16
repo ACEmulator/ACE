@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AA611A84-CDF8-4AB6-8D53-085C897A7422}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ACE.Entity</RootNamespace>
+    <AssemblyName>ACE.Entity</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AbilityFormulaAttribute.cs" />
+    <Compile Include="Account.cs" />
+    <Compile Include="Appearance.cs" />
+    <Compile Include="CachedCharacter.cs" />
+    <Compile Include="Character.cs" />
+    <Compile Include="CharacterAbility.cs" />
+    <Compile Include="CharacterLevel.cs" />
+    <Compile Include="CharacterSkill.cs" />
+    <Compile Include="DbObject.cs" />
+    <Compile Include="Enum\Ability.cs" />
+    <Compile Include="Enum\AccessLevel.cs" />
+    <Compile Include="Enum\EnumHelper.cs" />
+    <Compile Include="Enum\ObjectBehaviorFlag.cs" />
+    <Compile Include="Enum\ObjectType.cs" />
+    <Compile Include="Enum\PhysicsState.cs" />
+    <Compile Include="Enum\Properties\PropertyBool.cs" />
+    <Compile Include="Enum\Properties\PropertyDouble.cs" />
+    <Compile Include="Enum\Properties\PropertyInt.cs" />
+    <Compile Include="Enum\Properties\PropertyInt64.cs" />
+    <Compile Include="Enum\Properties\PropertyString.cs" />
+    <Compile Include="Enum\Skill.cs" />
+    <Compile Include="ExperienceExpenditure.cs" />
+    <Compile Include="LevelingChart.cs" />
+    <Compile Include="ObjectGuid.cs" />
+    <Compile Include="PersistedPropertyAttribute.cs" />
+    <Compile Include="Position.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SkillCostAttribute.cs" />
+    <Compile Include="SkillUsableUntrainedAttribute.cs" />
+    <Compile Include="ExperienceExpenditureChart.cs" />
+    <Compile Include="TeleportLocation.cs" />
+    <Compile Include="TupleExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
+      <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
+      <Name>ACE.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

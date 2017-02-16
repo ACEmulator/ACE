@@ -1,0 +1,1049 @@
+﻿{
+  "ranks": [
+    {
+      "rank": 0,
+      "totalXp": 0,
+      "rankXp": 0
+    },
+    {
+      "rank": 1,
+      "totalXp": 58,
+      "rankXp": 58
+    },
+    {
+      "rank": 2,
+      "totalXp": 138,
+      "rankXp": 80
+    },
+    {
+      "rank": 3,
+      "totalXp": 243,
+      "rankXp": 105
+    },
+    {
+      "rank": 4,
+      "totalXp": 372,
+      "rankXp": 129
+    },
+    {
+      "rank": 5,
+      "totalXp": 526,
+      "rankXp": 154
+    },
+    {
+      "rank": 6,
+      "totalXp": 704,
+      "rankXp": 178
+    },
+    {
+      "rank": 7,
+      "totalXp": 908,
+      "rankXp": 204
+    },
+    {
+      "rank": 8,
+      "totalXp": 1138,
+      "rankXp": 230
+    },
+    {
+      "rank": 9,
+      "totalXp": 1395,
+      "rankXp": 257
+    },
+    {
+      "rank": 10,
+      "totalXp": 1678,
+      "rankXp": 283
+    },
+    {
+      "rank": 11,
+      "totalXp": 1988,
+      "rankXp": 310
+    },
+    {
+      "rank": 12,
+      "totalXp": 2326,
+      "rankXp": 338
+    },
+    {
+      "rank": 13,
+      "totalXp": 2693,
+      "rankXp": 367
+    },
+    {
+      "rank": 14,
+      "totalXp": 3089,
+      "rankXp": 396
+    },
+    {
+      "rank": 15,
+      "totalXp": 3515,
+      "rankXp": 426
+    },
+    {
+      "rank": 16,
+      "totalXp": 3971,
+      "rankXp": 456
+    },
+    {
+      "rank": 17,
+      "totalXp": 4459,
+      "rankXp": 488
+    },
+    {
+      "rank": 18,
+      "totalXp": 4980,
+      "rankXp": 521
+    },
+    {
+      "rank": 19,
+      "totalXp": 5534,
+      "rankXp": 554
+    },
+    {
+      "rank": 20,
+      "totalXp": 6122,
+      "rankXp": 588
+    },
+    {
+      "rank": 21,
+      "totalXp": 6747,
+      "rankXp": 625
+    },
+    {
+      "rank": 22,
+      "totalXp": 7408,
+      "rankXp": 661
+    },
+    {
+      "rank": 23,
+      "totalXp": 8107,
+      "rankXp": 699
+    },
+    {
+      "rank": 24,
+      "totalXp": 8846,
+      "rankXp": 739
+    },
+    {
+      "rank": 25,
+      "totalXp": 9625,
+      "rankXp": 779
+    },
+    {
+      "rank": 26,
+      "totalXp": 10448,
+      "rankXp": 823
+    },
+    {
+      "rank": 27,
+      "totalXp": 11316,
+      "rankXp": 868
+    },
+    {
+      "rank": 28,
+      "totalXp": 12230,
+      "rankXp": 914
+    },
+    {
+      "rank": 29,
+      "totalXp": 13192,
+      "rankXp": 962
+    },
+    {
+      "rank": 30,
+      "totalXp": 14206,
+      "rankXp": 1014
+    },
+    {
+      "rank": 31,
+      "totalXp": 15273,
+      "rankXp": 1067
+    },
+    {
+      "rank": 32,
+      "totalXp": 16396,
+      "rankXp": 1123
+    },
+    {
+      "rank": 33,
+      "totalXp": 17578,
+      "rankXp": 1182
+    },
+    {
+      "rank": 34,
+      "totalXp": 18821,
+      "rankXp": 1243
+    },
+    {
+      "rank": 35,
+      "totalXp": 20130,
+      "rankXp": 1309
+    },
+    {
+      "rank": 36,
+      "totalXp": 21508,
+      "rankXp": 1378
+    },
+    {
+      "rank": 37,
+      "totalXp": 22958,
+      "rankXp": 1450
+    },
+    {
+      "rank": 38,
+      "totalXp": 24485,
+      "rankXp": 1527
+    },
+    {
+      "rank": 39,
+      "totalXp": 26092,
+      "rankXp": 1607
+    },
+    {
+      "rank": 40,
+      "totalXp": 27786,
+      "rankXp": 1694
+    },
+    {
+      "rank": 41,
+      "totalXp": 29572,
+      "rankXp": 1786
+    },
+    {
+      "rank": 42,
+      "totalXp": 31454,
+      "rankXp": 1882
+    },
+    {
+      "rank": 43,
+      "totalXp": 33438,
+      "rankXp": 1984
+    },
+    {
+      "rank": 44,
+      "totalXp": 35533,
+      "rankXp": 2095
+    },
+    {
+      "rank": 45,
+      "totalXp": 37743,
+      "rankXp": 2210
+    },
+    {
+      "rank": 46,
+      "totalXp": 40078,
+      "rankXp": 2335
+    },
+    {
+      "rank": 47,
+      "totalXp": 42545,
+      "rankXp": 2467
+    },
+    {
+      "rank": 48,
+      "totalXp": 45152,
+      "rankXp": 2607
+    },
+    {
+      "rank": 49,
+      "totalXp": 47911,
+      "rankXp": 2759
+    },
+    {
+      "rank": 50,
+      "totalXp": 50830,
+      "rankXp": 2919
+    },
+    {
+      "rank": 51,
+      "totalXp": 53921,
+      "rankXp": 3091
+    },
+    {
+      "rank": 52,
+      "totalXp": 57196,
+      "rankXp": 3275
+    },
+    {
+      "rank": 53,
+      "totalXp": 60668,
+      "rankXp": 3472
+    },
+    {
+      "rank": 54,
+      "totalXp": 64350,
+      "rankXp": 3682
+    },
+    {
+      "rank": 55,
+      "totalXp": 68259,
+      "rankXp": 3909
+    },
+    {
+      "rank": 56,
+      "totalXp": 72409,
+      "rankXp": 4150
+    },
+    {
+      "rank": 57,
+      "totalXp": 76818,
+      "rankXp": 4409
+    },
+    {
+      "rank": 58,
+      "totalXp": 81506,
+      "rankXp": 4688
+    },
+    {
+      "rank": 59,
+      "totalXp": 86493,
+      "rankXp": 4987
+    },
+    {
+      "rank": 60,
+      "totalXp": 91800,
+      "rankXp": 5307
+    },
+    {
+      "rank": 61,
+      "totalXp": 97451,
+      "rankXp": 5651
+    },
+    {
+      "rank": 62,
+      "totalXp": 103472,
+      "rankXp": 6021
+    },
+    {
+      "rank": 63,
+      "totalXp": 109890,
+      "rankXp": 6418
+    },
+    {
+      "rank": 64,
+      "totalXp": 116736,
+      "rankXp": 6846
+    },
+    {
+      "rank": 65,
+      "totalXp": 124040,
+      "rankXp": 7304
+    },
+    {
+      "rank": 66,
+      "totalXp": 131838,
+      "rankXp": 7798
+    },
+    {
+      "rank": 67,
+      "totalXp": 140167,
+      "rankXp": 8329
+    },
+    {
+      "rank": 68,
+      "totalXp": 149067,
+      "rankXp": 8900
+    },
+    {
+      "rank": 69,
+      "totalXp": 158582,
+      "rankXp": 9515
+    },
+    {
+      "rank": 70,
+      "totalXp": 168758,
+      "rankXp": 10176
+    },
+    {
+      "rank": 71,
+      "totalXp": 179646,
+      "rankXp": 10888
+    },
+    {
+      "rank": 72,
+      "totalXp": 191301,
+      "rankXp": 11655
+    },
+    {
+      "rank": 73,
+      "totalXp": 203781,
+      "rankXp": 12480
+    },
+    {
+      "rank": 74,
+      "totalXp": 217149,
+      "rankXp": 13368
+    },
+    {
+      "rank": 75,
+      "totalXp": 231474,
+      "rankXp": 14325
+    },
+    {
+      "rank": 76,
+      "totalXp": 246830,
+      "rankXp": 15356
+    },
+    {
+      "rank": 77,
+      "totalXp": 263297,
+      "rankXp": 16467
+    },
+    {
+      "rank": 78,
+      "totalXp": 280959,
+      "rankXp": 17662
+    },
+    {
+      "rank": 79,
+      "totalXp": 299911,
+      "rankXp": 18952
+    },
+    {
+      "rank": 80,
+      "totalXp": 320252,
+      "rankXp": 20341
+    },
+    {
+      "rank": 81,
+      "totalXp": 342089,
+      "rankXp": 21837
+    },
+    {
+      "rank": 82,
+      "totalXp": 365539,
+      "rankXp": 23450
+    },
+    {
+      "rank": 83,
+      "totalXp": 390727,
+      "rankXp": 25188
+    },
+    {
+      "rank": 84,
+      "totalXp": 417789,
+      "rankXp": 27062
+    },
+    {
+      "rank": 85,
+      "totalXp": 446871,
+      "rankXp": 29082
+    },
+    {
+      "rank": 86,
+      "totalXp": 478129,
+      "rankXp": 31258
+    },
+    {
+      "rank": 87,
+      "totalXp": 511735,
+      "rankXp": 33606
+    },
+    {
+      "rank": 88,
+      "totalXp": 547871,
+      "rankXp": 36136
+    },
+    {
+      "rank": 89,
+      "totalXp": 586735,
+      "rankXp": 38864
+    },
+    {
+      "rank": 90,
+      "totalXp": 628540,
+      "rankXp": 41805
+    },
+    {
+      "rank": 91,
+      "totalXp": 673517,
+      "rankXp": 44977
+    },
+    {
+      "rank": 92,
+      "totalXp": 721913,
+      "rankXp": 48396
+    },
+    {
+      "rank": 93,
+      "totalXp": 773996,
+      "rankXp": 52083
+    },
+    {
+      "rank": 94,
+      "totalXp": 830054,
+      "rankXp": 56058
+    },
+    {
+      "rank": 95,
+      "totalXp": 890401,
+      "rankXp": 60347
+    },
+    {
+      "rank": 96,
+      "totalXp": 955370,
+      "rankXp": 64969
+    },
+    {
+      "rank": 97,
+      "totalXp": 1025326,
+      "rankXp": 69956
+    },
+    {
+      "rank": 98,
+      "totalXp": 1100659,
+      "rankXp": 75333
+    },
+    {
+      "rank": 99,
+      "totalXp": 1181791,
+      "rankXp": 81132
+    },
+    {
+      "rank": 100,
+      "totalXp": 1269177,
+      "rankXp": 87386
+    },
+    {
+      "rank": 101,
+      "totalXp": 1363308,
+      "rankXp": 94131
+    },
+    {
+      "rank": 102,
+      "totalXp": 1464714,
+      "rankXp": 101406
+    },
+    {
+      "rank": 103,
+      "totalXp": 1573965,
+      "rankXp": 109251
+    },
+    {
+      "rank": 104,
+      "totalXp": 1691679,
+      "rankXp": 117714
+    },
+    {
+      "rank": 105,
+      "totalXp": 1818520,
+      "rankXp": 126841
+    },
+    {
+      "rank": 106,
+      "totalXp": 1955205,
+      "rankXp": 136685
+    },
+    {
+      "rank": 107,
+      "totalXp": 2102508,
+      "rankXp": 147303
+    },
+    {
+      "rank": 108,
+      "totalXp": 2261264,
+      "rankXp": 158756
+    },
+    {
+      "rank": 109,
+      "totalXp": 2432373,
+      "rankXp": 171109
+    },
+    {
+      "rank": 110,
+      "totalXp": 2616806,
+      "rankXp": 184433
+    },
+    {
+      "rank": 111,
+      "totalXp": 2815610,
+      "rankXp": 198804
+    },
+    {
+      "rank": 112,
+      "totalXp": 3029917,
+      "rankXp": 214307
+    },
+    {
+      "rank": 113,
+      "totalXp": 3260945,
+      "rankXp": 231028
+    },
+    {
+      "rank": 114,
+      "totalXp": 3510009,
+      "rankXp": 249064
+    },
+    {
+      "rank": 115,
+      "totalXp": 3778529,
+      "rankXp": 268520
+    },
+    {
+      "rank": 116,
+      "totalXp": 4068034,
+      "rankXp": 289505
+    },
+    {
+      "rank": 117,
+      "totalXp": 4380177,
+      "rankXp": 312143
+    },
+    {
+      "rank": 118,
+      "totalXp": 4716738,
+      "rankXp": 336561
+    },
+    {
+      "rank": 119,
+      "totalXp": 5079638,
+      "rankXp": 362900
+    },
+    {
+      "rank": 120,
+      "totalXp": 5470950,
+      "rankXp": 391312
+    },
+    {
+      "rank": 121,
+      "totalXp": 5892911,
+      "rankXp": 421961
+    },
+    {
+      "rank": 122,
+      "totalXp": 6347931,
+      "rankXp": 455020
+    },
+    {
+      "rank": 123,
+      "totalXp": 6838614,
+      "rankXp": 490683
+    },
+    {
+      "rank": 124,
+      "totalXp": 7367765,
+      "rankXp": 529151
+    },
+    {
+      "rank": 125,
+      "totalXp": 7938414,
+      "rankXp": 570649
+    },
+    {
+      "rank": 126,
+      "totalXp": 8553825,
+      "rankXp": 615411
+    },
+    {
+      "rank": 127,
+      "totalXp": 9217523,
+      "rankXp": 663698
+    },
+    {
+      "rank": 128,
+      "totalXp": 9933309,
+      "rankXp": 715786
+    },
+    {
+      "rank": 129,
+      "totalXp": 10705283,
+      "rankXp": 771974
+    },
+    {
+      "rank": 130,
+      "totalXp": 11537868,
+      "rankXp": 832585
+    },
+    {
+      "rank": 131,
+      "totalXp": 12435837,
+      "rankXp": 897969
+    },
+    {
+      "rank": 132,
+      "totalXp": 13404336,
+      "rankXp": 968499
+    },
+    {
+      "rank": 133,
+      "totalXp": 14448918,
+      "rankXp": 1044582
+    },
+    {
+      "rank": 134,
+      "totalXp": 15575574,
+      "rankXp": 1126656
+    },
+    {
+      "rank": 135,
+      "totalXp": 16790764,
+      "rankXp": 1215190
+    },
+    {
+      "rank": 136,
+      "totalXp": 18101461,
+      "rankXp": 1310697
+    },
+    {
+      "rank": 137,
+      "totalXp": 19515183,
+      "rankXp": 1413722
+    },
+    {
+      "rank": 138,
+      "totalXp": 21040043,
+      "rankXp": 1524860
+    },
+    {
+      "rank": 139,
+      "totalXp": 22684790,
+      "rankXp": 1644747
+    },
+    {
+      "rank": 140,
+      "totalXp": 24458865,
+      "rankXp": 1774075
+    },
+    {
+      "rank": 141,
+      "totalXp": 26372451,
+      "rankXp": 1913586
+    },
+    {
+      "rank": 142,
+      "totalXp": 28436532,
+      "rankXp": 2064081
+    },
+    {
+      "rank": 143,
+      "totalXp": 30662960,
+      "rankXp": 2226428
+    },
+    {
+      "rank": 144,
+      "totalXp": 33064516,
+      "rankXp": 2401556
+    },
+    {
+      "rank": 145,
+      "totalXp": 35654992,
+      "rankXp": 2590476
+    },
+    {
+      "rank": 146,
+      "totalXp": 38449264,
+      "rankXp": 2794272
+    },
+    {
+      "rank": 147,
+      "totalXp": 41463378,
+      "rankXp": 3014114
+    },
+    {
+      "rank": 148,
+      "totalXp": 44714647,
+      "rankXp": 3251269
+    },
+    {
+      "rank": 149,
+      "totalXp": 48221744,
+      "rankXp": 3507097
+    },
+    {
+      "rank": 150,
+      "totalXp": 52004816,
+      "rankXp": 3783072
+    },
+    {
+      "rank": 151,
+      "totalXp": 56085593,
+      "rankXp": 4080777
+    },
+    {
+      "rank": 152,
+      "totalXp": 60487519,
+      "rankXp": 4401926
+    },
+    {
+      "rank": 153,
+      "totalXp": 65235884,
+      "rankXp": 4748365
+    },
+    {
+      "rank": 154,
+      "totalXp": 70357967,
+      "rankXp": 5122083
+    },
+    {
+      "rank": 155,
+      "totalXp": 75883199,
+      "rankXp": 5525232
+    },
+    {
+      "rank": 156,
+      "totalXp": 81843326,
+      "rankXp": 5960127
+    },
+    {
+      "rank": 157,
+      "totalXp": 88272594,
+      "rankXp": 6429268
+    },
+    {
+      "rank": 158,
+      "totalXp": 95207949,
+      "rankXp": 6935355
+    },
+    {
+      "rank": 159,
+      "totalXp": 102689242,
+      "rankXp": 7481293
+    },
+    {
+      "rank": 160,
+      "totalXp": 110759467,
+      "rankXp": 8070225
+    },
+    {
+      "rank": 161,
+      "totalXp": 119465000,
+      "rankXp": 8705533
+    },
+    {
+      "rank": 162,
+      "totalXp": 128855871,
+      "rankXp": 9390871
+    },
+    {
+      "rank": 163,
+      "totalXp": 138986049,
+      "rankXp": 10130178
+    },
+    {
+      "rank": 164,
+      "totalXp": 149913755,
+      "rankXp": 10927706
+    },
+    {
+      "rank": 165,
+      "totalXp": 161701793,
+      "rankXp": 11788038
+    },
+    {
+      "rank": 166,
+      "totalXp": 174417913,
+      "rankXp": 12716120
+    },
+    {
+      "rank": 167,
+      "totalXp": 188135201,
+      "rankXp": 13717288
+    },
+    {
+      "rank": 168,
+      "totalXp": 202932500,
+      "rankXp": 14797299
+    },
+    {
+      "rank": 169,
+      "totalXp": 218894860,
+      "rankXp": 15962360
+    },
+    {
+      "rank": 170,
+      "totalXp": 236114028,
+      "rankXp": 17219168
+    },
+    {
+      "rank": 171,
+      "totalXp": 254688979,
+      "rankXp": 18574951
+    },
+    {
+      "rank": 172,
+      "totalXp": 274726480,
+      "rankXp": 20037501
+    },
+    {
+      "rank": 173,
+      "totalXp": 296341707,
+      "rankXp": 21615227
+    },
+    {
+      "rank": 174,
+      "totalXp": 319658907,
+      "rankXp": 23317200
+    },
+    {
+      "rank": 175,
+      "totalXp": 344812110,
+      "rankXp": 25153203
+    },
+    {
+      "rank": 176,
+      "totalXp": 371945902,
+      "rankXp": 27133792
+    },
+    {
+      "rank": 177,
+      "totalXp": 401216255,
+      "rankXp": 29270353
+    },
+    {
+      "rank": 178,
+      "totalXp": 432791424,
+      "rankXp": 31575169
+    },
+    {
+      "rank": 179,
+      "totalXp": 466852915,
+      "rankXp": 34061491
+    },
+    {
+      "rank": 180,
+      "totalXp": 503596527,
+      "rankXp": 36743612
+    },
+    {
+      "rank": 181,
+      "totalXp": 543233477,
+      "rankXp": 39636950
+    },
+    {
+      "rank": 182,
+      "totalXp": 585991620,
+      "rankXp": 42758143
+    },
+    {
+      "rank": 183,
+      "totalXp": 632116749,
+      "rankXp": 46125129
+    },
+    {
+      "rank": 184,
+      "totalXp": 681874018,
+      "rankXp": 49757269
+    },
+    {
+      "rank": 185,
+      "totalXp": 735549461,
+      "rankXp": 53675443
+    },
+    {
+      "rank": 186,
+      "totalXp": 793451636,
+      "rankXp": 57902175
+    },
+    {
+      "rank": 187,
+      "totalXp": 855913403,
+      "rankXp": 62461767
+    },
+    {
+      "rank": 188,
+      "totalXp": 923293832,
+      "rankXp": 67380429
+    },
+    {
+      "rank": 189,
+      "totalXp": 995980273,
+      "rankXp": 72686441
+    },
+    {
+      "rank": 190,
+      "totalXp": 1074390578,
+      "rankXp": 78410305
+    },
+    {
+      "rank": 191,
+      "totalXp": 1158975507,
+      "rankXp": 84584929
+    },
+    {
+      "rank": 192,
+      "totalXp": 1250221316,
+      "rankXp": 91245809
+    },
+    {
+      "rank": 193,
+      "totalXp": 1348652558,
+      "rankXp": 98431242
+    },
+    {
+      "rank": 194,
+      "totalXp": 1454835090,
+      "rankXp": 106182532
+    },
+    {
+      "rank": 195,
+      "totalXp": 1569379334,
+      "rankXp": 114544244
+    },
+    {
+      "rank": 196,
+      "totalXp": 1692943784,
+      "rankXp": 123564450
+    },
+    {
+      "rank": 197,
+      "totalXp": 1826238790,
+      "rankXp": 133295006
+    },
+    {
+      "rank": 198,
+      "totalXp": 1970030642,
+      "rankXp": 143791852
+    },
+    {
+      "rank": 199,
+      "totalXp": 2125145977,
+      "rankXp": 155115335
+    },
+    {
+      "rank": 200,
+      "totalXp": 2292476532,
+      "rankXp": 167330555
+    },
+    {
+      "rank": 201,
+      "totalXp": 2472984268,
+      "rankXp": 180507736
+    },
+    {
+      "rank": 202,
+      "totalXp": 2667706901,
+      "rankXp": 194722633
+    },
+    {
+      "rank": 203,
+      "totalXp": 2877763869,
+      "rankXp": 210056968
+    },
+    {
+      "rank": 204,
+      "totalXp": 3104362767,
+      "rankXp": 226598898
+    },
+    {
+      "rank": 205,
+      "totalXp": 3348806291,
+      "rankXp": 244443524
+    },
+    {
+      "rank": 206,
+      "totalXp": 3612499722,
+      "rankXp": 263693431
+    },
+    {
+      "rank": 207,
+      "totalXp": 3896959013,
+      "rankXp": 284459291
+    },
+    {
+      "rank": 208,
+      "totalXp": 4203819496,
+      "rankXp": 306860483
+    }
+  ]
+}
