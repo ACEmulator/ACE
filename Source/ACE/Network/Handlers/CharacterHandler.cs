@@ -105,6 +105,12 @@ namespace ACE.Network
             if (cachedCharacter == null)
                 return;
 
+            bool isAvailable = DatabaseManager.Character.IsNameAvailable(cachedCharacter.Name);
+            if (!isAvailable)
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);    /* Name already in use. */
+                return;
+            }
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
