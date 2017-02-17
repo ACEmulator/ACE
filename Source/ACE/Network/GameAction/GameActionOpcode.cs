@@ -16,6 +16,8 @@ namespace ACE.Network.GameAction
         AdvocateTeleport   = 0x00D6,
         RaiseVital         = 0x0044,
         RaiseAbility       = 0x0045,
-        RaiseSkill         = 0x0046      
+        RaiseSkill         = 0x0046,
+        RemoveFriend       = 0x0017,
+        AddFriend          = 0x0018      
     }
 }

@@ -70,6 +70,7 @@
     <Compile Include="Enum\Properties\PropertyString.cs" />
     <Compile Include="Enum\Skill.cs" />
     <Compile Include="ExperienceExpenditure.cs" />
+    <Compile Include="Friend.cs" />
     <Compile Include="LevelingChart.cs" />
     <Compile Include="ObjectGuid.cs" />
     <Compile Include="PersistedPropertyAttribute.cs" />
