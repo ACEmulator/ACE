@@ -7,31 +7,6 @@ using ACE.Network;
 
 namespace ACE.Command
 {
-    [Flags]
-    public enum CommandHandlerFlag
-    {
-        None          = 0x00,
-        ConsoleInvoke = 0x01,
-        RequiresWorld = 0x02
-    }
-
-    public enum CommandHandlerResponse
-    {
-        Ok,
-        InvalidCommand,
-        NoConsoleInvoke,
-        InvalidParameterCount,
-        NotInWorld
-    }
-
-    public class CommandHandlerInfo
-    {
-        public Delegate Handler { get; set; }
-        public CommandHandlerAttribute Attribute { get; set; }
-    }
-
-    public delegate void CommandHandler(Session session, params string[] parameters);
-
     public static class CommandManager
     {
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;

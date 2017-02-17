@@ -18,7 +18,7 @@ namespace ACE.Network.Managers
             public FragmentAttribute Attribute { get; set; }
         }
 
-        delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
+        public delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
         private static Dictionary<FragmentOpcode, FragmentHandlerInfo> fragmentHandlers;
 
         private static Dictionary<GameActionOpcode, Type> actionHandlers;

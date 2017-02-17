@@ -8,9 +8,9 @@ using ACE.Network.Managers;
 
 namespace ACE
 {
-    class ACE
+    public class ACE
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Console.Title = "ACEmulator";
 
