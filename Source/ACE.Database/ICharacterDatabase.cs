@@ -26,7 +26,7 @@ namespace ACE.Database
         /// <summary>
         /// loads object properties into the provided db object
         /// </summary>
-        void LoadCharacterProperties(DbObject dbObject);
+        Task LoadCharacterProperties(DbObject dbObject);
 
         /// <summary>
         /// saves all object properties in the provided db object
