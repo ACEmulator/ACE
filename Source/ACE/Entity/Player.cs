@@ -9,12 +9,17 @@ using ACE.Network.Fragments;
 using ACE.Network.GameEvent;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    public class Player : WorldObject
+    public class Player : MutableWorldObject
     {
+        // all the objects being tracked
+        private Dictionary<ObjectGuid, MutableWorldObject> subscribedObjects = new Dictionary<ObjectGuid, MutableWorldObject>();
+        
         public Session Session { get; }
+
         public bool InWorld { get; set; }
 
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
@@ -152,7 +157,7 @@ namespace ACE.Entity
             get { return character.TotalLogins; }
             set { character.TotalLogins = value; }
         }
-
+        
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid)
         {
             Session           = session;
@@ -160,6 +165,9 @@ namespace ACE.Entity
             Name              = session.CharacterRequested.Name;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
+
+            // radius for object updates
+            ListeningRadius = 5f;
         }
         
         public async void Load()
@@ -403,6 +411,21 @@ namespace ACE.Entity
             updateTitle.Send();
 
             ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
+        }
+
+        public void Subscribe(MutableWorldObject worldObject)
+        {
+            subscribedObjects.Add(worldObject.Guid, worldObject);
+        }
+
+        public void Unsubscribe(ObjectGuid objectId)
+        {
+            if (subscribedObjects.ContainsKey(objectId))
+            {
+                subscribedObjects.Remove(objectId);
+
+                // TODO: send a destroy packet
+            }
         }
     }
 }

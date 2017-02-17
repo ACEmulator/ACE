@@ -71,14 +71,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Command\CommandHandler.cs" />
     <Compile Include="Command\CommandHandlerAttribute.cs" />
+    <Compile Include="Command\CommandHandlerFlag.cs" />
+    <Compile Include="Command\CommandHandlerInfo.cs" />
+    <Compile Include="Command\CommandHandlerResponse.cs" />
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
     <Compile Include="Command\Handlers\AdminCommands.cs" />
     <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
+    <Compile Include="Entity\ImmutableWorldObject.cs" />
+    <Compile Include="Entity\Landblock.cs" />
+    <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Managers\AssetManager.cs" />
+    <Compile Include="Managers\LandblockManager.cs" />
+    <Compile Include="Network\CachedPacket.cs" />
     <Compile Include="Network\ChatPacket.cs" />
+    <Compile Include="Network\ClientPacket.cs" />
+    <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
@@ -105,7 +116,7 @@
     <Compile Include="Entity\WorldObject.cs" />
     <Compile Include="Managers\WorldManager.cs" />
     <Compile Include="Network\Enum\CharacterError.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventCharacterTitle.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventEmote.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
@@ -130,8 +141,17 @@
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
     <Compile Include="Network\Packet.cs" />
+    <Compile Include="Network\PacketDirection.cs" />
+    <Compile Include="Network\PacketFragment.cs" />
+    <Compile Include="Network\PacketFragmentHeader.cs" />
+    <Compile Include="Network\PacketHeader.cs" />
+    <Compile Include="Network\PacketHeaderFlags.cs" />
+    <Compile Include="Network\PacketHeaderOptional.cs" />
+    <Compile Include="Network\ServerPacket.cs" />
+    <Compile Include="Network\ServerPacketFragment.cs" />
     <Compile Include="Network\Session.cs" />
     <Compile Include="ACE.cs" />
+    <Compile Include="Network\SessionConnectionData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +210,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>copy $(ProjectDir)config.json $(TargetDir)config.json</PreBuildEvent>
+    <PreBuildEvent>copy "$(ProjectDir)config.json" "$(TargetDir)config.json"</PreBuildEvent>
   </PropertyGroup>
 </Project>

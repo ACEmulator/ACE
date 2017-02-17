@@ -94,8 +94,6 @@
     <Rule Id="SA1311" Action="None" />
     <Rule Id="SA1314" Action="None" />
     <Rule Id="SA1401" Action="None" />
-    <Rule Id="SA1402" Action="None" />
-    <Rule Id="SA1403" Action="None" />
     <Rule Id="SA1404" Action="None" />
     <Rule Id="SA1405" Action="None" />
     <Rule Id="SA1406" Action="None" />
@@ -162,7 +160,6 @@
     <Rule Id="SA1642" Action="None" />
     <Rule Id="SA1643" Action="None" />
     <Rule Id="SA1648" Action="None" />
-    <Rule Id="SA1649" Action="None" />
     <Rule Id="SA1651" Action="None" />
   </Rules>
 </RuleSet>

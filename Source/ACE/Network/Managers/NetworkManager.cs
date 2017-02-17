@@ -6,18 +6,6 @@ using ACE.Common;
 
 namespace ACE.Network.Managers
 {
-    public class CachedPacket
-    {
-        public uint IssacXor { get; }
-        public ServerPacket Packet { get; }
-
-        public CachedPacket(uint issacXor, ServerPacket packet)
-        {
-            IssacXor = issacXor;
-            Packet   = packet;
-        }
-    }
-
     public static class NetworkManager
     {
         private static List<ConnectionListener> loginListeners = new List<ConnectionListener>();

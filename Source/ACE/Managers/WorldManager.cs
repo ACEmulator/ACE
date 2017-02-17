@@ -11,7 +11,8 @@ namespace ACE.Managers
 {
     public static class WorldManager
     {
-        private static uint sessionTimeout = 150u; // max time between packets before the client disconnects
+        // commented: unused.  uncomment if you'll use it.
+        // private static uint sessionTimeout = 150u; // max time between packets before the client disconnects
 
         private static readonly List<Session> sessionStore = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
