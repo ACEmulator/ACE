@@ -1,4 +1,7 @@
-﻿namespace ACE.Database
+﻿
+using ACE.Common;
+
+namespace ACE.Database
 {
     public class DatabaseManager
     {

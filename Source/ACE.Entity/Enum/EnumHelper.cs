@@ -1,4 +1,5 @@
-﻿namespace ACE.Entity.Enum
+﻿
+namespace ACE.Entity.Enum
 {
     public static class EnumHelper
     {

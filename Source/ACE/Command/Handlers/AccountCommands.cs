@@ -1,11 +1,12 @@
-﻿using ACE.Cryptography;
+﻿using System.IO;
+
+using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Network;
-using System.Diagnostics;
-using System.IO;
 
-namespace ACE.Command
+namespace ACE.Command.Handlers
 {
     public static class AccountCommands
     {

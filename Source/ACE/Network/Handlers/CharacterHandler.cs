@@ -1,14 +1,16 @@
-﻿using ACE.Database;
-using ACE.Extensions;
-using ACE.Managers;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Diagnostics;
-using ACE.Entity;
 
-namespace ACE.Network
+using ACE.Common;
+using ACE.Common.Extensions;
+using ACE.Database;
+using ACE.Entity;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
+
+namespace ACE.Network.Handlers
 {
     public static class CharacterHandler
     {

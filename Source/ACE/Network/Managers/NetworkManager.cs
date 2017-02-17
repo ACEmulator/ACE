@@ -1,9 +1,10 @@
-﻿using ACE.Managers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 
-namespace ACE.Network
+using ACE.Common;
+
+namespace ACE.Network.Managers
 {
     public class CachedPacket
     {

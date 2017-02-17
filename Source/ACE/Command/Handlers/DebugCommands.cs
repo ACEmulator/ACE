@@ -1,9 +1,11 @@
-﻿using ACE.Entity;
+﻿using System;
+
+using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
-using System;
 
-namespace ACE.Command
+namespace ACE.Command.Handlers
 {
     public static class DebugCommands
     {

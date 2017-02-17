@@ -1,9 +1,10 @@
-﻿using ACE.Entity.Enum;
-using ACE.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using ACE.Common.Extensions;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {

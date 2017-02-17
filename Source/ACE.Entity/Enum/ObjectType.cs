@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE.Entity
+namespace ACE.Entity.Enum
 {
     [Flags]
     public enum ObjectType  : uint

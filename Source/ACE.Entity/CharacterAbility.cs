@@ -1,6 +1,5 @@
-﻿using ACE.Entity.Enum;
-using System;
-using System.Collections.Generic;
+﻿
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
@@ -62,6 +61,5 @@ namespace ACE.Entity
             this.character = character;
             Ability = ability;
         }
-
     }
 }

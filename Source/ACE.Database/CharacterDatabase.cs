@@ -1,10 +1,13 @@
-﻿using ACE.Entity;
-using ACE.Entity.Enum;
-using MySql.Data.MySqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+
+using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+
+using MySql.Data.MySqlClient;
 
 namespace ACE.Database
 {

@@ -1,4 +1,7 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿
+using ACE.Network.Enum;
+
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.RaiseAbility)]
     public class GameActionRaiseAbility : GameActionPacket
@@ -10,7 +13,7 @@
 
         public override void Read()
         {
-            var networkAbility = (Network.Ability)fragment.Payload.ReadUInt32();
+            var networkAbility = (Ability)fragment.Payload.ReadUInt32();
             switch (networkAbility)
             {
                 case Ability.Strength:

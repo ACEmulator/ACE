@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.GameAction
+﻿
+namespace ACE.Network.GameAction
 {
     // order by opcode name
     public enum GameActionOpcode

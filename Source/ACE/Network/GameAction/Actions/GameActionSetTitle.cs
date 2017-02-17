@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.TitleSet)]
     public class GameActionSetTitle : GameActionPacket

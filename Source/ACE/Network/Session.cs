@@ -1,8 +1,12 @@
-﻿using ACE.Cryptography;
-using ACE.Entity;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
+
+using ACE.Common.Cryptography;
+using ACE.Entity;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
 
 namespace ACE.Network
 {

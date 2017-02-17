@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.GameEvent
+﻿
+namespace ACE.Network.GameEvent
 {
     // order by opcode name
     public enum GameEventOpcode

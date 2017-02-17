@@ -1,5 +1,6 @@
-﻿using ACE.Entity.Enum;
-using System;
+﻿using System;
+
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {

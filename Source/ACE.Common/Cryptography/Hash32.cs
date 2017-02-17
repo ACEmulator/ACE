@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE.Cryptography
+namespace ACE.Common.Cryptography
 {
     public static class Hash32
     {

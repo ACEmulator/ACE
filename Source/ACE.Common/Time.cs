@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE
+namespace ACE.Common
 {
     public class Time
     {

@@ -1,4 +1,7 @@
-﻿namespace ACE.Network.GameAction
+﻿
+using ACE.Entity;
+
+namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.AutonomousPosition)]
     public class GameActionAutonomousPosition : GameActionPacket

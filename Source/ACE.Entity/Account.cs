@@ -1,4 +1,5 @@
-﻿using ACE.Cryptography;
+﻿
+using ACE.Common.Cryptography;
 
 namespace ACE.Entity
 {
@@ -22,6 +23,5 @@ namespace ACE.Entity
             Password = password;
             Digest = SHA2.Hash(SHA2Type.SHA256, password + salt);
         }
-
     }
 }

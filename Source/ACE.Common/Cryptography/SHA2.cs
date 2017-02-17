@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ACE.Cryptography
+namespace ACE.Common.Cryptography
 {
     public enum SHA2Type
     {

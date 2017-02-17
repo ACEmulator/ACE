@@ -1,6 +1,7 @@
-﻿using ACE.Network.GameEvent;
+﻿
+using ACE.Network.GameEvent.Events;
 
-namespace ACE.Network.GameAction
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.PingRequest)]
     public class GameActionPingRequest : GameActionPacket

@@ -1,8 +1,9 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.IO;
 
-namespace ACE
+using Newtonsoft.Json;
+
+namespace ACE.Common
 {
     public struct ConfigServerNetwork
     {

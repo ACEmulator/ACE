@@ -1,9 +1,14 @@
-﻿using ACE.Database;
-using ACE.Entity.Enum;
-using ACE.Network;
-using ACE.Network.GameEvent;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
+
+using ACE.Database;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Network;
+using ACE.Network.Fragments;
+using ACE.Network.GameEvent;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.Managers;
 
 namespace ACE.Entity
 {

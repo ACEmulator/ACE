@@ -74,9 +74,5 @@ namespace ACE.Entity
         public double PantsHue { get; set; }
 
         public double FootwearHue { get; set; }
-
-        public Appearance()
-        {
-        }
     }
 }

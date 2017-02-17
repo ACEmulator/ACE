@@ -1,7 +1,8 @@
-﻿using ACE.Entity;
-using ACE.Extensions;
+﻿
+using ACE.Common.Extensions;
+using ACE.Entity;
 
-namespace ACE.Network.GameAction
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.AdvocateTeleport)]
     public class GameActionAdvocateTeleport : GameActionPacket

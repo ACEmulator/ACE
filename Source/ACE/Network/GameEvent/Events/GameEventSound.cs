@@ -1,6 +1,7 @@
-﻿using ACE.Network.Enum;
+﻿
+using ACE.Network.Enum;
 
-namespace ACE.Network.GameEvent
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventSound : GameEventFraglessPacket
     {

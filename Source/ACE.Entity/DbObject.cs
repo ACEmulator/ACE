@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using ACE.Common;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {

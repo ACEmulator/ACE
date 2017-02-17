@@ -1,8 +1,11 @@
-﻿namespace ACE.Network.GameEvent
+﻿
+using ACE.Network.Enum;
+
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventPrivateUpdateAbility : GameEventPacket
     {
-        private Network.Ability networkAbility;
+        private Ability networkAbility;
         private uint ranks;
         private uint baseValue;
         private uint totalInvestment;

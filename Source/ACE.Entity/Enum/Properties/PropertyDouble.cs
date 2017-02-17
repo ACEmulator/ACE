@@ -1,4 +1,5 @@
-﻿namespace ACE.Entity
+﻿
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyDouble : uint
     {

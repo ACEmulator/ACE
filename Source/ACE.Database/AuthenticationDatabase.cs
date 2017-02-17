@@ -1,9 +1,10 @@
-﻿using ACE.Cryptography;
-using ACE.Entity;
-using MySql.Data.MySqlClient;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+
+using ACE.Entity;
+
+using MySql.Data.MySqlClient;
 
 namespace ACE.Database
 {

@@ -1,13 +1,18 @@
-﻿using ACE.Cryptography;
-using ACE.Database;
-using ACE.Entity;
-using ACE.Extensions;
-using ACE.Managers;
-using ACE.Network.GameEvent;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace ACE.Network
+using ACE.Common;
+using ACE.Common.Cryptography;
+using ACE.Common.Extensions;
+using ACE.Database;
+using ACE.Entity;
+using ACE.Managers;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.Managers;
+
+namespace ACE.Network.Handlers
 {
     public static class AuthenticationHandler
     {

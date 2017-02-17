@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace ACE.Extensions
+namespace ACE.Common.Extensions
 {
     public static class BinaryReaderExtensions
     {

@@ -1,5 +1,6 @@
-﻿using ACE.Entity;
-using System;
+﻿using System;
+
+using ACE.Entity.Enum;
 
 namespace ACE.Command
 {

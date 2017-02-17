@@ -1,7 +1,8 @@
-﻿using ACE.Command;
-using ACE.Extensions;
+﻿
+using ACE.Command;
+using ACE.Common.Extensions;
 
-namespace ACE.Network.GameAction
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.Talk)]
     public class GameActionTalk : GameActionPacket

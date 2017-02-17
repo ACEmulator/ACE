@@ -1,7 +1,5 @@
-﻿using ACE.Entity.Enum;
-using System;
-
-namespace ACE.Network.GameEvent
+﻿
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventUpdateTitle : GameEventPacket
     {
