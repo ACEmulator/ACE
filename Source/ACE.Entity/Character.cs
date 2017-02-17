@@ -5,12 +5,15 @@ using System.IO;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using System.Linq;
 
 namespace ACE.Entity
 {
     public class Character : DbObject
     {
         protected Dictionary<Enum.Ability, CharacterAbility> abilities = new Dictionary<Enum.Ability, CharacterAbility>();
+
+        private List<Friend> friends = new List<Friend>();
 
         public uint AccountId { get; set; }
 
@@ -64,7 +67,7 @@ namespace ACE.Entity
         public uint TotalSkillPoints { get; set; }
 
         public uint TotalLogins { get; set; } = 1u;  // total amount of times the player has logged into this character
-
+        
         public CharacterAbility Strength { get; set; }
 
         public CharacterAbility Endurance { get; set; }
@@ -175,6 +178,27 @@ namespace ACE.Entity
         private void AddSkill(Skill skill, SkillStatus status, uint ranks)
         {
             Skills.Add(skill, new CharacterSkill(this, skill, status, ranks));
+        }
+
+        /// <summary>
+        /// Returns a read only list of the characters friends
+        /// </summary>
+        public ReadOnlyCollection<Friend> GetFriends()
+        {
+            return new ReadOnlyCollection<Friend>(friends);
+        }
+
+        public void AddFriend(Friend friend)
+        {
+            friends.Add(friend);
+        }
+
+        public void RemoveFriend(uint lowId)
+        {
+            Friend friend = friends.SingleOrDefault(f => f.Id.Low == lowId);
+
+            if(friend != null)
+                friends.Remove(friend);
         }
 
         /// <summary>

@@ -53,6 +53,8 @@ namespace ACE.Command.Handlers
         [CommandHandler("teleto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
         public static void HandleDebugTeleportCoords(Session session, params string[] parameters)
         {
+            // Used PhatAC source to implement most of this.  Thanks Pea!
+
             string northSouth = parameters[0].ToLower();
             string eastWest = parameters[1].ToLower();
 
