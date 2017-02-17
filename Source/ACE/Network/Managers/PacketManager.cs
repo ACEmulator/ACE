@@ -1,10 +1,14 @@
-﻿using ACE.Managers;
-using ACE.Network.GameAction;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace ACE.Network
+using ACE.Managers;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.GameAction;
+using ACE.Network.Handlers;
+
+namespace ACE.Network.Managers
 {
     public static class PacketManager
     {

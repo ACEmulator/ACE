@@ -1,4 +1,5 @@
-﻿namespace ACE.Network
+﻿
+namespace ACE.Network.Fragments
 {
     // order by opcode name
     public enum FragmentOpcode

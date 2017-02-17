@@ -1,8 +1,14 @@
-﻿using ACE.Database;
-using ACE.Entity.Enum;
-using ACE.Network;
-using ACE.Network.GameEvent;
+﻿using System;
 using System.Collections.ObjectModel;
+
+using ACE.Database;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Network;
+using ACE.Network.Fragments;
+using ACE.Network.GameEvent;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.Managers;
 
 namespace ACE.Entity
 {
@@ -147,7 +153,7 @@ namespace ACE.Entity
             set { character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.LowGuid, GuidType.Player)
+        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid)
         {
             Session           = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
@@ -158,8 +164,8 @@ namespace ACE.Entity
         
         public async void Load()
         {
-            character = await DatabaseManager.Character.LoadCharacter(Guid.GetLow());
-            Position = character.Position;
+            character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
+            Position  = character.Position;
             
             SendSelf();
         }
@@ -175,10 +181,17 @@ namespace ACE.Entity
             ChatPacket.SendSystemMessage(Session, $"{amount} experience granted.");
         }
 
+        private void CheckForLevelup()
+        {
+            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+
+            // TODO: implement.  just stubbing for now, will implement later.
+        }
+
         public void SpendXp(Enum.Ability ability, uint amount)
         {
             uint baseValue = character.Abilities[ability].Base;
-            uint result = character.Abilities[ability].SpendXp(amount);
+            uint result = SpendAbilityXp(character.Abilities[ability], amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
             if (result > 0u)
             {
@@ -208,10 +221,61 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// spends the xp on this ability.
+        /// </summary>
+        /// <remarks>
+        ///     Known Issues:
+        ///         1. +10 skill throws an exception when it would go outside the bounds of ranks list
+        ///         2. the client doesn't increase the "next point" amount properly when using +10
+        ///         3. no fireworks for hitting max ranks
+        /// </remarks>
+        /// <returns>0 if it failed, total investment of the next rank if successful</returns>
+        private uint SpendAbilityXp(CharacterAbility ability, uint amount)
+        {
+            uint result = 0;
+            bool addToCurrentValue = false;
+            ExperienceExpenditureChart chart;
+
+            switch (ability.Ability)
+            {
+                case Enum.Ability.Health:
+                case Enum.Ability.Stamina:
+                case Enum.Ability.Mana:
+                    chart = DatabaseManager.Charts.GetVitalXpChart();
+                    addToCurrentValue = true;
+                    break;
+                default:
+                    chart = DatabaseManager.Charts.GetAbilityXpChart();
+                    break;
+            }
+
+            uint rankUps = 0u;
+            uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
+            uint rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+
+            if (amount == rank1)
+                rankUps = 1u;
+            else if (amount == rank10)
+                rankUps = 10u;
+
+            if (rankUps > 0)
+            {
+                ability.Current += addToCurrentValue ? rankUps : 0u;
+                ability.Ranks += rankUps;
+                ability.ExperienceSpent += amount;
+                this.character.SpendXp(amount);
+                result = ability.ExperienceSpent;
+            }
+
+            return result;
+        }
+
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
-            uint result = character.Skills[skill].SpendXp(amount);
+            uint result = SpendSkillXp(character.Skills[skill], amount);
             if (result > 0u)
             {
                 uint ranks = character.Skills[skill].Ranks;
@@ -231,14 +295,57 @@ namespace ACE.Entity
                 ChatPacket.SendSystemMessage(Session, $"Your attempt to raise {skill} has failed.");
             }
         }
-        
+
+        /// <summary>
+        /// spends the xp on this skill.
+        /// </summary>
+        /// <remarks>
+        ///     Known Issues:
+        ///         1. +10 skill throws an exception when it would go outside the bounds of ranks list
+        ///         2. the client doesn't increase the "next point" amount properly when using +10
+        ///         3. no fireworks for hitting max ranks
+        /// </remarks>
+        /// <returns>0 if it failed, total investment of the next rank if successful</returns>
+        private uint SpendSkillXp(CharacterSkill skill, uint amount)
+        {
+            uint result = 0u;
+            ExperienceExpenditureChart chart;
+
+            if (skill.Status == SkillStatus.Trained)
+                chart = DatabaseManager.Charts.GetTrainedSkillXpChart();
+            else if (skill.Status == SkillStatus.Specialized)
+                chart = DatabaseManager.Charts.GetSpecializedSkillXpChart();
+            else
+                return result;
+
+            uint rankUps = 0u;
+            uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+            uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
+            uint rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+
+            if (amount == rank1)
+                rankUps = 1u;
+            else if (amount == rank10)
+                rankUps = 10u;
+
+            if (rankUps > 0)
+            {
+                skill.Ranks += rankUps;
+                skill.ExperienceSpent += amount;
+                this.character.SpendXp(amount);
+                result = skill.ExperienceSpent;
+            }
+
+            return result;
+        }
+
         private void SendSelf()
         {
             NetworkManager.SendPacket(ConnectionType.World, BuildObjectCreate(), Session);
 
             var playerCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             var playerCreateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerCreate);
-            playerCreateFragment.Payload.Write(Guid.Full);
+            playerCreateFragment.Payload.WriteGuid(Guid);
             playerCreate.Fragments.Add(playerCreateFragment);
 
             NetworkManager.SendPacket(ConnectionType.World, playerCreate, Session);
@@ -257,7 +364,7 @@ namespace ACE.Entity
             {
                 var setState         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
                 var setStateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetState);
-                setStateFragment.Payload.Write(Guid.Full);
+                setStateFragment.Payload.WriteGuid(Guid);
                 setStateFragment.Payload.Write((uint)state);
                 setStateFragment.Payload.Write((ushort)character.TotalLogins);
                 setStateFragment.Payload.Write((ushort)++PortalIndex);
@@ -288,6 +395,14 @@ namespace ACE.Entity
 
             // must be sent after the teleport packet
             UpdatePosition(newPosition);
+        }
+
+        public void SetTitle(uint title)
+        {
+            var updateTitle = new GameEventUpdateTitle(Session, title);
+            updateTitle.Send();
+
+            ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
         }
     }
 }

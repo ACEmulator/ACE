@@ -1,8 +1,11 @@
-﻿using ACE.Cryptography;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+
+using ACE.Common.Cryptography;
+using ACE.Common.Extensions;
+using ACE.Network.Fragments;
 
 namespace ACE.Network
 {

@@ -1,8 +1,12 @@
-﻿using ACE.Cryptography;
-using ACE.Entity;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
+
+using ACE.Common.Cryptography;
+using ACE.Entity;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
 
 namespace ACE.Network
 {
@@ -19,22 +23,6 @@ namespace ACE.Network
         {
             IssacClient = new ISAAC(type == ConnectionType.Login ? ISAAC.ClientSeed : ISAAC.WorldClientSeed);
             IssacServer = new ISAAC(type == ConnectionType.Login ? ISAAC.ServerSeed : ISAAC.WorldServerSeed);
-        }
-    }
-
-    public class CachedCharacter
-    {
-        public uint LowGuid { get; }
-        public byte SlotId { get; }
-        public string Name { get; }
-        public ulong DeleteTime { get; }
-
-        public CachedCharacter(uint lowGuid, byte slotId, string name, ulong deleteTime)
-        {
-            LowGuid = lowGuid;
-            SlotId  = slotId;
-            Name    = name;
-            DeleteTime = deleteTime;
         }
     }
 

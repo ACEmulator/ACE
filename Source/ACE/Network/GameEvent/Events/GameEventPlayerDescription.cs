@@ -1,7 +1,6 @@
-﻿using ACE.Entity;
-using System;
+﻿using System;
 
-namespace ACE.Network.GameEvent
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventPlayerDescription : GameEventPacket
     {

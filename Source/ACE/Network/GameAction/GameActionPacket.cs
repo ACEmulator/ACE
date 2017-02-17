@@ -1,4 +1,9 @@
-﻿namespace ACE.Network.GameAction
+﻿
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
+
+namespace ACE.Network.GameAction
 {
     public abstract class GameActionPacket
     {

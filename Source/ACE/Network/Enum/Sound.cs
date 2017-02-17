@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.Enum
+﻿
+namespace ACE.Network.Enum
 {
     public enum Sound : uint
     {

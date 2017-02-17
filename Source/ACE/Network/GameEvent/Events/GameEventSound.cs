@@ -1,6 +1,7 @@
-﻿using ACE.Network.Enum;
+﻿
+using ACE.Network.Enum;
 
-namespace ACE.Network.GameEvent
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventSound : GameEventFraglessPacket
     {
@@ -18,7 +19,7 @@ namespace ACE.Network.GameEvent
 
         protected override void WriteEventBody()
         {
-            fragment.Payload.Write(session.Player.Guid.Full);
+            fragment.Payload.WriteGuid(session.Player.Guid);
             fragment.Payload.Write((uint)soundId);
             fragment.Payload.Write(volume);
         }

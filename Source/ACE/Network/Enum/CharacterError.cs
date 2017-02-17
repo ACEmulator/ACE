@@ -1,4 +1,5 @@
-﻿namespace ACE.Network
+﻿
+namespace ACE.Network.Enum
 {
     // CharError enum in client
     public enum CharacterError

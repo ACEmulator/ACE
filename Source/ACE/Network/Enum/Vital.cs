@@ -1,4 +1,5 @@
-﻿namespace ACE.Network
+﻿
+namespace ACE.Network.Enum
 {
     public enum Vital : uint
     {

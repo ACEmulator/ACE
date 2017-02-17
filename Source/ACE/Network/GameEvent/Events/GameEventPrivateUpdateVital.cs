@@ -1,6 +1,8 @@
 ﻿using System;
 
-namespace ACE.Network.GameEvent
+using ACE.Network.Enum;
+
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventPrivateUpdateVital : GameEventPacket
     {

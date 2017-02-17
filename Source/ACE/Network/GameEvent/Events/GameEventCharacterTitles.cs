@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.GameEvent
+﻿
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventCharacterTitle : GameEventPacket
     {
@@ -8,10 +9,11 @@
 
         protected override void WriteEventBody()
         {
-            // TODO
             fragment.Payload.Write(1u);
-            fragment.Payload.Write(1u);
-            fragment.Payload.Write(0u);
+            fragment.Payload.Write(1u); // TODO: get current title from database
+            fragment.Payload.Write(10u); // TODO: get player's title list from database
+            for (uint i = 1; i <= 10; i++)
+                fragment.Payload.Write(i);
         }
     }
 }

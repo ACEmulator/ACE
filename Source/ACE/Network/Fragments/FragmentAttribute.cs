@@ -1,6 +1,8 @@
 ﻿using System;
 
-namespace ACE.Network
+using ACE.Network.Enum;
+
+namespace ACE.Network.Fragments
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class FragmentAttribute : Attribute

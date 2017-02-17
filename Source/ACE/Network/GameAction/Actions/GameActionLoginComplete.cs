@@ -1,6 +1,7 @@
-﻿using ACE.Entity;
+﻿
+using ACE.Entity.Enum;
 
-namespace ACE.Network.GameAction
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.LoginComplete)]
     public class GameActionLoginComplete : GameActionPacket

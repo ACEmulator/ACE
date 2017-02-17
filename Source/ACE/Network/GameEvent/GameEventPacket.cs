@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
+
 namespace ACE.Network.GameEvent
 {
     public abstract class GameEventPacket
@@ -20,7 +23,7 @@ namespace ACE.Network.GameEvent
         public void Send()
         {
             var gameEvent = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            fragment.Payload.Write(session.Player.Guid.Full);
+            fragment.Payload.WriteGuid(session.Player.Guid);
             fragment.Payload.Write(session.GameEventSequence++);
             fragment.Payload.Write((uint)Opcode);
             WriteEventBody();
