@@ -9,7 +9,7 @@ namespace ACE.Command
 {
     public static class ConsoleCommands
     {
-        // help
+        // acehelp
         [CommandHandler("acehelp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
         public static void HandleACEHelp(Session session, params string[] parameters)
         {
