@@ -266,13 +266,13 @@ namespace ACE.Database
                     c.Mana.Current = result.Read<uint>(0, "manaCurrent");
                 }
 
-                LoadCharacterProperties(c);
+                await LoadCharacterProperties(c);
             }
 
             return c;
         }
 
-        public async void LoadCharacterProperties(DbObject dbObject)
+        public async Task LoadCharacterProperties(DbObject dbObject)
         {
             var results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolSelect, dbObject.Id);
             for (uint i = 0; i < results.Count; i++)
