@@ -191,6 +191,9 @@ namespace ACE.Network.Managers
 
         private static void HandleDisconnectResponse(ClientPacket packet, Session session)
         {
+            if (session.Player != null)
+                session.Player.Logout();
+
             WorldManager.Remove(session);
         }
     }

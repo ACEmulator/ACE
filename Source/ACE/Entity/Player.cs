@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -9,6 +8,10 @@ using ACE.Network.Fragments;
 using ACE.Network.GameEvent;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ACE.Managers;
 
 namespace ACE.Entity
 {
@@ -16,11 +19,12 @@ namespace ACE.Entity
     {
         public Session Session { get; }
         public bool InWorld { get; set; }
-
+        public bool IsOnline { get; set; }  // Different than InWorld which is false when in portal space
+        
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
         
         private Character character;
-
+        
         public bool IsAdmin
         {
             get { return character.IsAdmin; }
@@ -166,8 +170,10 @@ namespace ACE.Entity
         {
             character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
             Position  = character.Position;
-            
+            IsOnline = true;
+
             SendSelf();
+            SendFriendStatusUpdates();
         }
 
         public void GrantXp(ulong amount)
@@ -339,6 +345,84 @@ namespace ACE.Entity
             return result;
         }
 
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        private void SendFriendStatusUpdates()
+        {
+            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
+
+            if (inverseFriends.Count > 0)
+            {
+                Friend playerFriend = new Friend();
+                playerFriend.Id = Guid;
+                playerFriend.Name = Name;
+
+                foreach (var friendSession in inverseFriends)
+                {
+                    if (friendSession.Player.IsOnline)
+                        new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline).Send();
+                }
+            }
+        }
+
+        public ReadOnlyCollection<Friend> GetFriends()
+        {
+            return character.GetFriends();
+        }
+
+        public async Task<string> AddFriend(string friendName)
+        {
+            if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
+                return "Sorry, but you can't be friends with yourself.";
+
+            // Check if friend exists
+            if (character.GetFriends().SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+            return "That character is already in your friends list";
+
+            // TODO: check if player is online first to avoid database hit??
+            // Get character record from DB
+            Character friendCharacter = await DatabaseManager.Character.GetCharacterByName(friendName);
+
+            if (friendCharacter == null)
+                return "That character does not exist";
+
+            Friend newFriend = new Friend();
+            newFriend.Name = friendCharacter.Name;
+            newFriend.Id = new ObjectGuid(friendCharacter.Id, GuidType.Player);
+
+            // Save to DB
+            await DatabaseManager.Character.AddFriend(Guid.Low, newFriend.Id.Low);
+
+            // Add to character object
+            character.AddFriend(newFriend);
+
+            // Send packet
+            new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend).Send();
+
+            return "";
+        }
+
+        public async Task<string> RemoveFriend(ObjectGuid friendId)
+        {
+            Friend friendToRemove = character.GetFriends().SingleOrDefault(f => f.Id.Low == friendId.Low);
+
+            // Not in friend list
+            if (friendToRemove == null)
+                return "That chracter is not in your friends list!";
+
+            // Remove from DB
+            await DatabaseManager.Character.DeleteFriend(Guid.Low, friendId.Low);
+
+            // Remove from character object
+            character.RemoveFriend(friendId.Low);
+
+            // Send packet
+            new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove).Send();
+
+            return "";
+        }
+
         private void SendSelf()
         {
             NetworkManager.SendPacket(ConnectionType.World, BuildObjectCreate(), Session);
@@ -354,6 +438,7 @@ namespace ACE.Entity
 
             new GameEventPlayerDescription(Session).Send();
             new GameEventCharacterTitle(Session).Send();
+            new GameEventFriendsListUpdate(Session).Send();
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
@@ -403,6 +488,15 @@ namespace ACE.Entity
             updateTitle.Send();
 
             ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
+        }
+
+        /// <summary>
+        /// Stuff to do when player logs out
+        /// </summary>
+        public void Logout()
+        {
+            IsOnline = false;
+            SendFriendStatusUpdates();
         }
     }
 }

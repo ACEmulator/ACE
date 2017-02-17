@@ -86,6 +86,7 @@
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionEmote.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRaiseAbility.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRaiseSkill.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRaiseVital.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
@@ -107,6 +109,7 @@
     <Compile Include="Network\Enum\CharacterError.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventEmote.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventFriendsListUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateSkill.cs" />
