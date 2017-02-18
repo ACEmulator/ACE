@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.GameEvent
+﻿
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventHouseStatus : GameEventPacket
     {

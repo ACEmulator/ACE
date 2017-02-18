@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE.Network
+namespace ACE.Network.Enum
 {
     [Flags]
     public enum PhysicsDescriptionFlag

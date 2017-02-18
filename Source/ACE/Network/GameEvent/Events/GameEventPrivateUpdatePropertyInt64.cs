@@ -1,6 +1,7 @@
-﻿using ACE.Entity;
+﻿
+using ACE.Entity.Enum.Properties;
 
-namespace ACE.Network.GameEvent
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventPrivateUpdatePropertyInt64 : GameEventPacket
     {

@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
+
 namespace ACE.Network.GameEvent
 {
     public abstract class GameEventFraglessPacket

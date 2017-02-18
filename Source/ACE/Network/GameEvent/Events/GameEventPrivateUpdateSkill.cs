@@ -1,7 +1,8 @@
-﻿using ACE.Entity.Enum;
-using System;
+﻿using System;
 
-namespace ACE.Network.GameEvent
+using ACE.Entity.Enum;
+
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventPrivateUpdateSkill : GameEventPacket
     {

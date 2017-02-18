@@ -1,6 +1,8 @@
 ﻿using System;
 
-namespace ACE.Network.GameAction
+using ACE.Entity;
+
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.MoveToState)]
     public class GameActionMoveToState : GameActionPacket

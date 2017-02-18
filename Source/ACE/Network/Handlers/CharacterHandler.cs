@@ -1,13 +1,16 @@
-﻿using ACE.Database;
-using ACE.Managers;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Diagnostics;
-using ACE.Entity;
 
-namespace ACE.Network
+using ACE.Common;
+using ACE.Common.Extensions;
+using ACE.Database;
+using ACE.Entity;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
+
+namespace ACE.Network.Handlers
 {
     public static class CharacterHandler
     {
@@ -89,7 +92,7 @@ namespace ACE.Network
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
 
-            DatabaseManager.Character.DeleteOrRestore(WorldManager.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
+            DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
             AuthenticationHandler.CharacterListSelectCallback(result, session);
@@ -104,6 +107,12 @@ namespace ACE.Network
             if (cachedCharacter == null)
                 return;
 
+            bool isAvailable = DatabaseManager.Character.IsNameAvailable(cachedCharacter.Name);
+            if (!isAvailable)
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);    /* Name already in use. */
+                return;
+            }
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
@@ -127,7 +136,7 @@ namespace ACE.Network
             if (account != session.Account)
                 return;
 
-            Character character = Character.CreateFromClientFragment(fragment, session.Id);
+            Character character = Character.CreateFromClientFragment(fragment.Payload, session.Id);
             
             // TODO: profanity filter 
             // sendCharacterCreateResponse(session, 4);

@@ -1,4 +1,8 @@
-﻿namespace ACE.Network
+﻿
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
+
+namespace ACE.Network
 {
     public static class ChatPacket
     {

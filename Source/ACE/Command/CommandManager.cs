@@ -1,36 +1,12 @@
-﻿using ACE.Network;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 
+using ACE.Network;
+
 namespace ACE.Command
 {
-    [Flags]
-    public enum CommandHandlerFlag
-    {
-        None          = 0x00,
-        ConsoleInvoke = 0x01,
-        RequiresWorld = 0x02
-    }
-
-    public enum CommandHandlerResponse
-    {
-        Ok,
-        InvalidCommand,
-        NoConsoleInvoke,
-        InvalidParameterCount,
-        NotInWorld
-    }
-
-    public class CommandHandlerInfo
-    {
-        public Delegate Handler { get; set; }
-        public CommandHandlerAttribute Attribute { get; set; }
-    }
-
-    public delegate void CommandHandler(Session session, params string[] parameters);
-
     public static class CommandManager
     {
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
@@ -62,6 +38,11 @@ namespace ACE.Command
 
         private static void CommandThread()
         {
+            Console.WriteLine("");
+            Console.WriteLine("ACEmulator command prompt ready.");
+            //Console.WriteLine("Type acehelp and press enter for additional instructions."); TODO: flesh out acehelp to assist new server owners
+            Console.WriteLine("");
+
             for (;;)
             {
                 Console.Write("ACE >> ");

@@ -1,4 +1,7 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿
+using ACE.Network.Enum;
+
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.RaiseVital)]
     public class GameActionRaiseVital : GameActionPacket

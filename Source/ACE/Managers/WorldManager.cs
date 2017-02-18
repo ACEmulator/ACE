@@ -1,16 +1,18 @@
-﻿using ACE.Network;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
 
+using ACE.Network;
+
 namespace ACE.Managers
 {
     public static class WorldManager
     {
-        private static uint sessionTimeout = 150u; // max time between packets before the client disconnects
+        // commented: unused.  uncomment if you'll use it.
+        // private static uint sessionTimeout = 150u; // max time between packets before the client disconnects
 
         private static readonly List<Session> sessionStore = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
@@ -125,7 +127,5 @@ namespace ACE.Managers
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
             }
         }
-
-        public static ulong GetUnixTime() { return (ulong)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds; }
     }
 }

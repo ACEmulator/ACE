@@ -1,29 +1,20 @@
-﻿using ACE.Entity;
+﻿using System;
+
+using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
-using System;
 
-namespace ACE.Command
+namespace ACE.Command.Handlers
 {
     public static class DebugCommands
     {
+        // gps
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Position;
             ChatPacket.SendSystemMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]");
-        }
-
-        // teleloc location
-        [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleDebugTeleportLocation(Session session, params string[] parameters)
-        {
-            var location = String.Join(" ", parameters);
-            var teleportLocation = AssetManager.GetTeleport(location);
-            if (teleportLocation == null)
-                return;
-
-            session.Player.Teleport(teleportLocation);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -47,63 +38,7 @@ namespace ACE.Command
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
-        // Example /teleto 40.0n 55.0w
-        [CommandHandler("teleto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
-        public static void HandleDebugTeleportCoords(Session session, params string[] parameters)
-        {
-            string northSouth = parameters[0].ToLower();
-            string eastWest = parameters[1].ToLower();
-
-            if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
-            {
-                ChatPacket.SendSystemMessage(session, "Missing n or s indicator on first parameter");
-                return;
-            }
-
-            if (!eastWest.EndsWith("e") && !eastWest.EndsWith("w"))
-            {
-                ChatPacket.SendSystemMessage(session, "Missing e or w indicator on second parameter");
-                return;
-            }
-
-            float coordNS;
-            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out coordNS))
-            {
-                ChatPacket.SendSystemMessage(session, "North/South coordinate is not a valid number.");
-                return;
-            }
-
-            float coordEW;
-            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out coordEW))
-            {
-                ChatPacket.SendSystemMessage(session, "East/West coordinate is not a valid number.");
-                return;
-            }
-
-            if (northSouth.EndsWith("s"))
-                coordNS *= -1.0f;
-            if (eastWest.EndsWith("w"))
-                coordEW *= -1.0f;
-
-            Position position = null;
-            try
-            {
-                position = new Position(coordNS, coordEW);
-            }
-            catch (System.Exception)
-            {
-                ChatPacket.SendSystemMessage(session, "There was a problem teleporting to that location (bad coordinates?).");
-                return;
-            }
-
-            // TODO: Check if water block?
-
-            ChatPacket.SendSystemMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]");
-
-            session.Player.Teleport(position);
-        }
-
-
+        // grantxp uint
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {

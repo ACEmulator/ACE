@@ -1,19 +1,31 @@
-﻿using ACE.Network;
+﻿
+using ACE.Entity.Enum;
+using ACE.Network;
+using ACE.Network.Enum;
+using ACE.Network.Fragments;
+using ACE.Network.Managers;
 
 namespace ACE.Entity
 {
     public abstract class WorldObject
     {
         public ObjectGuid Guid { get; }
+
         public ObjectType Type { get; }
+
         public string Name { get; protected set; }
+
         public Position Position { get; protected set; }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
+
         public PhysicsState PhysicsState { get; protected set; }
 
         public uint MovementIndex { get; set; }
+
         public uint TeleportIndex { get; set; }
+
+        public virtual float ListeningRadius { get; protected set; } = 0f;
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
