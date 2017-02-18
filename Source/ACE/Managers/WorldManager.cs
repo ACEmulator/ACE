@@ -107,7 +107,7 @@ namespace ACE.Managers
             sessionLock.EnterReadLock();
             try
             {
-                return sessionStore.Where(s => s.Player.GetFriends().FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
+                return sessionStore.Where(s => s.Player.Friends.FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
             }
             finally
             {

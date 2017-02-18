@@ -13,7 +13,8 @@ namespace ACE.Entity
     {
         protected Dictionary<Enum.Ability, CharacterAbility> abilities = new Dictionary<Enum.Ability, CharacterAbility>();
 
-        private List<Friend> friends = new List<Friend>();
+        private List<Friend> friends;
+        public ReadOnlyCollection<Friend> Friends { get; set; }
 
         public uint AccountId { get; set; }
 
@@ -138,6 +139,9 @@ namespace ACE.Entity
 
             // initialize properties collections to reasonable defaults
             InitializeProperties(typeof(Character));
+
+            friends = new List<Friend>();
+            Friends = new ReadOnlyCollection<Friend>(friends);
         }
 
         public Character(uint id, uint accountId)
@@ -178,14 +182,6 @@ namespace ACE.Entity
         private void AddSkill(Skill skill, SkillStatus status, uint ranks)
         {
             Skills.Add(skill, new CharacterSkill(this, skill, status, ranks));
-        }
-
-        /// <summary>
-        /// Returns a read only list of the characters friends
-        /// </summary>
-        public ReadOnlyCollection<Friend> GetFriends()
-        {
-            return new ReadOnlyCollection<Friend>(friends);
         }
 
         public void AddFriend(Friend friend)

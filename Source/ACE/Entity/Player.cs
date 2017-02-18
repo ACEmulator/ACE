@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ACE.Managers;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -23,12 +24,17 @@ namespace ACE.Entity
         public Session Session { get; }
 
         public bool InWorld { get; set; }
-        public bool IsOnline { get; set; }  // Different than InWorld which is false when in portal space
+        public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
         
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
         
         private Character character;
-        
+
+        public ReadOnlyCollection<Friend> Friends
+        {
+            get { return character.Friends; }
+        }
+
         public bool IsAdmin
         {
             get { return character.IsAdmin; }
@@ -373,26 +379,21 @@ namespace ACE.Entity
             }
         }
 
-        public ReadOnlyCollection<Friend> GetFriends()
-        {
-            return character.GetFriends();
-        }
-
-        public async Task<string> AddFriend(string friendName)
+        public async Task<AddFriendResult> AddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
-                return "Sorry, but you can't be friends with yourself.";
+                return AddFriendResult.FriendWithSelf;
 
             // Check if friend exists
-            if (character.GetFriends().SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
-            return "That character is already in your friends list";
+            if (character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+                return AddFriendResult.AlreadyInList;
 
             // TODO: check if player is online first to avoid database hit??
             // Get character record from DB
             Character friendCharacter = await DatabaseManager.Character.GetCharacterByName(friendName);
 
             if (friendCharacter == null)
-                return "That character does not exist";
+                return AddFriendResult.CharacterDoesNotExist;
 
             Friend newFriend = new Friend();
             newFriend.Name = friendCharacter.Name;
@@ -407,16 +408,16 @@ namespace ACE.Entity
             // Send packet
             new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend).Send();
 
-            return "";
+            return AddFriendResult.Success;
         }
 
-        public async Task<string> RemoveFriend(ObjectGuid friendId)
+        public async Task<RemoveFriendResult> RemoveFriend(ObjectGuid friendId)
         {
-            Friend friendToRemove = character.GetFriends().SingleOrDefault(f => f.Id.Low == friendId.Low);
+            Friend friendToRemove = character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
 
             // Not in friend list
             if (friendToRemove == null)
-                return "That chracter is not in your friends list!";
+                return RemoveFriendResult.NotInFriendsList;
 
             // Remove from DB
             await DatabaseManager.Character.DeleteFriend(Guid.Low, friendId.Low);
@@ -427,7 +428,7 @@ namespace ACE.Entity
             // Send packet
             new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove).Send();
 
-            return "";
+            return RemoveFriendResult.Success;
         }
 
         private void SendSelf()

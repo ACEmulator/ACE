@@ -21,10 +21,22 @@ namespace ACE.Network.GameAction.Actions
 
         public async override void Handle()
         {
-            string result = await session.Player.AddFriend(friendName);
+            var result = await session.Player.AddFriend(friendName);
 
-            if(!string.IsNullOrEmpty(result))
-                ChatPacket.SendSystemMessage(session, result);
+            switch(result)
+            {
+                case Enum.AddFriendResult.AlreadyInList:
+                    ChatPacket.SendSystemMessage(session, "That character is already in your friends list");
+                    break;
+
+                case Enum.AddFriendResult.FriendWithSelf:
+                    ChatPacket.SendSystemMessage(session, "Sorry, but you can't be friends with yourself.");
+                    break;
+
+                case Enum.AddFriendResult.CharacterDoesNotExist:
+                    ChatPacket.SendSystemMessage(session, "That character does not exist");
+                    break;
+            }
         }
     }
 }

@@ -22,10 +22,10 @@ namespace ACE.Network.GameAction.Actions
 
         public async override void Handle()
         {
-            string result = await session.Player.RemoveFriend(friendId);
+            var result = await session.Player.RemoveFriend(friendId);
 
-            if(!string.IsNullOrEmpty(result))
-                ChatPacket.SendSystemMessage(session, "There was a problem removing that friend.");            
+            if(result == Enum.RemoveFriendResult.NotInFriendsList)
+                ChatPacket.SendSystemMessage(session, "That chracter is not in your friends list!");                            
         }
     }
 }

@@ -59,11 +59,11 @@ namespace ACE.Network.GameEvent.Events
             List<Friend> friendList = null;
 
             if (updateType == FriendsUpdateTypeFlag.FullList)
-                friendList = session.Player.GetFriends().ToList();
+                friendList = session.Player.Friends.ToList();
             else
                 friendList = new List<Friend>() { friend };
 
-            fragment.Payload.Write(friendList.Count);
+            fragment.Payload.Write((uint)friendList.Count);
 
             foreach (var f in friendList)
             {
@@ -80,11 +80,11 @@ namespace ACE.Network.GameEvent.Events
                 fragment.Payload.Write(0u); // Unknown
                 fragment.Payload.WriteString16L(f.Name); // Friend Name
 
-                fragment.Payload.Write(f.FriendIdList.Count); // Number of people on this persons friend's list.
+                fragment.Payload.Write((uint)f.FriendIdList.Count); // Number of people on this persons friend's list.
                 foreach (var fid in f.FriendIdList)
                     fragment.Payload.Write(fid.Full);
 
-                fragment.Payload.Write(f.FriendOfIdList.Count); // Number of people that have this person as a friend.
+                fragment.Payload.Write((uint)f.FriendOfIdList.Count); // Number of people that have this person as a friend.
                 foreach (var fid in f.FriendOfIdList)
                     fragment.Payload.Write(fid.Full);
             }
