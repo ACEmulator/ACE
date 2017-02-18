@@ -11,16 +11,16 @@ namespace ACE.Network
 {
     public static class CharacterHandler
     {
-        [Fragment(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
+        [Fragment(FragmentOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public static void CharacterEnterWorldRequest(ClientPacketFragment fragment, Session session)
         {
             var characterEnterWorldServerReady = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            characterEnterWorldServerReady.Fragments.Add(new ServerPacketFragment(9, GameMessageOpcode.CharacterEnterWorldServerReady));
+            characterEnterWorldServerReady.Fragments.Add(new ServerPacketFragment(9, FragmentOpcode.CharacterEnterWorldServerReady));
 
             NetworkManager.SendPacket(ConnectionType.Login, characterEnterWorldServerReady, session);
         }
 
-        [Fragment(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
+        [Fragment(FragmentOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
         public static void CharacterEnterWorld(ClientPacketFragment fragment, Session session)
         {
             ObjectGuid guid = fragment.Payload.ReadGuid();
@@ -62,7 +62,7 @@ namespace ACE.Network
             session.State = SessionState.WorldLoginRequest;
         }
 
-        [Fragment(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
+        [Fragment(FragmentOpcode.CharacterDelete, SessionState.AuthConnected)]
         public static async void CharacterDelete(ClientPacketFragment fragment, Session session)
         {
             string account     = fragment.Payload.ReadString16L();
@@ -84,7 +84,7 @@ namespace ACE.Network
             // TODO: check if character is already pending removal
 
             var characterDelete         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterDeleteFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterDelete);
+            var characterDeleteFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterDelete);
             characterDelete.Fragments.Add(characterDeleteFragment);
 
             NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
@@ -95,7 +95,7 @@ namespace ACE.Network
             AuthenticationHandler.CharacterListSelectCallback(result, session);
         }
 
-        [Fragment(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
+        [Fragment(FragmentOpcode.CharacterRestore, SessionState.AuthConnected)]
         public static void CharacterRestore(ClientPacketFragment fragment, Session session)
         {
             ObjectGuid guid = fragment.Payload.ReadGuid();
@@ -107,7 +107,7 @@ namespace ACE.Network
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
             var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterRestoreFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterRestoreResponse);
+            var characterRestoreFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterRestoreResponse);
             characterRestoreFragment.Payload.Write(1u /* Verification OK flag */);
             characterRestoreFragment.Payload.WriteGuid(guid);
             characterRestoreFragment.Payload.WriteString16L(cachedCharacter.Name);
@@ -117,7 +117,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.Login, characterRestore, session);
         }
 
-        [Fragment(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
+        [Fragment(FragmentOpcode.CharacterCreate, SessionState.AuthConnected)]
         public static async void CharacterCreate(ClientPacketFragment fragment, Session session)
         {
             // known issues:
@@ -158,7 +158,7 @@ namespace ACE.Network
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = null, string charName = "")
         {
             var charCreateResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var charCreateFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterCreateResponse);
+            var charCreateFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterCreateResponse);
             charCreateFragment.Payload.Write((uint)response);
 
             if (response == CharacterGenerationVerificationResponse.Ok)

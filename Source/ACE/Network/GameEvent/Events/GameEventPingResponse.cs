@@ -1,8 +1,8 @@
 ﻿namespace ACE.Network.GameEvent
 {
-    public class GameEventPingResponse : GameEventMessage
+    public class GameEventPingResponse : GameEventPacket
     {
-        public override GameEventOpcode EventType { get { return GameEventOpcode.PingResponse; } }
+        public override GameEventOpcode Opcode { get { return GameEventOpcode.PingResponse; } }
 
         public GameEventPingResponse(Session session) : base(session) { }
     }

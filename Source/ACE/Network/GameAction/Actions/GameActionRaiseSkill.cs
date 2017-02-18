@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.RaiseSkill)]
-    public class GameActionRaiseSkill : GameActionMessage
+    public class GameActionRaiseSkill : GameActionPacket
     {
         private Skill skill;
         private uint xpSpent;

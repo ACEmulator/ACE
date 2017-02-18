@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.Talk)]
-    public class GameActionTalk : GameActionMessage
+    public class GameActionTalk : GameActionPacket
     {
         public GameActionTalk(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 

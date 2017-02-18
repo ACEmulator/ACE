@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ACE.Network
+namespace ACE.Network.GameEvent
 {
-    public class GameMessagePrivateUpdateVital : GameMessage
+    public class GameEventPrivateUpdateVital : GameEventPacket
     {
         private Vital vital;
         private uint baseValue;
@@ -10,8 +10,10 @@ namespace ACE.Network
         private uint totalInvestment;
         private uint currentValue;
 
-        public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability vital, uint ranks, uint baseValue, uint totalInvestment, uint currentValue) 
-            : base(session, GameMessageOpcode.PrivateUpdateVital)
+        public override GameEventOpcode Opcode { get { return GameEventOpcode.PrivateUpdateVital; } }
+
+        public GameEventPrivateUpdateVital(Session session, Entity.Enum.Ability vital, uint ranks, uint baseValue, uint totalInvestment, uint currentValue) 
+            : base(session)
         {
             switch (vital)
             {
@@ -33,14 +35,14 @@ namespace ACE.Network
             this.currentValue = currentValue;
         }
 
-        protected override void WriteBody()
+        protected override void WriteEventBody()
         {
-            writer.Write(session.UpdateAttributeSequence++);
-            writer.Write((uint)vital);
-            writer.Write(this.ranks);
-            writer.Write(this.baseValue);
-            writer.Write(this.totalInvestment);
-            writer.Write(this.currentValue);
+            fragment.Payload.Write(session.UpdateAttributeSequence++);
+            fragment.Payload.Write((uint)vital);
+            fragment.Payload.Write(this.ranks);
+            fragment.Payload.Write(this.baseValue);
+            fragment.Payload.Write(this.totalInvestment);
+            fragment.Payload.Write(this.currentValue);
         }
     }
 }

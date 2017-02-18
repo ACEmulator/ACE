@@ -1,7 +1,7 @@
 ﻿namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.RaiseAbility)]
-    public class GameActionRaiseAbility : GameActionMessage
+    public class GameActionRaiseAbility : GameActionPacket
     {
         private Entity.Enum.Ability ability;
         private uint xpSpent;

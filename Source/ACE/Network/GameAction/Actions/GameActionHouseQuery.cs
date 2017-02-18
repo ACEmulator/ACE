@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.HouseQuery)]
-    public class GameActionHouseQuery : GameActionMessage
+    public class GameActionHouseQuery : GameActionPacket
     {
         public GameActionHouseQuery(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 

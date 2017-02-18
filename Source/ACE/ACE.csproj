@@ -112,7 +112,6 @@
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
-    <Compile Include="Network\Fragments\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
@@ -143,21 +142,20 @@
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
-    <Compile Include="Network\Fragments\Messages\GameMessagePrivateUpdateSkill.cs" />
-    <Compile Include="Network\Fragments\Messages\GameMessagePrivateUpdateVital.cs" />
-    <Compile Include="Network\Fragments\Messages\GameMessageSound.cs" />
-    <Compile Include="Network\Fragments\Messages\GameMessagePrivateUpdateAbility.cs" />
-    <Compile Include="Network\Fragments\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateSkill.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateVital.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventSound.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateAbility.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
     <Compile Include="Network\Fragments\FragmentAttribute.cs" />
-    <Compile Include="Network\Fragments\GameMessageOpcode.cs" />
+    <Compile Include="Network\Fragments\FragmentOpcode.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
-    <Compile Include="Network\GameAction\GameActionMessage.cs" />
+    <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
-    <Compile Include="Network\GameEvent\GameEventMessage.cs" />
+    <Compile Include="Network\GameEvent\GameEventPacket.cs" />
     <Compile Include="Network\GameEvent\GameEventFraglessPacket.cs" />
-    <Compile Include="Network\Fragments\GameMessage.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />
@@ -170,6 +168,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Config.json.example" />
     <None Include="packages.config">
       <SubType>Designer</SubType>

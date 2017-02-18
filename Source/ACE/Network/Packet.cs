@@ -101,9 +101,9 @@ namespace ACE.Network
     public class ServerPacketFragment : PacketFragment
     {
         public BinaryWriter Payload { get; }
-        public GameMessageOpcode Opcode { get; }
+        public FragmentOpcode Opcode { get; }
 
-        public ServerPacketFragment(ushort group, GameMessageOpcode opcode = GameMessageOpcode.None)
+        public ServerPacketFragment(ushort group, FragmentOpcode opcode = FragmentOpcode.None)
         {
             Opcode  = opcode;
 
@@ -114,20 +114,8 @@ namespace ACE.Network
                 Group = group
             };
 
-            if (opcode != GameMessageOpcode.None)
+            if (opcode != FragmentOpcode.None)
                 Payload.Write((uint)opcode);
-        }
-
-        public ServerPacketFragment(ushort group, GameMessage message)
-        {
-            Opcode = message.Opcode;
-
-            Data = message.Data;
-            Payload = new BinaryWriter(Data);
-            Header = new PacketFragmentHeader()
-            {
-                Group = group
-            };
         }
     }
 

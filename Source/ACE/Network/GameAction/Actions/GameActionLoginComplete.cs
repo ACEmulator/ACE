@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.LoginComplete)]
-    public class GameActionLoginComplete : GameActionMessage
+    public class GameActionLoginComplete : GameActionPacket
     {
         public GameActionLoginComplete(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 

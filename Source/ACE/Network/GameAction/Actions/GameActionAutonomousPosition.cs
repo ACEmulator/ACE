@@ -1,7 +1,7 @@
 ﻿namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.AutonomousPosition)]
-    public class GameActionAutonomousPosition : GameActionMessage
+    public class GameActionAutonomousPosition : GameActionPacket
     {
         private Position position;
         private ushort instanceTimestamp;

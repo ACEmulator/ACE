@@ -1,7 +1,7 @@
 ﻿namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.RaiseVital)]
-    public class GameActionRaiseVital : GameActionMessage
+    public class GameActionRaiseVital : GameActionPacket
     {
         private Vital vital;
         private uint xpSpent;

@@ -3,7 +3,7 @@
 namespace ACE.Network.GameAction
 {
     [GameAction(GameActionOpcode.MoveToState)]
-    public class GameActionMoveToState : GameActionMessage
+    public class GameActionMoveToState : GameActionPacket
     {
         [Flags]
         private enum MotionStateFlag

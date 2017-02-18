@@ -83,7 +83,7 @@ namespace ACE.Network
 
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
             var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var packet75e5Fragment = new ServerPacketFragment(5, GameMessageOpcode.Unknown75E5);
+            var packet75e5Fragment = new ServerPacketFragment(5, FragmentOpcode.Unknown75E5);
             packet75e5Fragment.Payload.Write(1ul);
             packet75e5Fragment.Payload.Write(1ul);
             packet75e5Fragment.Payload.Write(1ul);
@@ -95,7 +95,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.Login, packet75e5, session);
 
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            patchStatus.Fragments.Add(new ServerPacketFragment(5, GameMessageOpcode.PatchStatus));
+            patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
 
             NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
 
@@ -105,7 +105,7 @@ namespace ACE.Network
         public static void CharacterListSelectCallback(List<CachedCharacter> characters, Session session)
         {
             var characterList     = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterList);
+            var characterFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterList);
             characterFragment.Payload.Write(0u);
             characterFragment.Payload.Write(characters.Count);
 
@@ -128,7 +128,7 @@ namespace ACE.Network
             NetworkManager.SendPacket(ConnectionType.Login, characterList, session);
 
             var serverName         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var serverNameFragment = new ServerPacketFragment(9, GameMessageOpcode.ServerName);
+            var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
             serverNameFragment.Payload.Write(0u);
             serverNameFragment.Payload.Write(0u);
             serverNameFragment.Payload.WriteString16L(ConfigManager.Config.Server.WorldName);

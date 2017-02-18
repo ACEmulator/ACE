@@ -15,7 +15,7 @@ namespace ACE.Network
         }
 
         delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
-        private static Dictionary<GameMessageOpcode, FragmentHandlerInfo> fragmentHandlers;
+        private static Dictionary<FragmentOpcode, FragmentHandlerInfo> fragmentHandlers;
 
         private static Dictionary<GameActionOpcode, Type> actionHandlers;
 
@@ -27,7 +27,7 @@ namespace ACE.Network
 
         private static void DefineFragmentHandlers()
         {
-            fragmentHandlers = new Dictionary<GameMessageOpcode, FragmentHandlerInfo>();
+            fragmentHandlers = new Dictionary<FragmentOpcode, FragmentHandlerInfo>();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 foreach (var methodInfo in type.GetMethods())
@@ -156,7 +156,7 @@ namespace ACE.Network
 
             foreach (ClientPacketFragment fragment in packet.Fragments)
             {
-                var opcode = (GameMessageOpcode)fragment.Payload.ReadUInt32();
+                var opcode = (FragmentOpcode)fragment.Payload.ReadUInt32();
                 if (!fragmentHandlers.ContainsKey(opcode))
                     Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
                 else
@@ -178,7 +178,7 @@ namespace ACE.Network
                 Type actionType;
                 if (actionHandlers.TryGetValue(opcode, out actionType))
                 {
-                    var gameAction = (GameActionMessage)Activator.CreateInstance(actionType, session, fragment);
+                    var gameAction = (GameActionPacket)Activator.CreateInstance(actionType, session, fragment);
                     gameAction.Read();
                     gameAction.Handle();
                 }
