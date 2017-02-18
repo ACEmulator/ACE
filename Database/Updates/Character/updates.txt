@@ -16,3 +16,4 @@
 --------
 - Changed character table - drop index for name column.
 - Added script to activate event_scheduler and create an event for character "deletion" after restore window has expired.
+- Added character_friends table for friends list functions.
