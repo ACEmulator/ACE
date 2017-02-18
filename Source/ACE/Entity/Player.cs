@@ -373,8 +373,7 @@ namespace ACE.Entity
 
                 foreach (var friendSession in inverseFriends)
                 {
-                    if (friendSession.Player.IsOnline)
-                        new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline).Send();
+                    new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline).Send();
                 }
             }
         }
@@ -429,6 +428,21 @@ namespace ACE.Entity
             new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove).Send();
 
             return RemoveFriendResult.Success;
+        }
+
+        public async void RemoveAllFriends()
+        {
+            // Remove all from DB
+            await DatabaseManager.Character.RemoveAllFriends(Guid.Low);
+
+            // Remove from character object
+            character.RemoveAllFriends();
+        }
+
+        public void ChangeOnlineStatus(bool isOnline)
+        {
+            IsOnline = isOnline;
+            SendFriendStatusUpdates();
         }
 
         private void SendSelf()

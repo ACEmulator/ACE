@@ -26,6 +26,7 @@ namespace ACE.Database
 
         Task DeleteFriend(uint characterId, uint friendCharacterId);
         Task AddFriend(uint characterId, uint friendCharacterId);
+        Task RemoveAllFriends(uint characterId);
         
         /// <summary>
         /// loads object properties into the provided db object

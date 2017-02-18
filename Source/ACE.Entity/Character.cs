@@ -197,6 +197,11 @@ namespace ACE.Entity
                 friends.Remove(friend);
         }
 
+        public void RemoveAllFriends()
+        {
+            friends.Clear();
+        }
+
         /// <summary>
         /// This should be moved back to the ACE project when time permits.
         /// </summary>
