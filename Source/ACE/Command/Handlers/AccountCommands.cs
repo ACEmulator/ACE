@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using ACE.Common.Cryptography;
 using ACE.Database;
@@ -21,6 +22,8 @@ namespace ACE.Command.Handlers
             Account acc = new Account(accountId, account, salt, password);
 
             DatabaseManager.Authentication.CreateAccount(acc);
+
+            Console.WriteLine("Account successfully created for " + account + ".");
         }
     }
 }

@@ -5,27 +5,12 @@ using System.Net;
 using ACE.Common.Cryptography;
 using ACE.Entity;
 using ACE.Network.Enum;
-using ACE.Network.Fragments;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network
 {
-    public class SessionConnectionData
-    {
-        public uint PacketSequence { get; set; }
-        public uint FragmentSequence { get; set; }
-        public ISAAC IssacClient { get; }
-        public ISAAC IssacServer { get; }
-
-        public double ServerTime { get; set; }
-
-        public SessionConnectionData(ConnectionType type)
-        {
-            IssacClient = new ISAAC(type == ConnectionType.Login ? ISAAC.ClientSeed : ISAAC.WorldClientSeed);
-            IssacServer = new ISAAC(type == ConnectionType.Login ? ISAAC.ServerSeed : ISAAC.WorldServerSeed);
-        }
-    }
-
     public class Session
     {
         public uint Id { get; private set; }
@@ -79,7 +64,7 @@ namespace ACE.Network
         public void SendCharacterError(CharacterError error)
         {
             var characterError         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterErrorFragment = new ServerPacketFragment(0x09, FragmentOpcode.CharacterError);
+            var characterErrorFragment = new ServerPacketFragment(0x09, GameMessageOpcode.CharacterError);
             characterErrorFragment.Payload.Write((uint)error);
             characterError.Fragments.Add(characterErrorFragment);
 

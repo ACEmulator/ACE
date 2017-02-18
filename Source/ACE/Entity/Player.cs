@@ -1,25 +1,40 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network;
-using ACE.Network.Fragments;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ACE.Managers;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
-    public class Player : WorldObject
+    public class Player : MutableWorldObject
     {
+        // all the objects being tracked
+        private Dictionary<ObjectGuid, MutableWorldObject> subscribedObjects = new Dictionary<ObjectGuid, MutableWorldObject>();
+        
         public Session Session { get; }
-        public bool InWorld { get; set; }
 
+        public bool InWorld { get; set; }
+        public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
+        
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
         
         private Character character;
+
+        public ReadOnlyCollection<Friend> Friends
+        {
+            get { return character.Friends; }
+        }
 
         public bool IsAdmin
         {
@@ -152,7 +167,7 @@ namespace ACE.Entity
             get { return character.TotalLogins; }
             set { character.TotalLogins = value; }
         }
-
+        
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid)
         {
             Session           = session;
@@ -160,25 +175,29 @@ namespace ACE.Entity
             Name              = session.CharacterRequested.Name;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
+
+            // radius for object updates
+            ListeningRadius = 5f;
         }
         
         public async void Load()
         {
             character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
             Position  = character.Position;
-            
+            IsOnline = true;
+
             SendSelf();
+            SendFriendStatusUpdates();
         }
 
         public void GrantXp(ulong amount)
         {
             character.GrantXp(amount);
-            var xpAvailUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-            var xpTotalUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+            var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+            var message = new GameMessageSystemChat(Session, $"{amount} experience granted.");
 
-            xpAvailUpdate.Send();
-            xpTotalUpdate.Send();
-            ChatPacket.SendSystemMessage(Session, $"{amount} experience granted.");
+            NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpAvailUpdate, xpTotalUpdate, message });
         }
 
         private void CheckForLevelup()
@@ -197,23 +216,20 @@ namespace ACE.Entity
             {
                 uint ranks = character.Abilities[ability].Ranks;
                 uint newValue = character.Abilities[ability].UnbuffedValue;
-                var xpUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                GameEventPacket abilityUpdate;
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                GameMessage abilityUpdate;
                 if (!isSecondary)
                 {
-                    abilityUpdate = new GameEventPrivateUpdateAbility(Session, ability, ranks, baseValue, result);
+                    abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, ranks, baseValue, result);
                 }
                 else
                 {
-                    abilityUpdate = new GameEventPrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
-                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1f);
-
-                xpUpdate.Send();
-                abilityUpdate.Send();
-                soundEvent.Send();
-                ChatPacket.SendSystemMessage(Session, $"Your base {ability} is now {newValue}!");
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+                var message = new GameMessageSystemChat(Session, $"Your base {ability} is now {newValue}!");
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] { abilityUpdate, soundEvent, message });
             }
             else
             {
@@ -281,14 +297,11 @@ namespace ACE.Entity
                 uint ranks = character.Skills[skill].Ranks;
                 uint newValue = character.Skills[skill].UnbuffedValue;
                 var status = character.Skills[skill].Status;
-                var xpUpdate = new GameEventPrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                var ablityUpdate = new GameEventPrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-                var soundEvent = new GameEventSound(Session, Network.Enum.Sound.AbilityIncrease, 1f);
-
-                xpUpdate.Send();
-                ablityUpdate.Send();
-                soundEvent.Send();
-                ChatPacket.SendSystemMessage(Session, $"Your base {skill} is now {newValue}!");
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var ablityUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+                var message = new GameMessageSystemChat(Session, $"Your base {skill} is now {newValue}!");
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpUpdate, ablityUpdate, soundEvent, message });
             }
             else
             {
@@ -339,12 +352,100 @@ namespace ACE.Entity
             return result;
         }
 
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        private void SendFriendStatusUpdates()
+        {
+            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
+
+            if (inverseFriends.Count > 0)
+            {
+                Friend playerFriend = new Friend();
+                playerFriend.Id = Guid;
+                playerFriend.Name = Name;
+                List<GameMessage> updates = new List<GameMessage>();
+                foreach (var friendSession in inverseFriends)
+                {
+                    updates.Add(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline));
+                }
+                NetworkManager.SendWorldMessages(Session, updates);
+            }
+        }
+
+        public async Task<AddFriendResult> AddFriend(string friendName)
+        {
+            if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
+                return AddFriendResult.FriendWithSelf;
+
+            // Check if friend exists
+            if (character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+                return AddFriendResult.AlreadyInList;
+
+            // TODO: check if player is online first to avoid database hit??
+            // Get character record from DB
+            Character friendCharacter = await DatabaseManager.Character.GetCharacterByName(friendName);
+
+            if (friendCharacter == null)
+                return AddFriendResult.CharacterDoesNotExist;
+
+            Friend newFriend = new Friend();
+            newFriend.Name = friendCharacter.Name;
+            newFriend.Id = new ObjectGuid(friendCharacter.Id, GuidType.Player);
+
+            // Save to DB
+            await DatabaseManager.Character.AddFriend(Guid.Low, newFriend.Id.Low);
+
+            // Add to character object
+            character.AddFriend(newFriend);
+
+            // Send packet
+            NetworkManager.SendWorldMessage(Session, new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+
+            return AddFriendResult.Success;
+        }
+
+        public async Task<RemoveFriendResult> RemoveFriend(ObjectGuid friendId)
+        {
+            Friend friendToRemove = character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
+
+            // Not in friend list
+            if (friendToRemove == null)
+                return RemoveFriendResult.NotInFriendsList;
+
+            // Remove from DB
+            await DatabaseManager.Character.DeleteFriend(Guid.Low, friendId.Low);
+
+            // Remove from character object
+            character.RemoveFriend(friendId.Low);
+
+            // Send packet
+            NetworkManager.SendWorldMessage(Session, new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
+
+            return RemoveFriendResult.Success;
+        }
+
+        public async void RemoveAllFriends()
+        {
+            // Remove all from DB
+            await DatabaseManager.Character.RemoveAllFriends(Guid.Low);
+
+            // Remove from character object
+            character.RemoveAllFriends();
+        }
+
+        public void ChangeOnlineStatus(bool isOnline)
+        {
+            IsOnline = isOnline;
+            SendFriendStatusUpdates();
+        }
+
         private void SendSelf()
         {
             NetworkManager.SendPacket(ConnectionType.World, BuildObjectCreate(), Session);
 
             var playerCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var playerCreateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerCreate);
+            var playerCreateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.PlayerCreate);
             playerCreateFragment.Payload.WriteGuid(Guid);
             playerCreate.Fragments.Add(playerCreateFragment);
 
@@ -352,8 +453,11 @@ namespace ACE.Entity
 
             // TODO: gear and equip
 
-            new GameEventPlayerDescription(Session).Send();
-            new GameEventCharacterTitle(Session).Send();
+            var player = new GameEventPlayerDescription(Session);
+            var title = new GameEventCharacterTitle(Session);
+            var friends = new GameEventFriendsListUpdate(Session);
+
+            NetworkManager.SendWorldMessages(Session, new GameMessage[] { player, title, friends });
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
@@ -363,7 +467,7 @@ namespace ACE.Entity
             if (packet)
             {
                 var setState         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-                var setStateFragment = new ServerPacketFragment(0x0A, FragmentOpcode.SetState);
+                var setStateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.SetState);
                 setStateFragment.Payload.WriteGuid(Guid);
                 setStateFragment.Payload.Write((uint)state);
                 setStateFragment.Payload.Write((ushort)character.TotalLogins);
@@ -384,7 +488,7 @@ namespace ACE.Entity
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
             var playerTeleport         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var playerTeleportFragment = new ServerPacketFragment(0x0A, FragmentOpcode.PlayerTeleport);
+            var playerTeleportFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.PlayerTeleport);
             playerTeleportFragment.Payload.Write(++TeleportIndex);
             playerTeleportFragment.Payload.Write(0u);
             playerTeleportFragment.Payload.Write(0u);
@@ -400,9 +504,33 @@ namespace ACE.Entity
         public void SetTitle(uint title)
         {
             var updateTitle = new GameEventUpdateTitle(Session, title);
-            updateTitle.Send();
-
-            ChatPacket.SendSystemMessage(Session, $"Your title is now {title}!");
+            var message = new GameMessageSystemChat(Session, $"Your title is now {title}!");
+            NetworkManager.SendWorldMessages(Session, new GameMessage[] { updateTitle, message });
         }
+
+        public void Subscribe(MutableWorldObject worldObject)
+        {
+            subscribedObjects.Add(worldObject.Guid, worldObject);
+        }
+
+        public void Unsubscribe(ObjectGuid objectId)
+        {
+            if (subscribedObjects.ContainsKey(objectId))
+            {
+                subscribedObjects.Remove(objectId);
+
+                // TODO: send a destroy packet
+            }
+        }
+        
+        /// <summary>
+        /// Stuff to do when player logs out
+        /// </summary>
+        public void Logout()
+        {
+            IsOnline = false;
+            SendFriendStatusUpdates();
+        }
+
     }
 }

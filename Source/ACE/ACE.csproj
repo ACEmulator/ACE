@@ -71,20 +71,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Command\CommandHandler.cs" />
     <Compile Include="Command\CommandHandlerAttribute.cs" />
+    <Compile Include="Command\CommandHandlerFlag.cs" />
+    <Compile Include="Command\CommandHandlerInfo.cs" />
+    <Compile Include="Command\CommandHandlerResponse.cs" />
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
+    <Compile Include="Command\Handlers\AdminCommands.cs" />
+    <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
+    <Compile Include="Entity\ImmutableWorldObject.cs" />
+    <Compile Include="Entity\Landblock.cs" />
+    <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Managers\AssetManager.cs" />
+    <Compile Include="Managers\LandblockManager.cs" />
+    <Compile Include="Network\CachedPacket.cs" />
     <Compile Include="Network\ChatPacket.cs" />
+    <Compile Include="Network\ClientPacket.cs" />
+    <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
+    <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\Enum\SingleCharacterOption.cs" />
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSetSingleCharacterOption.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionEmote.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
@@ -93,6 +112,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRaiseAbility.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRaiseSkill.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRaiseVital.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
@@ -103,33 +123,45 @@
     <Compile Include="Entity\WorldObject.cs" />
     <Compile Include="Managers\WorldManager.cs" />
     <Compile Include="Network\Enum\CharacterError.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventCharacterTitles.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventEmote.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateSkill.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateVital.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventSound.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdateAbility.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventPrivateUpdatePropertyInt64.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
-    <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
-    <Compile Include="Network\Fragments\FragmentAttribute.cs" />
-    <Compile Include="Network\Fragments\FragmentOpcode.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
-    <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventCharacterTitle.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventFriendsListUpdate.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
-    <Compile Include="Network\GameEvent\GameEventPacket.cs" />
-    <Compile Include="Network\GameEvent\GameEventFraglessPacket.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
+    <Compile Include="Network\GameEvent\GameEventMessage.cs" />
+    <Compile Include="Network\GameEvent\GameEventType.cs" />
+    <Compile Include="Network\GameMessages\GameMessage.cs" />
+    <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
+    <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageSound.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
+    <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
     <Compile Include="Network\Packet.cs" />
+    <Compile Include="Network\PacketDirection.cs" />
+    <Compile Include="Network\PacketFragment.cs" />
+    <Compile Include="Network\PacketFragmentHeader.cs" />
+    <Compile Include="Network\PacketHeader.cs" />
+    <Compile Include="Network\PacketHeaderFlags.cs" />
+    <Compile Include="Network\PacketHeaderOptional.cs" />
+    <Compile Include="Network\ServerPacket.cs" />
+    <Compile Include="Network\ServerPacketFragment.cs" />
     <Compile Include="Network\Session.cs" />
     <Compile Include="ACE.cs" />
+    <Compile Include="Network\SessionConnectionData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -186,8 +218,9 @@
       <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>copy $(ProjectDir)config.json $(TargetDir)config.json</PreBuildEvent>
+    <PreBuildEvent>copy "$(ProjectDir)config.json" "$(TargetDir)config.json"</PreBuildEvent>
   </PropertyGroup>
 </Project>

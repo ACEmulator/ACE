@@ -22,11 +22,16 @@ namespace ACE.Database
         Task UpdateCharacter(Character character);
 
         Task<Character> LoadCharacter(uint id);
+        Task<Character> GetCharacterByName(string name);
 
+        Task DeleteFriend(uint characterId, uint friendCharacterId);
+        Task AddFriend(uint characterId, uint friendCharacterId);
+        Task RemoveAllFriends(uint characterId);
+        
         /// <summary>
         /// loads object properties into the provided db object
         /// </summary>
-        void LoadCharacterProperties(DbObject dbObject);
+        Task LoadCharacterProperties(DbObject dbObject);
 
         /// <summary>
         /// saves all object properties in the provided db object
