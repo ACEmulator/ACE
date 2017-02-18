@@ -33,6 +33,7 @@ namespace ACE.Database
             CharacterFriendsSelect,
             CharacterFriendInsert,
             CharacterFriendDelete,
+            CharacterFriendsRemoveAll,
 
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
@@ -62,6 +63,7 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `accountId` = ? AND `deleted` = 0 ORDER BY `name` ASC;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendInsert, "INSERT INTO `character_friends` (`id`, `friendId`) VALUES (?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendDelete, "DELETE FROM  `character_friends` WHERE `id` = ? AND `friendId` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsRemoveAll, "DELETE FROM  `character_friends` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `deleted` = 0 AND `deleteTime` = 0 AND `name` = ?;", MySqlDbType.VarString);
 
             // world entry
@@ -365,6 +367,11 @@ namespace ACE.Database
         public async Task AddFriend(uint characterId, uint friendCharacterId)
         {
             await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterFriendInsert, characterId, friendCharacterId);
+        }
+
+        public async Task RemoveAllFriends(uint characterId)
+        {
+            await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterFriendsRemoveAll, characterId);
         }
     }
 }

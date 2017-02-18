@@ -96,11 +96,14 @@
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\Enum\SingleCharacterOption.cs" />
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSetSingleCharacterOption.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionEmote.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
@@ -142,6 +145,7 @@
     <Compile Include="Network\GameEvent\GameEventFraglessPacket.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
+    <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
