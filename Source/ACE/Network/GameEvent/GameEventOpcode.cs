@@ -1,12 +1,14 @@
 ﻿
 namespace ACE.Network.GameEvent
 {
-    // order by opcode name
     public enum GameEventOpcode
     {
         PopupString                     = 0x0004,
         PlayerDescription               = 0x0013,
+        FriendsListUpdate               = 0x0021,
         CharacterTitle                  = 0x0029,
+        UpdateTitle                     = 0x002B,
+        Emote                           = 0x01E2,
         PingResponse                    = 0x01EA,
         HouseStatus                     = 0x0226,
         PrivateUpdatePropertyInt        = 0x02CD,
@@ -31,9 +33,6 @@ namespace ACE.Network.GameEvent
         PrivateUpdateVital              = 0x02E7,
         PublicUpdateVital               = 0x02E8,
 
-        Sound                           = 0xF750,
-
-        UpdateTitle                     = 0x002B,
-        Emote                           = 0x01E2
+        Sound                           = 0xF750
     }
 }

@@ -400,6 +400,8 @@ namespace ACE.Command
         [CommandHandler("tele", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
         public static void HandleTele(Session session, params string[] parameters)
         {
+            // Used PhatAC source to implement most of this.  Thanks Pea!
+
             // usage: @tele [name,] longitude latitude
             // This command teleports yourself (or the specified character) to the given longitude and latitude.
             // @tele - Teleports you(or a player) to some location.
