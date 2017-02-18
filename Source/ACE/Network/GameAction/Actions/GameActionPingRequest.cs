@@ -1,5 +1,6 @@
 ﻿
 using ACE.Network.GameEvent.Events;
+using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -10,7 +11,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            new GameEventPingResponse(session).Send();
+            NetworkManager.SendWorldMessage(session, new GameEventPingResponse(session));
         }
     }
 }

@@ -8,7 +8,7 @@ using ACE.Database;
 using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Network.Fragments;
+using ACE.Network.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 
@@ -89,7 +89,7 @@ namespace ACE.Network.Handlers
 
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
             var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var packet75e5Fragment = new ServerPacketFragment(5, FragmentOpcode.Unknown75E5);
+            var packet75e5Fragment = new ServerPacketFragment(5, GameMessageOpcode.Unknown75E5);
             packet75e5Fragment.Payload.Write(1ul);
             packet75e5Fragment.Payload.Write(1ul);
             packet75e5Fragment.Payload.Write(1ul);
@@ -101,7 +101,7 @@ namespace ACE.Network.Handlers
             NetworkManager.SendPacket(ConnectionType.Login, packet75e5, session);
 
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            patchStatus.Fragments.Add(new ServerPacketFragment(5, FragmentOpcode.PatchStatus));
+            patchStatus.Fragments.Add(new ServerPacketFragment(5, GameMessageOpcode.PatchStatus));
 
             NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
 
@@ -111,7 +111,7 @@ namespace ACE.Network.Handlers
         public static void CharacterListSelectCallback(List<CachedCharacter> characters, Session session)
         {
             var characterList     = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterFragment = new ServerPacketFragment(9, FragmentOpcode.CharacterList);
+            var characterFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterList);
             characterFragment.Payload.Write(0u);
             characterFragment.Payload.Write(characters.Count);
 
@@ -134,7 +134,7 @@ namespace ACE.Network.Handlers
             NetworkManager.SendPacket(ConnectionType.Login, characterList, session);
 
             var serverName         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var serverNameFragment = new ServerPacketFragment(9, FragmentOpcode.ServerName);
+            var serverNameFragment = new ServerPacketFragment(9, GameMessageOpcode.ServerName);
             serverNameFragment.Payload.Write(0u);
             serverNameFragment.Payload.Write(0u);
             serverNameFragment.Payload.WriteString16L(ConfigManager.Config.Server.WorldName);
@@ -183,7 +183,7 @@ namespace ACE.Network.Handlers
 
             NetworkManager.SendPacket(ConnectionType.World, serverSwitch, session);
 
-            new GameEventPopupString(session, ConfigManager.Config.Server.Welcome).Send();
+            NetworkManager.SendWorldMessage(session, new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             session.Player.Load();
         }
     }

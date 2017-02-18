@@ -1,19 +1,17 @@
 ﻿
 using ACE.Network.Enum;
 
-namespace ACE.Network.GameEvent.Events
+namespace ACE.Network.Messages
 {
-    public class GameEventPrivateUpdateAbility : GameEventPacket
+    public class GameMessagePrivateUpdateAbility : GameMessage
     {
         private Ability networkAbility;
         private uint ranks;
         private uint baseValue;
         private uint totalInvestment;
 
-        public override GameEventOpcode Opcode { get { return GameEventOpcode.PrivateUpdateAttribute; } }
-
-        public GameEventPrivateUpdateAbility(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment) 
-            : base(session)
+        public GameMessagePrivateUpdateAbility(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment) 
+            : base(GameMessageOpcode.PrivateUpdateAttribute)
         {
             switch (ability)
             {
@@ -40,15 +38,12 @@ namespace ACE.Network.GameEvent.Events
             this.ranks = ranks;
             this.baseValue = baseValue;
             this.totalInvestment = totalInvestment;
-        }
 
-        protected override void WriteEventBody()
-        {
-            fragment.Payload.Write(session.UpdateAttributeSequence++);
-            fragment.Payload.Write((uint)networkAbility);
-            fragment.Payload.Write(this.ranks);
-            fragment.Payload.Write(this.baseValue);
-            fragment.Payload.Write(this.totalInvestment);
+            writer.Write(session.UpdateAttributeSequence++);
+            writer.Write((uint)networkAbility);
+            writer.Write(this.ranks);
+            writer.Write(this.baseValue);
+            writer.Write(this.totalInvestment);
         }
     }
 }

@@ -135,5 +135,35 @@ namespace ACE.Network.Managers
             if (ConstructPacket(out buffer, type, packet, session, useHeaders))
                 GetSocket(type).SendTo(buffer, session.EndPoint);
         }
+
+        //TODO Move group to per message property, think this broke sounds.
+        //Hacky. TODO Need to rewrite some code to build packet/fragments differently
+        //TODO Further testing on multifragment sending.
+        //TODO Packet Queue per session, so in theory these calls only get called flushing packets out of the queue
+        public static void SendWorldMessage(Session session, GameMessage message)
+        {
+            ServerPacketFragment fragment = new ServerPacketFragment(9, message);
+            var packet = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            packet.Fragments.Add(fragment);
+            NetworkManager.SendPacket(ConnectionType.World, packet, session);
+        }
+
+        public static void SendWorldMessages(Session session, IEnumerable<GameMessage> messages)
+        {
+#if MultiFragment
+            var packet = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            foreach (var message in messages)
+            {
+                ServerPacketFragment fragment = new ServerPacketFragment(9, message);
+                packet.Fragments.Add(fragment);
+            }
+            NetworkManager.SendPacket(ConnectionType.World, packet, session);
+#else
+            foreach(var message in messages)
+            {
+                SendWorldMessage(session, message);
+            }
+#endif
+        }
     }
 }

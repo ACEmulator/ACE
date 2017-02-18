@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 using ACE.Common.Cryptography;
 using ACE.Common.Extensions;
-using ACE.Network.Fragments;
+using ACE.Network.Messages;
 
 namespace ACE.Network
 {

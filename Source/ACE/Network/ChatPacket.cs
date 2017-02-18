@@ -1,5 +1,5 @@
 ﻿
-using ACE.Network.Fragments;
+using ACE.Network.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network
@@ -9,7 +9,7 @@ namespace ACE.Network
         public static void SendSystemMessage(Session session, string message)
         {
             var textboxString         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var textboxStringFragment = new ServerPacketFragment(0x09, FragmentOpcode.TextboxString);
+            var textboxStringFragment = new ServerPacketFragment(0x09, GameMessageOpcode.TextboxString);
             textboxStringFragment.Payload.WriteString16L(message);
             textboxStringFragment.Payload.Write(0x00);
             textboxString.Fragments.Add(textboxStringFragment);

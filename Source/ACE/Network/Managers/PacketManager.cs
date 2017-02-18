@@ -4,7 +4,7 @@ using System.Reflection;
 
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Network.Fragments;
+using ACE.Network.Messages;
 using ACE.Network.GameAction;
 using ACE.Network.Handlers;
 
@@ -15,11 +15,11 @@ namespace ACE.Network.Managers
         private class FragmentHandlerInfo
         {
             public FragmentHandler Handler { get; set; }
-            public FragmentAttribute Attribute { get; set; }
+            public GameMessageAttribute Attribute { get; set; }
         }
 
         public delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
-        private static Dictionary<FragmentOpcode, FragmentHandlerInfo> fragmentHandlers;
+        private static Dictionary<GameMessageOpcode, FragmentHandlerInfo> fragmentHandlers;
 
         private static Dictionary<GameActionOpcode, Type> actionHandlers;
 
@@ -31,12 +31,12 @@ namespace ACE.Network.Managers
 
         private static void DefineFragmentHandlers()
         {
-            fragmentHandlers = new Dictionary<FragmentOpcode, FragmentHandlerInfo>();
+            fragmentHandlers = new Dictionary<GameMessageOpcode, FragmentHandlerInfo>();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 foreach (var methodInfo in type.GetMethods())
                 {
-                    foreach (var fragmentHandlerAttribute in methodInfo.GetCustomAttributes<FragmentAttribute>())
+                    foreach (var fragmentHandlerAttribute in methodInfo.GetCustomAttributes<GameMessageAttribute>())
                     {
                         var fragmentHandler = new FragmentHandlerInfo()
                         {
@@ -160,7 +160,7 @@ namespace ACE.Network.Managers
 
             foreach (ClientPacketFragment fragment in packet.Fragments)
             {
-                var opcode = (FragmentOpcode)fragment.Payload.ReadUInt32();
+                var opcode = (GameMessageOpcode)fragment.Payload.ReadUInt32();
                 if (!fragmentHandlers.ContainsKey(opcode))
                     Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
                 else

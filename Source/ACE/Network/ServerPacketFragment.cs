@@ -1,4 +1,4 @@
-﻿using ACE.Network.Fragments;
+﻿using ACE.Network.Messages;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,9 +11,9 @@ namespace ACE.Network
     public class ServerPacketFragment : PacketFragment
     {
         public BinaryWriter Payload { get; }
-        public FragmentOpcode Opcode { get; }
+        public GameMessageOpcode Opcode { get; }
 
-        public ServerPacketFragment(ushort group, FragmentOpcode opcode = FragmentOpcode.None)
+        public ServerPacketFragment(ushort group, GameMessageOpcode opcode = GameMessageOpcode.None)
         {
             Opcode = opcode;
 
@@ -24,8 +24,20 @@ namespace ACE.Network
                 Group = group
             };
 
-            if (opcode != FragmentOpcode.None)
+            if (opcode != GameMessageOpcode.None)
                 Payload.Write((uint)opcode);
+        }
+
+        public ServerPacketFragment(ushort group, GameMessage message)
+        {
+            Opcode = message.Opcode;
+
+            Data = message.Data;
+            Payload = new BinaryWriter(Data);
+            Header = new PacketFragmentHeader()
+            {
+                Group = group
+            };
         }
     }
 }
