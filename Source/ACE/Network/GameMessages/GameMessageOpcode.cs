@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network
+namespace ACE.Network.GameMessages
 {
     // order by opcode name
     public enum GameMessageOpcode
@@ -16,6 +15,7 @@ namespace ACE.Network
         CharacterRestore               = 0xF7D9,
         CharacterRestoreResponse       = 0xF643,
         EmoteText                      = 0x01E2,
+        FriendsOld                     = 0xF7CD,
         GameAction                     = 0xF7B1,
         GameEvent                      = 0xF7B0,
         ObjectCreate                   = 0xF745,

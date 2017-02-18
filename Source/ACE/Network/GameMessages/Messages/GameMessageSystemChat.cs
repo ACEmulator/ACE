@@ -1,6 +1,6 @@
 ﻿using ACE.Network.Enum;
 
-namespace ACE.Network
+namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageSystemChat : GameMessage
     {

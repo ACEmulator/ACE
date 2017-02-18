@@ -1,7 +1,7 @@
 ﻿
 using ACE.Entity.Enum.Properties;
 
-namespace ACE.Network.Messages
+namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdatePropertyInt64 : GameMessage
     {

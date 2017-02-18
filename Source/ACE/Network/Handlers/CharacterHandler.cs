@@ -8,6 +8,8 @@ using ACE.Database;
 using ACE.Entity;
 using ACE.Network.Enum;
 using ACE.Network.Managers;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.Handlers
 {

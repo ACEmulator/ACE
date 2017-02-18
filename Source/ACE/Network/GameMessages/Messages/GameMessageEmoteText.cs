@@ -1,5 +1,5 @@
 ﻿
-namespace ACE.Network.Messages
+namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageEmoteText : GameMessage
     {

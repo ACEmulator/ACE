@@ -2,7 +2,7 @@
 
 using ACE.Entity.Enum;
 
-namespace ACE.Network.Messages
+namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateSkill : GameMessage
     {

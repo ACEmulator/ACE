@@ -1,4 +1,5 @@
-﻿using ACE.Network.Messages;
+﻿using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using System;
 using System.Collections.Generic;
 using System.IO;

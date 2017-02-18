@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace ACE.Network
+namespace ACE.Network.GameMessages
 {
     public abstract class GameMessage
     {

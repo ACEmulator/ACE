@@ -2,7 +2,7 @@
 
 using ACE.Network.Enum;
 
-namespace ACE.Network
+namespace ACE.Network.GameMessages
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class GameMessageAttribute : Attribute

@@ -4,7 +4,8 @@ using System.Reflection;
 
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Network.Messages;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameAction;
 using ACE.Network.Handlers;
 
@@ -191,6 +192,9 @@ namespace ACE.Network.Managers
 
         private static void HandleDisconnectResponse(ClientPacket packet, Session session)
         {
+            if (session.Player != null)
+                session.Player.Logout();
+
             WorldManager.Remove(session);
         }
     }

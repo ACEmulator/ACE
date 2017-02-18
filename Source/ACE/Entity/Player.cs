@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network;
-using ACE.Network.Messages;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ACE.Managers;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -21,10 +25,16 @@ namespace ACE.Entity
         public Session Session { get; }
 
         public bool InWorld { get; set; }
-
+        public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
+        
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
         
         private Character character;
+
+        public ReadOnlyCollection<Friend> Friends
+        {
+            get { return character.Friends; }
+        }
 
         public bool IsAdmin
         {
@@ -174,8 +184,10 @@ namespace ACE.Entity
         {
             character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
             Position  = character.Position;
-            
+            IsOnline = true;
+
             SendSelf();
+            SendFriendStatusUpdates();
         }
 
         public void GrantXp(ulong amount)
@@ -340,6 +352,94 @@ namespace ACE.Entity
             return result;
         }
 
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        private void SendFriendStatusUpdates()
+        {
+            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
+
+            if (inverseFriends.Count > 0)
+            {
+                Friend playerFriend = new Friend();
+                playerFriend.Id = Guid;
+                playerFriend.Name = Name;
+                List<GameMessage> updates = new List<GameMessage>();
+                foreach (var friendSession in inverseFriends)
+                {
+                    updates.Add(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline));
+                }
+                NetworkManager.SendWorldMessages(Session, updates);
+            }
+        }
+
+        public async Task<AddFriendResult> AddFriend(string friendName)
+        {
+            if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
+                return AddFriendResult.FriendWithSelf;
+
+            // Check if friend exists
+            if (character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+                return AddFriendResult.AlreadyInList;
+
+            // TODO: check if player is online first to avoid database hit??
+            // Get character record from DB
+            Character friendCharacter = await DatabaseManager.Character.GetCharacterByName(friendName);
+
+            if (friendCharacter == null)
+                return AddFriendResult.CharacterDoesNotExist;
+
+            Friend newFriend = new Friend();
+            newFriend.Name = friendCharacter.Name;
+            newFriend.Id = new ObjectGuid(friendCharacter.Id, GuidType.Player);
+
+            // Save to DB
+            await DatabaseManager.Character.AddFriend(Guid.Low, newFriend.Id.Low);
+
+            // Add to character object
+            character.AddFriend(newFriend);
+
+            // Send packet
+            NetworkManager.SendWorldMessage(Session, new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+
+            return AddFriendResult.Success;
+        }
+
+        public async Task<RemoveFriendResult> RemoveFriend(ObjectGuid friendId)
+        {
+            Friend friendToRemove = character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
+
+            // Not in friend list
+            if (friendToRemove == null)
+                return RemoveFriendResult.NotInFriendsList;
+
+            // Remove from DB
+            await DatabaseManager.Character.DeleteFriend(Guid.Low, friendId.Low);
+
+            // Remove from character object
+            character.RemoveFriend(friendId.Low);
+
+            // Send packet
+            NetworkManager.SendWorldMessage(Session, new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
+
+            return RemoveFriendResult.Success;
+        }
+
+        public async void RemoveAllFriends()
+        {
+            // Remove all from DB
+            await DatabaseManager.Character.RemoveAllFriends(Guid.Low);
+
+            // Remove from character object
+            character.RemoveAllFriends();
+        }
+
+        public void ChangeOnlineStatus(bool isOnline)
+        {
+            IsOnline = isOnline;
+            SendFriendStatusUpdates();
+        }
+
         private void SendSelf()
         {
             NetworkManager.SendPacket(ConnectionType.World, BuildObjectCreate(), Session);
@@ -355,8 +455,9 @@ namespace ACE.Entity
 
             var player = new GameEventPlayerDescription(Session);
             var title = new GameEventCharacterTitle(Session);
+            var friends = new GameEventFriendsListUpdate(Session);
 
-            NetworkManager.SendWorldMessages(Session, new GameMessage[] { player, title });
+            NetworkManager.SendWorldMessages(Session, new GameMessage[] { player, title, friends });
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
@@ -421,5 +522,15 @@ namespace ACE.Entity
                 // TODO: send a destroy packet
             }
         }
+        
+        /// <summary>
+        /// Stuff to do when player logs out
+        /// </summary>
+        public void Logout()
+        {
+            IsOnline = false;
+            SendFriendStatusUpdates();
+        }
+
     }
 }

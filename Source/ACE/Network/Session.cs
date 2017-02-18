@@ -5,7 +5,8 @@ using System.Net;
 using ACE.Common.Cryptography;
 using ACE.Entity;
 using ACE.Network.Enum;
-using ACE.Network.Messages;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network

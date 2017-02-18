@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 
 using ACE.Common;
 

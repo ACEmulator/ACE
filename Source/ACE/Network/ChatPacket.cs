@@ -1,5 +1,5 @@
-﻿
-using ACE.Network.Messages;
+﻿using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network

@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 
 using ACE.Network;
+using ACE.Entity;
 
 namespace ACE.Managers
 {
@@ -86,6 +87,32 @@ namespace ACE.Managers
             {
                 sessionLock.ExitReadLock();
             }
+        }
+
+        public static Session Find(ObjectGuid characterGuid)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return sessionStore.SingleOrDefault(s => s.Player?.Guid.Low == characterGuid.Low);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();                
+            }   
+        }
+
+        public static List<Session> FindInverseFriends(ObjectGuid characterGuid)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return sessionStore.Where(s => s.Player?.Friends.FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();                
+            }   
         }
 
         public static void Remove(Session session)
