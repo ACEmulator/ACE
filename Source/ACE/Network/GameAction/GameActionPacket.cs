@@ -1,6 +1,7 @@
 ﻿
 using ACE.Network.Enum;
-using ACE.Network.Fragments;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction
@@ -20,7 +21,7 @@ namespace ACE.Network.GameAction
         public virtual void Read() { }
         public abstract void Handle();
 
-        [Fragment(FragmentOpcode.GameAction, SessionState.WorldConnected)]
+        [GameMessageAttribute(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
         public static void HandleGameAction(ClientPacketFragment fragement, Session session)
         {
             // TODO: verify sequence

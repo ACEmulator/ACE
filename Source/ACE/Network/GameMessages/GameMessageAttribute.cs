@@ -2,15 +2,15 @@
 
 using ACE.Network.Enum;
 
-namespace ACE.Network.Fragments
+namespace ACE.Network.GameMessages
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class FragmentAttribute : Attribute
+    public class GameMessageAttribute : Attribute
     {
-        public FragmentOpcode Opcode { get; }
+        public GameMessageOpcode Opcode { get; }
         public SessionState State { get; }
 
-        public FragmentAttribute(FragmentOpcode opcode, SessionState state)
+        public GameMessageAttribute(GameMessageOpcode opcode, SessionState state)
         {
             Opcode = opcode;
             State  = state;
