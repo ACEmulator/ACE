@@ -12,7 +12,7 @@ namespace ACE.Command.Handlers
     public static class CharacterCommands
     {
         // set-characteraccess charactername accesslevel
-        [CommandHandler("set-characteraccess", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1)]
+        [CommandHandler("set-characteraccess", AccessLevel.Admin, CommandHandlerFlag.None, 1)]
         public static void HandleCharacterTokenization(Session session, params string[] parameters)
         {
             uint characterId = 0;
@@ -59,10 +59,16 @@ namespace ACE.Command.Handlers
                 if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                     articleAorAN = "an";
                 
-                System.Console.WriteLine("Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+                if (session == null)
+                    Console.WriteLine("Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+                else
+                    ChatPacket.SendSystemMessage(session, "Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
             }
             else
-                System.Console.WriteLine("There is no character by the name " + characterName + " found in the database. Has it been deleted?");
+                if (session == null)
+                    Console.WriteLine("There is no character by the name of " + characterName + " found in the database. Has it been deleted?");
+                else
+                    ChatPacket.SendSystemMessage(session, "There is no character by the name of " + characterName + " found in the database. Has it been deleted?");
         }
     }
 }

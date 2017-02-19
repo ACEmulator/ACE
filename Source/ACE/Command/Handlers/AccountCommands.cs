@@ -63,7 +63,7 @@ namespace ACE.Command.Handlers
         }
 
         // set-accountaccess accountname (accesslevel)
-        [CommandHandler("set-accountaccess", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1)]
+        [CommandHandler("set-accountaccess", AccessLevel.Admin, CommandHandlerFlag.None, 1)]
         public static void HandleAccountUpdateAccessLevel(Session session, params string[] parameters)
         {
             uint accountId      = 0;
@@ -75,7 +75,10 @@ namespace ACE.Command.Handlers
             }
             catch (IndexOutOfRangeException)
             {
-                Console.WriteLine("Account " + accountName + " does not exist.");
+                if (session == null)
+                    Console.WriteLine("Account " + accountName + " does not exist.");
+                else
+                    ChatPacket.SendSystemMessage(session, "Account " + accountName + " does not exist.");
                 return;
             }
 
@@ -117,13 +120,19 @@ namespace ACE.Command.Handlers
 
             if (accountId == 0)
             {
-                Console.WriteLine("Account " + accountName + " does not exist.");
+                if (session == null)
+                    Console.WriteLine("Account " + accountName + " does not exist.");
+                else
+                    ChatPacket.SendSystemMessage(session, "Account " + accountName + " does not exist.");
                 return;
             }
             else
                 DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
 
-            Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+            if (session == null)
+                Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+            else
+                ChatPacket.SendSystemMessage(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
         }
     }
 }
