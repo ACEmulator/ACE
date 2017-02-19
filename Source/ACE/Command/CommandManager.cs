@@ -75,6 +75,31 @@ namespace ACE.Command
 
         public static CommandHandlerResponse GetCommandHandler(Session session, string command, string[] parameters, out CommandHandlerInfo commandInfo)
         {
+            bool isSUDOauthorized = false;
+
+            if (command.ToLower() == "sudo")
+            {
+                string sudoCommand = "";
+                string[] sudoParameters;
+                if (parameters.Length > 0)
+                    sudoCommand = parameters[0];
+
+                if (!commandHandlers.TryGetValue(sudoCommand, out commandInfo))
+                    return CommandHandlerResponse.InvalidCommand;
+
+                if (commandInfo.Attribute.Access <= session.AccessLevel)
+                    isSUDOauthorized = true;
+
+                if (isSUDOauthorized)
+                {
+                    command = sudoCommand;
+                    sudoParameters = new string[parameters.Length - 1];
+                    for (int i = 1; i < parameters.Length; i++)
+                        sudoParameters[i - 1] = parameters[i];
+                    parameters = sudoParameters;
+                }
+            }
+
             if (!commandHandlers.TryGetValue(command, out commandInfo))
                 return CommandHandlerResponse.InvalidCommand;
 
@@ -94,13 +119,11 @@ namespace ACE.Command
                 session.Player.PropertiesBool.TryGetValue(PropertyBool.IsArch, out isArch);
                 session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdmin, out isAdmin);
                 
-                // if (commandInfo.Attribute.Access > session.AccessLevel) 
-                // TODO: Hook in a "SUDO" command which checks Session.AccessLevel instead of Session.Player.PropertiesBools for accesslevel
-                if (commandInfo.Attribute.Access == AccessLevel.Advocate && !(isAdvocate || isSentinel || isEnvoy || isArch || isAdmin)
-                    || commandInfo.Attribute.Access == AccessLevel.Sentinel && !(isSentinel || isEnvoy || isArch || isAdmin)
-                    || commandInfo.Attribute.Access == AccessLevel.Envoy && !(isEnvoy || isArch || isAdmin)
-                    || commandInfo.Attribute.Access == AccessLevel.Developer && !(isArch || isAdmin)
-                    || commandInfo.Attribute.Access == AccessLevel.Admin && !(isAdmin))
+                if (commandInfo.Attribute.Access == AccessLevel.Advocate && !(isAdvocate || isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Sentinel && !(isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Envoy && !(isEnvoy || isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Developer && !(isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Admin && !(isAdmin || isSUDOauthorized))
                     return CommandHandlerResponse.NotAuthorized;
             }
 
@@ -109,6 +132,9 @@ namespace ACE.Command
 
             if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Player == null || !session.Player.InWorld))
                 return CommandHandlerResponse.NotInWorld;
+
+            if (isSUDOauthorized)
+                return CommandHandlerResponse.SudoOk;
 
             return CommandHandlerResponse.Ok;
         }

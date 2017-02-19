@@ -28,6 +28,14 @@ namespace ACE.Network.GameAction.Actions
                 var response = CommandManager.GetCommandHandler(session, command, parameters, out commandHandler);
                 if (response == CommandHandlerResponse.Ok)
                     ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
+                else if (response == CommandHandlerResponse.SudoOk)
+                {
+                    string[] sudoParameters = new string[parameters.Length - 1];
+                    for (int i = 1; i < parameters.Length; i++)
+                        sudoParameters[i - 1] = parameters[i];
+
+                    ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
+                }
                 else
                 {
                     switch (response)
