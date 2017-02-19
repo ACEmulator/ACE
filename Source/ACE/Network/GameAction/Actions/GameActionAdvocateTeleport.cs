@@ -1,6 +1,7 @@
 ﻿
 using ACE.Common.Extensions;
 using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -14,14 +15,14 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            target   = fragment.Payload.ReadString16L();
-            position = new Position(fragment.Payload);
+            target   = Fragment.Payload.ReadString16L();
+            position = new Position(Fragment.Payload);
         }
 
         public override void Handle()
         {
             // this check is also done clientside, see: PlayerDesc::PlayerIsPSR
-            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
+            if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
             uint cell  = position.Cell;
@@ -31,8 +32,8 @@ namespace ACE.Network.GameAction.Actions
             
             //TODO: Maybe output to chat window coords teleported to.
             //ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
-            ChatPacket.SendSystemMessage(session, "Teleporting...");
-            session.Player.Teleport(position);
+            ChatPacket.SendServerMessage(Session, "Teleporting...", ChatMessageType.Broadcast);
+            Session.Player.Teleport(position);
         }
     }
 }

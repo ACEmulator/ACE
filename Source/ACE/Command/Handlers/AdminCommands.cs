@@ -28,7 +28,7 @@ namespace ACE.Command
 
             //output: Admin Visible is {state}
 
-            ChatPacket.SendSystemMessage(session, "Admin Visible is [state]");
+            ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
         }
 
         // adminui
@@ -259,7 +259,7 @@ namespace ACE.Command
 
             //output: You are now immortal.
 
-            ChatPacket.SendSystemMessage(session, "You are now immortal.");
+            ChatPacket.SendServerMessage(session, "You are now immortal.", ChatMessageType.Broadcast);
         }
 
         // pk
@@ -411,27 +411,27 @@ namespace ACE.Command
 
             if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
             {
-                ChatPacket.SendSystemMessage(session, "Missing n or s indicator on first parameter");
+                ChatPacket.SendServerMessage(session, "Missing n or s indicator on first parameter", ChatMessageType.Broadcast);
                 return;
             }
 
             if (!eastWest.EndsWith("e") && !eastWest.EndsWith("w"))
             {
-                ChatPacket.SendSystemMessage(session, "Missing e or w indicator on second parameter");
+                ChatPacket.SendServerMessage(session, "Missing e or w indicator on second parameter", ChatMessageType.Broadcast);
                 return;
             }
 
             float coordNS;
             if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out coordNS))
             {
-                ChatPacket.SendSystemMessage(session, "North/South coordinate is not a valid number.");
+                ChatPacket.SendServerMessage(session, "North/South coordinate is not a valid number.", ChatMessageType.Broadcast);
                 return;
             }
 
             float coordEW;
             if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out coordEW))
             {
-                ChatPacket.SendSystemMessage(session, "East/West coordinate is not a valid number.");
+                ChatPacket.SendServerMessage(session, "East/West coordinate is not a valid number.", ChatMessageType.Broadcast);
                 return;
             }
 
@@ -447,13 +447,13 @@ namespace ACE.Command
             }
             catch (System.Exception)
             {
-                ChatPacket.SendSystemMessage(session, "There was a problem teleporting to that location (bad coordinates?).");
+                ChatPacket.SendServerMessage(session, "There was a problem teleporting to that location (bad coordinates?).", ChatMessageType.Broadcast);
                 return;
             }
 
             // TODO: Check if water block?
 
-            ChatPacket.SendSystemMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]");
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]", ChatMessageType.Broadcast);
 
             session.Player.Teleport(position);
         }
@@ -518,11 +518,11 @@ namespace ACE.Command
             }
             catch (Exception)
             {
-                ChatPacket.SendSystemMessage(session, "Invalid arguments for @teleloc");
-                ChatPacket.SendSystemMessage(session, "Usage: @teleloc cell x y z [qx qy qz qw]");
-                ChatPacket.SendSystemMessage(session, "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806");
-                ChatPacket.SendSystemMessage(session, "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806");
-                ChatPacket.SendSystemMessage(session, "Example: @teleloc 7F0401AD 12.319900 -28.482000 0.005000");
+                ChatPacket.SendServerMessage(session, "Invalid arguments for @teleloc", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Usage: @teleloc cell x y z [qx qy qz qw]", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Example: @teleloc 7F0401AD 12.319900 -28.482000 0.005000", ChatMessageType.Broadcast);
             }
         }
 
@@ -766,7 +766,7 @@ namespace ACE.Command
 
             //output: You are now a god!!!
 
-            ChatPacket.SendSystemMessage(session, "You are now a god!!!");
+            ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
         }
 
         // magic god
@@ -779,7 +779,7 @@ namespace ACE.Command
 
             //output: You are now a magic god!!!
 
-            ChatPacket.SendSystemMessage(session, "You are now a magic god!!!");
+            ChatPacket.SendServerMessage(session, "You are now a magic god!!!", ChatMessageType.Broadcast);
         }
 
         // heal

@@ -1,6 +1,11 @@
-﻿
+
 using ACE.Command;
 using ACE.Common.Extensions;
+using ACE.Entity.Enum;
+using ACE.Managers;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -13,7 +18,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            message = fragment.Payload.ReadString16L();
+            message = Fragment.Payload.ReadString16L();
         }
 
         public override void Handle()
@@ -41,10 +46,10 @@ namespace ACE.Network.GameAction.Actions
                     switch (response)
                     {
                         case CommandHandlerResponse.InvalidCommand:
-                            ChatPacket.SendSystemMessage(session, $"Invalid command {command}!");
+                            ChatPacket.SendServerMessage(Session, $"Invalid command {command}!", ChatMessageType.Broadcast);
                             break;
                         case CommandHandlerResponse.InvalidParameterCount:
-                            ChatPacket.SendSystemMessage(session, $"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!");
+                            ChatPacket.SendServerMessage(Session, $"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Broadcast);
                             break;
                         default:
                             break;
@@ -53,7 +58,13 @@ namespace ACE.Network.GameAction.Actions
             }
             else
             {
-                // TODO: broadcast message
+                var creatureMessage = new GameMessageCreatureMessage(message, Session.Player.Name, Session.Player.Guid.Full, ChatMessageType.PublicChat);
+
+                // TODO: This needs to be changed to a different method. GetByRadius or GetNear, however we decide to do proximity updates...
+                var targets = WorldManager.GetAll();
+                
+                foreach (var target in targets)
+                    NetworkManager.SendWorldMessages(target, new GameMessage[] { creatureMessage });
             }
         }
     }
