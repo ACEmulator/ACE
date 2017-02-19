@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Sockets;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using ACE.Common.Extensions;
-using ACE.Common;
-using ACE.Common.Cryptography;
+﻿using System.Collections.Generic;
+﻿using System.IO;
+﻿using System.Net.Sockets;
+﻿using ACE.Network.GameMessages;
+﻿using ACE.Network.GameMessages.Messages;
+﻿using ACE.Common.Extensions;
+﻿using ACE.Common;
+﻿using ACE.Common.Cryptography;
 
-namespace ACE.Network.Managers
+﻿namespace ACE.Network.Managers
 {
     public static class SocketManager
     {

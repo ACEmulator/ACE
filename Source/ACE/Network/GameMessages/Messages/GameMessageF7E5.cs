@@ -4,7 +4,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageF7E5: GameMessage
     {
-        public GameMessageF7E5()
+        public GameMessageF7E5() 
             : base(GameMessageOpcode.DDD_Interrogation, 0x5)
         {
             Writer.Write(1ul);

@@ -1,4 +1,3 @@
-
 namespace ACE.Network.GameMessages
 {
     public enum GameMessageOpcode
