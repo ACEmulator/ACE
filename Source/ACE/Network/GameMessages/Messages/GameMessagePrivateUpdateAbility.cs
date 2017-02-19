@@ -1,18 +1,17 @@
-﻿
+﻿using System;
+
 using ACE.Network.Enum;
 
 namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateAbility : GameMessage
     {
-        private Ability networkAbility;
-        private uint ranks;
-        private uint baseValue;
-        private uint totalInvestment;
-
-        public GameMessagePrivateUpdateAbility(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment) 
-            : base(GameMessageOpcode.PrivateUpdateAttribute)
+        public GameMessagePrivateUpdateAbility(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment) : base(GameMessageOpcode.PrivateUpdateAttribute)
         {
+            // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
+
+            Ability networkAbility;
+
             switch (ability)
             {
                 case Entity.Enum.Ability.Strength:
@@ -33,17 +32,15 @@ namespace ACE.Network.GameMessages.Messages
                 case Entity.Enum.Ability.Self:
                     networkAbility = Ability.Self;
                     break;
+                default:
+                    throw new ArgumentException("invalid ability specified");
             }
 
-            this.ranks = ranks;
-            this.baseValue = baseValue;
-            this.totalInvestment = totalInvestment;
-
-            writer.Write(session.UpdateAttributeSequence++);
-            writer.Write((uint)networkAbility);
-            writer.Write(this.ranks);
-            writer.Write(this.baseValue);
-            writer.Write(this.totalInvestment);
+            Writer.Write(session.UpdateAttributeSequence++);
+            Writer.Write((uint)networkAbility);
+            Writer.Write(ranks);
+            Writer.Write(baseValue);
+            Writer.Write(totalInvestment);
         }
     }
 }

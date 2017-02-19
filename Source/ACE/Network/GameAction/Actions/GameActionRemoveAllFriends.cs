@@ -1,4 +1,5 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿
+namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.RemoveAllFriends)]
     public class GameActionRemoveAllFriends : GameActionPacket
@@ -7,7 +8,7 @@
 
         public override void Handle()
         {
-            session.Player.RemoveAllFriends();
+            Session.Player.RemoveAllFriends();
         }
     }
 }

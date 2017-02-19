@@ -16,17 +16,17 @@ namespace ACE.Network.GameAction
 
         public override void Read()
         {
-            position               = new Position(fragment.Payload);
-            instanceTimestamp      = fragment.Payload.ReadUInt16();
-            serverControlTimestamp = fragment.Payload.ReadUInt16();
-            teleportTimestamp      = fragment.Payload.ReadUInt16();
-            forcePositionTimestamp = fragment.Payload.ReadUInt16();
-            fragment.Payload.ReadByte();
+            position               = new Position(Fragment.Payload);
+            instanceTimestamp      = Fragment.Payload.ReadUInt16();
+            serverControlTimestamp = Fragment.Payload.ReadUInt16();
+            teleportTimestamp      = Fragment.Payload.ReadUInt16();
+            forcePositionTimestamp = Fragment.Payload.ReadUInt16();
+            Fragment.Payload.ReadByte();
         }
 
         public override void Handle()
         {
-            session.Player.UpdatePosition(position);
+            Session.Player.UpdatePosition(position);
         }
     }
 }

@@ -1,23 +1,22 @@
-﻿using System.Diagnostics;
-
+﻿
 using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameEvent
 {
     public abstract class GameEventMessage : GameMessage
     {
         public GameEventType EventType { get; private set; }
-        protected Session session;
+
+        protected Session Session { get; private set; }
 
         public GameEventMessage(GameEventType eventType, Session session) : base(GameMessageOpcode.GameEvent)
         {
-            this.EventType = eventType;
-            this.session = session;
-            writer.WriteGuid(session.Player.Guid);
-            writer.Write(session.GameEventSequence++);
-            writer.Write((uint)EventType);
+            EventType = eventType;
+            Session = session;
+
+            Writer.WriteGuid(session.Player.Guid);
+            Writer.Write(session.GameEventSequence++);
+            Writer.Write((uint)EventType);
         }
     }
 }

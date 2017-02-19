@@ -5,17 +5,11 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdatePropertyInt64 : GameMessage
     {
-        private PropertyInt64 property;
-        private ulong value;
-
-        public GameMessagePrivateUpdatePropertyInt64(Session session, PropertyInt64 property, ulong value) 
-            : base(GameMessageOpcode.PrivateUpdatePropertyInt64)
+        public GameMessagePrivateUpdatePropertyInt64(Session session, PropertyInt64 property, ulong value) : base(GameMessageOpcode.PrivateUpdatePropertyInt64)
         {
-            this.property = property;
-            this.value = value;
-            writer.Write(session.UpdatePropertyInt64Sequence++);
-            writer.Write((uint)property);
-            writer.Write(value);
+            Writer.Write(session.UpdatePropertyInt64Sequence++);
+            Writer.Write((uint)property);
+            Writer.Write(value);
         }
     }
 }

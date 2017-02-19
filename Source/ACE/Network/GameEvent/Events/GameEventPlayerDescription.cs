@@ -68,82 +68,82 @@ namespace ACE.Network.GameEvent.Events
         private void WriteEventBody()
         {
             var propertyFlags    = DescriptionPropertyFlag.None;
-            var propertyFlagsPos = writer.BaseStream.Position;
-            writer.Write(0u);
-            writer.Write(0x0Au);
+            var propertyFlagsPos = Writer.BaseStream.Position;
+            Writer.Write(0u);
+            Writer.Write(0x0Au);
 
-            var propertiesInt = session.Player.PropertiesInt;
+            var propertiesInt = Session.Player.PropertiesInt;
             if (propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
 
-                writer.Write((ushort)propertiesInt.Count);
-                writer.Write((ushort)0x40);
+                Writer.Write((ushort)propertiesInt.Count);
+                Writer.Write((ushort)0x40);
 
                 foreach (var uintProperty in propertiesInt)
                 {
-                    writer.Write((uint)uintProperty.Key);
-                    writer.Write(uintProperty.Value);
+                    Writer.Write((uint)uintProperty.Key);
+                    Writer.Write(uintProperty.Value);
                 }
             }
 
-            var propertiesInt64 = session.Player.PropertiesInt64;
+            var propertiesInt64 = Session.Player.PropertiesInt64;
             if (propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
 
-                writer.Write((ushort)propertiesInt64.Count);
-                writer.Write((ushort)0x40);
+                Writer.Write((ushort)propertiesInt64.Count);
+                Writer.Write((ushort)0x40);
 
                 foreach (var uint64Property in propertiesInt64)
                 {
-                    writer.Write((uint)uint64Property.Key);
-                    writer.Write(uint64Property.Value);
+                    Writer.Write((uint)uint64Property.Key);
+                    Writer.Write(uint64Property.Value);
                 }
             }
 
-            var propertiesBool = session.Player.PropertiesBool;
+            var propertiesBool = Session.Player.PropertiesBool;
             if (propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
 
-                writer.Write((ushort)propertiesBool.Count);
-                writer.Write((ushort)0x20);
+                Writer.Write((ushort)propertiesBool.Count);
+                Writer.Write((ushort)0x20);
 
                 foreach (var boolProperty in propertiesBool)
                 {
-                    writer.Write((uint)boolProperty.Key);
-                    writer.Write(Convert.ToUInt32(boolProperty.Value)); // just as fast as inlining
+                    Writer.Write((uint)boolProperty.Key);
+                    Writer.Write(Convert.ToUInt32(boolProperty.Value)); // just as fast as inlining
                 }
             }
 
-            var propertiesDouble = session.Player.PropertiesDouble;
+            var propertiesDouble = Session.Player.PropertiesDouble;
             if (propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
 
-                writer.Write((ushort)propertiesDouble.Count);
-                writer.Write((ushort)0x20);
+                Writer.Write((ushort)propertiesDouble.Count);
+                Writer.Write((ushort)0x20);
 
                 foreach (var doubleProperty in propertiesDouble)
                 {
-                    writer.Write((uint)doubleProperty.Key);
-                    writer.Write(doubleProperty.Value);
+                    Writer.Write((uint)doubleProperty.Key);
+                    Writer.Write(doubleProperty.Value);
                 }
             }
 
-            var propertiesString = session.Player.PropertiesString;
+            var propertiesString = Session.Player.PropertiesString;
             if (propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
 
-                writer.Write((ushort)propertiesString.Count);
-                writer.Write((ushort)0x10);
+                Writer.Write((ushort)propertiesString.Count);
+                Writer.Write((ushort)0x10);
 
                 foreach (var stringProperty in propertiesString)
                 {
-                    writer.Write((uint)stringProperty.Key);
-                    writer.WriteString16L(stringProperty.Value);
+                    Writer.Write((uint)stringProperty.Key);
+                    Writer.WriteString16L(stringProperty.Value);
                 }
             }
 
@@ -159,102 +159,102 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
-            writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
+            Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
             var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
-            writer.Write((uint)vectorFlags);
-            writer.Write(1u);
+            Writer.Write((uint)vectorFlags);
+            Writer.Write(1u);
             
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
                 var attributeFlags = DescriptionAttributeFlag.Full;
-                writer.Write((uint)attributeFlags);
+                Writer.Write((uint)attributeFlags);
 
                 if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
                 {
-                    writer.Write(this.session.Player.Strength.Ranks); // ranks
-                    writer.Write(this.session.Player.Strength.UnbuffedValue);
-                    writer.Write(this.session.Player.Strength.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Strength.Ranks); // ranks
+                    Writer.Write(this.Session.Player.Strength.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
                 {
-                    writer.Write(this.session.Player.Endurance.Ranks); // ranks
-                    writer.Write(this.session.Player.Endurance.UnbuffedValue);
-                    writer.Write(this.session.Player.Endurance.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Endurance.Ranks); // ranks
+                    Writer.Write(this.Session.Player.Endurance.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
                 {
-                    writer.Write(this.session.Player.Quickness.Ranks); // ranks
-                    writer.Write(this.session.Player.Quickness.UnbuffedValue);
-                    writer.Write(this.session.Player.Quickness.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Quickness.Ranks); // ranks
+                    Writer.Write(this.Session.Player.Quickness.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
                 {
-                    writer.Write(this.session.Player.Coordination.Ranks); // ranks
-                    writer.Write(this.session.Player.Coordination.UnbuffedValue);
-                    writer.Write(this.session.Player.Coordination.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Coordination.Ranks); // ranks
+                    Writer.Write(this.Session.Player.Coordination.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
                 {
-                    writer.Write(this.session.Player.Focus.Ranks); // ranks
-                    writer.Write(this.session.Player.Focus.UnbuffedValue);
-                    writer.Write(this.session.Player.Focus.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Focus.Ranks); // ranks
+                    Writer.Write(this.Session.Player.Focus.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
                 {
-                    writer.Write(this.session.Player.Self.Ranks); // ranks
-                    writer.Write(this.session.Player.Self.UnbuffedValue);
-                    writer.Write(this.session.Player.Self.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Self.Ranks); // ranks
+                    Writer.Write(this.Session.Player.Self.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
                 {
-                    writer.Write(this.session.Player.Health.Ranks); // ranks
-                    writer.Write(0u); // unknown
-                    writer.Write(this.session.Player.Health.ExperienceSpent); // xp spent
-                    writer.Write(this.session.Player.Health.Current); // current value
+                    Writer.Write(this.Session.Player.Health.Ranks); // ranks
+                    Writer.Write(0u); // unknown
+                    Writer.Write(this.Session.Player.Health.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Health.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
                 {
-                    writer.Write(this.session.Player.Stamina.Ranks); // ranks
-                    writer.Write(0u); // unknown
-                    writer.Write(this.session.Player.Stamina.ExperienceSpent); // xp spent
-                    writer.Write(this.session.Player.Stamina.Current); // current value
+                    Writer.Write(this.Session.Player.Stamina.Ranks); // ranks
+                    Writer.Write(0u); // unknown
+                    Writer.Write(this.Session.Player.Stamina.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Stamina.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
                 {
-                    writer.Write(this.session.Player.Mana.Ranks); // ranks
-                    writer.Write(0u); // unknown
-                    writer.Write(this.session.Player.Mana.ExperienceSpent); // xp spent
-                    writer.Write(this.session.Player.Mana.Current); // current value
+                    Writer.Write(this.Session.Player.Mana.Ranks); // ranks
+                    Writer.Write(0u); // unknown
+                    Writer.Write(this.Session.Player.Mana.ExperienceSpent); // xp spent
+                    Writer.Write(this.Session.Player.Mana.Current); // current value
                 }
             }
 
             // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                var skills = this.session.Player.Skills;
+                var skills = this.Session.Player.Skills;
 
-                writer.Write((ushort)skills.Count);
-                writer.Write((ushort)0x20); // unknown
+                Writer.Write((ushort)skills.Count);
+                Writer.Write((ushort)0x20); // unknown
 
                 foreach (var skill in skills)
                 {
-                    writer.Write((uint)skill.Key); // skill id
-                    writer.Write((ushort)skill.Value.Ranks); // points raised
-                    writer.Write((ushort)0);
-                    writer.Write((uint)skill.Value.Status); // skill state
-                    writer.Write((uint)skill.Value.ExperienceSpent); // xp spent on this skill
-                    writer.Write(0u); // current bonus points applied (buffs) - not implemented
-                    writer.Write(0u); // task difficulty
-                    writer.Write(0d);
+                    Writer.Write((uint)skill.Key); // skill id
+                    Writer.Write((ushort)skill.Value.Ranks); // points raised
+                    Writer.Write((ushort)0);
+                    Writer.Write((uint)skill.Value.Status); // skill state
+                    Writer.Write((uint)skill.Value.ExperienceSpent); // xp spent on this skill
+                    Writer.Write(0u); // current bonus points applied (buffs) - not implemented
+                    Writer.Write(0u); // task difficulty
+                    Writer.Write(0d);
                 }
             }
 
@@ -274,14 +274,14 @@ namespace ACE.Network.GameEvent.Events
             }*/
 
             var optionFlags = DescriptionOptionFlag.None;
-            writer.Write((uint)optionFlags);
-            writer.Write(0x11C4E56A);
+            Writer.Write((uint)optionFlags);
+            Writer.Write(0x11C4E56A);
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
             }*/
 
-            writer.Write(0u);
+            Writer.Write(0u);
 
             /*if ((optionFlags & DescriptionOptionFlag.SpellTab) != 0)
             {
@@ -299,10 +299,10 @@ namespace ACE.Network.GameEvent.Events
             }*/
 
             if ((optionFlags & DescriptionOptionFlag.Unk20) != 0)
-                writer.Write(0u);
+                Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                writer.Write(0u);
+                Writer.Write(0u);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {
@@ -316,8 +316,8 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
-            writer.Write(0u);
-            writer.Write(0u);
+            Writer.Write(0u);
+            Writer.Write(0u);
         }
     }
 }

@@ -10,12 +10,12 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            this.title = fragment.Payload.ReadUInt32();
+            title = Fragment.Payload.ReadUInt32();
         }
 
         public override void Handle()
         {
-            session.Player.SetTitle(title);
+            Session.Player.SetTitle(title);
         }
     }
 }

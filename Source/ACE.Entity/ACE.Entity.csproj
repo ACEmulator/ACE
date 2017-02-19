@@ -59,7 +59,11 @@
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
+    <Compile Include="Enum\ChatDisplayMask.cs" />
+    <Compile Include="Enum\ChatFilterMask.cs" />
+    <Compile Include="Enum\ChatMessageType.cs" />
     <Compile Include="Enum\EnumHelper.cs" />
+    <Compile Include="Enum\GroupChatType.cs" />
     <Compile Include="Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
@@ -69,6 +73,9 @@
     <Compile Include="Enum\Properties\PropertyInt64.cs" />
     <Compile Include="Enum\Properties\PropertyString.cs" />
     <Compile Include="Enum\Skill.cs" />
+    <Compile Include="Enum\StatusMessageType1.cs" />
+    <Compile Include="Enum\StatusMessageType2.cs" />
+    <Compile Include="Enum\TurbineChatType.cs" />
     <Compile Include="ExperienceExpenditure.cs" />
     <Compile Include="Friend.cs" />
     <Compile Include="LevelingChart.cs" />
