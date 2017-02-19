@@ -1,9 +1,6 @@
-﻿using ACE.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -16,16 +13,16 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            uint lowId = fragment.Payload.ReadUInt32() & 0xFFFFFF;
+            uint lowId = Fragment.Payload.ReadUInt32() & 0xFFFFFF;
             friendId = new ObjectGuid(lowId, GuidType.Player);
         }
 
         public async override void Handle()
         {
-            var result = await session.Player.RemoveFriend(friendId);
+            var result = await Session.Player.RemoveFriend(friendId);
 
             if(result == Enum.RemoveFriendResult.NotInFriendsList)
-                ChatPacket.SendSystemMessage(session, "That chracter is not in your friends list!");                            
+                ChatPacket.SendServerMessage(Session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);                            
         }
     }
 }

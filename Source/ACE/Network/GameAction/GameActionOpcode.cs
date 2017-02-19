@@ -13,12 +13,17 @@ namespace ACE.Network.GameAction
         RaiseVital                  = 0x0044,
         RaiseAbility                = 0x0045,
         RaiseSkill                  = 0x0046,
+        Tell                        = 0x005D,
         LoginComplete               = 0x00A1,
         AdvocateTeleport            = 0x00D6,
+
+        ChatChannel                 = 0x0147,
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,
+
         HouseQuery                  = 0x021E,
+
         MoveToState                 = 0xF61C,
-        AutonomousPosition          = 0xF753
+        AutonomousPosition          = 0xF753,
     }
 }

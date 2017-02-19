@@ -102,6 +102,7 @@
     <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetSingleCharacterOption.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
@@ -115,6 +116,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRemoveFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionOpcode.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
@@ -131,12 +133,14 @@
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventTell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
     <Compile Include="Network\GameEvent\GameEventMessage.cs" />
     <Compile Include="Network\GameEvent\GameEventType.cs" />
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
