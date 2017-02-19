@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+
 using ACE.Network;
 
 namespace ACE.Command
@@ -75,8 +78,31 @@ namespace ACE.Command
             if (!commandHandlers.TryGetValue(command, out commandInfo))
                 return CommandHandlerResponse.InvalidCommand;
 
-            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) == 0 && session == null)
+            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) != 0 && session != null)
                 return CommandHandlerResponse.NoConsoleInvoke;
+
+            if (session != null)
+            {
+                bool isAdvocate = false;
+                bool isSentinel = false;
+                bool isEnvoy = false;
+                bool isArch = false;
+                bool isAdmin = false;
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdvocate, out isAdvocate);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsSentinel, out isSentinel);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsPsr, out isEnvoy);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsArch, out isArch);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdmin, out isAdmin);
+                
+                // if (commandInfo.Attribute.Access > session.AccessLevel) 
+                // TODO: Hook in a "SUDO" command which checks Session.AccessLevel instead of Session.Player.PropertiesBools for accesslevel
+                if (commandInfo.Attribute.Access == AccessLevel.Advocate && !(isAdvocate || isSentinel || isEnvoy || isArch || isAdmin)
+                    || commandInfo.Attribute.Access == AccessLevel.Sentinel && !(isSentinel || isEnvoy || isArch || isAdmin)
+                    || commandInfo.Attribute.Access == AccessLevel.Envoy && !(isEnvoy || isArch || isAdmin)
+                    || commandInfo.Attribute.Access == AccessLevel.Developer && !(isArch || isAdmin)
+                    || commandInfo.Attribute.Access == AccessLevel.Admin && !(isAdmin))
+                    return CommandHandlerResponse.NotAuthorized;
+            }
 
             if (commandInfo.Attribute.ParameterCount != -1 && parameters.Length < commandInfo.Attribute.ParameterCount)
                 return CommandHandlerResponse.InvalidParameterCount;

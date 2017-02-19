@@ -11,6 +11,7 @@ namespace ACE.Command
         Ok,
         InvalidCommand,
         NoConsoleInvoke,
+        NotAuthorized,
         InvalidParameterCount,
         NotInWorld
     }
