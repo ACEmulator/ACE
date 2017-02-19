@@ -138,6 +138,15 @@ namespace ACE.Network.Managers
                 GetSocket(type).SendTo(buffer, session.EndPoint);
         }
 
+        public static void SendBundle(NetworkBundle bundle)
+        {
+            Socket socket = GetSocket(bundle.connectionType);
+            Session session = bundle.sender;
+            var connectionData = (bundle.connectionType == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
+            byte[] buffer;
+            socket.SendTo(buffer, bundle.sender.EndPoint);
+        }
+
         //TODO Move group to per message property, think this broke sounds.
         //Hacky. TODO Need to rewrite some code to build packet/fragments differently
         //TODO Further testing on multifragment sending.
