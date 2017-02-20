@@ -1,4 +1,5 @@
 ﻿
+using ACE.Entity.Enum;
 using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
@@ -13,13 +14,14 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            vital = (Vital)fragment.Payload.ReadUInt32();
-            xpSpent = fragment.Payload.ReadUInt32();
+            vital = (Vital)Fragment.Payload.ReadUInt32();
+            xpSpent = Fragment.Payload.ReadUInt32();
         }
 
         public override void Handle()
         {
-            Entity.Enum.Ability ability = Entity.Enum.Ability.None;
+            Entity.Enum.Ability ability;
+
             switch (vital)
             {
                 case Vital.MaxHealth:
@@ -32,10 +34,11 @@ namespace ACE.Network.GameAction.Actions
                     ability = Entity.Enum.Ability.Mana;
                     break;
                 default:
-                    ChatPacket.SendSystemMessage(session, $"Unable to Handle GameActionRaiseVital for vital {vital}");
+                    ChatPacket.SendServerMessage(Session, $"Unable to Handle GameActionRaiseVital for vital {vital}", ChatMessageType.Broadcast);
                     return;
             }
-            session.Player.SpendXp(ability, xpSpent);
+
+            Session.Player.SpendXp(ability, xpSpent);
         }
     }
 }

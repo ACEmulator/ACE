@@ -13,7 +13,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            var networkAbility = (Ability)fragment.Payload.ReadUInt32();
+            var networkAbility = (Ability)Fragment.Payload.ReadUInt32();
             switch (networkAbility)
             {
                 case Ability.Strength:
@@ -37,12 +37,12 @@ namespace ACE.Network.GameAction.Actions
                 case Ability.Undefined:
                     return;
             }
-            xpSpent = fragment.Payload.ReadUInt32();
+            xpSpent = Fragment.Payload.ReadUInt32();
         }
 
         public override void Handle()
         {
-            session.Player.SpendXp(ability, xpSpent);
+            Session.Player.SpendXp(ability, xpSpent);
         }
     }
 }

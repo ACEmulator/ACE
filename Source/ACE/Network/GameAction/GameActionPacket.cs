@@ -1,24 +1,25 @@
 ﻿
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction
 {
     public abstract class GameActionPacket
     {
-        protected Session session;
-        protected ClientPacketFragment fragment;
-        
+        protected Session Session { get; private set; }
+
+        protected ClientPacketFragment Fragment { get; private set; }
+
         public GameActionPacket(Session session, ClientPacketFragment fragment)
         {
-            this.session  = session;
-            this.fragment = fragment;
+            Session  = session;
+            Fragment = fragment;
         }
 
         // not all action packets have a body
         public virtual void Read() { }
+
         public abstract void Handle();
 
         [GameMessageAttribute(GameMessageOpcode.GameAction, SessionState.WorldConnected)]

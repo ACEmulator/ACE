@@ -59,11 +59,11 @@ namespace ACE.Network.GameEvent.Events
             List<Friend> friendList = null;
 
             if (updateType == FriendsUpdateTypeFlag.FullList)
-                friendList = session.Player.Friends.ToList();
+                friendList = Session.Player.Friends.ToList();
             else
                 friendList = new List<Friend>() { friend };
 
-            writer.Write((uint)friendList.Count);
+            Writer.Write((uint)friendList.Count);
 
             foreach (var f in friendList)
             {
@@ -78,21 +78,21 @@ namespace ACE.Network.GameEvent.Events
                         isOnline = true;
                 }                    
 
-                writer.Write(f.Id.Full); // friend Object ID
-                writer.Write(isOnline ? 1u : 0u); // is Online               
-                writer.Write(0u); // Unknown
-                writer.WriteString16L(f.Name); // Friend Name
+                Writer.Write(f.Id.Full); // friend Object ID
+                Writer.Write(isOnline ? 1u : 0u); // is Online               
+                Writer.Write(0u); // Unknown
+                Writer.WriteString16L(f.Name); // Friend Name
 
-                writer.Write((uint)f.FriendIdList.Count); // Number of people on this persons friend's list.
+                Writer.Write((uint)f.FriendIdList.Count); // Number of people on this persons friend's list.
                 foreach (var fid in f.FriendIdList)
-                    writer.Write(fid.Full);
+                    Writer.Write(fid.Full);
 
-                writer.Write((uint)f.FriendOfIdList.Count); // Number of people that have this person as a friend.
+                Writer.Write((uint)f.FriendOfIdList.Count); // Number of people that have this person as a friend.
                 foreach (var fid in f.FriendOfIdList)
-                    writer.Write(fid.Full);
+                    Writer.Write(fid.Full);
             }
 
-            writer.Write((uint)updateType);
+            Writer.Write((uint)updateType);
         }
     }
 }

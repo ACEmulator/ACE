@@ -11,7 +11,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            this.emote = fragment.Payload.ReadString16L();
+            this.emote = Fragment.Payload.ReadString16L();
         }
 
         public override void Handle()

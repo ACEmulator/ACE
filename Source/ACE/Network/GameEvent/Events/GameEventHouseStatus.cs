@@ -5,7 +5,7 @@ namespace ACE.Network.GameEvent.Events
     {
         public GameEventHouseStatus(Session session) : base(GameEventType.HouseStatus, session)
         {
-            writer.Write(2u);
+            Writer.Write(2u);
         }
     }
 }

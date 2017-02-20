@@ -1,17 +1,18 @@
-﻿using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
+﻿
+using ACE.Entity.Enum;
+using ACE.Network.GameMessages;
 using ACE.Network.Managers;
 
 namespace ACE.Network
 {
     public static class ChatPacket
     {
-        public static void SendSystemMessage(Session session, string message)
+        public static void SendServerMessage(Session session, string message, ChatMessageType chatMessageType)
         {
             var textboxString         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
-            var textboxStringFragment = new ServerPacketFragment(0x09, GameMessageOpcode.TextboxString);
+            var textboxStringFragment = new ServerPacketFragment(0x09, GameMessageOpcode.ServerMessage);
             textboxStringFragment.Payload.WriteString16L(message);
-            textboxStringFragment.Payload.Write(0x00);
+            textboxStringFragment.Payload.Write((int)chatMessageType);
             textboxString.Fragments.Add(textboxStringFragment);
 
             if (session == null)

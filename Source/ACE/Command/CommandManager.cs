@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+
 using ACE.Network;
 
 namespace ACE.Command
@@ -72,17 +75,72 @@ namespace ACE.Command
 
         public static CommandHandlerResponse GetCommandHandler(Session session, string command, string[] parameters, out CommandHandlerInfo commandInfo)
         {
+            bool isSUDOauthorized = false;
+
+            if (command.ToLower() == "sudo")
+            {
+                string sudoCommand = "";
+                string[] sudoParameters;
+                if (parameters.Length > 0)
+                    sudoCommand = parameters[0];
+
+                if (!commandHandlers.TryGetValue(sudoCommand, out commandInfo))
+                    return CommandHandlerResponse.InvalidCommand;
+
+                if (session == null)
+                {
+                    Console.WriteLine("SUDO does not work on the console because you already have full access. Remove SUDO from command and execute again.");
+                    return CommandHandlerResponse.InvalidCommand;
+                }
+
+                if (commandInfo.Attribute.Access <= session.AccessLevel)
+                    isSUDOauthorized = true;
+
+                if (isSUDOauthorized)
+                {
+                    command = sudoCommand;
+                    sudoParameters = new string[parameters.Length - 1];
+                    for (int i = 1; i < parameters.Length; i++)
+                        sudoParameters[i - 1] = parameters[i];
+                    parameters = sudoParameters;
+                }
+            }
+
             if (!commandHandlers.TryGetValue(command, out commandInfo))
                 return CommandHandlerResponse.InvalidCommand;
 
-            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) == 0 && session == null)
+            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) != 0 && session != null)
                 return CommandHandlerResponse.NoConsoleInvoke;
+
+            if (session != null)
+            {
+                bool isAdvocate = false;
+                bool isSentinel = false;
+                bool isEnvoy = false;
+                bool isArch = false;
+                bool isAdmin = false;
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdvocate, out isAdvocate);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsSentinel, out isSentinel);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsPsr, out isEnvoy);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsArch, out isArch);
+                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdmin, out isAdmin);
+                
+                if (commandInfo.Attribute.Access == AccessLevel.Advocate && !(isAdvocate || isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Sentinel && !(isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Envoy && !(isEnvoy || isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Developer && !(isArch || isAdmin || isSUDOauthorized)
+                    || commandInfo.Attribute.Access == AccessLevel.Admin && !(isAdmin || isSUDOauthorized))
+                    return CommandHandlerResponse.NotAuthorized;
+            }
 
             if (commandInfo.Attribute.ParameterCount != -1 && parameters.Length < commandInfo.Attribute.ParameterCount)
                 return CommandHandlerResponse.InvalidParameterCount;
 
             if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Player == null || !session.Player.InWorld))
                 return CommandHandlerResponse.NotInWorld;
+
+            if (isSUDOauthorized)
+                return CommandHandlerResponse.SudoOk;
 
             return CommandHandlerResponse.Ok;
         }
