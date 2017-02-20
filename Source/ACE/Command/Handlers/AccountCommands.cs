@@ -22,34 +22,9 @@ namespace ACE.Command.Handlers
             AccessLevel accessLevel = AccessLevel.Player;
 
             if (parameters.Length > 2)
-            {
-                switch (parameters[2].ToLower())
-                {
-                    case "1":
-                    case "advocate":
-                        accessLevel = AccessLevel.Advocate;
-                        break;
-                    case "2":
-                    case "sentinel":
-                        accessLevel = AccessLevel.Sentinel;
-                        break;
-                    case "3":
-                    case "envoy":
-                        accessLevel = AccessLevel.Envoy;
-                        break;
-                    case "4":
-                    case "developer":
-                        accessLevel = AccessLevel.Developer;
-                        break;
-                    case "5":
-                    case "admin":
-                        accessLevel = AccessLevel.Admin;
-                        break;
-                    default:
+                if (Enum.TryParse(parameters[2], true, out accessLevel))
+                    if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
                         accessLevel = AccessLevel.Player;
-                        break;
-                }
-            }
 
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
@@ -78,41 +53,16 @@ namespace ACE.Command.Handlers
                 if (session == null)
                     Console.WriteLine("Account " + accountName + " does not exist.");
                 else
-                    ChatPacket.SendSystemMessage(session, "Account " + accountName + " does not exist.");
+                    ChatPacket.SendServerMessage(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
                 return;
             }
 
             AccessLevel accessLevel = AccessLevel.Player;
 
             if (parameters.Length > 1)
-            {
-                switch (parameters[1].ToLower())
-                {
-                    case "1":
-                    case "advocate":
-                        accessLevel = AccessLevel.Advocate;
-                        break;
-                    case "2":
-                    case "sentinel":
-                        accessLevel = AccessLevel.Sentinel;
-                        break;
-                    case "3":
-                    case "envoy":
-                        accessLevel = AccessLevel.Envoy;
-                        break;
-                    case "4":
-                    case "developer":
-                        accessLevel = AccessLevel.Developer;
-                        break;
-                    case "5":
-                    case "admin":
-                        accessLevel = AccessLevel.Admin;
-                        break;
-                    default:
+                if (Enum.TryParse(parameters[1], true, out accessLevel))
+                    if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
                         accessLevel = AccessLevel.Player;
-                        break;
-                }
-            }
 
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
@@ -123,7 +73,7 @@ namespace ACE.Command.Handlers
                 if (session == null)
                     Console.WriteLine("Account " + accountName + " does not exist.");
                 else
-                    ChatPacket.SendSystemMessage(session, "Account " + accountName + " does not exist.");
+                    ChatPacket.SendServerMessage(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
                 return;
             }
             else
@@ -132,7 +82,7 @@ namespace ACE.Command.Handlers
             if (session == null)
                 Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
             else
-                ChatPacket.SendSystemMessage(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+                ChatPacket.SendServerMessage(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
         }
     }
 }
