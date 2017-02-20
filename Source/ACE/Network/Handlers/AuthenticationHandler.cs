@@ -77,7 +77,7 @@ namespace ACE.Network.Handlers
 
             // TODO: check for account bans
 
-            session.SetAccount(account.AccountId, account.Name);
+            session.SetAccount(account.AccountId, account.Name, account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
         }
 

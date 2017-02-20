@@ -11,7 +11,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            NetworkManager.SendWorldMessage(session, new GameEventPingResponse(session));
+            NetworkManager.SendWorldMessage(Session, new GameEventPingResponse(Session));
         }
     }
 }

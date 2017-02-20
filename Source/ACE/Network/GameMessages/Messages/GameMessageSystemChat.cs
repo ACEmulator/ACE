@@ -1,16 +1,14 @@
-﻿using ACE.Network.Enum;
+﻿
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageSystemChat : GameMessage
     {
-        private string message;
-
-        public GameMessageSystemChat(Session target, string message) : base(GameMessageOpcode.TextboxString)
+        public GameMessageSystemChat(string message, ChatMessageType chatMessageType) : base(GameMessageOpcode.ServerMessage)
         {
-            this.message = message;
-            writer.WriteString16L(message);
-            writer.Write(0x00);
+            Writer.WriteString16L(message);
+            Writer.Write((int)chatMessageType);
         }
     }
 }

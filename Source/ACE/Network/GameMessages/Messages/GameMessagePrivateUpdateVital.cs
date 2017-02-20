@@ -6,39 +6,33 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateVital : GameMessage
     {
-        private Vital vital;
-        private uint baseValue;
-        private uint ranks;
-        private uint totalInvestment;
-        private uint currentValue;
-
-        public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability vital, uint ranks, uint baseValue, uint totalInvestment, uint currentValue) 
-            : base(GameMessageOpcode.PrivateUpdateVital)
+        public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue) : base(GameMessageOpcode.PrivateUpdateVital)
         {
-            switch (vital)
+            // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
+
+            Vital vital;
+
+            switch (ability)
             {
                 case Entity.Enum.Ability.Health:
-                    this.vital = Vital.Health;
+                    vital = Vital.Health;
                     break;
                 case Entity.Enum.Ability.Stamina:
-                    this.vital = Vital.Stamina;
+                    vital = Vital.Stamina;
                     break;
                 case Entity.Enum.Ability.Mana:
-                    this.vital = Vital.Mana;
+                    vital = Vital.Mana;
                     break;
                 default:
-                    throw new ArgumentException("invalid vital specified");
+                    throw new ArgumentException("invalid ability specified");
             }
-            this.ranks = ranks;
-            this.baseValue = baseValue;
-            this.totalInvestment = totalInvestment;
-            this.currentValue = currentValue;
-            writer.Write(session.UpdateAttributeSequence++);
-            writer.Write((uint)this.vital);
-            writer.Write(this.ranks);
-            writer.Write(this.baseValue);
-            writer.Write(this.totalInvestment);
-            writer.Write(this.currentValue);
+
+            Writer.Write(session.UpdateAttributeSequence++);
+            Writer.Write((uint)vital);
+            Writer.Write(ranks);
+            Writer.Write(baseValue);
+            Writer.Write(totalInvestment);
+            Writer.Write(currentValue);
         }
     }
 }

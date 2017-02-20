@@ -1,17 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ACE.Managers;
 using ACE.Network.Enum;
 
@@ -31,6 +31,8 @@ namespace ACE.Entity
         
         private Character character;
 
+        private Dictionary<SingleCharacterOption, bool> characterOptions; // Might want to move this to Character class
+        
         public ReadOnlyCollection<Friend> Friends
         {
             get { return character.Friends; }
@@ -178,6 +180,16 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+
+            // TODO: In future load these values from DB (if they are supposed to persist)
+            characterOptions = new Dictionary<SingleCharacterOption, bool>(System.Enum.GetNames(typeof(SingleCharacterOption)).Length);
+            InitializeCharacterOptions();                                   
+        }
+
+        private void InitializeCharacterOptions()
+        {            
+            foreach (SingleCharacterOption option in System.Enum.GetValues(typeof(SingleCharacterOption)))
+                characterOptions.Add(option, false);            
         }
         
         public async void Load()
@@ -195,7 +207,7 @@ namespace ACE.Entity
             character.GrantXp(amount);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-            var message = new GameMessageSystemChat(Session, $"{amount} experience granted.");
+            var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
 
             NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpAvailUpdate, xpTotalUpdate, message });
         }
@@ -228,12 +240,12 @@ namespace ACE.Entity
                 }
 
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
-                var message = new GameMessageSystemChat(Session, $"Your base {ability} is now {newValue}!");
+                var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
                 NetworkManager.SendWorldMessages(Session, new GameMessage[] { abilityUpdate, soundEvent, message });
             }
             else
             {
-                ChatPacket.SendSystemMessage(Session, $"Your attempt to raise {ability} has failed.");
+                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
             }
         }
 
@@ -300,12 +312,12 @@ namespace ACE.Entity
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 var ablityUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
-                var message = new GameMessageSystemChat(Session, $"Your base {skill} is now {newValue}!");
+                var message = new GameMessageSystemChat($"Your base {skill} is now {newValue}!", ChatMessageType.Broadcast);
                 NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpUpdate, ablityUpdate, soundEvent, message });
             }
             else
             {
-                ChatPacket.SendSystemMessage(Session, $"Your attempt to raise {skill} has failed.");
+                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {skill} has failed.", ChatMessageType.Broadcast);
             }
         }
 
@@ -334,6 +346,7 @@ namespace ACE.Entity
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
+            // TODO this crashes if you try to raise your skill too high
             uint rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
 
             if (amount == rank1)
@@ -364,12 +377,10 @@ namespace ACE.Entity
                 Friend playerFriend = new Friend();
                 playerFriend.Id = Guid;
                 playerFriend.Name = Name;
-                List<GameMessage> updates = new List<GameMessage>();
                 foreach (var friendSession in inverseFriends)
                 {
-                    updates.Add(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline));
-                }
-                NetworkManager.SendWorldMessages(Session, updates);
+                    NetworkManager.SendWorldMessage(friendSession, new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+                }                
             }
         }
 
@@ -434,10 +445,21 @@ namespace ACE.Entity
             character.RemoveAllFriends();
         }
 
-        public void ChangeOnlineStatus(bool isOnline)
+        public void AppearOffline(bool appearOffline)
         {
-            IsOnline = isOnline;
+            characterOptions[SingleCharacterOption.AppearOffline] = appearOffline;
             SendFriendStatusUpdates();
+        }
+        
+        /// <summary>
+        /// This method will return false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
+        /// </summary>
+        public bool GetVirtualOnlineStatus()
+        {
+            if (characterOptions[SingleCharacterOption.AppearOffline] == true)
+                return false;
+
+            return IsOnline;
         }
 
         private void SendSelf()
@@ -504,7 +526,7 @@ namespace ACE.Entity
         public void SetTitle(uint title)
         {
             var updateTitle = new GameEventUpdateTitle(Session, title);
-            var message = new GameMessageSystemChat(Session, $"Your title is now {title}!");
+            var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
             NetworkManager.SendWorldMessages(Session, new GameMessage[] { updateTitle, message });
         }
 
