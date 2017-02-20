@@ -67,13 +67,16 @@ namespace ACE.Network.GameEvent.Events
 
             foreach (var f in friendList)
             {
-                Session friendSession = WorldManager.Find(f.Id);
                 bool isOnline = false;
 
                 if (overrideOnlineStatus)
                     isOnline = onlineStatusVal;
-                else if (friendSession != null && friendSession.Player.IsOnline)
-                    isOnline = true;
+                else
+                {
+                    Session friendSession = WorldManager.Find(f.Id);
+                    if(friendSession != null && friendSession.Player?.GetVirtualOnlineStatus() == true)
+                        isOnline = true;
+                }                    
 
                 Writer.Write(f.Id.Full); // friend Object ID
                 Writer.Write(isOnline ? 1u : 0u); // is Online               

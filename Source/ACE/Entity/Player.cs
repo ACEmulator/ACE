@@ -31,6 +31,8 @@ namespace ACE.Entity
         
         private Character character;
 
+        private Dictionary<SingleCharacterOption, bool> characterOptions; // Might want to move this to Character class
+        
         public ReadOnlyCollection<Friend> Friends
         {
             get { return character.Friends; }
@@ -178,6 +180,16 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+
+            // TODO: In future load these values from DB (if they are supposed to persist)
+            characterOptions = new Dictionary<SingleCharacterOption, bool>(System.Enum.GetNames(typeof(SingleCharacterOption)).Length);
+            InitializeCharacterOptions();                                   
+        }
+
+        private void InitializeCharacterOptions()
+        {            
+            foreach (SingleCharacterOption option in System.Enum.GetValues(typeof(SingleCharacterOption)))
+                characterOptions.Add(option, false);            
         }
         
         public async void Load()
@@ -365,12 +377,10 @@ namespace ACE.Entity
                 Friend playerFriend = new Friend();
                 playerFriend.Id = Guid;
                 playerFriend.Name = Name;
-                List<GameMessage> updates = new List<GameMessage>();
                 foreach (var friendSession in inverseFriends)
                 {
-                    updates.Add(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, IsOnline));
-                }
-                NetworkManager.SendWorldMessages(Session, updates);
+                    NetworkManager.SendWorldMessage(friendSession, new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+                }                
             }
         }
 
@@ -435,10 +445,21 @@ namespace ACE.Entity
             character.RemoveAllFriends();
         }
 
-        public void ChangeOnlineStatus(bool isOnline)
+        public void AppearOffline(bool appearOffline)
         {
-            IsOnline = isOnline;
+            characterOptions[SingleCharacterOption.AppearOffline] = appearOffline;
             SendFriendStatusUpdates();
+        }
+        
+        /// <summary>
+        /// This method will return false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
+        /// </summary>
+        public bool GetVirtualOnlineStatus()
+        {
+            if (characterOptions[SingleCharacterOption.AppearOffline] == true)
+                return false;
+
+            return IsOnline;
         }
 
         private void SendSelf()
