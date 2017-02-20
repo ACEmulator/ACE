@@ -16,6 +16,7 @@ namespace ACE.Network
         public float clientTime { get; set; }
         public bool timeSync { get; set; }
         public bool ackSeq { get; set; }
+        public bool encryptedChecksum { get; set; }
 
         public NetworkBundle(Session session, ConnectionType connType)
         {
@@ -25,6 +26,7 @@ namespace ACE.Network
             clientTime = -1f;
             timeSync = false;
             ackSeq = false;
+            encryptedChecksum = true;
         }
     }
 }

@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 
 using ACE.Common;
+using ACE.Common.Cryptography;
 
 namespace ACE.Network.Managers
 {
@@ -120,8 +122,8 @@ namespace ACE.Network.Managers
                     packetWriter.Seek(0, SeekOrigin.Begin);
                     packetWriter.Write(packet.Header.GetRaw());
 
-                    if (type == ConnectionType.World && packet.Header.Sequence >= 2u)
-                        session.CachedPackets.TryAdd(packet.Header.Sequence, new CachedPacket(issacXor, packet));
+                    //if (type == ConnectionType.World && packet.Header.Sequence >= 2u)
+                    //    session.CachedPackets.TryAdd(packet.Header.Sequence, new CachedPacket(issacXor, packet));
 
                     buffer = packetStream.ToArray();
                     return true;
@@ -129,7 +131,7 @@ namespace ACE.Network.Managers
             }
         }
 
-        public static void SendPacketDirect(ConnectionType type, ServerPacket packet, Session session) { GetSocket(type).SendTo(packet.Data.ToArray(), session.EndPoint); }
+        public static void SendPacketDirect(ConnectionType type, ServerPacket2 packet, Session session) { GetSocket(type).SendTo(packet.GetPayload(), session.EndPoint); }
 
         public static void SendPacket(ConnectionType type, ServerPacket packet, Session session, bool useHeaders = false)
         {
@@ -138,13 +140,147 @@ namespace ACE.Network.Managers
                 GetSocket(type).SendTo(buffer, session.EndPoint);
         }
 
+
+        //Create Packet
+        //If first packet for this bundle, fill any optional headers
+        //Append fragments that will fit
+        //--Check each fragment to see if it is a partial fit
+        //If we have a carryOverFragment or more messages, create additional packets.
+
         public static void SendBundle(NetworkBundle bundle)
         {
             Socket socket = GetSocket(bundle.connectionType);
             Session session = bundle.sender;
             var connectionData = (bundle.connectionType == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
-            byte[] buffer;
-            socket.SendTo(buffer, bundle.sender.EndPoint);
+            bool firstPacket = true;
+
+            MessageFragment carryOverMessage = null;
+
+            while (firstPacket || carryOverMessage != null || bundle.messages.Count > 0)
+            {
+                uint issacXor = (bundle.encryptedChecksum) ? session.GetIssacValue(PacketDirection.Server, bundle.connectionType) : 0u;
+                ServerPacket2 packet = new ServerPacket2(issacXor);
+                PacketHeader packetHeader = packet.Header;
+                if(bundle.encryptedChecksum)
+                    packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
+
+                uint availableSpace = Packet.MaxPacketDataSize;
+
+                if (firstPacket)
+                {
+                    firstPacket = false;
+                    using (var bodyStream = new MemoryStream())
+                    {
+                        using (var bodyWriter = new BinaryWriter(bodyStream))
+                        {
+
+                            if (bundle.ackSeq)
+                            {
+                                //Do AckSeq
+                            }
+                            if (bundle.timeSync)
+                            {
+                                //Do TimeSync
+                            }
+                            if (bundle.clientTime != -1f)
+                            {
+                                //Do EchoResponse
+                            }
+                            //TODO body content and checksum.
+                            bodyWriter.Flush();
+                            packet.SetBody(bodyStream.ToArray());
+                        }
+                    }
+                }
+
+                if (carryOverMessage != null || bundle.messages.Count > 0)
+                {
+                    packetHeader.Flags |= PacketHeaderFlags.BlobFragments;
+
+                    while (carryOverMessage != null || bundle.messages.Count > 0)
+                    {
+                        if (availableSpace <= PacketFragmentHeader.HeaderSize)
+                            break;
+
+                        MessageFragment currentMessageFragment;
+
+                        if (carryOverMessage != null)
+                        {
+                            currentMessageFragment = carryOverMessage;
+                            carryOverMessage = null;
+                            currentMessageFragment.index++;
+                        }
+                        else
+                        {
+                            currentMessageFragment = new MessageFragment(bundle.messages.Dequeue());
+                        }
+
+                        var currentGameMessage = currentMessageFragment.message;
+
+                        ServerPacketFragment2 fragment = new ServerPacketFragment2();
+                        PacketFragmentHeader fragmentHeader = fragment.Header;
+                        availableSpace -= PacketFragmentHeader.HeaderSize;
+
+                        currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? connectionData.FragmentSequence++ : currentMessageFragment.sequence;
+
+                        uint dataToSend = (uint)currentGameMessage.Data.Length - currentMessageFragment.position;
+                        if (dataToSend > availableSpace)
+                        {
+                            dataToSend = availableSpace;
+                            carryOverMessage = currentMessageFragment;
+                        }
+
+                        if (currentMessageFragment.count == 0)
+                        {
+                            uint remainingData = (uint)currentGameMessage.Data.Length - dataToSend;
+                            currentMessageFragment.count = (ushort)(Math.Ceiling((double)remainingData / PacketFragment.MaxFragmentDataSize) + 1);
+                        }
+
+                        fragmentHeader.Sequence = currentMessageFragment.sequence;
+                        fragmentHeader.Id = 0x80000000;
+                        fragmentHeader.Size = (ushort)(PacketFragmentHeader.HeaderSize + dataToSend);
+                        fragmentHeader.Count = currentMessageFragment.count;
+                        fragmentHeader.Index = currentMessageFragment.index;
+                        fragmentHeader.Group = 10;
+
+                        byte[] fragmentBodyBytes = new byte[dataToSend];
+                        currentGameMessage.Data.Read(fragmentBodyBytes, (int)currentMessageFragment.position, (int)dataToSend);
+                        fragment.Body = fragmentBodyBytes;
+
+                        currentMessageFragment.position = currentMessageFragment.position + dataToSend;
+                    }
+                }
+
+                if (packetHeader.HasFlag(PacketHeaderFlags.EncryptedChecksum) && connectionData.PacketSequence < 2)
+                    connectionData.PacketSequence = 2;
+
+                packetHeader.Sequence = connectionData.PacketSequence++;
+                packetHeader.Table = 0x14;
+                packetHeader.Time = (ushort)connectionData.ServerTime;
+
+                if (bundle.connectionType == ConnectionType.World && packetHeader.Sequence >= 2u)
+                    session.CachedPackets.TryAdd(packet.Header.Sequence, new CachedPacket(issacXor, packet));
+
+                socket.SendTo(packet.GetPayload(), bundle.sender.EndPoint);   
+            }
+        }
+
+        private class MessageFragment
+        {
+            public GameMessage message { get; private set; }
+            public uint position { get; set; }
+            public uint sequence { get; set; }
+            public ushort index { get; set; }
+            public ushort count { get; set; }
+
+            public MessageFragment(GameMessage message)
+            {
+                this.message = message;
+                index = 0;
+                count = 0;
+                position = 0;
+                sequence = 0;
+            }
         }
 
         //TODO Move group to per message property, think this broke sounds.

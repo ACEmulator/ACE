@@ -150,6 +150,8 @@
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
+    <Compile Include="Network\NetworkBuffer.cs" />
+    <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />
     <Compile Include="Network\PacketFragment.cs" />
@@ -157,7 +159,9 @@
     <Compile Include="Network\PacketHeader.cs" />
     <Compile Include="Network\PacketHeaderFlags.cs" />
     <Compile Include="Network\PacketHeaderOptional.cs" />
+    <Compile Include="Network\ServerPacket2.cs" />
     <Compile Include="Network\ServerPacket.cs" />
+    <Compile Include="Network\ServerPacketFragment2.cs" />
     <Compile Include="Network\ServerPacketFragment.cs" />
     <Compile Include="Network\Session.cs" />
     <Compile Include="ACE.cs" />

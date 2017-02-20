@@ -14,6 +14,8 @@ namespace ACE.Network
     {
         public static uint MaxPacketSize { get; } = 484u;
 
+        public static uint MaxPacketDataSize { get; } = 464u;
+
         public PacketHeader Header { get; protected set; }
         public PacketHeaderOptional HeaderOptional { get; protected set; }
         public MemoryStream Data { get; protected set; }
