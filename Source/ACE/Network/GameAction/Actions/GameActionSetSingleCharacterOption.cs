@@ -12,8 +12,8 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            option = (SingleCharacterOption)fragment.Payload.ReadUInt32();
-            optionValue = fragment.Payload.ReadUInt32() == 0 ? false : true;
+            option = (SingleCharacterOption)Fragment.Payload.ReadUInt32();
+            optionValue = Fragment.Payload.ReadUInt32() == 0 ? false : true;
         }
 
         public override void Handle()
@@ -21,7 +21,7 @@ namespace ACE.Network.GameAction.Actions
             switch(option)
             {
                 case SingleCharacterOption.AppearOffline:
-                    session.Player.AppearOffline(optionValue);
+                    Session.Player.AppearOffline(optionValue);
                     break;
             }            
         }
