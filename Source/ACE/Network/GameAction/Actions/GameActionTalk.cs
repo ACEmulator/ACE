@@ -1,4 +1,4 @@
-﻿
+
 using ACE.Command;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
@@ -33,6 +33,14 @@ namespace ACE.Network.GameAction.Actions
                 var response = CommandManager.GetCommandHandler(Session, command, parameters, out commandHandler);
                 if (response == CommandHandlerResponse.Ok)
                     ((CommandHandler)commandHandler.Handler).Invoke(Session, parameters);
+                else if (response == CommandHandlerResponse.SudoOk)
+                {
+                    string[] sudoParameters = new string[parameters.Length - 1];
+                    for (int i = 1; i < parameters.Length; i++)
+                        sudoParameters[i - 1] = parameters[i];
+
+                    ((CommandHandler)commandHandler.Handler).Invoke(Session, sudoParameters);
+                }
                 else
                 {
                     switch (response)

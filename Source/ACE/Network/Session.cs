@@ -4,6 +4,7 @@ using System.Net;
 
 using ACE.Common.Cryptography;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
@@ -15,6 +16,7 @@ namespace ACE.Network
     {
         public uint Id { get; private set; }
         public string Account { get; private set; }
+        public AccessLevel AccessLevel { get; private set; }
         public SessionState State { get; set; }
 
         public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
@@ -42,10 +44,11 @@ namespace ACE.Network
             EndPoint = endPoint;
         }
 
-        public void SetAccount(uint accountId, string account)
+        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
         {
             Id      = accountId;
             Account = account;
+            AccessLevel = accountAccesslevel;
         }
 
         public void Update(double lastTick)

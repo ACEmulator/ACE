@@ -373,5 +373,64 @@ namespace ACE.Database
         {
             await ExecutePreparedStatementAsync(CharacterPreparedStatement.CharacterFriendsRemoveAll, characterId);
         }
+
+        public uint SetCharacterAccessLevelByName(string characterName, AccessLevel accessLevel)
+        {
+            var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, characterName);
+            Debug.Assert(result != null);
+
+            uint boolId;
+            switch (accessLevel)
+            {
+                case AccessLevel.Advocate:
+                    boolId = (uint)PropertyBool.IsAdvocate;
+                    break;
+                case AccessLevel.Sentinel:
+                    boolId = (uint)PropertyBool.IsSentinel;
+                    break;
+                case AccessLevel.Envoy:
+                    boolId = (uint)PropertyBool.IsPsr;
+                    break;
+                case AccessLevel.Developer:
+                    boolId = (uint)PropertyBool.IsArch;
+                    break;
+                case AccessLevel.Admin:
+                    boolId = (uint)PropertyBool.IsAdmin;
+                    break;
+                default:
+                    boolId = 0;
+                    break;
+            }
+
+            try
+            {
+                uint lowGuid = result.Result.Read<uint>(0, "guid");
+
+                if (boolId > 0)
+                {
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdvocate, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsSentinel, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsPsr, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsArch, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdmin, 0);
+
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, boolId, 1);
+                }
+                else
+                {
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdvocate, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsSentinel, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsPsr, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsArch, 0);
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, lowGuid, (uint)PropertyBool.IsAdmin, 0);
+                }
+
+                return lowGuid;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return 0;
+            }
+        }
     }
 }

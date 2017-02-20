@@ -9,8 +9,10 @@ namespace ACE.Command
     public enum CommandHandlerResponse
     {
         Ok,
+        SudoOk,
         InvalidCommand,
         NoConsoleInvoke,
+        NotAuthorized,
         InvalidParameterCount,
         NotInWorld
     }
