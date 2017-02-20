@@ -127,9 +127,6 @@ namespace ACE.Network.Managers
                         if (!cachedPacket.Packet.Header.HasFlag(PacketHeaderFlags.Retransmission))
                         {
                             cachedPacket.Packet.Header.Flags |= PacketHeaderFlags.Retransmission;
-
-                            uint issacXor;
-                            cachedPacket.Packet.Header.Checksum = packet.CalculateChecksum(session, ConnectionType.World, cachedPacket.IssacXor, out issacXor);
                         }
 
                         NetworkManager.SendPacketDirect(ConnectionType.World, cachedPacket.Packet, session);
