@@ -87,6 +87,12 @@ namespace ACE.Command
                 if (!commandHandlers.TryGetValue(sudoCommand, out commandInfo))
                     return CommandHandlerResponse.InvalidCommand;
 
+                if (session == null)
+                {
+                    Console.WriteLine("SUDO does not work on the console because you already have full access. Remove SUDO from command and execute again.");
+                    return CommandHandlerResponse.InvalidCommand;
+                }
+
                 if (commandInfo.Attribute.Access <= session.AccessLevel)
                     isSUDOauthorized = true;
 
