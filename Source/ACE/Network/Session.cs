@@ -37,9 +37,14 @@ namespace ACE.Network
 
         public ConcurrentDictionary<uint /*seq*/, CachedPacket> CachedPackets { get; } = new ConcurrentDictionary<uint, CachedPacket>();
 
+        public NetworkBuffer LoginBuffer { get; private set; }
+        public NetworkBuffer WorldBuffer { get; private set; }
+
         public Session(IPEndPoint endPoint)
         {
             EndPoint = endPoint;
+            LoginBuffer = new NetworkBuffer(this, ConnectionType.Login);
+            WorldBuffer = new NetworkBuffer(this, ConnectionType.World);
         }
 
         public void SetAccount(uint accountId, string account)

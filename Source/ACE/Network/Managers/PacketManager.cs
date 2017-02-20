@@ -91,31 +91,31 @@ namespace ACE.Network.Managers
                 
             }
 
-                // CLinkStatusAverages::OnPingResponse
-            //if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-            //{
-            //    var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
+            // CLinkStatusAverages::OnPingResponse
+            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
+            {
+                var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
 
-            //    // used to calculate round trip time (ping)
-            //    // client calculates: currentTime - requestTime - serverDrift
-            //    var echoResponse = new ServerPacket((ushort)(type == ConnectionType.Login ? 0x0B : 0x18), PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.EchoResponse);
-            //    echoResponse.Payload.Write(packet.HeaderOptional.ClientTime);
-            //    echoResponse.Payload.Write((float)connectionData.ServerTime - packet.HeaderOptional.ClientTime);
+                // used to calculate round trip time (ping)
+                // client calculates: currentTime - requestTime - serverDrift
+                var echoResponse = new ServerPacket((ushort)(type == ConnectionType.Login ? 0x0B : 0x18), PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.EchoResponse);
+                echoResponse.Payload.Write(packet.HeaderOptional.ClientTime);
+                echoResponse.Payload.Write((float)connectionData.ServerTime - packet.HeaderOptional.ClientTime);
 
-            //    NetworkManager.SendPacket(type, echoResponse, session);
-            //}
+                NetworkManager.SendPacket(type, echoResponse, session);
+            }
 
-            //// ClientNet::HandleTimeSynch
-            //if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
-            //{
-            //    var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
+            // ClientNet::HandleTimeSynch
+            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+            {
+                var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
 
-            //    // used to update time at client and check for overspeed (60s desync and client will disconenct with speed hack warning)
-            //    var timeSynchResponse = new ServerPacket((ushort)(type == ConnectionType.Login ? 0x0B : 0x18), PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.TimeSynch);
-            //    timeSynchResponse.Payload.Write(connectionData.ServerTime);
+                // used to update time at client and check for overspeed (60s desync and client will disconenct with speed hack warning)
+                var timeSynchResponse = new ServerPacket((ushort)(type == ConnectionType.Login ? 0x0B : 0x18), PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.TimeSynch);
+                timeSynchResponse.Payload.Write(connectionData.ServerTime);
 
-            //    NetworkManager.SendPacket(type, timeSynchResponse, session);
-            //}
+                NetworkManager.SendPacket(type, timeSynchResponse, session);
+            }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
             {
