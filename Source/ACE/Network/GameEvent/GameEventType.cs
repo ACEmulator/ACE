@@ -13,6 +13,8 @@ namespace ACE.Network.GameEvent
         PingResponse                    = 0x01EA,
 
         HouseStatus                     = 0x0226,
+        DisplayStatusMessage            = 0x028A,
+        DisplayParameterizedStatusMessage = 0x028B,
         Tell                            = 0x02BD
     }
 }
