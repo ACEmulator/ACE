@@ -67,6 +67,46 @@ namespace ACE.Network
             fragment.Data.Position = originalPosition;
         }
 
+        public static void OutputDataToConsole(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)
+        {
+            byte[] buffer = bytes;
+
+            int column = 0;
+            int row = 0;
+            int columns = 16;
+            Console.Write("   x");
+            for (int i = 0; i < columns; i++)
+            {
+                Console.Write(i.ToString().PadLeft(3));
+            }
+            Console.WriteLine("  |Text");
+            Console.Write("   0");
+
+            string asciiLine = "";
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                if(column >= columns)
+                {
+                    row++;
+                    column = 0;
+                    Console.WriteLine("  |" + asciiLine);
+                    asciiLine = "";
+                    Console.Write((row * columns).ToString().PadLeft(4));
+                }
+
+                Console.Write(buffer[i].ToString("X2").PadLeft(3));
+
+                if (Char.IsControl((char)buffer[i]))
+                    asciiLine += " ";
+                else
+                    asciiLine += (char)buffer[i];
+                column++;
+            }
+
+            Console.Write("".PadLeft((columns - column) * 3));
+            Console.WriteLine("  |" + asciiLine);
+        }
+
         public static void WritePosition(this BinaryWriter writer, uint value, long position)
         {
             long originalPosition = writer.BaseStream.Position;

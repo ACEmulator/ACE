@@ -46,8 +46,7 @@ namespace ACE.Network
                 bundleToSend.ackSeq = true;
                 lastAck = DateTime.Now;
             }
-            
-            //NetworkManager.SendWorldMessages(session, messagesToSend);
+            NetworkManager.SendBundle(bundleToSend);
         }
 
         public void SetEcho(float clientTime)

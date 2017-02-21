@@ -55,7 +55,7 @@ namespace ACE.Network
                     Header.CalculateHash32(out headerChecksum);
                     uint payloadChecksum = bodyChecksum + fragmentChecksum;
                     Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
-
+                    writer.Seek(0, SeekOrigin.Begin);
                     writer.Write(Header.GetRaw());
                     writer.Flush();
                     return stream.ToArray();

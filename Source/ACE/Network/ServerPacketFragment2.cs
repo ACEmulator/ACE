@@ -23,6 +23,7 @@ namespace ACE.Network
 
         public uint GetPayload(BinaryWriter writer)
         {
+            Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Body.Length);
             byte[] fragmentHeaderBytes = Header.GetRaw();
             uint fragmentChecksum = Hash32.Calculate(fragmentHeaderBytes, fragmentHeaderBytes.Length) + Hash32.Calculate(Body, Body.Length);
             writer.Write(fragmentHeaderBytes);

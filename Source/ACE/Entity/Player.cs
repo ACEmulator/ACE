@@ -205,11 +205,15 @@ namespace ACE.Entity
         public void GrantXp(ulong amount)
         {
             character.GrantXp(amount);
-            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+            Session.WorldBuffer.Queue(xpTotalUpdate);
+            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+            Session.WorldBuffer.Queue(xpAvailUpdate);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
+            Session.WorldBuffer.Queue(message);
+            Session.WorldBuffer.Flush();
 
-            NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpAvailUpdate, xpTotalUpdate, message });
+            //NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpAvailUpdate, xpTotalUpdate, message });
         }
 
         private void CheckForLevelup()

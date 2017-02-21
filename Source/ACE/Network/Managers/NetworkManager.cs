@@ -4,7 +4,7 @@ using System.IO;
 using System.Net.Sockets;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-
+using ACE.Common.Extensions;
 using ACE.Common;
 using ACE.Common.Cryptography;
 
@@ -137,7 +137,12 @@ namespace ACE.Network.Managers
         {
             byte[] buffer;
             if (ConstructPacket(out buffer, type, packet, session, useHeaders))
+            {
+                Console.WriteLine("SendPacket");
+                buffer.OutputDataToConsole();
+                Console.WriteLine();
                 GetSocket(type).SendTo(buffer, session.EndPoint);
+            }
         }
 
 
@@ -158,7 +163,7 @@ namespace ACE.Network.Managers
 
             while (firstPacket || carryOverMessage != null || bundle.messages.Count > 0)
             {
-                uint issacXor = (bundle.encryptedChecksum) ? session.GetIssacValue(PacketDirection.Server, bundle.connectionType) : 0u;
+                uint issacXor =  (bundle.encryptedChecksum) ? session.GetIssacValue(PacketDirection.Server, bundle.connectionType) : 0u;
                 ServerPacket2 packet = new ServerPacket2(issacXor);
                 PacketHeader packetHeader = packet.Header;
                 if(bundle.encryptedChecksum)
@@ -188,7 +193,7 @@ namespace ACE.Network.Managers
                             }
                             //TODO body content and checksum.
                             bodyWriter.Flush();
-                            packet.SetBody(bodyStream.ToArray());
+                            //packet.SetBody(bodyStream.ToArray());
                         }
                     }
                 }
@@ -238,16 +243,15 @@ namespace ACE.Network.Managers
 
                         fragmentHeader.Sequence = currentMessageFragment.sequence;
                         fragmentHeader.Id = 0x80000000;
-                        fragmentHeader.Size = (ushort)(PacketFragmentHeader.HeaderSize + dataToSend);
                         fragmentHeader.Count = currentMessageFragment.count;
                         fragmentHeader.Index = currentMessageFragment.index;
-                        fragmentHeader.Group = 10;
+                        fragmentHeader.Group = 9;
 
-                        byte[] fragmentBodyBytes = new byte[dataToSend];
-                        currentGameMessage.Data.Read(fragmentBodyBytes, (int)currentMessageFragment.position, (int)dataToSend);
-                        fragment.Body = fragmentBodyBytes;
+                        fragment.Body = currentGameMessage.Data.ToArray();
 
                         currentMessageFragment.position = currentMessageFragment.position + dataToSend;
+
+                        packet.AddFragment(fragment);
                     }
                 }
 
@@ -255,13 +259,17 @@ namespace ACE.Network.Managers
                     connectionData.PacketSequence = 2;
 
                 packetHeader.Sequence = connectionData.PacketSequence++;
+                packetHeader.Id = 0x18;
                 packetHeader.Table = 0x14;
                 packetHeader.Time = (ushort)connectionData.ServerTime;
 
                 if (bundle.connectionType == ConnectionType.World && packetHeader.Sequence >= 2u)
                     session.CachedPackets.TryAdd(packet.Header.Sequence, new CachedPacket(issacXor, packet));
-
-                socket.SendTo(packet.GetPayload(), bundle.sender.EndPoint);   
+                byte[] payload = packet.GetPayload();
+                Console.WriteLine("SendBundle");
+                payload.OutputDataToConsole();
+                Console.WriteLine();
+                socket.SendTo(payload, bundle.sender.EndPoint);   
             }
         }
 
