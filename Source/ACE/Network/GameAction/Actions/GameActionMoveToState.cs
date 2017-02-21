@@ -48,52 +48,52 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            MotionStateFlag flags = (MotionStateFlag)fragment.Payload.ReadUInt32();
+            MotionStateFlag flags = (MotionStateFlag)Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.CurrentHoldKey) != 0)
-                currentHoldkey = fragment.Payload.ReadUInt32();
+                currentHoldkey = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.CurrentStyle) != 0)
-                currentStyle = fragment.Payload.ReadUInt32();
+                currentStyle = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.ForwardCommand) != 0)
-                forward.Command = fragment.Payload.ReadUInt32();
+                forward.Command = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.ForwardHoldKey) != 0)
-                forward.HoldKey = fragment.Payload.ReadUInt32();
+                forward.HoldKey = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.ForwardSpeed) != 0)
-                forward.Speed = fragment.Payload.ReadSingle();
+                forward.Speed = Fragment.Payload.ReadSingle();
 
             if ((flags & MotionStateFlag.SideStepCommand) != 0)
-                sideStep.Command = fragment.Payload.ReadUInt32();
+                sideStep.Command = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.SideStepHoldKey) != 0)
-                sideStep.HoldKey = fragment.Payload.ReadUInt32();
+                sideStep.HoldKey = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.SideStepSpeed) != 0)
-                sideStep.Speed = fragment.Payload.ReadSingle();
+                sideStep.Speed = Fragment.Payload.ReadSingle();
 
             if ((flags & MotionStateFlag.TurnCommand) != 0)
-                turn.Command = fragment.Payload.ReadUInt32();
+                turn.Command = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.TurnHoldKey) != 0)
-                turn.HoldKey = fragment.Payload.ReadUInt32();
+                turn.HoldKey = Fragment.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.TurnSpeed) != 0)
-                turn.Speed = fragment.Payload.ReadSingle();
+                turn.Speed = Fragment.Payload.ReadSingle();
 
-            position               = new Position(fragment.Payload);
-            instanceTimestamp      = fragment.Payload.ReadUInt16();
-            serverControlTimestamp = fragment.Payload.ReadUInt16();
-            teleportTimestamp      = fragment.Payload.ReadUInt16();
-            forcePositionTimestamp = fragment.Payload.ReadUInt16();
-            fragment.Payload.ReadByte();
+            position               = new Position(Fragment.Payload);
+            instanceTimestamp      = Fragment.Payload.ReadUInt16();
+            serverControlTimestamp = Fragment.Payload.ReadUInt16();
+            teleportTimestamp      = Fragment.Payload.ReadUInt16();
+            forcePositionTimestamp = Fragment.Payload.ReadUInt16();
+            Fragment.Payload.ReadByte();
         }
 
         public override void Handle()
         {
-            session.Player.UpdatePosition(position);
+            Session.Player.UpdatePosition(position);
         }
     }
 }

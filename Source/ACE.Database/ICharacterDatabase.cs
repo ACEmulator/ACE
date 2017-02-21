@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
@@ -37,5 +38,7 @@ namespace ACE.Database
         /// saves all object properties in the provided db object
         /// </summary>
         void SaveCharacterProperties(DbObject dbObject, Database.DatabaseTransaction transaction);
+
+        uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
     }
 }

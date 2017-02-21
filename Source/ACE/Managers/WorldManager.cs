@@ -102,6 +102,25 @@ namespace ACE.Managers
             }   
         }
 
+        /// <summary>
+        /// This will loop through the active sessions and find one with a player that is named <paramref name="name"/>, ignoring case.
+        /// </summary>
+        public static Session FindByPlayerName(string name, bool isOnlineRequired = true)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                if (isOnlineRequired)
+                    return sessionStore.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+
+                return sessionStore.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
         public static List<Session> FindInverseFriends(ObjectGuid characterGuid)
         {
             sessionLock.EnterReadLock();
@@ -113,6 +132,22 @@ namespace ACE.Managers
             {
                 sessionLock.ExitReadLock();                
             }   
+        }
+
+        public static List<Session> GetAll(bool isOnlineRequired = true)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                if (isOnlineRequired)
+                    return sessionStore.Where(s => s.Player != null && s.Player.IsOnline).ToList();
+
+                return sessionStore.Where(s => s.Player != null).ToList();
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
         }
 
         public static void Remove(Session session)
