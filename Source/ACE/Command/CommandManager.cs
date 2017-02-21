@@ -71,6 +71,32 @@ namespace ACE.Command
             parameters = new string[commandSplit.Length - 1];
 
             Array.Copy(commandSplit, 1, parameters, 0, commandSplit.Length - 1);
+
+            if (commandLine.Contains("\""))
+            {
+                var listParameters = new List<string>();
+
+                for (int start = 0; start < parameters.Length; start++)
+                    if (!parameters[start].StartsWith("\""))
+                        listParameters.Add(parameters[start]);
+                    else
+                    {
+                        listParameters.Add(parameters[start].Replace("\"",""));
+                        for (int end = start + 1; end < parameters.Length; end++)
+                        {
+                            if (!parameters[end].EndsWith("\""))
+                                listParameters[start] = listParameters[start] + " " + parameters[end];
+                            else
+                            {
+                                listParameters[start] = listParameters[start] + " " + parameters[end].Replace("\"", "");
+                                start = end;
+                                break;
+                            }
+                        }
+                    }
+                Array.Resize(ref parameters, listParameters.Count);
+                parameters = listParameters.ToArray();
+            }
         }
 
         public static CommandHandlerResponse GetCommandHandler(Session session, string command, string[] parameters, out CommandHandlerInfo commandInfo)
