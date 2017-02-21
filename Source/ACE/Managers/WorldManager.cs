@@ -105,13 +105,13 @@ namespace ACE.Managers
         /// <summary>
         /// This will loop through the active sessions and find one with a player that is named <paramref name="name"/>, ignoring case.
         /// </summary>
-        public static Session FindByPlayerName(string name, bool inWorldRequired = true)
+        public static Session FindByPlayerName(string name, bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();
             try
             {
-                if (inWorldRequired)
-                    return sessionStore.SingleOrDefault(s => s.Player != null && s.Player.InWorld && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+                if (isOnlineRequired)
+                    return sessionStore.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
 
                 return sessionStore.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
             }
@@ -134,13 +134,13 @@ namespace ACE.Managers
             }   
         }
 
-        public static List<Session> GetAll(bool inWorldRequired = true)
+        public static List<Session> GetAll(bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();
             try
             {
-                if (inWorldRequired)
-                    return sessionStore.Where(s => s.Player != null && s.Player.InWorld).ToList();
+                if (isOnlineRequired)
+                    return sessionStore.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
                 return sessionStore.Where(s => s.Player != null).ToList();
             }

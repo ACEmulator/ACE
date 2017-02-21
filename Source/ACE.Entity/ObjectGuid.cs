@@ -5,7 +5,7 @@ namespace ACE.Entity
     public enum GuidType
     {
         None   = 0,
-        Player = 1,
+        Player = 0x50,
     }
 
     public class ObjectGuid
