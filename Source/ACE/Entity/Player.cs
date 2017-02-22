@@ -278,6 +278,11 @@ namespace ACE.Entity
                     break;
             }
 
+            if (ability.Ranks + 1 >= (chart.Ranks.Count - 1))
+                return result;
+            if (ability.Ranks + 10 >= (chart.Ranks.Count - 1))
+                return result;
+
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
@@ -343,6 +348,10 @@ namespace ACE.Entity
             else
                 return result;
 
+            if (skill.Ranks + 1 >= (chart.Ranks.Count - 1))
+                return result;
+            if (skill.Ranks + 10 >= (chart.Ranks.Count - 1))
+                return result;
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
