@@ -278,9 +278,8 @@ namespace ACE.Entity
                     break;
             }
 
+            //do not advance if we cannot spend xp to rank up our skill by 1 point
             if (ability.Ranks + 1 >= (chart.Ranks.Count - 1))
-                return result;
-            if (ability.Ranks + 10 >= (chart.Ranks.Count - 1))
                 return result;
 
             uint rankUps = 0u;
@@ -309,20 +308,23 @@ namespace ACE.Entity
         {
             uint baseValue = 0;
             uint result = SpendSkillXp(character.Skills[skill], amount);
+            var status = character.Skills[skill].Status;
+            uint ranks = character.Skills[skill].Ranks;
+
             if (result > 0u)
             {
-                uint ranks = character.Skills[skill].Ranks;
                 uint newValue = character.Skills[skill].UnbuffedValue;
-                var status = character.Skills[skill].Status;
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                var ablityUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {skill} is now {newValue}!", ChatMessageType.Broadcast);
-                NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpUpdate, ablityUpdate, soundEvent, message });
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpUpdate, skillUpdate, soundEvent, message });
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {skill} has failed.", ChatMessageType.Broadcast);
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, baseValue);
+                var message = new GameMessageSystemChat($"Your attempt to raise { skill } has failed.!", ChatMessageType.Broadcast);
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] { skillUpdate, message });
             }
         }
 
@@ -348,15 +350,24 @@ namespace ACE.Entity
             else
                 return result;
 
+            //do not advance if we cannot spend xp to rank up our skill by 1 point
             if (skill.Ranks + 1 >= (chart.Ranks.Count - 1))
                 return result;
-            if (skill.Ranks + 10 >= (chart.Ranks.Count - 1))
-                return result;
+
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
-            // TODO this crashes if you try to raise your skill too high
-            uint rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+
+            uint rank10 = 0u;
+
+            //if we hit the end of our skill ranks and we want to spend 10 points
+            //then we need to figure out how many ranks we can actually spend before ranking up:
+            //but, until we do this math, we will prevent the ranks from going up by setting rank10 to 0
+            if (skill.Ranks + 10 >= (chart.Ranks.Count - 1)) { 
+                rank10 = 0;
+            } else {
+                rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+            }
 
             if (amount == rank1)
                 rankUps = 1u;
