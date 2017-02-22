@@ -2,6 +2,7 @@
 using System.IO;
 
 using ACE.Entity;
+using System.Text;
 
 namespace ACE.Network
 {
@@ -69,18 +70,19 @@ namespace ACE.Network
 
         public static void OutputDataToConsole(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)
         {
+            TextWriter tw = new StringWriter();
             byte[] buffer = bytes;
 
             int column = 0;
             int row = 0;
             int columns = 16;
-            Console.Write("   x");
+            tw.Write("   x");
             for (int i = 0; i < columns; i++)
             {
-                Console.Write(i.ToString().PadLeft(3));
+                tw.Write(i.ToString().PadLeft(3));
             }
-            Console.WriteLine("  |Text");
-            Console.Write("   0");
+            tw.WriteLine("  |Text");
+            tw.Write("   0");
 
             string asciiLine = "";
             for (int i = 0; i < buffer.Length; i++)
@@ -89,12 +91,12 @@ namespace ACE.Network
                 {
                     row++;
                     column = 0;
-                    Console.WriteLine("  |" + asciiLine);
+                    tw.WriteLine("  |" + asciiLine);
                     asciiLine = "";
-                    Console.Write((row * columns).ToString().PadLeft(4));
+                    tw.Write((row * columns).ToString().PadLeft(4));
                 }
 
-                Console.Write(buffer[i].ToString("X2").PadLeft(3));
+                tw.Write(buffer[i].ToString("X2").PadLeft(3));
 
                 if (Char.IsControl((char)buffer[i]))
                     asciiLine += " ";
@@ -103,8 +105,9 @@ namespace ACE.Network
                 column++;
             }
 
-            Console.Write("".PadLeft((columns - column) * 3));
-            Console.WriteLine("  |" + asciiLine);
+            tw.Write("".PadLeft((columns - column) * 3));
+            tw.WriteLine("  |" + asciiLine);
+            Console.WriteLine(tw.ToString());
         }
 
         public static void WritePosition(this BinaryWriter writer, uint value, long position)

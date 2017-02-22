@@ -177,7 +177,6 @@ namespace ACE.Network.Handlers
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
             session.State = SessionState.WorldConnected;
-
             var serverSwitch = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch);
             serverSwitch.Payload.Write((uint)0x18);
             serverSwitch.Payload.Write((uint)0x00);

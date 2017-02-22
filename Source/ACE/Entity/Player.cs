@@ -206,12 +206,12 @@ namespace ACE.Entity
         {
             character.GrantXp(amount);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-            Session.WorldBuffer.Queue(xpTotalUpdate);
+            Session.WorldBuffer.Enqueue(xpTotalUpdate);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-            Session.WorldBuffer.Queue(xpAvailUpdate);
+            Session.WorldBuffer.Enqueue(xpAvailUpdate);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-            Session.WorldBuffer.Queue(message);
-            Session.WorldBuffer.Flush();
+            Session.WorldBuffer.Enqueue(message);
+            Session.WorldBuffer.Update();
 
             //NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpAvailUpdate, xpTotalUpdate, message });
         }

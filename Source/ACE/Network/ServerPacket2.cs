@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ACE.Common.Cryptography;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,7 +36,6 @@ namespace ACE.Network
             uint headerChecksum = 0u;
             uint bodyChecksum = 0u;
             uint fragmentChecksum = 0u;
-
             using (MemoryStream stream = new MemoryStream())
             {
                 using (BinaryWriter writer = new BinaryWriter(stream))
@@ -44,7 +44,7 @@ namespace ACE.Network
                     if (body != null)
                     {
                         writer.Write(body);
-                        //TODO Calc body checksum
+                        bodyChecksum = Hash32.Calculate(body, body.Length);
                     }
                     foreach (ServerPacketFragment2 fragment in fragments)
                     {

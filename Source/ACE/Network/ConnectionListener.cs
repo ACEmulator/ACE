@@ -81,9 +81,11 @@ namespace ACE.Network
             }
 
             var session = WorldManager.Find((IPEndPoint)clientEndPoint);
-
+            Console.WriteLine("Received");
+            data.OutputDataToConsole();
+            Console.WriteLine();
             var packet = new ClientPacket(data);
-            PacketManager.HandlePacket(listenerType, packet, session);
+            session.HandlePacket(listenerType, packet);
 
             Listen();
         }

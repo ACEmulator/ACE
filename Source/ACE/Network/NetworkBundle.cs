@@ -10,23 +10,42 @@ namespace ACE.Network
 {
     public class NetworkBundle
     {
-        public Session sender { get; }
-        public ConnectionType connectionType { get; }
-        public Queue<GameMessage> messages { get; }
-        public float clientTime { get; set; }
-        public bool timeSync { get; set; }
-        public bool ackSeq { get; set; }
+        private bool propChanged = false;
+        public bool NeedsSending
+        {
+            get
+            {
+                return propChanged || Messages.Count > 0;
+            }
+        }
+        public Queue<GameMessage> Messages;
+        private float clientTime;
+        public float ClientTime
+        {
+            get { return clientTime; }
+            set { clientTime = value; propChanged = true; }
+        }
+        private bool timeSync;
+        public bool TimeSync
+        {
+            get { return timeSync; }
+            set { timeSync = value; propChanged = true; }
+        }
+        private bool ackSeq;
+        public bool SendAck
+        {
+            get { return ackSeq; }
+            set { ackSeq = value; propChanged = true; }
+        }
         public bool encryptedChecksum { get; set; }
 
-        public NetworkBundle(Session session, ConnectionType connType)
+        public NetworkBundle()
         {
-            sender = session;
-            connectionType = connType;
-            messages = new Queue<GameMessage>();
+            Messages = new Queue<GameMessage>();
             clientTime = -1f;
             timeSync = false;
             ackSeq = false;
-            encryptedChecksum = true;
+            encryptedChecksum = false;
         }
     }
 }

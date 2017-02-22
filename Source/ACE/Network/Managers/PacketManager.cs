@@ -59,120 +59,17 @@ namespace ACE.Network.Managers
                     actionHandlers[actionHandlerAttribute.Opcode] = type;
         }
 
-        private static bool CheckPacketHeader(ClientPacket packet, Session session)
+        public static void HandleClientFragment(ClientPacketFragment fragment, Session session)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && session.State != SessionState.AuthLoginRequest)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && session.State != SessionState.AuthConnectResponse && session.State != SessionState.WorldConnectResponse)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && session.State == SessionState.AuthLoginRequest)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest) && session.State != SessionState.WorldLoginRequest)
-                return false;
-
-            return true;
-        }
-
-        public static void HandlePacket(ConnectionType type, ClientPacket packet, Session session)
-        {
-            if (!CheckPacketHeader(packet, session))
+            var opcode = (GameMessageOpcode)fragment.Payload.ReadUInt32();
+            if (!fragmentHandlers.ContainsKey(opcode))
+                Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
+            else
             {
-                // server treats all packets sent during the first 30 seconds as invalid packets due to server crash, this will move clients to the disconnect screen
-                if (DateTime.Now < WorldManager.WorldStartTime.AddSeconds(30d))
-                    session.SendCharacterError(CharacterError.ServerCrash);
-                return;
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-            {
-                
-            }
-
-            // CLinkStatusAverages::OnPingResponse
-            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-            {
-                var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
-
-                // used to calculate round trip time (ping)
-                // client calculates: currentTime - requestTime - serverDrift
-                var echoResponse = new ServerPacket((ushort)(type == ConnectionType.Login ? 0x0B : 0x18), PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.EchoResponse);
-                echoResponse.Payload.Write(packet.HeaderOptional.ClientTime);
-                echoResponse.Payload.Write((float)connectionData.ServerTime - packet.HeaderOptional.ClientTime);
-
-                NetworkManager.SendPacket(type, echoResponse, session);
-            }
-
-            // ClientNet::HandleTimeSynch
-            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
-            {
-                var connectionData = (type == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
-
-                // used to update time at client and check for overspeed (60s desync and client will disconenct with speed hack warning)
-                var timeSynchResponse = new ServerPacket((ushort)(type == ConnectionType.Login ? 0x0B : 0x18), PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.TimeSynch);
-                timeSynchResponse.Payload.Write(connectionData.ServerTime);
-
-                NetworkManager.SendPacket(type, timeSynchResponse, session);
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                {
-                    CachedPacket cachedPacket;
-                    if (session.CachedPackets.TryGetValue(sequence, out cachedPacket))
-                    {
-                        if (!cachedPacket.Packet.Header.HasFlag(PacketHeaderFlags.Retransmission))
-                        {
-                            cachedPacket.Packet.Header.Flags |= PacketHeaderFlags.Retransmission;
-                        }
-
-                        NetworkManager.SendPacketDirect(ConnectionType.World, cachedPacket.Packet, session);
-                    }
-                }
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-            {
-                AuthenticationHandler.HandleLoginRequest(packet, session);
-                return;
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
-            {
-                AuthenticationHandler.HandleWorldLoginRequest(packet, session);
-                return;
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-            {
-                if (type == ConnectionType.Login)
-                {
-                    AuthenticationHandler.HandleConnectResponse(packet, session);
-                    return;
-                }
-
-                AuthenticationHandler.HandleWorldConnectResponse(packet, session);
-                return;
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse(packet, session);
-
-            foreach (ClientPacketFragment fragment in packet.Fragments)
-            {
-                var opcode = (GameMessageOpcode)fragment.Payload.ReadUInt32();
-                if (!fragmentHandlers.ContainsKey(opcode))
-                    Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
-                else
-                {
-                    FragmentHandlerInfo fragmentHandlerInfo;
-                    if (fragmentHandlers.TryGetValue(opcode, out fragmentHandlerInfo))
-                        if (fragmentHandlerInfo.Attribute.State == session.State)
-                            fragmentHandlerInfo.Handler.Invoke(fragment, session);
-                }
+                FragmentHandlerInfo fragmentHandlerInfo;
+                if (fragmentHandlers.TryGetValue(opcode, out fragmentHandlerInfo))
+                    if (fragmentHandlerInfo.Attribute.State == session.State)
+                        fragmentHandlerInfo.Handler.Invoke(fragment, session);
             }
         }
 
@@ -190,14 +87,6 @@ namespace ACE.Network.Managers
                     gameAction.Handle();
                 }
             }
-        }
-
-        private static void HandleDisconnectResponse(ClientPacket packet, Session session)
-        {
-            if (session.Player != null)
-                session.Player.Logout();
-
-            WorldManager.Remove(session);
         }
     }
 }
