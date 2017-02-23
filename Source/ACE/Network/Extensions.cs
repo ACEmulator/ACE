@@ -31,6 +31,11 @@ namespace ACE.Network
             writer.Pad(CalculatePadMultiple((uint)writer.BaseStream.Length, 4u));
         }
 
+        public static void Write(this BinaryWriter writer, PackedDWORD value)
+        {
+            writer.Write(value.NetworkValue);
+        }
+
         /// <summary>
         /// This will output bytesToOutput bytes of fragment.Data (starting from startPosition) to the console.<para />
         /// The original Data.Position will be restored after the data is output. 

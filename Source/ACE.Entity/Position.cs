@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ACE.Entity.Enum;
+using System;
 using System.IO;
 using System.Numerics;
 
@@ -7,8 +8,11 @@ namespace ACE.Entity
     public class Position
     {
         public uint Cell { get; set; }
+
         public uint Dungeon { get; set; }
+
         public Vector3 Offset { get; set; }
+
         public Quaternion Facing { get; set; }
 
         public Position(uint cell, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
@@ -85,6 +89,46 @@ namespace ACE.Entity
             uint cell = (uint)((cellX << 3) | cellY);
 
             return (block << 16) | (cell + 1);
+        }
+
+        public ushort Landblock
+        {
+            get { return (ushort)((Cell >> 16) & 0xFFFF); }
+        }
+
+        public byte LandblockX
+        {
+            get { return (byte)((Cell >> 24) & 0xFF); }
+        }
+
+        public byte LandblockY
+        {
+            get { return (byte)((Cell >> 16) & 0xFF); }
+        }
+
+        public ushort Landcell
+        {
+            get { return (byte)((Cell & 0x3F) - 1); }
+        }
+
+        public byte LandcellX
+        {
+            get { return Convert.ToByte((Landcell >> 3) & 0x7); }
+        }
+
+        public byte LandcellY
+        {
+            get { return Convert.ToByte(Landcell & 0x7); }
+        }
+
+        public MapScope MapScope
+        {
+            get { return (MapScope)((Cell & 0x0F00) >> 8); }
+        }
+
+        public override string ToString()
+        {
+            return $"Lb: [{LandblockX}, {LandblockY}], Cell: {Landcell} [{LandcellX}, {LandcellY}], Indoors: {MapScope}, Pos: [{Offset.X}, {Offset.Y}, {Offset.Z}] Facing: [{Facing.W}, {Facing.X}, {Facing.Y}, {Facing.Z}]";
         }
     }
 }

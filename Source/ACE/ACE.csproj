@@ -82,11 +82,20 @@
     <Compile Include="Command\Handlers\CharacterCommands.cs" />
     <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
+    <Compile Include="Entity\IChatRecipient.cs" />
+    <Compile Include="Entity\IChatSender.cs" />
+    <Compile Include="Entity\Monster.cs" />
+    <Compile Include="Entity\ISpellcaster.cs" />
+    <Compile Include="Entity\Events\ChatMessageArgs.cs" />
+    <Compile Include="Entity\Events\SpellCastArgs.cs" />
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
+    <Compile Include="Entity\Landcell.cs" />
+    <Compile Include="Entity\MotionStateDirection.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
+    <Compile Include="Models\PlayableModels.cs" />
     <Compile Include="Network\CachedPacket.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ClientPacket.cs" />
@@ -95,6 +104,7 @@
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\MotionStateFlag.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\Enum\SingleCharacterOption.cs" />
@@ -118,6 +128,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
+    <Compile Include="Entity\MotionState.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionOpcode.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
@@ -160,6 +171,7 @@
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
+    <Compile Include="Network\PackedDWORD.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />
     <Compile Include="Network\PacketFragment.cs" />
