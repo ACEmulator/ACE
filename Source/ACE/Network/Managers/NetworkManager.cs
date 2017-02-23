@@ -167,5 +167,13 @@ namespace ACE.Network.Managers
             }
 #endif
         }
+
+        public static void SendTurbineChatMessage(Session session, GameMessage message)
+        {
+            ServerPacketFragment fragment = new ServerPacketFragment(4, message);
+            var packet = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            packet.Fragments.Add(fragment);
+            NetworkManager.SendPacket(ConnectionType.World, packet, session);
+        }
     }
 }

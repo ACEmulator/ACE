@@ -188,6 +188,14 @@ namespace ACE.Entity
 
             SendSelf();
             SendFriendStatusUpdates();
+
+            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
+            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these arehardcoded right now
+            var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "General");
+            var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
+            var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
+            var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
+            NetworkManager.SendWorldMessages(Session, new GameMessage[] { setTurbineChatChannels, general, trade, lfg, roleplay });
         }
 
         public void GrantXp(ulong amount)
