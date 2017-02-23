@@ -4,6 +4,10 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.Managers;
 
 namespace ACE.Command.Handlers
 {
@@ -54,5 +58,34 @@ namespace ACE.Command.Handlers
                 return;
             }
         }
+
+
+        [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void playeffect(Session session, params string[] parameters)
+        {
+
+            uint effectid;
+            try
+            {
+                effectid = Convert.ToUInt32(parameters[0]);
+            }
+            catch (Exception ex)
+            {
+                //ex...more info.. if needed..
+                ChatPacket.SendServerMessage(session, $"Invalid Effect value", ChatMessageType.Broadcast);
+                return;
+            }
+
+            session.Player.PlayParticleEffect(effectid);
+        }
+
+
+        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void spacejump(Session session, params string[] parameters)
+        {
+            Position newPosition = new Position(session.Player.Position.Cell, session.Player.Position.Offset.X, session.Player.Position.Offset.Y, session.Player.Position.Offset.Z + 8000f, session.Player.Position.Facing.X, session.Player.Position.Facing.Y, session.Player.Position.Facing.Z, session.Player.Position.Facing.W);
+            session.Player.Teleport(newPosition);
+        }
+
     }
 }
