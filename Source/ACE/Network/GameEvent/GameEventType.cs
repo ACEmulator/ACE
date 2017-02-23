@@ -15,6 +15,7 @@ namespace ACE.Network.GameEvent
         HouseStatus                     = 0x0226,
         DisplayStatusMessage            = 0x028A,
         DisplayParameterizedStatusMessage = 0x028B,
+        SetTurbineChatChannels          = 0x0295,
         Tell                            = 0x02BD
     }
 }

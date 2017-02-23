@@ -136,6 +136,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventSetTurbineChatChannels.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventTell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
     <Compile Include="Network\GameEvent\GameEventMessage.cs" />
@@ -154,9 +155,11 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSound.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageTurbineChat.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
     <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
+    <Compile Include="Network\Handlers\TurbineChatHandler.cs" />
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />

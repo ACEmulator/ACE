@@ -128,7 +128,7 @@ namespace ACE.Network.Handlers
             characterFragment.Payload.Write(0u);
             characterFragment.Payload.Write(11u /*slotCount*/);
             characterFragment.Payload.WriteString16L(session.Account);
-            characterFragment.Payload.Write(0u /*useTurbineChat*/);
+            characterFragment.Payload.Write(1u /*useTurbineChat*/);
             characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
             characterList.Fragments.Add(characterFragment);
 
