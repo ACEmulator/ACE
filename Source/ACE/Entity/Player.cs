@@ -205,6 +205,12 @@ namespace ACE.Entity
         public void GrantXp(ulong amount)
         {
             character.GrantXp(amount);
+            character.GrantXp(amount);
+            character.GrantXp(amount);
+            character.GrantXp(amount);
+            character.GrantXp(amount);
+            character.GrantXp(amount);
+            character.GrantXp(amount);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
@@ -224,9 +230,10 @@ namespace ACE.Entity
             uint baseValue = character.Abilities[ability].Base;
             uint result = SpendAbilityXp(character.Abilities[ability], amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
+            uint ranks = character.Abilities[ability].Ranks;
             if (result > 0u)
             {
-                uint ranks = character.Abilities[ability].Ranks;
+                
                 uint newValue = character.Abilities[ability].UnbuffedValue;
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 GameMessage abilityUpdate;
@@ -241,11 +248,16 @@ namespace ACE.Entity
 
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
-                NetworkManager.SendWorldMessages(Session, new GameMessage[] { abilityUpdate, soundEvent, message });
+
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] { xpUpdate, abilityUpdate, soundEvent, message });
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
+                var abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, ranks, baseValue, result);
+                var message = new GameMessageSystemChat($"Your attempt to raise { ability } has failed.!", ChatMessageType.Broadcast);
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] {  abilityUpdate, message });
+
+                //ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
             }
         }
 
@@ -279,14 +291,21 @@ namespace ACE.Entity
             }
 
             //do not advance if we cannot spend xp to rank up our skill by 1 point
-            if (ability.Ranks + 1 >= (chart.Ranks.Count - 1))
+            if (ability.Ranks == (chart.Ranks.Count - 1))
                 return result;
 
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
-            uint rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            uint rank10 = 0u;
 
+            if (ability.Ranks + 10 >= (chart.Ranks.Count)) {
+                int ranks = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + ranks].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            } else {
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
+            
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
@@ -322,7 +341,8 @@ namespace ACE.Entity
             }
             else
             {
-                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, baseValue);
+                uint currentXp = character.Skills[skill].ExperienceSpent;
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, currentXp);
                 var message = new GameMessageSystemChat($"Your attempt to raise { skill } has failed.!", ChatMessageType.Broadcast);
                 NetworkManager.SendWorldMessages(Session, new GameMessage[] { skillUpdate, message });
             }
@@ -351,20 +371,20 @@ namespace ACE.Entity
                 return result;
 
             //do not advance if we cannot spend xp to rank up our skill by 1 point
-            if (skill.Ranks + 1 >= (chart.Ranks.Count - 1))
+            if (skill.Ranks >= (chart.Ranks.Count - 1))
                 return result;
 
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
-
+            int rank10Offset = 0;
             uint rank10 = 0u;
 
             //if we hit the end of our skill ranks and we want to spend 10 points
             //then we need to figure out how many ranks we can actually spend before ranking up:
-            //but, until we do this math, we will prevent the ranks from going up by setting rank10 to 0
-            if (skill.Ranks + 10 >= (chart.Ranks.Count - 1)) { 
-                rank10 = 0;
+            if (skill.Ranks + 10 >= (chart.Ranks.Count)) {
+                rank10Offset = 10 - (Convert.ToInt32(skill.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             } else {
                 rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             }
@@ -372,7 +392,16 @@ namespace ACE.Entity
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
-                rankUps = 10u;
+            {
+                if (rank10Offset > 0)
+                {
+                    rankUps = Convert.ToUInt32(rank10Offset);
+                }
+                else
+                {
+                    rankUps = 10u;
+                }
+            }
 
             if (rankUps > 0)
             {
