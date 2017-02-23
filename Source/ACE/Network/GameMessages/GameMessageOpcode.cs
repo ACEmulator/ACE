@@ -43,6 +43,8 @@ namespace ACE.Network.GameMessages
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
 
+        PlayEffect                      = 0xF755,
+
         GameEvent                       = 0xF7B0,
         GameAction                      = 0xF7B1,
 
@@ -54,5 +56,7 @@ namespace ACE.Network.GameMessages
         ServerName                      = 0xF7E1,
         Unknown75E5                     = 0xF7E5, // to be named...
         PatchStatus                     = 0xF7EA,
+
     }
 }
+
