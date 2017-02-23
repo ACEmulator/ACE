@@ -10,12 +10,13 @@ using ACE.Network.Managers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
+using ACE.Network.Handlers;
 
 namespace ACE.Network
 {
-    public class NetworkBuffer
+    public class SessionNetworkManager
     {
-        private const int minimumTimeBetweenPackets = 5; // 5ms
+        private const int minimumTimeBetweenBundles = 5; // 5ms
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
@@ -28,10 +29,11 @@ namespace ACE.Network
         private bool sendAck = false;
         private bool sendResync = false;
 
-        public uint LastReceivedSequence { get; set; } = 0;
+        private uint lastReceivedSequence = 0;
         private ConcurrentDictionary<uint /*seq*/, ServerPacket2> CachedPackets { get; } = new ConcurrentDictionary<uint, ServerPacket2>();
+        private ConcurrentQueue<ServerPacket2> PacketQueue { get; } = new ConcurrentQueue<ServerPacket2>();
 
-        public NetworkBuffer(Session session, ConnectionType connType)
+        public SessionNetworkManager(Session session, ConnectionType connType)
         {
             this.session = session;
             this.connectionType = connType;
@@ -47,23 +49,9 @@ namespace ACE.Network
             currentBundle.Messages.Enqueue(message);
         }
 
-        public void FlagEcho(float clientTime)
+        public void Enqueue(ServerPacket2 packet)
         {
-            //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
-            currentBundle.ClientTime = clientTime;
-            currentBundle.encryptedChecksum = true;
-        }
-
-        public void AcknowledgeSequence(uint sequence)
-        {
-            if (!sendAck)
-                sendAck = true;
-            var removalList = CachedPackets.Where(x => x.Key < sequence);
-            foreach(var item in removalList)
-            {
-                ServerPacket2 removedPacket;
-                CachedPackets.TryRemove(item.Key, out removedPacket);
-            }
+            PacketQueue.Enqueue(packet);
         }
 
         public void SetTimers()
@@ -95,11 +83,92 @@ namespace ACE.Network
                 var bundleToSend = currentBundle;
                 currentBundle = new NetworkBundle();
                 SendBundle(bundleToSend);
-                nextSend = DateTime.Now.AddMilliseconds(minimumTimeBetweenPackets);
+                nextSend = DateTime.Now.AddMilliseconds(minimumTimeBetweenBundles);
+            }
+            FlushPackets();
+        }
+
+        public void HandlePacket(ClientPacket packet)
+        {
+            lastReceivedSequence = packet.Header.Sequence;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
+            {
+                FlagEcho(packet.HeaderOptional.ClientTime);
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
+            {
+                AcknowledgeSequence(packet.HeaderOptional.Sequence);
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+            {
+                //Do something with this...
+                //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
+                //Client seems to send them alternatingly every 2 or 4 seconds per port.
+                //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+            {
+                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
+                {
+                    Retransmit(sequence);
+                }
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            {
+                AuthenticationHandler.HandleLoginRequest(packet, session);
+                return;
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
+            {
+                AuthenticationHandler.HandleWorldLoginRequest(packet, session);
+                return;
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
+            {
+                if (connectionType == ConnectionType.Login)
+                {
+                    AuthenticationHandler.HandleConnectResponse(packet, session);
+                    return;
+                }
+
+                AuthenticationHandler.HandleWorldConnectResponse(packet, session);
+                return;
+            }
+
+            foreach (ClientPacketFragment fragment in packet.Fragments)
+            {
+                PacketManager.HandleClientFragment(fragment, session);
             }
         }
 
-        public void Retransmit(uint sequence)
+        private void FlagEcho(float clientTime)
+        {
+            //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
+            currentBundle.ClientTime = clientTime;
+            currentBundle.encryptedChecksum = true;
+        }
+
+        private void AcknowledgeSequence(uint sequence)
+        {
+            //TODO Sending Acks seems to cause some issues.  Needs further research.
+            //if (!sendAck)
+            //    sendAck = true;
+            var removalList = CachedPackets.Where(x => x.Key < sequence);
+            foreach (var item in removalList)
+            {
+                ServerPacket2 removedPacket;
+                CachedPackets.TryRemove(item.Key, out removedPacket);
+            }
+        }
+
+        private void Retransmit(uint sequence)
         {
             ServerPacket2 cachedPacket;
             if (CachedPackets.TryGetValue(sequence, out cachedPacket))
@@ -109,22 +178,58 @@ namespace ACE.Network
                 {
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
                 }
-
                 SendPacket(cachedPacket);
             }
         }
 
-        private void SendPacket(ServerPacket2 packet) { NetworkManager.GetSocket(this.connectionType).SendTo(packet.GetPayload(), session.EndPoint); }
+        private void FlushPackets()
+        {
+            var connectionData = (connectionType == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
+            while (PacketQueue.Count > 0)
+            {
+                ServerPacket2 packet;
+                if (PacketQueue.TryDequeue(out packet))
+                {
+                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && connectionData.PacketSequence < 2)
+                        connectionData.PacketSequence = 2;
 
-        //Create Packet
-        //If first packet for this bundle, fill any optional headers
-        //Append fragments that will fit
-        //--Check each fragment to see if it is a partial fit
-        //If we have a carryOverFragment or more messages, create additional packets.
+                    packet.Header.Sequence = connectionData.PacketSequence++;
+                    packet.Header.Id = (ushort)(connectionType == ConnectionType.Login ? 0x0B : 0x18);
+                    packet.Header.Table = 0x14;
+                    packet.Header.Time = (ushort)connectionData.ServerTime;
 
+                    if (packet.Header.Sequence >= 2u)
+                        CachedPackets.TryAdd(packet.Header.Sequence, packet);
+
+                    SendPacket(packet);
+                }
+            }
+        }
+
+        private void SendPacket(ServerPacket2 packet)
+        {
+            byte[] payload = packet.GetPayload();
+            Console.WriteLine("Send Packet");
+            payload.OutputDataToConsole();
+            Console.WriteLine();
+            NetworkManager.GetSocket(this.connectionType).SendTo(payload, session.EndPoint);
+        }
+
+        /// <summary>
+        /// This function handles sending a bundle of messages (representing all messages accrued in a timeslice),
+        /// and sending them as 1 or more packets, combining multiple messages into one packet or spliting large
+        /// message across several packets as needed.
+        /// 
+        /// 1 Create Packet
+        /// 2 If first packet for this bundle, fill any optional headers
+        /// 3 Append fragments that will fit
+        /// 3.1 Check each fragment to see if it is a partial fit
+        /// 4 If we have a partial message remaining or more messages, create additional packets.
+        /// </summary>
+        /// <param name="bundle"></param>
         private void SendBundle(NetworkBundle bundle)
         {
-            Socket socket = NetworkManager.GetSocket(this.connectionType);
+            
             var connectionData = (connectionType == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
             bool firstPacket = true;
 
@@ -151,7 +256,7 @@ namespace ACE.Network
                             if (bundle.SendAck) //0x4000
                             {
                                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
-                                bodyWriter.Write(LastReceivedSequence);
+                                bodyWriter.Write(lastReceivedSequence);
                             }
                             if (bundle.TimeSync) //0x1000000
                             {
@@ -164,7 +269,6 @@ namespace ACE.Network
                                 bodyWriter.Write(bundle.ClientTime);
                                 bodyWriter.Write((float)connectionData.ServerTime - bundle.ClientTime);
                             }
-                            //TODO body content and checksum.
                             bodyWriter.Flush();
                             packet.SetBody(bodyStream.ToArray());
                         }
@@ -218,7 +322,7 @@ namespace ACE.Network
                         fragmentHeader.Id = 0x80000000;
                         fragmentHeader.Count = currentMessageFragment.count;
                         fragmentHeader.Index = currentMessageFragment.index;
-                        fragmentHeader.Group = 9;
+                        fragmentHeader.Group = currentMessageFragment.message.Group;
 
                         fragment.Body = currentGameMessage.Data.ToArray();
 
@@ -228,21 +332,7 @@ namespace ACE.Network
                     }
                 }
 
-                if (packetHeader.HasFlag(PacketHeaderFlags.EncryptedChecksum) && connectionData.PacketSequence < 2)
-                    connectionData.PacketSequence = 2;
-
-                packetHeader.Sequence = connectionData.PacketSequence++;
-                packetHeader.Id = (ushort)(connectionType == ConnectionType.Login ? 0x0B : 0x18);
-                packetHeader.Table = 0x14;
-                packetHeader.Time = (ushort)connectionData.ServerTime;
-
-                if (connectionType == ConnectionType.World && packetHeader.Sequence >= 2u)
-                    CachedPackets.TryAdd(packet.Header.Sequence, packet);
-                byte[] payload = packet.GetPayload();
-                Console.WriteLine("SendBundle");
-                payload.OutputDataToConsole();
-                Console.WriteLine();
-                socket.SendTo(payload, session.EndPoint);
+                PacketQueue.Enqueue(packet);
             }
         }
 

@@ -52,30 +52,41 @@ namespace ACE.Network
         public byte UpdatePropertyBoolSequence { get; set; } = 0x0;
         public byte UpdatePropertyDoubleSequence { get; set; } = 0x0;
 
-        public NetworkBuffer LoginBuffer { get; set; }
-        public NetworkBuffer WorldBuffer { get; set; }
+        public SessionNetworkManager LoginBuffer { get; set; }
+        public SessionNetworkManager WorldBuffer { get; set; }
 
         public Session(IPEndPoint endPoint)
         {
             EndPoint = endPoint;
-            LoginBuffer = new NetworkBuffer(this, ConnectionType.Login);
-            WorldBuffer = new NetworkBuffer(this, ConnectionType.World);
+            LoginBuffer = new SessionNetworkManager(this, ConnectionType.Login);
+            WorldBuffer = new SessionNetworkManager(this, ConnectionType.World);
         }
 
         private void StateChanged(SessionState newState)
         {
             Console.WriteLine("New State " + newState);
-            if(newState == SessionState.AuthConnected)
+            switch(newState)
             {
-                LoginBuffer.SetTimers();
-            }
-            if (newState == SessionState.AuthConnectResponse)
-            {
-                LoginBuffer.StartResync();
-            }
-            if (newState == SessionState.WorldConnected)
-            {
-                //WorldBuffer.StartTimers();
+                case SessionState.AuthLoginRequest:
+                    
+                    break;
+                case SessionState.AuthConnectResponse:
+                    
+                    break;
+                case SessionState.AuthConnected:
+                    LoginBuffer.SetTimers();
+                    LoginBuffer.StartResync();
+                    break;
+                case SessionState.WorldLoginRequest:
+                    
+                    break;
+                case SessionState.WorldConnectResponse:
+                    
+                    break;
+                case SessionState.WorldConnected:
+                    WorldBuffer.SetTimers();
+                    WorldBuffer.StartResync();
+                    break;
             }
         }
 
@@ -84,6 +95,15 @@ namespace ACE.Network
             Id      = accountId;
             Account = account;
             AccessLevel = accountAccesslevel;
+        }
+
+        public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
+        {
+            CachedCharacters.Clear();
+            foreach (var character in characters)
+            {
+                CachedCharacters.Add(character);
+            }
         }
 
         public void Update(double lastTick)
@@ -140,67 +160,12 @@ namespace ACE.Network
                 return;
             }
 
-            var buffer = (type == ConnectionType.Login) ? LoginBuffer : WorldBuffer;
-
-            buffer.LastReceivedSequence = packet.Header.Sequence;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-            {
-                buffer.FlagEcho(packet.HeaderOptional.ClientTime);
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
-            {
-                buffer.AcknowledgeSequence(packet.HeaderOptional.Sequence);
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
-            {
-                //Do something with this...
-                //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
-                //Client seems to send them alternatingly every 2 or 4 seconds per port.
-                //NetworkBuffer will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                {
-                    buffer.Retransmit(sequence);
-                }
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-            {
-                AuthenticationHandler.HandleLoginRequest(packet, this);
-                return;
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
-            {
-                AuthenticationHandler.HandleWorldLoginRequest(packet, this);
-                return;
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-            {
-                if (type == ConnectionType.Login)
-                {
-                    AuthenticationHandler.HandleConnectResponse(packet, this);
-                    return;
-                }
-
-                AuthenticationHandler.HandleWorldConnectResponse(packet, this);
-                return;
-            }
-
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse(packet);
 
-            foreach (ClientPacketFragment fragment in packet.Fragments)
-            {
-                PacketManager.HandleClientFragment(fragment, this);
-            }
+            var buffer = (type == ConnectionType.Login) ? LoginBuffer : WorldBuffer;
+
+            buffer.HandlePacket(packet);
         }
 
         private void HandleDisconnectResponse(ClientPacket packet)

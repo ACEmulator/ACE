@@ -150,6 +150,10 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSound.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterList.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageServerName.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageF7E5.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePatchStatus.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
@@ -157,7 +161,12 @@
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
-    <Compile Include="Network\NetworkBuffer.cs" />
+    <Compile Include="Network\Packets\ServerSwitch.cs" />
+    <Compile Include="Network\Packets\ConnectRequest.cs" />
+    <Compile Include="Network\Packets\ConnectResponse.cs" />
+    <Compile Include="Network\Packets\WorldLoginRequest.cs" />
+    <Compile Include="Network\Packets\LoginRequest.cs" />
+    <Compile Include="Network\SessionNetworkManager.cs" />
     <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />

@@ -96,7 +96,8 @@ namespace ACE.Network.Handlers
             DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
-            AuthenticationHandler.CharacterListSelectCallback(result, session);
+            session.UpdateCachedCharacters(result);
+            session.WorldBuffer.Enqueue(new GameMessageCharacterList(result, session.Account));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]

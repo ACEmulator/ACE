@@ -31,8 +31,14 @@ namespace ACE.Network
             fragments.Add(fragment);
         }
 
+        protected virtual void WriteBody()
+        {
+
+        }
+
         public byte[] GetPayload()
         {
+            WriteBody();
             uint headerChecksum = 0u;
             uint bodyChecksum = 0u;
             uint fragmentChecksum = 0u;

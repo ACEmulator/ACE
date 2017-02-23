@@ -12,6 +12,7 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
+using ACE.Network.Packets;
 
 namespace ACE.Network.Handlers
 {
@@ -19,18 +20,11 @@ namespace ACE.Network.Handlers
     {
         public static async void HandleLoginRequest(ClientPacket packet, Session session)
         {
-            string someString = packet.Payload.ReadString16L();
-            packet.Payload.ReadUInt32(); // data length left in packet including ticket
-            packet.Payload.ReadUInt32();
-            packet.Payload.ReadUInt32();
-            uint timestamp    = packet.Payload.ReadUInt32();
-            string account    = packet.Payload.ReadString16L();
-            packet.Payload.ReadUInt32();
-            string glsTicket  = packet.Payload.ReadString32L();
+            LoginRequest loginRequest = new LoginRequest(packet);
 
             try
             {
-                var result = await DatabaseManager.Authentication.GetAccountByName(account);
+                var result = await DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
                 AccountSelectCallback(result, session);
             }
             catch (IndexOutOfRangeException)
@@ -41,17 +35,9 @@ namespace ACE.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session)
         {
-            var connectResponse = new ServerPacket(0x0B, PacketHeaderFlags.ConnectRequest);
-            connectResponse.Payload.Write(0u);
-            connectResponse.Payload.Write(0u);
-            connectResponse.Payload.Write(13626398284849559039ul); // some sort of check value?
-            connectResponse.Payload.Write((ushort)0);
-            connectResponse.Payload.Write((ushort)0);
-            connectResponse.Payload.Write(ISAAC.ServerSeed);
-            connectResponse.Payload.Write(ISAAC.ClientSeed);
-            connectResponse.Payload.Write(0u);
+            var connectResponse = new ConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
 
-            NetworkManager.SendPacket(ConnectionType.Login, connectResponse, session);
+            session.LoginBuffer.Enqueue(connectResponse);
 
             if (account == null)
             {
@@ -83,70 +69,29 @@ namespace ACE.Network.Handlers
 
         public static async void HandleConnectResponse(ClientPacket packet, Session session)
         {
-            ulong check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
+            ConnectResponse connectResponse = new ConnectResponse(packet);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
-            CharacterListSelectCallback(result, session);
 
+            session.UpdateCachedCharacters(result);
+
+            GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
-            var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var packet75e5Fragment = new ServerPacketFragment(5, GameMessageOpcode.Unknown75E5);
-            packet75e5Fragment.Payload.Write(1ul);
-            packet75e5Fragment.Payload.Write(1ul);
-            packet75e5Fragment.Payload.Write(1ul);
-            packet75e5Fragment.Payload.Write(2ul);
-            packet75e5Fragment.Payload.Write(0ul);
-            packet75e5Fragment.Payload.Write(1ul);
-            packet75e5.Fragments.Add(packet75e5Fragment);
-
-            NetworkManager.SendPacket(ConnectionType.Login, packet75e5, session);
-
-            var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            patchStatus.Fragments.Add(new ServerPacketFragment(5, GameMessageOpcode.PatchStatus));
-
-            NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
+            GameMessageF7E5 unknown75e5Message = new GameMessageF7E5();
+            GameMessagePatchStatus patchStatusMessage = new GameMessagePatchStatus();
+            session.LoginBuffer.Enqueue(characterListMessage);
+            session.LoginBuffer.Enqueue(serverNameMessage);
+            session.LoginBuffer.Enqueue(unknown75e5Message);
+            session.LoginBuffer.Enqueue(patchStatusMessage);
 
             session.State = SessionState.AuthConnected;
         }
 
-        public static void CharacterListSelectCallback(List<CachedCharacter> characters, Session session)
-        {
-            var characterList     = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterList);
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(characters.Count);
-
-            session.CachedCharacters.Clear();
-            foreach(var character in characters)
-            {
-                characterFragment.Payload.WriteGuid(character.Guid);
-                characterFragment.Payload.WriteString16L(character.Name);
-                characterFragment.Payload.Write(character.DeleteTime != 0ul ? (uint)(Time.GetUnixTime() - character.DeleteTime) : 0u);
-                session.CachedCharacters.Add(character);
-            }
-
-            characterFragment.Payload.Write(0u);
-            characterFragment.Payload.Write(11u /*slotCount*/);
-            characterFragment.Payload.WriteString16L(session.Account);
-            characterFragment.Payload.Write(0u /*useTurbineChat*/);
-            characterFragment.Payload.Write(0u /*hasThroneOfDestiny*/);
-            characterList.Fragments.Add(characterFragment);
-
-            NetworkManager.SendPacket(ConnectionType.Login, characterList, session);
-
-            var serverName         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var serverNameFragment = new ServerPacketFragment(9, GameMessageOpcode.ServerName);
-            serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.Write(0u);
-            serverNameFragment.Payload.WriteString16L(ConfigManager.Config.Server.WorldName);
-            serverName.Fragments.Add(serverNameFragment);
-
-            NetworkManager.SendPacket(ConnectionType.Login, serverName, session);
-        }
-
         public static void HandleWorldLoginRequest(ClientPacket packet, Session session)
         {
-            ulong connectionKey = packet.Payload.ReadUInt64();
+            WorldLoginRequest loginRequest = new WorldLoginRequest(packet);
+            ulong connectionKey = loginRequest.ConnectionKey;
             if (session.WorldConnectionKey == 0)
                 session = WorldManager.Find(connectionKey);
 
@@ -161,29 +106,18 @@ namespace ACE.Network.Handlers
             session.CharacterRequested = null;
             session.State              = SessionState.WorldConnectResponse;
 
-            var connectResponse = new ServerPacket(0x18, PacketHeaderFlags.ConnectRequest);
-            connectResponse.Payload.Write(0u);
-            connectResponse.Payload.Write(0u);
-            connectResponse.Payload.Write(13626398284849559039ul); // some sort of check value?
-            connectResponse.Payload.Write((ushort)0);
-            connectResponse.Payload.Write((ushort)0);
-            connectResponse.Payload.Write(ISAAC.WorldServerSeed);
-            connectResponse.Payload.Write(ISAAC.WorldClientSeed);
-            connectResponse.Payload.Write(0u);
-
-            NetworkManager.SendPacket(ConnectionType.World, connectResponse, session);
+            ConnectRequest connectRequest = new ConnectRequest(ISAAC.WorldServerSeed, ISAAC.WorldClientSeed);
+            session.WorldBuffer.Enqueue(connectRequest);
         }
 
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
             session.State = SessionState.WorldConnected;
-            var serverSwitch = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch);
-            serverSwitch.Payload.Write((uint)0x18);
-            serverSwitch.Payload.Write((uint)0x00);
+            uint issacXor = session.GetIssacValue(PacketDirection.Server, ConnectionType.World);
+            var serverSwitch = new ServerSwitch(issacXor);
+            session.WorldBuffer.Enqueue(serverSwitch);
 
-            NetworkManager.SendPacket(ConnectionType.World, serverSwitch, session);
-
-            NetworkManager.SendWorldMessage(session, new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            session.WorldBuffer.Enqueue(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             session.Player.Load();
         }
     }
