@@ -153,7 +153,6 @@ namespace ACE.Network.Managers
         
         public static void SendWorldMessageOnChannel(Session session, GameMessageOnChannel message)
         {
-            //0x0A = 0 /n
             ServerPacketFragment fragment = new ServerPacketFragment(message);
             var packet = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             packet.Fragments.Add(fragment);
