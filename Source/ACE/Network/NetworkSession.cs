@@ -353,8 +353,7 @@ namespace ACE.Network
                         availableSpace -= dataToSend;
 
                         packet.AddFragment(fragment);
-                        if (currentMessageFragment.count > 1 && carryOverMessage == null)
-                            break;
+                        break;
                     }
                 }
 

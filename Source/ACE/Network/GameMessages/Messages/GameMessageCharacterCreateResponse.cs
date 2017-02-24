@@ -1,5 +1,4 @@
-﻿
-using ACE.Entity;
+﻿using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
 
@@ -7,7 +6,8 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCharacterCreateResponse : GameMessage
     {
-        public GameMessageCharacterCreateResponse(CharacterGenerationVerificationResponse response, ObjectGuid guid, string charName) : base(GameMessageOpcode.CharacterDelete, 0x9)
+        public GameMessageCharacterCreateResponse(CharacterGenerationVerificationResponse response, ObjectGuid guid, string charName) 
+            : base(GameMessageOpcode.CharacterCreateResponse, 0x9)
         {
             Writer.Write((uint)response);
 

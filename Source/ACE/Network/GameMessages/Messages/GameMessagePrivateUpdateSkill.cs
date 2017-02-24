@@ -1,12 +1,12 @@
 ﻿using System;
-
 using ACE.Entity.Enum;
 
 namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateSkill : GameMessage
     {
-        public GameMessagePrivateUpdateSkill(Session session, Skill skill, SkillStatus status, uint ranks, uint baseValue, uint totalInvestment) : base(GameMessageOpcode.PrivateUpdateSkill, 0x9)
+        public GameMessagePrivateUpdateSkill(Session session, Skill skill, SkillStatus status, uint ranks, uint baseValue, uint totalInvestment) 
+            : base(GameMessageOpcode.PrivateUpdateSkill, 0x9)
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
             // TODO Why is baseValue being passed to this function even though it's not used?
