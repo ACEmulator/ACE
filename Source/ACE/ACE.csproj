@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETWORKDEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -142,9 +142,10 @@
     <Compile Include="Network\GameEvent\GameEventType.cs" />
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
-    <Compile Include="Network\GameMessages\GameMessageChannel.cs" />
-    <Compile Include="Network\GameMessages\GameMessageOnChannel.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
@@ -157,6 +158,13 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageServerName.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageF7E5.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePatchStatus.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCreateObject.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePlayerCreate.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageSetState.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePlayerTeleport.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterError.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterEnterWorldServerReady.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
@@ -164,12 +172,13 @@
     <Compile Include="Network\Managers\PacketManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\NetworkManager.cs" />
+    <Compile Include="Network\Packets\Referral.cs" />
     <Compile Include="Network\Packets\ServerSwitch.cs" />
     <Compile Include="Network\Packets\ConnectRequest.cs" />
     <Compile Include="Network\Packets\ConnectResponse.cs" />
     <Compile Include="Network\Packets\WorldLoginRequest.cs" />
     <Compile Include="Network\Packets\LoginRequest.cs" />
-    <Compile Include="Network\SessionNetworkManager.cs" />
+    <Compile Include="Network\NetworkSession.cs" />
     <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />

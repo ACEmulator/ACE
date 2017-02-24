@@ -14,7 +14,7 @@ using ACE.Network.Handlers;
 
 namespace ACE.Network
 {
-    public class SessionNetworkManager
+    public class NetworkSession
     {
         private const int minimumTimeBetweenBundles = 5; // 5ms
         private const int timeBetweenTimeSync = 20000; // 20s
@@ -33,12 +33,12 @@ namespace ACE.Network
         private ConcurrentDictionary<uint /*seq*/, ServerPacket2> CachedPackets { get; } = new ConcurrentDictionary<uint, ServerPacket2>();
         private ConcurrentQueue<ServerPacket2> PacketQueue { get; } = new ConcurrentQueue<ServerPacket2>();
 
-        public SessionNetworkManager(Session session, ConnectionType connType)
+        public NetworkSession(Session session, ConnectionType connType)
         {
             this.session = session;
             this.connectionType = connType;
             currentBundle = new NetworkBundle();
-            nextSend = DateTime.Now.AddSeconds(-2);
+            nextSend = DateTime.Now;
             nextResync = DateTime.Now;
             nextAck = DateTime.Now;
         }
@@ -47,6 +47,13 @@ namespace ACE.Network
         {
             currentBundle.encryptedChecksum = true;
             currentBundle.Messages.Enqueue(message);
+        }
+
+        public void Enqueue(IEnumerable<GameMessage> messages)
+        {
+            currentBundle.encryptedChecksum = true;
+            foreach(var message in messages)
+                currentBundle.Messages.Enqueue(message);
         }
 
         public void Enqueue(ServerPacket2 packet)
@@ -178,7 +185,7 @@ namespace ACE.Network
                 {
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
                 }
-                SendPacket(cachedPacket);
+                SendPacketRaw(cachedPacket);
             }
         }
 
@@ -208,17 +215,29 @@ namespace ACE.Network
 
         private void SendPacket(ServerPacket2 packet)
         {
+            if(packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
+            {
+                uint issacXor = session.GetIssacValue(PacketDirection.Server, connectionType);
+                packet.IssacXor = issacXor;
+            }
+            SendPacketRaw(packet);
+        }
+
+        private void SendPacketRaw(ServerPacket2 packet)
+        {
             byte[] payload = packet.GetPayload();
+#if NETWORKDEBUG
             Console.WriteLine("Send Packet");
             payload.OutputDataToConsole();
             Console.WriteLine();
+#endif
             NetworkManager.GetSocket(this.connectionType).SendTo(payload, session.EndPoint);
         }
 
         /// <summary>
-        /// This function handles sending a bundle of messages (representing all messages accrued in a timeslice),
-        /// and sending them as 1 or more packets, combining multiple messages into one packet or spliting large
-        /// message across several packets as needed.
+        /// This function handles turning a bundle of messages (representing all messages accrued in a timeslice),
+        /// into 1 or more packets, combining multiple messages into one packet or spliting large message across
+        /// several packets as needed.
         /// 
         /// 1 Create Packet
         /// 2 If first packet for this bundle, fill any optional headers
@@ -237,8 +256,7 @@ namespace ACE.Network
 
             while (firstPacket || carryOverMessage != null || bundle.Messages.Count > 0)
             {
-                uint issacXor = (bundle.encryptedChecksum) ? session.GetIssacValue(PacketDirection.Server, connectionType) : 0u;
-                ServerPacket2 packet = new ServerPacket2(issacXor);
+                ServerPacket2 packet = new ServerPacket2();
                 PacketHeader packetHeader = packet.Header;
                 if (bundle.encryptedChecksum)
                     packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
@@ -270,8 +288,10 @@ namespace ACE.Network
                                 bodyWriter.Write((float)connectionData.ServerTime - bundle.ClientTime);
                             }
                             bodyWriter.Flush();
-                            packet.SetBody(bodyStream.ToArray());
                         }
+                        byte[] body = bodyStream.ToArray();
+                        packet.SetBody(body);
+                        availableSpace -= (uint)body.Length;
                     }
                 }
 
@@ -281,7 +301,7 @@ namespace ACE.Network
 
                     while (carryOverMessage != null || bundle.Messages.Count > 0)
                     {
-                        if (availableSpace <= PacketFragmentHeader.HeaderSize)
+                        if (availableSpace <= PacketFragmentHeader.HeaderSize + 4)
                             break;
 
                         MessageFragment currentMessageFragment;
@@ -324,11 +344,17 @@ namespace ACE.Network
                         fragmentHeader.Index = currentMessageFragment.index;
                         fragmentHeader.Group = currentMessageFragment.message.Group;
 
-                        fragment.Body = currentGameMessage.Data.ToArray();
+                        currentGameMessage.Data.Seek(currentMessageFragment.position, SeekOrigin.Begin);
+                        fragment.Body = new byte[dataToSend];
+                        currentGameMessage.Data.Read(fragment.Body, 0, (int)dataToSend);
 
                         currentMessageFragment.position = currentMessageFragment.position + dataToSend;
 
+                        availableSpace -= dataToSend;
+
                         packet.AddFragment(fragment);
+                        if (currentMessageFragment.count > 1 && carryOverMessage == null)
+                            break;
                     }
                 }
 

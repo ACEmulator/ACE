@@ -13,7 +13,7 @@ namespace ACE.Network.Packets
         private byte[] isaacServerSeed;
         private byte[] isaacClientSeed;
 
-        public ConnectRequest(byte[] isaacServerSeed, byte[] isaacClientSeed) : base(0u)
+        public ConnectRequest(byte[] isaacServerSeed, byte[] isaacClientSeed) : base()
         {
             this.Header.Flags = PacketHeaderFlags.ConnectRequest;
             this.isaacServerSeed = isaacServerSeed;

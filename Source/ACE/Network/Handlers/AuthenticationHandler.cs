@@ -37,7 +37,7 @@ namespace ACE.Network.Handlers
         {
             var connectResponse = new ConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
 
-            session.LoginBuffer.Enqueue(connectResponse);
+            session.LoginSession.Enqueue(connectResponse);
 
             if (account == null)
             {
@@ -80,10 +80,10 @@ namespace ACE.Network.Handlers
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
             GameMessageF7E5 unknown75e5Message = new GameMessageF7E5();
             GameMessagePatchStatus patchStatusMessage = new GameMessagePatchStatus();
-            session.LoginBuffer.Enqueue(characterListMessage);
-            session.LoginBuffer.Enqueue(serverNameMessage);
-            session.LoginBuffer.Enqueue(unknown75e5Message);
-            session.LoginBuffer.Enqueue(patchStatusMessage);
+            session.LoginSession.Enqueue(characterListMessage);
+            session.LoginSession.Enqueue(serverNameMessage);
+            session.LoginSession.Enqueue(unknown75e5Message);
+            session.LoginSession.Enqueue(patchStatusMessage);
 
             session.State = SessionState.AuthConnected;
         }
@@ -107,17 +107,16 @@ namespace ACE.Network.Handlers
             session.State              = SessionState.WorldConnectResponse;
 
             ConnectRequest connectRequest = new ConnectRequest(ISAAC.WorldServerSeed, ISAAC.WorldClientSeed);
-            session.WorldBuffer.Enqueue(connectRequest);
+            session.WorldSession.Enqueue(connectRequest);
         }
 
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
             session.State = SessionState.WorldConnected;
-            uint issacXor = session.GetIssacValue(PacketDirection.Server, ConnectionType.World);
-            var serverSwitch = new ServerSwitch(issacXor);
-            session.WorldBuffer.Enqueue(serverSwitch);
+            var serverSwitch = new ServerSwitch();
+            session.WorldSession.Enqueue(serverSwitch);
 
-            session.WorldBuffer.Enqueue(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            session.WorldSession.Enqueue(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             session.Player.Load();
         }
     }

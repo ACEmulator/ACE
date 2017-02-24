@@ -52,14 +52,14 @@ namespace ACE.Network
         public byte UpdatePropertyBoolSequence { get; set; } = 0x0;
         public byte UpdatePropertyDoubleSequence { get; set; } = 0x0;
 
-        public SessionNetworkManager LoginBuffer { get; set; }
-        public SessionNetworkManager WorldBuffer { get; set; }
+        public NetworkSession LoginSession { get; set; }
+        public NetworkSession WorldSession { get; set; }
 
         public Session(IPEndPoint endPoint)
         {
             EndPoint = endPoint;
-            LoginBuffer = new SessionNetworkManager(this, ConnectionType.Login);
-            WorldBuffer = new SessionNetworkManager(this, ConnectionType.World);
+            LoginSession = new NetworkSession(this, ConnectionType.Login);
+            WorldSession = new NetworkSession(this, ConnectionType.World);
         }
 
         private void StateChanged(SessionState newState)
@@ -74,8 +74,8 @@ namespace ACE.Network
                     
                     break;
                 case SessionState.AuthConnected:
-                    LoginBuffer.SetTimers();
-                    LoginBuffer.StartResync();
+                    LoginSession.SetTimers();
+                    LoginSession.StartResync();
                     break;
                 case SessionState.WorldLoginRequest:
                     
@@ -84,8 +84,8 @@ namespace ACE.Network
                     
                     break;
                 case SessionState.WorldConnected:
-                    WorldBuffer.SetTimers();
-                    WorldBuffer.StartResync();
+                    WorldSession.SetTimers();
+                    WorldSession.StartResync();
                     break;
             }
         }
@@ -109,11 +109,11 @@ namespace ACE.Network
         public void Update(double lastTick)
         {
             LoginConnection.ServerTime += lastTick;
-            LoginBuffer.Update();
+            LoginSession.Update();
             if (WorldConnection != null)
             {
                 WorldConnection.ServerTime += lastTick;
-                WorldBuffer.Update();
+                WorldSession.Update();
             }
         }
 
@@ -125,12 +125,7 @@ namespace ACE.Network
 
         public void SendCharacterError(CharacterError error)
         {
-            var characterError         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterErrorFragment = new ServerPacketFragment(0x09, GameMessageOpcode.CharacterError);
-            characterErrorFragment.Payload.Write((uint)error);
-            characterError.Fragments.Add(characterErrorFragment);
-
-            NetworkManager.SendPacket(ConnectionType.Login, characterError, this);
+            LoginSession.Enqueue(new GameMessageCharacterError(error));
         }
 
         private bool CheckState(ClientPacket packet)
@@ -163,7 +158,7 @@ namespace ACE.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse(packet);
 
-            var buffer = (type == ConnectionType.Login) ? LoginBuffer : WorldBuffer;
+            var buffer = (type == ConnectionType.Login) ? LoginSession : WorldSession;
 
             buffer.HandlePacket(packet);
         }

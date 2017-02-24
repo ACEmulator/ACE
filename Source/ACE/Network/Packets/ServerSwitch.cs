@@ -10,7 +10,7 @@ namespace ACE.Network.Packets
 {
     public class ServerSwitch : ServerPacket2
     {
-        public ServerSwitch(uint issacXor) : base(issacXor)
+        public ServerSwitch() : base()
         {
             this.Header.Flags = PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch;
         }

@@ -40,17 +40,5 @@ namespace ACE.Network
                 Group = group
             };
         }
-
-        public ServerPacketFragment(GameMessageOnChannel message)
-        {
-            Opcode = message.Opcode;
-
-            Data = message.Data;
-            Payload = new BinaryWriter(Data);
-            Header = new PacketFragmentHeader()
-            {
-                Group = (ushort)message.Channel
-            };
-        }
     }
 }

@@ -13,12 +13,26 @@ namespace ACE.Network
         public PacketHeader Header { get; private set; }
         private byte[] body = null;
         private List<ServerPacketFragment2> fragments = new List<ServerPacketFragment2>();
-        private uint issacXor;
+        private uint issacXor = 0u;
+        private bool issacXorSet = false;
+        public uint IssacXor
+        {
+            get
+            {
+                return issacXor;
+            }
+            set
+            {
+                if (issacXorSet)
+                    throw new InvalidOperationException("IssacXor can only be set once!");
+                issacXorSet = true;
+                issacXor = value;
+            }
+        }
 
-        public ServerPacket2(uint issacXor)
+        public ServerPacket2()
         {
             Header = new PacketHeader();
-            this.issacXor = issacXor;
         }
 
         public void SetBody(byte[] body)

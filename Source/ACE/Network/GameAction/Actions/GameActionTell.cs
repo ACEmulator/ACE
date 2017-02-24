@@ -35,7 +35,7 @@ namespace ACE.Network.GameAction.Actions
                     ChatPacket.SendServerMessage(Session, $"You tell {target}, \"'{message}'\"", ChatMessageType.OutgoingTell);
 
                 var tell = new GameEventTell(targetSession, message, Session.Player.Name, Session.Player.Guid.Full, targetSession.Player.Guid.Full, ChatMessageType.PrivateTell);
-                NetworkManager.SendWorldMessages(targetSession, new GameMessage[] { tell });
+                targetSession.WorldSession.Enqueue(new GameMessage[] { tell });
             }
         }
     }

@@ -11,7 +11,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            NetworkManager.SendWorldMessage(Session, new GameEventHouseStatus(Session));
+            Session.WorldSession.Enqueue(new GameEventHouseStatus(Session));
         }
     }
 }
