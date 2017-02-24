@@ -4,7 +4,7 @@ namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The GroupChatType identifies the type of group chat message.<para />
-    /// Used with F7B0 0147: Game Event -> Group Chat
+    /// Used with F7B0 0147: Game Event -> Group Chat (ChatChannel)
     /// </summary>
     [Flags]
     public enum GroupChatType
@@ -12,7 +12,7 @@ namespace ACE.Entity.Enum
         /// <summary>
         /// @f - Tell Fellowship
         /// </summary>
-        TellFellowshi       = 0x00000800,
+        TellFellowship      = 0x00000800,
 
         /// <summary>
         /// @v - Tell Vassals

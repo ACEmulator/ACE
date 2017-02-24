@@ -23,7 +23,7 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write(0u);
             Writer.Write(11u /*slotCount*/);
             Writer.WriteString16L(account);
-            Writer.Write(0u /*useTurbineChat*/);
+            Writer.Write(1u /*useTurbineChat*/);
             Writer.Write(0u /*hasThroneOfDestiny*/);
         }
     }

@@ -28,7 +28,10 @@ namespace ACE.Network.GameAction.Actions
             var targetSession = WorldManager.FindByPlayerName(target);
 
             if (targetSession == null)
-                ChatPacket.SendServerMessage(Session, $"{target} is not online.", ChatMessageType.OutgoingTell); // I don't know if this is the way it was done on live servers
+            {
+                var statusMessage = new GameEventDisplayStatusMessage(Session, StatusMessageType1.CharacterNotAvailable);
+                Session.WorldSession.Enqueue(new GameMessage[] { statusMessage });
+            }
             else
             {
                 if (Session.Player != targetSession.Player)
