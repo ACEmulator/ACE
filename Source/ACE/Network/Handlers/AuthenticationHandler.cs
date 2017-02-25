@@ -90,7 +90,7 @@ namespace ACE.Network.Handlers
 
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
             var packet75e5         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var packet75e5Fragment = new ServerPacketFragment(5, GameMessageOpcode.Unknown75E5);
+            var packet75e5Fragment = new ServerPacketFragment(5, GameMessageOpcode.DDD_Interrogation);
             packet75e5Fragment.Payload.Write(1ul);
             packet75e5Fragment.Payload.Write(1ul);
             packet75e5Fragment.Payload.Write(1ul);
@@ -102,7 +102,7 @@ namespace ACE.Network.Handlers
             NetworkManager.SendPacket(ConnectionType.Login, packet75e5, session);
 
             var patchStatus = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            patchStatus.Fragments.Add(new ServerPacketFragment(5, GameMessageOpcode.PatchStatus));
+            patchStatus.Fragments.Add(new ServerPacketFragment(5, GameMessageOpcode.DDD_EndDDD));
 
             NetworkManager.SendPacket(ConnectionType.Login, patchStatus, session);
 
