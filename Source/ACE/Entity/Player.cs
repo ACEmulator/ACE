@@ -205,12 +205,6 @@ namespace ACE.Entity
         public void GrantXp(ulong amount)
         {
             character.GrantXp(amount);
-            character.GrantXp(amount);
-            character.GrantXp(amount);
-            character.GrantXp(amount);
-            character.GrantXp(amount);
-            character.GrantXp(amount);
-            character.GrantXp(amount);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
