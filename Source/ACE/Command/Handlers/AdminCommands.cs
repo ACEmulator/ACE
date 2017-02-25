@@ -486,9 +486,6 @@ namespace ACE.Command
             try
             {
                 uint cell;
-                //System.Diagnostics.Debug.WriteLine(int.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber));
-                //if (!uint.TryParse(parameters[0], out cell))
-                //    return;
 
                 if (parameters[0].StartsWith("0x"))
                 {
@@ -496,9 +493,7 @@ namespace ACE.Command
                     cell = (uint)int.Parse(strippedcell, System.Globalization.NumberStyles.HexNumber);
                 }
                 else
-                {
                     cell = (uint)int.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber);
-                }
 
 
                 var positionData = new float[7];
@@ -511,15 +506,13 @@ namespace ACE.Command
                     positionData[i] = position;
                 }
 
-                //session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
-                // ^ Zeroed out last 4 numbers due to odd results when portaling to the exact coords.
-
-                session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], 0, 0, 0, 0));
+                session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[4], positionData[5], positionData[6], positionData[3]));
             }
             catch (Exception)
             {
                 ChatPacket.SendServerMessage(session, "Invalid arguments for @teleloc", ChatMessageType.Broadcast);
-                ChatPacket.SendServerMessage(session, "Usage: @teleloc cell x y z [qx qy qz qw]", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Hint: @teleloc follows the same number order as displayed from @loc output", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Usage: @teleloc cell [x y z] (qw qx qy qz)", ChatMessageType.Broadcast);
                 ChatPacket.SendServerMessage(session, "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
                 ChatPacket.SendServerMessage(session, "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
                 ChatPacket.SendServerMessage(session, "Example: @teleloc 7F0401AD 12.319900 -28.482000 0.005000", ChatMessageType.Broadcast);
