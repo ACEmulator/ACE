@@ -10,6 +10,7 @@ namespace ACE.Network
     public class ClientPacketFragment : PacketFragment
     {
         public BinaryReader Payload { get; }
+        public MemoryStream Data { get; private set; }
 
         public ClientPacketFragment(BinaryReader payload)
         {

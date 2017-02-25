@@ -28,52 +28,39 @@ namespace ACE.Network
         private DateTime nextSend;
         private bool sendAck = false;
         private bool sendResync = false;
-
         private uint lastReceivedSequence = 0;
-        private ConcurrentDictionary<uint /*seq*/, ServerPacket2> CachedPackets { get; } = new ConcurrentDictionary<uint, ServerPacket2>();
-        private ConcurrentQueue<ServerPacket2> PacketQueue { get; } = new ConcurrentQueue<ServerPacket2>();
+        private ConcurrentDictionary<uint /*seq*/, ServerPacket> CachedPackets { get; } = new ConcurrentDictionary<uint, ServerPacket>();
+        private ConcurrentQueue<ServerPacket> PacketQueue { get; } = new ConcurrentQueue<ServerPacket>();
+
+        public SessionConnectionData ConnectionData { get; private set; }
 
         public NetworkSession(Session session, ConnectionType connType)
         {
             this.session = session;
             this.connectionType = connType;
+            ConnectionData  = new SessionConnectionData(connType);
             currentBundle = new NetworkBundle();
             nextSend = DateTime.Now;
             nextResync = DateTime.Now;
             nextAck = DateTime.Now;
         }
 
-        public void Enqueue(GameMessage message)
-        {
-            currentBundle.encryptedChecksum = true;
-            currentBundle.Messages.Enqueue(message);
-        }
-
-        public void Enqueue(IEnumerable<GameMessage> messages)
+        public void Enqueue(params GameMessage[] messages)
         {
             currentBundle.encryptedChecksum = true;
             foreach(var message in messages)
                 currentBundle.Messages.Enqueue(message);
         }
 
-        public void Enqueue(ServerPacket2 packet)
+        public void Enqueue(params ServerPacket[] packets)
         {
-            PacketQueue.Enqueue(packet);
+            foreach (var packet in packets)
+                PacketQueue.Enqueue(packet);
         }
 
-        public void SetTimers()
+        public void Update(double lastTick)
         {
-            nextResync = DateTime.Now;
-            nextAck = DateTime.Now.AddMilliseconds(timeBetweenAck);
-        }
-
-        public void StartResync()
-        {
-            sendResync = true;
-        }
-
-        public void Update()
-        {
+            ConnectionData.ServerTime += lastTick;
             if (sendResync && !currentBundle.TimeSync && DateTime.Now > nextResync)
             {
                 currentBundle.TimeSync = true;
@@ -139,6 +126,7 @@ namespace ACE.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
+                sendResync = true;
                 if (connectionType == ConnectionType.Login)
                 {
                     AuthenticationHandler.HandleConnectResponse(packet, session);
@@ -151,7 +139,7 @@ namespace ACE.Network
 
             foreach (ClientPacketFragment fragment in packet.Fragments)
             {
-                PacketManager.HandleClientFragment(fragment, session);
+                InboundMessageManager.HandleClientFragment(fragment, session);
             }
         }
 
@@ -170,14 +158,14 @@ namespace ACE.Network
             var removalList = CachedPackets.Where(x => x.Key < sequence);
             foreach (var item in removalList)
             {
-                ServerPacket2 removedPacket;
+                ServerPacket removedPacket;
                 CachedPackets.TryRemove(item.Key, out removedPacket);
             }
         }
 
         private void Retransmit(uint sequence)
         {
-            ServerPacket2 cachedPacket;
+            ServerPacket cachedPacket;
             if (CachedPackets.TryGetValue(sequence, out cachedPacket))
             {
                 Console.WriteLine("Retransmit " + sequence);
@@ -191,19 +179,18 @@ namespace ACE.Network
 
         private void FlushPackets()
         {
-            var connectionData = (connectionType == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
             while (PacketQueue.Count > 0)
             {
-                ServerPacket2 packet;
+                ServerPacket packet;
                 if (PacketQueue.TryDequeue(out packet))
                 {
-                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && connectionData.PacketSequence < 2)
-                        connectionData.PacketSequence = 2;
+                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
+                        ConnectionData.PacketSequence = 2;
 
-                    packet.Header.Sequence = connectionData.PacketSequence++;
+                    packet.Header.Sequence = ConnectionData.PacketSequence++;
                     packet.Header.Id = (ushort)(connectionType == ConnectionType.Login ? 0x0B : 0x18);
                     packet.Header.Table = 0x14;
-                    packet.Header.Time = (ushort)connectionData.ServerTime;
+                    packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
                     if (packet.Header.Sequence >= 2u)
                         CachedPackets.TryAdd(packet.Header.Sequence, packet);
@@ -213,7 +200,7 @@ namespace ACE.Network
             }
         }
 
-        private void SendPacket(ServerPacket2 packet)
+        private void SendPacket(ServerPacket packet)
         {
             if(packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
@@ -223,15 +210,18 @@ namespace ACE.Network
             SendPacketRaw(packet);
         }
 
-        private void SendPacketRaw(ServerPacket2 packet)
+        private void SendPacketRaw(ServerPacket packet)
         {
+            Socket socket = SocketManager.GetSocket(this.connectionType);
             byte[] payload = packet.GetPayload();
 #if NETWORKDEBUG
-            Console.WriteLine("Send Packet");
-            payload.OutputDataToConsole();
-            Console.WriteLine();
+            System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(String.Format("Sending Packet (Len: {0}) on {1} [{2}:{3}=>{4}:{5}]", payload.Length, connectionType, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port));
+            sb.AppendLine(payload.BuildPacketString());
+            Console.WriteLine(sb.ToString());
 #endif
-            NetworkManager.GetSocket(this.connectionType).SendTo(payload, session.EndPoint);
+            socket.SendTo(payload, session.EndPoint);
         }
 
         /// <summary>
@@ -248,15 +238,13 @@ namespace ACE.Network
         /// <param name="bundle"></param>
         private void SendBundle(NetworkBundle bundle)
         {
-            
-            var connectionData = (connectionType == ConnectionType.Login ? session.LoginConnection : session.WorldConnection);
             bool firstPacket = true;
 
             MessageFragment carryOverMessage = null;
 
             while (firstPacket || carryOverMessage != null || bundle.Messages.Count > 0)
             {
-                ServerPacket2 packet = new ServerPacket2();
+                ServerPacket packet = new ServerPacket();
                 PacketHeader packetHeader = packet.Header;
                 if (bundle.encryptedChecksum)
                     packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
@@ -266,33 +254,23 @@ namespace ACE.Network
                 if (firstPacket)
                 {
                     firstPacket = false;
-                    using (var bodyStream = new MemoryStream())
+                    if (bundle.SendAck) //0x4000
                     {
-                        using (var bodyWriter = new BinaryWriter(bodyStream))
-                        {
-
-                            if (bundle.SendAck) //0x4000
-                            {
-                                packetHeader.Flags |= PacketHeaderFlags.AckSequence;
-                                bodyWriter.Write(lastReceivedSequence);
-                            }
-                            if (bundle.TimeSync) //0x1000000
-                            {
-                                packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
-                                bodyWriter.Write(connectionData.ServerTime);
-                            }
-                            if (bundle.ClientTime != -1f) //0x4000000
-                            {
-                                packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
-                                bodyWriter.Write(bundle.ClientTime);
-                                bodyWriter.Write((float)connectionData.ServerTime - bundle.ClientTime);
-                            }
-                            bodyWriter.Flush();
-                        }
-                        byte[] body = bodyStream.ToArray();
-                        packet.SetBody(body);
-                        availableSpace -= (uint)body.Length;
+                        packetHeader.Flags |= PacketHeaderFlags.AckSequence;
+                        packet.BodyWriter.Write(lastReceivedSequence);
                     }
+                    if (bundle.TimeSync) //0x1000000
+                    {
+                        packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
+                        packet.BodyWriter.Write(ConnectionData.ServerTime);
+                    }
+                    if (bundle.ClientTime != -1f) //0x4000000
+                    {
+                        packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
+                        packet.BodyWriter.Write(bundle.ClientTime);
+                        packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
+                    }
+                    availableSpace -= (uint)packet.Data.Length;
                 }
 
                 if (carryOverMessage != null || bundle.Messages.Count > 0)
@@ -319,11 +297,11 @@ namespace ACE.Network
 
                         var currentGameMessage = currentMessageFragment.message;
 
-                        ServerPacketFragment2 fragment = new ServerPacketFragment2();
+                        ServerPacketFragment fragment = new ServerPacketFragment();
                         PacketFragmentHeader fragmentHeader = fragment.Header;
                         availableSpace -= PacketFragmentHeader.HeaderSize;
 
-                        currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? connectionData.FragmentSequence++ : currentMessageFragment.sequence;
+                        currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? ConnectionData.FragmentSequence++ : currentMessageFragment.sequence;
 
                         uint dataToSend = (uint)currentGameMessage.Data.Length - currentMessageFragment.position;
                         if (dataToSend > availableSpace)
@@ -345,15 +323,14 @@ namespace ACE.Network
                         fragmentHeader.Group = currentMessageFragment.message.Group;
 
                         currentGameMessage.Data.Seek(currentMessageFragment.position, SeekOrigin.Begin);
-                        fragment.Body = new byte[dataToSend];
-                        currentGameMessage.Data.Read(fragment.Body, 0, (int)dataToSend);
+                        fragment.Content = new byte[dataToSend];
+                        currentGameMessage.Data.Read(fragment.Content, 0, (int)dataToSend);
 
                         currentMessageFragment.position = currentMessageFragment.position + dataToSend;
 
                         availableSpace -= dataToSend;
 
                         packet.AddFragment(fragment);
-                        break;
                     }
                 }
 

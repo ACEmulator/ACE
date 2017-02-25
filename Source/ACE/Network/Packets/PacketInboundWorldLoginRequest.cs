@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.Packets
 {
-    public class WorldLoginRequest
+    public class PacketInboundWorldLoginRequest
     {
         public ulong ConnectionKey { get; private set; }
 
-        public WorldLoginRequest(ClientPacket packet)
+        public PacketInboundWorldLoginRequest(ClientPacket packet)
         {
             ConnectionKey = packet.Payload.ReadUInt64();
         }

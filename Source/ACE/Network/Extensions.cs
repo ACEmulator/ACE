@@ -32,43 +32,7 @@ namespace ACE.Network
             writer.Pad(CalculatePadMultiple((uint)writer.BaseStream.Length, 4u));
         }
 
-        /// <summary>
-        /// This will output bytesToOutput bytes of fragment.Data (starting from startPosition) to the console.<para />
-        /// The original Data.Position will be restored after the data is output. 
-        /// </summary>
-        public static void OutputDataToConsole(this PacketFragment fragment, bool outputIndex = true, bool outputHex = true, bool outputASCII = true, int startPosition = 0, int bytesToOutput = 9999)
-        {
-            var originalPosition = fragment.Data.Position;
-            fragment.Data.Position = startPosition;
-
-            byte[] buffer = new byte[Math.Min(fragment.Data.Length, bytesToOutput)];
-            fragment.Data.Read(buffer, 0, buffer.Length);
-
-            string indexOutput = null;
-            string binaryOutput = null;
-            string asciiOutput = null;
-
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                indexOutput += (i % 100).ToString("D2");
-
-                binaryOutput += buffer[i].ToString("X2");
-
-                asciiOutput += " "; // This right justifies the ASCII with the index or hex
-                if (Char.IsControl((char)buffer[i]))
-                    asciiOutput += " ";
-                else
-                    asciiOutput += (char)buffer[i];
-            }
-
-            if (outputIndex) Console.WriteLine(indexOutput);
-            if (outputHex) Console.WriteLine(binaryOutput);
-            if (outputASCII) Console.WriteLine(asciiOutput);
-
-            fragment.Data.Position = originalPosition;
-        }
-
-        public static void OutputDataToConsole(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)
+        public static string BuildPacketString(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)
         {
             TextWriter tw = new StringWriter();
             byte[] buffer = bytes;
@@ -76,13 +40,13 @@ namespace ACE.Network
             int column = 0;
             int row = 0;
             int columns = 16;
-            tw.Write("   x");
+            tw.Write("   x  ");
             for (int i = 0; i < columns; i++)
             {
                 tw.Write(i.ToString().PadLeft(3));
             }
             tw.WriteLine("  |Text");
-            tw.Write("   0");
+            tw.Write("   0  ");
 
             string asciiLine = "";
             for (int i = 0; i < buffer.Length; i++)
@@ -94,6 +58,7 @@ namespace ACE.Network
                     tw.WriteLine("  |" + asciiLine);
                     asciiLine = "";
                     tw.Write((row * columns).ToString().PadLeft(4));
+                    tw.Write("  ");
                 }
 
                 tw.Write(buffer[i].ToString("X2").PadLeft(3));
@@ -107,7 +72,7 @@ namespace ACE.Network
 
             tw.Write("".PadLeft((columns - column) * 3));
             tw.WriteLine("  |" + asciiLine);
-            Console.WriteLine(tw.ToString());
+            return tw.ToString();
         }
 
         public static void WritePosition(this BinaryWriter writer, uint value, long position)

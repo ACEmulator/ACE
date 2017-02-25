@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.Packets
 {
-    public class LoginRequest
+    public class PacketInboundLoginRequest
     {
         public uint Timestamp { get; private set; }
         public string Account { get; private set; }
         public string GlsTicket { get; private set; }
 
-        public LoginRequest(ClientPacket packet)
+        public PacketInboundLoginRequest(ClientPacket packet)
         {
             string someString = packet.Payload.ReadString16L();
             packet.Payload.ReadUInt32(); // data length left in packet including ticket

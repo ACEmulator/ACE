@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.Packets
 {
-    public class ConnectResponse
+    public class PacketInboundConnectResponse
     {
         public ulong Check { get; private set; }
 
-        public ConnectResponse(ClientPacket packet)
+        public PacketInboundConnectResponse(ClientPacket packet)
         {
             Check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
         }

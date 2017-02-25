@@ -4,6 +4,7 @@ using System.Net.Sockets;
 
 using ACE.Managers;
 using ACE.Network.Managers;
+using System.Text;
 
 namespace ACE.Network
 {
@@ -18,6 +19,7 @@ namespace ACE.Network
         public Socket Socket { get; private set; }
 
         private ConnectionType listenerType;
+        private IPEndPoint listenerEndpoint;
 
         private uint listeningPort;
         private byte[] buffer = new byte[Packet.MaxPacketSize];
@@ -32,9 +34,10 @@ namespace ACE.Network
         {
             try
             {
+                listenerEndpoint = new IPEndPoint(IPAddress.Any, (int)listeningPort);
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                Socket.Bind(new IPEndPoint(IPAddress.Any, (int)listeningPort));
+                Socket.Bind(listenerEndpoint);
                 Listen();
             }
             catch (Exception exception)
@@ -79,12 +82,13 @@ namespace ACE.Network
                 Console.WriteLine(exception.Message);
                 return;
             }
-
-            var session = WorldManager.Find((IPEndPoint)clientEndPoint);
+            IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
+            var session = WorldManager.Find(ipEndpoint);
 #if NETWORKDEBUG
-            Console.WriteLine("Received");
-            data.OutputDataToConsole();
-            Console.WriteLine();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(String.Format("Received Packet (Len: {0}) on {1} [{2}:{3}=>{4}:{5}]", data.Length, listenerType, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));
+            sb.AppendLine(data.BuildPacketString());
+            Console.WriteLine(sb.ToString());
 #endif
             var packet = new ClientPacket(data);
             session.HandlePacket(listenerType, packet);

@@ -30,7 +30,8 @@ namespace ACE.Network
             set
             {
                 state = value;
-                StateChanged(value);
+                if (state == SessionState.WorldLoginRequest)
+                    this.WorldLoginRequested();
             }
         }
 
@@ -40,8 +41,6 @@ namespace ACE.Network
 
         // connection related
         public IPEndPoint EndPoint { get; }
-        public SessionConnectionData LoginConnection { get; } = new SessionConnectionData(ConnectionType.Login);
-        public SessionConnectionData WorldConnection { get; set; }
         public ulong WorldConnectionKey { get; set; }
         public uint GameEventSequence { get; set; }
         public byte UpdateAttributeSequence { get; set; } = 0x0;
@@ -59,35 +58,13 @@ namespace ACE.Network
         {
             EndPoint = endPoint;
             LoginSession = new NetworkSession(this, ConnectionType.Login);
-            WorldSession = new NetworkSession(this, ConnectionType.World);
         }
 
-        private void StateChanged(SessionState newState)
+        private void WorldLoginRequested()
         {
-            Console.WriteLine("New State " + newState);
-            switch(newState)
-            {
-                case SessionState.AuthLoginRequest:
-                    
-                    break;
-                case SessionState.AuthConnectResponse:
-                    
-                    break;
-                case SessionState.AuthConnected:
-                    LoginSession.SetTimers();
-                    LoginSession.StartResync();
-                    break;
-                case SessionState.WorldLoginRequest:
-                    
-                    break;
-                case SessionState.WorldConnectResponse:
-                    
-                    break;
-                case SessionState.WorldConnected:
-                    WorldSession.SetTimers();
-                    WorldSession.StartResync();
-                    break;
-            }
+            WorldSession = new NetworkSession(this, ConnectionType.World);
+            Player = new Player(this);
+            CharacterRequested = null;
         }
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
@@ -108,19 +85,17 @@ namespace ACE.Network
 
         public void Update(double lastTick)
         {
-            LoginConnection.ServerTime += lastTick;
-            LoginSession.Update();
-            if (WorldConnection != null)
+            LoginSession.Update(lastTick);
+            if (WorldSession != null)
             {
-                WorldConnection.ServerTime += lastTick;
-                WorldSession.Update();
+                WorldSession.Update(lastTick);
             }
         }
 
         public uint GetIssacValue(PacketDirection direction, ConnectionType type)
         {
-            var connectionData = (type == ConnectionType.Login ? LoginConnection : WorldConnection);
-            return (direction == PacketDirection.Client ? connectionData.IssacClient.GetOffset() : connectionData.IssacServer.GetOffset());
+            var session = (type == ConnectionType.Login ? LoginSession : WorldSession);
+            return (direction == PacketDirection.Client ? session.ConnectionData.IssacClient.GetOffset() : session.ConnectionData.IssacServer.GetOffset());
         }
 
         public void SendCharacterError(CharacterError error)
@@ -155,12 +130,11 @@ namespace ACE.Network
                 return;
             }
 
+            var buffer = (type == ConnectionType.Login) ? LoginSession : WorldSession;
+            buffer.HandlePacket(packet);
+
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse(packet);
-
-            var buffer = (type == ConnectionType.Login) ? LoginSession : WorldSession;
-
-            buffer.HandlePacket(packet);
         }
 
         private void HandleDisconnectResponse(ClientPacket packet)

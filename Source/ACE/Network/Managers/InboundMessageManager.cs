@@ -11,35 +11,35 @@ using ACE.Network.Handlers;
 
 namespace ACE.Network.Managers
 {
-    public static class PacketManager
+    public static class InboundMessageManager
     {
-        private class FragmentHandlerInfo
+        private class MessageHandlerInfo
         {
             public FragmentHandler Handler { get; set; }
             public GameMessageAttribute Attribute { get; set; }
         }
 
         public delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
-        private static Dictionary<GameMessageOpcode, FragmentHandlerInfo> fragmentHandlers;
+        private static Dictionary<GameMessageOpcode, MessageHandlerInfo> fragmentHandlers;
 
         private static Dictionary<GameActionOpcode, Type> actionHandlers;
 
         public static void Initialise()
         {
-            DefineFragmentHandlers();
+            DefineMessageHandlers();
             DefineActionHandlers();
         }
 
-        private static void DefineFragmentHandlers()
+        private static void DefineMessageHandlers()
         {
-            fragmentHandlers = new Dictionary<GameMessageOpcode, FragmentHandlerInfo>();
+            fragmentHandlers = new Dictionary<GameMessageOpcode, MessageHandlerInfo>();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 foreach (var methodInfo in type.GetMethods())
                 {
                     foreach (var fragmentHandlerAttribute in methodInfo.GetCustomAttributes<GameMessageAttribute>())
                     {
-                        var fragmentHandler = new FragmentHandlerInfo()
+                        var fragmentHandler = new MessageHandlerInfo()
                         {
                             Handler   = (FragmentHandler)Delegate.CreateDelegate(typeof(FragmentHandler), methodInfo),
                             Attribute = fragmentHandlerAttribute
@@ -66,13 +66,14 @@ namespace ACE.Network.Managers
                 Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
             else
             {
-                FragmentHandlerInfo fragmentHandlerInfo;
+                MessageHandlerInfo fragmentHandlerInfo;
                 if (fragmentHandlers.TryGetValue(opcode, out fragmentHandlerInfo))
                     if (fragmentHandlerInfo.Attribute.State == session.State)
                         fragmentHandlerInfo.Handler.Invoke(fragment, session);
             }
         }
 
+        //TODO: This needs to be reworked. Activator.CreateInstance is not going to be performant.
         public static void HandleGameAction(GameActionOpcode opcode, ClientPacketFragment fragment, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))

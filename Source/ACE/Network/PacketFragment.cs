@@ -13,7 +13,5 @@ namespace ACE.Network
         public static uint MaxFragmentDataSize { get; } = 448u; // Packet.MaxPacketSize - PacketHeader.HeaderSize - PacketFragmentHeader.HeaderSize
 
         public PacketFragmentHeader Header { get; protected set; }
-
-        public MemoryStream Data { get; protected set; }
     }
 }

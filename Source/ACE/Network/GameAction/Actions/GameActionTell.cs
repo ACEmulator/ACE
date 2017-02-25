@@ -30,7 +30,7 @@ namespace ACE.Network.GameAction.Actions
             if (targetSession == null)
             {
                 var statusMessage = new GameEventDisplayStatusMessage(Session, StatusMessageType1.CharacterNotAvailable);
-                Session.WorldSession.Enqueue(new GameMessage[] { statusMessage });
+                Session.WorldSession.Enqueue(statusMessage);
             }
             else
             {
@@ -38,7 +38,7 @@ namespace ACE.Network.GameAction.Actions
                     ChatPacket.SendServerMessage(Session, $"You tell {target}, \"'{message}'\"", ChatMessageType.OutgoingTell);
 
                 var tell = new GameEventTell(targetSession, message, Session.Player.Name, Session.Player.Guid.Full, targetSession.Player.Guid.Full, ChatMessageType.PrivateTell);
-                targetSession.WorldSession.Enqueue(new GameMessage[] { tell });
+                targetSession.WorldSession.Enqueue(tell);
             }
         }
     }

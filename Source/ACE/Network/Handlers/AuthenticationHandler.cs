@@ -20,7 +20,7 @@ namespace ACE.Network.Handlers
     {
         public static async void HandleLoginRequest(ClientPacket packet, Session session)
         {
-            LoginRequest loginRequest = new LoginRequest(packet);
+            PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
 
             try
             {
@@ -35,7 +35,7 @@ namespace ACE.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session)
         {
-            var connectResponse = new ConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
+            var connectResponse = new PacketOutboundConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
 
             session.LoginSession.Enqueue(connectResponse);
 
@@ -69,7 +69,7 @@ namespace ACE.Network.Handlers
 
         public static async void HandleConnectResponse(ClientPacket packet, Session session)
         {
-            ConnectResponse connectResponse = new ConnectResponse(packet);
+            PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
 
@@ -90,7 +90,7 @@ namespace ACE.Network.Handlers
 
         public static void HandleWorldLoginRequest(ClientPacket packet, Session session)
         {
-            WorldLoginRequest loginRequest = new WorldLoginRequest(packet);
+            PacketInboundWorldLoginRequest loginRequest = new PacketInboundWorldLoginRequest(packet);
             ulong connectionKey = loginRequest.ConnectionKey;
             if (session.WorldConnectionKey == 0)
                 session = WorldManager.Find(connectionKey);
@@ -101,21 +101,17 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            session.WorldConnection    = new SessionConnectionData(ConnectionType.World);
-            session.Player          = new Player(session);
-            session.CharacterRequested = null;
-            session.State              = SessionState.WorldConnectResponse;
-
-            ConnectRequest connectRequest = new ConnectRequest(ISAAC.WorldServerSeed, ISAAC.WorldClientSeed);
+            session.State = SessionState.WorldConnectResponse;
+            
+            PacketOutboundConnectRequest connectRequest = new PacketOutboundConnectRequest(ISAAC.WorldServerSeed, ISAAC.WorldClientSeed);
             session.WorldSession.Enqueue(connectRequest);
         }
 
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
             session.State = SessionState.WorldConnected;
-            var serverSwitch = new ServerSwitch();
+            var serverSwitch = new PacketOutboundServerSwitch();
             session.WorldSession.Enqueue(serverSwitch);
-
             session.WorldSession.Enqueue(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             session.Player.Load();
         }
