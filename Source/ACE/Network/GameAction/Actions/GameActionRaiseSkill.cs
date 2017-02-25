@@ -20,7 +20,6 @@ namespace ACE.Network.GameAction.Actions
         public override void Handle()
         {
             Session.Player.SpendXp(skill, xpSpent);
-            
         }
     }
 }
