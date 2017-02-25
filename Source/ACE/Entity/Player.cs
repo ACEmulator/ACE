@@ -253,11 +253,10 @@ namespace ACE.Entity
             }
             else
             {
+                uint currentXp = character.Abilities[ability].ExperienceSpent;
                 var abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, ranks, baseValue, result);
                 var message = new GameMessageSystemChat($"Your attempt to raise { ability } has failed.!", ChatMessageType.Broadcast);
-                NetworkManager.SendWorldMessages(Session, new GameMessage[] {  abilityUpdate, message });
-
-                //ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
+                NetworkManager.SendWorldMessages(Session, new GameMessage[] { abilityUpdate, message });
             }
         }
 
@@ -297,11 +296,12 @@ namespace ACE.Entity
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
+            int rank10Offset = 0;
             uint rank10 = 0u;
 
             if (ability.Ranks + 10 >= (chart.Ranks.Count)) {
-                int ranks = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
-                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + ranks].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             } else {
                 rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             }
@@ -309,7 +309,16 @@ namespace ACE.Entity
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
-                rankUps = 10u;
+            {
+                if (rank10Offset > 0u)
+                {
+                    rankUps = Convert.ToUInt32(rank10Offset);
+                }
+                else
+                {
+                    rankUps = 10u;
+                }
+            }
 
             if (rankUps > 0)
             {
@@ -393,7 +402,7 @@ namespace ACE.Entity
                 rankUps = 1u;
             else if (amount == rank10)
             {
-                if (rank10Offset > 0)
+                if (rank10Offset > 0u)
                 {
                     rankUps = Convert.ToUInt32(rank10Offset);
                 }
