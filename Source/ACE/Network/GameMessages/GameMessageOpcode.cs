@@ -55,9 +55,13 @@ namespace ACE.Network.GameMessages
         CharacterEnterWorldServerReady  = 0xF7DF,
         ServerMessage                   = 0xF7E0,
         ServerName                      = 0xF7E1,
-        Unknown75E5                     = 0xF7E5, // to be named...
-        PatchStatus                     = 0xF7EA,
 
+        DDD_Interrogation               = 0xF7E5,
+        DDD_InterrogationResponse       = 0xF7E6,
+        DDD_BeginDDD                    = 0xF7E7,
+        DDD_BeginPullDDD                = 0xF7E8,
+        DDD_IterationData               = 0xF7E9,
+        DDD_EndDDD                      = 0xF7EA,
     }
 }
 
