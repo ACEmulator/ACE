@@ -64,6 +64,7 @@
     <Compile Include="Enum\ChatMessageType.cs" />
     <Compile Include="Enum\EnumHelper.cs" />
     <Compile Include="Enum\GroupChatType.cs" />
+    <Compile Include="Enum\MapScope.cs" />
     <Compile Include="Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
@@ -83,6 +84,8 @@
     <Compile Include="PersistedPropertyAttribute.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceGuid.cs" />
+    <Compile Include="ResourceGuidType.cs" />
     <Compile Include="SkillCostAttribute.cs" />
     <Compile Include="SkillUsableUntrainedAttribute.cs" />
     <Compile Include="ExperienceExpenditureChart.cs" />

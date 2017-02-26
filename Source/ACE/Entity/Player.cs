@@ -14,10 +14,11 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
+using ACE.Entity.Events;
 
 namespace ACE.Entity
 {
-    public class Player : MutableWorldObject
+    public class Player : MutableWorldObject, ISpellcaster, IChatSender, IChatRecipient
     {
         // all the objects being tracked
         private Dictionary<ObjectGuid, MutableWorldObject> subscribedObjects = new Dictionary<ObjectGuid, MutableWorldObject>();
@@ -25,6 +26,7 @@ namespace ACE.Entity
         public Session Session { get; }
 
         public bool InWorld { get; set; }
+
         public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
 
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
@@ -32,6 +34,10 @@ namespace ACE.Entity
         private Character character;
 
         private Dictionary<SingleCharacterOption, bool> characterOptions; // Might want to move this to Character class
+
+        public event EventHandler<SpellCastArgs> OnSpellCast;
+
+        public event EventHandler<ChatMessageArgs> OnChat;
 
         public ReadOnlyCollection<Friend> Friends
         {
@@ -170,7 +176,7 @@ namespace ACE.Entity
             set { character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid)
+        public Player(Session session) : base(ObjectType.Creature | ObjectType.Caster, session.CharacterRequested.Guid)
         {
             Session = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
@@ -569,5 +575,9 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
         }
 
+        public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
+        {
+
+        }
     }
 }

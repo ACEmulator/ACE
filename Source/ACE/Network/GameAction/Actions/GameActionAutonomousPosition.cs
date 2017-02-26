@@ -26,6 +26,7 @@ namespace ACE.Network.GameAction
 
         public override void Handle()
         {
+            System.Console.WriteLine($"Player move: {position}");
             Session.Player.UpdatePosition(position);
         }
     }

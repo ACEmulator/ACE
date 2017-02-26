@@ -1,22 +1,42 @@
 ﻿
 using ACE.Entity.Enum;
+using ACE.Models;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
+using System;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
     public abstract class WorldObject
     {
+        private Position position = null;
+
+        private Position previousPosition = null;
+
         public ObjectGuid Guid { get; }
 
         public ObjectType Type { get; }
 
         public string Name { get; protected set; }
 
-        public Position Position { get; protected set; }
+        public virtual Position Position
+        {
+            get { return position; }
+            protected set
+            {
+                previousPosition = position;
+                position = value;
+            }
+        }
+
+        public Position PreviousPosition
+        {
+            get { return previousPosition; }
+        }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
 
@@ -34,6 +54,10 @@ namespace ACE.Entity
             Guid = guid;
         }
 
+        /// <summary>
+        /// TODO: Overhaul to use message queueing framework
+        /// TODO: Document magic values
+        /// </summary>
         public ServerPacket BuildObjectCreate()
         {
             var player = Guid.IsPlayer() ? this as Player : null;
@@ -41,7 +65,7 @@ namespace ACE.Entity
             var objectCreate         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             var objectCreateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.ObjectCreate);
             objectCreateFragment.Payload.WriteGuid(Guid);
-
+            
             // TODO: model information
             objectCreateFragment.Payload.Write((byte)0x11);
             objectCreateFragment.Payload.Write((byte)0);
@@ -76,8 +100,8 @@ namespace ACE.Entity
                 objectCreateFragment.Payload.Write(0x34000004u);
 
             if ((flags & PhysicsDescriptionFlag.CSetup) != 0)
-                objectCreateFragment.Payload.Write(0x02000001u);
-
+                objectCreateFragment.Payload.Write((uint)PlayableModels.HumanMale); 
+            
             /*if ((flags & PhysicsDescriptionFlag.Parent) != 0)
             {
             }*/
@@ -263,10 +287,21 @@ namespace ACE.Entity
             return objectCreate;
         }
 
+        public void UpdateMotionState(MotionState motionState)
+        {
+            UpdatePosition(motionState.Position);
+
+            // TODO: do stuff with the rest of the motion state data
+        }
+
         public void UpdatePosition(Position newPosition)
         {
-            // TODO: sanity checks
+            // setting position should trigger landblock stuff
             Position = newPosition;
+
+            // return;
+
+            // note: leave all this code until it can be replicated in a proper place
 
             var updatePositionFlags = UpdatePositionFlag.Contact;
             /*if (newPosition.Facing.W == 0.0f || newPosition.Facing.W == Position.Facing.W)
@@ -278,7 +313,7 @@ namespace ACE.Entity
             if (newPosition.Facing.Z == 0.0f || newPosition.Facing.Z == Position.Facing.Z)
                 updatePositionFlags |= UpdatePositionFlag.NoQuaternionZ;*/
 
-            var updatePosition         = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
+            var updatePosition = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             var updatePositionFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.UpdatePosition);
             updatePositionFragment.Payload.WriteGuid(Guid);
             updatePositionFragment.Payload.Write((uint)updatePositionFlags);
