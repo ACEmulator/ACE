@@ -18,7 +18,12 @@ namespace ACE.Network.GameAction
         IdentifyObject              = 0x00C8,
         AdvocateTeleport            = 0x00D6,
 
+        AddChannel                  = 0x0145,
+        RemoveChannel               = 0x0146,
         ChatChannel                 = 0x0147,
+        ListChannels                = 0x0148,
+        IndexChannels               = 0x0149,
+
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,
 

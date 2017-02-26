@@ -101,12 +101,16 @@
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetSingleCharacterOption.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionEmote.cs" />
@@ -131,6 +135,9 @@
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventChannelList.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDisplayParameterizedStatusMessage.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitle.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDisplayStatusMessage.cs" />
@@ -144,6 +151,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventTell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
     <Compile Include="Network\GameEvent\GameEventMessage.cs" />
+    <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
     <Compile Include="Network\GameEvent\GameEventType.cs" />
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
@@ -154,6 +162,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateBool.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />

@@ -10,6 +10,48 @@ namespace ACE.Entity.Enum
     public enum GroupChatType
     {
         /// <summary>
+        /// @abuse - Abuse Channel
+        /// </summary>
+        TellAbuse           = 0x00000001,
+
+        /// <summary>
+        /// @admin - Admin Channel (@ad)
+        /// </summary>
+        TellAdmin           = 0x00000002,
+
+        /// <summary>
+        /// @audit - Audit Channel (@au)
+        /// This channel was used to echo copies of enforcement commands (such as: ban, gag, boot) to all other online admins
+        /// </summary>
+        TellAudit           = 0x00000004,
+
+        /// <summary>
+        /// @av1 - Advocate Channel (@advocate) (@advocate1)
+        /// </summary>
+        TellAdvocate        = 0x00000008,
+
+        /// <summary>
+        /// @av2 - Advocate2 Channel (@advocate2)
+        /// </summary>
+        TellAdvocate2       = 0x00000010,
+
+        /// <summary>
+        /// @av3 - Advocate3 Channel (@advocate3)
+        /// </summary>
+        TellAdvocate3       = 0x000000020,
+
+        /// <summary>
+        /// @sent - Sentinel Channel (@sentinel)
+        /// </summary>
+        TellSentinel        = 0x000000200,
+
+        /// <summary>
+        /// @[command name tbd] - Help Channel
+        /// </summary>
+        TellHelp            = 0x000000400,
+
+
+        /// <summary>
         /// @f - Tell Fellowship
         /// </summary>
         TellFellowship      = 0x00000800,
