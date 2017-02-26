@@ -77,6 +77,22 @@ namespace ACE.Entity.Enum
         MagicSpellResults   = 0x07,
 
         /// <summary>
+        /// Light Pink Text - One or both of the following two was associated with the following channels: admin, audit, av1, av2, av3, sentinel
+        /// output: You say on the [channel name] channel, "message here"
+        /// </summary>
+        OutgoingAdminSay    = 0x08, // I'm picking this one to represent the You say Light pink (originally called x08) -Ripley
+        x09                 = 0x09,
+
+        /// <summary>
+        /// Bright Yellow Text - Unknown purpose/filter?
+        /// </summary>
+        x0A                 = 0x0A,
+        /// <summary>
+        /// Light Yellow Text - Unknown purpose/filter?
+        /// </summary>
+        x0B                 = 0x0B,
+
+        /// <summary>
         /// Via 0x02BB:
         /// All's quiet on this front!Enum_000C = 0x000C 
         /// Lemme alone.  And keep my door closed!
@@ -112,6 +128,17 @@ namespace ACE.Entity.Enum
         LevelAndSkills      = 0x0D,
 
         /// <summary>
+        /// Light Cyan (skyblue?) Text - Would seem to be associated with the following channel: Abuse
+        /// output: You say on the Abuse channel, "message here"
+        /// </summary>
+        OutgoingAbuseSay    = 0x0E, // I'm picking this one to represent the You say Light cyan (originally called x0E) -Ripley
+
+        /// <summary>
+        /// Red Text - Unknown purpose/filter? Possibly OutgoingHelpSay, not even sure if that showed up on the client when you sent out an urgent help command
+        /// </summary>
+        x0F                 = 0x0F,
+
+        /// <summary>
         /// Mr Sneaky tried and failed to assess you!
         /// </summary>
         CreatureAssess      = 0x10,
@@ -125,12 +152,34 @@ namespace ACE.Entity.Enum
         /// Aetheria surges on Pyreal Target Drudge with the power of Surge of Affliction!
         /// The cloak of Some Guy weaves the magic of Cloaked in Skill!
         /// </summary>
-        PlayerSpellcasting = 0x11,
+        PlayerSpellcasting  = 0x11,
 
         /// <summary>
         /// Fellow warriors, aid me!
         /// </summary>
         CreatureChat        = 0x12,
+
+        /// <summary>
+        /// Bright Yellow Text - Unknown purpose/filter?
+        /// </summary>
+        x13                 = 0x13,
+        
+        /// <summary>
+        /// Green Text - Unknown purpose/filter?
+        /// </summary>
+        x14                 = 0x14,
+
+        /// <summary>
+        /// Red Text - Would seem to be associated with the following channels: help
+        /// output: PlayerName says on the [channel name] channel, "message here"
+        /// </summary>
+        IncomingHelpSay     = 0x15, // I'm picking this one to represent the SoinSo says on.. red text because it is near AdminSay (originally called x15) -Ripley
+
+        /// <summary>
+        /// Pink Text - Would seem to be associated with the following channels: admin, audit, av1, av2, av3, sentinel
+        /// output: PlayerName says on the [channel name] channel, "message here"
+        /// </summary>
+        IncomingAdminSay    = 0x16, // I'm picking this one to represent the SoinSo says on.. pink text because it is double x08 (originally called x16) -Ripley
 
         /// <summary>
         /// Player is recalling home.
@@ -142,5 +191,29 @@ namespace ACE.Entity.Enum
         /// Super Tink successfully applies the Steel Salvage (workmanship 10.00) to the Silver Signet Crown.,
         /// </summary>
         Tinkering           = 0x18,
+
+
+        /// <summary>
+        /// Green Text - Unknown purpose/filter?
+        /// </summary>
+        x19                 = 0x19,
+
+        /// <summary>
+        /// Light cyan(sky blue) - Unknown purpose/filter?
+        /// </summary>
+        x1B                 = 0x1B,
+        x1C                 = 0x1C,
+        x1D                 = 0x1D,
+
+        /// <summary>
+        /// Light Cyan (skyblue?) Text - Would seem to be associated with the following channel: Abuse
+        /// output: PlayerName says on the Abuse channel, "message here"
+        /// </summary>
+        IncomingAbuseSay    = 0x1E, // I'm picking this one to represent the SoinSo says on.. light cyan text because it is double x0E (originally called x1E) -Ripley
+
+        /// <summary>
+        /// Bright Yellow Text - Unknown purpose/filter?
+        /// </summary>
+        x1F                 = 0x1F,
     }
 }
