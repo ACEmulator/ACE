@@ -2,6 +2,7 @@
 
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages;
 using ACE.Network.Managers;
@@ -26,6 +27,136 @@ namespace ACE.Network.GameAction.Actions
         {
             switch (groupChatType)
             {
+                case GroupChatType.TellAbuse:
+                    {
+                        //TODO: Proper permissions check. This command should work for any character with AccessLevel.Advocate or higher
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+                case GroupChatType.TellAdmin:
+                    {
+                        if (!Session.Player.IsAdmin)
+                            break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                        //NetworkManager.SendWorldMessage(recipient, gameMessageSystemChat);
+                    }
+                    break;
+                case GroupChatType.TellAudit:
+                    {
+                        //TODO: Proper permissions check. This command should work for any character AccessLevel.Sentinel or higher
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+                case GroupChatType.TellAdvocate:
+                    {
+                        //TODO: Proper permissions check. This command should work for any character AccessLevel.Advocate or higher
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+                case GroupChatType.TellAdvocate2:
+                    {
+                        //TODO: Proper permissions check. This command should work for any character AccessLevel.Advocate or higher
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+                case GroupChatType.TellAdvocate3:
+                    {
+                        //TODO: Proper permissions check. This command should work for any character AccessLevel.Advocate or higher
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+                case GroupChatType.TellSentinel:
+                    {
+                        //TODO: Proper permissions check. This command should work for any character with AccessLevel.Sentinel or higher
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                            else
+                                NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+                case GroupChatType.TellHelp:
+                    {
+                        ChatPacket.SendServerMessage(Session, "GameActionChatChannel TellHelp Needs work.", ChatMessageType.Broadcast);
+                        //TODO: I don't remember exactly how this was triggered. I don't think it sent back a "You say" message to the person who triggered it
+                        //TODO: Proper permissions check. Requesting urgent help should work for any character but only displays the "says" mesage for those subscribed to the Help channel
+                        //      which would be Advocates and above.
+                        //if (!Session.Player.IsAdmin)
+                        //    break;
+                        string onTheWhatChannel = "on the " + System.Enum.GetName(typeof(GroupChatType), groupChatType).Replace("Tell", "") + " channel";
+                        string whoSays = Session.Player.Name + " says ";
+
+                        //ChatPacket.SendServerMessage(Session, $"You say {onTheWhatChannel}, \"{message}\"", ChatMessageType.OutgoingHelpSay);
+
+                        var gameMessageSystemChat = new GameMessages.Messages.GameMessageSystemChat(whoSays + onTheWhatChannel + ", \"" + message + "\"", ChatMessageType.IncomingHelpSay);
+
+                        // TODO This should check if the recipient is subscribed to the channel
+                        foreach (var recipient in WorldManager.GetAll())
+                            if (recipient != Session)
+                                NetworkManager.SendWorldMessage(recipient, gameMessageSystemChat);
+
+                        // again not sure what way to go with this.. the code below was added after I realized I should be handling things differently
+                        // and by handling differently I mean letting the client do all of the work it was already designed to do.
+                        
+                        //foreach (var recipient in WorldManager.GetAll())
+                        //    if (recipient != Session)
+                        //        NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                        //    else
+                        //        NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                    }
+                    break;
+
+
                 case GroupChatType.TellFellowship:
                     {
                         var statusMessage = new GameEventDisplayStatusMessage(Session, StatusMessageType1.YouDoNotBelongToAFellowship);
