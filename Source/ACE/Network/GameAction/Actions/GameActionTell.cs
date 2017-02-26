@@ -37,7 +37,7 @@ namespace ACE.Network.GameAction.Actions
                 if (Session.Player != targetSession.Player)
                     ChatPacket.SendServerMessage(Session, $"You tell {target}, \"'{message}'\"", ChatMessageType.OutgoingTell);
 
-                var tell = new GameEventTell(targetSession, message, Session.Player.Name, Session.Player.Guid.Full, targetSession.Player.Guid.Full, ChatMessageType.PrivateTell);
+                var tell = new GameEventTell(targetSession, message, Session.Player.Name, Session.Player.Guid.Full, targetSession.Player.Guid.Full, ChatMessageType.Tell);
                 NetworkManager.SendWorldMessages(targetSession, new GameMessage[] { tell });
             }
         }

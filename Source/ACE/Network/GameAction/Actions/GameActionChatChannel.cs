@@ -138,7 +138,7 @@ namespace ACE.Network.GameAction.Actions
 
                         //ChatPacket.SendServerMessage(Session, $"You say {onTheWhatChannel}, \"{message}\"", ChatMessageType.OutgoingHelpSay);
 
-                        var gameMessageSystemChat = new GameMessages.Messages.GameMessageSystemChat(whoSays + onTheWhatChannel + ", \"" + message + "\"", ChatMessageType.IncomingHelpSay);
+                        var gameMessageSystemChat = new GameMessages.Messages.GameMessageSystemChat(whoSays + onTheWhatChannel + ", \"" + message + "\"", ChatMessageType.Help);
 
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
