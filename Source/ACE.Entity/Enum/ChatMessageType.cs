@@ -35,10 +35,22 @@ namespace ACE.Entity.Enum
         /// 
         /// The Mana Stone gives 3,123 points of mana to the following items: Frigid Bracelet, Silifi of Crimson Night, Tunic, Sleeves of Inexhaustibility, Breeches
         /// You need 3,640 more mana to fully charge your items.
+        /// 
+        /// LogTextTypeEnumMapper: Default
         /// </summary>
         Broadcast           = 0x00,
 
-        PublicChat          = 0x02,
+        /// <summary>
+        /// Green Text - No idea what this does, It's not labeled but is handled in the client????
+        /// 
+        /// LogTextTypeEnumMapper: ????
+        /// </summary>
+        x01                 = 0x01,
+
+        /// <summary>
+        /// LogTextTypeEnumMapper: Speech
+        /// </summary>
+        Speech              = 0x02,
 
         /// <summary>
         /// 
@@ -46,26 +58,34 @@ namespace ACE.Entity.Enum
         /// Buff Dude has added you to their home's guest list.  You now have access to their home.,
         /// Buff Dude has granted you access to their home's storage.,
         /// Buff DudeRipley has removed all house guests, including yourself.,
+        /// 
+        /// LogTextTypeEnumMapper: Tell
         /// </summary>
-        PrivateTell         = 0x03,
+        Tell                = 0x03,
 
         /// <summary>
         /// You tell ...
+        /// 
+        /// LogTextTypeEnumMapper: Speech_Direct_Send
         /// </summary>
         OutgoingTell        = 0x04,
 
         /// <summary>
         /// Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.
         /// Some Guy has discovered the Wayfarer's Pearl!
+        /// 
+        /// LogTextTypeEnumMapper: System
         /// </summary>
-        x05                 = 0x05,
+        System              = 0x05,
 
         /// <summary>
         /// You receive 18 points of periodic nether damage.
         /// You suffer 4 points of minor impact damage.
         /// Dirty Fighting! Big Guy delivers a Unbalancing Blow to Armored Tusker!,
+        /// 
+        /// LogTextTypeEnumMapper: Combat
         /// </summary>
-        x06                 = 0x06,
+        Combat              = 0x06,
 
         /// <summary>
         /// Prismatic Amuli Leggings cast Epic Quickness on you
@@ -73,24 +93,35 @@ namespace ACE.Entity.Enum
         /// You resist the spell cast by Someone
         /// Some Guy tried and failed to cast a spell at you!
         /// You cast Incantation of Revitalize Self and restore 172 points of your stamina.
+        /// 
+        /// LogTextTypeEnumMapper: Magic
         /// </summary>
-        MagicSpellResults   = 0x07,
+        Magic                = 0x07,
 
         /// <summary>
-        /// Light Pink Text - One or both of the following two was associated with the following channels: admin, audit, av1, av2, av3, sentinel
+        /// Light Pink Text - Both of the following two were associated with the following channels: admin, audit, av1, av2, av3, sentinel
         /// output: You say on the [channel name] channel, "message here"
+        /// 
+        /// LogTextTypeEnumMapper: Channel
         /// </summary>
-        OutgoingAdminSay    = 0x08, // I'm picking this one to represent the You say Light pink (originally called x08) -Ripley
-        x09                 = 0x09,
+        Channel             = 0x08,
+                
+        /// <summary>
+        /// LogTextTypeEnumMapper: Channel_Send
+        /// </summary>
+        ChannelSend         = 0x09,
 
         /// <summary>
-        /// Bright Yellow Text - Unknown purpose/filter?
+        /// Bright Yellow Text
+        /// LogTextTypeEnumMapper: Social
         /// </summary>
-        x0A                 = 0x0A,
+        Social              = 0x0A,
+
         /// <summary>
-        /// Light Yellow Text - Unknown purpose/filter?
+        /// Light Yellow Text
+        /// LogTextTypeEnumMapper: Social_Send
         /// </summary>
-        x0B                 = 0x0B,
+        SocialSend          = 0x0B,
 
         /// <summary>
         /// Via 0x02BB:
@@ -114,8 +145,10 @@ namespace ACE.Entity.Enum
         /// Have you a drudge charm, swamp stone, rat tail, or such? I'll pay you good money or items if you give them to me. They're hard to come by.
         /// Have you the skins of armoredillos, gromnies, or reedsharks?  I can use them in my craft.
         /// Damnable Mukkir...  They get everywhere...
+        /// 
+        /// LogTextTypeEnumMapper: Emote
         /// </summary>
-        NPCChat             = 0x0C,
+        Emote               = 0x0C,
 
         /// <summary>
         /// You are now level 5!
@@ -124,24 +157,32 @@ namespace ACE.Entity.Enum
         /// You are now level 68!
         /// You have 100,647,873 experience points and 3 skill credits available to raise skills and attributes.
         /// You will earn another skill credit at level 70.,
+        /// 
+        /// LogTextTypeEnumMapper: Advancement
         /// </summary>
-        LevelAndSkills      = 0x0D,
+        Advancement         = 0x0D,
 
         /// <summary>
         /// Light Cyan (skyblue?) Text - Would seem to be associated with the following channel: Abuse
         /// output: You say on the Abuse channel, "message here"
+        /// 
+        /// LogTextTypeEnumMapper: Abuse
         /// </summary>
-        OutgoingAbuseSay    = 0x0E, // I'm picking this one to represent the You say Light cyan (originally called x0E) -Ripley
+        Abuse               = 0x0E,
 
         /// <summary>
-        /// Red Text - Unknown purpose/filter? Possibly OutgoingHelpSay, not even sure if that showed up on the client when you sent out an urgent help command
+        /// Red Text - Possibly OutgoingHelpSay, not even sure if that showed up on the client when you sent out an urgent help command
+        /// 
+        /// LogTextTypeEnumMapper: Help
         /// </summary>
-        x0F                 = 0x0F,
+        Help                = 0x0F,
 
         /// <summary>
         /// Mr Sneaky tried and failed to assess you!
+        /// 
+        /// LogTextTypeEnumMapper: Appraisal
         /// </summary>
-        CreatureAssess      = 0x10,
+        Appraisal           = 0x10,
 
         /// <summary>
         /// Via 02BB:
@@ -151,52 +192,72 @@ namespace ACE.Entity.Enum
         /// Via F7E0:
         /// Aetheria surges on Pyreal Target Drudge with the power of Surge of Affliction!
         /// The cloak of Some Guy weaves the magic of Cloaked in Skill!
+        /// 
+        /// LogTextTypeEnumMapper: Spellcasting
         /// </summary>
-        PlayerSpellcasting  = 0x11,
+        Spellcasting        = 0x11,
 
         /// <summary>
         /// Fellow warriors, aid me!
+        /// 
+        /// LogTextTypeEnumMapper: Allegiance
         /// </summary>
-        CreatureChat        = 0x12,
+        Allegiance           = 0x12,
 
         /// <summary>
-        /// Bright Yellow Text - Unknown purpose/filter?
+        /// Bright Yellow Text
+        /// 
+        /// LogTextTypeEnumMapper: Fellowship
         /// </summary>
-        x13                 = 0x13,
-        
-        /// <summary>
-        /// Green Text - Unknown purpose/filter?
-        /// </summary>
-        x14                 = 0x14,
+        Fellowship           = 0x13,
 
         /// <summary>
-        /// Red Text - Would seem to be associated with the following channels: help
-        /// output: PlayerName says on the [channel name] channel, "message here"
+        /// Green Text
+        /// 
+        /// LogTextTypeEnumMapper: World_Broadcast
         /// </summary>
-        IncomingHelpSay     = 0x15, // I'm picking this one to represent the SoinSo says on.. red text because it is near AdminSay (originally called x15) -Ripley
+        WorldBroadcast      = 0x14,
 
         /// <summary>
-        /// Pink Text - Would seem to be associated with the following channels: admin, audit, av1, av2, av3, sentinel
-        /// output: PlayerName says on the [channel name] channel, "message here"
+        /// Red Text
+        /// 
+        /// LogTextTypeEnumMapper: Combat_Enemy
         /// </summary>
-        IncomingAdminSay    = 0x16, // I'm picking this one to represent the SoinSo says on.. pink text because it is double x08 (originally called x16) -Ripley
+        CombatEnemy         = 0x15,
+
+        /// <summary>
+        /// Pink Text
+        /// 
+        /// LogTextTypeEnumMapper: Combat_Self
+        /// </summary>
+        CombatSelf          = 0x16,
 
         /// <summary>
         /// Player is recalling home.
+        /// 
+        /// LogTextTypeEnumMapper: Recall
         /// </summary>
         Recall              = 0x17,
 
         /// <summary>
         /// Super Tink fails to apply the Fire Opal Salvage (workmanship 10.00) to the White Sapphire Fire Baton. The target is destroyed.
         /// Super Tink successfully applies the Steel Salvage (workmanship 10.00) to the Silver Signet Crown.,
+        /// 
+        /// LogTextTypeEnumMapper: Craft
         /// </summary>
-        Tinkering           = 0x18,
+        Craft               = 0x18,
 
 
         /// <summary>
-        /// Green Text - Unknown purpose/filter?
+        /// Green Text
+        /// LogTextTypeEnumMapper: Salvaging
         /// </summary>
-        x19                 = 0x19,
+        Salvaging           = 0x19,
+
+        /// <summary>
+        /// Light cyan(sky blue) - Unknown purpose/filter?
+        /// </summary>
+        x1A                 = 0x1A,
 
         /// <summary>
         /// Light cyan(sky blue) - Unknown purpose/filter?
@@ -206,14 +267,15 @@ namespace ACE.Entity.Enum
         x1D                 = 0x1D,
 
         /// <summary>
-        /// Light Cyan (skyblue?) Text - Would seem to be associated with the following channel: Abuse
-        /// output: PlayerName says on the Abuse channel, "message here"
+        /// Light Cyan (skyblue?) Text - Unknown purpose/filter?
         /// </summary>
-        IncomingAbuseSay    = 0x1E, // I'm picking this one to represent the SoinSo says on.. light cyan text because it is double x0E (originally called x1E) -Ripley
+        x1E                 = 0x1E, 
 
         /// <summary>
-        /// Bright Yellow Text - Unknown purpose/filter?
+        /// Bright Yellow Text
+        /// 
+        /// Admin_Tell
         /// </summary>
-        x1F                 = 0x1F,
+        AdminTell           = 0x1F,
     }
 }
