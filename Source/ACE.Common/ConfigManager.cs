@@ -12,11 +12,18 @@ namespace ACE.Common
         public uint WorldPort { get; set; }
     }
 
+    public struct ConfigAccountDefaults
+    {
+        public bool OverrideCharacterPermissions { get; set; }
+        public uint DefaultAccessLevel { get; set; }
+    }
+
     public struct ConfigServer
     {
         public string WorldName { get; set; }
         public string Welcome { get; set; }
         public ConfigServerNetwork Network { get; set; }
+        public ConfigAccountDefaults Accounts { get; set; }
     }
 
     public struct ConfigMySqlDatabase
