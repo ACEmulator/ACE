@@ -55,7 +55,29 @@ namespace ACE.Network.Handlers
             referralPacket.Payload.Write(session.WorldConnectionKey);
             referralPacket.Payload.Write((ushort)2);
             referralPacket.Payload.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
-            referralPacket.Payload.Write(ConfigManager.Host);
+
+            string[] ConnectingIPAddress = session.EndPoint.Address.ToString().Split('.');
+          
+            if (ConnectingIPAddress[0] == "10" || (ConnectingIPAddress[0] == "172" && System.Convert.ToInt16(ConnectingIPAddress[1]) >= 16 && System.Convert.ToInt16(ConnectingIPAddress[1]) <= 31) || (ConnectingIPAddress[0] == "192" && ConnectingIPAddress[1] == "168"))
+            {
+                var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        byte[] WorldInternalIP = new byte[4];
+                        string[] hostSplit = ip.ToString().Split('.');
+                        for (uint i = 0; i < 4; i++)
+                            WorldInternalIP[i] = Convert.ToByte(hostSplit[i]);
+                        referralPacket.Payload.Write(WorldInternalIP);
+                    }
+                }
+            }
+            else
+            {
+                referralPacket.Payload.Write(ConfigManager.Host);
+            }
+
             referralPacket.Payload.Write(0ul);
             referralPacket.Payload.Write((ushort)0x18);
             referralPacket.Payload.Write((ushort)0);
