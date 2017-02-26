@@ -6,6 +6,14 @@
             "Host": "127.0.0.1",
             "LoginPort": 9000,
             "WorldPort": 9008
+        },
+        "Accounts": {
+            "OverrideCharacterPermissions": true,
+            // false = Emulator mimics how permissions worked on real servers | true = Use Account AccessLevel to apply to all characters of an account
+            // If the above option is set to false, each character needs permissions set using set-characteraccess command
+            "DefaultAccessLevel": 0
+            // 0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin
+            // New accounts are created with the above AccessLevel unless explicitly changed using accountcreate command
         }
     },
     "MySql": {

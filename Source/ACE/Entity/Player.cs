@@ -195,6 +195,22 @@ namespace ACE.Entity
         public async void Load()
         {
             character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
+
+            if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (Session.AccessLevel == AccessLevel.Admin)
+                    character.IsAdmin = true;
+                if (Session.AccessLevel == AccessLevel.Developer)
+                    character.IsArch = true;
+                if (Session.AccessLevel == AccessLevel.Envoy)
+                    character.IsEnvoy = true;
+                //TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
+                //if (Session.AccessLevel == AccessLevel.Sentinel)
+                //    character.IsSentinel = true;
+                //if (Session.AccessLevel == AccessLevel.Advocate)
+                //    character.IsAdvocate= true;
+            }
+
             Position = character.Position;
             IsOnline = true;
 
