@@ -255,9 +255,10 @@ namespace ACE.Entity.Enum
         Salvaging           = 0x19,
 
         /// <summary>
-        /// Light cyan(sky blue) - Unknown purpose/filter?
+        /// Does Nothing - Unknown purpose/filter?
+        /// Client doesn't display it. Commenting out because why offer it as an option?
         /// </summary>
-        x1A                 = 0x1A,
+        //x1A                 = 0x1A,
 
         /// <summary>
         /// Light cyan(sky blue) - Unknown purpose/filter?
