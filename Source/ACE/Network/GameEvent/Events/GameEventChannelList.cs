@@ -8,7 +8,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventChannelList : GameEventMessage
     {
-        public GameEventChannelList(Session session, GroupChatType chatChannel) : base(GameEventType.ChannelList, session)
+        public GameEventChannelList(Session session, GroupChatType chatChannel) : base(GameEventType.ChannelList, GameMessageGroup.Group09, session)
         {
             //TODO: This should send back to the client a correct count followed by name strings of the channel requested.
             //      Obviously this would be based on who was subscribed to the channel at the time

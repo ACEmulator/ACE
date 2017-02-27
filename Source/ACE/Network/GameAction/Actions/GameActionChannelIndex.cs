@@ -25,7 +25,7 @@ namespace ACE.Network.GameAction.Actions
             if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
-            NetworkManager.SendWorldMessage(Session, new GameEventChannelIndex(Session));
+            Session.WorldSession.EnqueueSend(new GameEventChannelIndex(Session));
         }
     }
 }
