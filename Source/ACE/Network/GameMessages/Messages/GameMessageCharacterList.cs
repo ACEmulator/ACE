@@ -8,7 +8,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessageCharacterList : GameMessage
     {
         public GameMessageCharacterList(List<CachedCharacter> characters, string account) 
-            : base(GameMessageOpcode.CharacterList, 0x9)
+            : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
         {
             Writer.Write(0u);
             Writer.Write(characters.Count);

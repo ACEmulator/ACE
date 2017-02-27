@@ -6,7 +6,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessageCharacterEnterWorldServerReady : GameMessage
     {
         public GameMessageCharacterEnterWorldServerReady() 
-            : base(GameMessageOpcode.CharacterEnterWorldServerReady, 0x9)
+            : base(GameMessageOpcode.CharacterEnterWorldServerReady, GameMessageGroup.Group09)
         {
             
         }

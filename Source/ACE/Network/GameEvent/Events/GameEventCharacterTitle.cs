@@ -3,7 +3,7 @@
     public class GameEventCharacterTitle : GameEventMessage
     {
         public GameEventCharacterTitle(Session session) 
-            : base(GameEventType.CharacterTitle, 0x9, session)
+            : base(GameEventType.CharacterTitle, GameMessageGroup.Group09, session)
         {
             Writer.Write(1u);
             Writer.Write(1u); // TODO: get current title from database

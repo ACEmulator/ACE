@@ -3,7 +3,7 @@
     public class GameEventPingResponse : GameEventMessage
     {
         public GameEventPingResponse(Session session) 
-            : base(GameEventType.PingResponse, 0x9, session) { }
+            : base(GameEventType.PingResponse, GameMessageGroup.Group09, session) { }
     }
 }
 

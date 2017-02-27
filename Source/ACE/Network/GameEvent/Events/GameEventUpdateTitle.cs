@@ -3,7 +3,7 @@
     public class GameEventUpdateTitle : GameEventMessage
     {
         public GameEventUpdateTitle(Session session, uint title) 
-            : base(GameEventType.UpdateTitle, 0x9, session)
+            : base(GameEventType.UpdateTitle, GameMessageGroup.Group09, session)
         {
             Writer.Write(title);
             Writer.Write(1u);

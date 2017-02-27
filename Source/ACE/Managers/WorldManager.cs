@@ -20,7 +20,7 @@ namespace ACE.Managers
 
         private static volatile bool pendingWorldStop;
 
-        public static DateTime WorldStartTime { get; } = DateTime.Now;
+        public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
 
         public static void Initialise()
         {

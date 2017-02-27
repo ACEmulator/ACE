@@ -6,7 +6,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessagePrivateUpdateVital : GameMessage
     {
         public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue) 
-            : base(GameMessageOpcode.PrivateUpdateVital, 0x9)
+            : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.Group09)
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
 

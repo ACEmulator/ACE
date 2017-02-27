@@ -60,7 +60,7 @@ namespace ACE.Network.GameEvent.Events
         }
 
         public GameEventPlayerDescription(Session session)
-            : base(GameEventType.PlayerDescription, 0x9, session)
+            : base(GameEventType.PlayerDescription, GameMessageGroup.Group09, session)
         {
             WriteEventBody();
         }

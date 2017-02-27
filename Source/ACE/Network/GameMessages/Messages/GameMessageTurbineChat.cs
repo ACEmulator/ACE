@@ -8,7 +8,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessageTurbineChat : GameMessage
     {
         public GameMessageTurbineChat(TurbineChatType turbineChatType, uint channel, string senderName, string message, uint senderID) 
-            : base(GameMessageOpcode.TurbineChat, 0x4)
+            : base(GameMessageOpcode.TurbineChat, GameMessageGroup.Group04)
         {
             if (turbineChatType == TurbineChatType.InboundMessage)
             {

@@ -5,7 +5,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessagePlayerTeleport : GameMessage
     {
         public GameMessagePlayerTeleport(uint teleportIndex) 
-            : base(GameMessageOpcode.PlayerTeleport, 0xA)
+            : base(GameMessageOpcode.PlayerTeleport, GameMessageGroup.Group0A)
         {
             Writer.Write(teleportIndex);
             //Don't see these in traces or protocol spec:

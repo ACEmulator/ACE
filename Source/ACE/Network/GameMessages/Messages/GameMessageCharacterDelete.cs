@@ -7,7 +7,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessageCharacterDelete : GameMessage
     {
         public GameMessageCharacterDelete() 
-            : base(GameMessageOpcode.CharacterDelete, 0x9)
+            : base(GameMessageOpcode.CharacterDelete, GameMessageGroup.Group09)
         {
             
         }

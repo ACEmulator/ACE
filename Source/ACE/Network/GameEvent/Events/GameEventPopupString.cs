@@ -3,7 +3,7 @@
     public class GameEventPopupString : GameEventMessage
     {
         public GameEventPopupString(Session session, string message)
-            : base(GameEventType.PopupString, 0x9, session)
+            : base(GameEventType.PopupString, GameMessageGroup.Group09, session)
         {
             Writer.WriteString16L(message);
         }

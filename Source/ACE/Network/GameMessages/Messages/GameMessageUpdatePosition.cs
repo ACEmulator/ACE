@@ -6,7 +6,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessageUpdatePosition : GameMessage
     {
         public GameMessageUpdatePosition(WorldObject worldObject) 
-            : base(GameMessageOpcode.UpdatePosition, 0xA)
+            : base(GameMessageOpcode.UpdatePosition, GameMessageGroup.Group0A)
         {
             worldObject.WriteUpdatePositionPayload(Writer);
         }

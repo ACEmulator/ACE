@@ -2,10 +2,10 @@
 
 namespace ACE.Network.GameMessages.Messages
 {
-    public class GameMessageF7E5: GameMessage
+    public class GameMessageDDDInterrogation: GameMessage
     {
-        public GameMessageF7E5() 
-            : base(GameMessageOpcode.DDD_Interrogation, 0x5)
+        public GameMessageDDDInterrogation() 
+            : base(GameMessageOpcode.DDD_Interrogation, GameMessageGroup.Group05)
         {
             Writer.Write(1ul);
             Writer.Write(1ul);

@@ -40,9 +40,9 @@ namespace ACE.Network
             this.connectionType = connType;
             ConnectionData  = new SessionConnectionData(connType);
             currentBundle = new NetworkBundle();
-            nextSend = DateTime.Now;
-            nextResync = DateTime.Now;
-            nextAck = DateTime.Now;
+            nextSend = DateTime.UtcNow;
+            nextResync = DateTime.UtcNow;
+            nextAck = DateTime.UtcNow;
         }
 
         public void Enqueue(params GameMessage[] messages)
@@ -61,23 +61,23 @@ namespace ACE.Network
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
-            if (sendResync && !currentBundle.TimeSync && DateTime.Now > nextResync)
+            if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
             {
                 currentBundle.TimeSync = true;
                 currentBundle.encryptedChecksum = true;
-                nextResync = DateTime.Now.AddMilliseconds(timeBetweenTimeSync);
+                nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
             }
-            if (sendAck && !currentBundle.SendAck && DateTime.Now > nextAck)
+            if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
             {
                 currentBundle.SendAck = true;
-                nextAck = DateTime.Now.AddMilliseconds(timeBetweenAck);
+                nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
             }
-            if (currentBundle.NeedsSending && DateTime.Now > nextSend)
+            if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
             {
                 var bundleToSend = currentBundle;
                 currentBundle = new NetworkBundle();
                 SendBundle(bundleToSend);
-                nextSend = DateTime.Now.AddMilliseconds(minimumTimeBetweenBundles);
+                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
             }
             FlushPackets();
         }
@@ -320,7 +320,7 @@ namespace ACE.Network
                         fragmentHeader.Id = 0x80000000;
                         fragmentHeader.Count = currentMessageFragment.count;
                         fragmentHeader.Index = currentMessageFragment.index;
-                        fragmentHeader.Group = currentMessageFragment.message.Group;
+                        fragmentHeader.Group = (ushort)currentMessageFragment.message.Group;
 
                         currentGameMessage.Data.Seek(currentMessageFragment.position, SeekOrigin.Begin);
                         fragment.Content = new byte[dataToSend];

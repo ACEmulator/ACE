@@ -9,7 +9,7 @@ namespace ACE.Network.GameEvent
 
         protected Session Session { get; private set; }
 
-        public GameEventMessage(GameEventType eventType, ushort group, Session session) : base(GameMessageOpcode.GameEvent, group)
+        public GameEventMessage(GameEventType eventType, GameMessageGroup group, Session session) : base(GameMessageOpcode.GameEvent, group)
         {
             EventType = eventType;
             Session = session;
