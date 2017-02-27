@@ -275,7 +275,7 @@ namespace ACE.Entity.Enum
         /// <summary>
         /// Bright Yellow Text
         /// 
-        /// Admin_Tell
+        /// LogTextTypeEnumMapper: Admin_Tell
         /// </summary>
         AdminTell           = 0x1F,
     }
