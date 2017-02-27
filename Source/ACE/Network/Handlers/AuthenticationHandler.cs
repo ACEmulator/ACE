@@ -37,7 +37,8 @@ namespace ACE.Network.Handlers
         {
             var connectResponse = new PacketOutboundConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
 
-            session.LoginSession.EnequeueSend(connectResponse);
+            session.LoginSession.EnqueueSend(connectResponse);
+            session.LoginSession.Flush();
 
             if (account == null)
             {
@@ -79,7 +80,7 @@ namespace ACE.Network.Handlers
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
             GameMessageDDDInterrogation unknown75e5Message = new GameMessageDDDInterrogation();
-            GameMessagePatchStatus patchStatusMessage = new GameMessagePatchStatus();
+            GameMessageDDDEndDDD patchStatusMessage = new GameMessageDDDEndDDD();
             session.LoginSession.EnqueueSend(characterListMessage);
             session.LoginSession.EnqueueSend(serverNameMessage);
             session.LoginSession.EnqueueSend(unknown75e5Message);
@@ -104,15 +105,17 @@ namespace ACE.Network.Handlers
             session.State = SessionState.WorldConnectResponse;
             
             PacketOutboundConnectRequest connectRequest = new PacketOutboundConnectRequest(ISAAC.WorldServerSeed, ISAAC.WorldClientSeed);
-            session.WorldSession.EnequeueSend(connectRequest);
+            session.WorldSession.EnqueueSend(connectRequest);
         }
 
         public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
         {
             session.State = SessionState.WorldConnected;
             var serverSwitch = new PacketOutboundServerSwitch();
-            session.WorldSession.EnequeueSend(serverSwitch);
+            session.WorldSession.EnqueueSend(serverSwitch);
+            session.WorldSession.Flush();
             session.WorldSession.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            session.WorldSession.Flush();
             session.Player.Load();
         }
     }

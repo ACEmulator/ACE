@@ -48,7 +48,7 @@ namespace ACE.Network.Handlers
             RandomNumberGenerator.Create().GetNonZeroBytes(connectionKey);
             session.WorldConnectionKey = BitConverter.ToUInt64(connectionKey, 0);
 
-            session.LoginSession.EnequeueSend(new PacketOutboundReferral(session.WorldConnectionKey));
+            session.LoginSession.EnqueueSend(new PacketOutboundReferral(session.WorldConnectionKey));
 
             session.State = SessionState.WorldLoginRequest;
         }

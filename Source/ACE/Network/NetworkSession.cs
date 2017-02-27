@@ -52,7 +52,7 @@ namespace ACE.Network
                 currentBundle.Messages.Enqueue(message);
         }
 
-        public void EnequeueSend(params ServerPacket[] packets)
+        public void EnqueueSend(params ServerPacket[] packets)
         {
             foreach (var packet in packets)
                 PacketQueue.Enqueue(packet);
@@ -78,6 +78,20 @@ namespace ACE.Network
                 currentBundle = new NetworkBundle();
                 SendBundle(bundleToSend);
                 nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
+            }
+            FlushPackets();
+        }
+
+        /// <summary>
+        /// Force flushing of packet buffers.  Only to be used in special circumstances, such as during login sequence.
+        /// </summary>
+        public void Flush()
+        {
+            if (currentBundle.NeedsSending)
+            {
+                var bundleToSend = currentBundle;
+                currentBundle = new NetworkBundle();
+                SendBundle(bundleToSend);
             }
             FlushPackets();
         }
@@ -331,6 +345,7 @@ namespace ACE.Network
                         availableSpace -= dataToSend;
 
                         packet.AddFragment(fragment);
+                        //break;
                     }
                 }
 

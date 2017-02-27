@@ -479,7 +479,7 @@ namespace ACE.Entity
         private void SendSelf()
         {
             Session.WorldSession.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
-
+            Session.WorldSession.Flush();
             // TODO: gear and equip
 
             var player = new GameEventPlayerDescription(Session);
@@ -487,6 +487,7 @@ namespace ACE.Entity
             var friends = new GameEventFriendsListUpdate(Session);
 
             Session.WorldSession.EnqueueSend(player, title, friends);
+            Session.WorldSession.Flush();
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)

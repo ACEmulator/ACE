@@ -131,7 +131,9 @@ namespace ACE.Network
             }
 
             var buffer = (type == ConnectionType.Login) ? LoginSession : WorldSession;
-            buffer.HandlePacket(packet);
+            //Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
+            if(buffer != null)
+                buffer.HandlePacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse(packet);

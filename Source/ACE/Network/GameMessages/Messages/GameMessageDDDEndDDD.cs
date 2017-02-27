@@ -2,9 +2,9 @@
 
 namespace ACE.Network.GameMessages.Messages
 {
-    public class GameMessagePatchStatus : GameMessage
+    public class GameMessageDDDEndDDD : GameMessage
     {
-        public GameMessagePatchStatus() 
+        public GameMessageDDDEndDDD() 
             : base(GameMessageOpcode.DDD_EndDDD, GameMessageGroup.Group05)
         {
             

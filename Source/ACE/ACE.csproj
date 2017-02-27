@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETWORKDEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -161,7 +161,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterList.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageServerName.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageDDDInterrogation.cs" />
-    <Compile Include="Network\GameMessages\Messages\GameMessagePatchStatus.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageDDDEndDDD.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreateObject.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerCreate.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSetState.cs" />
