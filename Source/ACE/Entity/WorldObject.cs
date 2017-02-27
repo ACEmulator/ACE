@@ -267,7 +267,7 @@ namespace ACE.Entity
             if (Guid.IsPlayer())
             {
                 Session session = (this as Player).Session;
-                session.WorldSession.Enqueue(new GameMessageUpdatePosition(this));
+                session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(this));
             }
         }
 

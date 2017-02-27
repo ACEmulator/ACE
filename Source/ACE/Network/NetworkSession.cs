@@ -45,14 +45,14 @@ namespace ACE.Network
             nextAck = DateTime.UtcNow;
         }
 
-        public void Enqueue(params GameMessage[] messages)
+        public void EnqueueSend(params GameMessage[] messages)
         {
             currentBundle.encryptedChecksum = true;
             foreach(var message in messages)
                 currentBundle.Messages.Enqueue(message);
         }
 
-        public void Enqueue(params ServerPacket[] packets)
+        public void EnequeueSend(params ServerPacket[] packets)
         {
             foreach (var packet in packets)
                 PacketQueue.Enqueue(packet);

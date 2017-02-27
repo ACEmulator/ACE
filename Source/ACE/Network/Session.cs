@@ -100,7 +100,7 @@ namespace ACE.Network
 
         public void SendCharacterError(CharacterError error)
         {
-            LoginSession.Enqueue(new GameMessageCharacterError(error));
+            LoginSession.EnqueueSend(new GameMessageCharacterError(error));
         }
 
         private bool CheckState(ClientPacket packet)
