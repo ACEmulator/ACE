@@ -1,9 +1,9 @@
-﻿
-namespace ACE.Network.GameEvent.Events
+﻿namespace ACE.Network.GameEvent.Events
 {
     public class GameEventCharacterTitle : GameEventMessage
     {
-        public GameEventCharacterTitle(Session session) : base(GameEventType.CharacterTitle, session)
+        public GameEventCharacterTitle(Session session) 
+            : base(GameEventType.CharacterTitle, GameMessageGroup.Group09, session)
         {
             Writer.Write(1u);
             Writer.Write(1u); // TODO: get current title from database

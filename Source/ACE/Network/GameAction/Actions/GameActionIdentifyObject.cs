@@ -24,7 +24,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO
 
             var identifyObjectResponse = new GameEventIdentifyObjectResponse(Session, objectID);
-            NetworkManager.SendWorldMessages(Session, new GameMessage[] { identifyObjectResponse });
+            Session.WorldSession.EnqueueSend(identifyObjectResponse);
         }
     }
 }

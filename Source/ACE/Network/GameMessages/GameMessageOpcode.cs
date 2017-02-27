@@ -1,4 +1,3 @@
-
 namespace ACE.Network.GameMessages
 {
     public enum GameMessageOpcode
@@ -42,7 +41,6 @@ namespace ACE.Network.GameMessages
         SetState                        = 0xF74B,
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
-
         PlayEffect                      = 0xF755,
 
         GameEvent                       = 0xF7B0,

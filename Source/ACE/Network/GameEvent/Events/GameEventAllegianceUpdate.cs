@@ -3,7 +3,8 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventAllegianceUpdate : GameEventMessage
     {
-        public GameEventAllegianceUpdate(Session session) : base(GameEventType.AllegianceUpdate, session)
+        public GameEventAllegianceUpdate(Session session) 
+            : base(GameEventType.AllegianceUpdate, GameMessageGroup.Group09, session)
         {
             // TODO
 

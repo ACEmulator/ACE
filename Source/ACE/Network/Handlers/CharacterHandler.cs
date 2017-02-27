@@ -10,6 +10,7 @@ using ACE.Network.Enum;
 using ACE.Network.Managers;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Packets;
 
 namespace ACE.Network.Handlers
 {
@@ -18,10 +19,7 @@ namespace ACE.Network.Handlers
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public static void CharacterEnterWorldRequest(ClientPacketFragment fragment, Session session)
         {
-            var characterEnterWorldServerReady = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            characterEnterWorldServerReady.Fragments.Add(new ServerPacketFragment(9, GameMessageOpcode.CharacterEnterWorldServerReady));
-
-            NetworkManager.SendPacket(ConnectionType.Login, characterEnterWorldServerReady, session);
+            session.LoginSession.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
@@ -48,20 +46,9 @@ namespace ACE.Network.Handlers
             // this isn't really that necessary since ACE doesn't split login/world to multiple daemons, handle it anyway
             byte[] connectionKey = new byte[sizeof(ulong)];
             RandomNumberGenerator.Create().GetNonZeroBytes(connectionKey);
-
             session.WorldConnectionKey = BitConverter.ToUInt64(connectionKey, 0);
 
-            var referralPacket = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.Referral);
-            referralPacket.Payload.Write(session.WorldConnectionKey);
-            referralPacket.Payload.Write((ushort)2);
-            referralPacket.Payload.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
-            referralPacket.Payload.Write(ConfigManager.Host);
-            referralPacket.Payload.Write(0ul);
-            referralPacket.Payload.Write((ushort)0x18);
-            referralPacket.Payload.Write((ushort)0);
-            referralPacket.Payload.Write(0u);
-
-            NetworkManager.SendPacket(ConnectionType.Login, referralPacket, session);
+            session.LoginSession.EnqueueSend(new PacketOutboundReferral(session.WorldConnectionKey));
 
             session.State = SessionState.WorldLoginRequest;
         }
@@ -87,16 +74,13 @@ namespace ACE.Network.Handlers
 
             // TODO: check if character is already pending removal
 
-            var characterDelete         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterDeleteFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterDelete);
-            characterDelete.Fragments.Add(characterDeleteFragment);
-
-            NetworkManager.SendPacket(ConnectionType.Login, characterDelete, session);
+            session.LoginSession.EnqueueSend(new GameMessageCharacterDelete());
 
             DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
-            AuthenticationHandler.CharacterListSelectCallback(result, session);
+            session.UpdateCachedCharacters(result);
+            session.WorldSession.EnqueueSend(new GameMessageCharacterList(result, session.Account));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
@@ -116,15 +100,7 @@ namespace ACE.Network.Handlers
             }
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
-            var characterRestore         = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var characterRestoreFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterRestoreResponse);
-            characterRestoreFragment.Payload.Write(1u /* Verification OK flag */);
-            characterRestoreFragment.Payload.WriteGuid(guid);
-            characterRestoreFragment.Payload.WriteString16L(cachedCharacter.Name);
-            characterRestoreFragment.Payload.Write(0u /* secondsGreyedOut */);
-            characterRestore.Fragments.Add(characterRestoreFragment);
-
-            NetworkManager.SendPacket(ConnectionType.Login, characterRestore, session);
+            session.LoginSession.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
@@ -167,19 +143,7 @@ namespace ACE.Network.Handlers
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = null, string charName = "")
         {
-            var charCreateResponse = new ServerPacket(0x0B, PacketHeaderFlags.EncryptedChecksum);
-            var charCreateFragment = new ServerPacketFragment(9, GameMessageOpcode.CharacterCreateResponse);
-            charCreateFragment.Payload.Write((uint)response);
-
-            if (response == CharacterGenerationVerificationResponse.Ok)
-            {
-                charCreateFragment.Payload.WriteGuid(guid);
-                charCreateFragment.Payload.WriteString16L(charName);
-                charCreateFragment.Payload.Write(0u);
-            }
-
-            charCreateResponse.Fragments.Add(charCreateFragment);
-            NetworkManager.SendPacket(ConnectionType.Login, charCreateResponse, session);
+            session.LoginSession.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
     }
 }

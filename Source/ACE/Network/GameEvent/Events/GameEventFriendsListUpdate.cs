@@ -30,7 +30,7 @@ namespace ACE.Network.GameEvent.Events
         /// </summary>
         /// <param name="session"></param>
         public GameEventFriendsListUpdate(Session session) 
-            : base (GameEventType.FriendsListUpdate, session)
+            : base (GameEventType.FriendsListUpdate, GameMessageGroup.Group09, session)
         {
             updateType = FriendsUpdateTypeFlag.FullList;
             WriteEventBody();
@@ -45,7 +45,7 @@ namespace ACE.Network.GameEvent.Events
         /// <param name="overrideOnlineStatus">Set to true if you want to force a value for the online status of the friend.  Useful if you know the status and don't want to have the WorldManager check</param>
         /// <param name="onlineStatusVal">If overrideOnlineStatus is true, then this is the online status value that you want to force in the packet</param>
         public GameEventFriendsListUpdate(Session session, FriendsUpdateTypeFlag updateType, Friend friend, bool overrideOnlineStatus = false, bool onlineStatusVal = false) 
-            : base (GameEventType.FriendsListUpdate, session)
+            : base (GameEventType.FriendsListUpdate, GameMessageGroup.Group09, session)
         {
             this.updateType = updateType;
             this.friend = friend;

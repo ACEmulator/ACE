@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETWORKDEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -87,7 +87,6 @@
     <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
-    <Compile Include="Network\CachedPacket.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
@@ -147,9 +146,10 @@
     <Compile Include="Network\GameEvent\GameEventType.cs" />
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
-    <Compile Include="Network\GameMessages\GameMessageChannel.cs" />
-    <Compile Include="Network\GameMessages\GameMessageOnChannel.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
@@ -158,6 +158,17 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSound.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterList.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageServerName.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageDDDInterrogation.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageDDDEndDDD.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCreateObject.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePlayerCreate.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageSetState.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePlayerTeleport.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterError.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterEnterWorldServerReady.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageTurbineChat.cs" />
     <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
@@ -165,9 +176,18 @@
     <Compile Include="Network\Handlers\DDDHandler.cs" />
     <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
     <Compile Include="Network\Handlers\TurbineChatHandler.cs" />
-    <Compile Include="Network\Managers\PacketManager.cs" />
+    <Compile Include="Network\Managers\InboundMessageManager.cs" />
     <Compile Include="Network\Extensions.cs" />
-    <Compile Include="Network\Managers\NetworkManager.cs" />
+    <Compile Include="Network\Managers\SocketManager.cs" />
+    <Compile Include="Network\GameMessageGroup.cs" />
+    <Compile Include="Network\Packets\PacketOutboundReferral.cs" />
+    <Compile Include="Network\Packets\PacketOutboundServerSwitch.cs" />
+    <Compile Include="Network\Packets\PacketOutboundConnectRequest.cs" />
+    <Compile Include="Network\Packets\PacketInboundConnectResponse.cs" />
+    <Compile Include="Network\Packets\PacketInboundWorldLoginRequest.cs" />
+    <Compile Include="Network\Packets\PacketInboundLoginRequest.cs" />
+    <Compile Include="Network\NetworkSession.cs" />
+    <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />
     <Compile Include="Network\PacketFragment.cs" />

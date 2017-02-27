@@ -69,7 +69,7 @@ namespace ACE.Command.Handlers
             {
                 effectid = Convert.ToUInt32(parameters[0]);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //ex...more info.. if needed..
                 ChatPacket.SendServerMessage(session, $"Invalid Effect value", ChatMessageType.Broadcast);

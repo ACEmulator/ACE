@@ -1,4 +1,5 @@
-﻿using ACE.Network.GameMessages;
+﻿using ACE.Common.Cryptography;
+using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using System;
 using System.Collections.Generic;
@@ -11,46 +12,23 @@ namespace ACE.Network
 {
     public class ServerPacketFragment : PacketFragment
     {
-        public BinaryWriter Payload { get; }
-        public GameMessageOpcode Opcode { get; }
+        //public PacketFragmentHeader Header { get; private set; }
 
-        public ServerPacketFragment(ushort group, GameMessageOpcode opcode = GameMessageOpcode.None)
+        public byte[] Content { get; set; }
+
+        public ServerPacketFragment()
         {
-            Opcode = opcode;
-
-            Data = new MemoryStream((int)MaxFragmentDataSize);
-            Payload = new BinaryWriter(Data);
-            Header = new PacketFragmentHeader()
-            {
-                Group = group
-            };
-
-            if (opcode != GameMessageOpcode.None)
-                Payload.Write((uint)opcode);
+            Header = new PacketFragmentHeader();
         }
 
-        public ServerPacketFragment(ushort group, GameMessage message)
+        public uint GetPayload(BinaryWriter writer)
         {
-            Opcode = message.Opcode;
-
-            Data = message.Data;
-            Payload = new BinaryWriter(Data);
-            Header = new PacketFragmentHeader()
-            {
-                Group = group
-            };
-        }
-
-        public ServerPacketFragment(GameMessageOnChannel message)
-        {
-            Opcode = message.Opcode;
-
-            Data = message.Data;
-            Payload = new BinaryWriter(Data);
-            Header = new PacketFragmentHeader()
-            {
-                Group = (ushort)message.Channel
-            };
+            Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Content.Length);
+            byte[] fragmentHeaderBytes = Header.GetRaw();
+            uint fragmentChecksum = Hash32.Calculate(fragmentHeaderBytes, fragmentHeaderBytes.Length) + Hash32.Calculate(Content, Content.Length);
+            writer.Write(fragmentHeaderBytes);
+            writer.Write(Content);
+            return fragmentChecksum;
         }
     }
 }

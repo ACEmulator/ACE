@@ -29,7 +29,7 @@ namespace ACE.Network.GameAction.Actions
                 case GroupChatType.TellFellowship:
                     {
                         var statusMessage = new GameEventDisplayStatusMessage(Session, StatusMessageType1.YouDoNotBelongToAFellowship);
-                        NetworkManager.SendWorldMessages(Session, new GameMessage[] { statusMessage });
+                        Session.WorldSession.EnqueueSend(statusMessage);
 
                         ChatPacket.SendServerMessage(Session, "GameActionChatChannel TellFellowship Needs work.", ChatMessageType.Broadcast);
                     }

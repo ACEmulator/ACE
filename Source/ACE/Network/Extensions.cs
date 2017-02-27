@@ -2,6 +2,7 @@
 using System.IO;
 
 using ACE.Entity;
+using System.Text;
 
 namespace ACE.Network
 {
@@ -31,40 +32,47 @@ namespace ACE.Network
             writer.Pad(CalculatePadMultiple((uint)writer.BaseStream.Length, 4u));
         }
 
-        /// <summary>
-        /// This will output bytesToOutput bytes of fragment.Data (starting from startPosition) to the console.<para />
-        /// The original Data.Position will be restored after the data is output. 
-        /// </summary>
-        public static void OutputDataToConsole(this PacketFragment fragment, bool outputIndex = true, bool outputHex = true, bool outputASCII = true, int startPosition = 0, int bytesToOutput = 9999)
+        public static string BuildPacketString(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)
         {
-            var originalPosition = fragment.Data.Position;
-            fragment.Data.Position = startPosition;
+            TextWriter tw = new StringWriter();
+            byte[] buffer = bytes;
 
-            byte[] buffer = new byte[Math.Min(fragment.Data.Length, bytesToOutput)];
-            fragment.Data.Read(buffer, 0, buffer.Length);
+            int column = 0;
+            int row = 0;
+            int columns = 16;
+            tw.Write("   x  ");
+            for (int i = 0; i < columns; i++)
+            {
+                tw.Write(i.ToString().PadLeft(3));
+            }
+            tw.WriteLine("  |Text");
+            tw.Write("   0  ");
 
-            string indexOutput = null;
-            string binaryOutput = null;
-            string asciiOutput = null;
-
+            string asciiLine = "";
             for (int i = 0; i < buffer.Length; i++)
             {
-                indexOutput += (i % 100).ToString("D2");
+                if(column >= columns)
+                {
+                    row++;
+                    column = 0;
+                    tw.WriteLine("  |" + asciiLine);
+                    asciiLine = "";
+                    tw.Write((row * columns).ToString().PadLeft(4));
+                    tw.Write("  ");
+                }
 
-                binaryOutput += buffer[i].ToString("X2");
+                tw.Write(buffer[i].ToString("X2").PadLeft(3));
 
-                asciiOutput += " "; // This right justifies the ASCII with the index or hex
                 if (Char.IsControl((char)buffer[i]))
-                    asciiOutput += " ";
+                    asciiLine += " ";
                 else
-                    asciiOutput += (char)buffer[i];
+                    asciiLine += (char)buffer[i];
+                column++;
             }
 
-            if (outputIndex) Console.WriteLine(indexOutput);
-            if (outputHex) Console.WriteLine(binaryOutput);
-            if (outputASCII) Console.WriteLine(asciiOutput);
-
-            fragment.Data.Position = originalPosition;
+            tw.Write("".PadLeft((columns - column) * 3));
+            tw.WriteLine("  |" + asciiLine);
+            return tw.ToString();
         }
 
         public static void WritePosition(this BinaryWriter writer, uint value, long position)

@@ -1,11 +1,11 @@
-﻿
-using ACE.Network.Enum;
+﻿using ACE.Network.Enum;
 
 namespace ACE.Network.GameMessages.Messages
 {
-    public class GameMessageEffect : GameMessageOnChannel
+    public class GameMessageEffect : GameMessage
     {
-        public GameMessageEffect(Entity.ObjectGuid guid, uint effectId) : base(GameMessageOpcode.PlayEffect,GameMessageChannel.Channel0)
+        public GameMessageEffect(Entity.ObjectGuid guid, uint effectId)
+            : base(GameMessageOpcode.PlayEffect, GameMessageGroup.Group0A)
         {
             Writer.WriteGuid(guid);
             Writer.Write(effectId);

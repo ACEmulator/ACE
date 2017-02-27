@@ -10,6 +10,7 @@ namespace ACE.Network
     public class ClientPacket : Packet
     {
         public BinaryReader Payload { get; }
+        public PacketHeaderOptional HeaderOptional { get; private set; }
 
         public ClientPacket(byte[] data, bool debug = false)
         {

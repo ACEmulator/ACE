@@ -7,7 +7,8 @@ namespace ACE.Network.GameEvent.Events
         /// unknown1, unknown2 unknown3 do not appear to be used by the latest client.<para />
         /// They are possibly accessed by an admin client. They could be used in the future for admin chat via a decal plugin (with some sort of auth layer). 
         /// </summary>
-        public GameEventSetTurbineChatChannels(Session session, uint allegiance, uint general, uint trade, uint lfg, uint rolePlay, uint olhtoi, uint society, uint unknown1, uint unknown2, uint unknown3) : base(GameEventType.SetTurbineChatChannels, session)
+        public GameEventSetTurbineChatChannels(Session session, uint allegiance, uint general, uint trade, uint lfg, uint rolePlay, uint olhtoi, uint society, uint unknown1, uint unknown2, uint unknown3) 
+            : base(GameEventType.SetTurbineChatChannels, GameMessageGroup.Group09, session)
         {
             Writer.Write(allegiance);
             Writer.Write(general);
