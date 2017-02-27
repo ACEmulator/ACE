@@ -15,16 +15,21 @@ namespace ACE.Command.Handlers
         [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2)]
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
-            uint accountId          = DatabaseManager.Authentication.GetMaxId() + 1;
-            string account          = parameters[0].ToLower();
-            string salt             = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
-            string password         = SHA2.Hash(SHA2Type.SHA256, parameters[1]);
-            AccessLevel accessLevel = AccessLevel.Player;
+            uint accountId                  = DatabaseManager.Authentication.GetMaxId() + 1;
+            string account                  = parameters[0].ToLower();
+            string salt                     = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
+            string password                 = SHA2.Hash(SHA2Type.SHA256, parameters[1]);
+            AccessLevel accessLevel         = AccessLevel.Player;
+            AccessLevel defaultAccessLevel  = (AccessLevel)Common.ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
 
+            if (!Enum.IsDefined(typeof(AccessLevel), defaultAccessLevel))
+                defaultAccessLevel = AccessLevel.Player;
+
+            accessLevel = defaultAccessLevel;
             if (parameters.Length > 2)
                 if (Enum.TryParse(parameters[2], true, out accessLevel))
                     if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
-                        accessLevel = AccessLevel.Player;
+                        accessLevel = defaultAccessLevel;
 
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
