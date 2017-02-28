@@ -36,9 +36,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case GroupChatType.TellAdmin:
@@ -49,9 +49,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                         //NetworkManager.SendWorldMessage(recipient, gameMessageSystemChat);
                     }
                     break;
@@ -64,9 +64,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case GroupChatType.TellAdvocate:
@@ -78,9 +78,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case GroupChatType.TellAdvocate2:
@@ -92,9 +92,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case GroupChatType.TellAdvocate3:
@@ -106,9 +106,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case GroupChatType.TellSentinel:
@@ -120,9 +120,9 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, Session.Player.Name, message));
                             else
-                                Session.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.WorldSession.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case GroupChatType.TellHelp:
@@ -143,7 +143,7 @@ namespace ACE.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != Session)
-                                Session.WorldSession.EnqueueSend(gameMessageSystemChat);
+                                recipient.WorldSession.EnqueueSend(gameMessageSystemChat);
 
                         // again not sure what way to go with this.. the code below was added after I realized I should be handling things differently
                         // and by handling differently I mean letting the client do all of the work it was already designed to do.
