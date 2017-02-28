@@ -4,6 +4,7 @@ using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
@@ -35,7 +36,7 @@ namespace ACE.Network.GameAction.Actions
             else
             {
                 if (Session.Player != targetSession.Player)
-                    ChatPacket.SendServerMessage(Session, $"You tell {target}, \"'{message}'\"", ChatMessageType.OutgoingTell);
+                    Session.WorldSession.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
 
                 var tell = new GameEventTell(targetSession, message, Session.Player.Name, Session.Player.Guid.Full, targetSession.Player.Guid.Full, ChatMessageType.Tell);
                 targetSession.WorldSession.EnqueueSend(tell);
