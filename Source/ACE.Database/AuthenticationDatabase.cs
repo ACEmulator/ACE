@@ -38,7 +38,7 @@ namespace ACE.Database
 
         public void CreateAccount(Account account)
         {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.AccessLevel, account.Salt, account.Digest);
+            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.AccessLevel, account.Digest, account.Salt);
         }
 
         public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
