@@ -85,6 +85,8 @@
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
+    <Compile Include="Entity\WorldPackages\WorldObjectSegmentModelData.cs" />
+    <Compile Include="Entity\WorldPackages\WorldObjectSegmentPhysicsData.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
@@ -93,14 +95,19 @@
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
+    <Compile Include="Network\Enum\AmmoType.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\CoverageMask.cs" />
+    <Compile Include="Network\Enum\EquipMask.cs" />
+    <Compile Include="Network\Enum\Material.cs" />
+    <Compile Include="Network\Enum\UiEffects.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\Enum\SingleCharacterOption.cs" />
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
+    <Compile Include="Network\Enum\CombatUse.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
@@ -210,6 +217,8 @@
     <Compile Include="ACE.cs" />
     <Compile Include="Network\SessionConnectionData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Entity\WorldPackages\WolrdObjectPackage.cs" />
+    <Compile Include="Entity\WorldPackages\WolrdObjectSegmentGameData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="abilityXp.json">
