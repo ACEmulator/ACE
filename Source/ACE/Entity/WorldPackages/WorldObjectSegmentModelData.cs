@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using ACE.Network;
+using ACE.Network.Enum;
+using System.Collections.Generic;
+using System.IO;
 
 namespace ACE.Entity.WorldPackages
 {
@@ -8,13 +11,13 @@ namespace ACE.Entity.WorldPackages
     /// </summary>
     public class WorldObjectSegmentModelData
     {
-        private byte init = 0x11; // thisis always 11 ?
+
         private byte paletteCount = 0; // number of pallets associated with model
         private byte textureCount = 0; //number of textures associate with model
         private byte modelCount = 0; // number of models
 
         //PackedDWORD
-        private uint packedPaletteResourceId = 0;  // ?.
+        private uint packedPaletteGuid;  // ?.
 
         private List<WorldObjectModelDataPallete> ModelDataPalletes = new List<WorldObjectModelDataPallete>();
         private List<WorldObjectModelDataTexture> ModelDataTextures = new List<WorldObjectModelDataTexture>();
@@ -22,40 +25,71 @@ namespace ACE.Entity.WorldPackages
 
         public void AddPallet (uint palette, byte offset, byte length)
         {
+            paletteCount++;
             WorldObjectModelDataPallete newpallet = new WorldObjectModelDataPallete(palette, offset,length);
             ModelDataPalletes.Add(newpallet);
         }
 
         public void AddTexture(byte index, byte oldresourceid, byte newresourceid)
         {
+            textureCount++;
             WorldObjectModelDataTexture nextexture = new WorldObjectModelDataTexture(index, oldresourceid, newresourceid);
             ModelDataTextures.Add(nextexture);
         }
 
         public void AddModel(byte index, byte modelresourceid)
         {
+            modelCount++;
             WorldObjectModel newmodel = new WorldObjectModel(index, modelresourceid);
             Models.Add(newmodel);
         }
 
         //todo: render object network code
-        public void Render()
+        public void Render(BinaryWriter writer)
         {
+            writer.Write((byte)0x11);
+            writer.Write((byte)paletteCount);
+            writer.Write((byte)textureCount);
+            writer.Write((byte)modelCount);
+
+            writer.Write((uint)packedPaletteGuid);
+            foreach (WorldObjectModelDataPallete pallet in ModelDataPalletes)
+            {
+                writer.Write((uint)pallet.Guid);
+                writer.Write((byte)pallet.Offset);
+                writer.Write((byte)pallet.Length);
+            }
+
+            foreach (WorldObjectModelDataTexture texture in ModelDataTextures)
+            {
+                writer.Write((byte)texture.Index);
+                writer.Write((uint)texture.OldGuid);
+                writer.Write((uint)texture.NewGuid);
+            }
+
+            foreach (WorldObjectModel model in Models)
+            {
+                writer.Write((byte)model.Index);
+                writer.Write((uint)model.Guid);
+            }
+
+            writer.Align();
 
         }
 
     }
 
     //todo: move these into their own files..
+
     class WorldObjectModelDataPallete
     {
-        public uint Palette { get; }
+        public uint Guid { get; }
         public byte Offset { get; }
         public byte Length { get; }
 
-        public WorldObjectModelDataPallete(uint palette, byte offset, byte length)
+        public WorldObjectModelDataPallete(uint guid, byte offset, byte length)
         {
-            Palette = palette;
+            Guid = guid;
             Offset = offset;
             Length = length;
         }
@@ -67,26 +101,26 @@ namespace ACE.Entity.WorldPackages
     class WorldObjectModelDataTexture
     {
         public byte Index { get; } //index of model to replace texture.
-        public uint OldResourceId { get; }
-        public uint NewResourceId { get; }
+        public uint OldGuid { get; }
+        public uint NewGuid { get; }
 
-        public WorldObjectModelDataTexture(byte index, byte oldresourceid, byte newresourceid)
+        public WorldObjectModelDataTexture(byte index, byte oldguid, byte newguid)
         {
             Index = index;
-            OldResourceId = oldresourceid; // - 0x05000000
-            NewResourceId = newresourceid; // - 0x05000000
+            OldGuid = oldguid; // - 0x05000000
+            NewGuid = newguid; // - 0x05000000
         }
     }
 
     class WorldObjectModel
     {
         public byte Index { get; } //index of model
-        public uint ModelResourceId { get; }  //- 0x01000000
+        public uint Guid { get; }  //- 0x01000000
 
-        public WorldObjectModel(byte index, uint modelresourceid)
+        public WorldObjectModel(byte index, uint guid)
         {
             Index = index;
-            ModelResourceId = modelresourceid;
+            Guid = guid;
         }
     }
 

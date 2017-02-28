@@ -5,6 +5,7 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 using ACE.Entity.WorldPackages;
+using System.IO;
 
 namespace ACE.Entity.WorldPackages
 {
@@ -62,7 +63,7 @@ namespace ACE.Entity.WorldPackages
         public uint PetOwner;
 
         //todo: render object network code
-        public void Render()
+        public void Render(BinaryWriter writer)
         {
 
         }

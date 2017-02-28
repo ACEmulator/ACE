@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ACE.Entity.WorldPackages
@@ -9,8 +9,8 @@ namespace ACE.Entity.WorldPackages
     public class WorldObjectSegmentPhysicsData
     {
         public uint CSetup;
-        public uint PhysicsDescriptionFlag;
-        private uint Unknown = 0;
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag;
+        private PhysicsState PhysicsState = 0;
 
         public Position Position;
         public uint MTableResourceId;
@@ -19,7 +19,7 @@ namespace ACE.Entity.WorldPackages
         public uint Petable;
 
         public uint Equipper;
-        public EquipMask EquipperFlags;
+        public EquipMask EquipperPhysicsDescriptionFlag;
 
         public uint ItemsEquipedCount;
 
@@ -54,9 +54,96 @@ namespace ACE.Entity.WorldPackages
         }
 
         //todo: return bytes of data for network write ? ?
-        public void Render()
+        public void Render(BinaryWriter writer)
         {
 
+            writer.Write((uint)PhysicsDescriptionFlag);
+            writer.Write((uint)PhysicsState);
+
+            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            {
+            }*/
+
+            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+            {
+            }*/
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
+                Position.Write(writer);
+
+            // TODO:
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
+                writer.Write(0x09000001u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
+                writer.Write(0x20000001u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
+                writer.Write(0x34000004u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
+                writer.Write(0x02000001u);
+
+            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
+            {
+            }*/
+
+            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
+            {
+            }*/
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
+                writer.Write(0.0f);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
+                writer.Write(0.0f);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elastcity) != 0)
+                writer.Write(0.0f);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
+                writer.Write(0.0f);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
+            {
+                writer.Write(0.0f);
+                writer.Write(0.0f);
+                writer.Write(0.0f);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
+            {
+                writer.Write(0.0f);
+                writer.Write(0.0f);
+                writer.Write(0.0f);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
+            {
+                writer.Write(0.0f);
+                writer.Write(0.0f);
+                writer.Write(0.0f);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
+                writer.Write(0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
+                writer.Write(0.0f);
+
+            writer.Write((ushort)PositionSequance);
+            writer.Write((ushort)unknownseq0);
+            writer.Write((ushort)(PhysicsSequance));
+            writer.Write((ushort)JumpSequance);
+            writer.Write((ushort)PortalSequance);
+            writer.Write((ushort)unknownseq1);
+            writer.Write((ushort)0);
+            writer.Write((ushort)0);
+            writer.Write((ushort)(SpawnSequance));
+
+            writer.Align();
+
+         
         }
 
     }
@@ -69,12 +156,12 @@ namespace ACE.Entity.WorldPackages
     public class EquipedItem
     {
         public uint ModelId { get; }
-        public EquipMask EquipperFlags { get; }
+        public EquipMask EquipperPhysicsDescriptionFlag { get; }
 
         public EquipedItem(uint modelid, EquipMask equipmask)
         {
             ModelId = modelid;
-            EquipperFlags = equipmask;
+            EquipperPhysicsDescriptionFlag = equipmask;
         }
     }
 
