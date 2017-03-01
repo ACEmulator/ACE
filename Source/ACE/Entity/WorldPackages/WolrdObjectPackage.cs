@@ -15,7 +15,6 @@ namespace ACE.Entity.WorldPackages
 {
     public class WolrdObjectPackage
     {
-
         public ObjectGuid Guid { get; }
         public ObjectType Type { get; }
         public virtual float ListeningRadius { get; protected set; } = 0f;
@@ -35,7 +34,7 @@ namespace ACE.Entity.WorldPackages
         public WorldObjectSegmentPhysicsData WorldObjectSegmentPhysicsData { get; }
         public WolrdObjectSegmentGameData WolrdObjectSegmentGameData { get; }
 
-        protected WolrdObjectPackage(ObjectType type, ObjectGuid guid, WorldObjectSegmentModelData modeldata, WorldObjectSegmentPhysicsData physicsdata, WolrdObjectSegmentGameData gamedata)
+        public WolrdObjectPackage(ObjectType type, ObjectGuid guid, WorldObjectSegmentModelData modeldata, WorldObjectSegmentPhysicsData physicsdata, WolrdObjectSegmentGameData gamedata)
         {
             Type = type;
             Guid = guid;
@@ -50,7 +49,7 @@ namespace ACE.Entity.WorldPackages
         }
 
         //todo: // make this work..
-        protected void Render(System.IO.BinaryWriter writer)
+        public void Render(System.IO.BinaryWriter writer)
         {
             //var objectCreate = new ServerPacket(0x18, PacketHeaderFlags.EncryptedChecksum);
             //var objectCreateFragment = new ServerPacketFragment(0x0A, GameMessageOpcode.ObjectCreate);

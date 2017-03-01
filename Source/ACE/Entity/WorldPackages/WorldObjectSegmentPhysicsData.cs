@@ -10,7 +10,7 @@ namespace ACE.Entity.WorldPackages
     {
         public uint CSetup;
         public PhysicsDescriptionFlag PhysicsDescriptionFlag;
-        private PhysicsState PhysicsState = 0;
+        public PhysicsState PhysicsState = 0;
 
         public Position Position;
         public uint MTableResourceId;
@@ -37,13 +37,13 @@ namespace ACE.Entity.WorldPackages
 
         //thanks Kaezin for help understanding this structure.
         //Update this when the object moves
-        public ushort PositionSequance;
+        public ushort PositionSequance = (ushort)1;
         public ushort unknownseq0 = (ushort)1; // unknown for now
-        public ushort PhysicsSequance; // physics state change 
-        public ushort JumpSequance; // increments when you Jump.
-        public ushort PortalSequance; //increments when you portal
-        public ushort unknownseq1 = (ushort)0;
-        public ushort SpawnSequance; // increments with spawn player / critter / boss ?
+        public ushort PhysicsSequance = (ushort)1; // physics state change 
+        public ushort JumpSequance = (ushort)1; // increments when you Jump.
+        public ushort PortalSequance = (ushort)1; //increments when you portal
+        public ushort unknownseq1 = (ushort)1;
+        public ushort SpawnSequance = (ushort)1; // increments with spawn player / critter / boss ?
 
 
         public void AddEquipedItem(uint index, EquipMask equiperflag)

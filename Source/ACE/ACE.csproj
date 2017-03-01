@@ -184,6 +184,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerTeleport.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterError.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterEnterWorldServerReady.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageTestWorldPackage.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageTurbineChat.cs" />
