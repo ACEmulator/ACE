@@ -106,5 +106,11 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(newPosition);
         }
 
+        [CommandHandler("spawntest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void spawntest(Session session, params string[] parameters)
+        {
+            session.WorldSession.EnqueueSend(new GameMessageTestWorldPackage(session.Player.Position));
+        }
+
     }
 }
