@@ -34,6 +34,7 @@ namespace ACE.Database
             CharacterFriendInsert,
             CharacterFriendDelete,
             CharacterFriendsRemoveAll,
+            CharacterOptionsUpdate,
 
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
@@ -65,9 +66,10 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendDelete, "DELETE FROM  `character_friends` WHERE `id` = ? AND `friendId` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsRemoveAll, "DELETE FROM  `character_friends` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `deleted` = 0 AND `deleteTime` = 0 AND `name` = ?;", MySqlDbType.VarString);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, "UPDATE `character` SET `characterOptions1` = ?, `characterOptions2` = ? WHERE guid = ?", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
 
             // world entry
-            AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `characterOptions1`, `characterOptions2` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthRanks`, `endurance`, `enduranceRanks`, `coordination`, `coordinationRanks`, `quickness`, `quicknessRanks`, `focus`, `focusRanks`, `self`, `selfRanks`, `healthRanks`, `healthCurrent`, `staminaRanks`, `staminaCurrent`, `manaRanks`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
@@ -226,6 +228,10 @@ namespace ACE.Database
 
                 c.Position = await this.GetPosition(guid);
 
+                uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
+                uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
+                LoadCharacterOptions(characterOptions1Flag, characterOptions2Flag, c);
+
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSkillsSelect, id);
 
                 for (uint i = 0; i < result?.Count; i++)
@@ -294,6 +300,34 @@ namespace ACE.Database
             }
 
             return c;
+        }
+
+        private void LoadCharacterOptions(uint characterOptions1Flag, uint characterOptions2Flag, Character character)
+        {
+            List<CharacterOption> optionsToSetToTrue = new List<CharacterOption>(); // Need to use this since I can't change the collection while I enumerate over it.
+            foreach (var option in character.CharacterOptions)
+            {
+                if (option.Key.GetCharacterOptions1Attribute() != null)
+                {
+                    if ((characterOptions1Flag & (uint)option.Key.GetCharacterOptions1Attribute().Option) != 0)
+                        optionsToSetToTrue.Add(option.Key);
+                }
+                else if (option.Key.GetCharacterOptions2Attribute() != null)
+                {
+                    if ((characterOptions2Flag & (uint)option.Key.GetCharacterOptions2Attribute().Option) != 0)
+                        optionsToSetToTrue.Add(option.Key);
+                }
+            }
+
+            foreach(var option in optionsToSetToTrue)
+            {
+                character.SetCharacterOption(option, true);
+            }
+        }
+
+        public void SaveCharacterOptions(Character character)
+        {
+            ExecutePreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, character.CharacterOptions.GetCharacterOptions1Flag(), character.CharacterOptions.GetCharacterOptions2Flag(), character.Id);
         }
 
         public async Task LoadCharacterProperties(DbObject dbObject)

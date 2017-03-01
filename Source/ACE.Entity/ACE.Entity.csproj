@@ -51,6 +51,8 @@
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="Appearance.cs" />
+    <Compile Include="CharacterOptions1Attribute.cs" />
+    <Compile Include="CharacterOptions2Attribute.cs" />
     <Compile Include="CachedCharacter.cs" />
     <Compile Include="Character.cs" />
     <Compile Include="CharacterAbility.cs" />
@@ -59,6 +61,9 @@
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
+    <Compile Include="Enum\CharacterOption.cs" />
+    <Compile Include="Enum\CharacterOptions1.cs" />
+    <Compile Include="Enum\CharacterOptions2.cs" />
     <Compile Include="Enum\ChatDisplayMask.cs" />
     <Compile Include="Enum\ChatFilterMask.cs" />
     <Compile Include="Enum\ChatMessageType.cs" />

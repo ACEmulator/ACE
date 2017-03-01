@@ -93,6 +93,9 @@ namespace ACE.Entity
 
         public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
 
+        private Dictionary<CharacterOption, bool> characterOptions;
+        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions { get; }
+        
         public ulong AvailableExperience
         {
             get { return propertiesInt64[PropertyInt64.AvailableExperience]; }
@@ -142,6 +145,9 @@ namespace ACE.Entity
 
             friends = new List<Friend>();
             Friends = new ReadOnlyCollection<Friend>(friends);
+
+            InitializeCharacterOptions();
+            CharacterOptions = new ReadOnlyDictionary<CharacterOption, bool>(characterOptions);
         }
 
         public Character(uint id, uint accountId)
@@ -200,6 +206,23 @@ namespace ACE.Entity
         public void RemoveAllFriends()
         {
             friends.Clear();
+        }
+
+        public void SetCharacterOption(CharacterOption option, bool value)
+        {
+            if (characterOptions.ContainsKey(option))
+                characterOptions[option] = value;
+        }
+
+        private void InitializeCharacterOptions()
+        {
+            characterOptions = new Dictionary<CharacterOption, bool>(System.Enum.GetValues(typeof(CharacterOption)).Length);
+
+            // Default all values to false.  Only true values will be loaded from the database.
+            foreach (CharacterOption characterOption in System.Enum.GetValues(typeof(CharacterOption)))
+            {
+                characterOptions.Add(characterOption, false);
+            }
         }
 
         /// <summary>

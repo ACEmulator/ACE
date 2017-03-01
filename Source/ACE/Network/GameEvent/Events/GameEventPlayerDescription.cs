@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameEvent.Events
 {
@@ -273,10 +276,10 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
-            var optionFlags = DescriptionOptionFlag.None;
+            var optionFlags = DescriptionOptionFlag.CharacterOption2;
             Writer.Write((uint)optionFlags);
-            Writer.Write(0x11C4E56A);
-
+            Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
+            
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
             }*/
@@ -302,7 +305,7 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                Writer.Write(0u);
+                Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {

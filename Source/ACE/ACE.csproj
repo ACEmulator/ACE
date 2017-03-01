@@ -94,9 +94,9 @@
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\CharacterOptionDataFlag.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
-    <Compile Include="Network\Enum\SingleCharacterOption.cs" />
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
@@ -110,6 +110,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveChannel.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSetCharacterOptions.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetSingleCharacterOption.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionEmote.cs" />
