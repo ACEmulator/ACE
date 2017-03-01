@@ -7,8 +7,10 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageTestWorldPackage : GameMessage
     {
-        public GameMessageTestWorldPackage(Player player, uint modelid): base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
+        public GameMessageTestWorldPackage(Player player): base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
         {
+
+            //openly thanking Pea @ PhatAC for ref to life stone proper ids..
             //test world object
 
             //create segments..
@@ -16,8 +18,8 @@ namespace ACE.Network.GameMessages.Messages
             WorldObjectSegmentPhysicsData physicsdata = new WorldObjectSegmentPhysicsData();
             WolrdObjectSegmentGameData gamedata = new WolrdObjectSegmentGameData();
 
-            physicsdata.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position  | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.CSetup;
-            physicsdata.PhysicsState = PhysicsState.Static;
+            physicsdata.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position  | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.CSetup;
+            physicsdata.PhysicsState = PhysicsState.Gravity | PhysicsState.IgnoreCollision;
 
             //only need to fill in flags above
             //physicsdata.Position = player.Position;
@@ -26,30 +28,29 @@ namespace ACE.Network.GameMessages.Messages
             newPosition.Facing = new System.Numerics.Quaternion(0, 0, 0, 0);
             physicsdata.Position = newPosition;
 
-            physicsdata.MTableResourceId = 0x09000001u;
-            physicsdata.Stable = 0x20000001u;
-            physicsdata.Petable = 0x34000004u;
+            physicsdata.MTableResourceId = 0x09000026u;
+            physicsdata.Stable = 0x20000014u;
+            //physicsdata.Petable = 0x34000004u;
 
             //modelid = 0x02000001u
-            physicsdata.CSetup = (uint)modelid;
+            physicsdata.CSetup = (uint)0x020002EEu;
 
             //tech will need to update correct seq for certain action
             //just a example below..
             physicsdata.PositionSequance = (ushort)1;
 
             //game data min required flags;
-            gamedata.Name = "Test Object";
-            gamedata.Type = (ushort)1;
+            gamedata.Name = "Life Stone";
+            gamedata.Type = (ushort)0x1355;
             gamedata.Icon = (ushort)0x1036;
-            gamedata.ObjetDescriptionFlag = ObjectDescriptionFlag.Attackable;      
+            gamedata.ObjetDescriptionFlag = ObjectDescriptionFlag.LifeStone;      
 
             //wenie flags
-            gamedata.WeenieHeaderFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Useability | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
-            gamedata.ItemCapacity = (byte)102;
-            gamedata.ContainerCapacity = (byte)7;
-            gamedata.Useability = 1u;
-            gamedata.BlipColour = (byte)4;
+            gamedata.WeenieHeaderFlags = WeenieHeaderFlag.Useability | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
+            gamedata.Useability = (uint)32;
+            gamedata.BlipColour = (byte)1;
             gamedata.Radar = (byte)4;
+            gamedata.UseRadius = 4f;
 
             //render data packet;
             player.FakeGlobalGuid++;
