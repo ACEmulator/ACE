@@ -18,12 +18,11 @@ namespace ACE.Entity.WorldPackages
         public uint Stable;
         public uint Petable;
 
-        public uint Equipper;
-        public EquipMask EquipperPhysicsDescriptionFlag;
-
+        //this are all related
         public uint ItemsEquipedCount;
-
-        private List<EquipedItem> EquipedItems = new List<EquipedItem>();
+        public uint Parent;
+        public EquipMask EquipperPhysicsDescriptionFlag;
+        private List<EquipedItem> Children = new List<EquipedItem>();
 
         public float ObjScale;
         public float Friction;
@@ -50,7 +49,7 @@ namespace ACE.Entity.WorldPackages
         public void AddEquipedItem(uint index, EquipMask equiperflag)
         {
             EquipedItem newitem = new EquipedItem(index, equiperflag);
-            EquipedItems.Add(newitem);
+            Children.Add(newitem);
         }
 
         //todo: return bytes of data for network write ? ?
@@ -60,77 +59,78 @@ namespace ACE.Entity.WorldPackages
             writer.Write((uint)PhysicsDescriptionFlag);
             writer.Write((uint)PhysicsState);
 
-            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
-            {
-            }*/
+            //if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            //{
+            //}
 
-            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
-            {
-            }*/
+            //if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+            //{
+            //}
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
                 Position.Write(writer);
 
-            // TODO:
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
-                writer.Write(0x09000001u);
+                writer.Write((uint)MTableResourceId);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
-                writer.Write(0x20000001u);
+                writer.Write((uint)Stable);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
-                writer.Write(0x34000004u);
+                writer.Write((uint)Petable);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
-                writer.Write(0x02000001u);
+                writer.Write((uint)CSetup);
 
-            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
-            }*/
+                writer.Write((uint)CSetup);
+            }
 
-            /*if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
-            }*/
+                writer.Write((uint)ItemsEquipedCount);
+                foreach (EquipedItem child in Children)
+                {
+                    writer.Write((uint)child.Guid);
+                    writer.Write((uint)child.EquipMask);
+                }
+            }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
-                writer.Write(0.0f);
+                writer.Write(ObjScale);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
-                writer.Write(0.0f);
+                writer.Write(Friction);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elastcity) != 0)
-                writer.Write(0.0f);
+                writer.Write(Elastcity);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
-                writer.Write(0.0f);
+                writer.Write(Translucency);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                writer.Write(0.0f);
-                writer.Write(0.0f);
-                writer.Write(0.0f);
+                Velocity.Write(writer);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                writer.Write(0.0f);
-                writer.Write(0.0f);
-                writer.Write(0.0f);
+                Acceleration.Write(writer);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                writer.Write(0.0f);
-                writer.Write(0.0f);
-                writer.Write(0.0f);
+                Omega.Write(writer);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write(0u);
+                writer.Write((uint)DefaultScript);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(0.0f);
+                writer.Write((float)DefaultScriptIntensity);
 
+            //this look to be all se
             writer.Write((ushort)PositionSequance);
             writer.Write((ushort)unknownseq0);
             writer.Write((ushort)(PhysicsSequance));
@@ -141,9 +141,7 @@ namespace ACE.Entity.WorldPackages
             writer.Write((ushort)0);
             writer.Write((ushort)(SpawnSequance));
 
-            writer.Align();
-
-         
+            writer.Align();        
         }
 
     }
@@ -155,13 +153,13 @@ namespace ACE.Entity.WorldPackages
     /// </summary>
     public class EquipedItem
     {
-        public uint ModelId { get; }
-        public EquipMask EquipperPhysicsDescriptionFlag { get; }
+        public uint Guid { get; }
+        public EquipMask EquipMask { get; }
 
-        public EquipedItem(uint modelid, EquipMask equipmask)
+        public EquipedItem(uint guid, EquipMask equipmask)
         {
-            ModelId = modelid;
-            EquipperPhysicsDescriptionFlag = equipmask;
+            Guid = guid;
+            EquipMask = equipmask;
         }
     }
 
