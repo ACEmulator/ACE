@@ -16,9 +16,6 @@ namespace ACE.Entity.WorldPackages
         private byte textureCount = 0; //number of textures associate with model
         private byte modelCount = 0; // number of models
 
-        //PackedDWORD
-        private uint packedPaletteGuid;  // ?.
-
         private List<WorldObjectModelDataPallete> ModelDataPalletes = new List<WorldObjectModelDataPallete>();
         private List<WorldObjectModelDataTexture> ModelDataTextures = new List<WorldObjectModelDataTexture>();
         private List<WorldObjectModel> Models = new List<WorldObjectModel>();
@@ -52,7 +49,6 @@ namespace ACE.Entity.WorldPackages
             writer.Write((byte)textureCount);
             writer.Write((byte)modelCount);
 
-            writer.Write((uint)packedPaletteGuid);
             foreach (WorldObjectModelDataPallete pallet in ModelDataPalletes)
             {
                 writer.Write((uint)pallet.Guid);
@@ -78,50 +74,4 @@ namespace ACE.Entity.WorldPackages
         }
 
     }
-
-    //todo: move these into their own files..
-
-    class WorldObjectModelDataPallete
-    {
-        public uint Guid { get; }
-        public byte Offset { get; }
-        public byte Length { get; }
-
-        public WorldObjectModelDataPallete(uint guid, byte offset, byte length)
-        {
-            Guid = guid;
-            Offset = offset;
-            Length = length;
-        }
-    }
-
-    /// <summary>
-    /// Used to replace default textures // prob not needed unless you want too.
-    /// </summary>
-    class WorldObjectModelDataTexture
-    {
-        public byte Index { get; } //index of model to replace texture.
-        public uint OldGuid { get; }
-        public uint NewGuid { get; }
-
-        public WorldObjectModelDataTexture(byte index, byte oldguid, byte newguid)
-        {
-            Index = index;
-            OldGuid = oldguid; // - 0x05000000
-            NewGuid = newguid; // - 0x05000000
-        }
-    }
-
-    class WorldObjectModel
-    {
-        public byte Index { get; } //index of model
-        public uint Guid { get; }  //- 0x01000000
-
-        public WorldObjectModel(byte index, uint guid)
-        {
-            Index = index;
-            Guid = guid;
-        }
-    }
-
 }

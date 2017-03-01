@@ -145,22 +145,4 @@ namespace ACE.Entity.WorldPackages
         }
 
     }
-
-    //todo: /// move into its own file..
-
-    /// <summary>
-    /// This Class is used to add children 
-    /// </summary>
-    public class EquipedItem
-    {
-        public uint Guid { get; }
-        public EquipMask EquipMask { get; }
-
-        public EquipedItem(uint guid, EquipMask equipmask)
-        {
-            Guid = guid;
-            EquipMask = equipmask;
-        }
-    }
-
 }

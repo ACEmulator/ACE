@@ -13,8 +13,8 @@ namespace ACE.Entity.WorldPackages
     {
         public WeenieHeaderFlag WeenieHeaderFlags;
         public string Name;
-        public uint Type;
-        public uint Icon;  // - 0x06000000
+        public ushort Type;
+        public ushort Icon;  // - 0x06000000
         public ObjectType ObjectType;
         public ObjectDescriptionFlag ObjetDescriptionFlag;
         public WeenieHeaderFlag2 WenieHeaderFlags2;
@@ -59,19 +59,19 @@ namespace ACE.Entity.WorldPackages
         public ushort IconUnderlay;
 
         public Material Material;
+        public uint PetOwner;
 
         //WeenieHeaderFlag2
         public uint Cooldown;
         public decimal CooldownDuration;
-        public uint PetOwner;
 
         //todo: render object network code
         public void Render(BinaryWriter writer)
         {
             writer.Write((uint)WeenieHeaderFlags);
             writer.WriteString16L(Name);
-            writer.Write((uint)Type);
-            writer.Write((uint)Icon);       
+            writer.Write((ushort)Type);
+            writer.Write((ushort)Icon);       
             writer.Write((uint)ObjectType);
             writer.Write((uint)ObjetDescriptionFlag);
 

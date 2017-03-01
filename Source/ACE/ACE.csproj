@@ -85,6 +85,10 @@
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
+    <Compile Include="Entity\WorldPackages\EquipedItem.cs" />
+    <Compile Include="Entity\WorldPackages\WorldObjectModel.cs" />
+    <Compile Include="Entity\WorldPackages\WorldObjectModelDataPallete.cs" />
+    <Compile Include="Entity\WorldPackages\WorldObjectModelDataTexture.cs" />
     <Compile Include="Entity\WorldPackages\WorldObjectSegmentModelData.cs" />
     <Compile Include="Entity\WorldPackages\WorldObjectSegmentPhysicsData.cs" />
     <Compile Include="Managers\AssetManager.cs" />

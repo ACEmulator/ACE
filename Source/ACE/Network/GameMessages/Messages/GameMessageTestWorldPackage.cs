@@ -7,7 +7,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageTestWorldPackage : GameMessage
     {
-        public GameMessageTestWorldPackage(Position pos): base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group09)
+        public GameMessageTestWorldPackage(Position pos): base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
         {
             //test world object
 
@@ -32,9 +32,9 @@ namespace ACE.Network.GameMessages.Messages
 
             //game data min required flags;
             gamedata.Name = "Test Object";
-            gamedata.Type = (uint)1;
-            gamedata.Icon = (uint)0x1036;
-            gamedata.ObjetDescriptionFlag = ObjectDescriptionFlag.LifeStone;      
+            gamedata.Type = (ushort)1;
+            gamedata.Icon = (ushort)0x1036;
+            gamedata.ObjetDescriptionFlag = ObjectDescriptionFlag.Attackable;      
 
             //wenie flags
             gamedata.WeenieHeaderFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Useability | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
@@ -45,8 +45,8 @@ namespace ACE.Network.GameMessages.Messages
             gamedata.Radar = (byte)4;
 
             //render data packet;
-            ObjectGuid guid = new ObjectGuid(1);
-            WolrdObjectPackage worldpackage = new WolrdObjectPackage(ObjectType.LifeStone, guid, modeldata, physicsdata, gamedata);
+            ObjectGuid guid = new ObjectGuid(100);
+            WolrdObjectPackage worldpackage = new WolrdObjectPackage(ObjectType.Creature, guid, modeldata, physicsdata, gamedata);
             worldpackage.Render(Writer);
 
         }
