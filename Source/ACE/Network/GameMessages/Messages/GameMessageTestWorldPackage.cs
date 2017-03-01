@@ -7,7 +7,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageTestWorldPackage : GameMessage
     {
-        public GameMessageTestWorldPackage(Position pos): base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
+        public GameMessageTestWorldPackage(Player player, uint modelid): base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
         {
             //test world object
 
@@ -20,11 +20,18 @@ namespace ACE.Network.GameMessages.Messages
             physicsdata.PhysicsState = PhysicsState.Static;
 
             //only need to fill in flags above
-            physicsdata.Position = pos;
+            //physicsdata.Position = player.Position;
+            Position newPosition = new Position(player.Position.Cell, player.Position.Offset.X, player.Position.Offset.Y, player.Position.Offset.Z, player.Position.Facing.X, player.Position.Facing.Y, player.Position.Facing.Z, player.Position.Facing.W);
+            newPosition.Offset = new System.Numerics.Vector3(player.Position.Offset.X, player.Position.Offset.Y, player.Position.Offset.Z + 1.5f);
+            newPosition.Facing = new System.Numerics.Quaternion(0, 0, 0, 0);
+            physicsdata.Position = newPosition;
+
             physicsdata.MTableResourceId = 0x09000001u;
             physicsdata.Stable = 0x20000001u;
             physicsdata.Petable = 0x34000004u;
-            physicsdata.CSetup = 0x02000001u;
+
+            //modelid = 0x02000001u
+            physicsdata.CSetup = (uint)modelid;
 
             //tech will need to update correct seq for certain action
             //just a example below..
@@ -41,11 +48,12 @@ namespace ACE.Network.GameMessages.Messages
             gamedata.ItemCapacity = (byte)102;
             gamedata.ContainerCapacity = (byte)7;
             gamedata.Useability = 1u;
-            gamedata.BlipColour = (byte)9;
+            gamedata.BlipColour = (byte)4;
             gamedata.Radar = (byte)4;
 
             //render data packet;
-            ObjectGuid guid = new ObjectGuid(100);
+            player.FakeGlobalGuid++;
+            ObjectGuid guid = new ObjectGuid(player.FakeGlobalGuid);
             WolrdObjectPackage worldpackage = new WolrdObjectPackage(ObjectType.Creature, guid, modeldata, physicsdata, gamedata);
             worldpackage.Render(Writer);
 

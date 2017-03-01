@@ -51,7 +51,7 @@ namespace ACE.Entity.WorldPackages
         //todo: // make this work..
         public void Render(System.IO.BinaryWriter writer)
         {
-            writer.Write((uint)100);
+            writer.WriteGuid(Guid);
             WorldObjectSegmentModelData.Render(writer);
             WorldObjectSegmentPhysicsData.Render(writer);
             WolrdObjectSegmentGameData.Render(writer);

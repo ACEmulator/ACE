@@ -106,10 +106,21 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(newPosition);
         }
 
-        [CommandHandler("spawntest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("spawntest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void spawntest(Session session, params string[] parameters)
         {
-            session.WorldSession.EnqueueSend(new GameMessageTestWorldPackage(session.Player.Position));
+            uint modelid;
+            try
+            {
+                modelid = Convert.ToUInt32(parameters[0],16);
+            }
+            catch (Exception)
+            {
+                //ex...more info.. if needed..
+                ChatPacket.SendServerMessage(session, $"Invalid Model value", ChatMessageType.Broadcast);
+                return;
+            }
+            session.WorldSession.EnqueueSend(new GameMessageTestWorldPackage(session.Player, modelid));
         }
 
     }

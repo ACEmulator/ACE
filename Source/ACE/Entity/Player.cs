@@ -24,6 +24,10 @@ namespace ACE.Entity
 
         public Session Session { get; }
 
+        //this is a hack job!
+        public uint FakeGlobalGuid = 100;
+
+
         public bool InWorld { get; set; }
         public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
 
