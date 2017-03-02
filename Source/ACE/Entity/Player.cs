@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -247,9 +247,10 @@ namespace ACE.Entity
             uint baseValue = character.Abilities[ability].Base;
             uint result = SpendAbilityXp(character.Abilities[ability], amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
+            uint ranks = character.Abilities[ability].Ranks;
             if (result > 0u)
             {
-                uint ranks = character.Abilities[ability].Ranks;
+
                 uint newValue = character.Abilities[ability].UnbuffedValue;
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 GameMessage abilityUpdate;
@@ -264,11 +265,15 @@ namespace ACE.Entity
 
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
+
                 Session.WorldSession.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
+                uint currentXp = character.Abilities[ability].ExperienceSpent;
+                var abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, ranks, baseValue, result);
+                var message = new GameMessageSystemChat($"Your attempt to raise { ability } has failed.!", ChatMessageType.Broadcast);
+                Session.WorldSession.EnqueueSend(abilityUpdate, message);
             }
         }
 
@@ -301,15 +306,39 @@ namespace ACE.Entity
                     break;
             }
 
+            //do not advance if we cannot spend xp to rank up our skill by 1 point
+            if (ability.Ranks == (chart.Ranks.Count - 1))
+                return result;
+
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
-            uint rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            int rank10Offset = 0;
+            uint rank10 = 0u;
+
+            if (ability.Ranks + 10 >= (chart.Ranks.Count))
+            {
+                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
+            else
+            {
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
 
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
-                rankUps = 10u;
+            {
+                if (rank10Offset > 0u)
+                {
+                    rankUps = Convert.ToUInt32(rank10Offset);
+                }
+                else
+                {
+                    rankUps = 10u;
+                }
+            }
 
             if (rankUps > 0)
             {
@@ -327,22 +356,27 @@ namespace ACE.Entity
         {
             uint baseValue = 0;
             uint result = SpendSkillXp(character.Skills[skill], amount);
+            var status = character.Skills[skill].Status;
+            uint ranks = character.Skills[skill].Ranks;
+
             if (result > 0u)
             {
-                uint ranks = character.Skills[skill].Ranks;
                 uint newValue = character.Skills[skill].UnbuffedValue;
-                var status = character.Skills[skill].Status;
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                var ablityUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {skill} is now {newValue}!", ChatMessageType.Broadcast);
-                Session.WorldSession.EnqueueSend(xpUpdate, ablityUpdate, soundEvent, message);
+                Session.WorldSession.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {skill} has failed.", ChatMessageType.Broadcast);
+                uint currentXp = character.Skills[skill].ExperienceSpent;
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, currentXp);
+                var message = new GameMessageSystemChat($"Your attempt to raise { skill } has failed.!", ChatMessageType.Broadcast);
+                Session.WorldSession.EnqueueSend(skillUpdate, message);
             }
         }
+
 
         //plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(uint effectid)
@@ -373,16 +407,41 @@ namespace ACE.Entity
             else
                 return result;
 
+            //do not advance if we cannot spend xp to rank up our skill by 1 point
+            if (skill.Ranks >= (chart.Ranks.Count - 1))
+                return result;
+
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
-            // TODO this crashes if you try to raise your skill too high
-            uint rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+            int rank10Offset = 0;
+            uint rank10 = 0u;
+
+            //if we hit the end of our skill ranks and we want to spend 10 points
+            //then we need to figure out how many ranks we can actually spend before ranking up:
+            if (skill.Ranks + 10 >= (chart.Ranks.Count))
+            {
+                rank10Offset = 10 - (Convert.ToInt32(skill.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+            }
+            else
+            {
+                rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+            }
 
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
-                rankUps = 10u;
+            {
+                if (rank10Offset > 0u)
+                {
+                    rankUps = Convert.ToUInt32(rank10Offset);
+                }
+                else
+                {
+                    rankUps = 10u;
+                }
+            }
 
             if (rankUps > 0)
             {
