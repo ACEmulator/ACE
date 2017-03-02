@@ -22,7 +22,7 @@ namespace ACE.Entity.WorldPackages
         public uint ItemsEquipedCount;
         public uint Parent;
         public EquipMask EquipperPhysicsDescriptionFlag;
-        private List<EquipedItem> Children = new List<EquipedItem>();
+        private List<EquipedItem> children = new List<EquipedItem>();
 
         public float ObjScale;
         public float Friction;
@@ -37,19 +37,19 @@ namespace ACE.Entity.WorldPackages
 
         //thanks Kaezin for help understanding this structure.
         //Update this when the object moves
-        public ushort PositionSequance = (ushort)1;
+        public ushort PositionSequence = (ushort)1;
         public ushort unknownseq0 = (ushort)1; // unknown for now
-        public ushort PhysicsSequance = (ushort)1; // physics state change 
-        public ushort JumpSequance = (ushort)1; // increments when you Jump.
-        public ushort PortalSequance = (ushort)1; //increments when you portal
+        public ushort PhysicsSequence = (ushort)1; // physics state change 
+        public ushort JumpSequence = (ushort)1; // increments when you Jump.
+        public ushort PortalSequence = (ushort)1; //increments when you portal
         public ushort unknownseq1 = (ushort)1;
-        public ushort SpawnSequance = (ushort)1; // increments with spawn player / critter / boss ?
+        public ushort SpawnSequence = (ushort)1; // increments with spawn player / critter / boss ?
 
 
         public void AddEquipedItem(uint index, EquipMask equiperflag)
         {
             EquipedItem newitem = new EquipedItem(index, equiperflag);
-            Children.Add(newitem);
+            children.Add(newitem);
         }
 
         //todo: return bytes of data for network write ? ?
@@ -90,7 +90,7 @@ namespace ACE.Entity.WorldPackages
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
                 writer.Write((uint)ItemsEquipedCount);
-                foreach (EquipedItem child in Children)
+                foreach (EquipedItem child in children)
                 {
                     writer.Write((uint)child.Guid);
                     writer.Write((uint)child.EquipMask);
@@ -131,15 +131,15 @@ namespace ACE.Entity.WorldPackages
                 writer.Write((float)DefaultScriptIntensity);
 
             //this look to be all se
-            writer.Write((ushort)PositionSequance);
+            writer.Write((ushort)PositionSequence);
             writer.Write((ushort)unknownseq0);
-            writer.Write((ushort)(PhysicsSequance));
-            writer.Write((ushort)JumpSequance);
-            writer.Write((ushort)PortalSequance);
+            writer.Write((ushort)(PhysicsSequence));
+            writer.Write((ushort)JumpSequence);
+            writer.Write((ushort)PortalSequence);
             writer.Write((ushort)unknownseq1);
             writer.Write((ushort)0);
             writer.Write((ushort)0);
-            writer.Write((ushort)(SpawnSequance));
+            writer.Write((ushort)(SpawnSequence));
 
             writer.Align();        
         }
