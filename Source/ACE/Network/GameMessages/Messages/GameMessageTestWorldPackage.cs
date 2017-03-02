@@ -16,7 +16,7 @@ namespace ACE.Network.GameMessages.Messages
             //create segments..
             WorldObjectSegmentModelData modeldata = new WorldObjectSegmentModelData();
             WorldObjectSegmentPhysicsData physicsdata = new WorldObjectSegmentPhysicsData();
-            WolrdObjectSegmentGameData gamedata = new WolrdObjectSegmentGameData();
+            WorldObjectSegmentGameData gamedata = new WorldObjectSegmentGameData();
 
             physicsdata.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position  | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.CSetup;
             physicsdata.PhysicsState = PhysicsState.Gravity | PhysicsState.IgnoreCollision;
@@ -37,7 +37,7 @@ namespace ACE.Network.GameMessages.Messages
 
             //tech will need to update correct seq for certain action
             //just a example below..
-            physicsdata.PositionSequance = (ushort)1;
+            physicsdata.PositionSequence = (ushort)1;
 
             //game data min required flags;
             gamedata.Name = "Life Stone";
@@ -55,7 +55,7 @@ namespace ACE.Network.GameMessages.Messages
             //render data packet;
             player.FakeGlobalGuid++;
             ObjectGuid guid = new ObjectGuid(player.FakeGlobalGuid);
-            WolrdObjectPackage worldpackage = new WolrdObjectPackage(ObjectType.Creature, guid, modeldata, physicsdata, gamedata);
+            WorldObjectPackage worldpackage = new WorldObjectPackage(ObjectType.Creature, guid, modeldata, physicsdata, gamedata);
             worldpackage.Render(Writer);
 
         }
