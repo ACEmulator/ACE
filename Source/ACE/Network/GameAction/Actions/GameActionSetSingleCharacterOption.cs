@@ -1,18 +1,19 @@
-﻿using ACE.Network.Enum;
+﻿using ACE.Entity.Enum;
+using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
     [GameAction(GameActionOpcode.SetSingleCharacterOption)]
     public class GameActionSetSingleCharacterOption : GameActionPacket
     {
-        private SingleCharacterOption option;
+        private CharacterOption option;
         private bool optionValue;
 
         public GameActionSetSingleCharacterOption(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
         public override void Read()
         {
-            option = (SingleCharacterOption)Fragment.Payload.ReadUInt32();
+            option = (CharacterOption)Fragment.Payload.ReadUInt32();
             optionValue = Fragment.Payload.ReadUInt32() == 0 ? false : true;
         }
 
@@ -20,8 +21,12 @@ namespace ACE.Network.GameAction.Actions
         {
             switch(option)
             {
-                case SingleCharacterOption.AppearOffline:
+                case CharacterOption.AppearOffline:
                     Session.Player.AppearOffline(optionValue);
+                    break;
+
+                default:
+                    Session.Player.SetCharacterOption(option, optionValue);
                     break;
             }            
         }

@@ -24,6 +24,8 @@ namespace ACE.Network.GameAction
         ListChannels                = 0x0148,
         IndexChannels               = 0x0149,
 
+        SetCharacterOptions         = 0x01A1,
+        
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,
 
