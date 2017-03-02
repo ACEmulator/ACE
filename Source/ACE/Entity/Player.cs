@@ -35,7 +35,10 @@ namespace ACE.Entity
 
         private Character character;
 
-        private Dictionary<SingleCharacterOption, bool> characterOptions; // Might want to move this to Character class
+        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
+        {
+            get { return character.CharacterOptions; }
+        }
 
         public ReadOnlyCollection<Friend> Friends
         {
@@ -184,16 +187,6 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
-
-            // TODO: In future load these values from DB (if they are supposed to persist)
-            characterOptions = new Dictionary<SingleCharacterOption, bool>(System.Enum.GetNames(typeof(SingleCharacterOption)).Length);
-            InitializeCharacterOptions();
-        }
-
-        private void InitializeCharacterOptions()
-        {
-            foreach (SingleCharacterOption option in System.Enum.GetValues(typeof(SingleCharacterOption)))
-                characterOptions.Add(option, false);
         }
 
         public async void Load()
@@ -418,6 +411,10 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Adds a friend and updates the database.
+        /// </summary>
+        /// <param name="friendName">The name of the friend that is being added.</param>
         public async Task<AddFriendResult> AddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
@@ -450,6 +447,10 @@ namespace ACE.Entity
             return AddFriendResult.Success;
         }
 
+        /// <summary>
+        /// Remove a single friend and update the database.
+        /// </summary>
+        /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public async Task<RemoveFriendResult> RemoveFriend(ObjectGuid friendId)
         {
             Friend friendToRemove = character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
@@ -470,6 +471,9 @@ namespace ACE.Entity
             return RemoveFriendResult.Success;
         }
 
+        /// <summary>
+        /// Delete all friends and update the database.
+        /// </summary>
         public async void RemoveAllFriends()
         {
             // Remove all from DB
@@ -479,18 +483,39 @@ namespace ACE.Entity
             character.RemoveAllFriends();
         }
 
+        /// <summary>
+        /// Set the AppearOffline option to the provided value.  It will also send out an update to all online clients that have this player as a friend. This option does not save to the database.
+        /// </summary>
         public void AppearOffline(bool appearOffline)
         {
-            characterOptions[SingleCharacterOption.AppearOffline] = appearOffline;
+            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);            
             SendFriendStatusUpdates();
+        }
+
+        /// <summary>
+        /// Set a single character option to the provided value. This does not save to the database.
+        /// </summary>
+        public void SetCharacterOption(CharacterOption option, bool value)
+        {
+            character.SetCharacterOption(option, value);
+        }
+
+        /// <summary>
+        /// Saves options to the database.  Options include things like spell tabs, settings (F11), chat windows, etc.
+        /// </summary>
+        public void SaveOptions()
+        {
+            DatabaseManager.Character.SaveCharacterOptions(character);
+
+            // TODO: Save other options as we implement them.
         }
         
         /// <summary>
-        /// This method will return false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
+        /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
         /// </summary>
         public bool GetVirtualOnlineStatus()
         {
-            if (characterOptions[SingleCharacterOption.AppearOffline] == true)
+            if (character.CharacterOptions[CharacterOption.AppearOffline] == true)
                 return false;
 
             return IsOnline;
@@ -564,6 +589,10 @@ namespace ACE.Entity
         {
             IsOnline = false;
             SendFriendStatusUpdates();
+
+            // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
+            // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
+            DatabaseManager.Character.SaveCharacterOptions(character);
         }
 
     }

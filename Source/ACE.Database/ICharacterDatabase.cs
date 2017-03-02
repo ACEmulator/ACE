@@ -23,6 +23,10 @@ namespace ACE.Database
         Task UpdateCharacter(Character character);
 
         Task<Character> LoadCharacter(uint id);
+
+        /// <summary>
+        /// Loads a character by name.  Only the fields from the character table are loaded.
+        /// </summary>
         Task<Character> GetCharacterByName(string name);
 
         Task DeleteFriend(uint characterId, uint friendCharacterId);
@@ -33,6 +37,11 @@ namespace ACE.Database
         /// loads object properties into the provided db object
         /// </summary>
         Task LoadCharacterProperties(DbObject dbObject);
+
+        /// <summary>
+        /// Saves character options (F11 tab)
+        /// </summary>
+        void SaveCharacterOptions(Character character);
 
         /// <summary>
         /// saves all object properties in the provided db object
