@@ -9,7 +9,7 @@ using System.IO;
 
 namespace ACE.Entity.WorldPackages
 {
-    public class WolrdObjectSegmentGameData
+    public class WorldObjectSegmentGameData
     {
         public WeenieHeaderFlag WeenieHeaderFlags;
         public string Name;
