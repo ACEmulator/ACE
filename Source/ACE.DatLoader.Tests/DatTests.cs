@@ -5,24 +5,24 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ACE.DatLoader.Tests
 {
     [TestClass]
-    public class CellDatTests
+    public class DatTests
     {
         [TestMethod]
         public void LoadCellDat_NoExceptions()
         {
             string celldat = @"C:\Turbine\client_cell_1.dat";
-            CellDat dat = new CellDat(celldat);
+            DatDatabase dat = new DatDatabase(celldat);
             int count = dat.AllFiles.Count();
-            System.Diagnostics.Debug.WriteLine($"Cell.dat file count: {count}");
+            Assert.AreEqual(805348, count);
         }
 
         [TestMethod]
         public void LoadPortalDat_NoExceptions()
         {
             string portaldatfile = @"C:\Turbine\client_portal.dat";
-            PortalDat dat = new PortalDat(portaldatfile);
+            DatDatabase dat = new DatDatabase(portaldatfile);
             int count = dat.AllFiles.Count();
-            System.Diagnostics.Debug.WriteLine($"Portal.dat file count: {count}");
+            Assert.AreEqual(79694, count);
         }
     }
 }
