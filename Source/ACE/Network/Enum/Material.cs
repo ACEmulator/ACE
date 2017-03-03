@@ -1,6 +1,6 @@
 ﻿namespace ACE.Network.Enum
 {
-    public enum Material
+    public enum Material : uint
     {
         Ceramic         = 0x00000001,
         Porcelain       = 0x00000002,

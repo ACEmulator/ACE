@@ -85,12 +85,12 @@
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
-    <Compile Include="Entity\WorldPackages\EquipedItem.cs" />
-    <Compile Include="Entity\WorldPackages\WorldObjectModel.cs" />
-    <Compile Include="Entity\WorldPackages\WorldObjectModelDataPallete.cs" />
-    <Compile Include="Entity\WorldPackages\WorldObjectModelDataTexture.cs" />
-    <Compile Include="Entity\WorldPackages\WorldObjectSegmentModelData.cs" />
-    <Compile Include="Entity\WorldPackages\WorldObjectSegmentPhysicsData.cs" />
+    <Compile Include="Entity\EquippedItem.cs" />
+    <Compile Include="Entity\Model.cs" />
+    <Compile Include="Entity\ModelPallete.cs" />
+    <Compile Include="Entity\ModelTexture.cs" />
+    <Compile Include="Entity\ModelData.cs" />
+    <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
@@ -104,6 +104,8 @@
     <Compile Include="Network\Enum\CoverageMask.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
+    <Compile Include="Network\Enum\RadarBehavior.cs" />
+    <Compile Include="Network\Enum\RadarColor.cs" />
     <Compile Include="Network\Enum\UiEffects.cs" />
     <Compile Include="Network\Enum\CharacterOptionDataFlag.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
@@ -225,7 +227,7 @@
     <Compile Include="Network\SessionConnectionData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Entity\WorldPackages\WorldObjectPackage.cs" />
-    <Compile Include="Entity\WorldPackages\WorldObjectSegmentGameData.cs" />
+    <Compile Include="Entity\GameData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="abilityXp.json">

@@ -182,8 +182,15 @@ namespace ACE.Entity
             Session = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
             Name = session.CharacterRequested.Name;
+            Icon = 0x1036;
+            GameData.ItemCapacity = 102;  
+            GameData.ContainerCapacity = 7;
+            GameData.RadarBehavior = RadarBehavior.ShowAlways;
+            GameData.RadarColour = RadarColor.White;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
+            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
+            WeenieFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Useability | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -537,7 +544,7 @@ namespace ACE.Entity
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
-            PhysicsState = state;
+            PhysicsData.PhysicsState = state;
 
             if (packet)
             {

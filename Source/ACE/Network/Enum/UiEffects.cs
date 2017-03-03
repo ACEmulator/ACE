@@ -1,6 +1,6 @@
 ﻿namespace ACE.Network.Enum
 {
-    public enum UiEffects
+    public enum UiEffects : uint
     {
         EnchantedItem   = 0x00000001,
         HealingFood     = 0x00000004,

@@ -1,4 +1,5 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Network.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,12 @@ namespace ACE.Entity
     /// </summary>
     public class ImmutableWorldObject : WorldObject
     {
-        public ImmutableWorldObject(ObjectType type, ObjectGuid guid) : base(type, guid)
+        public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
         {
+            this.Name = name;
+            this.DescriptionFlags = descriptionFlag;
+            this.WeenieFlags = weenieFlag;
+            this.Position = position;
         }
     }
 }

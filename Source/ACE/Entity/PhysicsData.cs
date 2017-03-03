@@ -4,11 +4,13 @@ using ACE.Network.Enum;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ACE.Entity.WorldPackages
+namespace ACE.Entity
 {
-    public class WorldObjectSegmentPhysicsData
+    public class PhysicsData
     {
         public uint CSetup;
+
+        // apply default for back compat with player object
         public PhysicsDescriptionFlag PhysicsDescriptionFlag;
         public PhysicsState PhysicsState = 0;
 
@@ -22,7 +24,7 @@ namespace ACE.Entity.WorldPackages
         public uint ItemsEquipedCount;
         public uint Parent;
         public EquipMask EquipperPhysicsDescriptionFlag;
-        private List<EquipedItem> children = new List<EquipedItem>();
+        private List<EquippedItem> children = new List<EquippedItem>();
 
         public float ObjScale;
         public float Friction;
@@ -45,15 +47,19 @@ namespace ACE.Entity.WorldPackages
         public ushort unknownseq1 = (ushort)1;
         public ushort SpawnSequence = (ushort)1; // increments with spawn player / critter / boss ?
 
+        public PhysicsData()
+        {
+
+        }
 
         public void AddEquipedItem(uint index, EquipMask equiperflag)
         {
-            EquipedItem newitem = new EquipedItem(index, equiperflag);
+            EquippedItem newitem = new EquippedItem(index, equiperflag);
             children.Add(newitem);
         }
 
         //todo: return bytes of data for network write ? ?
-        public void Render(BinaryWriter writer)
+        public void Serialize(BinaryWriter writer)
         {
 
             writer.Write((uint)PhysicsDescriptionFlag);
@@ -90,7 +96,7 @@ namespace ACE.Entity.WorldPackages
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
                 writer.Write((uint)ItemsEquipedCount);
-                foreach (EquipedItem child in children)
+                foreach (EquippedItem child in children)
                 {
                     writer.Write((uint)child.Guid);
                     writer.Write((uint)child.EquipMask);
@@ -129,8 +135,7 @@ namespace ACE.Entity.WorldPackages
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
                 writer.Write((float)DefaultScriptIntensity);
-
-            //this look to be all se
+            
             writer.Write((ushort)PositionSequence);
             writer.Write((ushort)unknownseq0);
             writer.Write((ushort)(PhysicsSequence));

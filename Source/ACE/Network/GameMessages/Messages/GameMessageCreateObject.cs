@@ -8,7 +8,7 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageCreateObject(WorldObject worldObject) 
             : base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
         {
-            worldObject.WriteCreateObjectPayload(this.Writer);
+            worldObject.SerializeCreateObject(this.Writer);
         }
     }
 }

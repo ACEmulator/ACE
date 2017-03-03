@@ -3,67 +3,67 @@ using ACE.Network.Enum;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ACE.Entity.WorldPackages
+namespace ACE.Entity
 {
 
     /// <summary>
     /// Segment to Control AC Model / Pallets and Textures
     /// </summary>
-    public class WorldObjectSegmentModelData
+    public class ModelData
     {
 
         private byte paletteCount = 0; // number of pallets associated with model
         private byte textureCount = 0; //number of textures associate with model
         private byte modelCount = 0; // number of models
 
-        private List<WorldObjectModelDataPallete> ModelDataPalletes = new List<WorldObjectModelDataPallete>();
-        private List<WorldObjectModelDataTexture> ModelDataTextures = new List<WorldObjectModelDataTexture>();
-        private List<WorldObjectModel> Models = new List<WorldObjectModel>();
+        private List<ModelPallete> modelPalletes = new List<ModelPallete>();
+        private List<ModelTexture> modelTextures = new List<ModelTexture>();
+        private List<Model> models = new List<Model>();
 
         public void AddPallet (uint palette, byte offset, byte length)
         {
             paletteCount++;
-            WorldObjectModelDataPallete newpallet = new WorldObjectModelDataPallete(palette, offset,length);
-            ModelDataPalletes.Add(newpallet);
+            ModelPallete newpallet = new ModelPallete(palette, offset,length);
+            modelPalletes.Add(newpallet);
         }
 
         public void AddTexture(byte index, byte oldresourceid, byte newresourceid)
         {
             textureCount++;
-            WorldObjectModelDataTexture nextexture = new WorldObjectModelDataTexture(index, oldresourceid, newresourceid);
-            ModelDataTextures.Add(nextexture);
+            ModelTexture nextexture = new ModelTexture(index, oldresourceid, newresourceid);
+            modelTextures.Add(nextexture);
         }
 
         public void AddModel(byte index, byte modelresourceid)
         {
             modelCount++;
-            WorldObjectModel newmodel = new WorldObjectModel(index, modelresourceid);
-            Models.Add(newmodel);
+            Model newmodel = new Model(index, modelresourceid);
+            models.Add(newmodel);
         }
 
         //todo: render object network code
-        public void Render(BinaryWriter writer)
+        public void Serialize(BinaryWriter writer)
         {
             writer.Write((byte)0x11);
             writer.Write((byte)paletteCount);
             writer.Write((byte)textureCount);
             writer.Write((byte)modelCount);
 
-            foreach (WorldObjectModelDataPallete pallet in ModelDataPalletes)
+            foreach (ModelPallete pallet in modelPalletes)
             {
                 writer.Write((uint)pallet.Guid);
                 writer.Write((byte)pallet.Offset);
                 writer.Write((byte)pallet.Length);
             }
 
-            foreach (WorldObjectModelDataTexture texture in ModelDataTextures)
+            foreach (ModelTexture texture in modelTextures)
             {
                 writer.Write((byte)texture.Index);
                 writer.Write((uint)texture.OldGuid);
                 writer.Write((uint)texture.NewGuid);
             }
 
-            foreach (WorldObjectModel model in Models)
+            foreach (Model model in models)
             {
                 writer.Write((byte)model.Index);
                 writer.Write((uint)model.Guid);

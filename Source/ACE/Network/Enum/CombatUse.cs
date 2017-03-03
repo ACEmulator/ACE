@@ -1,6 +1,6 @@
 ﻿namespace ACE.Network.Enum
 {
-    public enum CombatUse
+    public enum CombatUse : byte
     {
         MeleeWeapon       = 0x01,
         MissleWeapon      = 0x02,
