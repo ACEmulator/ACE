@@ -3,12 +3,12 @@ using System.IO;
 
 namespace ACE.DatLoader
 {
-    public class CellFile
+    public class DatFile
     {
         /// <summary>
         /// private to force loading from the static method
         /// </summary>
-        private CellFile()
+        private DatFile()
         {
 
         }
@@ -28,9 +28,9 @@ namespace ACE.DatLoader
         /// <summary>
         /// populates a new CellFile from the specified buffer.
         /// </summary>
-        public static CellFile FromBuffer(byte[] buffer, int offset)
+        public static DatFile FromBuffer(byte[] buffer, int offset)
         {
-            CellFile cf = new CellFile()
+            DatFile cf = new DatFile()
             {
                 BitFlags = BitConverter.ToUInt32(buffer, offset),
                 ObjectId = BitConverter.ToUInt32(buffer, offset + 4),

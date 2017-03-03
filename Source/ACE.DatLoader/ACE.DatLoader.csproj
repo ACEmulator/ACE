@@ -41,8 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CellDat.cs" />
-    <Compile Include="CellDirectory.cs" />
-    <Compile Include="CellFile.cs" />
+    <Compile Include="DatDirectory.cs" />
+    <Compile Include="DatFile.cs" />
+    <Compile Include="DatDatabase.cs" />
+    <Compile Include="PortalDat.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
