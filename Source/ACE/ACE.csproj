@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NETWORKDEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -192,7 +192,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerTeleport.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterError.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterEnterWorldServerReady.cs" />
-    <Compile Include="Network\GameMessages\Messages\GameMessageTestWorldPackage.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCreateLifestone.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageTurbineChat.cs" />

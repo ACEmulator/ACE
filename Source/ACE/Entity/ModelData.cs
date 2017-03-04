@@ -11,32 +11,25 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-
-        private byte paletteCount = 0; // number of pallets associated with model
-        private byte textureCount = 0; //number of textures associate with model
-        private byte modelCount = 0; // number of models
-
+        
         private List<ModelPallete> modelPalletes = new List<ModelPallete>();
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
         private List<Model> models = new List<Model>();
 
         public void AddPallet (uint palette, byte offset, byte length)
         {
-            paletteCount++;
             ModelPallete newpallet = new ModelPallete(palette, offset,length);
             modelPalletes.Add(newpallet);
         }
 
         public void AddTexture(byte index, byte oldresourceid, byte newresourceid)
         {
-            textureCount++;
             ModelTexture nextexture = new ModelTexture(index, oldresourceid, newresourceid);
             modelTextures.Add(nextexture);
         }
 
         public void AddModel(byte index, byte modelresourceid)
         {
-            modelCount++;
             Model newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);
         }
@@ -45,9 +38,9 @@ namespace ACE.Entity
         public void Serialize(BinaryWriter writer)
         {
             writer.Write((byte)0x11);
-            writer.Write((byte)paletteCount);
-            writer.Write((byte)textureCount);
-            writer.Write((byte)modelCount);
+            writer.Write((byte)modelPalletes.Count);
+            writer.Write((byte)modelTextures.Count);
+            writer.Write((byte)models.Count);
 
             foreach (ModelPallete pallet in modelPalletes)
             {

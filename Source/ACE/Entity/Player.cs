@@ -192,6 +192,11 @@ namespace ACE.Entity
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
             WeenieFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Useability | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
 
+            PhysicsData.MTableResourceId = 0x09000001u;
+            PhysicsData.Stable = 0x20000001u;
+            PhysicsData.Petable = 0x34000004u;
+            PhysicsData.CSetup = 0x02000001u;
+
             // radius for object updates
             ListeningRadius = 5f;
         }

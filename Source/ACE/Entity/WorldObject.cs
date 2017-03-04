@@ -203,7 +203,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
             writer.Write((uint)updatePositionFlags);
 
-            Position.Write(writer, false);
+            Position.Serialize(writer, false);
 
             /*if (newPosition.Facing.W == 0.0f || newPosition.Facing.W == Position.Facing.W)
                 updatePositionFlags |= UpdatePositionFlag.NoQuaternionW;

@@ -74,7 +74,7 @@ namespace ACE.Entity
             //}
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
-                Position.Write(writer);
+                Position.Serialize(writer);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
                 writer.Write((uint)MTableResourceId);
@@ -117,17 +117,17 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                Velocity.Write(writer);
+                Velocity.Serialize(writer);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                Acceleration.Write(writer);
+                Acceleration.Serialize(writer);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                Omega.Write(writer);
+                Omega.Serialize(writer);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
