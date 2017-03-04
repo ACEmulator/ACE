@@ -12,6 +12,9 @@ namespace ACE.Network.GameMessages.Messages
         private static readonly float maxXY = Convert.ToSingle(Math.Sqrt(2) / 2);
         private static readonly float minXY = -1 * Convert.ToSingle(Math.Sqrt(2) / 2);
 
+        /// <summary>
+        /// creates a lifesone 3 units (just in front of) the player.
+        /// </summary>
         public GameMessageCreateLifestone(Player player) : base(GameMessageOpcode.ObjectCreate, GameMessageGroup.Group0A)
         {
             float qw = player.Position.Facing.W; // north
