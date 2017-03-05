@@ -33,9 +33,17 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public uint MovementIndex { get; set; }
+        public ushort MovementIndex
+        {
+            get { return PhysicsData.PositionSequence; }
+            set { PhysicsData.PositionSequence = value; }
+        }
 
-        public uint TeleportIndex { get; set; }
+        public ushort TeleportIndex
+        {
+            get { return PhysicsData.PortalSequence; }
+            set { PhysicsData.PortalSequence = value; }
+        }
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
@@ -204,16 +212,7 @@ namespace ACE.Entity
             writer.Write((uint)updatePositionFlags);
 
             Position.Serialize(writer, false);
-
-            /*if (newPosition.Facing.W == 0.0f || newPosition.Facing.W == Position.Facing.W)
-                updatePositionFlags |= UpdatePositionFlag.NoQuaternionW;
-            if (newPosition.Facing.X == 0.0f || newPosition.Facing.X == Position.Facing.X)
-                updatePositionFlags |= UpdatePositionFlag.NoQuaternionX;
-            if (newPosition.Facing.Y == 0.0f || newPosition.Facing.Y == Position.Facing.Y)
-                updatePositionFlags |= UpdatePositionFlag.NoQuaternionY;
-            if (newPosition.Facing.Z == 0.0f || newPosition.Facing.Z == Position.Facing.Z)
-                updatePositionFlags |= UpdatePositionFlag.NoQuaternionZ;*/
-
+            
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.W);
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
@@ -223,14 +222,11 @@ namespace ACE.Entity
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.Z);
 
-            /*if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
+            if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
             {
-            }*/
-
-            /*if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
-            {
-            }*/
-
+                // velocity would go here
+            }
+            
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 0));
             writer.Write((ushort)++MovementIndex);
