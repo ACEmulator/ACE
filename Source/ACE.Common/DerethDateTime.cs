@@ -53,7 +53,6 @@ namespace ACE.Common
         /// <para>Date: Morningthaw 1, 10 P.Y. | Time: Morntide-and-Half (0)</para>
         /// </summary>
         public static readonly double MinValue = 0; // Morningthaw 1, 10 P.Y. - Morntide-and-Half
-        //public static readonly double MinValue = hourOneTicks; // Morningthaw 1, 10 P.Y. - Midsong
 
         /// <summary>
         /// <para>Any value higher than this results in acclient crashing upon connection to server.</para>
@@ -136,8 +135,6 @@ namespace ACE.Common
             Night
         }
 
-        //public static DerethDateTime Today { get; }
-
         private double ticks    = MinValue;
         private int day         = 1;
         private int month       = (int)Months.Morningthaw;
@@ -189,13 +186,11 @@ namespace ACE.Common
                 }
                 if ((value < 1))
                 {
-                    //day = 1;
                     Month--;
                     day = 30;
                 }
                 if ((value > 30))
                 {
-                    //day = 30;
                     Month++;
                     day = 1;
                 }
@@ -224,8 +219,6 @@ namespace ACE.Common
                 }
                 if ((value > (int)Months.Frostfell))
                 {
-                    //month = (int)Months.Frostfell;                   
-                    //Year++;
                     month = (int)Months.Snowreap;
                 }
             }
@@ -282,13 +275,11 @@ namespace ACE.Common
                 }
                 if ((value < (int)Hours.Darktide))
                 {
-                    //hour = (int)Hours.Darktide;
                     Day--;
                     hour = (int)Hours.Gloaming_and_Half;
                 }
                 if ((value > (int)Hours.Gloaming_and_Half))
                 {
-                    //hour = (int)Hours.Gloaming_and_Half;
                     Day++;
                     hour = (int)Hours.Darktide;
                 }
@@ -464,8 +455,6 @@ namespace ACE.Common
         /// </summary>
         public bool IsFall { get { return IsAutumn; } }
 
-        //public static ulong GetUnixTime() { return (ulong)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds; }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="DerethDateTime"/> class to set to <see cref="MinValue"/>.
         /// <para>Date: Morningthaw 1, 10 P.Y. | Time: Morntide-and-Half</para>
@@ -478,11 +467,6 @@ namespace ACE.Common
             Month = (int)Months.Morningthaw;
             Day = 1;
             Hour = (int)Hours.Morntide_and_Half;
-
-            //Ticks = MinValue;
-
-            //if (Ticks < MaxValue)
-            //    SetDateTimeFromTicks();
         }
 
         /// <summary>
@@ -492,48 +476,10 @@ namespace ACE.Common
         /// <para>Note that these ticks are not the same as <see cref="DateTime.Ticks"/></para></param>
         public DerethDateTime(double ticks = 0)
         {
-            // Morningthaw 1, 10 P.Y. - Morntide-and-Half
-            //Ticks = MinValue;
-            //Day = 1;
-            //Month = (int)Months.Morningthaw;
-            //Year = 10;
-            //Hour = (int)Hours.Morntide_and_Half;
-
             if (ticks < MinValue | ticks > MaxValue)
                 throw new ArgumentOutOfRangeException("ticks", "ticks is less than DerethDateTime.MinValue or greater than DerethDateTime.MaxValue");
-            //DateTime test = new DateTime();
-            //test.
 
             Ticks = ticks;
-            
-            //Ticks = Math.Round(ticks * 4, MidpointRounding.ToEven) / 4;
-            //Ticks = ticks / hourTicks;
-            //Ticks = hourTicks * 4312;
-            //Ticks = Math.Round(ticks * (hourTicks * 16), MidpointRounding.ToEven) / (hourTicks * 16);
-            //Ticks = yearZeroTicks + (((dayTicks * 360) * 5)-hourTicks);
-            //Ticks = yearZeroTicks - dayTicks;
-            //Ticks = (yearTicks * 391) + (monthTicks * 5) + (dayTicks * 1);
-            //Ticks = Ticks - 751.837362;
-            //Ticks = Ticks - (hourTicks * 5) - (dayTicks * 154);
-            //Ticks = 7273273.7627272;
-            //Ticks = hourTicks - 272;
-            //Ticks = 204.25;
-            //Ticks = 210;
-            //Ticks = Ticks + 1;
-            //Ticks = dayOneTicks - 260; //(210 * 2);
-            //Ticks = Ticks + hourTicks;
-            //Ticks = hourOneTicks;
-            //Ticks = hourOneTicks + (hourTicks * 8);
-            //Ticks = Ticks - 100;
-            //Ticks = yearZeroTicks - 100;
-            //Ticks = dayOneTicks;
-            //Ticks = hourOneTicks + (hourTicks * 12);
-            //Ticks = hourOneTicks + hourTicks;
-            //Ticks = 0 + hourOneTicks + (hourTicks * 133) + (monthTicks * 5) + (yearTicks * 3);
-            //Ticks = 0 + hourOneTicks + (monthTicks * 5) + (yearTicks * 3);
-            //Ticks = MinValue + (monthTicks * 5) + (yearTicks * 3);
-            //Ticks = (MaxValue - 9000.834838);
-            //Ticks = (yearTicks * 27);
 
             if (Ticks < MaxValue)
                 SetDateTimeFromTicks();
@@ -544,54 +490,13 @@ namespace ACE.Common
         /// </summary>
         private void SetDateTimeFromTicks()
         {
-            //Ticks = MinValue;
-            //Day = 1;
-            //Month = (int)Months.Snowreap;
-            //Year = 10;
-            //Hour = (int)Hours.Morntide_and_Half;
-
-            //if (Ticks < yearTicks)
-            //{
-            //    //double test = ticks / hourTicks;
-            //    //Hour = Hour + (int)test;
-            //    for (double i = hourTicks; i <= Ticks; i = i + hourTicks)
-            //        Hour++;
-            //    //System.Diagnostics.Debug.WriteLine("bp");
-            //}
-            //else
-            //{
-            //for (double i = MinValue + hourOneTicks; i < Ticks; i = i + hourTicks)
-            //    Hour++;
-            //for (double i = MinValue, j = 0; i < Ticks; i = i + .25)
-            //{
-            //    //Hour++;
-            //    j = j + .25;
-            //    //if (j == hourTicks && (Ticks > (MinValue + hourOneTicks + hourTicks)))
-            //    if (j == hourTicks)
-            //    {
-            //        Hour++;
-            //        j = 0;
-            //    }
-            //}
-            //if (Ticks >= (MinValue + hourTicks) && Ticks <= (yearZeroTicks - hourTicks))
-            //Hour++;
-            //}
-
             double hoursInTicks = Ticks / hourTicks;
-            //double floor = Math.Floor(hoursInTicks);
             double round = Math.Round(hoursInTicks * 4, MidpointRounding.ToEven) / 4;
-            //double ceiling = Math.Ceiling(round);
             int round_multiplier = 100;
             int round_decimals = (int)((round - (int)round) * round_multiplier);
 
-
-            //for (double i = 0; i < Math.Floor(Ticks / hourTicks); i++)
-            //for (double i = 0; i <= Math.Round(Ticks * hourTicks, MidpointRounding.ToEven) / hourTicks; i++)
-            //for (double i = 0; i < round; i++)
             for (double i = 0; i < round; i++)
                 Hour++;
-            //if (ceiling > round)
-            //    Hour--;
             if (round_decimals == 25)
                 Hour--;
         }
@@ -615,13 +520,6 @@ namespace ACE.Common
                 throw new ArgumentOutOfRangeException("day", "day is less than 1 or greater than 30");
             if (hour < (int)Hours.Darktide | hour > (int)Hours.Gloaming_and_Half)
                 throw new ArgumentOutOfRangeException("hour", "time is less than " + Hours.Darktide + " or greater than " + Hours.Gloaming_and_Half);
-            //DateTime test = new DateTime();
-            //test.d
-
-            //Ticks = ticks;
-
-            //if (Ticks < MaxValue)
-            //    SetDateTimeFromTicks();
 
             Year = year;
             Month = month;
@@ -643,9 +541,6 @@ namespace ACE.Common
         {
             double ticks = 0;
 
-            //if (Year == 10 && Month < (int)Months.Morningthaw)
-            //    return ticks;
-
             if (Year == 10 && Month == (int)Months.Morningthaw && Day == 1 && Hour < (int)Hours.Morntide_and_Half)
                 return ticks;
 
@@ -660,41 +555,19 @@ namespace ACE.Common
             ticks = ticks + dayOneTicks;
 
             double yearsToAdd = 0;
-            //if (Month >= (int)Months.Snowreap && Month <= (int)Months.Morningthaw)
-            //if (Month > (int)Months.Morningthaw && Month != (int)Months.Wintersebb)
             if (Month > (int)Months.Wintersebb)
                 yearsToAdd = (Year - 10) * yearTicks;
             else
             {
-                //if (Month != (int)Months.Wintersebb)
-                //    yearsToAdd = (Year - 10) * yearTicks;
-                //else
-                //{
-                //    if (Year > 10)
-                //        yearsToAdd = (Year - 8) * yearTicks;
-                //    else
-                //        yearsToAdd = (Year - 9) * yearTicks;
-                //}
-
-                //if (Month == (int)Months.Wintersebb && Year > 10)
-                ////if (Month == (int)Months.Wintersebb && Year >= 10)
-                //    Year++;
-
                 if (fixWintersebbYearRollUnder)
                     Year++;
 
-                //if (Month == (int)Months.Wintersebb && Year == 10)
-                //    yearsToAdd = (Year - 9) * yearTicks;
-                //else
                 yearsToAdd = (Year - 9) * yearTicks;
             }
 
             double monthsToAdd = (Month - 1) * monthTicks;
 
             double daysToAdd = (Day - 2) * dayTicks;
-            //double daysToAdd = 0;
-            //if (Day > 1)
-            //    daysToAdd = Day * dayTicks;
 
             double hoursToAdd = (Hour - 1) * hourTicks;
 
@@ -722,13 +595,6 @@ namespace ACE.Common
                 throw new ArgumentOutOfRangeException("day", "day is less than 1 or greater than 30");
             if ((int)time < (int)Hours.Darktide | (int)time > (int)Hours.Gloaming_and_Half)
                 throw new ArgumentOutOfRangeException("time", "time is less than " + Hours.Darktide + " or greater than " + Hours.Gloaming_and_Half);
-            //DateTime test = new DateTime();
-            //test.d
-
-            //Ticks = ticks;
-
-            //if (Ticks < MaxValue)
-            //    SetDateTimeFromTicks();
 
             Year = year;
             Month = (int)month;
@@ -804,11 +670,10 @@ namespace ACE.Common
                     if (newMonth == (int)Months.Wintersebb)
                     {
                         newYear++;
-                        newMonth++;// = (int)Months.Snowreap;
+                        newMonth++;
                     }
                     else if (newMonth == (int)Months.Frostfell)
                     {
-                        //newYear++;
                         newMonth = (int)Months.Snowreap;
                     }
                     else
@@ -822,11 +687,10 @@ namespace ACE.Common
                     if (newMonth == (int)Months.Morningthaw)
                     {
                         newYear--;
-                        newMonth--;// = (int)Months.Frostfell;
+                        newMonth--;
                     }
                     else if (newMonth == (int)Months.Snowreap)
                     {
-                        //newYear++;
                         newMonth = (int)Months.Frostfell;
                     }
                     else
@@ -870,11 +734,10 @@ namespace ACE.Common
                         if (newMonth == (int)Months.Wintersebb)
                         {
                             newYear++;
-                            newMonth++;// = (int)Months.Snowreap;
+                            newMonth++;
                         }
                         else if (newMonth == (int)Months.Frostfell)
                         {
-                            //newYear++;
                             newMonth = (int)Months.Snowreap;
                         }
                         else
@@ -895,11 +758,10 @@ namespace ACE.Common
                         if (newMonth == (int)Months.Morningthaw)
                         {
                             newYear--;
-                            newMonth--;// = (int)Months.Snowreap;
+                            newMonth--;
                         }
                         else if (newMonth == (int)Months.Snowreap)
                         {
-                            //newYear++;
                             newMonth = (int)Months.Frostfell;
                         }
                         else
@@ -951,11 +813,10 @@ namespace ACE.Common
                             if (newMonth == (int)Months.Wintersebb)
                             {
                                 newYear++;
-                                newMonth++;// = (int)Months.Snowreap;
+                                newMonth++;
                             }
                             else if (newMonth == (int)Months.Frostfell)
                             {
-                                //newYear++;
                                 newMonth = (int)Months.Snowreap;
                             }
                             else
@@ -983,11 +844,10 @@ namespace ACE.Common
                             if (newMonth == (int)Months.Morningthaw)
                             {
                                 newYear--;
-                                newMonth--;// = (int)Months.Snowreap;
+                                newMonth--;
                             }
                             else if (newMonth == (int)Months.Snowreap)
                             {
-                                //newYear++;
                                 newMonth = (int)Months.Frostfell;
                             }
                             else
@@ -1110,11 +970,6 @@ namespace ACE.Common
         /// <param name="dateToBeConverted">A <see cref="DateTime"/> object.</param>
         private DerethDateTime ConvertFrom_RealWorld_to_Derethian_PY(DateTime dateToBeConverted)
         {
-            //Year = 10;
-            //Month = (int)Months.Morningthaw;
-            //Day = 1;
-            //Hour = (int)Hours.Morntide_and_Half;
-
             int convertedYear = 10;
             int convertedMonth = dateToBeConverted.Month - 3;
             int convertedDay = dateToBeConverted.Day;
@@ -1123,20 +978,9 @@ namespace ACE.Common
             int yearsToAdd = dateToBeConverted.Year - retailDayOne_RealWorld.Year;
 
             convertedYear += yearsToAdd;
-            
-            //month = dateToBeConverted.Month - 2;
-
+          
             if (convertedDay > 30)
                 convertedDay = 30;
-
-            //dateToBeConverted.
-
-            //if ((dateToBeConverted.Hour >= 00 && dateToBeConverted.Minute >= 00) && (dateToBeConverted.Hour <= 01 && dateToBeConverted.Minute <= 30))
-            //    hour = (int)Hours.Darktide;
-            //else if ((dateToBeConverted.Hour >= 01 && dateToBeConverted.Minute >= 30) && (dateToBeConverted.Hour <= 03 && dateToBeConverted.Minute <= 00))
-            //    hour = (int)Hours.Darktide_and_Half;
-            //else if ((dateToBeConverted.Hour >= 13 && dateToBeConverted.Minute >= 30) && (dateToBeConverted.Hour <= 15 && dateToBeConverted.Minute <= 00))
-            //    hour = (int)Hours.Midsong_and_Half;
 
             if (dateToBeConverted.Hour >= 00 && (dateToBeConverted.Hour <= 01 && dateToBeConverted.Minute <= 29))
                 convertedHour = (int)Hours.Darktide;
@@ -1181,10 +1025,6 @@ namespace ACE.Common
             else
                 convertedHour = (int)Hours.Darktide;
 
-            //else if (dateToBeConverted.Hour >= (03 + 12) && (dateToBeConverted.Hour <= (04 + 12) && dateToBeConverted.Minute <= 29))
-            //    convertedHour = (int)Hours.Warmtide;
-            //else if (dateToBeConverted.Hour >= (04 + 12) && (dateToBeConverted.Hour <= (05 + 12) && dateToBeConverted.Minute <= 59))
-            //    convertedHour = (int)Hours.Warmtide_and_Half;
 
             return new DerethDateTime(year: convertedYear, month: convertedMonth, day: convertedDay, hour: convertedHour);
 
@@ -1202,35 +1042,7 @@ namespace ACE.Common
         /// <summary>
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to Lore Time.
         /// </summary>
-        public DerethDateTime UTCNowToLoreTime { get { return ConvertRealWorldToLoreDateTime(DateTime.UtcNow); } } //= (int)Months.Morningthaw;
+        public DerethDateTime UTCNowToLoreTime { get { return ConvertRealWorldToLoreDateTime(DateTime.UtcNow); } }
 
-        //private void NewDerethDateTime()
-        //{
-        //    Ticks = MinValue;
-        //    Day = 1;
-        //    Month = (int)Months.Snowreap;
-        //    Year = 10;
-        //}
-
-        //public DerethDateTime()
-        //{
-
-        //}
-
-        //public static string UtcNowtoDerethTime()
-        //{
-        //    DateTime now = DateTime.UtcNow;
-
-        //    //double seconds = (now - dayZero).TotalSeconds;
-        //    //double minutes = (now - dayZero).TotalMinutes;
-        //    //double hours = (now - dayZero).TotalHours;
-        //    //double days = (now - dayZero).TotalDays;
-
-        //    //double derethdays = days * day;
-        //    //derethdays += (143 * day) + 2682750;
-        //    double derethdays = dayOneTicks;
-
-        //    return derethdays.ToString();
-        //}
     }
 }
