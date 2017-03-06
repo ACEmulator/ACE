@@ -8,19 +8,22 @@ namespace ACE.DatLoader
 {
     public class DatManager
     {
-        public static DatDatabase celldat;
-        public static DatDatabase portaldat;
+        private static DatDatabase cellDat;
+        private static DatDatabase portalDat;
 
         private static string datFile;
         private static int count;
 
-        public static void Initialise()
+        public static DatDatabase CellDat { get { return cellDat; } }
+        public static DatDatabase PortalDat { get { return portalDat; } }
+
+        static DatManager()
         {
             try
             {
                 datFile = ConfigManager.Config.Server.DatFilesDirectory + "\\client_cell_1.dat";
-                celldat = new DatDatabase(datFile);
-                count = celldat.AllFiles.Count();
+                cellDat = new DatDatabase(datFile);
+                count = cellDat.AllFiles.Count();
                 Console.WriteLine($"Successfully opened {datFile} file, containing {count} records");
             }
             catch (FileNotFoundException ex)
@@ -33,8 +36,8 @@ namespace ACE.DatLoader
             try
             {
                 datFile = ConfigManager.Config.Server.DatFilesDirectory + "\\client_portal.dat";
-                portaldat = new DatDatabase(datFile);
-                count = portaldat.AllFiles.Count();
+                portalDat = new DatDatabase(datFile);
+                count = portalDat.AllFiles.Count();
                 Console.WriteLine($"Successfully opened {datFile} file, containing {count} records");
             }
             catch (FileNotFoundException ex)

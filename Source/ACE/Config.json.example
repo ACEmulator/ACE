@@ -18,6 +18,7 @@
             // New accounts are created with the above AccessLevel unless explicitly changed using accountcreate command
         },
         "DatFilesDirectory": "c:\\ACE"
+		// Directive that specifies the directory location of the Cell and Portal Dat files
     },
     "MySql": {
         "Authentication": {
