@@ -4,6 +4,8 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
+using ACE.Network.GameMessages.Messages;
+using ACE.Common;
 
 namespace ACE.Command
 {
@@ -520,12 +522,29 @@ namespace ACE.Command
         }
 
         // time
-        [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.None, 0)]
         public static void HandleTime(Session session, params string[] parameters)
         {
             // @time - Displays the server's current game time.
 
             //TODO: output
+            //var UTCNow = new 
+            DerethDateTime currentPYtime = new DerethDateTime(WorldManager.PortalYearTicks);
+            String messageUTC   = "The current server time in UtcNow is: " + DateTime.UtcNow.ToString();
+            String messagePY    = "The current server time in DerethDateTime is: " + currentPYtime.ToString();
+            //String messagePY    = "The current server time in DerethDateTime is: " + currentPYtime.ToString();
+
+            var chatSysMessageUTC = new GameMessageSystemChat(messageUTC, ChatMessageType.WorldBroadcast);
+            var chatSysMessagePY = new GameMessageSystemChat(messagePY, ChatMessageType.WorldBroadcast);
+
+            //session.WorldSession.EnqueueSend(new GameMessageSystemChat(messageUTC, ChatMessageType.WorldBroadcast));
+            if (session != null)
+                session.WorldSession.EnqueueSend(chatSysMessageUTC, chatSysMessagePY);
+            else
+            {
+                Console.WriteLine(messageUTC);
+                Console.WriteLine(messagePY);
+            }
         }
 
         // trophies

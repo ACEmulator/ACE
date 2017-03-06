@@ -61,6 +61,8 @@ namespace ACE.Network
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
+            //Debug.WriteLine("ServerTime: " + ConnectionData.ServerTime.ToString());
+            //Debug.WriteLine("session [ " + this.session.Id + " ] ServerTime: " + ConnectionData.ServerTime.ToString());
             if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
             {
                 currentBundle.TimeSync = true;
