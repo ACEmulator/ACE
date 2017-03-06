@@ -30,7 +30,7 @@ namespace ACE.Network.GameMessages.Messages
 
             Position newPosition = new Position(player.Position.Cell, player.Position.Offset.X + dx, player.Position.Offset.Y + dy, player.Position.Offset.Z + 0.5f, 0f, 0f, 0f, 0f);
             
-            var weenie = WeenieHeaderFlag.Useability | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
+            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(nextObjectId++, GuidType.None), "Life Stone", ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
             // model id 0x000026
@@ -44,7 +44,7 @@ namespace ACE.Network.GameMessages.Messages
             wo.GameData.Type = (ushort)0x1355;
             wo.GameData.Icon = (ushort)0x1036;
 
-            wo.GameData.Useability = Useability.USEABLE_REMOTE;
+            wo.GameData.Usable = Usable.UsableRemote;
             wo.GameData.RadarColour = RadarColor.Blue;
             wo.GameData.RadarBehavior = RadarBehavior.ShowAlways;
             wo.GameData.UseRadius = 4f;
