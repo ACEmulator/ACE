@@ -3,6 +3,7 @@
 using ACE.Command;
 using ACE.Common;
 using ACE.Database;
+using ACE.DatLoader;
 using ACE.Managers;
 using ACE.Network.Managers;
 
@@ -16,6 +17,7 @@ namespace ACE
 
             ConfigManager.Initialise();
             DatabaseManager.Initialise();
+            DatManager.Initialise();
             AssetManager.Initialise();
             InboundMessageManager.Initialise();
             SocketManager.Initialise();

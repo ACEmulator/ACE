@@ -26,6 +26,8 @@ namespace ACE.Common
         public string Welcome { get; set; }
         public ConfigServerNetwork Network { get; set; }
         public ConfigAccountDefaults Accounts { get; set; }
+        public string CellDatFileLocation { get; set; }
+        public string PortalDatFileLocation { get; set; }
     }
 
     public struct ConfigMySqlDatabase

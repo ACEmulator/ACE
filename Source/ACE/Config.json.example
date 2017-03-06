@@ -16,7 +16,9 @@
             "DefaultAccessLevel": 0
             // 0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin
             // New accounts are created with the above AccessLevel unless explicitly changed using accountcreate command
-        }
+        },
+		"CellDatFileLocation": "c:\\ACE\\client_cell_1.dat",
+		"PortalDatFileLocation": "c:\\ACE\\client_portal.dat"
     },
     "MySql": {
         "Authentication": {
