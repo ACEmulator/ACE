@@ -95,8 +95,8 @@ namespace ACE.Entity
             if ((WeenieFlags & WeenieHeaderFlag.Value) != 0)
                 writer.Write(GameData.Value);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Useability) != 0)
-                writer.Write((uint)GameData.Useability);
+            if ((WeenieFlags & WeenieHeaderFlag.Useable) != 0)
+                writer.Write((uint)GameData.Useable);
 
             if ((WeenieFlags & WeenieHeaderFlag.UseRadius) != 0)
                 writer.Write(GameData.UseRadius);
