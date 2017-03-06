@@ -10,7 +10,7 @@ namespace ACE.Network.Enum
         ItemCapacity      = 0x00000002,
         ContainerCapacity = 0x00000004,
         Value             = 0x00000008,
-        Useable           = 0x00000010,
+        Usable            = 0x00000010,
         UseRadius         = 0x00000020,
         Monarch           = 0x00000040,
         UiEffects         = 0x00000080,
