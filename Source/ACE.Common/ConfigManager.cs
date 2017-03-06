@@ -66,9 +66,13 @@ namespace ACE.Common
                 string[] hostSplit = Config.Server.Network.Host.Split('.');
                 for (uint i = 0; i < 4; i++)
                     Host[i] = Convert.ToByte(hostSplit[i]);
-                hostSplit = Config.Server.Network.InternalHost.Split('.');
-                for (uint i = 0; i < 4; i++)
-                    InternalHost[i] = Convert.ToByte(hostSplit[i]);
+
+                if (!string.IsNullOrWhiteSpace(Config.Server.Network.InternalHost))
+                {
+                    hostSplit = Config.Server.Network.InternalHost?.Split('.');
+                    for (uint i = 0; i < 4; i++)
+                        InternalHost[i] = Convert.ToByte(hostSplit[i]);
+                }
             }
             catch (Exception exception)
             {

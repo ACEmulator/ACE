@@ -41,7 +41,7 @@ namespace ACE.Network.Enum
     }
 
     [Flags]
-    public enum WeenieHeaderFlag2
+    public enum WeenieHeaderFlag2 : uint
     {
         None              = 0x00,
         IconUnderlay      = 0x01,

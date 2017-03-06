@@ -1,6 +1,6 @@
 ﻿namespace ACE.Network.Enum
 {
-    public enum AmmoType
+    public enum AmmoType : ushort
     {
         ThrownWeapon    = 0x0000,
         Arrow           = 0x0001,

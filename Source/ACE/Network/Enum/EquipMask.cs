@@ -1,6 +1,6 @@
 ﻿namespace ACE.Network.Enum
 {
-    public enum EquipMask
+    public enum EquipMask : uint
     {
         Head                = 0x00000001,			
         UnderwearChest      = 0x00000002,

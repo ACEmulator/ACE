@@ -3,7 +3,7 @@
     /// <summary>
     /// Used during Calculation of Damage
     /// </summary>
-    public enum CoverageMask
+    public enum CoverageMask : uint
     {
         UnderwearUpperLegs      = 0x00000002,
         UnderwearLowerLegs      = 0x00000004,

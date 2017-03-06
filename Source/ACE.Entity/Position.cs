@@ -52,7 +52,7 @@ namespace ACE.Entity
             Facing = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
-        public void Write(BinaryWriter payload, bool quaternion = true)
+        public void Serialize(BinaryWriter payload, bool quaternion = true)
         {
             payload.Write(Cell);
             payload.Write(Offset.X);

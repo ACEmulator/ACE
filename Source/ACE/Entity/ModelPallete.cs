@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity.WorldPackages
+namespace ACE.Entity
 {
-    public class WorldObjectModelDataPallete
+    public class ModelPallete
     {
         public uint Guid { get; }
         public byte Offset { get; }
         public byte Length { get; }
 
-        public WorldObjectModelDataPallete(uint guid, byte offset, byte length)
+        public ModelPallete(uint guid, byte offset, byte length)
         {
             Guid = guid;
             Offset = offset;
