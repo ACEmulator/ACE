@@ -982,45 +982,53 @@ namespace ACE.Common
             if (convertedDay > 30)
                 convertedDay = 30;
 
-            if (dateToBeConverted.Hour >= 00 && (dateToBeConverted.Hour <= 01 && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Darktide;
-            else if (dateToBeConverted.Hour >= 01 && (dateToBeConverted.Hour <= 02 && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Darktide_and_Half;
+            if (dateToBeConverted.Hour >= 00 && dateToBeConverted.Hour <= 02)
+                if (dateToBeConverted.Hour == 00 || (dateToBeConverted.Hour == 01 && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Darktide;
+                else
+                    convertedHour = (int)Hours.Darktide_and_Half;
 
-            else if (dateToBeConverted.Hour >= 03 && (dateToBeConverted.Hour <= 04 && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Foredawn;
-            else if (dateToBeConverted.Hour >= 04 && (dateToBeConverted.Hour <= 05 && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Foredawn_and_Half;
+            else if (dateToBeConverted.Hour >= 03 && dateToBeConverted.Hour <= 05)
+                if (dateToBeConverted.Hour == 03 || (dateToBeConverted.Hour == 04 && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Foredawn;
+                else
+                    convertedHour = (int)Hours.Foredawn_and_Half;
 
-            else if (dateToBeConverted.Hour >= 06 && (dateToBeConverted.Hour <= 07 && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Dawnsong;
-            else if (dateToBeConverted.Hour >= 07 && (dateToBeConverted.Hour <= 08 && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Dawnsong_and_Half;
+            else if (dateToBeConverted.Hour >= 06 && dateToBeConverted.Hour <= 08)
+                if (dateToBeConverted.Hour == 06 || (dateToBeConverted.Hour == 07 && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Dawnsong;
+                else
+                    convertedHour = (int)Hours.Dawnsong_and_Half;
 
-            else if (dateToBeConverted.Hour >= 09 && (dateToBeConverted.Hour <= 10 && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Morntide;
-            else if (dateToBeConverted.Hour >= 10 && (dateToBeConverted.Hour <= 11 && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Morntide_and_Half;
+            else if (dateToBeConverted.Hour >= 09 && dateToBeConverted.Hour <= 11)
+                if (dateToBeConverted.Hour == 09 || (dateToBeConverted.Hour == 10 && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Morntide;
+                else
+                    convertedHour = (int)Hours.Morntide_and_Half;
 
-            else if (dateToBeConverted.Hour >= 12 && (dateToBeConverted.Hour <= (01 + 12) && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Midsong;
-            else if (dateToBeConverted.Hour >= (01 + 12) && (dateToBeConverted.Hour <= (02 + 12) && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Midsong_and_Half;
+            else if (dateToBeConverted.Hour >= 12 && dateToBeConverted.Hour <= (02 + 12))
+                if (dateToBeConverted.Hour == 12 || (dateToBeConverted.Hour == (01 + 12) && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Midsong;
+                else
+                    convertedHour = (int)Hours.Midsong_and_Half;
 
-            else if (dateToBeConverted.Hour >= (03 + 12) && (dateToBeConverted.Hour <= (04 + 12) && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Warmtide;
-            else if (dateToBeConverted.Hour >= (04 + 12) && (dateToBeConverted.Hour <= (05 + 12) && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Warmtide_and_Half;
+            else if (dateToBeConverted.Hour >= (03 + 12) && dateToBeConverted.Hour <= (05 + 12))
+                if (dateToBeConverted.Hour == (03 + 12) || (dateToBeConverted.Hour == (04 + 12) && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Warmtide;
+                else
+                    convertedHour = (int)Hours.Warmtide_and_Half;
 
-            else if (dateToBeConverted.Hour >= (06 + 12) && (dateToBeConverted.Hour <= (07 + 12) && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Evensong;
-            else if (dateToBeConverted.Hour >= (07 + 12) && (dateToBeConverted.Hour <= (08 + 12) && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Evensong_and_Half;
+            else if (dateToBeConverted.Hour >= (06 + 12) && dateToBeConverted.Hour <= (08 + 12))
+                if (dateToBeConverted.Hour == (06 + 12) || (dateToBeConverted.Hour == (07 + 12) && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Evensong;
+                else
+                    convertedHour = (int)Hours.Evensong_and_Half;
 
-            else if (dateToBeConverted.Hour >= (09 + 12) && (dateToBeConverted.Hour <= (10 + 12) && dateToBeConverted.Minute <= 29))
-                convertedHour = (int)Hours.Gloaming;
-            else if (dateToBeConverted.Hour >= (10 + 12) && (dateToBeConverted.Hour <= (11 + 12) && dateToBeConverted.Minute <= 59))
-                convertedHour = (int)Hours.Gloaming_and_Half;
+            else if (dateToBeConverted.Hour >= (09 + 12) && dateToBeConverted.Hour <= (11 + 12))
+                if (dateToBeConverted.Hour == (09 + 12) || (dateToBeConverted.Hour == (10 + 12) && dateToBeConverted.Minute <= 29))
+                    convertedHour = (int)Hours.Gloaming;
+                else
+                    convertedHour = (int)Hours.Gloaming_and_Half;
 
             else
                 convertedHour = (int)Hours.Darktide;
