@@ -44,7 +44,7 @@ namespace ACE.Network.GameMessages.Messages
             wo.GameData.Type = (ushort)0x1355;
             wo.GameData.Icon = (ushort)0x1036;
 
-            wo.GameData.Useability = (uint)32;
+            wo.GameData.Useability = Useability.USEABLE_REMOTE;
             wo.GameData.RadarColour = RadarColor.Blue;
             wo.GameData.RadarBehavior = RadarBehavior.ShowAlways;
             wo.GameData.UseRadius = 4f;
