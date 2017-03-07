@@ -11,6 +11,7 @@ using ACE.Network.Managers;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Packets;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.Handlers
 {
@@ -137,10 +138,33 @@ namespace ACE.Network.Handlers
                 return;
             }
 
+            CharacterCreateSetDefaultCharacterOptions(character);
+            DatabaseManager.Character.SaveCharacterOptions(character);
+
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, character.Name, 0));
 
             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
+        }
+
+        private static void CharacterCreateSetDefaultCharacterOptions(Character character)
+        {
+            character.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
+            character.SetCharacterOption(CharacterOption.Display3dTooltips, true);
+            character.SetCharacterOption(CharacterOption.ShowCoordinatesByTheRadar, true);
+            character.SetCharacterOption(CharacterOption.DisplaySpellDurations, true);
+            character.SetCharacterOption(CharacterOption.IgnoreFellowshipRequests, true);
+            character.SetCharacterOption(CharacterOption.ShareFellowshipExpAndLuminance, true);
+            character.SetCharacterOption(CharacterOption.LetOtherPlayersGiveYouItems, true);
+            character.SetCharacterOption(CharacterOption.RunAsDefaultMovement, true);
+            character.SetCharacterOption(CharacterOption.AutoTarget, true);
+            character.SetCharacterOption(CharacterOption.AutoRepeatAttacks, true);
+            character.SetCharacterOption(CharacterOption.UseChargeAttack, true);
+            character.SetCharacterOption(CharacterOption.LeadMissileTargets, true);
+            character.SetCharacterOption(CharacterOption.ListenToAllegianceChat, true);
+            character.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
+            character.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
+            character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);            
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = null, string charName = "")
