@@ -333,6 +333,28 @@ namespace ACE.Entity
             return result;
         }
 
+        /// <summary>
+        /// Check a rank against the skill charts too determine if the skill is at max
+        /// </summary>
+        /// <returns>Returns true if skill is max rank; false if skill is below max rank</returns>
+        private bool IsSkillMaxRank(uint rank, SkillStatus status)
+        {
+            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+
+            if (status == SkillStatus.Trained)
+                xpChart = DatabaseManager.Charts.GetTrainedSkillXpChart();
+            else if (status == SkillStatus.Specialized)
+                xpChart = DatabaseManager.Charts.GetSpecializedSkillXpChart();
+
+            if (rank == (xpChart.Ranks.Count - 1))
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Spend xp Skill ranks
+        /// </summary>
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
@@ -348,13 +370,24 @@ namespace ACE.Entity
 
             if (result > 0u)
             {
-                messageText = $"Your base {skill} is now {newValue}!";
+                //if the skill ranks out at the top of our xp chart 
+                //then we will start fireworks effects and have special text!
+                if (IsSkillMaxRank(ranks, status))
+                {
+                    //fireworks on rank up is 0x8D
+                    PlayParticleEffect(0x8D);
+                    messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
+                }
+                else
+                {
+                    messageText = $"Your base {skill} is now {newValue}!";
+                }
             }
             else
             {
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
-            var message = new GameMessageSystemChat(messageText, ChatMessageType.Broadcast);
+            var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.WorldSession.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
@@ -368,10 +401,6 @@ namespace ACE.Entity
         /// <summary>
         /// spends the xp on this skill.
         /// </summary>
-        /// <remarks>
-        ///     Known Issues:
-        ///         1. no fireworks or special text, for hitting max ranks
-        /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendSkillXp(CharacterSkill skill, uint amount)
         {
