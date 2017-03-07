@@ -22,7 +22,7 @@ namespace ACE.Entity
         public byte ContainerCapacity;
         public AmmoType AmmoType;
         public uint Value;
-        public uint Useability = 1u;
+        public Usable Usable = Usable.UsableNo;
         public float UseRadius = 0.25f;
         public uint TargetType;
         public UiEffects UiEffects;

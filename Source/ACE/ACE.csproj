@@ -112,6 +112,7 @@
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\Enum\Sound.cs" />
     <Compile Include="Network\Enum\UpdatePositionFlag.cs" />
+    <Compile Include="Network\Enum\Useable.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\Enum\CombatUse.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
