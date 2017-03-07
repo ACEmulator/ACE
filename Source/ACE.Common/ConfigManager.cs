@@ -26,6 +26,7 @@ namespace ACE.Common
         public string Welcome { get; set; }
         public ConfigServerNetwork Network { get; set; }
         public ConfigAccountDefaults Accounts { get; set; }
+        public string DatFilesDirectory { get; set; }
     }
 
     public struct ConfigMySqlDatabase

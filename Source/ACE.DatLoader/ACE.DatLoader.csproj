@@ -43,7 +43,14 @@
     <Compile Include="DatDirectory.cs" />
     <Compile Include="DatFile.cs" />
     <Compile Include="DatDatabase.cs" />
+	<Compile Include="DatManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
+      <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
+      <Name>ACE.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
