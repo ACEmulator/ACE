@@ -7,6 +7,7 @@ using System.Threading;
 
 using ACE.Network;
 using ACE.Entity;
+using ACE.Common;
 
 namespace ACE.Managers
 {
@@ -22,10 +23,17 @@ namespace ACE.Managers
 
         public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
 
+        public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
+
+        public static double PortalYearTicks { get; set; } = WorldStartFromTime.Ticks;
+
         public static void Initialise()
         {
             var thread = new Thread(UpdateWorld);
             thread.Start();
+
+            Console.WriteLine("");
+            Console.WriteLine("ServerTime initialized to " + WorldStartFromTime.ToString());
         }
 
         public static Session Find(IPEndPoint endPoint)
@@ -187,6 +195,7 @@ namespace ACE.Managers
 
                 Thread.Sleep(1);
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
+                PortalYearTicks += lastTick;
             }
         }
     }

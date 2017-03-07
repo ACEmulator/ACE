@@ -1,4 +1,6 @@
 ﻿using ACE.Common.Cryptography;
+using ACE.Common;
+using ACE.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,8 @@ namespace ACE.Network
         {
             IssacClient = new ISAAC(type == ConnectionType.Login ? ISAAC.ClientSeed : ISAAC.WorldClientSeed);
             IssacServer = new ISAAC(type == ConnectionType.Login ? ISAAC.ServerSeed : ISAAC.WorldServerSeed);
+
+            ServerTime = WorldManager.PortalYearTicks;
         }
     }
 }
