@@ -254,20 +254,59 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
+        /// <summary>
+        /// Raise the available XP by a specified amount
+        /// </summary>
+        /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(ulong amount)
         {
             character.GrantXp(amount);
+            //TODO: Ask for an Answer: Does CheckForLevelup() go before or after the xp message?
+            CheckForLevelup();
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
         }
 
+        /// <summary>
+        /// Determines if the player has advanced a level
+        /// </summary>
+        /// <remarks>
+        /// Known issues:
+        ///         1. Have not tested up to max level, so there isn't any special text or fireworks for max level yet.
+        /// </remarks>
         private void CheckForLevelup()
         {
-            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            // Question: Where do *we* call CheckForLevelup()? : 
+            //      From within the player.cs file, the options might be:
+            //           GrantXp()
+            //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
+            //           XP Updates?
 
-            // TODO: implement.  just stubbing for now, will implement later.
+            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            var currentLevel = character.Level;
+            int maxLevel = chart.Levels.Count;
+
+            if (character.Level == maxLevel) return;
+
+            // this will check against the xp chart to see if the xp is greater then the last level
+            // increases until the correct level is found
+            while (chart.Levels[Convert.ToInt32(character.Level)].TotalXp <= character.TotalExperience)
+            {
+                character.Level++;
+                if (character.Level == maxLevel) break;
+            }
+
+            // if we have advanced a level send an update to the client
+            if (character.Level > currentLevel)
+            {
+                var level = character.Level.ToString();
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
+                var message = new GameMessageSystemChat($"You are now level {level}!", ChatMessageType.Advancement);
+                PlayParticleEffect(0x8a);
+                Session.WorldSession.EnqueueSend(levelUp, message);
+            }
         }
 
         public void SpendXp(Enum.Ability ability, uint amount)
@@ -289,7 +328,6 @@ namespace ACE.Entity
                 {
                     abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
-
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
