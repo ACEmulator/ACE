@@ -179,6 +179,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateBool.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />

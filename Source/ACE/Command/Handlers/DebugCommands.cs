@@ -65,9 +65,9 @@ namespace ACE.Command.Handlers
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
-            uint xp = 0;
+            ulong xp = 0;
 
-            if (parameters?.Length > 0 && uint.TryParse(parameters[0], out xp))
+            if (parameters?.Length > 0 && ulong.TryParse(parameters[0], out xp))
             {
                 session.Player.GrantXp(xp);
             }
