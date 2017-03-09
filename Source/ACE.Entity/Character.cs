@@ -113,6 +113,8 @@ namespace ACE.Entity
             set { propertiesInt[PropertyInt.Level] = value; }
         }
 
+        public uint AvailableSkillCredits { get; set; }
+
         public ReadOnlyDictionary<Enum.Ability, CharacterAbility> Abilities;
 
         private Character()
