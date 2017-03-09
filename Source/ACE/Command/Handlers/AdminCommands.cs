@@ -6,6 +6,7 @@ using ACE.Managers;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
+using ACE.Database;
 
 namespace ACE.Command
 {
@@ -877,13 +878,40 @@ namespace ACE.Command
             //TODO: output
         }
 
-        // rename <Current Name>, <New Name>
-        [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 2)]
+        // rename <Current Name> <New Name>
+        [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.None, 2)]
         public static void HandleRename(Session session, params string[] parameters)
         {
             // @rename <Current Name>, <New Name> - Rename a character. (Do NOT include +'s for admin names)
 
-            //TODO: output
+            // As currently implemented below, the command does not exactly mimic retail usage in that the command was @rename oldName, newName
+            // and for us is @rename oldName newName || is this a big deal?? -Ripley
+
+            string fixupOldName = "";
+            string fixupNewName = "";
+
+            if (parameters[0] == "" || parameters[1] == "")
+                return;
+
+            fixupOldName = parameters[0].Replace("+", "").Remove(1).ToUpper() + parameters[0].Replace("+", "").Substring(1);
+            fixupNewName = parameters[1].Replace("+", "").Remove(1).ToUpper() + parameters[1].Replace("+", "").Substring(1);
+
+            uint charId = DatabaseManager.Character.RenameCharacter(fixupOldName, fixupNewName);
+
+            string message = "";
+
+            if (charId > 0)
+                message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
+            else
+                message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
+                        
+            if (session == null)
+                Console.WriteLine(message);
+            else
+            {
+                var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
+                session.WorldSession.EnqueueSend(sysChatMsg);
+            }              
         }
 
         // setadvclass
