@@ -133,13 +133,13 @@ namespace ACE.Database
                     using (var connection = new MySqlConnection(connectionString))
                         connection.Open();
 
-                    Console.WriteLine($"Successfully connected to {database} database.");
+                    Console.WriteLine($"Successfully connected to {database} database on {host}:{port}.");
                     break;
                 }
                 catch (Exception exception)
                 {
                     Console.WriteLine($"Exception: {exception.Message}");
-                    Console.WriteLine($"Attempting to reconnect to {database} database in 5 seconds...");
+                    Console.WriteLine($"Attempting to reconnect to {database} database on {host}:{port} in 5 seconds...");
 
                     Thread.Sleep(5000);
                 }
