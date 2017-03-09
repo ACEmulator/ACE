@@ -474,16 +474,6 @@ namespace ACE.Database
             var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, newName);
             Debug.Assert(result != null);
 
-            //try
-            //{
-            //    uint lowGuid = result.Result.Read<uint>(0, "guid");
-
-            //    return 0; // newName already in use
-            //}
-            //catch (IndexOutOfRangeException)
-            //{
-            //    //Do nothing because newName does not exist and is available for use;
-            //}
             if (IsNameAvailable(newName))
             {
                 result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, oldName);
