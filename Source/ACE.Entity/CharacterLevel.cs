@@ -6,7 +6,7 @@ namespace ACE.Entity
     public class CharacterLevel
     {
         [JsonProperty("level")]
-        public int Level { get; set; }
+        public uint Level { get; set; }
 
         [JsonProperty("totalXp")]
         public ulong TotalXp { get; set; }
