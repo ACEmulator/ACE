@@ -12,6 +12,37 @@ namespace ACE.Command
 {
     public static class AdminCommands
     {
+        [CommandHandler("clientCommands", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandleClientCommands(Session session, params string[] parameters)
+        {
+            var commands = CommandManager.GetClientCommands();
+            foreach (var command in commands)
+            {
+                ChatPacket.SendServerMessage(session, "@" + command.Attribute.Command + "(" + command.Attribute.ParameterCount + ")", ChatMessageType.Broadcast);
+            }
+        }
+
+        [CommandHandler("clientCommands", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
+        public static void HandleClientCommandsFromConsole(Session session, params string[] parameters)
+        {
+            var commands = CommandManager.GetClientCommands();
+            foreach (var command in commands)
+            {
+                Console.WriteLine("@" + command.Attribute.Command + "(" + command.Attribute.ParameterCount + ")");
+            }
+        }
+
+
+        [CommandHandler("consoleCommands", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
+        public static void HandleConsoleCommands(Session session, params string[] parameters)
+        {
+            var commands = CommandManager.GetConsoleCommands();
+            foreach (var command in commands)
+            {
+                Console.WriteLine(command.Attribute.Command + " (" + command.Attribute.ParameterCount + ")");
+            }
+        }
+
         //// commandname parameters
         //[CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         //public static void HandleHelp(Session session, params string[] parameters)
@@ -769,11 +800,6 @@ namespace ACE.Command
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleGod(Session session, params string[] parameters)
         {
-            // @god - Sets your own stats to the specified level.
-
-            //TODO: output
-
-            //output: You are now a god!!!
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
         }
