@@ -19,7 +19,7 @@ namespace ACE.Network
     {
         public uint Id { get; private set; }
         public string Account { get; private set; }
-        public AccessLevel AccessLevel { get; private set; }
+        public AccessLevel AccessLevel { get; set; }
         private SessionState state;
         public SessionState State
         {

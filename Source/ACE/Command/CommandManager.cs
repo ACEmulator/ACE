@@ -15,6 +15,12 @@ namespace ACE.Command
     {
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
+        public static IEnumerable<CommandHandlerInfo>GetCommands()
+        {
+            
+            return commandHandlers.Select(p => p.Value);
+        }
+
         public static IEnumerable<CommandHandlerInfo> GetClientCommands()
         {
             return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Flags == CommandHandlerFlag.RequiresWorld);
@@ -25,6 +31,7 @@ namespace ACE.Command
             return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Flags == CommandHandlerFlag.ConsoleInvoke);
         }
 
+        private static string EncodeCommand(string command, CommandHandlerFlag flag) { return command + ":" + flag.ToString(); }
         public static void Initialise()
         {
             commandHandlers = new Dictionary<string, CommandHandlerInfo>(StringComparer.OrdinalIgnoreCase);
@@ -39,7 +46,7 @@ namespace ACE.Command
                             Handler   = (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), method),
                             Attribute = attribute
                         };
-                        commandHandlers[attribute.Command] = commandHandler;
+                        commandHandlers[EncodeCommand(attribute.Command, attribute.Flags)] = commandHandler;
                     }
                 }
             }
@@ -142,7 +149,12 @@ namespace ACE.Command
                 }
             }
 
-            if (!commandHandlers.TryGetValue(command, out commandInfo))
+            CommandHandlerFlag flag = CommandHandlerFlag.RequiresWorld;
+            if (session == null)
+            {
+                flag = CommandHandlerFlag.ConsoleInvoke;
+            }
+            if (!commandHandlers.TryGetValue(EncodeCommand(command, flag), out commandInfo))
                 return CommandHandlerResponse.InvalidCommand;
 
             if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) != 0 && session != null)
