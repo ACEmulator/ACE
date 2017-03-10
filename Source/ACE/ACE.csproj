@@ -102,6 +102,7 @@
     <Compile Include="Network\Enum\AmmoType.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
+    <Compile Include="Network\Enum\Effect.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
@@ -138,6 +139,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRemoveFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionTeleToMarketplace.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionOpcode.cs" />

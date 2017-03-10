@@ -32,6 +32,39 @@ namespace ACE.Command.Handlers
             }
         }
 
+        // playsound [Sound] (volumelevel)
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandlePlaySound(Session session, params string[] parameters)
+        {
+            try
+            {
+                Network.Enum.Sound sound = Network.Enum.Sound.Invalid;
+                string message = "";
+                float volume = 1f;
+                var soundEvent = new GameMessageSound(session.Player.Guid, Network.Enum.Sound.Invalid, volume);
+
+                if (parameters.Length > 1)
+                    if (parameters[1] != "")
+                        volume = float.Parse(parameters[1]);
+
+                message = $"Unable to find a sound called {parameters[0]} to play.";
+
+                if (Enum.TryParse(parameters[0], true, out sound))
+                    if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
+                    {
+                        message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
+                        soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
+                    }                                            
+
+                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.WorldSession.EnqueueSend(soundEvent, sysChatMessage);
+            }
+            catch (Exception)
+            {
+                //ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
+            }
+        }
+
         // gps
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleDebugGPS(Session session, params string[] parameters)
@@ -78,24 +111,37 @@ namespace ACE.Command.Handlers
             }
         }
 
-
+        // effect [Effect] (scale)
         [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void playeffect(Session session, params string[] parameters)
-        {
-
-            uint effectid;
+        public static void HandlePlayEffect(Session session, params string[] parameters)
+        {          
             try
             {
-                effectid = Convert.ToUInt32(parameters[0]);
+                Network.Enum.Effect effect = Network.Enum.Effect.Invalid;
+                string message = "";
+                float volume = 1f;
+                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.Invalid);
+
+                if (parameters.Length > 1)
+                    if (parameters[1] != "")
+                        volume = float.Parse(parameters[1]);
+
+                message = $"Unable to find a effect called {parameters[0]} to play.";
+
+                if (Enum.TryParse(parameters[0], true, out effect))
+                    if (Enum.IsDefined(typeof(Network.Enum.Effect), effect))
+                    {
+                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.Effect), effect)}";
+                        effectEvent = new GameMessageEffect(session.Player.Guid, effect, volume);
+                    }
+
+                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.WorldSession.EnqueueSend(effectEvent, sysChatMessage);
             }
             catch (Exception)
             {
-                //ex...more info.. if needed..
-                ChatPacket.SendServerMessage(session, $"Invalid Effect value", ChatMessageType.Broadcast);
-                return;
+                //ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
             }
-
-            session.Player.PlayParticleEffect(effectid);
         }
 
 
