@@ -26,25 +26,23 @@ namespace ACE.DatLoader.Tests
             Assert.AreEqual(79694, count);
         }
 
-        [TestMethod]
-        public void ExtractCellDat()
-        {
-            string dat = @"C:\Turbine\client_cell_1.dat";
-            string output = @"c:\Turbine\cell_dat_export";
+        //[TestMethod]
+        //public void ExtractCellDat()
+        //{
+        //    string dat = @"C:\Turbine\client_cell_1.dat";
+        //    string output = @"c:\Turbine\cell_dat_export";
 
-            // Uncomment line below to extract Cell DAT file
-            //BeginExtract(dat, output);
-        }
+        //    BeginExtract(dat, output);
+        //}
 
-        [TestMethod]
-        public void ExtractPortalDat()
-        {
-            string dat = @"C:\Turbine\client_portal.dat";
-            string output = @"c:\Turbine\portal_dat_export";
+        //[TestMethod]
+        //public void ExtractPortalDat()
+        //{
+        //    string dat = @"C:\Turbine\client_portal.dat";
+        //    string output = @"c:\Turbine\portal_dat_export";
 
-            // Uncomment line below to extract Portal DAT file
-            //BeginExtract(dat, output);
-        }
+        //    BeginExtract(dat, output);
+        //}
 
         private void BeginExtract(string filename, string outDir)
         {
