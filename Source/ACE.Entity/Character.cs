@@ -159,7 +159,7 @@ namespace ACE.Entity
             Id = id;
             AccountId = accountId;
         }
-        
+
         /// <summary>
         /// gives avaiable xp and total xp of the amount specified
         /// </summary>
@@ -167,6 +167,14 @@ namespace ACE.Entity
         {
             propertiesInt64[PropertyInt64.AvailableExperience] += amount;
             propertiesInt64[PropertyInt64.TotalExperience] += amount;
+        }
+
+        /// <summary>
+        /// adds only avaiable xp when user has already gained max level
+        /// </summary>
+        public void GrantAdditionalXp(ulong amount)
+        {
+            propertiesInt64[PropertyInt64.AvailableExperience] += amount;
         }
 
         /// <summary>

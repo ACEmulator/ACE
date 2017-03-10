@@ -260,9 +260,23 @@ namespace ACE.Entity
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(ulong amount)
         {
-            var test = amount.ToString().Length;
-            character.GrantXp(amount);
-            CheckForLevelup();
+            //until we are max level we must make sure that we send 
+            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            CharacterLevel maxLevel = chart.Levels.Last();
+            if (character.Level == maxLevel.Level)
+            {
+                character.GrantAdditionalXp(amount);
+            }
+            else
+            {
+                ulong amountLeftToEnd = maxLevel.TotalXp - character.TotalExperience;
+                if (amount > amountLeftToEnd)
+                {
+                    amount = amountLeftToEnd;
+                }
+                character.GrantXp(amount);
+                CheckForLevelup();
+            }
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
@@ -298,12 +312,15 @@ namespace ACE.Entity
                 if (newLevel.GrantsSkillPoint)
                 {
                     character.AvailableSkillCredits++;
-                    var grantCredit = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
-                    Session.WorldSession.EnqueueSend(grantCredit);
                     creditEarned = true;
                 }
                 //break if we reach max
-                if (character.Level == maxLevel.Level) break;
+                if (character.Level == maxLevel.Level)
+                {
+                    //new enum soon ;)
+                    PlayParticleEffect(0x8d);
+                    break;
+                }
             }
 
             if (character.Level > startingLevel)
@@ -316,14 +333,16 @@ namespace ACE.Entity
                 var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
                 string xpUpdateText = (character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes."; ;
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
-                PlayParticleEffect(0x8a); //play level up effect
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
                 if (character.Level != maxLevel.Level && !creditEarned)
                 {
                     string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
                     var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
-                    Session.WorldSession.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, nextCreditMessage);
+                    Session.WorldSession.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 } else
-                    Session.WorldSession.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage);
+                    Session.WorldSession.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
+                //play level up effect
+                PlayParticleEffect(0x8a);
             }
         }
 
@@ -346,6 +365,7 @@ namespace ACE.Entity
                 {
                     abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
+
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
