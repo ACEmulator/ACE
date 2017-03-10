@@ -32,7 +32,8 @@ namespace ACE.DatLoader.Tests
             string dat = @"C:\Turbine\client_cell_1.dat";
             string output = @"c:\Turbine\cell_dat_export";
 
-            BeginExtract(dat, output);
+            // Uncomment line below to extract Cell DAT file
+            //BeginExtract(dat, output);
         }
 
         [TestMethod]
@@ -41,7 +42,8 @@ namespace ACE.DatLoader.Tests
             string dat = @"C:\Turbine\client_portal.dat";
             string output = @"c:\Turbine\portal_dat_export";
 
-            BeginExtract(dat, output);
+            // Uncomment line below to extract Portal DAT file
+            //BeginExtract(dat, output);
         }
 
         private void BeginExtract(string filename, string outDir)
