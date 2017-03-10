@@ -29,9 +29,9 @@ namespace ACE.Network.GameAction
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,
 
-        TeleToMarketPlace           = 0x028D,
-
         HouseQuery                  = 0x021E,
+
+        TeleToMarketPlace           = 0x028D,
 
         MoveToState                 = 0xF61C,
         AutonomousPosition          = 0xF753,
