@@ -7,6 +7,7 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using System.Reflection;
+using ACE.Command.Handlers;
 
 namespace ACE.Command
 {
@@ -18,105 +19,6 @@ namespace ACE.Command
         //{
         //    //TODO: output
         //}
-
-        [CommandHandler("acehelp", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleAceHelpOnClient(Session session, params string[] parameters)
-        {
-            HandleAceHelp(session, SendClientMessage, fromServer: false, parameters: parameters);
-        }
-        [CommandHandler("acehelp", AccessLevel.Player, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleAceHelpOnServer(Session session, params string[] parameters)
-        {
-            HandleAceHelp(session, SendServerMessage, fromServer: true, parameters: parameters);
-        }
-        private static void HandleAceHelp(Session session, SendOutputMessage outputter, bool fromServer, params string[] parameters)
-        {
-            if (session != null)
-            {
-                int lvl = (int)session.AccessLevel;
-                lvl = (lvl + 1) % 5;
-                session.AccessLevel = (AccessLevel)lvl;
-                outputter(session, string.Format("Your Current access level is: {0}", session.AccessLevel));
-            }
-            outputter(session, Assembly.GetExecutingAssembly().GetName().Version.ToString());
-            outputter(session, "Please use @acecommands for a list of commands.");
-        }
-
-        [CommandHandler("acecommands", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleAceCommandsFromClient(Session session, params string[] parameters)
-        {
-            HandleAceCommands(session, SendClientMessage, fromServer: false, parameters: parameters);
-        }
-
-        [CommandHandler("acecommands", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleAceCommandsFromServer(Session session, params string[] parameters)
-        {
-            HandleAceCommands(session, SendServerMessage, fromServer: true, parameters: parameters);
-        }
-        private static void SendServerMessage(Session session, string msg)
-        {
-            Console.WriteLine(msg);
-        }
-        private static void SendClientMessage(Session session, string msg)
-        {
-            ChatPacket.SendServerMessage(session, msg, ChatMessageType.Broadcast);
-        }
-        public delegate void SendOutputMessage(Session session, string msg);
-        private static void HandleAceCommands(Session session, SendOutputMessage outputter, bool fromServer, params string[] parameters)
-        {
-            if (session != null)
-            {
-                outputter(session, string.Format("Your Current access level is: {0}", session.AccessLevel));
-            }
-            var commands = CommandManager.GetClientCommands();
-            foreach (var command in commands)
-            {
-                if (session != null)
-                {
-                    if (command.Attribute.Flags == CommandHandlerFlag.ConsoleInvoke)
-                    {
-                        continue;
-                    }
-                    int playerlvl = (int)session.AccessLevel;
-                    int cmdlvl = (int)command.Attribute.Access;
-                    if (playerlvl < cmdlvl)
-                    {
-                        continue;
-                    }
-                }
-                else
-                { // Console
-                    if (command.Attribute.Flags == CommandHandlerFlag.RequiresWorld)
-                    {
-                        continue;
-                    }
-                }
-                string msg = string.Format("@{0} ({1}) ({2})",
-                    command.Attribute.Command, command.Attribute.ParameterCount, command.Attribute.Access);
-                outputter(session, msg);
-            }
-        }
-
-        [CommandHandler("clientCommands", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleClientCommandsFromConsole(Session session, params string[] parameters)
-        {
-            var commands = CommandManager.GetClientCommands();
-            foreach (var command in commands)
-            {
-                Console.WriteLine("@" + command.Attribute.Command + "(" + command.Attribute.ParameterCount + ")");
-            }
-        }
-
-
-        [CommandHandler("consoleCommands", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleConsoleCommands(Session session, params string[] parameters)
-        {
-            var commands = CommandManager.GetConsoleCommands();
-            foreach (var command in commands)
-            {
-                Console.WriteLine(command.Attribute.Command + " (" + command.Attribute.ParameterCount + ")");
-            }
-        }
 
         // adminvision { on | off | toggle | check}
         [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]

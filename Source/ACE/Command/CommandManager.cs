@@ -21,11 +21,6 @@ namespace ACE.Command
             return commandHandlers.Select(p => p.Value);
         }
 
-        public static IEnumerable<CommandHandlerInfo> GetClientCommands()
-        {
-            return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Flags == CommandHandlerFlag.RequiresWorld);
-        }
-
         public static IEnumerable<CommandHandlerInfo> GetConsoleCommands()
         {
             return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Flags == CommandHandlerFlag.ConsoleInvoke);

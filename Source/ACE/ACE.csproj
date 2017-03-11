@@ -80,8 +80,10 @@
     <Compile Include="Command\Handlers\AccountCommands.cs" />
     <Compile Include="Command\Handlers\AdminCommands.cs" />
     <Compile Include="Command\Handlers\CharacterCommands.cs" />
+    <Compile Include="Command\Handlers\CommandChannel.cs" />
     <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
+    <Compile Include="Command\Handlers\HelpCommands.cs" />
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
