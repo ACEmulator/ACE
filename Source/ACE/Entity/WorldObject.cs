@@ -198,19 +198,6 @@ namespace ACE.Entity
             writer.Align();
         }
 
-        //public virtual void UpdatePosition(Position newPosition)
-        //{
-        //    // TODO: sanity checks
-        //    Position = newPosition;
-
-        //    //// TODO: this packet needs to be broadcast to the grid system, just send to self for now
-        //    //if (Guid.IsPlayer())
-        //    //{
-        //    //    Session session = (this as Player).Session;
-        //    //    session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(this));
-        //    //}
-        //}
-
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             var updatePositionFlags = UpdatePositionFlag.Contact;
