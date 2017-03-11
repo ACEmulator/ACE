@@ -25,7 +25,7 @@ namespace ACE.Network.GameAction.Actions
             if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
-            uint cell  = position.Cell;
+            uint cell  = position.LandblockId.Raw;
             uint cellX = (cell >> 3);
 
             //TODO: Wrap command in a check to confirm session.character IsAdvocate or higher access level

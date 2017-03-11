@@ -116,7 +116,8 @@ namespace ACE.Network.Handlers
             session.WorldSession.Flush();
             session.WorldSession.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             session.WorldSession.Flush();
-            session.Player.Load();
+
+            LandblockManager.PlayerEnterWorld(session);
         }
     }
 }

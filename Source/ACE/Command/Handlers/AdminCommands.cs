@@ -456,7 +456,7 @@ namespace ACE.Command
 
             // TODO: Check if water block?
 
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.Cell.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]", ChatMessageType.Broadcast);
 
             session.Player.Teleport(position);
         }
@@ -904,14 +904,14 @@ namespace ACE.Command
                 message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
             else
                 message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
-                        
+
             if (session == null)
                 Console.WriteLine(message);
             else
             {
                 var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
                 session.WorldSession.EnqueueSend(sysChatMsg);
-            }              
+            }
         }
 
         // setadvclass

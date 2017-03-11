@@ -6,28 +6,50 @@ namespace ACE.Entity
 {
     public class Position
     {
-        public uint Cell { get; set; }
-        public uint Dungeon { get; set; }
+        private const float xyMidPoint = 96f;
+
+        public LandblockId LandblockId { get; set; }
+
         public Vector3 Offset { get; set; }
+
         public Quaternion Facing { get; set; }
 
-        public Position(uint cell, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
+        public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
         {
-            Cell    = cell;
-            Dungeon = cell >> 16;
+            LandblockId = new LandblockId(landblock);
             Offset  = new Vector3(x, y, z);
             Facing  = new Quaternion(qx, qy, qz, qw);
         }
 
         public Position(BinaryReader payload)
         {
-            Cell    = payload.ReadUInt32();
-            Dungeon = Cell >> 16;
+            LandblockId = new LandblockId(payload.ReadUInt32());
             Offset  = new Vector3(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle());
 
             // packet stream isn't the same order as the quaternion constructor
             float qw = payload.ReadSingle();
             Facing  = new Quaternion(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle(), qw);
+        }
+
+        public bool IsInQuadrant(Quadrant q)
+        {
+            // check for easy short circuit
+            if (q == Quadrant.All)
+                return true;
+
+            if ((q & Quadrant.NorthEast) > 0 && Offset.X > xyMidPoint && Offset.Y > xyMidPoint)
+                return true;
+
+            if ((q & Quadrant.NorthWest) > 0 && Offset.X <= xyMidPoint && Offset.Y > xyMidPoint)
+                return true;
+
+            if ((q & Quadrant.SouthEast) > 0 && Offset.X <= xyMidPoint && Offset.Y <= xyMidPoint)
+                return true;
+
+            if ((q & Quadrant.SouthWest) > 0 && Offset.X <= xyMidPoint && Offset.Y <= xyMidPoint)
+                return true;
+
+            return false;
         }
 
         public Position(float northSouth, float eastWest)
@@ -45,16 +67,16 @@ namespace ACE.Entity
 
             float xOffset = ((baseX & 7) * 24.0f) + 12;
             float yOffset = ((baseY & 7) * 24.0f) + 12;
-            float zOffset = GetZFromCellXY(Cell, xOffset, yOffset);
+            float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
 
-            Cell = GetCellFromBase(baseX, baseY);
+            LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
             Offset = new Vector3(xOffset, yOffset, zOffset);
             Facing = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
         public void Serialize(BinaryWriter payload, bool quaternion = true)
         {
-            payload.Write(Cell);
+            payload.Write(LandblockId.Raw);
             payload.Write(Offset.X);
             payload.Write(Offset.Y);
             payload.Write(Offset.Z);

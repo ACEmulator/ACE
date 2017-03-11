@@ -85,6 +85,6 @@ namespace ACE.Network
 
         public static ObjectGuid ReadGuid(this BinaryReader reader) { return new ObjectGuid(reader.ReadUInt32()); }
 
-        public static void WriteGuid(this BinaryWriter writer, ObjectGuid guid) { writer.Write(guid?.Full ?? 0u); }
+        public static void WriteGuid(this BinaryWriter writer, ObjectGuid guid) { writer.Write(guid.Full); }
     }
 }

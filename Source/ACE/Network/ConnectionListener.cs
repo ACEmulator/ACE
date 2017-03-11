@@ -84,6 +84,7 @@ namespace ACE.Network
             }
             IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
             var session = WorldManager.Find(ipEndpoint);
+
 #if NETWORKDEBUG
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(String.Format("Received Packet (Len: {0}) on {1} [{2}:{3}=>{4}:{5}]", data.Length, listenerType, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));

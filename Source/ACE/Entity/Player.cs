@@ -14,26 +14,29 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
+using ACE.Entity.Events;
 
 namespace ACE.Entity
 {
     public class Player : MutableWorldObject
     {
-        // all the objects being tracked
-        private Dictionary<ObjectGuid, MutableWorldObject> subscribedObjects = new Dictionary<ObjectGuid, MutableWorldObject>();
-
         public Session Session { get; }
-
-        //this is a hack job!
-        public uint FakeGlobalGuid = 100;
-
-
+        
         public bool InWorld { get; set; }
+
         public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
 
         public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
 
+        /// <summary>
+        /// tick-stamp for the server time of the last time the player changed state (combat state?)
+        /// </summary>
+        public double LastStateChangeTicks { get; set; }
+
         private Character character;
+        
+        private object clientObjectMutex = new object();
+        private List<ObjectGuid> clientObjectList = new List<ObjectGuid>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -193,6 +196,7 @@ namespace ACE.Entity
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
             WeenieFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
 
+            // apply defaults.  "Load" should be overwriting these with values specific to the character
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -202,9 +206,9 @@ namespace ACE.Entity
             ListeningRadius = 5f;
         }
 
-        public async void Load()
+        public async Task Load(Character preloadedCharacter = null)
         {
-            character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
+            character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
 
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -224,6 +228,7 @@ namespace ACE.Entity
             Position = character.Position;
             IsOnline = true;
 
+            // SendSelf will trigger the entrance into portal space
             SendSelf();
             SendFriendStatusUpdates();
 
@@ -234,6 +239,7 @@ namespace ACE.Entity
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
             Session.WorldSession.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+            
         }
 
         public void GrantXp(ulong amount)
@@ -333,28 +339,6 @@ namespace ACE.Entity
             return result;
         }
 
-        /// <summary>
-        /// Check a rank against the skill charts too determine if the skill is at max
-        /// </summary>
-        /// <returns>Returns true if skill is max rank; false if skill is below max rank</returns>
-        private bool IsSkillMaxRank(uint rank, SkillStatus status)
-        {
-            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
-
-            if (status == SkillStatus.Trained)
-                xpChart = DatabaseManager.Charts.GetTrainedSkillXpChart();
-            else if (status == SkillStatus.Specialized)
-                xpChart = DatabaseManager.Charts.GetSpecializedSkillXpChart();
-
-            if (rank == (xpChart.Ranks.Count - 1))
-                return true;
-            else
-                return false;
-        }
-
-        /// <summary>
-        /// Spend xp Skill ranks
-        /// </summary>
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
@@ -370,24 +354,13 @@ namespace ACE.Entity
 
             if (result > 0u)
             {
-                //if the skill ranks out at the top of our xp chart 
-                //then we will start fireworks effects and have special text!
-                if (IsSkillMaxRank(ranks, status))
-                {
-                    //fireworks on rank up is 0x8D
-                    PlayParticleEffect(0x8D);
-                    messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
-                }
-                else
-                {
-                    messageText = $"Your base {skill} is now {newValue}!";
-                }
+                messageText = $"Your base {skill} is now {newValue}!";
             }
             else
             {
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
-            var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
+            var message = new GameMessageSystemChat(messageText, ChatMessageType.Broadcast);
             Session.WorldSession.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
@@ -401,6 +374,10 @@ namespace ACE.Entity
         /// <summary>
         /// spends the xp on this skill.
         /// </summary>
+        /// <remarks>
+        ///     Known Issues:
+        ///         1. no fireworks or special text, for hitting max ranks
+        /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendSkillXp(CharacterSkill skill, uint amount)
         {
@@ -623,8 +600,15 @@ namespace ACE.Entity
 
             Session.WorldSession.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
 
-            // must be sent after the teleport packet
             UpdatePosition(newPosition);
+
+            // when teleporting, we have to delay the next update a little to make sure the client is in portal space
+            LastMovedTicks += 0.25f;
+        }
+
+        public void UpdatePosition(Position newPosition)
+        {
+            this.Position = newPosition;
         }
 
         public void SetTitle(uint title)
@@ -634,21 +618,6 @@ namespace ACE.Entity
             Session.WorldSession.EnqueueSend(updateTitle, message);
         }
 
-        public void Subscribe(MutableWorldObject worldObject)
-        {
-            subscribedObjects.Add(worldObject.Guid, worldObject);
-        }
-
-        public void Unsubscribe(ObjectGuid objectId)
-        {
-            if (subscribedObjects.ContainsKey(objectId))
-            {
-                subscribedObjects.Remove(objectId);
-
-                // TODO: send a destroy packet
-            }
-        }
-        
         /// <summary>
         /// Stuff to do when player logs out
         /// </summary>
@@ -657,10 +626,74 @@ namespace ACE.Entity
             IsOnline = false;
             SendFriendStatusUpdates();
 
-            // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
+            // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to 
+            // fire when apply is clicked (which is where we are currently saving to the db).
             // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
             DatabaseManager.Character.SaveCharacterOptions(character);
         }
 
+        public void ObjectMoved(MutableWorldObject sender)
+        {
+            Session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(sender));
+        }
+
+        public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// TODO: use or remove the sendWeenie flag
+        /// </summary>
+        public void TrackObject(WorldObject worldObject, bool sendWeenie = true)
+        {
+            bool sendUpdate = true;
+
+            lock (clientObjectMutex)
+            {
+                sendUpdate = clientObjectList.Contains(worldObject.Guid);
+
+                if (!sendUpdate)
+                {
+                    clientObjectList.Add(worldObject.Guid);
+                }
+            }
+
+            if (sendUpdate)
+            {
+                // send a normal update
+                Session.WorldSession.EnqueueSend(new GameMessageUpdateObject(worldObject));
+            }
+            else
+            {
+                clientObjectList.Add(worldObject.Guid);
+                Session.WorldSession.EnqueueSend(new GameMessageCreateObject(worldObject));
+            }
+        }
+
+        public void StopTrackingObject(WorldObject worldObject)
+        {
+            bool sendUpdate = true;
+            lock (clientObjectMutex)
+            {
+                sendUpdate = clientObjectList.Contains(worldObject.Guid);
+
+                if (!sendUpdate)
+                {
+                    clientObjectList.Remove(worldObject.Guid);
+                }
+            }
+
+            if (sendUpdate)
+            {
+                Session.WorldSession.EnqueueSend(new GameMessageRemoveObject(worldObject.Guid));
+            }
+        }
+
+        public void SendUpdatePosition()
+        {
+            this.LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
+            Session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(this));
+        }
     }
 }

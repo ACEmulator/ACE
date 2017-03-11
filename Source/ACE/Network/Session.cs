@@ -17,10 +17,17 @@ namespace ACE.Network
 {
     public class Session
     {
-        public uint Id { get; private set; }
-        public string Account { get; private set; }
-        public AccessLevel AccessLevel { get; private set; }
         private SessionState state;
+
+        // all the objects being tracked
+        private Dictionary<ObjectGuid, MutableWorldObject> subscribedObjects = new Dictionary<ObjectGuid, MutableWorldObject>();
+
+        public uint Id { get; private set; }
+
+        public string Account { get; private set; }
+
+        public AccessLevel AccessLevel { get; private set; }
+
         public SessionState State
         {
             get
@@ -35,23 +42,35 @@ namespace ACE.Network
             }
         }
 
-        public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
+        public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
+
         public CachedCharacter CharacterRequested { get; set; }
+
         public Player Player { get; set; }
 
         // connection related
         public IPEndPoint EndPoint { get; }
+
         public ulong WorldConnectionKey { get; set; }
+
         public uint GameEventSequence { get; set; }
+
         public byte UpdateAttributeSequence { get; set; } = 0x0;
+
         public byte UpdateSkillSequence { get; set; } = 0x0;
+
         public byte UpdatePropertyInt64Sequence { get; set; } = 0x0;
+
         public byte UpdatePropertyIntSequence { get; set; } = 0x0;
+
         public byte UpdatePropertyStringSequence { get; set; } = 0x0;
+
         public byte UpdatePropertyBoolSequence { get; set; } = 0x0;
+
         public byte UpdatePropertyDoubleSequence { get; set; } = 0x0;
 
         public NetworkSession LoginSession { get; set; }
+
         public NetworkSession WorldSession { get; set; }
 
         public Session(IPEndPoint endPoint)
@@ -76,10 +95,10 @@ namespace ACE.Network
 
         public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
-            CachedCharacters.Clear();
+            AccountCharacters.Clear();
             foreach (var character in characters)
             {
-                CachedCharacters.Add(character);
+                AccountCharacters.Add(character);
             }
         }
 

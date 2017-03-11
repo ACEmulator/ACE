@@ -15,13 +15,13 @@ namespace ACE.Entity
 
         public ObjectType Type { get; protected set; }
 
-        public ushort GameDataType { get; protected set; }
+        public PackedDWORD WCID { get; protected set; }
 
         public ushort Icon { get; protected set; }
 
         public string Name { get; protected set; }
 
-        public Position Position
+        public virtual Position Position
         { 
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
@@ -63,6 +63,12 @@ namespace ACE.Entity
             PhysicsData = new PhysicsData();
         }
 
+        public virtual void SerializeUpdateObject(BinaryWriter writer)
+        {
+            // content of these 2 is the same? TODO: Validate that?
+            SerializeCreateObject(writer);
+        }
+
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
@@ -72,7 +78,7 @@ namespace ACE.Entity
             
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.Write((ushort)GameDataType);
+            writer.Write(WCID.NetworkValue);
             writer.Write((ushort)Icon);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
@@ -192,18 +198,18 @@ namespace ACE.Entity
             writer.Align();
         }
 
-        public void UpdatePosition(Position newPosition)
-        {
-            // TODO: sanity checks
-            Position = newPosition;
+        //public virtual void UpdatePosition(Position newPosition)
+        //{
+        //    // TODO: sanity checks
+        //    Position = newPosition;
 
-            // TODO: this packet needs to be broadcast to the grid system, just send to self for now
-            if (Guid.IsPlayer())
-            {
-                Session session = (this as Player).Session;
-                session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(this));
-            }
-        }
+        //    //// TODO: this packet needs to be broadcast to the grid system, just send to self for now
+        //    //if (Guid.IsPlayer())
+        //    //{
+        //    //    Session session = (this as Player).Session;
+        //    //    session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(this));
+        //    //}
+        //}
 
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
