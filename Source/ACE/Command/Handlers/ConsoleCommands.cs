@@ -9,12 +9,6 @@ namespace ACE.Command
 {
     public static class ConsoleCommands
     {
-        // acehelp
-        [CommandHandler("acehelp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleACEHelp(Session session, params string[] parameters)
-        {
-            //TODO: ACEHELP output
-            Console.WriteLine("TODO: Sorry, still need to implement this command");
-        }
+        // acehelp in CommandHandler
     }
 }
