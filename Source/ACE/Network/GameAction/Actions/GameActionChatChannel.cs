@@ -9,7 +9,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.ChatChannel)]
+    [GameAction(GameActionType.ChatChannel)]
     public class GameActionChatChannel : GameActionPacket
     {
         public GameActionChatChannel(Session session, ClientPacketFragment fragment) : base(session, fragment) { }

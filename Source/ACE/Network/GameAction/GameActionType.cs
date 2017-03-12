@@ -1,7 +1,7 @@
 ﻿
 namespace ACE.Network.GameAction
 {
-    public enum GameActionOpcode
+    public enum GameActionType
     {
         SetSingleCharacterOption    = 0x0005,
         Talk                        = 0x0015,

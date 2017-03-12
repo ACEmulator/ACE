@@ -44,6 +44,7 @@ namespace ACE.Network
         public ulong WorldConnectionKey { get; set; }
         public uint GameEventSequence { get; set; }
         public byte UpdateAttributeSequence { get; set; } = 0x0;
+        public byte UpdateAttribute2ndLevelSequence { get; set; } = 0x0;
         public byte UpdateSkillSequence { get; set; } = 0x0;
         public byte UpdatePropertyInt64Sequence { get; set; } = 0x0;
         public byte UpdatePropertyIntSequence { get; set; } = 0x0;
