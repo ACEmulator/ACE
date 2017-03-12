@@ -1,5 +1,6 @@
 ﻿using ACE.Entity.Events;
 using ACE.Managers;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,8 @@ namespace ACE.Entity
     /// </summary>
     internal class Landblock : IDisposable
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const float adjacencyLoadRange = 96f;
         private const float outDoorChatRange = 75f;
         private const float indoorChatRange = 25f;
@@ -128,6 +131,8 @@ namespace ACE.Entity
         {
             List<WorldObject> allObjects;
 
+            Log($"adding {wo.Guid.Full.ToString("X")}");
+
             lock (objectCacheLocker)
             {
                 allObjects = this.worldObjects.Values.ToList();
@@ -141,6 +146,7 @@ namespace ACE.Entity
             if (wo is Player)
             {
                 // send them the initial burst of objects
+                Log($"blasting player \"{(wo as Player).Name}\" with {allObjects.Count} objects.");
                 Parallel.ForEach(allObjects, (o) => (wo as Player).TrackObject(o));
             }
         }
@@ -152,7 +158,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                players = this.worldObjects.OfType<Player>().ToList();
+                players = this.worldObjects.Values.OfType<Player>().ToList();
             }
             
             BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
@@ -163,6 +169,8 @@ namespace ACE.Entity
         {
             WorldObject wo = null;
 
+            Log($"removing {objectId.Full.ToString("X")}");
+
             lock (objectCacheLocker)
             {
                 if (this.worldObjects.ContainsKey(objectId))
@@ -172,8 +180,14 @@ namespace ACE.Entity
                 }
             }
 
-            var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
-            Broadcast(args, true, Quadrant.All);
+            // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
+            // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
+            // close enough.
+            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
+            {
+                var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
+                Broadcast(args, true, Quadrant.All);
+            }
         }
 
         /// <summary>
@@ -184,9 +198,11 @@ namespace ACE.Entity
             WorldObject wo = args.Sender;
             List<Player> players = null;
 
+            Log($"broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType}");
+
             lock (objectCacheLocker)
             {
-                players = this.worldObjects.OfType<Player>().ToList();
+                players = this.worldObjects.Values.OfType<Player>().ToList();
             }
 
             // filter to applicable players
@@ -196,7 +212,7 @@ namespace ACE.Entity
             {
                 case BroadcastAction.Delete:
                     {
-                        Parallel.ForEach(players, p => p.StopTrackingObject(wo));
+                        Parallel.ForEach(players, p => p.StopTrackingObject(wo.Guid));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:
@@ -224,6 +240,9 @@ namespace ACE.Entity
 
             if (propogate)
             {
+
+                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
+
                 if (wo.Position.Offset.X < adjacencyLoadRange)
                 {
                     WestAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.SouthEast);
@@ -272,8 +291,42 @@ namespace ACE.Entity
 
             movedObjects = movedObjects.Where(p => p.LastMovedTicks > p.LastMovementBroadcastTicks).ToList();
 
+            if (this.id.MapScope == Enum.MapScope.Outdoors)
+            {
+                // check to see if a player or other mutable object "roamed" to an adjacent landblock
+                var objectsToRelocate = movedObjects.Where(m => m.Position.LandblockId.IsAdjacentTo(this.id) && m.Position.LandblockId != this.id).ToList();
+
+                // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
+                // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
+                // figure out how to treat it in adjacent landblocks.  if the player walks across the southern border, the north adjacency needs to remove
+                // them, but the south is actually getting them.  we need to avoid sending Delete+Create to clients that already know about it, though.
+
+                objectsToRelocate.ForEach(o => Log($"attempting to relocate object {o.Name} ({o.Guid.Full.ToString("X")})"));
+
+                // RelocateObject will put them in the right landblock
+                objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
+
+                // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
+                objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
+            }
+
             // broadcast
-            Parallel.ForEach(movedObjects, mo => Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All));
+            Parallel.ForEach(movedObjects, mo =>
+            {
+                if (mo.Position.LandblockId == this.id)
+                {
+                    // update if it's still here
+                    Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
+                }
+                else
+                {
+                    // remove and readd if it's not
+                    this.RemoveWorldObject(mo.Guid, false);
+                    LandblockManager.AddObject(mo);
+                }
+            });
+
+            // TODO: figure out if this landblock can be unloaded
         }
 
         /// <summary>
@@ -282,6 +335,11 @@ namespace ACE.Entity
         public int GetPlayerCount()
         {
             return this.worldObjects.Values.OfType<Player>().Count();
+        }
+
+        private void Log(string message)
+        {
+            log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
         }
     }
 }

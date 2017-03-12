@@ -3,7 +3,9 @@
     public enum BroadcastAction
     {
         AddOrUpdate,
+
         Delete,
+
         LocalChat
     }
 }

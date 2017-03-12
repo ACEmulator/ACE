@@ -90,6 +90,22 @@ namespace ACE.Entity
             }
         }
 
+        public Position InFrontOf(double distanceInFront = 3.0f)
+        {
+            float qw = Facing.W; // north
+            float qz = Facing.Z; // south
+
+            double x = 2 * qw * qz;
+            double y = 1 - 2 * qz * qz;
+
+            var heading = Math.Atan2(x, y);
+            var dx = -1 * Convert.ToSingle(Math.Sin(heading) * distanceInFront);
+            var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
+
+            // move the Z slightly up and let gravity pull it down.  just makes things easier.
+            return new Position(LandblockId.Raw, Offset.X + dx, Offset.Y + dy, Offset.Z + 0.5f, 0f, 0f, 0f, 0f);
+        }
+
         private float GetZFromCellXY(uint cell, float xOffset, float yOffset)
         {
             // TODO: Load correct z from file

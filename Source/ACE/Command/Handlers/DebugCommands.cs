@@ -8,6 +8,7 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
+using ACE.Factories;
 
 namespace ACE.Command.Handlers
 {
@@ -109,8 +110,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            session.WorldSession.EnqueueSend(new GameMessageCreateLifestone(session.Player));
+            LandblockManager.AddObject(AdminObjectFactory.CreateLifestone(session.Player.Position.InFrontOf(3.0f)));
         }
-
     }
 }

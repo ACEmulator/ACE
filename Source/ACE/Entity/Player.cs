@@ -665,7 +665,7 @@ namespace ACE.Entity
 
         public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
         {
-            throw new NotImplementedException();
+            // TODO: Implement
         }
 
         /// <summary>
@@ -697,22 +697,22 @@ namespace ACE.Entity
             }
         }
 
-        public void StopTrackingObject(WorldObject worldObject)
+        public void StopTrackingObject(ObjectGuid objectId)
         {
             bool sendUpdate = true;
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.Contains(worldObject.Guid);
+                sendUpdate = clientObjectList.Contains(objectId);
 
                 if (!sendUpdate)
                 {
-                    clientObjectList.Remove(worldObject.Guid);
+                    clientObjectList.Remove(objectId);
                 }
             }
 
             if (sendUpdate)
             {
-                Session.WorldSession.EnqueueSend(new GameMessageRemoveObject(worldObject.Guid));
+                Session.WorldSession.EnqueueSend(new GameMessageRemoveObject(objectId));
             }
         }
 
