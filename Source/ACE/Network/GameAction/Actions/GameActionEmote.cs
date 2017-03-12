@@ -2,7 +2,7 @@
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.Emote)]
+    [GameAction(GameActionType.Emote)]
     public class GameActionEmote : GameActionPacket
     {
         private string emote;

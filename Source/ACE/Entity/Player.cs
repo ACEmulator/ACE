@@ -272,7 +272,7 @@ namespace ACE.Entity
                     abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
-                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
                 Session.WorldSession.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
             }
@@ -365,7 +365,7 @@ namespace ACE.Entity
             var status = character.Skills[skill].Status;
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
             string messageText = "";
 
             if (result > 0u)
@@ -375,7 +375,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     //fireworks on rank up is 0x8D
-                    PlayParticleEffect(0x8D);
+                    PlayParticleEffect(Effect.WeddingBliss);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -392,10 +392,10 @@ namespace ACE.Entity
         }
 
         //plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(uint effectid)
+        public void PlayParticleEffect(Effect effectId)
         {
-            var effectevent = new GameMessageEffect(this.Guid, effectid);
-            Session.WorldSession.EnqueueSend(effectevent);
+            var effectEvent = new GameMessageEffect(this.Guid, effectId);
+            Session.WorldSession.EnqueueSend(effectEvent);
         }
 
         /// <summary>

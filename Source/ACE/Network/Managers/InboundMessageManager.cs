@@ -22,7 +22,7 @@ namespace ACE.Network.Managers
         public delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
         private static Dictionary<GameMessageOpcode, MessageHandlerInfo> fragmentHandlers;
 
-        private static Dictionary<GameActionOpcode, Type> actionHandlers;
+        private static Dictionary<GameActionType, Type> actionHandlers;
 
         public static void Initialise()
         {
@@ -53,7 +53,7 @@ namespace ACE.Network.Managers
 
         private static void DefineActionHandlers()
         {
-            actionHandlers = new Dictionary<GameActionOpcode, Type>();
+            actionHandlers = new Dictionary<GameActionType, Type>();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
                 foreach (var actionHandlerAttribute in type.GetCustomAttributes<GameActionAttribute>())
                     actionHandlers[actionHandlerAttribute.Opcode] = type;
@@ -74,7 +74,7 @@ namespace ACE.Network.Managers
         }
 
         //TODO: This needs to be reworked. Activator.CreateInstance is not going to be performant.
-        public static void HandleGameAction(GameActionOpcode opcode, ClientPacketFragment fragment, Session session)
+        public static void HandleGameAction(GameActionType opcode, ClientPacketFragment fragment, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))
                 Console.WriteLine($"Received unhandled action opcode: 0x{(uint)opcode:X4}");

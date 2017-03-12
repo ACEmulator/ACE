@@ -5,7 +5,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.RemoveChannel)]
+    [GameAction(GameActionType.RemoveChannel)]
     public class GameActionRemoveChannel : GameActionPacket
     {
         private GroupChatType chatChannelID;

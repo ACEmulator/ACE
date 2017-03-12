@@ -1,7 +1,7 @@
 ﻿
 namespace ACE.Network.GameAction
 {
-    public enum GameActionOpcode
+    public enum GameActionType
     {
         SetSingleCharacterOption    = 0x0005,
         Talk                        = 0x0015,
@@ -30,6 +30,8 @@ namespace ACE.Network.GameAction
         PingRequest                 = 0x01E9,
 
         HouseQuery                  = 0x021E,
+
+        TeleToMarketPlace           = 0x028D,
 
         MoveToState                 = 0xF61C,
         AutonomousPosition          = 0xF753,
