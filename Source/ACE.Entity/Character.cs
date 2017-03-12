@@ -14,6 +14,7 @@ namespace ACE.Entity
         protected Dictionary<Enum.Ability, CharacterAbility> abilities = new Dictionary<Enum.Ability, CharacterAbility>();
 
         private List<Friend> friends;
+
         public ReadOnlyCollection<Friend> Friends { get; set; }
 
         public uint AccountId { get; set; }

@@ -28,7 +28,7 @@ namespace ACE.Network.GameMessages.Messages
             var dx = -1 * Convert.ToSingle(Math.Sin(heading) * scalar);
             var dy = Convert.ToSingle(Math.Cos(heading) * scalar);
 
-            Position newPosition = new Position(player.Position.Cell, player.Position.Offset.X + dx, player.Position.Offset.Y + dy, player.Position.Offset.Z + 0.5f, 0f, 0f, 0f, 0f);
+            Position newPosition = new Position(player.Position.LandblockId.Raw, player.Position.Offset.X + dx, player.Position.Offset.Y + dy, player.Position.Offset.Z + 0.5f, 0f, 0f, 0f, 0f);
             
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(nextObjectId++, GuidType.None), "Life Stone", ObjectDescriptionFlag.LifeStone, weenie, newPosition);
