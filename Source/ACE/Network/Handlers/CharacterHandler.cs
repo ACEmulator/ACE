@@ -171,5 +171,11 @@ namespace ACE.Network.Handlers
         {
             session.LoginSession.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
+
+        [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
+        public static void CharacterLogOff(ClientPacketFragment fragment, Session session)
+        {
+            session.LogOffPlayer();
+        }
     }
 }
