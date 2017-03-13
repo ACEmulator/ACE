@@ -29,7 +29,7 @@ namespace ACE.Network.GameAction
             uint sequence = fragement.Payload.ReadUInt32();
             uint opcode   = fragement.Payload.ReadUInt32();
 
-            InboundMessageManager.HandleGameAction((GameActionOpcode)opcode, fragement, session);
+            InboundMessageManager.HandleGameAction((GameActionType)opcode, fragement, session);
         }
     }
 }

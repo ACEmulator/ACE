@@ -7,7 +7,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.ListChannels)]
+    [GameAction(GameActionType.ListChannels)]
     public class GameActionChannelList : GameActionPacket
     {
         private GroupChatType chatChannelID;

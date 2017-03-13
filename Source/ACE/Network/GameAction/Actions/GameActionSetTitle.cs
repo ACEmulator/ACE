@@ -1,7 +1,7 @@
 ﻿
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.TitleSet)]
+    [GameAction(GameActionType.TitleSet)]
     public class GameActionSetTitle : GameActionPacket
     {
         private uint title;
