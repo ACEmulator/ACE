@@ -28,6 +28,7 @@ namespace ACE.Network.GameMessages
 
         CharacterCreateResponse         = 0xF643,
         CharacterRestoreResponse        = 0xF643, // This is a duplicate...
+        CharacterLogOff                 = 0xF653,
         CharacterDelete                 = 0xF655,
         CharacterCreate                 = 0xF656,
         CharacterEnterWorld             = 0xF657,

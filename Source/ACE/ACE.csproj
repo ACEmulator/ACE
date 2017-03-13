@@ -172,6 +172,7 @@
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterLogOff.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
