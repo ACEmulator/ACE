@@ -21,6 +21,9 @@ namespace ACE
             SocketManager.Initialise();
             WorldManager.Initialise();
             CommandManager.Initialise();
+
+            // force loading of the dat files
+            var throwaway = new DatLoader.DatManager();
         }
     }
 }
