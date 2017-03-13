@@ -5,7 +5,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.AdvocateTeleport)]
+    [GameAction(GameActionType.AdvocateTeleport)]
     public class GameActionAdvocateTeleport : GameActionPacket
     {
         private string target;

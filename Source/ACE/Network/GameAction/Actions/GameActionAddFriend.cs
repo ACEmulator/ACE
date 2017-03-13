@@ -4,7 +4,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.AddFriend)]
+    [GameAction(GameActionType.AddFriend)]
     public class GameActionAddFriend : GameActionPacket
     {
         private string friendName;

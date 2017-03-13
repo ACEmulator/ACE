@@ -4,7 +4,7 @@ using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.MoveToState)]
+    [GameAction(GameActionType.MoveToState)]
     public class GameActionMoveToState : GameActionPacket
     {
         [Flags]

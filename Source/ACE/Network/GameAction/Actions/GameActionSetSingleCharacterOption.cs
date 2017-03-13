@@ -3,7 +3,7 @@ using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.SetSingleCharacterOption)]
+    [GameAction(GameActionType.SetSingleCharacterOption)]
     public class GameActionSetSingleCharacterOption : GameActionPacket
     {
         private CharacterOption option;
