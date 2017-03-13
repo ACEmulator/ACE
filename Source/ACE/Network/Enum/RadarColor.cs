@@ -19,7 +19,7 @@ namespace ACE.Network.Enum
         Yellow              = 0x08,
         Cyan                = 0x09,
         BrightGreen         = 0x10,
-        Admin               = Pink,
+        Admin               = Cyan,
         Advocate            = Pink,
         Creature            = Gold,
         LifeStone           = Blue,
