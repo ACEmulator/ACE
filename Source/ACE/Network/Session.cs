@@ -102,7 +102,7 @@ namespace ACE.Network
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
-            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(7) <= DateTime.UtcNow)
+            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
             {
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
