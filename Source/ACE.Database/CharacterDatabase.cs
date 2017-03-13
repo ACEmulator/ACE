@@ -37,6 +37,8 @@ namespace ACE.Database
             CharacterFriendsRemoveAll,
             CharacterOptionsUpdate,
 
+            CharacterPositionInsert,
+
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
             CharacterPropertiesBigIntSelect,
@@ -77,6 +79,8 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthRanks`, `endurance`, `enduranceRanks`, `coordination`, `coordinationRanks`, `quickness`, `quicknessRanks`, `focus`, `focusRanks`, `self`, `selfRanks`, `healthRanks`, `healthCurrent`, `staminaRanks`, `staminaCurrent`, `manaRanks`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceSelect, "SELECT  `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue` FROM `character_appearance` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsSelect, "SELECT cf.`friendId`, c.`name` FROM `character_friends` cf JOIN `character` c ON (cf.`friendId` = c.`guid`) WHERE cf.`id` = ?;", MySqlDbType.UInt32);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, "REPLACE INTO character_position (id, cell, positionX, positionY, positionZ, rotationX, rotationY, rotationZ, rotationW) VALUES (?, ?, ?, ?, ?, ?, ? ,? ,?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float);
 
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_bool` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_int` WHERE `guid` = ?;", MySqlDbType.UInt32);
@@ -149,6 +153,8 @@ namespace ACE.Database
 
         public Task UpdateCharacter(Character character)
         {
+            ExecutePreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, character.Id, character.Position.LandblockId.Raw, character.Position.Offset.X, character.Position.Offset.Y, character.Position.Offset.Z, character.Position.Facing.X, character.Position.Facing.Y, character.Position.Facing.Z, character.Position.Facing.W);
+
             // TODO: implement saving a character
             return Task.Delay(0);
         }

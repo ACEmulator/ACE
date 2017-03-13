@@ -300,7 +300,7 @@ namespace ACE.Entity.Enum
         /// <summary>
         /// You have left the  channel.
         /// </summary>
-        Enum_051C = 0x051C,
+        YouHaveLeftThe_Channel = 0x051C,
 
         /// <summary>
         ///  will not receive your message, please use urgent assistance to speak with an in-game representative

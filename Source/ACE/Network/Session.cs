@@ -1,26 +1,28 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 
-using ACE.Common.Cryptography;
+using ACE.Common;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
-using System;
 using ACE.Managers;
-using ACE.Network.Handlers;
 
 namespace ACE.Network
 {
     public class Session
     {
         public uint Id { get; private set; }
+
         public string Account { get; private set; }
+
         public AccessLevel AccessLevel { get; private set; }
+
         private SessionState state;
+
         public SessionState State
         {
             get
@@ -35,23 +37,37 @@ namespace ACE.Network
             }
         }
 
-        public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
+        public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
+
         public CachedCharacter CharacterRequested { get; set; }
+
         public Player Player { get; set; }
+
+        private DateTime logOffRequestTime;
 
         // connection related
         public IPEndPoint EndPoint { get; }
+
         public ulong WorldConnectionKey { get; set; }
+
         public uint GameEventSequence { get; set; }
-        public byte UpdateAttributeSequence { get; set; } = 0x0;
-        public byte UpdateSkillSequence { get; set; } = 0x0;
-        public byte UpdatePropertyInt64Sequence { get; set; } = 0x0;
-        public byte UpdatePropertyIntSequence { get; set; } = 0x0;
-        public byte UpdatePropertyStringSequence { get; set; } = 0x0;
-        public byte UpdatePropertyBoolSequence { get; set; } = 0x0;
-        public byte UpdatePropertyDoubleSequence { get; set; } = 0x0;
+
+        public byte UpdateAttributeSequence { get; set; }
+
+        public byte UpdateSkillSequence { get; set; }
+
+        public byte UpdatePropertyInt64Sequence { get; set; }
+
+        public byte UpdatePropertyIntSequence { get; set; }
+
+        public byte UpdatePropertyStringSequence { get; set; }
+
+        public byte UpdatePropertyBoolSequence { get; set; }
+
+        public byte UpdatePropertyDoubleSequence { get; set; } 
 
         public NetworkSession LoginSession { get; set; }
+
         public NetworkSession WorldSession { get; set; }
 
         public Session(IPEndPoint endPoint)
@@ -65,6 +81,15 @@ namespace ACE.Network
             WorldSession = new NetworkSession(this, ConnectionType.World);
             Player = new Player(this);
             CharacterRequested = null;
+
+            GameEventSequence = 0;
+            UpdateAttributeSequence = 0;
+            UpdateSkillSequence = 0;
+            UpdatePropertyInt64Sequence = 0;
+            UpdatePropertyIntSequence = 0;
+            UpdatePropertyStringSequence = 0;
+            UpdatePropertyBoolSequence = 0;
+            UpdatePropertyDoubleSequence = 0;
         }
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
@@ -76,10 +101,10 @@ namespace ACE.Network
 
         public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
-            CachedCharacters.Clear();
+            AccountCharacters.Clear();
             foreach (var character in characters)
             {
-                CachedCharacters.Add(character);
+                AccountCharacters.Add(character);
             }
         }
 
@@ -89,6 +114,14 @@ namespace ACE.Network
             if (WorldSession != null)
             {
                 WorldSession.Update(lastTick);
+            }
+
+            // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
+            // This could be made 0 for instant logoffs.
+            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(4) <= DateTime.UtcNow)
+            {
+                logOffRequestTime = DateTime.MinValue;
+                SendFinalLogOffMessages();
             }
         }
 
@@ -136,15 +169,41 @@ namespace ACE.Network
                 buffer.HandlePacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse(packet);
+                HandleDisconnectResponse();
         }
 
-        private void HandleDisconnectResponse(ClientPacket packet)
+        private void HandleDisconnectResponse()
         {
             if (Player != null)
-                Player.Logout();
+                Player.Logout(true);
 
             WorldManager.Remove(this);
+        }
+
+        public void LogOffPlayer()
+        {
+            Player.Logout();
+
+            logOffRequestTime = DateTime.UtcNow;
+        }
+
+        private async void SendFinalLogOffMessages()
+        {
+            WorldSession.EnqueueSend(new GameMessageCharacterLogOff());
+
+            var result = await DatabaseManager.Character.GetByAccount(Id);
+            UpdateCachedCharacters(result);
+            WorldSession.EnqueueSend(new GameMessageCharacterList(result, Account));
+
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+            WorldSession.EnqueueSend(serverNameMessage);
+
+            WorldSession.Flush();
+            WorldSession = null;
+
+            State = SessionState.AuthConnected;
+
+            Player = null;
         }
     }
 }

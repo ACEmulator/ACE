@@ -35,7 +35,7 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
+            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
             if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
@@ -68,7 +68,7 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.SlotId == characterSlot);
+            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.SlotId == characterSlot);
             if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.Delete);
@@ -91,7 +91,7 @@ namespace ACE.Network.Handlers
         {
             ObjectGuid guid = fragment.Payload.ReadGuid();
 
-            var cachedCharacter = session.CachedCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
+            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
             if (cachedCharacter == null)
                 return;
 
@@ -142,7 +142,7 @@ namespace ACE.Network.Handlers
             DatabaseManager.Character.SaveCharacterOptions(character);
 
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
-            session.CachedCharacters.Add(new CachedCharacter(guid, (byte)session.CachedCharacters.Count, character.Name, 0));
+            session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
         }
@@ -164,12 +164,18 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToAllegianceChat, true);
             character.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
             character.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
-            character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);            
+            character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
-        private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = null, string charName = "")
+        private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
         {
             session.LoginSession.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
+        }
+
+        [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
+        public static void CharacterLogOff(ClientPacketFragment fragment, Session session)
+        {
+            session.LogOffPlayer();
         }
     }
 }
