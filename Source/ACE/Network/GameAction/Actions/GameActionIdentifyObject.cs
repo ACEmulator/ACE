@@ -5,7 +5,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.IdentifyObject)]
+    [GameAction(GameActionType.IdentifyObject)]
     public class GameActionIdentifyObject : GameActionPacket
     {
         public GameActionIdentifyObject(Session session, ClientPacketFragment fragment) : base(session, fragment)

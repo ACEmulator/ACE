@@ -1,7 +1,7 @@
 ﻿
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.RemoveAllFriends)]
+    [GameAction(GameActionType.RemoveAllFriends)]
     public class GameActionRemoveAllFriends : GameActionPacket
     {
         public GameActionRemoveAllFriends(Session session, ClientPacketFragment fragment) : base(session, fragment) { }

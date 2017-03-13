@@ -16,7 +16,7 @@ namespace ACE.Network.GameAction.Actions
     // then clicks Apply, this packet (GameActionSetCharacterOptions) WILL be sent.
     // The options that trigger a GameActionSetSingleCharacterOption packet are denoted by having a value set (as in <enum_field> = <val>) in the CharacterOptions enum.
 
-    [GameAction(GameActionOpcode.SetCharacterOptions)]
+    [GameAction(GameActionType.SetCharacterOptions)]
     public class GameActionSetCharacterOptions : GameActionPacket
     {
         private uint characterOptions1Flag;

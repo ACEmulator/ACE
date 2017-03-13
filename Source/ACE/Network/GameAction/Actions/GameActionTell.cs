@@ -9,7 +9,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.Tell)]
+    [GameAction(GameActionType.Tell)]
     public class GameActionTell : GameActionPacket
     {
         public GameActionTell(Session session, ClientPacketFragment fragment) : base(session, fragment) { }

@@ -5,7 +5,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.AllegianceUpdateRequest)]
+    [GameAction(GameActionType.AllegianceUpdateRequest)]
     public class GameActionAllegianceUpdateRequest : GameActionPacket
     {
         public GameActionAllegianceUpdateRequest(Session session, ClientPacketFragment fragment) : base(session, fragment)

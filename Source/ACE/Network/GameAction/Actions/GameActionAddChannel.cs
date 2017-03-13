@@ -5,7 +5,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.AddChannel)]
+    [GameAction(GameActionType.AddChannel)]
     public class GameActionAddChannel : GameActionPacket
     {
         private GroupChatType chatChannelID;
