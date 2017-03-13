@@ -9,7 +9,7 @@ namespace ACE.DatLoader
 {
     public class PortalDatDatabase : DatDatabase
     {
-        public PortalDatDatabase(string filename) : base(filename, DatDatabaseType.Cell)
+        public PortalDatDatabase(string filename) : base(filename, DatDatabaseType.Portal)
         {
 
         }
