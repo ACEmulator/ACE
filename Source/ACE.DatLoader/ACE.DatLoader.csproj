@@ -40,10 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CellDatDatabase.cs" />
+    <Compile Include="DatDatabaseType.cs" />
+    <Compile Include="DatDatabaseTypeAttribute.cs" />
     <Compile Include="DatDirectory.cs" />
     <Compile Include="DatFile.cs" />
     <Compile Include="DatDatabase.cs" />
-	<Compile Include="DatManager.cs" />
+    <Compile Include="DatFileType.cs" />
+    <Compile Include="DatFileTypeExtensionAttribute.cs" />
+    <Compile Include="DatFileTypeIdRangeAttribute.cs" />
+    <Compile Include="DatManager.cs" />
+    <Compile Include="PortalDatDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
