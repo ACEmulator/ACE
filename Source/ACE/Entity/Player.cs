@@ -23,7 +23,6 @@ namespace ACE.Entity
     {
         public Session Session { get; }
 
-
         /// <summary>
         /// This will be false when in portal space
         /// </summary>
@@ -636,6 +635,11 @@ namespace ACE.Entity
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
+
+            lock(clientObjectMutex)
+            {
+                clientObjectList.Clear();
+            }
 
             DelayedUpdatePosition(newPosition);
         }

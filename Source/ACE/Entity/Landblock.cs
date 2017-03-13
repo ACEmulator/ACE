@@ -235,12 +235,11 @@ namespace ACE.Entity
             }
 
             // short circuit when there's no functional adjacency
-            if (!propogate || wo?.Position?.LandblockId.MapScope == Enum.MapScope.IndoorsSmall)
+            if (!propogate || wo?.Position?.LandblockId.MapScope != Enum.MapScope.Outdoors)
                 return;
 
             if (propogate)
             {
-
                 Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
 
                 if (wo.Position.Offset.X < adjacencyLoadRange)
