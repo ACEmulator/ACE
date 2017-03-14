@@ -12,11 +12,18 @@ namespace ACE.DatLoader
     /// </summary>
     public enum DatFileType : uint
     {
+        /// <summary>
+        /// File Format:
+        ///     DWORD LandblockId
+        ///     DWORD LandblockInfoId
+        ///     WORD x 81 = Terrain Map
+        ///     WORD x 81 = Height Map
+        /// </summary>
         [DatDatabaseType(DatDatabaseType.Cell)]
         LandBlock               = 1, // DB_TYPE_LANDBLOCK
 
         /// <summary>
-        /// File Header:
+        /// File Format:
         ///     DWORD LandblockId
         ///     DWORD Number of Cells
         ///     DWORD Number of static objects (numObj)
@@ -147,6 +154,57 @@ namespace ACE.DatLoader
         [DatFileTypeIdRange(0x0A000000, 0x0A00FFFF)]
         Wave                    = 15, // DB_TYPE_WAVE
 
+        /// <summary>
+        /// File content structure:
+        /// 0: DWORD LandblockId
+        /// 4: DWORD CellCount
+        /// 8: CellCount blocks of Cells
+        /// 
+        /// Cell content:
+        /// 0: DWORD Cell Index
+        /// 4: DWORD Polygon Count (List1)
+        /// 8: DWORD Polygon Count (List2)
+        /// 12: DWORD Polygon Pointer Count (???)
+        /// 16: Vertex Array
+        /// ??: List1 Polygons
+        /// 
+        /// Vertex Array content:
+        /// 0: DWORD Vertex Type
+        /// 4: DWORD Vertex Count
+        /// 8: VertexCount block of Vertecis (whole thing aligned to 32-byte boundary
+        /// 
+        /// Vertex Content:
+        /// 0: WORD Vertex Index
+        /// 2: WORD Count
+        /// 4: FLOAT Origin X
+        /// 8: FLOAT Origin Y
+        /// 12: FLOAT Origin Z
+        /// 16: FLOAT Normal X
+        /// 20: FLOAT Normal Y
+        /// 24: FLOAT Normal Z
+        /// 28: VertexUV Array of Vertex.Count length
+        ///     0: FLOAT Vertex U
+        ///     4: FLOAT Vertex V
+        /// 
+        /// Polygon Content:
+        /// 0: WORD Polygon Index
+        /// 2: BYTE Vertex Count
+        /// 3: BYTE Poly Type
+        /// 4: DWORD Cull Mode - https://msdn.microsoft.com/en-us/library/microsoft.xna.framework.graphics.cullmode(v=xnagamestudio.31).aspx
+        ///     NOTE: AC doesn't seem to fully respect these Cull mode values.  1 appears to be None instead of CCW, and 2 is None.
+        /// 8: WORD Front Texture Index
+        /// 10: WORD Back Texture Index
+        /// 12: VertexCount of:
+        ///     0: WORD Vertex Index in previous Vertex Content
+        /// if ((PolyType & 4) == 0)
+        ///     VertexCount of:
+        ///     BYTE Front-Face Vertex Index
+        /// if ((PolyType & 8) == 0 && CullMode == 2)
+        ///     VertexCount of:
+        ///     BYTE Back-Face Vertex Index
+        /// 
+        /// Note: If CullMode is 1, copy Front-Face data to Back-face
+        /// </summary>
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("env")]
         [DatFileTypeIdRange(0x0D000000, 0x0D00FFFF)]
@@ -211,7 +269,7 @@ namespace ACE.DatLoader
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("clo")]
-        [DatFileTypeIdRange(0x10000000, 0x1000FFFF)]
+        [DatFileTypeIdRange(0x100000A0, 0x1000FFFF)]
         Clothing                = 25, // DB_TYPE_CLOTHING
 
         [DatDatabaseType(DatDatabaseType.Portal)]
@@ -388,5 +446,68 @@ namespace ACE.DatLoader
         [DatFileTypeExtension("rendermesh")]
         [DatFileTypeIdRange(0x19000000, 0x19FFFFFF)]
         RenderMesh              = 50, // DB_TYPE_RENDER_MESH
+
+
+        // the following special files are called out in a different section of the decompiled client:
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000001, 0x0E000001)]
+        WeenieDefaults          = 97, // DB_TYPE_WEENIE_DEF
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000002, 0x0E000002)]
+        CharacterGenerator      = 98, // DB_TYPE_CHAR_GEN_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000003, 0x0E000003)]
+        SecondaryAttributeTable = 99, // DB_TYPE_ATTRIBUTE_2ND_TABLE_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000004, 0x0E000004)]
+        SkillTable              = 100, // DB_TYPE_SKILL_TABLE_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E00000E, 0x0E00000E)]
+        SpellTable              = 101, // DB_TYPE_SPELL_TABLE_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E00000F, 0x0E00000F)]
+        SpellComponentTable     = 102, // DB_TYPE_SPELLCOMPONENT_TABLE_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000001, 0x0E000001)]
+        TreasureTable           = 103, // DB_TYPE_W_TREASURE_SYSTEM
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000019, 0x0E000019)]
+        CraftTable              = 104, // DB_TYPE_W_CRAFT_TABLE
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E000018, 0x0E000018)]
+        XpTable                 = 105, // DB_TYPE_XP_TABLE_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E00001B, 0x0E00001B)]
+        Quests                  = 106, // DB_TYPE_QUEST_DEF_DB_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E00001C, 0x0E00001C)]
+        GameEventTable          = 107, // DB_TYPE_GAME_EVENT_DB
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E010000, 0x0E01FFFF)]
+        QualityFilter           = 108, // DB_TYPE_QUALITY_FILTER_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x30000000, 0x3000FFFF)]
+        CombatTable             = 109, // DB_TYPE_COMBAT_TABLE_0
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x38000000, 0x3800FFFF)]
+        ItemMutation            = 110, // DB_TYPE_MUTATE_FILTER
+
+        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatFileTypeIdRange(0x0E00001D, 0x0E00001D)]
+        ContractTable           = 111, // DB_TYPE_CONTRACT_TABLE_0
     }
 }
