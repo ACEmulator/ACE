@@ -40,7 +40,7 @@ namespace ACE.DatLoader
             {
                 BitFlags = BitConverter.ToUInt32(buffer, offset),
                 ObjectId = BitConverter.ToUInt32(buffer, offset + 4),
-                FileOffset = BitConverter.ToUInt32(buffer, offset + 8),
+                FileOffset = BitConverter.ToUInt32(buffer, offset + 8) + 4,
                 FileSize = BitConverter.ToUInt32(buffer, offset + 12),
                 Date = BitConverter.ToUInt32(buffer, offset + 16),
                 Iteration = BitConverter.ToUInt32(buffer, offset + 20),

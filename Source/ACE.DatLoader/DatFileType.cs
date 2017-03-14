@@ -15,6 +15,38 @@ namespace ACE.DatLoader
         [DatDatabaseType(DatDatabaseType.Cell)]
         LandBlock               = 1, // DB_TYPE_LANDBLOCK
 
+        /// <summary>
+        /// File Header:
+        ///     DWORD LandblockId
+        ///     DWORD Number of Cells
+        ///     DWORD Number of static objects (numObj)
+        ///         numObj of:
+        ///             DWORD Static Object id
+        ///             POSITION Object Position
+        ///     WORD Building Count (numBldg)
+        ///     WORD Building Flags
+        ///         numBldg of:
+        ///             DWORD MeshId
+        ///             POSITION Building Position
+        ///     DWORD unknown
+        ///     DWORD numPortals
+        ///         numPortals of:
+        ///             WORD Flags
+        ///             WORD CellID
+        ///             WORD Unknown
+        ///             WORD numCells
+        ///                 numCells of:
+        ///                     WORD CellID
+        ///             
+        /// POSITION ::
+        ///     FLOAT Vector.X
+        ///     FLOAT Vector.Y
+        ///     FLOAT Vector.Z
+        ///     FLOAT Quat.W
+        ///     FLOAT Quat.X
+        ///     FLOAT Quat.Y
+        ///     FLOAT Quat.Z
+        /// </summary>
         [DatDatabaseType(DatDatabaseType.Cell)]
         [DatFileTypeExtension("lbi")]
         LandBlockInfo           = 2, // DB_TYPE_LBI
@@ -68,6 +100,21 @@ namespace ACE.DatLoader
         [DatFileTypeIdRange(0x05000000, 0x05FFFFFF)]
         SurfaceTexture          = 11, // DB_TYPE_SURFACETEXTURE
 
+        /// <summary>
+        /// the 5th dword of these files has values from the following enum:
+        /// https://msdn.microsoft.com/en-us/library/windows/desktop/bb172558(v=vs.85).aspx
+        /// plus the additional values:
+        ///     0x000000F4 - Same as 0x00000001C / D3DFMT_A8
+        ///     0x000001F4 - JPEG
+        ///     
+        /// all the files contain a 6-DWORD header (offset indecis):
+        ///     0: objectId
+        ///     4: unknown
+        ///     8: width
+        ///     12: height
+        ///     16: format (see above)
+        ///     20: length
+        /// </summary>
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("jpg")]
         [DatFileTypeExtension("dds")]
