@@ -15,16 +15,19 @@ namespace ACE.DatLoader
 
         private int sectorSize;
         
-        public DatDirectory(uint rootSectorOffset, int sectorSize, FileStream stream)
+        public DatDirectory(uint rootSectorOffset, int sectorSize, FileStream stream, DatDatabaseType type)
         {
             this.rootSectorOffset = rootSectorOffset;
             this.sectorSize = sectorSize;
+            DatType = type;
             Read(stream);
         }
         
         public List<DatFile> Files { get; private set; } = new List<DatFile>();
 
         public List<DatDirectory> Directories { get; private set; } = new List<DatDirectory>();
+
+        public DatDatabaseType DatType { get; private set; }
 
         private void Read(FileStream stream)
         {
@@ -87,13 +90,13 @@ namespace ACE.DatLoader
             // sector has all the daters
             for (int i = 0; i < fileCount; i++)
             {
-                Files.Add(DatFile.FromBuffer(sector, i * 6 * sizeof(uint)));
+                Files.Add(DatFile.FromBuffer(sector, i * 6 * sizeof(uint), DatType));
             }
 
             // files done, go back and iterate directories
             foreach (uint directoryOffset in directoryList)
             {
-                Directories.Add(new DatDirectory(directoryOffset, this.sectorSize, stream));
+                Directories.Add(new DatDirectory(directoryOffset, this.sectorSize, stream, DatType));
             }
         }
 
