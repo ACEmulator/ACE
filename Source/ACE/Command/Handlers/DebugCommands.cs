@@ -109,7 +109,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            session.WorldSession.EnqueueSend(new GameMessageCreateLifestone(session.Player));
+            session.LoginSession.EnqueueSend(new GameMessageCreateLifestone(session.Player));
         }
 
     }

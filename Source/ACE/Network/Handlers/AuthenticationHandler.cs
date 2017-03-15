@@ -88,35 +88,5 @@ namespace ACE.Network.Handlers
 
             session.State = SessionState.AuthConnected;
         }
-
-        public static void HandleWorldLoginRequest(ClientPacket packet, Session session)
-        {
-            PacketInboundWorldLoginRequest loginRequest = new PacketInboundWorldLoginRequest(packet);
-            ulong connectionKey = loginRequest.ConnectionKey;
-            if (session.WorldConnectionKey == 0)
-                session = WorldManager.Find(connectionKey);
-
-            if (connectionKey != session.WorldConnectionKey || connectionKey == 0)
-            {
-                session.SendCharacterError(CharacterError.EnterGamePlayerAccountMissing);
-                return;
-            }
-
-            session.State = SessionState.WorldConnectResponse;
-            
-            PacketOutboundConnectRequest connectRequest = new PacketOutboundConnectRequest(ISAAC.WorldServerSeed, ISAAC.WorldClientSeed);
-            session.WorldSession.EnqueueSend(connectRequest);
-        }
-
-        public static void HandleWorldConnectResponse(ClientPacket packet, Session session)
-        {
-            session.State = SessionState.WorldConnected;
-            var serverSwitch = new PacketOutboundServerSwitch();
-            session.WorldSession.EnqueueSend(serverSwitch);
-            session.WorldSession.Flush();
-            session.WorldSession.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-            session.WorldSession.Flush();
-            session.Player.Load();
-        }
     }
 }

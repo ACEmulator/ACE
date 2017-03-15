@@ -20,7 +20,6 @@ namespace ACE.Network
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
-        private ConnectionType connectionType;
         private Session session;
         private NetworkBundle currentBundle;
         private DateTime nextResync;
@@ -34,11 +33,10 @@ namespace ACE.Network
 
         public SessionConnectionData ConnectionData { get; private set; }
 
-        public NetworkSession(Session session, ConnectionType connType)
+        public NetworkSession(Session session)
         {
             this.session = session;
-            this.connectionType = connType;
-            ConnectionData  = new SessionConnectionData(connType);
+            ConnectionData  = new SessionConnectionData();
             currentBundle = new NetworkBundle();
             nextSend = DateTime.UtcNow;
             nextResync = DateTime.UtcNow;
@@ -132,22 +130,10 @@ namespace ACE.Network
                 return;
             }
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
-            {
-                AuthenticationHandler.HandleWorldLoginRequest(packet, session);
-                return;
-            }
-
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
                 sendResync = true;
-                if (connectionType == ConnectionType.Login)
-                {
-                    AuthenticationHandler.HandleConnectResponse(packet, session);
-                    return;
-                }
-
-                AuthenticationHandler.HandleWorldConnectResponse(packet, session);
+                AuthenticationHandler.HandleConnectResponse(packet, session);
                 return;
             }
 
@@ -202,7 +188,7 @@ namespace ACE.Network
                         ConnectionData.PacketSequence = 2;
 
                     packet.Header.Sequence = ConnectionData.PacketSequence++;
-                    packet.Header.Id = (ushort)(connectionType == ConnectionType.Login ? 0x0B : 0x18);
+                    packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
                     packet.Header.Table = 0x14;
                     packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
@@ -218,7 +204,7 @@ namespace ACE.Network
         {
             if(packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                uint issacXor = session.GetIssacValue(PacketDirection.Server, connectionType);
+                uint issacXor = session.GetIssacValue(PacketDirection.Server);
                 packet.IssacXor = issacXor;
             }
             SendPacketRaw(packet);
@@ -226,7 +212,7 @@ namespace ACE.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            Socket socket = SocketManager.GetSocket(this.connectionType);
+            Socket socket = SocketManager.GetSocket();
             byte[] payload = packet.GetPayload();
 #if NETWORKDEBUG
             System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;

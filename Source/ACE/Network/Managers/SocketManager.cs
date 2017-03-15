@@ -13,7 +13,6 @@ namespace ACE.Network.Managers
     public static class SocketManager
     {
         private static List<ConnectionListener> loginListeners = new List<ConnectionListener>();
-        private static List<ConnectionListener> worldListeners = new List<ConnectionListener>();
 
         public static void Initialise()
         {
@@ -22,20 +21,11 @@ namespace ACE.Network.Managers
 
             foreach (var loginListener in loginListeners)
                 loginListener.Start();
-
-            worldListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.WorldPort, ConnectionType.World));
-            worldListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.WorldPort + 1, ConnectionType.World));
-
-            foreach (var worldListener in worldListeners)
-                worldListener.Start();
         }
         
-        public static Socket GetSocket(ConnectionType type)
+        public static Socket GetSocket()
         {
-            if (type == ConnectionType.Login)
-                return loginListeners[0].Socket;
-            else // ConnectionListenerType.World
-                return worldListeners[0].Socket;
+            return loginListeners[0].Socket;
         }
     }
 }

@@ -18,20 +18,7 @@ namespace ACE.Network
         public uint Id { get; private set; }
         public string Account { get; private set; }
         public AccessLevel AccessLevel { get; private set; }
-        private SessionState state;
-        public SessionState State
-        {
-            get
-            {
-                return state;
-            }
-            set
-            {
-                state = value;
-                if (state == SessionState.WorldLoginRequest)
-                    this.WorldLoginRequested();
-            }
-        }
+        public SessionState State { get; set; }
 
         public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
         public CachedCharacter CharacterRequested { get; set; }
@@ -41,7 +28,6 @@ namespace ACE.Network
 
         // connection related
         public IPEndPoint EndPoint { get; }
-        public ulong WorldConnectionKey { get; set; }
         public uint GameEventSequence { get; set; }
         public byte UpdateAttributeSequence { get; set; }
         public byte UpdateSkillSequence { get; set; }
@@ -52,17 +38,15 @@ namespace ACE.Network
         public byte UpdatePropertyDoubleSequence { get; set; } 
 
         public NetworkSession LoginSession { get; set; }
-        public NetworkSession WorldSession { get; set; }
 
         public Session(IPEndPoint endPoint)
         {
             EndPoint = endPoint;
-            LoginSession = new NetworkSession(this, ConnectionType.Login);
+            LoginSession = new NetworkSession(this);
         }
 
-        private void WorldLoginRequested()
+        public void InitSessionForWorldLogin()
         {
-            WorldSession = new NetworkSession(this, ConnectionType.World);
             Player = new Player(this);
             CharacterRequested = null;
 
@@ -95,10 +79,6 @@ namespace ACE.Network
         public void Update(double lastTick)
         {
             LoginSession.Update(lastTick);
-            if (WorldSession != null)
-            {
-                WorldSession.Update(lastTick);
-            }
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
@@ -110,10 +90,9 @@ namespace ACE.Network
             }
         }
 
-        public uint GetIssacValue(PacketDirection direction, ConnectionType type)
+        public uint GetIssacValue(PacketDirection direction)
         {
-            var session = (type == ConnectionType.Login ? LoginSession : WorldSession);
-            return (direction == PacketDirection.Client ? session.ConnectionData.IssacClient.GetOffset() : session.ConnectionData.IssacServer.GetOffset());
+            return (direction == PacketDirection.Client ? LoginSession.ConnectionData.IssacClient.GetOffset() : LoginSession.ConnectionData.IssacServer.GetOffset());
         }
 
         public void SendCharacterError(CharacterError error)
@@ -126,13 +105,10 @@ namespace ACE.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
                 return false;
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse && State != SessionState.WorldConnectResponse)
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
                 return false;
 
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == SessionState.AuthLoginRequest)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest) && State != SessionState.WorldLoginRequest)
                 return false;
 
             return true;
@@ -148,10 +124,9 @@ namespace ACE.Network
                 return;
             }
 
-            var buffer = (type == ConnectionType.Login) ? LoginSession : WorldSession;
             //Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if(buffer != null)
-                buffer.HandlePacket(packet);
+            if(LoginSession != null)
+                LoginSession.HandlePacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse();
@@ -174,17 +149,16 @@ namespace ACE.Network
 
         private async void SendFinalLogOffMessages()
         {
-            WorldSession.EnqueueSend(new GameMessageCharacterLogOff());
+            LoginSession.EnqueueSend(new GameMessageCharacterLogOff());
 
             var result = await DatabaseManager.Character.GetByAccount(Id);
             UpdateCachedCharacters(result);
-            WorldSession.EnqueueSend(new GameMessageCharacterList(result, Account));
+            LoginSession.EnqueueSend(new GameMessageCharacterList(result, Account));
 
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            WorldSession.EnqueueSend(serverNameMessage);
+            LoginSession.EnqueueSend(serverNameMessage);
 
-            WorldSession.Flush();
-            WorldSession = null;
+            LoginSession.Flush();
 
             State = SessionState.AuthConnected;
 
