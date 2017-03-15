@@ -37,8 +37,8 @@ namespace ACE.Network.Handlers
         {
             var connectResponse = new PacketOutboundConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
 
-            session.LoginSession.EnqueueSend(connectResponse);
-            session.LoginSession.Flush();
+            session.Network.EnqueueSend(connectResponse);
+            session.Network.Flush();
 
             if (account == null)
             {
@@ -81,10 +81,10 @@ namespace ACE.Network.Handlers
             // looks like account settings/info, expansion information ect? (this is needed for world entry)
             GameMessageDDDInterrogation unknown75e5Message = new GameMessageDDDInterrogation();
             GameMessageDDDEndDDD patchStatusMessage = new GameMessageDDDEndDDD();
-            session.LoginSession.EnqueueSend(characterListMessage);
-            session.LoginSession.EnqueueSend(serverNameMessage);
-            session.LoginSession.EnqueueSend(unknown75e5Message);
-            session.LoginSession.EnqueueSend(patchStatusMessage);
+            session.Network.EnqueueSend(characterListMessage);
+            session.Network.EnqueueSend(serverNameMessage);
+            session.Network.EnqueueSend(unknown75e5Message);
+            session.Network.EnqueueSend(patchStatusMessage);
 
             session.State = SessionState.AuthConnected;
         }

@@ -536,7 +536,7 @@ namespace ACE.Command
             var chatSysMessagePY = new GameMessageSystemChat(messagePY, ChatMessageType.WorldBroadcast);
 
             if (session != null)
-                session.LoginSession.EnqueueSend(chatSysMessageUTC, chatSysMessagePY);
+                session.Network.EnqueueSend(chatSysMessageUTC, chatSysMessagePY);
             else
             {
                 Console.WriteLine(messageUTC);
@@ -910,7 +910,7 @@ namespace ACE.Command
             else
             {
                 var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
-                session.LoginSession.EnqueueSend(sysChatMsg);
+                session.Network.EnqueueSend(sysChatMsg);
             }              
         }
 

@@ -37,12 +37,12 @@ namespace ACE.Network
         public byte UpdatePropertyBoolSequence { get; set; }
         public byte UpdatePropertyDoubleSequence { get; set; } 
 
-        public NetworkSession LoginSession { get; set; }
+        public NetworkSession Network { get; set; }
 
         public Session(IPEndPoint endPoint)
         {
             EndPoint = endPoint;
-            LoginSession = new NetworkSession(this);
+            Network = new NetworkSession(this);
         }
 
         public void InitSessionForWorldLogin()
@@ -78,7 +78,7 @@ namespace ACE.Network
 
         public void Update(double lastTick)
         {
-            LoginSession.Update(lastTick);
+            Network.Update(lastTick);
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
@@ -92,12 +92,12 @@ namespace ACE.Network
 
         public uint GetIssacValue(PacketDirection direction)
         {
-            return (direction == PacketDirection.Client ? LoginSession.ConnectionData.IssacClient.GetOffset() : LoginSession.ConnectionData.IssacServer.GetOffset());
+            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
         }
 
         public void SendCharacterError(CharacterError error)
         {
-            LoginSession.EnqueueSend(new GameMessageCharacterError(error));
+            Network.EnqueueSend(new GameMessageCharacterError(error));
         }
 
         private bool CheckState(ClientPacket packet)
@@ -125,8 +125,8 @@ namespace ACE.Network
             }
 
             //Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if(LoginSession != null)
-                LoginSession.HandlePacket(packet);
+            if(Network != null)
+                Network.HandlePacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse();
@@ -149,16 +149,16 @@ namespace ACE.Network
 
         private async void SendFinalLogOffMessages()
         {
-            LoginSession.EnqueueSend(new GameMessageCharacterLogOff());
+            Network.EnqueueSend(new GameMessageCharacterLogOff());
 
             var result = await DatabaseManager.Character.GetByAccount(Id);
             UpdateCachedCharacters(result);
-            LoginSession.EnqueueSend(new GameMessageCharacterList(result, Account));
+            Network.EnqueueSend(new GameMessageCharacterList(result, Account));
 
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            LoginSession.EnqueueSend(serverNameMessage);
+            Network.EnqueueSend(serverNameMessage);
 
-            LoginSession.Flush();
+            Network.Flush();
 
             State = SessionState.AuthConnected;
 
