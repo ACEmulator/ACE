@@ -18,10 +18,10 @@ namespace ACE.Network
 
         public double ServerTime { get; set; }
 
-        public SessionConnectionData(ConnectionType type)
+        public SessionConnectionData()
         {
-            IssacClient = new ISAAC(type == ConnectionType.Login ? ISAAC.ClientSeed : ISAAC.WorldClientSeed);
-            IssacServer = new ISAAC(type == ConnectionType.Login ? ISAAC.ServerSeed : ISAAC.WorldServerSeed);
+            IssacClient = new ISAAC(ISAAC.ClientSeed);
+            IssacServer = new ISAAC(ISAAC.ServerSeed);
 
             ServerTime = WorldManager.PortalYearTicks;
         }

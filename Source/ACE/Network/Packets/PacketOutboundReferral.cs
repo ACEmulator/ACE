@@ -15,16 +15,16 @@ namespace ACE.Network.Packets
 
         private string[] sessionIPAddress;
 
-        public PacketOutboundReferral(ulong worldConnectionKey, string[] sessionIPAddress) : base()
+        public PacketOutboundReferral(ulong worldConnectionKey, string[] sessionIPAddress, ushort port, bool sendInternalHostOnLocalNetwork) : base()
         {
             this.Header.Flags = PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.Referral;
             this.worldConnectionKey = worldConnectionKey;
             this.sessionIPAddress = sessionIPAddress;
             BodyWriter.Write(worldConnectionKey);
             BodyWriter.Write((ushort)2);
-            BodyWriter.WriteUInt16BE((ushort)ConfigManager.Config.Server.Network.WorldPort);
+            BodyWriter.WriteUInt16BE(port);
 
-            if (ConfigManager.Config.Server.Network.SendInternalHostOnLocalNetwork &&
+            if (sendInternalHostOnLocalNetwork &&
                 (sessionIPAddress[0] == "10"
                 || (sessionIPAddress[0] == "172" && System.Convert.ToInt16(sessionIPAddress[1]) >= 16 && System.Convert.ToInt16(sessionIPAddress[1]) <= 31)
                 || (sessionIPAddress[0] == "192" && sessionIPAddress[1] == "168")))
@@ -33,7 +33,7 @@ namespace ACE.Network.Packets
                 BodyWriter.Write(ConfigManager.Host);
 
             BodyWriter.Write(0ul);
-            BodyWriter.Write((ushort)0x18);
+            BodyWriter.Write((ushort)0x18); // This value is currently the hard coded Server ID. It can be something different...
             BodyWriter.Write((ushort)0);
             BodyWriter.Write(0u);
         }

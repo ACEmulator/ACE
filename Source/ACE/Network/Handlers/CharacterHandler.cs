@@ -12,6 +12,7 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Packets;
 using ACE.Entity.Enum;
+using ACE.Network.GameEvent.Events;
 
 namespace ACE.Network.Handlers
 {
@@ -44,16 +45,13 @@ namespace ACE.Network.Handlers
 
             session.CharacterRequested = cachedCharacter;
 
-            // this isn't really that necessary since ACE doesn't split login/world to multiple daemons, handle it anyway
-            byte[] connectionKey = new byte[sizeof(ulong)];
-            RandomNumberGenerator.Create().GetNonZeroBytes(connectionKey);
-            session.WorldConnectionKey = BitConverter.ToUInt64(connectionKey, 0);
+            session.InitSessionForWorldLogin();
 
-            string[] sessionIPAddress = session.EndPoint.Address.ToString().Split('.');
+            session.State = SessionState.WorldConnected;
 
-            session.LoginSession.EnqueueSend(new PacketOutboundReferral(session.WorldConnectionKey, sessionIPAddress));
-
-            session.State = SessionState.WorldLoginRequest;
+            session.LoginSession.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            session.LoginSession.Flush();
+            session.Player.Load();
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
@@ -83,7 +81,7 @@ namespace ACE.Network.Handlers
 
             var result = await DatabaseManager.Character.GetByAccount(session.Id);
             session.UpdateCachedCharacters(result);
-            session.WorldSession.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+            session.LoginSession.EnqueueSend(new GameMessageCharacterList(result, session.Account));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]

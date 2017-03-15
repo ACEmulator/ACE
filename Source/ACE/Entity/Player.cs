@@ -240,7 +240,7 @@ namespace ACE.Entity
             var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.WorldSession.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+            Session.LoginSession.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
         public void GrantXp(ulong amount)
@@ -249,7 +249,7 @@ namespace ACE.Entity
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-            Session.WorldSession.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            Session.LoginSession.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
         }
 
         private void CheckForLevelup()
@@ -281,7 +281,7 @@ namespace ACE.Entity
 
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
-                Session.WorldSession.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
+                Session.LoginSession.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
             }
             else
             {
@@ -395,14 +395,14 @@ namespace ACE.Entity
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
-            Session.WorldSession.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
+            Session.LoginSession.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
         //plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(uint effectid)
         {
             var effectevent = new GameMessageEffect(this.Guid, effectid);
-            Session.WorldSession.EnqueueSend(effectevent);
+            Session.LoginSession.EnqueueSend(effectevent);
         }
 
         /// <summary>
@@ -480,7 +480,7 @@ namespace ACE.Entity
                 playerFriend.Name = Name;
                 foreach (var friendSession in inverseFriends)
                 {
-                    friendSession.WorldSession.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+                    friendSession.LoginSession.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
                 }                
             }
         }
@@ -516,7 +516,7 @@ namespace ACE.Entity
             character.AddFriend(newFriend);
 
             // Send packet
-            Session.WorldSession.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+            Session.LoginSession.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
 
             return AddFriendResult.Success;
         }
@@ -540,7 +540,7 @@ namespace ACE.Entity
             character.RemoveFriend(friendId.Low);
 
             // Send packet
-            Session.WorldSession.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
+            Session.LoginSession.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
 
             return RemoveFriendResult.Success;
         }
@@ -597,16 +597,16 @@ namespace ACE.Entity
 
         private void SendSelf()
         {
-            Session.WorldSession.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
-            Session.WorldSession.Flush();
+            Session.LoginSession.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
+            Session.LoginSession.Flush();
             // TODO: gear and equip
 
             var player = new GameEventPlayerDescription(Session);
             var title = new GameEventCharacterTitle(Session);
             var friends = new GameEventFriendsListUpdate(Session);
 
-            Session.WorldSession.EnqueueSend(player, title, friends);
-            Session.WorldSession.Flush();
+            Session.LoginSession.EnqueueSend(player, title, friends);
+            Session.LoginSession.Flush();
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
@@ -615,7 +615,7 @@ namespace ACE.Entity
 
             if (packet)
             {
-                Session.WorldSession.EnqueueSend(new GameMessageSetState(Guid, state, character.TotalLogins, ++PortalIndex));
+                Session.LoginSession.EnqueueSend(new GameMessageSetState(Guid, state, character.TotalLogins, ++PortalIndex));
                 // TODO: this should be broadcast
             }
         }
@@ -628,7 +628,7 @@ namespace ACE.Entity
             InWorld = false;
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
-            Session.WorldSession.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
+            Session.LoginSession.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
 
             // must be sent after the teleport packet
             UpdatePosition(newPosition);
@@ -638,7 +638,7 @@ namespace ACE.Entity
         {
             var updateTitle = new GameEventUpdateTitle(Session, title);
             var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
-            Session.WorldSession.EnqueueSend(updateTitle, message);
+            Session.LoginSession.EnqueueSend(updateTitle, message);
         }
 
         public void Subscribe(MutableWorldObject worldObject)
@@ -689,7 +689,7 @@ namespace ACE.Entity
                 var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Trade");
                 var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "LFG");
                 var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Roleplay");
-                Session.WorldSession.EnqueueSend(general, trade, lfg, roleplay);
+                Session.LoginSession.EnqueueSend(general, trade, lfg, roleplay);
             }
         }
     }
