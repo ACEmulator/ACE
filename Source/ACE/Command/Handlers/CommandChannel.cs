@@ -15,7 +15,7 @@ namespace ACE.Command.Handlers
         {
             public void SendMsg(Session session, string msg)
             {
-                ChatPacket.SendServerMessage(session, msg, ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, msg, ChatMessageType.Broadcast, flush: true);
             }
         }
         public class ServerCommandChannel : ICommandChannel

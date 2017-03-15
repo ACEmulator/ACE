@@ -20,6 +20,33 @@ namespace ACE.Command
         //    //TODO: output
         //}
 
+        /// <summary>
+        /// Cycle player access level; this only makes sense during development & testing
+        /// </summary>
+        /// <param name="session"></param>
+        private static void ChangePlayerAccessLevel(Session session)
+        {
+            int lvl = (int)session.AccessLevel;
+            lvl = (lvl + 1) % 5;
+            session.AccessLevel = (AccessLevel)lvl;
+        }
+
+        // @accessLevelCycle
+        // Solely for development testing
+        [CommandHandler("accessLevelCycle", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandleAccessLevelCycle(Session session, params string[] parameters)
+        {
+            // @accessLevelCycle
+            // Cycles the player's access level by one, in a loop
+
+            if (session != null)
+            {
+                ChangePlayerAccessLevel(session);
+            }
+
+            ChatPacket.SendServerMessage(session, string.Format("Changed your access level to : {0}", session.AccessLevel), ChatMessageType.Broadcast);
+        }
+
         // adminvision { on | off | toggle | check}
         [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleAdminvision(Session session, params string[] parameters)

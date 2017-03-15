@@ -4,6 +4,7 @@ using System.Text;
 
 using ACE.Network;
 using ACE.Entity.Enum;
+using System.Collections.Generic;
 
 namespace ACE.Command.Handlers
 {
@@ -26,32 +27,16 @@ namespace ACE.Command.Handlers
         /// </summary>
         public static void HandleAceHelp(Session session, ICommandChannel cmdChannel, params string[] parameters)
         {
-            if (session != null)
-            {
-                // Solely for development testing
-                ChangePlayerAccessLevel(session);
-                string msg = string.Format(string.Format("Changed your access level to : {0}", session.AccessLevel));
-                cmdChannel.SendMsg(session, msg);
-            }
             cmdChannel.SendMsg(session, Assembly.GetExecutingAssembly().GetName().Version.ToString());
             cmdChannel.SendMsg(session, "Please use @acecommands for a list of commands.");
         }
 
         /// <summary>
-        /// Cycle player access level; this only makes sense during development & testing
-        /// </summary>
-        /// <param name="session"></param>
-        private static void ChangePlayerAccessLevel(Session session)
-        {
-            int lvl = (int)session.AccessLevel;
-            lvl = (lvl + 1) % 5;
-            session.AccessLevel = (AccessLevel)lvl;
-        }
-        /// <summary>
         /// This method handles the acecommands command sent in from admin console or from player chat
         /// </summary>
         public static void HandleAceCommands(Session session, ICommandChannel cmdChannel, params string[] parameters)
         {
+            List<String> commandList = new List<string>();
             if (session != null)
             {
                 string msg = string.Format(string.Format("Your Current access level is: {0}", session.AccessLevel));
@@ -72,6 +57,9 @@ namespace ACE.Command.Handlers
                     {
                         continue;
                     }
+                    //adding commands to a string list with @ prefix for use in the client chat window
+                    //will show as @commandname (paramcount) (accesslevel) (i.e. @accessLevelCycle (0) (Player)
+                    commandList.Add(string.Format("@{0} ({1}) ({2})", command.Attribute.Command, command.Attribute.ParameterCount, command.Attribute.Access));
                 }
                 else
                 {
@@ -80,9 +68,17 @@ namespace ACE.Command.Handlers
                     {
                         continue;
                     }
+                    //adding commands to a string list without the @ prefix not necessary to issue commands from the server console
+                    //will show as commandname (paramcount) (accesslevel) (i.e. acehelp (0) (Player)
+                    commandList.Add(string.Format("{0} ({1}) ({2})", command.Attribute.Command, command.Attribute.ParameterCount, command.Attribute.Access));
                 }
-                string msg = string.Format("@{0} ({1}) ({2})",
-                    command.Attribute.Command, command.Attribute.ParameterCount, command.Attribute.Access);
+                
+            }
+
+            //iterate through all the available commands and send them to the client one at a time.
+            for (int i = 0; i < commandList.Count; i++)
+            {
+                string msg = commandList[i];
                 cmdChannel.SendMsg(session, msg);
             }
         }
