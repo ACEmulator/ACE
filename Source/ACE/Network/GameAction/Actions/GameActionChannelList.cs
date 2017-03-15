@@ -25,7 +25,7 @@ namespace ACE.Network.GameAction.Actions
             if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
-            Session.LoginSession.EnqueueSend(new GameEventChannelList(Session, chatChannelID));
+            Session.Network.EnqueueSend(new GameEventChannelList(Session, chatChannelID));
         }
     }
 }

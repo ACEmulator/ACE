@@ -14,7 +14,7 @@ namespace ACE.Network
                 // TODO: broadcast
             }
             else
-                session.LoginSession.EnqueueSend(new GameMessageSystemChat(message, chatMessageType));
+                session.Network.EnqueueSend(new GameMessageSystemChat(message, chatMessageType));
         }
     }
 }
