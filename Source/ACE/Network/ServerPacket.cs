@@ -1,10 +1,8 @@
-﻿using ACE.Common.Cryptography;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using ACE.Common.Cryptography;
 
 namespace ACE.Network
 {
@@ -12,8 +10,11 @@ namespace ACE.Network
     {
         //public PacketHeader Header { get; private set; }
         //public MemoryStream Data { get; } = new MemoryStream();
+
         public BinaryWriter BodyWriter { get; private set; }
+
         private List<ServerPacketFragment> fragments = new List<ServerPacketFragment>();
+
         private uint issacXor = 0u;
         private bool issacXorSet = false;
         public uint IssacXor
@@ -26,6 +27,7 @@ namespace ACE.Network
             {
                 if (issacXorSet)
                     throw new InvalidOperationException("IssacXor can only be set once!");
+
                 issacXorSet = true;
                 issacXor = value;
             }
@@ -48,11 +50,13 @@ namespace ACE.Network
             uint headerChecksum = 0u;
             uint bodyChecksum = 0u;
             uint fragmentChecksum = 0u;
+
             using (MemoryStream stream = new MemoryStream())
             {
                 using (BinaryWriter writer = new BinaryWriter(stream))
                 {
                     writer.Seek((int)PacketHeader.HeaderSize, SeekOrigin.Begin);
+
                     if (Data.Length > 0)
                     {
                         var body = Data.ToArray();

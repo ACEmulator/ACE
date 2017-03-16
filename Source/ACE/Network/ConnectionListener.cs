@@ -3,30 +3,21 @@ using System.Net;
 using System.Net.Sockets;
 
 using ACE.Managers;
-using ACE.Network.Managers;
-using System.Text;
 
 namespace ACE.Network
 {
-    public enum ConnectionType
-    {
-        Login,
-        World
-    }
-
     public class ConnectionListener
     {
         public Socket Socket { get; private set; }
 
-        private ConnectionType listenerType;
         private IPEndPoint listenerEndpoint;
 
-        private uint listeningPort;
-        private byte[] buffer = new byte[Packet.MaxPacketSize];
+        private readonly uint listeningPort;
 
-        public ConnectionListener(uint port, ConnectionType type)
+        private readonly byte[] buffer = new byte[Packet.MaxPacketSize];
+
+        public ConnectionListener(uint port)
         {
-            listenerType  = type;
             listeningPort = port;
         }
 
@@ -82,6 +73,7 @@ namespace ACE.Network
                 Console.WriteLine(exception.Message);
                 return;
             }
+
             IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
             var session = WorldManager.Find(ipEndpoint);
 #if NETWORKDEBUG
@@ -91,7 +83,7 @@ namespace ACE.Network
             Console.WriteLine(sb.ToString());
 #endif
             var packet = new ClientPacket(data);
-            session.HandlePacket(listenerType, packet);
+            session.HandlePacket(packet);
 
             Listen();
         }

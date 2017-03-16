@@ -2,7 +2,6 @@
 using System.IO;
 
 using ACE.Entity;
-using System.Text;
 
 namespace ACE.Network
 {

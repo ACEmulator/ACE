@@ -1,11 +1,6 @@
-﻿using ACE.Common.Cryptography;
-using ACE.Common;
+﻿
+using ACE.Common.Cryptography;
 using ACE.Managers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Network
 {
@@ -18,10 +13,10 @@ namespace ACE.Network
 
         public double ServerTime { get; set; }
 
-        public SessionConnectionData(ConnectionType type)
+        public SessionConnectionData()
         {
-            IssacClient = new ISAAC(type == ConnectionType.Login ? ISAAC.ClientSeed : ISAAC.WorldClientSeed);
-            IssacServer = new ISAAC(type == ConnectionType.Login ? ISAAC.ServerSeed : ISAAC.WorldServerSeed);
+            IssacClient = new ISAAC(ISAAC.ClientSeed);
+            IssacServer = new ISAAC(ISAAC.ServerSeed);
 
             ServerTime = WorldManager.PortalYearTicks;
         }

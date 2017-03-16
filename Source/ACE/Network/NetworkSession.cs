@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using ACE.Network.GameMessages;
-using ACE.Network.Managers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
+
+using ACE.Network.GameMessages;
 using ACE.Network.Handlers;
+using ACE.Network.Managers;
 
 namespace ACE.Network
 {
@@ -20,7 +16,6 @@ namespace ACE.Network
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
-        private ConnectionType connectionType;
         private Session session;
         private NetworkBundle currentBundle;
         private DateTime nextResync;
@@ -34,11 +29,10 @@ namespace ACE.Network
 
         public SessionConnectionData ConnectionData { get; private set; }
 
-        public NetworkSession(Session session, ConnectionType connType)
+        public NetworkSession(Session session)
         {
             this.session = session;
-            this.connectionType = connType;
-            ConnectionData  = new SessionConnectionData(connType);
+            ConnectionData  = new SessionConnectionData();
             currentBundle = new NetworkBundle();
             nextSend = DateTime.UtcNow;
             nextResync = DateTime.UtcNow;
@@ -61,17 +55,20 @@ namespace ACE.Network
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
+
             if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
             {
                 currentBundle.TimeSync = true;
                 currentBundle.encryptedChecksum = true;
                 nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
             }
+
             if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
             {
                 currentBundle.SendAck = true;
                 nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
             }
+
             if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
             {
                 var bundleToSend = currentBundle;
@@ -79,6 +76,7 @@ namespace ACE.Network
                 SendBundle(bundleToSend);
                 nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
             }
+
             FlushPackets();
         }
 
@@ -93,6 +91,7 @@ namespace ACE.Network
                 currentBundle = new NetworkBundle();
                 SendBundle(bundleToSend);
             }
+
             FlushPackets();
         }
 
@@ -101,14 +100,10 @@ namespace ACE.Network
             lastReceivedSequence = packet.Header.Sequence;
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-            {
                 FlagEcho(packet.HeaderOptional.ClientTime);
-            }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
-            {
                 AcknowledgeSequence(packet.HeaderOptional.Sequence);
-            }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
@@ -121,9 +116,7 @@ namespace ACE.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
             {
                 foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                {
                     Retransmit(sequence);
-                }
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
@@ -132,29 +125,15 @@ namespace ACE.Network
                 return;
             }
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.WorldLoginRequest))
-            {
-                AuthenticationHandler.HandleWorldLoginRequest(packet, session);
-                return;
-            }
-
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
                 sendResync = true;
-                if (connectionType == ConnectionType.Login)
-                {
-                    AuthenticationHandler.HandleConnectResponse(packet, session);
-                    return;
-                }
-
-                AuthenticationHandler.HandleWorldConnectResponse(packet, session);
+                AuthenticationHandler.HandleConnectResponse(packet, session);
                 return;
             }
 
             foreach (ClientPacketFragment fragment in packet.Fragments)
-            {
                 InboundMessageManager.HandleClientFragment(fragment, session);
-            }
         }
 
         private void FlagEcho(float clientTime)
@@ -166,10 +145,12 @@ namespace ACE.Network
 
         private void AcknowledgeSequence(uint sequence)
         {
-            //TODO Sending Acks seems to cause some issues.  Needs further research.
+            // TODO Sending Acks seems to cause some issues.  Needs further research.
             //if (!sendAck)
             //    sendAck = true;
+
             var removalList = CachedPackets.Where(x => x.Key < sequence);
+
             foreach (var item in removalList)
             {
                 ServerPacket removedPacket;
@@ -180,13 +161,14 @@ namespace ACE.Network
         private void Retransmit(uint sequence)
         {
             ServerPacket cachedPacket;
+
             if (CachedPackets.TryGetValue(sequence, out cachedPacket))
             {
                 Console.WriteLine("Retransmit " + sequence);
+
                 if (!cachedPacket.Header.HasFlag(PacketHeaderFlags.Retransmission))
-                {
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
-                }
+
                 SendPacketRaw(cachedPacket);
             }
         }
@@ -202,7 +184,7 @@ namespace ACE.Network
                         ConnectionData.PacketSequence = 2;
 
                     packet.Header.Sequence = ConnectionData.PacketSequence++;
-                    packet.Header.Id = (ushort)(connectionType == ConnectionType.Login ? 0x0B : 0x18);
+                    packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
                     packet.Header.Table = 0x14;
                     packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
@@ -216,17 +198,18 @@ namespace ACE.Network
 
         private void SendPacket(ServerPacket packet)
         {
-            if(packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
+            if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                uint issacXor = session.GetIssacValue(PacketDirection.Server, connectionType);
+                uint issacXor = session.GetIssacValue(PacketDirection.Server);
                 packet.IssacXor = issacXor;
             }
+
             SendPacketRaw(packet);
         }
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            Socket socket = SocketManager.GetSocket(this.connectionType);
+            Socket socket = SocketManager.GetSocket();
             byte[] payload = packet.GetPayload();
 #if NETWORKDEBUG
             System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
@@ -260,6 +243,7 @@ namespace ACE.Network
             {
                 ServerPacket packet = new ServerPacket();
                 PacketHeader packetHeader = packet.Header;
+
                 if (bundle.encryptedChecksum)
                     packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
 
@@ -268,22 +252,26 @@ namespace ACE.Network
                 if (firstPacket)
                 {
                     firstPacket = false;
+
                     if (bundle.SendAck) //0x4000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                         packet.BodyWriter.Write(lastReceivedSequence);
                     }
+
                     if (bundle.TimeSync) //0x1000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
                         packet.BodyWriter.Write(ConnectionData.ServerTime);
                     }
+
                     if (bundle.ClientTime != -1f) //0x4000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                         packet.BodyWriter.Write(bundle.ClientTime);
                         packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
                     }
+
                     availableSpace -= (uint)packet.Data.Length;
                 }
 

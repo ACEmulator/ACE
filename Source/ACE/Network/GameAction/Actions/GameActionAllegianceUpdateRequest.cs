@@ -25,7 +25,7 @@ namespace ACE.Network.GameAction.Actions
 
             var allegianceUpdate = new GameEventAllegianceUpdate(Session);
 
-            Session.WorldSession.EnqueueSend(allegianceUpdate);
+            Session.Network.EnqueueSend(allegianceUpdate);
         }
     }
 }

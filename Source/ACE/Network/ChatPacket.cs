@@ -1,7 +1,6 @@
 ﻿
 using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 
 namespace ACE.Network
 {
@@ -14,7 +13,7 @@ namespace ACE.Network
                 // TODO: broadcast
             }
             else
-                session.WorldSession.EnqueueSend(new GameMessageSystemChat(message, chatMessageType));
+                session.Network.EnqueueSend(new GameMessageSystemChat(message, chatMessageType));
         }
     }
 }

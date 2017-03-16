@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Network
 {
@@ -35,6 +30,7 @@ namespace ACE.Network
         public byte[] GetRaw()
         {
             var headerHandle = GCHandle.Alloc(this, GCHandleType.Pinned);
+
             try
             {
                 byte[] bytes = new byte[Marshal.SizeOf(typeof(PacketFragmentHeader))];

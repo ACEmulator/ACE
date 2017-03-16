@@ -84,19 +84,6 @@ namespace ACE.Managers
             }
         }
 
-        public static Session Find(ulong connectionKey)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessionStore.SingleOrDefault(s => s.WorldConnectionKey == connectionKey);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
         public static Session Find(ObjectGuid characterGuid)
         {
             sessionLock.EnterReadLock();

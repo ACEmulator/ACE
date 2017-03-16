@@ -31,15 +31,15 @@ namespace ACE.Network.GameAction.Actions
             if (targetSession == null)
             {
                 var statusMessage = new GameEventDisplayStatusMessage(Session, StatusMessageType1.CharacterNotAvailable);
-                Session.WorldSession.EnqueueSend(statusMessage);
+                Session.Network.EnqueueSend(statusMessage);
             }
             else
             {
                 if (Session.Player != targetSession.Player)
-                    Session.WorldSession.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
 
                 var tell = new GameEventTell(targetSession, message, Session.Player.Name, Session.Player.Guid.Full, targetSession.Player.Guid.Full, ChatMessageType.Tell);
-                targetSession.WorldSession.EnqueueSend(tell);
+                targetSession.Network.EnqueueSend(tell);
             }
         }
     }
