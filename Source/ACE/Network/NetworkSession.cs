@@ -41,7 +41,7 @@ namespace ACE.Network
 
         public void EnqueueSend(params GameMessage[] messages)
         {
-            currentBundle.encryptedChecksum = true;
+            currentBundle.EncryptedChecksum = true;
             foreach (var message in messages)
                 currentBundle.Enqueue(message);
         }
@@ -59,7 +59,7 @@ namespace ACE.Network
             if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
             {
                 currentBundle.TimeSync = true;
-                currentBundle.encryptedChecksum = true;
+                currentBundle.EncryptedChecksum = true;
                 nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
             }
 
@@ -122,7 +122,7 @@ namespace ACE.Network
         {
             //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
             currentBundle.ClientTime = clientTime;
-            currentBundle.encryptedChecksum = true;
+            currentBundle.EncryptedChecksum = true;
         }
 
         private void AcknowledgeSequence(uint sequence)
@@ -237,7 +237,7 @@ namespace ACE.Network
                 ServerPacket packet = new ServerPacket();
                 PacketHeader packetHeader = packet.Header;
 
-                if (bundle.encryptedChecksum)
+                if (bundle.EncryptedChecksum)
                     packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
 
                 uint availableSpace = Packet.MaxPacketDataSize;

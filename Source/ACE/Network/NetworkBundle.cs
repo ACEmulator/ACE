@@ -40,9 +40,9 @@ namespace ACE.Network
             set { ackSeq = value; propChanged = true; }
         }
 
-        public bool encryptedChecksum { get; set; }
+        public bool EncryptedChecksum { get; set; }
 
-        public long currentSize = 0;
+        private long currentSize = 0;
         public long CurrentSize { get { return currentSize; } }
 
         public NetworkBundle()
@@ -51,7 +51,7 @@ namespace ACE.Network
             clientTime = -1f;
             timeSync = false;
             ackSeq = false;
-            encryptedChecksum = false;
+            EncryptedChecksum = false;
         }
 
         public void Enqueue(GameMessage message)
