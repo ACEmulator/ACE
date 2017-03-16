@@ -19,6 +19,7 @@ namespace ACE.Entity
         public uint SoundsResourceId;
         public uint Stable;
         public uint Petable;
+        public uint AnimationFrame;
 
         //this are all related
         public uint ItemsEquipedCount;
@@ -69,9 +70,8 @@ namespace ACE.Entity
             //{
             //}
 
-            //if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
-            //{
-            //}
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+                writer.Write((uint)this.AnimationFrame);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
                 Position.Serialize(writer);

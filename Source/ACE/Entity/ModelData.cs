@@ -1,5 +1,4 @@
 ﻿using ACE.Network;
-using ACE.Network.Enum;
 using System.Collections.Generic;
 using System.IO;
 
@@ -11,24 +10,24 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-        
+
         private List<ModelPallete> modelPalletes = new List<ModelPallete>();
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
         private List<Model> models = new List<Model>();
 
-        public void AddPallet (uint palette, byte offset, byte length)
+        public void AddPallet(uint palette, byte offset, byte length)
         {
-            ModelPallete newpallet = new ModelPallete(palette, offset,length);
+            ModelPallete newpallet = new ModelPallete(palette, offset, length);
             modelPalletes.Add(newpallet);
         }
 
-        public void AddTexture(byte index, byte oldresourceid, byte newresourceid)
+        public void AddTexture(byte index, ushort oldresourceid, ushort newresourceid)
         {
             ModelTexture nextexture = new ModelTexture(index, oldresourceid, newresourceid);
             modelTextures.Add(nextexture);
         }
 
-        public void AddModel(byte index, byte modelresourceid)
+        public void AddModel(byte index, ushort modelresourceid)
         {
             Model newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);
@@ -44,7 +43,7 @@ namespace ACE.Entity
 
             foreach (ModelPallete pallet in modelPalletes)
             {
-                writer.Write((uint)pallet.Guid);
+                writer.Write((ushort)pallet.Guid);
                 writer.Write((byte)pallet.Offset);
                 writer.Write((byte)pallet.Length);
             }
@@ -52,14 +51,14 @@ namespace ACE.Entity
             foreach (ModelTexture texture in modelTextures)
             {
                 writer.Write((byte)texture.Index);
-                writer.Write((uint)texture.OldGuid);
-                writer.Write((uint)texture.NewGuid);
+                writer.Write((ushort)texture.OldGuid);
+                writer.Write((ushort)texture.NewGuid);
             }
 
             foreach (Model model in models)
             {
                 writer.Write((byte)model.Index);
-                writer.Write((uint)model.Guid);
+                writer.Write((ushort)model.Guid);
             }
 
             writer.Align();

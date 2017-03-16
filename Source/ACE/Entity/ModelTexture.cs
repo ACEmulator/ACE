@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ACE.Entity
+﻿namespace ACE.Entity
 {
     /// <summary>
     /// Used to replace default textures / not needed unless you want too.
@@ -12,10 +6,10 @@ namespace ACE.Entity
     public class ModelTexture
     {
         public byte Index { get; } //index of model to replace texture.
-        public uint OldGuid { get; }
-        public uint NewGuid { get; }
+        public ushort OldGuid { get; }
+        public ushort NewGuid { get; }
 
-        public ModelTexture(byte index, uint oldguid, uint newguid)
+        public ModelTexture(byte index, ushort oldguid, ushort newguid)
         {
             Index = index;
             OldGuid = oldguid; // - 0x05000000
@@ -23,3 +17,4 @@ namespace ACE.Entity
         }
     }
 }
+

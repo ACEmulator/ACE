@@ -2,9 +2,7 @@
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using System.IO;
 
 namespace ACE.Entity
@@ -15,9 +13,9 @@ namespace ACE.Entity
 
         public ObjectType Type { get; protected set; }
 
-        public ushort GameDataType { get; protected set; }
+        public ushort GameDataType { get; set; }
 
-        public ushort Icon { get; protected set; }
+        public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
 
