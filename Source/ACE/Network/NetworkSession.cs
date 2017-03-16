@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
-using System.Text;
 using ACE.Network.GameMessages;
 using ACE.Network.Handlers;
 using ACE.Network.Managers;
