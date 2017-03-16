@@ -347,11 +347,11 @@ namespace ACE.Entity
             uint baseValue = character.Abilities[ability].Base;
             uint result = SpendAbilityXp(character.Abilities[ability], amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
+            uint ranks = character.Abilities[ability].Ranks;
+            uint newValue = character.Abilities[ability].UnbuffedValue;
+            string messageText = "";
             if (result > 0u)
             {
-                uint ranks = character.Abilities[ability].Ranks;
-                uint newValue = character.Abilities[ability].UnbuffedValue;
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 GameMessage abilityUpdate;
                 if (!isSecondary)
                 {
@@ -362,9 +362,20 @@ namespace ACE.Entity
                     abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
+                //checks if max rank is achieved and plays fireworks w/ special text
+                if (IsAbilityMaxRank(ranks, isSecondary)) {
+                    //fireworks
+                    PlayParticleEffect(0x8D);
+                    messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
+                }
+                else
+                {
+                    messageText = $"Your base {ability} is now {newValue}!";
+                }
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
-                var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
+                var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
+                Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);
             }
             else
             {
@@ -377,9 +388,10 @@ namespace ACE.Entity
         /// </summary>
         /// <remarks>
         ///     Known Issues:
-        ///         1. +10 skill throws an exception when it would go outside the bounds of ranks list
-        ///         2. the client doesn't increase the "next point" amount properly when using +10
-        ///         3. no fireworks for hitting max ranks
+        ///         1. Attributes are possibly out of sequence:
+        ///             When you try to raise a primary attribute (Strength, Endurance, Coordination, Quickness
+        ///             Focus, or Self) past 121 rank points, the client will not accept any more points and prevents
+        ///             any other attributes from advancing.
         /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendAbilityXp(CharacterAbility ability, uint amount)
@@ -401,15 +413,39 @@ namespace ACE.Entity
                     break;
             }
 
+            //do not advance if we cannot spend xp to rank up our skill by 1 point
+            if (ability.Ranks >= (chart.Ranks.Count - 1))
+                return result;
+
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
-            uint rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            uint rank10 = 0u;
+            int rank10Offset = 0;
+
+            if (ability.Ranks + 10 >= (chart.Ranks.Count))
+            {
+                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
+            else
+            {
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
 
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
-                rankUps = 10u;
+            {
+                if (rank10Offset > 0u)
+                {
+                    rankUps = Convert.ToUInt32(rank10Offset);
+                }
+                else
+                {
+                    rankUps = 10u;
+                }
+            }
 
             if (rankUps > 0)
             {
@@ -421,6 +457,25 @@ namespace ACE.Entity
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Check a rank against the ability charts too determine if the skill is at max
+        /// </summary>
+        /// <returns>Returns true if ability is max rank; false if ability is below max rank</returns>
+        private bool IsAbilityMaxRank(uint rank, bool isAbilityVitals)
+        {
+            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+
+            if (isAbilityVitals)
+                xpChart = DatabaseManager.Charts.GetVitalXpChart();
+            else 
+                xpChart = DatabaseManager.Charts.GetAbilityXpChart();
+
+            if (rank == (xpChart.Ranks.Count - 1))
+                return true;
+            else
+                return false;
         }
 
         /// <summary>
