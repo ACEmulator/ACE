@@ -169,14 +169,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// adds only avaiable xp when user has already gained max level
-        /// </summary>
-        public void GrantAdditionalXp(ulong amount)
-        {
-            propertiesInt64[PropertyInt64.AvailableExperience] += amount;
-        }
-
-        /// <summary>
         /// spends the amount of xp specified, deducting it from avaiable experience
         /// </summary>
         public void SpendXp(ulong amount)
