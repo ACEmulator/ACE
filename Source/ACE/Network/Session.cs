@@ -108,7 +108,7 @@ namespace ACE.Network
 
             LastSaveTick += lastTick;
 
-            if (LastSaveTick > 60)
+            if (LastSaveTick > 4)
             {
                 LastSaveTick = 0;
             }
