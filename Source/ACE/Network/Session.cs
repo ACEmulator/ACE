@@ -7,7 +7,6 @@ using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
 
@@ -82,7 +81,6 @@ namespace ACE.Network
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
-
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
             {
                 logOffRequestTime = DateTime.MinValue;
@@ -121,11 +119,12 @@ namespace ACE.Network
                 // server treats all packets sent during the first 30 seconds as invalid packets due to server crash, this will move clients to the disconnect screen
                 if (DateTime.UtcNow < WorldManager.WorldStartTime.AddSeconds(30d))
                     SendCharacterError(CharacterError.ServerCrash);
+
                 return;
             }
 
             //Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if(Network != null)
+            if (Network != null)
                 Network.HandlePacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
