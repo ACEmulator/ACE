@@ -17,6 +17,7 @@ namespace ACE.Entity
         /// Index of Model being replace
         /// </summary>
         public byte Index { get; }
+
         /// <summary>
         /// Model portal.dat entry minus 0x01000000
         /// </summary>

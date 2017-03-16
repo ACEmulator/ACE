@@ -24,6 +24,6 @@ namespace ACE.Network.Enum
         Position               = 0x008000,
         Movement               = 0x010000,
         AnimationFrame         = 0x020000,
-        Translucency           = 0x400000
+        Translucency           = 0x040000,
     }
 }

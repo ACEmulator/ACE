@@ -15,10 +15,12 @@ namespace ACE.Entity
         /// Index of model to replace texture.
         /// </summary>
         public byte Index { get; }
+
         /// <summary>
         /// Texture portal.dat entry minus 0x05000000
         /// </summary>
         public ushort OldTexture { get; }
+
         /// <summary>
         /// Texture portal.dat entry minus 0x05000000
         /// </summary>
