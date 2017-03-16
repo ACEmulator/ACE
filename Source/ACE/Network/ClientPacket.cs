@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace ACE.Network
 {
@@ -33,8 +28,10 @@ namespace ACE.Network
         private void ReadFragments()
         {
             if (Header.HasFlag(PacketHeaderFlags.BlobFragments))
+            {
                 while (Payload.BaseStream.Position != Payload.BaseStream.Length)
                     Fragments.Add(new ClientPacketFragment(Payload));
+            }
         }
     }
 }

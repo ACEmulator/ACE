@@ -1,10 +1,7 @@
-﻿using ACE.Common.Extensions;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using ACE.Common.Extensions;
 
 namespace ACE.Network
 {

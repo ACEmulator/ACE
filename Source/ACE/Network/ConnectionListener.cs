@@ -3,8 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 
 using ACE.Managers;
-using ACE.Network.Managers;
-using System.Text;
 
 namespace ACE.Network
 {
@@ -82,6 +80,7 @@ namespace ACE.Network
                 Console.WriteLine(exception.Message);
                 return;
             }
+
             IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
             var session = WorldManager.Find(ipEndpoint);
 #if NETWORKDEBUG

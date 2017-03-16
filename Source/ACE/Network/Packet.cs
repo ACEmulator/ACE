@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-
-using ACE.Common.Cryptography;
-using ACE.Common.Extensions;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network
 {

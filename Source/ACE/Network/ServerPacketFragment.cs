@@ -1,12 +1,6 @@
-﻿using ACE.Common.Cryptography;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+
+using ACE.Common.Cryptography;
 
 namespace ACE.Network
 {
