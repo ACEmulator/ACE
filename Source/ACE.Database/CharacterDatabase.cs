@@ -49,7 +49,13 @@ namespace ACE.Database
             CharacterPropertiesIntInsert,
             CharacterPropertiesBigIntInsert,
             CharacterPropertiesDoubleInsert,
-            CharacterPropertiesStringInsert
+            CharacterPropertiesStringInsert,
+
+            CharacterPropertiesBoolUpdate,
+            CharacterPropertiesIntUpdate,
+            CharacterPropertiesBigIntUpdate,
+            CharacterPropertiesDoubleUpdate,
+            CharacterPropertiesStringUpdate
         }
 
         protected override Type preparedStatementType => typeof(CharacterPreparedStatement);
@@ -93,6 +99,13 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntInsert, "INSERT INTO `character_properties_bigint` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.UInt64);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleInsert, "INSERT INTO `character_properties_double` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.Double);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringInsert, "INSERT INTO `character_properties_string` (`guid`, `propertyId`, `propertyValue`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `propertyValue` = VALUES(`propertyValue`);", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.VarChar);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolUpdate, "UPDATE `character_properties_bool` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.Bit, MySqlDbType.UInt16, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntUpdate, "UPDATE `character_properties_int` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.UInt32, MySqlDbType.UInt16, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntUpdate, "UPDATE `character_properties_bigint` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.UInt64, MySqlDbType.UInt16, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleUpdate, "UPDATE `character_properties_double` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.Double, MySqlDbType.UInt16, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, "UPDATE `character_properties_string` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.VarChar, MySqlDbType.UInt16, MySqlDbType.UInt32);
+
         }
 
         public uint GetMaxId()
@@ -151,12 +164,14 @@ namespace ACE.Database
             return (charsWithName == 0);
         }
 
-        public Task UpdateCharacter(Character character)
+        public async void UpdateCharacter(Character character)
         {
             ExecutePreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, character.Id, character.Position.LandblockId.Raw, character.Position.Offset.X, character.Position.Offset.Y, character.Position.Offset.Z, character.Position.Facing.X, character.Position.Facing.Y, character.Position.Facing.Z, character.Position.Facing.W);
 
-            // TODO: implement saving a character
-            return Task.Delay(0);
+            var transaction = BeginTransaction();
+            UpdateCharacterProperties(character, transaction);
+
+            await transaction.Commit();
         }
 
         public async Task<bool> CreateCharacter(Character character)
@@ -218,7 +233,7 @@ namespace ACE.Database
 
             return await transaction.Commit();
         }
-
+        
         public async Task<Character> LoadCharacter(uint id)
         {
             MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelect, id);
@@ -380,6 +395,24 @@ namespace ACE.Database
 
             foreach (var prop in dbObject.PropertiesString)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
+        }
+
+        public void UpdateCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
+        {
+            foreach (var prop in dbObject.PropertiesBool)
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            foreach (var prop in dbObject.PropertiesInt)
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            foreach (var prop in dbObject.PropertiesInt64)
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            foreach (var prop in dbObject.PropertiesDouble)
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            foreach (var prop in dbObject.PropertiesString)
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
         }
 
         public async Task<Character> GetCharacterByName(string name)
