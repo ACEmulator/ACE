@@ -120,5 +120,10 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageCreateLifestone(session.Player));
         }
 
+        [CommandHandler("createtrainingwand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateTrainingWand(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageCreateTrainingWand(session.Player));
+        }
     }
 }

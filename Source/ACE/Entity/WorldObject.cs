@@ -17,7 +17,7 @@ namespace ACE.Entity
 
         public ushort Wcid { get; protected set; }
 
-        public ushort Icon { get; protected set; }
+        public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
 
