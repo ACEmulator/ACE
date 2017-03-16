@@ -7,20 +7,20 @@ namespace ACE.Network.Managers
 {
     public static class SocketManager
     {
-        private static List<ConnectionListener> loginListeners = new List<ConnectionListener>();
+        private static readonly List<ConnectionListener> Listeners = new List<ConnectionListener>();
 
         public static void Initialise()
         {
-            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.Port, ConnectionType.Login));
-            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.Port + 1, ConnectionType.Login));
+            Listeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.Port));
+            Listeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.Port + 1));
 
-            foreach (var loginListener in loginListeners)
+            foreach (var loginListener in Listeners)
                 loginListener.Start();
         }
         
         public static Socket GetSocket()
         {
-            return loginListeners[0].Socket;
+            return Listeners[0].Socket;
         }
     }
 }

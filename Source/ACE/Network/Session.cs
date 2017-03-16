@@ -112,7 +112,7 @@ namespace ACE.Network
             return true;
         }
 
-        public void HandlePacket(ConnectionType type, ClientPacket packet)
+        public void HandlePacket(ClientPacket packet)
         {
             if (!CheckState(packet))
             {
