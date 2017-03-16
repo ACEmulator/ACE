@@ -98,6 +98,14 @@ namespace ACE.Command.Handlers
             session.Player.PlayParticleEffect(effectid);
         }
 
+        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void chatdump(Session session, params string[] parameters)
+        {
+            for(int i = 0; i < 1000; i++)
+            {
+                ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
+            }
+        }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)

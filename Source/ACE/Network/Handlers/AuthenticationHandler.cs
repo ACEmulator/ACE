@@ -33,7 +33,6 @@ namespace ACE.Network.Handlers
             var connectResponse = new PacketOutboundConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
 
             session.Network.EnqueueSend(connectResponse);
-            session.Network.Flush();
 
             if (account == null)
             {

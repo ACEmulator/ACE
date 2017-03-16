@@ -47,7 +47,6 @@ namespace ACE.Network.Handlers
             session.State = SessionState.WorldConnected;
 
             session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-            session.Network.Flush();
             session.Player.Load();
         }
 
