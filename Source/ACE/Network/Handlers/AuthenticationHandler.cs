@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using ACE.Common;
 using ACE.Common.Cryptography;
-using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Network.Packets;
 
 namespace ACE.Network.Handlers

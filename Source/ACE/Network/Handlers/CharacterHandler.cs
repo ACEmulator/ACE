@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography;
 
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using ACE.Network.Managers;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Packets;
-using ACE.Entity.Enum;
 using ACE.Network.GameEvent.Events;
 
 namespace ACE.Network.Handlers
@@ -99,6 +96,7 @@ namespace ACE.Network.Handlers
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);    /* Name already in use. */
                 return;
             }
+
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
             session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
