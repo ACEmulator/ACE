@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="default.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
