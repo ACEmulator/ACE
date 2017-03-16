@@ -15,7 +15,7 @@ namespace ACE.Network.Packets
 
         private string[] sessionIPAddress;
 
-        public PacketOutboundReferral(ulong worldConnectionKey, string[] sessionIPAddress, ushort port, bool sendInternalHostOnLocalNetwork) : base()
+        public PacketOutboundReferral(ulong worldConnectionKey, string[] sessionIPAddress, ushort port, bool sendInternalHostOnLocalNetwork, byte[] internalHost) : base()
         {
             this.Header.Flags = PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.Referral;
             this.worldConnectionKey = worldConnectionKey;
@@ -28,7 +28,7 @@ namespace ACE.Network.Packets
                 (sessionIPAddress[0] == "10"
                 || (sessionIPAddress[0] == "172" && System.Convert.ToInt16(sessionIPAddress[1]) >= 16 && System.Convert.ToInt16(sessionIPAddress[1]) <= 31)
                 || (sessionIPAddress[0] == "192" && sessionIPAddress[1] == "168")))
-                BodyWriter.Write(ConfigManager.InternalHost);
+                BodyWriter.Write(internalHost);
             else
                 BodyWriter.Write(ConfigManager.Host);
 
