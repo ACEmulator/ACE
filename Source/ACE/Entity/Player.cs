@@ -583,6 +583,11 @@ namespace ACE.Entity
 
             // TODO: Save other options as we implement them.
         }
+
+        public void SaveCharacter()
+        {
+            DatabaseManager.Character.UpdateCharacter(character);
+        }
         
         /// <summary>
         /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.

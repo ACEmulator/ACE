@@ -34,9 +34,11 @@ namespace ACE.Network
         public byte UpdatePropertyIntSequence { get; set; }
         public byte UpdatePropertyStringSequence { get; set; }
         public byte UpdatePropertyBoolSequence { get; set; }
-        public byte UpdatePropertyDoubleSequence { get; set; } 
+        public byte UpdatePropertyDoubleSequence { get; set; }
 
         public NetworkSession Network { get; set; }
+
+        public double LastSaveTick { get; private set; }
 
         public Session(IPEndPoint endPoint)
         {
@@ -61,7 +63,7 @@ namespace ACE.Network
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
         {
-            Id      = accountId;
+            Id = accountId;
             Account = account;
             AccessLevel = accountAccesslevel;
         }
@@ -85,6 +87,26 @@ namespace ACE.Network
             {
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
+            }
+            if (LastSaveTick == 0)
+            {
+                SaveSession();
+            }
+
+            LastSaveTick += lastTick;
+
+            if (LastSaveTick > 60)
+            {
+                LastSaveTick = 0;
+            }
+
+        }
+
+        public void SaveSession()
+        {
+            if(this.Player != null) { 
+                this.Player.SaveOptions();
+                this.Player.SaveCharacter();
             }
         }
 

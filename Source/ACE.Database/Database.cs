@@ -66,8 +66,15 @@ namespace ACE.Database
                             using (var command = new MySqlCommand(query.Item1.Query, connection, transaction))
                             {
                                 for (int i = 0; i < query.Item2.Length; i++)
+                                {
                                     command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
-
+#if NETWORKDEBUG
+                                    foreach (MySqlParameter p in command.Parameters)
+                                    {
+                                        Console.WriteLine(p.Value);
+                                    }
+#endif
+                                }
                                 command.ExecuteNonQuery();
                             }
                         }
