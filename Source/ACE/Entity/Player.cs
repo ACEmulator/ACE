@@ -263,11 +263,7 @@ namespace ACE.Entity
             //until we are max level we must make sure that we send 
             var chart = DatabaseManager.Charts.GetLevelingXpChart();
             CharacterLevel maxLevel = chart.Levels.Last();
-            if (character.Level == maxLevel.Level)
-            {
-                character.GrantAdditionalXp(amount);
-            }
-            else
+            if (character.Level != maxLevel.Level)
             {
                 ulong amountLeftToEnd = maxLevel.TotalXp - character.TotalExperience;
                 if (amount > amountLeftToEnd)
@@ -276,11 +272,11 @@ namespace ACE.Entity
                 }
                 character.GrantXp(amount);
                 CheckForLevelup();
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
             }
-            var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-            var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-            Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
         }
 
         /// <summary>
@@ -338,9 +334,9 @@ namespace ACE.Entity
                 {
                     string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
                     var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
-                    Session.WorldSession.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
+                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 } else
-                    Session.WorldSession.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
+                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 //play level up effect
                 PlayParticleEffect(0x8a);
             }
