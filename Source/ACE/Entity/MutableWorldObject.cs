@@ -10,8 +10,8 @@ namespace ACE.Entity
     /// <summary>
     /// any world object that can change a state of some sort that requires clients be updated.  players, monsters,
     /// doors, etc.
-    /// </summary>
-    public abstract class MutableWorldObject : WorldObject
+     public abstract class MutableWorldObject : WorldObject/// </summary>
+   
     {
         public MutableWorldObject(ObjectType type, ObjectGuid guid) : base(type, guid)
         {

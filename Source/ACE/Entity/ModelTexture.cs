@@ -7,19 +7,28 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     /// <summary>
-    /// Used to replace default textures / not needed unless you want too.
+    /// Used to replace default Textures / not required
     /// </summary>
     public class ModelTexture
     {
-        public byte Index { get; } //index of model to replace texture.
-        public uint OldGuid { get; }
-        public uint NewGuid { get; }
+        /// <summary>
+        /// Index of model to replace texture.
+        /// </summary>
+        public byte Index { get; }
+        /// <summary>
+        /// Texture portal.dat entry minus 0x05000000
+        /// </summary>
+        public ushort OldTexture { get; }
+        /// <summary>
+        /// Texture portal.dat entry minus 0x05000000
+        /// </summary>
+        public ushort NewTexture { get; } 
 
-        public ModelTexture(byte index, uint oldguid, uint newguid)
+        public ModelTexture(byte index, ushort oldtexture, ushort newtexture)
         {
             Index = index;
-            OldGuid = oldguid; // - 0x05000000
-            NewGuid = newguid; // - 0x05000000
+            OldTexture = oldtexture;
+            NewTexture = newtexture;
         }
     }
 }

@@ -15,11 +15,12 @@ namespace ACE.Entity
 
         public ObjectType Type { get; protected set; }
 
-        public ushort GameDataType { get; protected set; }
+        public ushort Wcid { get; protected set; }
 
         public ushort Icon { get; protected set; }
 
         public string Name { get; protected set; }
+
 
         public Position Position
         { 
@@ -57,6 +58,7 @@ namespace ACE.Entity
         {
             Type = type;
             Guid = guid;
+            ///Wcid = wcid;
 
             GameData = new GameData();
             ModelData = new ModelData();
@@ -72,7 +74,7 @@ namespace ACE.Entity
             
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.Write((ushort)GameDataType);
+            writer.Write((ushort)Wcid);
             writer.Write((ushort)Icon);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
@@ -102,7 +104,7 @@ namespace ACE.Entity
                 writer.Write(GameData.UseRadius);
 
             if ((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)
-                writer.Write(GameData.TargetType);
+                writer.Write((uint)GameData.TargetType);
 
             if ((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0)
                 writer.Write((uint)GameData.UiEffects);
