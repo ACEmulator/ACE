@@ -92,6 +92,7 @@
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Managers\AssetManager.cs" />
+    <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ClientPacket.cs" />
