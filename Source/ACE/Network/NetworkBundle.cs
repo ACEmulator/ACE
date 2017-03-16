@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using ACE.Network.GameMessages;
+using System.Threading;
 
 namespace ACE.Network
 {
@@ -39,7 +40,10 @@ namespace ACE.Network
             set { ackSeq = value; propChanged = true; }
         }
 
-        public bool encryptedChecksum { get; set; }
+        public bool EncryptedChecksum { get; set; }
+
+        private long currentSize = 0;
+        public long CurrentSize { get { return currentSize; } }
 
         public NetworkBundle()
         {
@@ -47,7 +51,13 @@ namespace ACE.Network
             clientTime = -1f;
             timeSync = false;
             ackSeq = false;
-            encryptedChecksum = false;
+            EncryptedChecksum = false;
+        }
+
+        public void Enqueue(GameMessage message)
+        {
+            Interlocked.Add(ref currentSize, message.Data.Length);
+            Messages.Enqueue(message);
         }
     }
 }

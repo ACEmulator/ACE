@@ -157,8 +157,6 @@ namespace ACE.Network
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
             Network.EnqueueSend(serverNameMessage);
 
-            Network.Flush();
-
             State = SessionState.AuthConnected;
 
             Player = null;

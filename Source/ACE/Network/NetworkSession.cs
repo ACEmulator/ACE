@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
-
+using System.Text;
 using ACE.Network.GameMessages;
 using ACE.Network.Handlers;
 using ACE.Network.Managers;
@@ -41,9 +41,9 @@ namespace ACE.Network
 
         public void EnqueueSend(params GameMessage[] messages)
         {
-            currentBundle.encryptedChecksum = true;
-            foreach(var message in messages)
-                currentBundle.Messages.Enqueue(message);
+            currentBundle.EncryptedChecksum = true;
+            foreach (var message in messages)
+                currentBundle.Enqueue(message);
         }
 
         public void EnqueueSend(params ServerPacket[] packets)
@@ -59,7 +59,7 @@ namespace ACE.Network
             if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
             {
                 currentBundle.TimeSync = true;
-                currentBundle.encryptedChecksum = true;
+                currentBundle.EncryptedChecksum = true;
                 nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
             }
 
@@ -71,25 +71,7 @@ namespace ACE.Network
 
             if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
             {
-                var bundleToSend = currentBundle;
-                currentBundle = new NetworkBundle();
-                SendBundle(bundleToSend);
-                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
-            }
-
-            FlushPackets();
-        }
-
-        /// <summary>
-        /// Force flushing of packet buffers.  Only to be used in special circumstances, such as during login sequence.
-        /// </summary>
-        public void Flush()
-        {
-            if (currentBundle.NeedsSending)
-            {
-                var bundleToSend = currentBundle;
-                currentBundle = new NetworkBundle();
-                SendBundle(bundleToSend);
+                FlushBundle();
             }
 
             FlushPackets();
@@ -140,7 +122,7 @@ namespace ACE.Network
         {
             //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
             currentBundle.ClientTime = clientTime;
-            currentBundle.encryptedChecksum = true;
+            currentBundle.EncryptedChecksum = true;
         }
 
         private void AcknowledgeSequence(uint sequence)
@@ -170,6 +152,17 @@ namespace ACE.Network
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
 
                 SendPacketRaw(cachedPacket);
+            }
+        }
+
+        private void FlushBundle()
+        {
+            if (currentBundle.NeedsSending)
+            {
+                var bundleToSend = currentBundle;
+                currentBundle = new NetworkBundle();
+                SendBundle(bundleToSend);
+                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
             }
         }
 
@@ -214,7 +207,7 @@ namespace ACE.Network
 #if NETWORKDEBUG
             System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(String.Format("Sending Packet (Len: {0}) on {1} [{2}:{3}=>{4}:{5}]", payload.Length, connectionType, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port));
+            sb.AppendLine(String.Format("Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port));
             sb.AppendLine(payload.BuildPacketString());
             Console.WriteLine(sb.ToString());
 #endif
@@ -228,9 +221,9 @@ namespace ACE.Network
         /// 
         /// 1 Create Packet
         /// 2 If first packet for this bundle, fill any optional headers
-        /// 3 Append fragments that will fit
-        /// 3.1 Check each fragment to see if it is a partial fit
-        /// 4 If we have a partial message remaining or more messages, create additional packets.
+        /// 3 Append messages that will fit
+        /// 4 If we have more messages, create additional packets.
+        /// 5 If any packet is greater than the max packet size, split it across two fragments
         /// </summary>
         /// <param name="bundle"></param>
         private void SendBundle(NetworkBundle bundle)
@@ -244,7 +237,7 @@ namespace ACE.Network
                 ServerPacket packet = new ServerPacket();
                 PacketHeader packetHeader = packet.Header;
 
-                if (bundle.encryptedChecksum)
+                if (bundle.EncryptedChecksum)
                     packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
 
                 uint availableSpace = Packet.MaxPacketDataSize;
@@ -278,62 +271,74 @@ namespace ACE.Network
                 if (carryOverMessage != null || bundle.Messages.Count > 0)
                 {
                     packetHeader.Flags |= PacketHeaderFlags.BlobFragments;
-
+                    int fragmentCount = 0;
                     while (carryOverMessage != null || bundle.Messages.Count > 0)
                     {
-                        if (availableSpace <= PacketFragmentHeader.HeaderSize + 4)
-                            break;
-
                         MessageFragment currentMessageFragment;
 
-                        if (carryOverMessage != null)
+                        if (carryOverMessage != null) // If we have a carryOverMessage, use that
                         {
                             currentMessageFragment = carryOverMessage;
                             carryOverMessage = null;
-                            currentMessageFragment.index++;
                         }
-                        else
+                        else // If we don't have a carryOverMessage, go ahead and dequeue next message from the bundle
                         {
                             currentMessageFragment = new MessageFragment(bundle.Messages.Dequeue());
                         }
 
                         var currentGameMessage = currentMessageFragment.message;
 
-                        ServerPacketFragment fragment = new ServerPacketFragment();
-                        PacketFragmentHeader fragmentHeader = fragment.Header;
-                        availableSpace -= PacketFragmentHeader.HeaderSize;
+                        availableSpace -= PacketFragmentHeader.HeaderSize; // Account for fragment header
 
-                        currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? ConnectionData.FragmentSequence++ : currentMessageFragment.sequence;
-
+                        // Compute amount of data to send based on the total length and current position
                         uint dataToSend = (uint)currentGameMessage.Data.Length - currentMessageFragment.position;
-                        if (dataToSend > availableSpace)
+
+                        if (dataToSend > availableSpace) // Message is too large to fit in packet
                         {
-                            dataToSend = availableSpace;
-                            carryOverMessage = currentMessageFragment;
+                            carryOverMessage = currentMessageFragment; 
+                            if (fragmentCount == 0) // If this is first message in packet, this is just a really large message, so proceed with splitting it
+                                dataToSend = availableSpace;
+                            else // Otherwise there are other messages already, so we'll break and come back and see if the message will fit
+                                break;
                         }
 
-                        if (currentMessageFragment.count == 0)
+                        if (currentMessageFragment.count == 0) // Compute number of fragments if we have not already
                         {
                             uint remainingData = (uint)currentGameMessage.Data.Length - dataToSend;
                             currentMessageFragment.count = (ushort)(Math.Ceiling((double)remainingData / PacketFragment.MaxFragmentDataSize) + 1);
                         }
 
+                        // Set sequence, if new, pull next sequence from ConnectionData, if it is a carryOver, reuse that sequence
+                        currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? ConnectionData.FragmentSequence++ : currentMessageFragment.sequence;
+
+                        // Build ServerPacketFragment structure
+                        ServerPacketFragment fragment = new ServerPacketFragment();
+                        PacketFragmentHeader fragmentHeader = fragment.Header;
                         fragmentHeader.Sequence = currentMessageFragment.sequence;
                         fragmentHeader.Id = 0x80000000;
                         fragmentHeader.Count = currentMessageFragment.count;
                         fragmentHeader.Index = currentMessageFragment.index;
                         fragmentHeader.Group = (ushort)currentMessageFragment.message.Group;
 
+                        // Read data starting at current position reading dataToSend bytes
                         currentGameMessage.Data.Seek(currentMessageFragment.position, SeekOrigin.Begin);
                         fragment.Content = new byte[dataToSend];
                         currentGameMessage.Data.Read(fragment.Content, 0, (int)dataToSend);
 
+                        // Increment position and index
                         currentMessageFragment.position = currentMessageFragment.position + dataToSend;
+                        currentMessageFragment.index++;
 
+                        // Add fragment to packet
+                        packet.AddFragment(fragment);
+                        fragmentCount++;
+
+                        // Deduct consumed space
                         availableSpace -= dataToSend;
 
-                        packet.AddFragment(fragment);
-                        //break;
+                        // Smallest message I am aware of requires HeaderSize + 4 bytes, so if we have less space then that, go ahead and break
+                        if (availableSpace <= PacketFragmentHeader.HeaderSize + 4)
+                            break;
                     }
                 }
 

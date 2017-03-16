@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-
+using System.Text;
 using ACE.Managers;
 
 namespace ACE.Network
@@ -78,7 +78,7 @@ namespace ACE.Network
             var session = WorldManager.Find(ipEndpoint);
 #if NETWORKDEBUG
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(String.Format("Received Packet (Len: {0}) on {1} [{2}:{3}=>{4}:{5}]", data.Length, listenerType, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));
+            sb.AppendLine(String.Format("Received Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", data.Length, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));
             sb.AppendLine(data.BuildPacketString());
             Console.WriteLine(sb.ToString());
 #endif
