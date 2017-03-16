@@ -6,16 +6,27 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
+    /// <summary>
+    /// Used to replace model objects with other model objects.
+    /// For example, you can swap out characters Head 0x10 with another Random Model.
+    /// </summary>
     public class Model
     {
-        public byte Index { get; } //index of model
 
-        public uint Guid { get; }  //- 0x01000000
+        /// <summary>
+        /// Index of Model being replace
+        /// </summary>
+        public byte Index { get; }
 
-        public Model(byte index, uint guid)
+        /// <summary>
+        /// Model portal.dat entry minus 0x01000000
+        /// </summary>
+        public ushort ModelID { get; }
+
+        public Model(byte index, ushort modelID)
         {
             Index = index;
-            Guid = guid;
+            ModelID = modelID;
         }
     }
 }

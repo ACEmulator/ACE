@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
 using System;
 using System.Numerics;
@@ -8,7 +9,6 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCreateLifestone : GameMessage
     {
-        private static uint nextObjectId = 100;
         private static readonly float maxXY = Convert.ToSingle(Math.Sqrt(2) / 2);
         private static readonly float minXY = -1 * Convert.ToSingle(Math.Sqrt(2) / 2);
 
@@ -31,9 +31,8 @@ namespace ACE.Network.GameMessages.Messages
             Position newPosition = new Position(player.Position.Cell, player.Position.Offset.X + dx, player.Position.Offset.Y + dy, player.Position.Offset.Z + 0.5f, 0f, 0f, 0f, 0f);
             
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
-            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(nextObjectId++, GuidType.None), "Life Stone", ObjectDescriptionFlag.LifeStone, weenie, newPosition);
+            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(GuidManager.NewStaticObjectGuid()), "Life Stone", 1, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
-            // model id 0x000026
             wo.PhysicsData.MTableResourceId = 0x09000026u;
             wo.PhysicsData.Stable = 0x20000014u;
             wo.PhysicsData.CSetup = (uint)0x020002EEu;

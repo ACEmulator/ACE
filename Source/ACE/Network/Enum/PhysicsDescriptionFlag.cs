@@ -23,7 +23,7 @@ namespace ACE.Network.Enum
         DefaultScriptIntensity = 0x004000,
         Position               = 0x008000,
         Movement               = 0x010000,
-        AnimationFrame         = 0x200000,
-        Translucency           = 0x400000
+        AnimationFrame         = 0x020000,
+        Translucency           = 0x040000,
     }
 }
