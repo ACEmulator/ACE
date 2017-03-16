@@ -8,7 +8,7 @@ namespace ACE.Common
     public struct ConfigServerNetwork
     {
         public string Host { get; set; }
-        public uint LoginPort { get; set; }
+        public uint Port { get; set; }
     }
 
     public struct ConfigAccountDefaults
@@ -52,7 +52,6 @@ namespace ACE.Common
     {
         public static Config Config { get; private set; }
         public static byte[] Host { get; } = new byte[4];
-        public static byte[] InternalHost { get; } = new byte[4];
 
         public static void Initialise()
         {

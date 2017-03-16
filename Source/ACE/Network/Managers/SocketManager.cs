@@ -16,8 +16,8 @@ namespace ACE.Network.Managers
 
         public static void Initialise()
         {
-            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.LoginPort, ConnectionType.Login));
-            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.LoginPort + 1, ConnectionType.Login));
+            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.Port, ConnectionType.Login));
+            loginListeners.Add(new ConnectionListener(ConfigManager.Config.Server.Network.Port + 1, ConnectionType.Login));
 
             foreach (var loginListener in loginListeners)
                 loginListener.Start();
