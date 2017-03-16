@@ -20,7 +20,7 @@ namespace ACE.Entity
         public uint Stable;
         public uint Petable;
 
-        //this are all related
+        //these are all related
         public uint ItemsEquipedCount;
         public uint Parent;
         public EquipMask EquipperPhysicsDescriptionFlag;
