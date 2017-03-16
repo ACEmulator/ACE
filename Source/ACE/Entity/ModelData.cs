@@ -13,7 +13,9 @@ namespace ACE.Entity
     {
         
         private List<ModelPallete> modelPalletes = new List<ModelPallete>();
+
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
+
         private List<Model> models = new List<Model>();
 
         public void AddPallet (ushort palleteID, byte offset, byte length)
