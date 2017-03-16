@@ -3,10 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-
 using ACE.Network;
 
 namespace ACE.Command
