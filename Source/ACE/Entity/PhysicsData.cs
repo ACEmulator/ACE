@@ -65,9 +65,9 @@ namespace ACE.Entity
     
             writer.Write((uint)PhysicsDescriptionFlag);
            
-            //autonomous_movement
-         //   if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
-                writer.Write((uint)PhysicsState);
+            //autonomous_movement - required always ?
+            //if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            writer.Write((uint)PhysicsState);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
                 writer.Write((uint)AnimationFrame);
