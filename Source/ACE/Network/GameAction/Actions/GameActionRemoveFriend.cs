@@ -4,7 +4,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.RemoveFriend)]
+    [GameAction(GameActionType.RemoveFriend)]
     public class GameActionRemoveFriend : GameActionPacket
     {
         private ObjectGuid friendId;

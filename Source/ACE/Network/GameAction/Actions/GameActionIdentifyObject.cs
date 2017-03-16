@@ -5,7 +5,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.IdentifyObject)]
+    [GameAction(GameActionType.IdentifyObject)]
     public class GameActionIdentifyObject : GameActionPacket
     {
         public GameActionIdentifyObject(Session session, ClientPacketFragment fragment) : base(session, fragment)
@@ -24,7 +24,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO
 
             var identifyObjectResponse = new GameEventIdentifyObjectResponse(Session, objectID);
-            Session.WorldSession.EnqueueSend(identifyObjectResponse);
+            Session.Network.EnqueueSend(identifyObjectResponse);
         }
     }
 }

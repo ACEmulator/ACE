@@ -6,8 +6,7 @@ namespace ACE.Network.Enum
         AuthLoginRequest,
         AuthConnectResponse,
         AuthConnected,
-        WorldLoginRequest,
-        WorldConnectResponse,
+
         WorldConnected
     }
 }

@@ -3,7 +3,7 @@ using ACE.Entity;
 
 namespace ACE.Network.GameAction
 {
-    [GameAction(GameActionOpcode.AutonomousPosition)]
+    [GameAction(GameActionType.AutonomousPosition)]
     public class GameActionAutonomousPosition : GameActionPacket
     {
         private Position position;

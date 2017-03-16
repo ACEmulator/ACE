@@ -49,5 +49,7 @@ namespace ACE.Database
         void SaveCharacterProperties(DbObject dbObject, Database.DatabaseTransaction transaction);
 
         uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
+
+        uint RenameCharacter(string currentName, string newName);
     }
 }

@@ -142,7 +142,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
-    <Compile Include="Network\GameAction\GameActionOpcode.cs" />
+    <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
     <Compile Include="Network\Enum\WeenieHeaderFlags.cs" />
     <Compile Include="Entity\Player.cs" />
@@ -168,12 +168,12 @@
     <Compile Include="Network\GameEvent\Events\GameEventTell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />
     <Compile Include="Network\GameEvent\GameEventMessage.cs" />
-    <Compile Include="Network\GameEvent\GameEventOpcode.cs" />
     <Compile Include="Network\GameEvent\GameEventType.cs" />
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageCharacterLogOff.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />

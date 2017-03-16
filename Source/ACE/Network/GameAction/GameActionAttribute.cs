@@ -5,9 +5,9 @@ namespace ACE.Network.GameAction
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class GameActionAttribute : Attribute
     {
-        public GameActionOpcode Opcode { get; }
+        public GameActionType Opcode { get; }
 
-        public GameActionAttribute(GameActionOpcode opcode)
+        public GameActionAttribute(GameActionType opcode)
         {
             Opcode = opcode;
         }

@@ -10,12 +10,19 @@ namespace ACE.DatLoader
 
         public List<DatFile> AllFiles { get; private set; }
 
-        public DatDatabase(string filePath)
+        public DatDatabaseType DatType { get; private set; }
+
+        public string FilePath { get; private set; }
+
+        internal DatDatabase(string filePath, DatDatabaseType type)
         {
             if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException(filePath);
             }
+
+            this.FilePath = filePath;
+            DatType = type;
 
             using (FileStream stream = new FileStream(filePath, FileMode.Open))
             {
@@ -29,7 +36,7 @@ namespace ACE.DatLoader
                 stream.Read(firstDirBuffer, 0, sizeof(uint));
                 uint firstDirectoryOffset = BitConverter.ToUInt32(firstDirBuffer, 0);
 
-                RootDirectory = new DatDirectory(firstDirectoryOffset, Convert.ToInt32(sectorSize), stream);
+                RootDirectory = new DatDirectory(firstDirectoryOffset, Convert.ToInt32(sectorSize), stream, DatType);
             }
 
             AllFiles = new List<DatFile>();

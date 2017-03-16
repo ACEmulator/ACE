@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
+
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Common;
 
 namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCharacterList : GameMessage
     {
-        public GameMessageCharacterList(List<CachedCharacter> characters, string account) 
-            : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
+        public GameMessageCharacterList(List<CachedCharacter> characters, string account) : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
         {
             Writer.Write(0u);
             Writer.Write(characters.Count);
@@ -24,7 +23,7 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write(11u /*slotCount*/);
             Writer.WriteString16L(account);
             Writer.Write(1u /*useTurbineChat*/);
-            Writer.Write(0u /*hasThroneOfDestiny*/);
+            Writer.Write(1u /*hasThroneOfDestiny*/);
         }
     }
 }

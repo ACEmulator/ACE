@@ -8,21 +8,24 @@ namespace ACE.DatLoader
 {
     public class DatManager
     {
-        private static DatDatabase cellDat;
-        private static DatDatabase portalDat;
+        private static CellDatDatabase cellDat;
+
+        private static PortalDatDatabase portalDat;
 
         private static string datFile;
+
         private static int count;
 
-        public static DatDatabase CellDat { get { return cellDat; } }
-        public static DatDatabase PortalDat { get { return portalDat; } }
+        public static CellDatDatabase CellDat { get { return cellDat; } }
+
+        public static PortalDatDatabase PortalDat { get { return portalDat; } }
 
         static DatManager()
         {
             try
             {
                 datFile = ConfigManager.Config.Server.DatFilesDirectory + "\\client_cell_1.dat";
-                cellDat = new DatDatabase(datFile);
+                cellDat = new CellDatDatabase(datFile);
                 count = cellDat.AllFiles.Count();
                 Console.WriteLine($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -36,7 +39,7 @@ namespace ACE.DatLoader
             try
             {
                 datFile = ConfigManager.Config.Server.DatFilesDirectory + "\\client_portal.dat";
-                portalDat = new DatDatabase(datFile);
+                portalDat = new PortalDatDatabase(datFile);
                 count = portalDat.AllFiles.Count();
                 Console.WriteLine($"Successfully opened {datFile} file, containing {count} records");
             }

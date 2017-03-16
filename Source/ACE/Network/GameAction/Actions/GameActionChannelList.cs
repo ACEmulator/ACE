@@ -7,7 +7,7 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.ListChannels)]
+    [GameAction(GameActionType.ListChannels)]
     public class GameActionChannelList : GameActionPacket
     {
         private GroupChatType chatChannelID;
@@ -25,7 +25,7 @@ namespace ACE.Network.GameAction.Actions
             if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
-            Session.WorldSession.EnqueueSend(new GameEventChannelList(Session, chatChannelID));
+            Session.Network.EnqueueSend(new GameEventChannelList(Session, chatChannelID));
         }
     }
 }

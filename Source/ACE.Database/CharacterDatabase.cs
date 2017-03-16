@@ -19,6 +19,7 @@ namespace ACE.Database
             CharacterInsert,
             CharacterSelect,
             CharacterSelectByName,
+            CharacterRename,
             CharacterAppearanceInsert,
             CharacterStatsInsert,
             CharacterSkillsInsert,
@@ -35,6 +36,8 @@ namespace ACE.Database
             CharacterFriendDelete,
             CharacterFriendsRemoveAll,
             CharacterOptionsUpdate,
+
+            CharacterPositionInsert,
 
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
@@ -67,6 +70,7 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsRemoveAll, "DELETE FROM  `character_friends` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `deleted` = 0 AND `deleteTime` = 0 AND `name` = ?;", MySqlDbType.VarString);
             AddPreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, "UPDATE `character` SET `characterOptions1` = ?, `characterOptions2` = ? WHERE guid = ?", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterRename, "UPDATE `character` SET `name` = ? WHERE `guid` = ?;", MySqlDbType.VarString, MySqlDbType.UInt32);
 
             // world entry
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `characterOptions1`, `characterOptions2` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
@@ -75,6 +79,8 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthRanks`, `endurance`, `enduranceRanks`, `coordination`, `coordinationRanks`, `quickness`, `quicknessRanks`, `focus`, `focusRanks`, `self`, `selfRanks`, `healthRanks`, `healthCurrent`, `staminaRanks`, `staminaCurrent`, `manaRanks`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceSelect, "SELECT  `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue` FROM `character_appearance` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsSelect, "SELECT cf.`friendId`, c.`name` FROM `character_friends` cf JOIN `character` c ON (cf.`friendId` = c.`guid`) WHERE cf.`id` = ?;", MySqlDbType.UInt32);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, "REPLACE INTO character_position (id, cell, positionX, positionY, positionZ, rotationX, rotationY, rotationZ, rotationW) VALUES (?, ?, ?, ?, ?, ?, ? ,? ,?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float);
 
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_bool` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_int` WHERE `guid` = ?;", MySqlDbType.UInt32);
@@ -147,6 +153,8 @@ namespace ACE.Database
 
         public Task UpdateCharacter(Character character)
         {
+            ExecutePreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, character.Id, character.Position.Cell, character.Position.Offset.X, character.Position.Offset.Y, character.Position.Offset.Z, character.Position.Facing.X, character.Position.Facing.Y, character.Position.Facing.Z, character.Position.Facing.W);
+
             // TODO: implement saving a character
             return Task.Delay(0);
         }
@@ -465,6 +473,33 @@ namespace ACE.Database
             {
                 return 0;
             }
+        }
+
+        public uint RenameCharacter(string oldName, string newName)
+        {
+            var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, newName);
+            Debug.Assert(result != null);
+
+            if (IsNameAvailable(newName))
+            {
+                result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, oldName);
+                Debug.Assert(result != null);
+
+                try
+                {
+                    uint lowGuid = result.Result.Read<uint>(0, "guid");
+
+                    ExecutePreparedStatement(CharacterPreparedStatement.CharacterRename, newName, lowGuid);
+
+                    return lowGuid;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return 0;
+                }
+            }
+            else
+                return 0;
         }
     }
 }

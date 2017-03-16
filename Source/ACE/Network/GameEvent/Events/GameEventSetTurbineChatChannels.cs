@@ -4,10 +4,9 @@ namespace ACE.Network.GameEvent.Events
     public class GameEventSetTurbineChatChannels : GameEventMessage
     {
         /// <summary>
-        /// unknown1, unknown2 unknown3 do not appear to be used by the latest client.<para />
-        /// They are possibly accessed by an admin client. They could be used in the future for admin chat via a decal plugin (with some sort of auth layer). 
+        /// societyCelestialHand, societyEldrytchWeb and societyRadiantBlood do not appear to be used by the latest client.
         /// </summary>
-        public GameEventSetTurbineChatChannels(Session session, uint allegiance, uint general, uint trade, uint lfg, uint rolePlay, uint olhtoi, uint society, uint unknown1, uint unknown2, uint unknown3) 
+        public GameEventSetTurbineChatChannels(Session session, uint allegiance, uint general, uint trade, uint lfg, uint rolePlay, uint olhtoi, uint society, uint societyCelestialHand, uint societyEldrytchWeb, uint societyRadiantBlood) 
             : base(GameEventType.SetTurbineChatChannels, GameMessageGroup.Group09, session)
         {
             Writer.Write(allegiance);
@@ -17,9 +16,9 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write(rolePlay);
             Writer.Write(olhtoi);
             Writer.Write(society);
-            Writer.Write(unknown1);
-            Writer.Write(unknown2);
-            Writer.Write(unknown3);
+            Writer.Write(societyCelestialHand);
+            Writer.Write(societyEldrytchWeb);
+            Writer.Write(societyRadiantBlood);
         }
     }
 }

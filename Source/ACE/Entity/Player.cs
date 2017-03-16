@@ -24,14 +24,21 @@ namespace ACE.Entity
 
         public Session Session { get; }
 
-        //this is a hack job!
-        public uint FakeGlobalGuid = 100;
 
-
+        /// <summary>
+        /// This will be false when in portal space
+        /// </summary>
         public bool InWorld { get; set; }
-        public bool IsOnline { get; private set; }  // Different than InWorld which is false when in portal space
 
-        public uint PortalIndex { get; set; } = 1u; // amount of times this character has left a portal this session
+        /// <summary>
+        /// Different than InWorld which is false when in portal space
+        /// </summary>
+        public bool IsOnline { get; private set; }
+
+        /// <summary>
+        /// Amount of times this character has left a portal this session
+        /// </summary>
+        public uint PortalIndex { get; set; } = 1u;
 
         private Character character;
 
@@ -228,12 +235,12 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these arehardcoded right now
+            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
             var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "General");
             var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.WorldSession.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
         public void GrantXp(ulong amount)
@@ -242,7 +249,7 @@ namespace ACE.Entity
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-            Session.WorldSession.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
         }
 
         private void CheckForLevelup()
@@ -274,7 +281,7 @@ namespace ACE.Entity
 
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
                 var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
-                Session.WorldSession.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
+                Session.Network.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
             }
             else
             {
@@ -388,14 +395,14 @@ namespace ACE.Entity
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
-            Session.WorldSession.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
+            Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
         //plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(uint effectid)
         {
             var effectevent = new GameMessageEffect(this.Guid, effectid);
-            Session.WorldSession.EnqueueSend(effectevent);
+            Session.Network.EnqueueSend(effectevent);
         }
 
         /// <summary>
@@ -473,7 +480,7 @@ namespace ACE.Entity
                 playerFriend.Name = Name;
                 foreach (var friendSession in inverseFriends)
                 {
-                    friendSession.WorldSession.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+                    friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
                 }                
             }
         }
@@ -509,7 +516,7 @@ namespace ACE.Entity
             character.AddFriend(newFriend);
 
             // Send packet
-            Session.WorldSession.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
 
             return AddFriendResult.Success;
         }
@@ -533,7 +540,7 @@ namespace ACE.Entity
             character.RemoveFriend(friendId.Low);
 
             // Send packet
-            Session.WorldSession.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
+            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
 
             return RemoveFriendResult.Success;
         }
@@ -590,16 +597,14 @@ namespace ACE.Entity
 
         private void SendSelf()
         {
-            Session.WorldSession.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
-            Session.WorldSession.Flush();
+            Session.Network.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
             // TODO: gear and equip
 
             var player = new GameEventPlayerDescription(Session);
             var title = new GameEventCharacterTitle(Session);
             var friends = new GameEventFriendsListUpdate(Session);
 
-            Session.WorldSession.EnqueueSend(player, title, friends);
-            Session.WorldSession.Flush();
+            Session.Network.EnqueueSend(player, title, friends);
         }
         
         public void SetPhysicsState(PhysicsState state, bool packet = true)
@@ -608,7 +613,7 @@ namespace ACE.Entity
 
             if (packet)
             {
-                Session.WorldSession.EnqueueSend(new GameMessageSetState(Guid, state, character.TotalLogins, ++PortalIndex));
+                Session.Network.EnqueueSend(new GameMessageSetState(Guid, state, character.TotalLogins, ++PortalIndex));
                 // TODO: this should be broadcast
             }
         }
@@ -621,7 +626,7 @@ namespace ACE.Entity
             InWorld = false;
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
-            Session.WorldSession.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
+            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
 
             // must be sent after the teleport packet
             UpdatePosition(newPosition);
@@ -631,7 +636,7 @@ namespace ACE.Entity
         {
             var updateTitle = new GameEventUpdateTitle(Session, title);
             var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
-            Session.WorldSession.EnqueueSend(updateTitle, message);
+            Session.Network.EnqueueSend(updateTitle, message);
         }
 
         public void Subscribe(MutableWorldObject worldObject)
@@ -648,19 +653,42 @@ namespace ACE.Entity
                 // TODO: send a destroy packet
             }
         }
-        
+
         /// <summary>
-        /// Stuff to do when player logs out
+        /// Do the player log out work.<para />
+        /// If you want to force a player to logout, use Session.LogOffPlayer(). 
         /// </summary>
-        public void Logout()
+        public void Logout(bool clientSessionTerminatedAbruptly = false)
         {
+            if (!IsOnline)
+                return;
+
+            InWorld = false;
             IsOnline = false;
+
             SendFriendStatusUpdates();
 
             // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
             // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
             DatabaseManager.Character.SaveCharacterOptions(character);
-        }
 
+            DatabaseManager.Character.UpdateCharacter(character);
+
+            if (!clientSessionTerminatedAbruptly)
+            {
+                // TODO: Evt_Movement__MovementEvent_ID = F74C
+
+                SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
+
+                // Thie retail server sends a ChatRoomTracker 0x0295 first, then the status message, 0x028B. It does them one at a time for each individual channel.
+                // The ChatRoomTracker message doesn't seem to change at all.
+                // For the purpose of ACE, we simplify this process.
+                var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "General");
+                var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Trade");
+                var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "LFG");
+                var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Roleplay");
+                Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+            }
+        }
     }
 }

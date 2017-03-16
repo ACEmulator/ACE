@@ -51,7 +51,7 @@ namespace ACE.Network.Handlers
 
                 // TODO This should check if the recipient is subscribed to the channel
                 foreach (var recipient in WorldManager.GetAll())
-                    recipient.WorldSession.EnqueueSend(gameMessageTurbineChat);
+                    recipient.Network.EnqueueSend(gameMessageTurbineChat);
             }
             else
                 Console.WriteLine($"Unhandled TurbineChatHandler TurbineChatType: 0x{(uint)turbineChatType:X4}");

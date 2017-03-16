@@ -3,7 +3,7 @@ using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.RaiseAbility)]
+    [GameAction(GameActionType.RaiseAbility)]
     public class GameActionRaiseAbility : GameActionPacket
     {
         private Entity.Enum.Ability ability;

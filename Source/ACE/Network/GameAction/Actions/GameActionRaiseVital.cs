@@ -4,7 +4,7 @@ using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionOpcode.RaiseVital)]
+    [GameAction(GameActionType.RaiseVital)]
     public class GameActionRaiseVital : GameActionPacket
     {
         private Vital vital;
