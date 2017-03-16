@@ -45,6 +45,7 @@ namespace ACE.Entity
 
             foreach (ModelPallete pallet in modelPalletes)
             {
+
                 writer.Write((ushort)pallet.PaletteID);
                 writer.Write((byte)pallet.Offset);
                 writer.Write((byte)pallet.Length);
