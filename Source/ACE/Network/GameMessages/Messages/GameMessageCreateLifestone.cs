@@ -33,7 +33,6 @@ namespace ACE.Network.GameMessages.Messages
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(GuidManager.NewStaticObjectGuid()), "Life Stone", 1, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
-            // model id 0x000026
             wo.PhysicsData.MTableResourceId = 0x09000026u;
             wo.PhysicsData.Stable = 0x20000014u;
             wo.PhysicsData.CSetup = (uint)0x020002EEu;
