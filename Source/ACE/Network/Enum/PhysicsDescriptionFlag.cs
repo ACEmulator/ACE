@@ -5,7 +5,7 @@ namespace ACE.Network.Enum
     [Flags]
     public enum PhysicsDescriptionFlag
     {
-        None                   = 0x00000,
+        None                   = 0x000000,
         CSetup                 = 0x000001,
         MTable                 = 0x000002,
         Velocity               = 0x000004,
@@ -24,6 +24,6 @@ namespace ACE.Network.Enum
         Position               = 0x008000,
         Movement               = 0x010000,
         AnimationFrame         = 0x020000,
-        Translucency           = 0x040000,
+        Translucency           = 0x040000
     }
 }

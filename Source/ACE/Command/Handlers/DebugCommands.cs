@@ -1,13 +1,8 @@
 ﻿using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Managers;
 using ACE.Network;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 
 namespace ACE.Command.Handlers
 {
@@ -120,5 +115,10 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageCreateLifestone(session.Player));
         }
 
+        [CommandHandler("createtrainingwand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateTrainingWand(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageCreateTrainingWand(session.Player));
+        }
     }
 }

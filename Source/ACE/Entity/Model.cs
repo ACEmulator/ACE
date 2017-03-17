@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ACE.Entity
+﻿namespace ACE.Entity
 {
     /// <summary>
     /// Used to replace model objects with other model objects.
@@ -12,7 +6,6 @@ namespace ACE.Entity
     /// </summary>
     public class Model
     {
-
         /// <summary>
         /// Index of Model being replace
         /// </summary>
