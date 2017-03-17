@@ -252,7 +252,9 @@
     <None Include="abilityXp.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Config.json.example" />
     <None Include="default.ruleset" />
     <None Include="levels.json">

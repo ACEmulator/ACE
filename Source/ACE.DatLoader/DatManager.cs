@@ -22,8 +22,8 @@ namespace ACE.DatLoader
         public static CellDatDatabase CellDat { get { return cellDat; } }
 
         public static PortalDatDatabase PortalDat { get { return portalDat; } }
-
-        static DatManager()
+        
+        public static void Initialize()
         {
             try
             {
@@ -34,9 +34,8 @@ namespace ACE.DatLoader
             }
             catch (FileNotFoundException ex)
             {
-                log.Info($"An exception occured while attempting to open {datFile} file!");
+                log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
                 log.Info($"Exception: {ex.Message}");
-                Environment.Exit(-1);
             }
 
             try
@@ -48,9 +47,8 @@ namespace ACE.DatLoader
             }
             catch (FileNotFoundException ex)
             {
-                log.Info($"An exception occured while attempting to open {datFile} file!");
+                log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
                 log.Info($"Exception: {ex.Message}");
-                Environment.Exit(-1);
             }
         }
     }

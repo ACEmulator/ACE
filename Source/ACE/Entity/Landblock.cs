@@ -4,6 +4,7 @@ using log4net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ACE.Entity
@@ -14,7 +15,7 @@ namespace ACE.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    internal class Landblock : IDisposable
+    internal class Landblock
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -27,7 +28,7 @@ namespace ACE.Entity
 
         private object objectCacheLocker = new object();
         private Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
-        
+
         private Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
         private byte cellGridMaxX = 8; // todo: load from cell.dat
@@ -36,6 +37,8 @@ namespace ACE.Entity
         // not sure if a full object is necessary here.  I don't think a Landcell has any
         // inherent functionality that needs to be modelled in an object.
         private Landcell[,] cellGrid; // todo: load from cell.dat
+
+        private bool running = false;
 
         public LandblockId Id
         {
@@ -117,14 +120,12 @@ namespace ACE.Entity
             get { return adjacencies[Adjacency.NorthWest]; }
             set { adjacencies[Adjacency.NorthWest] = value; }
         }
-
-        /// <summary>
-        /// called when a landblock is to be unloaded
-        /// </summary>
-        public void Dispose()
+        
+        public void StartUseTime()
         {
-            // save all mutable objects, release memory
-            // TODO: implement
+            running = true;
+
+            new Thread(UseTime).Start();
         }
 
         public void AddWorldObject(WorldObject wo)
@@ -138,7 +139,7 @@ namespace ACE.Entity
                 allObjects = this.worldObjects.Values.ToList();
                 this.worldObjects[wo.Guid] = wo;
             }
-            
+
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
             Broadcast(args, true, Quadrant.All);
 
@@ -150,7 +151,7 @@ namespace ACE.Entity
                 Parallel.ForEach(allObjects, (o) => (wo as Player).TrackObject(o));
             }
         }
-        
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -160,7 +161,7 @@ namespace ACE.Entity
             {
                 players = this.worldObjects.Values.OfType<Player>().ToList();
             }
-            
+
             BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
             Broadcast(args, true, Quadrant.All);
         }
@@ -271,59 +272,64 @@ namespace ACE.Entity
         /// <summary>
         /// main game loop
         /// </summary>
-        public void UseTime(double lastTick)
+        public void UseTime()
         {
-            // here we'd move server objects in motion (subject to landscape) and do physics collision detection
-
-            // for now, we'll move players around
-            List<MutableWorldObject> movedObjects = null;
-
-            lock (objectCacheLocker)
+            while (running)
             {
-                movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
+                // here we'd move server objects in motion (subject to landscape) and do physics collision detection
+
+                // for now, we'll move players around
+                List<MutableWorldObject> movedObjects = null;
+
+                lock (objectCacheLocker)
+                {
+                    movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
+                }
+
+                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks > p.LastMovementBroadcastTicks).ToList();
+
+                // flag them as updated now in order to reduce chance of missing an update
+                movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
+
+                if (this.id.MapScope == Enum.MapScope.Outdoors)
+                {
+                    // check to see if a player or other mutable object "roamed" to an adjacent landblock
+                    var objectsToRelocate = movedObjects.Where(m => m.Position.LandblockId.IsAdjacentTo(this.id) && m.Position.LandblockId != this.id).ToList();
+
+                    // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
+                    // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
+                    // figure out how to treat it in adjacent landblocks.  if the player walks across the southern border, the north adjacency needs to remove
+                    // them, but the south is actually getting them.  we need to avoid sending Delete+Create to clients that already know about it, though.
+
+                    objectsToRelocate.ForEach(o => Log($"attempting to relocate object {o.Name} ({o.Guid.Full.ToString("X")})"));
+
+                    // RelocateObject will put them in the right landblock
+                    objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
+
+                    // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
+                    objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
+                }
+
+                // broadcast
+                Parallel.ForEach(movedObjects, mo =>
+                {
+                    if (mo.Position.LandblockId == this.id)
+                    {
+                        // update if it's still here
+                        Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
+                    }
+                    else
+                    {
+                        // remove and readd if it's not
+                        this.RemoveWorldObject(mo.Guid, false);
+                        LandblockManager.AddObject(mo);
+                    }
+                });
+
+                // TODO: figure out if this landblock can be unloaded
             }
 
-            movedObjects = movedObjects.Where(p => p.LastUpdatedTicks > p.LastMovementBroadcastTicks).ToList();
-
-            // flag them as updated now in order to reduce chance of missing an update
-            movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
-
-            if (this.id.MapScope == Enum.MapScope.Outdoors)
-            {
-                // check to see if a player or other mutable object "roamed" to an adjacent landblock
-                var objectsToRelocate = movedObjects.Where(m => m.Position.LandblockId.IsAdjacentTo(this.id) && m.Position.LandblockId != this.id).ToList();
-
-                // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
-                // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
-                // figure out how to treat it in adjacent landblocks.  if the player walks across the southern border, the north adjacency needs to remove
-                // them, but the south is actually getting them.  we need to avoid sending Delete+Create to clients that already know about it, though.
-
-                objectsToRelocate.ForEach(o => Log($"attempting to relocate object {o.Name} ({o.Guid.Full.ToString("X")})"));
-
-                // RelocateObject will put them in the right landblock
-                objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
-
-                // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
-                objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
-            }
-
-            // broadcast
-            Parallel.ForEach(movedObjects, mo =>
-            {
-                if (mo.Position.LandblockId == this.id)
-                {
-                    // update if it's still here
-                    Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
-                }
-                else
-                {
-                    // remove and readd if it's not
-                    this.RemoveWorldObject(mo.Guid, false);
-                    LandblockManager.AddObject(mo);
-                }
-            });
-
-            // TODO: figure out if this landblock can be unloaded
+            // TODO: release resources
         }
 
         /// <summary>

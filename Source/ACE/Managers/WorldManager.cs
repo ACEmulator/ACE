@@ -174,7 +174,6 @@ namespace ACE.Managers
                 try
                 {
                     Parallel.ForEach(sessionStore, s => s.Update(lastTick));
-                    LandblockManager.UseTime(lastTick);
                 }
                 finally
                 {

@@ -44,21 +44,7 @@ namespace ACE.Managers
             Landblock block = GetLandblock(worldObject.Position.LandblockId, true);
             block.RemoveWorldObject(worldObject.Guid, false);
         }
-
-        public static void UseTime(double lastTick)
-        {
-            List<Landblock> activeBlocks = new List<Landblock>();
-
-            for (int x = 0; x < 256; x++)
-                for (int y = 0; y < 256; y++)
-                    if (landblocks[x, y] != null)
-                        activeBlocks.Add(landblocks[x, y]);
-
-            Parallel.ForEach(activeBlocks, b => b.UseTime(lastTick));
-
-            // TODO: figure out if landblocks can be spun down / terminated
-        }
-
+        
         /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propogate is true (outdoor world roaming).
@@ -107,6 +93,9 @@ namespace ACE.Managers
 
                         if (y < 255)
                             SetAdjacency(landblockId, landblockId.North, Adjacency.North, autoLoad);
+
+                        // kick off the landblock use time thread
+                        block.StartUseTime();
                     }
                 }
             }

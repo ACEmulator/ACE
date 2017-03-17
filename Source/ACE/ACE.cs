@@ -5,6 +5,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Managers;
 using ACE.Network.Managers;
+using ACE.DatLoader;
 
 namespace ACE
 {
@@ -20,10 +21,8 @@ namespace ACE
             InboundMessageManager.Initialise();
             SocketManager.Initialise();
             WorldManager.Initialise();
+            DatManager.Initialize();
             CommandManager.Initialise();
-
-            // force loading of the dat files
-            var throwaway = new DatLoader.DatManager();
         }
     }
 }
