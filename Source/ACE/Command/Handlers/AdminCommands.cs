@@ -1,5 +1,4 @@
 ﻿using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -7,6 +6,8 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
+using System.Reflection;
+using ACE.Command.Handlers;
 
 namespace ACE.Command
 {
@@ -18,6 +19,33 @@ namespace ACE.Command
         //{
         //    //TODO: output
         //}
+
+        /// <summary>
+        /// Cycle player access level; this only makes sense during development & testing
+        /// </summary>
+        /// <param name="session"></param>
+        private static void ChangePlayerAccessLevel(Session session)
+        {
+            int lvl = (int)session.AccessLevel;
+            lvl = (lvl + 1) % 5;
+            session.AccessLevel = (AccessLevel)lvl;
+        }
+
+        // @accessLevelCycle
+        // Solely for development testing
+        [CommandHandler("accessLevelCycle", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandleAccessLevelCycle(Session session, params string[] parameters)
+        {
+            // @accessLevelCycle
+            // Cycles the player's access level by one, in a loop
+
+            if (session != null)
+            {
+                ChangePlayerAccessLevel(session);
+            }
+
+            ChatPacket.SendServerMessage(session, string.Format("Changed your access level to : {0}", session.AccessLevel), ChatMessageType.Broadcast);
+        }
 
         // adminvision { on | off | toggle | check}
         [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
@@ -32,6 +60,7 @@ namespace ACE.Command
             //output: Admin Visible is {state}
 
             ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // adminui
@@ -53,6 +82,7 @@ namespace ACE.Command
             // @attackable - Sets whether monsters will attack you or not.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // ban < acct > < days > < hours > < minutes >
@@ -64,6 +94,7 @@ namespace ACE.Command
             // @ban - Bans the specified player account.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // unban < acct >
@@ -75,6 +106,7 @@ namespace ACE.Command
             // @unban - Unbans the specified player account.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // banlist
@@ -84,6 +116,7 @@ namespace ACE.Command
             // @banlist - Lists all banned accounts on this world.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // boot { account | char | iid } who
@@ -95,6 +128,7 @@ namespace ACE.Command
             // @boot - Boots the character out of the game.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // cloak < on / off / player / creature >
@@ -110,6 +144,7 @@ namespace ACE.Command
             // @cloak - Sets your cloaking state.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // deaf < on / off >
@@ -121,6 +156,7 @@ namespace ACE.Command
             // @deaf off -You can hear players again.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // deaf < hear | mute > < player >
@@ -131,6 +167,7 @@ namespace ACE.Command
             // @deaf mute[name] -remove a player from the list of players you can hear.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // delete
@@ -140,6 +177,7 @@ namespace ACE.Command
             // @delete - Deletes the selected object. Players may not be deleted this way.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // draw
@@ -149,6 +187,7 @@ namespace ACE.Command
             // @draw - Draws undrawable things.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // finger [ [-a] character] [-m account]
@@ -160,6 +199,7 @@ namespace ACE.Command
             // @finger - Show the given character's account name or vice-versa.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // freeze
@@ -169,6 +209,7 @@ namespace ACE.Command
             // @freeze - Freezes the selected target for 10 minutes or until unfrozen.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // unfreeze
@@ -178,6 +219,7 @@ namespace ACE.Command
             // @unfreeze - Unfreezes the selected target.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // gag < char name >
@@ -190,6 +232,7 @@ namespace ACE.Command
             // @ungag -Allows a gagged character to talk again.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // ungag < char name >
@@ -200,6 +243,7 @@ namespace ACE.Command
             // @ungag -Allows a gagged character to talk again.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // home < recall number >
@@ -213,6 +257,7 @@ namespace ACE.Command
             // @home[recall number] -Teleports you to your sanctuary position.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // mrt
@@ -222,6 +267,7 @@ namespace ACE.Command
             // @mrt - Toggles the ability to bypass housing boundaries.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // limbo [on / off]
@@ -232,6 +278,7 @@ namespace ACE.Command
             // @limbo - Puts the selected target in limbo.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // myiid
@@ -241,6 +288,7 @@ namespace ACE.Command
             // @myiid - Displays your Instance ID(IID).
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // myserver
@@ -250,6 +298,7 @@ namespace ACE.Command
             // @myserver - Displays the number of the game server on which you are currently located.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // neversaydie [on/off]
@@ -263,6 +312,7 @@ namespace ACE.Command
             //output: You are now immortal.
 
             ChatPacket.SendServerMessage(session, "You are now immortal.", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // pk
@@ -272,6 +322,7 @@ namespace ACE.Command
             // @pk - Toggles or sets your own PK state.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // portal_bypass
@@ -281,6 +332,7 @@ namespace ACE.Command
             // @portal_bypass - Toggles the ability to bypass portal restrictions.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // querypluginlist
@@ -293,6 +345,7 @@ namespace ACE.Command
             // @queryplugin < pluginname > -View information about a specific plugin.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // queryplugin
@@ -302,6 +355,7 @@ namespace ACE.Command
             // @queryplugin < pluginname > -View information about a specific plugin.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // repeat < Num > < Command >
@@ -313,6 +367,7 @@ namespace ACE.Command
             // @repeat < Num > < Command > -Repeat a command a number of times.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // regen
@@ -322,6 +377,7 @@ namespace ACE.Command
             // @regen - Sends the selected generator a regeneration message.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // reportbug < code | content > < description >
@@ -335,6 +391,7 @@ namespace ACE.Command
             //LOL
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // run < on | off | toggle | check >
@@ -346,6 +403,7 @@ namespace ACE.Command
             // @run - Temporarily boosts your run skill.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // save < recall number >
@@ -358,6 +416,7 @@ namespace ACE.Command
             // @save - Sets your sanctuary position or a named recall point.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // serverlist
@@ -377,6 +436,7 @@ namespace ACE.Command
             // @serverlist - Shows a list of the logical servers that control this world.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // snoop [start / stop] [Character Name]
@@ -388,6 +448,7 @@ namespace ACE.Command
             // @snoop - Listen in on a player's private communication.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // smite [all]
@@ -397,6 +458,7 @@ namespace ACE.Command
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // tele [name] longitude latitude
@@ -468,6 +530,7 @@ namespace ACE.Command
             // @teleto - Teleports you to the specified character.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // telepoi location
@@ -551,6 +614,7 @@ namespace ACE.Command
             // @trophies - Shows a list of the trophies dropped by the target creature, and the percentage chance of dropping.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // unlock {-all | IID}
@@ -562,6 +626,7 @@ namespace ACE.Command
             // @unlock - Cleans the SQL lock on either everyone or the given player.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // gamecast <message>
@@ -574,6 +639,7 @@ namespace ACE.Command
             // @gamecast - Sends a world-wide broadcast.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // add <spell>
@@ -583,6 +649,7 @@ namespace ACE.Command
             // @add spell - Adds the specified spell to your own spellbook.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // adminhouse
@@ -605,6 +672,7 @@ namespace ACE.Command
             // @adminhouse - House management tools for admins.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // bornagain deletedCharID[, newCharName[, accountName]]
@@ -618,6 +686,7 @@ namespace ACE.Command
             // @bornagain - Restores a deleted character to an account.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // copychar < character name >, < copy name >
@@ -629,6 +698,7 @@ namespace ACE.Command
             // @copychar - Copies an existing character into your character list.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // create wclassid (string or number)
@@ -640,6 +710,7 @@ namespace ACE.Command
             // usage: @create wclassid (string or number)
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // ci wclassid (string or number)
@@ -650,6 +721,7 @@ namespace ACE.Command
             // @ci - Creates an object in your inventory.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // cm <material type> <quantity> <ave. workmanship>
@@ -659,6 +731,7 @@ namespace ACE.Command
             // Format is: @cm <material type> <quantity> <ave. workmanship>
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // deathxp
@@ -668,6 +741,7 @@ namespace ACE.Command
             // @deathxp - Displays how much experience this creature is worth when killed.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // de_n name, text
@@ -685,6 +759,7 @@ namespace ACE.Command
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // direct_emote_name name, text
@@ -702,6 +777,7 @@ namespace ACE.Command
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // de_s text
@@ -719,6 +795,7 @@ namespace ACE.Command
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // direct_emote_select text
@@ -731,6 +808,7 @@ namespace ACE.Command
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // dispel
@@ -742,6 +820,7 @@ namespace ACE.Command
             // @dispel - Dispels all enchantments from you (or the selected object).
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // event
@@ -754,6 +833,7 @@ namespace ACE.Command
             // @event - Maniuplates the state of an event.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // fumble
@@ -763,19 +843,20 @@ namespace ACE.Command
             // @fumble - Forces the selected target to drop everything they contain to the ground.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // god
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleGod(Session session, params string[] parameters)
         {
-            // @god - Sets your own stats to the specified level.
 
             //TODO: output
 
             //output: You are now a god!!!
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // magic god
@@ -789,6 +870,7 @@ namespace ACE.Command
             //output: You are now a magic god!!!
 
             ChatPacket.SendServerMessage(session, "You are now a magic god!!!", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // heal
@@ -804,6 +886,7 @@ namespace ACE.Command
             //session.Player.Character.Stamina.Current = session.Player.Character.Stamina.Value;
             //session.Player.Character.Mana.Current = session.Player.Character.Mana.Value;
             //session.Player.Session.
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // housekeep
@@ -814,6 +897,7 @@ namespace ACE.Command
             // @housekeep - Queries or sets the housekeeping status for the selected item.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // idlist
@@ -823,6 +907,7 @@ namespace ACE.Command
             // @idlist - Shows the next ID that will be allocated from SQL.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // gamecastlocalemote <message>
@@ -835,6 +920,7 @@ namespace ACE.Command
             // @gamecastlocalemote - Sends text to all players within chat range, formatted exactly as entered.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // location
@@ -844,6 +930,7 @@ namespace ACE.Command
             // @location - Causes your current location to be continuously displayed on the screen.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // morph
@@ -853,6 +940,7 @@ namespace ACE.Command
             // @morph - Morphs your bodily form into that of the specified creature. Be careful with this one!
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // qst
@@ -867,6 +955,7 @@ namespace ACE.Command
             // @qst - Query, stamp, and erase quests on the targeted player.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // raise
@@ -876,6 +965,7 @@ namespace ACE.Command
             // @raise - Raises your experience (or the experience in a skill) by the given amount.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // rename <Current Name> <New Name>
@@ -921,6 +1011,7 @@ namespace ACE.Command
             // @setadvclass - Sets the advancement class of one of your own skills.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // spendxp
@@ -930,6 +1021,7 @@ namespace ACE.Command
             // @spendxp - Allows you to more quickly spend your available xp into the specified skill.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // trainskill
@@ -939,6 +1031,7 @@ namespace ACE.Command
             // @trainskill - Attempts to train the specified skill by spending skill credits on it.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // reloadsysmsg
@@ -948,6 +1041,7 @@ namespace ACE.Command
             // @reloadsysmsg - Causes all servers to reload system_messages.txt.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // gamecastlocal <message>
@@ -961,6 +1055,7 @@ namespace ACE.Command
             // @gamecastlocal Sends a server-wide broadcast.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // sticky { on | off }
@@ -972,6 +1067,7 @@ namespace ACE.Command
             // @sticky - Sets whether you loose items should you die.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // userlimit { num }
@@ -981,6 +1077,7 @@ namespace ACE.Command
             // @userlimit - Sets how many clients are allowed to connect to this world.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // watchmen
@@ -990,6 +1087,7 @@ namespace ACE.Command
             // @watchmen - Displays a list of accounts with the specified level of admin access.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // gamecastemote <message>
@@ -1002,6 +1100,7 @@ namespace ACE.Command
             // @gamecastemote - Sends text to all players, formatted exactly as entered.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // dumpattackers
@@ -1011,6 +1110,7 @@ namespace ACE.Command
             // @dumpattackers - Displays the detection and enemy information for the selected creature.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // knownobjs
@@ -1020,6 +1120,7 @@ namespace ACE.Command
             // @knownobjs - Display a list of objects that the client is aware of.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // lbinterval
@@ -1029,6 +1130,7 @@ namespace ACE.Command
             // @lbinterval - Sets how often in seconds the server farm will rebalance the server farm load.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // lbthresh
@@ -1039,6 +1141,7 @@ namespace ACE.Command
             // @lbthresh - Set how much load can be transferred between two servers during a single load balance.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // radar
@@ -1048,6 +1151,7 @@ namespace ACE.Command
             //  @radar - Toggles your radar on and off.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // rares dump
@@ -1057,6 +1161,7 @@ namespace ACE.Command
             //  @rares dump - Lists all tiers of rare items.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // stormnumstormed
@@ -1066,6 +1171,7 @@ namespace ACE.Command
             // @stormnumstormed - Sets how many characters are teleported away during a portal storm.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
 
         // stormthresh
@@ -1075,6 +1181,7 @@ namespace ACE.Command
             // @stormthresh - Sets how many character can be in a landblock before we do a portal storm.
 
             //TODO: output
+            ChatPacket.SendServerMessage(session, "Command not yet implemented.", ChatMessageType.Broadcast);
         }
     }
 }

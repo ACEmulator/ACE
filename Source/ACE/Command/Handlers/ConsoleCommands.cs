@@ -1,24 +1,25 @@
 ﻿using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.DatLoader;
+using ACE.Command.Handlers;
 
 namespace ACE.Command
 {
     public static class ConsoleCommands
     {
-        // acehelp
-        [CommandHandler("acehelp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleACEHelp(Session session, params string[] parameters)
+        [CommandHandler("acehelp", AccessLevel.Player, CommandHandlerFlag.ConsoleInvoke, 0)]
+        public static void HandleAceHelpOnServer(Session session, params string[] parameters)
         {
-            //TODO: ACEHELP output
-            Console.WriteLine("TODO: Sorry, still need to implement this command");
+            HelpCommands.HandleAceHelp(session, CommandChannel.TheServerChannel, parameters);
         }
-
-        [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1)]
+        [CommandHandler("acecommands", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
+        public static void HandleAceCommandsFromServer(Session session, params string[] parameters)
+        {
+            HelpCommands.HandleAceCommands(session, CommandChannel.TheServerChannel, parameters);
+        }        [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1)]
         public static void ExportCellDatContents(Session session, params string[] parameters)
         {
             if (parameters?.Length != 1)
@@ -42,6 +43,5 @@ namespace ACE.Command
             Console.WriteLine($"Exporting portal.dat contents to {exportDir}.  This will take a while.");
             DatManager.PortalDat.ExtractCategorizedContents(exportDir);
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
-        }
-    }
+        }    }
 }
