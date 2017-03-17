@@ -19,6 +19,7 @@ namespace ACE.Network
         public string Account { get; private set; }
 
         public AccessLevel AccessLevel { get; private set; }
+
         public SessionState State { get; set; }
 
         public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();

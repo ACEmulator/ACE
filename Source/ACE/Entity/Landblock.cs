@@ -217,12 +217,8 @@ namespace ACE.Entity
                     }
                 case BroadcastAction.AddOrUpdate:
                     {
-                        Player player = args.Sender as Player;
-                        if (player != null)
-                        {
-                            player.SendUpdatePosition();
-                            players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
-                        }
+                        // players never need an update of themselves
+                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
                         Parallel.ForEach(players, p => p.TrackObject(wo));
                         break;
                     }
@@ -284,11 +280,13 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                // TODO: Improve the efficiency of this line
-                movedObjects = this.worldObjects.Values.Where(o => (o as MutableWorldObject) != null).Cast<MutableWorldObject>().ToList();
+                movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
             }
 
-            movedObjects = movedObjects.Where(p => p.LastMovedTicks > p.LastMovementBroadcastTicks).ToList();
+            movedObjects = movedObjects.Where(p => p.LastUpdatedTicks > p.LastMovementBroadcastTicks).ToList();
+
+            // flag them as updated now in order to reduce chance of missing an update
+            movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
             if (this.id.MapScope == Enum.MapScope.Outdoors)
             {

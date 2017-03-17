@@ -9,6 +9,8 @@ namespace ACE.DatLoader
 {
     public class DatManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static CellDatDatabase cellDat;
 
         private static PortalDatDatabase portalDat;

@@ -10,6 +10,7 @@ using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
+using ACE.Managers;
 
 namespace ACE.Network.Handlers
 {
@@ -47,7 +48,8 @@ namespace ACE.Network.Handlers
             session.State = SessionState.WorldConnected;
 
             session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-            session.Player.Load();
+            
+            LandblockManager.PlayerEnterWorld(session);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]

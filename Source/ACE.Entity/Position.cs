@@ -74,14 +74,16 @@ namespace ACE.Entity
             Facing = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
-        public void Serialize(BinaryWriter payload, bool quaternion = true)
+        public void Serialize(BinaryWriter payload, bool writeQuaternion = true, bool writeLandblock = true)
         {
-            payload.Write(LandblockId.Raw);
+            if (writeLandblock)
+                payload.Write(LandblockId.Raw);
+
             payload.Write(Offset.X);
             payload.Write(Offset.Y);
             payload.Write(Offset.Z);
 
-            if (quaternion)
+            if (writeQuaternion)
             {
                 payload.Write(Facing.W);
                 payload.Write(Facing.X);
@@ -123,6 +125,11 @@ namespace ACE.Entity
             uint cell = (uint)((cellX << 3) | cellY);
 
             return (block << 16) | (cell + 1);
+        }
+
+        public override string ToString()
+        {
+            return $"{LandblockId.Landblock.ToString("X")}: {Offset.X} {Offset.Y} {Offset.Z}";
         }
     }
 }

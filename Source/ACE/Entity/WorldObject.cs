@@ -21,6 +21,11 @@ namespace ACE.Entity
 
         public string Name { get; protected set; }
 
+        /// <summary>
+        /// tick-stamp for the last time this object changed in any way.
+        /// </summary>
+        public double LastUpdatedTicks { get; set; }
+
         public virtual Position Position
         { 
             get { return PhysicsData.Position; }

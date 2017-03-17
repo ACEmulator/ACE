@@ -16,11 +16,14 @@ using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
+using log4net;
 
 namespace ACE.Entity
 {
     public class Player : MutableWorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Session Session { get; }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace ACE.Entity
         private Character character;
         
         private object clientObjectMutex = new object();
-        private List<ObjectGuid> clientObjectList = new List<ObjectGuid>();
+        private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -647,11 +650,12 @@ namespace ACE.Entity
         public void UpdatePosition(Position newPosition)
         {
             this.Position = newPosition;
+            SendUpdatePosition();
         }
 
         private void DelayedUpdatePosition(Position newPosition)
         {
-            var t = new Thread(() => { Thread.Sleep(100); this.Position = newPosition; });
+            var t = new Thread(() => { Thread.Sleep(10); this.Position = newPosition; SendUpdatePosition(); });
             t.Start();
         }
 
@@ -664,7 +668,7 @@ namespace ACE.Entity
 
         public void ObjectMoved(MutableWorldObject sender)
         {
-            Session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(sender));
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(sender));
         }
 
         public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
@@ -673,32 +677,36 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// TODO: use or remove the sendWeenie flag
+        /// forces either an update or a create object to be sent to the client
         /// </summary>
-        public void TrackObject(WorldObject worldObject, bool sendWeenie = true)
+        public void TrackObject(WorldObject worldObject)
         {
             bool sendUpdate = true;
 
+            if (worldObject.Guid == this.Guid)
+                return;
+
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.Contains(worldObject.Guid);
+                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
+
+                // check for a short circuit.  if we don't need to update, don't!
+                if (sendUpdate)
+                    if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
+                        return;
 
                 if (!sendUpdate)
-                {
-                    clientObjectList.Add(worldObject.Guid);
-                }
+                    clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
+                else
+                    clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
 
+            log.Debug($"Telling {Name} about {worldObject.Name}");
+
             if (sendUpdate)
-            {
-                // send a normal update
-                Session.WorldSession.EnqueueSend(new GameMessageUpdateObject(worldObject));
-            }
+                Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
             else
-            {
-                clientObjectList.Add(worldObject.Guid);
-                Session.WorldSession.EnqueueSend(new GameMessageCreateObject(worldObject));
-            }
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
         }
 
         /// <summary>
@@ -746,7 +754,7 @@ namespace ACE.Entity
             bool sendUpdate = true;
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.Contains(objectId);
+                sendUpdate = clientObjectList.ContainsKey(objectId);
 
                 if (!sendUpdate)
                 {
@@ -756,14 +764,20 @@ namespace ACE.Entity
 
             if (sendUpdate)
             {
-                Session.WorldSession.EnqueueSend(new GameMessageRemoveObject(objectId));
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(objectId));
             }
         }
 
         public void SendUpdatePosition()
         {
             this.LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-            Session.WorldSession.EnqueueSend(new GameMessageUpdatePosition(this));
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+        }
+
+        public void SendAutonomousPosition()
+        {
+            
+            // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
     }
 }

@@ -42,6 +42,7 @@ namespace ACE.Network.GameMessages
         SetState                        = 0xF74B,
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
+        AutonomousPosition              = 0xF753,
         PlayEffect                      = 0xF755,
 
         GameEvent                       = 0xF7B0,
