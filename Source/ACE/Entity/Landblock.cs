@@ -327,17 +327,11 @@ namespace ACE.Entity
                 });
 
                 // TODO: figure out if this landblock can be unloaded
+
+                Thread.Sleep(1);
             }
 
             // TODO: release resources
-        }
-
-        /// <summary>
-        /// would be used to find out if a landblock was idle
-        /// </summary>
-        public int GetPlayerCount()
-        {
-            return this.worldObjects.Values.OfType<Player>().Count();
         }
 
         private void Log(string message)

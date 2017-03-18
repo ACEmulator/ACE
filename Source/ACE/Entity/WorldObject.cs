@@ -15,7 +15,10 @@ namespace ACE.Entity
 
         public ObjectType Type { get; protected set; }
 
-        public ushort Wcid { get; protected set; }
+        /// <summary>
+        /// wcid - stands for weenie class id
+        /// </summary>
+        public ushort WeenieClassid { get; protected set; }
 
         public ushort Icon { get; protected set; }
 
@@ -62,7 +65,6 @@ namespace ACE.Entity
         {
             Type = type;
             Guid = guid;
-            ///Wcid = wcid;
 
             GameData = new GameData();
             ModelData = new ModelData();
@@ -84,7 +86,7 @@ namespace ACE.Entity
             
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.Write((ushort)Wcid);
+            writer.Write((ushort)WeenieClassid);
             writer.Write((ushort)Icon);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
