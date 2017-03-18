@@ -112,6 +112,8 @@ namespace ACE.Entity
             set { propertiesInt[PropertyInt.Level] = value; }
         }
 
+        public uint AvailableSkillCredits { get; set; }
+
         public ReadOnlyDictionary<Enum.Ability, CharacterAbility> Abilities;
 
         private Character()
@@ -156,7 +158,7 @@ namespace ACE.Entity
             Id = id;
             AccountId = accountId;
         }
-        
+
         /// <summary>
         /// gives avaiable xp and total xp of the amount specified
         /// </summary>

@@ -65,17 +65,19 @@ namespace ACE.Command.Handlers
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
-            uint xp = 0;
-
-            if (parameters?.Length > 0 && uint.TryParse(parameters[0], out xp))
+            if (parameters?.Length > 0)
             {
-                session.Player.GrantXp(xp);
+                ulong xp = 0;
+                string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
+                //12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
+                if (ulong.TryParse(xpAmountToParse, out xp))
+                {
+                    session.Player.GrantXp(xp);
+                    return;
+                }
             }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234", ChatMessageType.Broadcast);
-                return;
-            }
+            ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
+            return;
         }
 
 
