@@ -26,3 +26,7 @@
 --------
 - Changed column quicknessXpSspent to quicknessXpSpent in character_stats table.
 - Added column skillXpSpent to character_skills table.
+
+3/18/2017
+--------
+- Changed column coordinationXpSpent to an unsigned int(10) to match other columns and prevent crash.
