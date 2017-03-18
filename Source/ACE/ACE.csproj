@@ -180,6 +180,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateBool.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />
@@ -235,6 +236,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
+    <None Include="Config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Config.json.example" />
     <None Include="default.ruleset" />
     <None Include="levels.json">

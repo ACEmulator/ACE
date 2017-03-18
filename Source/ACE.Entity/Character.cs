@@ -67,6 +67,18 @@ namespace ACE.Entity
 
         public uint TotalSkillPoints { get; set; }
 
+        public uint TotalSkillCredits
+        {
+            get { return propertiesInt[PropertyInt.TotalSkillCredits]; }
+            set { propertiesInt[PropertyInt.TotalSkillCredits] = value; }
+        }
+
+        public uint AvailableSkillCredits
+        {
+            get { return propertiesInt[PropertyInt.AvailableSkillCredits]; }
+            set { propertiesInt[PropertyInt.AvailableSkillCredits] = value; }
+        }
+
         public uint TotalLogins { get; set; } = 1u;  // total amount of times the player has logged into this character
         
         public CharacterAbility Strength { get; set; }
@@ -164,6 +176,14 @@ namespace ACE.Entity
         {
             propertiesInt64[PropertyInt64.AvailableExperience] += amount;
             propertiesInt64[PropertyInt64.TotalExperience] += amount;
+        }
+
+        public void LevelUp(CharacterLevel currentlevel)
+        {
+                propertiesInt[PropertyInt.Level]++;
+
+                if (currentlevel.GrantsSkillPoint)
+                    propertiesInt[PropertyInt.AvailableSkillCredits]++;
         }
 
         /// <summary>

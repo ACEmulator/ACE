@@ -14,6 +14,7 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
+using System.Threading;
 
 namespace ACE.Entity
 {
@@ -245,16 +246,27 @@ namespace ACE.Entity
 
         public void GrantXp(ulong amount)
         {
+            LevelingChart chart = DatabaseManager.Charts.GetLevelingXpChart();
             character.GrantXp(amount);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            CharacterLevel current = chart.Levels[(int)PropertiesInt[PropertyInt.Level]];
+            while (CheckForLevelup(current))
+            {
+                character.LevelUp(current);
+                current = chart.Levels[(int)PropertiesInt[PropertyInt.Level]];
+                var levelUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
+                var spUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                PlayParticleEffect(138);
+                Session.Network.EnqueueSend(levelUpdate, spUpdate);
+            }
         }
 
-        private void CheckForLevelup()
+        private bool CheckForLevelup(CharacterLevel currentLevel)
         {
-            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            return PropertiesInt64[PropertyInt64.TotalExperience] >= currentLevel.TotalXp;
 
             // TODO: implement.  just stubbing for now, will implement later.
         }
