@@ -29,4 +29,6 @@
 
 3/18/2017
 --------
-- Changed column coordinationXpSpent to an unsigned int(10) to match other columns and prevent crash.
+- In the in character_stats table the following changes have been made:
+-- Changed column coordinationXpSpent to an unsigned int(10) to match other columns and prevent crash.
+-- Changed columns healthCurrent, staminaCurrent, manaCurrent to unsigned smallint(2) to prevent crash at higher values.
