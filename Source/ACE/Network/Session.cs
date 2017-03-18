@@ -175,7 +175,10 @@ namespace ACE.Network
         private void HandleDisconnectResponse()
         {
             if (Player != null)
+            {
+                SaveSession();
                 Player.Logout(true);
+            }
 
             WorldManager.Remove(this);
         }
@@ -202,6 +205,10 @@ namespace ACE.Network
             State = SessionState.AuthConnected;
 
             Player = null;
+
+            lastSaveTime = DateTime.MinValue;
+            lastAgeIntUpdateTime = DateTime.MinValue;
+            lastSendAgeIntUpdateTime = DateTime.MinValue;
         }
     }
 }

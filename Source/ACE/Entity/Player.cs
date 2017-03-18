@@ -706,22 +706,28 @@ namespace ACE.Entity
         /// </summary>
         public void SaveOptions()
         {
-            DatabaseManager.Character.SaveCharacterOptions(character);
+            if (character != null)
+                DatabaseManager.Character.SaveCharacterOptions(character);
 
             // TODO: Save other options as we implement them.
         }
 
         public void SaveCharacter()
         {
-            DatabaseManager.Character.UpdateCharacter(character);
+            if (character != null)
+            {
+                DatabaseManager.Character.UpdateCharacter(character);
 #if DEBUG
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
+                if (Session.Player != null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
+                }
 #endif
+            }
         }
 
         public void UpdateAge()
         {
-            //if (character.Age != null)
             try
             {
                 character.Age++;
@@ -730,13 +736,10 @@ namespace ACE.Entity
             {
 
             }
-
-            //Session.WorldSession.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
         }
 
         public void SendAgeInt()
         {
-            //character.Age++;
             try
             {
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
