@@ -181,10 +181,13 @@ namespace ACE.Entity
 
         public void LevelUp(CharacterLevel currentlevel)
         {
-                propertiesInt[PropertyInt.Level]++;
+            propertiesInt[PropertyInt.Level]++;
 
-                if (currentlevel.GrantsSkillPoint)
-                    propertiesInt[PropertyInt.AvailableSkillCredits]++;
+            if (currentlevel.GrantsSkillPoint)
+            {
+                propertiesInt[PropertyInt.AvailableSkillCredits]++;
+                propertiesInt[PropertyInt.TotalSkillCredits]++;
+            }
         }
 
         /// <summary>

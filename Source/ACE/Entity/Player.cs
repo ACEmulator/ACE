@@ -268,9 +268,10 @@ namespace ACE.Entity
                 character.LevelUp(current);
                 current = chart.Levels[(int)character.Level];
                 var levelUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
-                var spUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                var aspUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                var tspUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.TotalSkillCredits, character.TotalSkillCredits);
                 PlayParticleEffect(138);
-                Session.Network.EnqueueSend(levelUpdate, spUpdate);
+                Session.Network.EnqueueSend(levelUpdate, aspUpdate, tspUpdate);
             }
         }
 
