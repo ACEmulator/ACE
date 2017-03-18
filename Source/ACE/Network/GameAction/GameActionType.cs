@@ -25,7 +25,10 @@ namespace ACE.Network.GameAction
         IndexChannels               = 0x0149,
 
         SetCharacterOptions         = 0x01A1,
-        
+
+        QueryAge                    = 0x01C2,
+        QueryBirth                  = 0x01C4,
+
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,
 

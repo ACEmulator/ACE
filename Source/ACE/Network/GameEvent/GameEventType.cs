@@ -16,6 +16,8 @@ namespace ACE.Network.GameEvent
         ChannelList                         = 0x0148,
         ChannelIndex                        = 0x0149,
 
+        QueryAgeResponse                    = 0x01C3,
+
         Emote                               = 0x01E2,
         PingResponse                        = 0x01EA,
 

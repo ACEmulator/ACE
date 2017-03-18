@@ -113,7 +113,29 @@ namespace ACE.Entity
             set { propertiesInt[PropertyInt.Level] = value; }
         }
 
-        public uint AvailableSkillCredits { get; set; }
+        public uint Age
+        {
+            get { return propertiesInt[PropertyInt.Age]; }
+            set { propertiesInt[PropertyInt.Age] = value; }
+        }
+
+        public string DateOfBirth
+        {
+            get { return propertiesString[PropertyString.DateOfBirth]; }
+            set { propertiesString[PropertyString.DateOfBirth] = value; }
+        }
+
+        public uint AvailableSkillCredits
+        {
+            get { return propertiesInt[PropertyInt.AvailableSkillCredits]; }
+            set { propertiesInt[PropertyInt.AvailableSkillCredits] = value; }
+        }
+
+        public uint TotalSkillCredits
+        {
+            get { return propertiesInt[PropertyInt.TotalSkillCredits]; }
+            set { propertiesInt[PropertyInt.TotalSkillCredits] = value; }
+        }
 
         public ReadOnlyDictionary<Enum.Ability, CharacterAbility> Abilities;
 
@@ -188,9 +210,9 @@ namespace ACE.Entity
             propertiesInt64[PropertyInt64.AvailableExperience] += amount;
         }
 
-        private void AddSkill(Skill skill, SkillStatus status, uint ranks)
+        private void AddSkill(Skill skill, SkillStatus status, uint ranks, uint xpSpent)
         {
-            Skills.Add(skill, new CharacterSkill(this, skill, status, ranks));
+            Skills.Add(skill, new CharacterSkill(this, skill, status, ranks, xpSpent));
         }
 
         public void AddFriend(Friend friend)
@@ -255,17 +277,35 @@ namespace ACE.Entity
             character.Stamina.Current = character.Stamina.UnbuffedValue;
             character.Mana.Current = character.Mana.UnbuffedValue;
 
+            character.TotalSkillCredits = 52;
+            character.AvailableSkillCredits = 52;
+
             uint numOfSkills = reader.ReadUInt32();
+            Skill skill;
+            SkillStatus skillStatus;
+            SkillCostAttribute skillCost;
             for (uint i = 0; i < numOfSkills; i++)
             {
-                character.AddSkill((Skill)i, (SkillStatus)reader.ReadUInt32(), 0);
+                //character.AddSkill((Skill)i, (SkillStatus)reader.ReadUInt32(), 0, 0);
+                skill = (Skill)i;
+                skillCost = skill.GetCost();
+                skillStatus = (SkillStatus)reader.ReadUInt32();
+                if (skillStatus == SkillStatus.Specialized)
+                    if (skillCost.TrainsFree)
+                        character.AvailableSkillCredits = character.AvailableSkillCredits - skillCost.SpecializationCost;
+                    else
+                        character.AvailableSkillCredits = character.AvailableSkillCredits - skillCost.SpecializationCost - skillCost.TrainingCost;
+                if (skillStatus == SkillStatus.Trained)
+                    if (!skillCost.TrainsFree)
+                        character.AvailableSkillCredits = character.AvailableSkillCredits - skillCost.TrainingCost;
+                character.AddSkill(skill, skillStatus, 0, 0);
             }
 
             character.Name = reader.ReadString16L();
             character.StartArea = reader.ReadUInt32();
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
-            character.TotalSkillPoints = reader.ReadUInt32();
+            //character.TotalSkillPoints = reader.ReadUInt32();  // garbage ? 
 
             return character;
         }

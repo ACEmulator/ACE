@@ -725,8 +725,33 @@ namespace ACE.Entity
         public void SaveCharacter()
         {
             DatabaseManager.Character.UpdateCharacter(character);
+#if DEBUG
+            Session.WorldSession.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
+#endif
         }
-        
+
+        public void UpdateAge()
+        {
+            //if (character.Age != null)
+            try
+            {
+                character.Age++;
+            }
+            catch (NullReferenceException)
+            {
+
+            }
+
+            //Session.WorldSession.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
+        }
+
+        public void SendAgeInt()
+        {
+            //character.Age++;
+
+            Session.WorldSession.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
+        }
+
         /// <summary>
         /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
         /// </summary>

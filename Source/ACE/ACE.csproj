@@ -138,6 +138,8 @@
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionQueryBirth.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetCharacterOptions.cs" />
@@ -177,6 +179,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPopupString.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventQueryAgeResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventSetTurbineChatChannels.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventTell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUpdateTitle.cs" />

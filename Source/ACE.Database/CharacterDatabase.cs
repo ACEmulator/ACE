@@ -55,7 +55,11 @@ namespace ACE.Database
             CharacterPropertiesIntUpdate,
             CharacterPropertiesBigIntUpdate,
             CharacterPropertiesDoubleUpdate,
-            CharacterPropertiesStringUpdate
+            CharacterPropertiesStringUpdate,
+
+            CharacterStatsUpdate,
+            CharacterSkillsUpdate,
+
         }
 
         protected override Type preparedStatementType => typeof(CharacterPreparedStatement);
@@ -81,8 +85,8 @@ namespace ACE.Database
             // world entry
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `characterOptions1`, `characterOptions2` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthRanks`, `endurance`, `enduranceRanks`, `coordination`, `coordinationRanks`, `quickness`, `quicknessRanks`, `focus`, `focusRanks`, `self`, `selfRanks`, `healthRanks`, `healthCurrent`, `staminaRanks`, `staminaCurrent`, `manaRanks`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints`, `skillXpSpent` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthXpSpent`, `strengthRanks`, `endurance`, `enduranceXpSpent`, `enduranceRanks`, `coordination`, `coordinationXpSpent`, `coordinationRanks`, `quickness`,  `quicknessXpSpent`, `quicknessRanks`, `focus`, `focusXpSpent`, `focusRanks`, `self`, `selfXpSpent`, `selfRanks`, `healthRanks`, `healthXpSpent`, `healthCurrent`, `staminaRanks`, `staminaXpSpent`, `staminaCurrent`, `manaRanks`, `manaXpSpent`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceSelect, "SELECT  `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue` FROM `character_appearance` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsSelect, "SELECT cf.`friendId`, c.`name` FROM `character_friends` cf JOIN `character` c ON (cf.`friendId` = c.`guid`) WHERE cf.`id` = ?;", MySqlDbType.UInt32);
 
@@ -105,6 +109,9 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntUpdate, "UPDATE `character_properties_bigint` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.UInt64, MySqlDbType.UInt16, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleUpdate, "UPDATE `character_properties_double` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.Double, MySqlDbType.UInt16, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, "UPDATE `character_properties_string` SET `propertyValue`=? WHERE `propertyId`=? AND `guid`=?;", MySqlDbType.VarChar, MySqlDbType.UInt16, MySqlDbType.UInt32);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterStatsUpdate, "UPDATE `character_stats` SET `strengthXpSpent` = ?, `strengthRanks` = ?, `enduranceXpSpent` = ?, `enduranceRanks` = ?, `coordinationXpSpent` = ?, `coordinationRanks` = ?, `quicknessXpSpent` = ?, `quicknessRanks` = ?, `focusXpSpent` = ?, `focusRanks` = ?, `selfXpSpent` = ?, `selfRanks` = ?, `healthCurrent`= ?, `healthXpSpent` = ?, `healthRanks` = ?, `staminaCurrent` = ?, `staminaXpSpent` = ?, `staminaRanks` = ?, `manaCurrent` = ?, `manaXpSpent` = ?, `manaRanks` = ? WHERE `id` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, "UPDATE `character_skills` SET `skillStatus` = ?, `skillPoints` = ?, `skillXpSpent` = ? WHERE `id` = ? AND `skillId` = ?;", MySqlDbType.UByte, MySqlDbType.UInt16, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte);
 
         }
 
@@ -170,6 +177,10 @@ namespace ACE.Database
 
             var transaction = BeginTransaction();
             UpdateCharacterProperties(character, transaction);
+
+            UpdateCharacterStats(character, transaction);
+
+            UpdateCharacterSkills(character, transaction);
 
             await transaction.Commit();
         }
@@ -262,7 +273,8 @@ namespace ACE.Database
                     Skill s = result.Read<Skill>(i, "skillId");
                     SkillStatus ss = result.Read<SkillStatus>(i, "skillStatus");
                     uint ranks = result.Read<uint>(i, "skillPoints");
-                    c.Skills.Add(s, new CharacterSkill(c, s, ss, ranks));
+                    uint xpSpent = result.Read<uint>(i, "skillXpSpent");
+                    c.Skills.Add(s, new CharacterSkill(c, s, ss, ranks, xpSpent));
                 }
 
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterAppearanceSelect, id);
@@ -285,23 +297,32 @@ namespace ACE.Database
                 if (result?.Count > 0)
                 {
                     c.Strength.Base = result.Read<uint>(0, "strength");
+                    c.Strength.ExperienceSpent = result.Read<uint>(0, "strengthXpSpent");
                     c.Strength.Ranks = result.Read<uint>(0, "strengthRanks");
                     c.Endurance.Base = result.Read<uint>(0, "endurance");
+                    c.Endurance.ExperienceSpent = result.Read<uint>(0, "enduranceXpSpent");
                     c.Endurance.Ranks = result.Read<uint>(0, "enduranceRanks");
                     c.Coordination.Base = result.Read<uint>(0, "coordination");
+                    c.Coordination.ExperienceSpent = result.Read<uint>(0, "coordinationXpSpent");
                     c.Coordination.Ranks = result.Read<uint>(0, "coordinationRanks");
                     c.Quickness.Base = result.Read<uint>(0, "quickness");
+                    c.Quickness.ExperienceSpent = result.Read<uint>(0, "quicknessXpSpent");
                     c.Quickness.Ranks = result.Read<uint>(0, "quicknessRanks");
                     c.Focus.Base = result.Read<uint>(0, "focus");
+                    c.Focus.ExperienceSpent = result.Read<uint>(0, "focusXpSpent");
                     c.Focus.Ranks = result.Read<uint>(0, "focusRanks");
                     c.Self.Base = result.Read<uint>(0, "self");
+                    c.Self.ExperienceSpent = result.Read<uint>(0, "selfXpSpent");
                     c.Self.Ranks = result.Read<uint>(0, "selfRanks");
                     
                     c.Health.Ranks = result.Read<uint>(0, "healthRanks");
+                    c.Health.ExperienceSpent = result.Read<uint>(0, "healthXpSpent");
                     c.Health.Current = result.Read<uint>(0, "healthCurrent");
                     c.Stamina.Ranks = result.Read<uint>(0, "staminaRanks");
+                    c.Stamina.ExperienceSpent = result.Read<uint>(0, "staminaXpSpent");
                     c.Stamina.Current = result.Read<uint>(0, "staminaCurrent");
                     c.Mana.Ranks = result.Read<uint>(0, "manaRanks");
+                    c.Mana.ExperienceSpent = result.Read<uint>(0, "manaXpSpent");
                     c.Mana.Current = result.Read<uint>(0, "manaCurrent");
                 }
 
@@ -413,6 +434,53 @@ namespace ACE.Database
 
             foreach (var prop in dbObject.PropertiesString)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+        }
+
+        public void UpdateCharacterStats(Character character, DatabaseTransaction transaction)
+        {
+            transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterStatsUpdate,
+                    character.Strength.ExperienceSpent, character.Strength.Ranks,
+                    character.Endurance.ExperienceSpent, character.Endurance.Ranks,
+                    character.Coordination.ExperienceSpent, character.Coordination.Ranks,
+                    character.Quickness.ExperienceSpent, character.Quickness.Ranks,
+                    character.Focus.ExperienceSpent, character.Focus.Ranks,
+                    character.Self.ExperienceSpent, character.Self.Ranks,
+                    character.Health.Current, character.Health.ExperienceSpent, character.Health.Ranks,
+                    character.Stamina.Current, character.Stamina.ExperienceSpent, character.Stamina.Ranks,
+                    character.Mana.Current, character.Mana.ExperienceSpent, character.Mana.Ranks,
+                    character.Id);
+        }
+
+        public void UpdateCharacterSkills(Character character, DatabaseTransaction transaction)
+        {
+            foreach (var skill in character.Skills)
+            {
+                transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, (uint)skill.Value.Status, (ushort)skill.Value.Ranks, skill.Value.ExperienceSpent, character.Id, (uint)skill.Value.Skill);
+                //Debug.WriteLine(skill.Key.ToString());
+                //Debug.WriteLine(skill.Value.ToString());
+                //skill.Value.Status
+                //Debug.WriteLine((uint)skill.Value.Status);
+                //Debug.WriteLine(skill.Value.Ranks.ToString());
+                //Debug.WriteLine(character.Id.ToString());
+                //Debug.WriteLine((uint)skill.Value.Skill);
+                //skill.Value.Skill.
+            }
+                
+
+            //foreach (var prop in dbObject.)
+            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            //foreach (var prop in dbObject.PropertiesInt)
+            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            //foreach (var prop in dbObject.PropertiesInt64)
+            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            //foreach (var prop in dbObject.PropertiesDouble)
+            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
+
+            //foreach (var prop in dbObject.PropertiesString)
+            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
         }
 
         public async Task<Character> GetCharacterByName(string name)
