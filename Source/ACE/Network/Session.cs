@@ -25,10 +25,16 @@ namespace ACE.Network
 
         private DateTime logOffRequestTime;
 
+        private DateTime lastSaveTime;
+
+        private DateTime lastAgeIntUpdateTime;
+        private DateTime lastSendAgeIntUpdateTime;
+
         // connection related
         public IPEndPoint EndPoint { get; }
         public uint GameEventSequence { get; set; }
         public byte UpdateAttributeSequence { get; set; }
+        public byte UpdateAttribute2ndLevelSequence { get; set; }
         public byte UpdateSkillSequence { get; set; }
         public byte UpdatePropertyInt64Sequence { get; set; }
         public byte UpdatePropertyIntSequence { get; set; }
@@ -37,8 +43,6 @@ namespace ACE.Network
         public byte UpdatePropertyDoubleSequence { get; set; }
 
         public NetworkSession Network { get; set; }
-
-        public double LastSaveTick { get; private set; }
 
         public Session(IPEndPoint endPoint)
         {
@@ -53,6 +57,7 @@ namespace ACE.Network
 
             GameEventSequence = 0;
             UpdateAttributeSequence = 0;
+            UpdateAttribute2ndLevelSequence = 0;
             UpdateSkillSequence = 0;
             UpdatePropertyInt64Sequence = 0;
             UpdatePropertyIntSequence = 0;
@@ -88,18 +93,43 @@ namespace ACE.Network
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
             }
-            if (LastSaveTick == 0)
+            //if (LastSaveTick == 0)
+            //{
+            //    SaveSession();
+            //}
+
+            //LastSaveTick += lastTick;
+
+            //if (LastSaveTick > 4)
+            //{
+            //    LastSaveTick = 0;
+            //}
+
+            if (Player != null)
             {
-                SaveSession();
+                if (lastSaveTime == DateTime.MinValue)
+                    lastSaveTime = DateTime.UtcNow;
+                if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
+                {
+                    SaveSession();
+                    lastSaveTime = DateTime.UtcNow;
+                }
+
+                if (lastAgeIntUpdateTime == DateTime.MinValue)
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
+                {
+                    Player.UpdateAge();
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+                }
+                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
+                {
+                    Player.SendAgeInt();
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+                }
             }
-
-            LastSaveTick += lastTick;
-
-            if (LastSaveTick > 4)
-            {
-                LastSaveTick = 0;
-            }
-
         }
 
         public void SaveSession()
@@ -163,6 +193,7 @@ namespace ACE.Network
 
         public void LogOffPlayer()
         {
+            SaveSession();
             Player.Logout();
 
             logOffRequestTime = DateTime.UtcNow;

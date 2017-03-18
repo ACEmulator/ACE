@@ -15,8 +15,8 @@ namespace ACE.Managers
         private const uint playerMin        = 0x50000001;
         private const uint playerMax        = 0x59999999;
         private static uint player         = 0x50000001;
-        private static Hashtable usedplayerguids;
-        private static Hashtable avaliableplayerguids;
+        //private static Hashtable usedplayerguids;
+        //private static Hashtable avaliableplayerguids;
 
         //Npc / Doors / Portals / Etc
         private const uint staticObjextMin      = 0x6000001;

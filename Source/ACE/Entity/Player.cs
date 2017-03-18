@@ -302,8 +302,7 @@ namespace ACE.Entity
                 //break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
-                    //new enum soon ;)
-                    PlayParticleEffect(0x8d);
+                    PlayParticleEffect(Effect.WeddingBliss);
                     break;
                 }
             }
@@ -327,7 +326,7 @@ namespace ACE.Entity
                 } else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 //play level up effect
-                PlayParticleEffect(0x8a);
+                PlayParticleEffect(Effect.LevelUp);
             }
         }
 
@@ -354,7 +353,7 @@ namespace ACE.Entity
                 //checks if max rank is achieved and plays fireworks w/ special text
                 if (IsAbilityMaxRank(ranks, isSecondary)) {
                     //fireworks
-                    PlayParticleEffect(0x8D);
+                    PlayParticleEffect(Effect.WeddingBliss);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -362,7 +361,7 @@ namespace ACE.Entity
                     messageText = $"Your base {ability} is now {newValue}!";
                 }
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
                 Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);
             }
@@ -499,7 +498,7 @@ namespace ACE.Entity
             var status = character.Skills[skill].Status;
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
             string messageText = "";
 
             if (result > 0u)
@@ -509,7 +508,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     //fireworks on rank up is 0x8D
-                    PlayParticleEffect(0x8D);
+                    PlayParticleEffect(Effect.WeddingBliss);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -526,10 +525,10 @@ namespace ACE.Entity
         }
 
         //plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(uint effectid)
+        public void PlayParticleEffect(Effect effectId)
         {
-            var effectevent = new GameMessageEffect(this.Guid, effectid);
-            Session.Network.EnqueueSend(effectevent);
+            var effectEvent = new GameMessageEffect(this.Guid, effectId);
+            Session.Network.EnqueueSend(effectEvent);
         }
 
         /// <summary>
@@ -715,7 +714,7 @@ namespace ACE.Entity
         {
             DatabaseManager.Character.UpdateCharacter(character);
 #if DEBUG
-            Session.WorldSession.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
 #endif
         }
 
@@ -737,8 +736,14 @@ namespace ACE.Entity
         public void SendAgeInt()
         {
             //character.Age++;
+            try
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
+            }
+            catch (NullReferenceException)
+            {
 
-            Session.WorldSession.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
+            }
         }
 
         /// <summary>
@@ -827,9 +832,9 @@ namespace ACE.Entity
 
             // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
             // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
-            DatabaseManager.Character.SaveCharacterOptions(character);
+            //DatabaseManager.Character.SaveCharacterOptions(character);
 
-            DatabaseManager.Character.UpdateCharacter(character);
+            //DatabaseManager.Character.UpdateCharacter(character);
 
             if (!clientSessionTerminatedAbruptly)
             {
