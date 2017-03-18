@@ -34,6 +34,8 @@ namespace ACE.Network.GameAction
 
         HouseQuery                  = 0x021E,
 
+        TeleToMarketPlace           = 0x028D,
+
         MoveToState                 = 0xF61C,
         AutonomousPosition          = 0xF753,
     }
