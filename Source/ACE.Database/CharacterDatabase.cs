@@ -456,31 +456,7 @@ namespace ACE.Database
             foreach (var skill in character.Skills)
             {
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, (uint)skill.Value.Status, (ushort)skill.Value.Ranks, skill.Value.ExperienceSpent, character.Id, (uint)skill.Value.Skill);
-                //Debug.WriteLine(skill.Key.ToString());
-                //Debug.WriteLine(skill.Value.ToString());
-                //skill.Value.Status
-                //Debug.WriteLine((uint)skill.Value.Status);
-                //Debug.WriteLine(skill.Value.Ranks.ToString());
-                //Debug.WriteLine(character.Id.ToString());
-                //Debug.WriteLine((uint)skill.Value.Skill);
-                //skill.Value.Skill.
             }
-                
-
-            //foreach (var prop in dbObject.)
-            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
-
-            //foreach (var prop in dbObject.PropertiesInt)
-            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
-
-            //foreach (var prop in dbObject.PropertiesInt64)
-            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
-
-            //foreach (var prop in dbObject.PropertiesDouble)
-            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
-
-            //foreach (var prop in dbObject.PropertiesString)
-            //    transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
         }
 
         public async Task<Character> GetCharacterByName(string name)

@@ -105,17 +105,6 @@ namespace ACE.Network
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
             }
-            //if (LastSaveTick == 0)
-            //{
-            //    SaveSession();
-            //}
-
-            //LastSaveTick += lastTick;
-
-            //if (LastSaveTick > 4)
-            //{
-            //    LastSaveTick = 0;
-            //}
 
             if (Player != null)
             {
