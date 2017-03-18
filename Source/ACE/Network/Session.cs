@@ -67,6 +67,10 @@ namespace ACE.Network
             Player = new Player(this);
             CharacterRequested = null;
 
+            lastSaveTime = DateTime.MinValue;
+            lastAgeIntUpdateTime = DateTime.MinValue;
+            lastSendAgeIntUpdateTime = DateTime.MinValue;
+
             GameEventSequence = 0;
             UpdateAttributeSequence = 0;
             UpdateAttribute2ndLevelSequence = 0;
@@ -217,10 +221,6 @@ namespace ACE.Network
             State = SessionState.AuthConnected;
 
             Player = null;
-
-            lastSaveTime = DateTime.MinValue;
-            lastAgeIntUpdateTime = DateTime.MinValue;
-            lastSendAgeIntUpdateTime = DateTime.MinValue;
         }
     }
 }
