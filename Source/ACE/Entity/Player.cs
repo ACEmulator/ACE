@@ -14,7 +14,6 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
-using System.Threading;
 
 namespace ACE.Entity
 {
