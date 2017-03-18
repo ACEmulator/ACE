@@ -21,3 +21,8 @@
 2/28/2017
 --------
 - Added characterOptions1 and characterOptions2 fields to character table.
+
+3/16/2017
+--------
+- Changed column quicknessXpSspent to quicknessXpSpent in character_stats table.
+- Added column skillXpSpent to character_skills table.
