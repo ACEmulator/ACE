@@ -118,7 +118,13 @@ namespace ACE.Command.Handlers
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(AdminObjectFactory.CreateLifestone(session.Player.Position.InFrontOf(3.0f)));
+            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
+        }
+
+        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreatePortal(Session session, params string[] parameters)
+        {
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f),"Test Portal",PortalType.Purple));
         }
     }
 }
