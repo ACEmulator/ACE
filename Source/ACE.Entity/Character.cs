@@ -201,6 +201,12 @@ namespace ACE.Entity
             }
         }
 
+        public void SpendSkillPoints(uint amount)
+        {
+            if (propertiesInt[PropertyInt.AvailableSkillCredits] >= amount)
+                propertiesInt[PropertyInt.AvailableSkillCredits] -= amount;
+        }
+
         /// <summary>
         /// gives available xp of the amount specified without increasing total xp
         /// </summary>

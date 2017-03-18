@@ -154,6 +154,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionTrainSkill.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />

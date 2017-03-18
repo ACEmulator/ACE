@@ -382,6 +382,33 @@ namespace ACE.Entity
                 return false;
         }
 
+        public void SpendSp(Skill skill)
+        {
+            CharacterSkill cskill = character.Skills[skill];
+
+            SkillStatus newStatus = cskill.Status;
+
+            if (cskill.Status == SkillStatus.Inactive || cskill.Status == SkillStatus.Untrained)
+            {
+                newStatus = SkillStatus.Trained;
+
+                uint result = SpendSkillPoints(cskill.Skill);
+
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, newStatus, cskill.Ranks, 0, result);
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+
+                Session.Network.EnqueueSend(skillUpdate, soundEvent);
+            }
+        }
+
+        private uint SpendSkillPoints(Skill skill)
+        {
+            character.SpendSkillPoints(skill.GetCost().TrainingCost);
+            var aspUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+            Session.Network.EnqueueSend(aspUpdate);
+            return 0;
+        }
+
         /// <summary>
         /// Spend xp Skill ranks
         /// </summary>
