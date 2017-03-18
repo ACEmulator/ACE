@@ -10,7 +10,6 @@ namespace ACE.Network.GameAction.Actions
     public class GameActionQueryAge : GameActionPacket
     {
         private string target;
-        //private Position position;
 
         public GameActionQueryAge(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
@@ -23,17 +22,12 @@ namespace ACE.Network.GameAction.Actions
         {
 
             DateTime playerDOB = new DateTime();
-            //playerDOB = playerDOB.AddSeconds(Session.Player.PropertiesDouble[Entity.Enum.Properties.PropertyDouble.CreationTimestamp]).ToUniversalTime();
-            //playerDOB = playerDOB.AddSeconds(1963234);
             playerDOB = playerDOB.AddSeconds(Session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.Age]);
             TimeSpan tsAge = playerDOB - new DateTime();
-
-            //string age = tsAge.ToString(@"d\mm\:ss\ \m\i\n\u\t\e\s");
 
             string age = "";
 
             if (tsAge.ToString("%d") != "0")
-            //age = age + tsAge.ToString("%d") + "d ";
             {
                 if (Convert.ToInt16(tsAge.ToString("%d")) > 0 && Convert.ToInt16(tsAge.ToString("%d")) <= 7)
                     age = age + tsAge.ToString("%d") + "d ";

@@ -10,7 +10,6 @@ namespace ACE.Network.GameAction.Actions
     public class GameActionQueryBirth : GameActionPacket
     {
         private string target;
-        //private Position position;
 
         public GameActionQueryBirth(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
