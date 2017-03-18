@@ -252,11 +252,11 @@ namespace ACE.Entity
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
-            CharacterLevel current = chart.Levels[(int)PropertiesInt[PropertyInt.Level]];
+            CharacterLevel current = chart.Levels[(int)character.Level];
             while (CheckForLevelup(current))
             {
                 character.LevelUp(current);
-                current = chart.Levels[(int)PropertiesInt[PropertyInt.Level]];
+                current = chart.Levels[(int)character.Level];
                 var levelUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
                 var spUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
                 PlayParticleEffect(138);
