@@ -42,6 +42,7 @@ namespace ACE.Network.GameMessages
         SetState                        = 0xF74B,
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
+        AutonomousPosition              = 0xF753,
         PlayEffect                      = 0xF755,
 
         GameEvent                       = 0xF7B0,
@@ -50,6 +51,7 @@ namespace ACE.Network.GameMessages
         CharacterEnterWorldRequest      = 0xF7C8,
         FriendsOld                      = 0xF7CD,
         CharacterRestore                = 0xF7D9,
+        UpdateObject                    = 0xF7DB,
         TurbineChat                     = 0xF7DE,
         CharacterEnterWorldServerReady  = 0xF7DF,
         ServerMessage                   = 0xF7E0,
