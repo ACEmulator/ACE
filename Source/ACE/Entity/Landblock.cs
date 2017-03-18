@@ -286,7 +286,7 @@ namespace ACE.Entity
                     movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
                 }
 
-                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks > p.LastMovementBroadcastTicks).ToList();
+                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
