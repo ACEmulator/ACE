@@ -285,7 +285,6 @@ namespace ACE.Entity
             SkillCostAttribute skillCost;
             for (uint i = 0; i < numOfSkills; i++)
             {
-                //character.AddSkill((Skill)i, (SkillStatus)reader.ReadUInt32(), 0, 0);
                 skill = (Skill)i;
                 skillCost = skill.GetCost();
                 skillStatus = (SkillStatus)reader.ReadUInt32();
