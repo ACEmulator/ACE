@@ -15,25 +15,38 @@ namespace ACE.Network
     public class Session
     {
         public uint Id { get; private set; }
+
         public string Account { get; private set; }
+
         public AccessLevel AccessLevel { get; private set; }
+
         public SessionState State { get; set; }
 
-        public List<CachedCharacter> CachedCharacters { get; } = new List<CachedCharacter>();
+        public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
+
         public CachedCharacter CharacterRequested { get; set; }
+
         public Player Player { get; set; }
 
         private DateTime logOffRequestTime;
 
         // connection related
         public IPEndPoint EndPoint { get; }
+
         public uint GameEventSequence { get; set; }
+
         public byte UpdateAttributeSequence { get; set; }
+
         public byte UpdateSkillSequence { get; set; }
+
         public byte UpdatePropertyInt64Sequence { get; set; }
+
         public byte UpdatePropertyIntSequence { get; set; }
+
         public byte UpdatePropertyStringSequence { get; set; }
+
         public byte UpdatePropertyBoolSequence { get; set; }
+
         public byte UpdatePropertyDoubleSequence { get; set; } 
 
         public NetworkSession Network { get; set; }
@@ -68,10 +81,10 @@ namespace ACE.Network
 
         public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
-            CachedCharacters.Clear();
+            AccountCharacters.Clear();
             foreach (var character in characters)
             {
-                CachedCharacters.Add(character);
+                AccountCharacters.Add(character);
             }
         }
 

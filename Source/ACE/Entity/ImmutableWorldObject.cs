@@ -13,13 +13,13 @@ namespace ACE.Entity
     /// </summary>
     public class ImmutableWorldObject : WorldObject
     {
-        public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort wccid, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
+        public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
         {
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;
             this.WeenieFlags = weenieFlag;
             this.Position = position;
-            this.Wcid = wccid;
+            this.WeenieClassid = weenieClassId;
         }
     }
 }

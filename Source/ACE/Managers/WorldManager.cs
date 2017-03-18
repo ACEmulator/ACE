@@ -8,6 +8,7 @@ using System.Threading;
 using ACE.Network;
 using ACE.Entity;
 using ACE.Common;
+using System.Threading.Tasks;
 
 namespace ACE.Managers
 {
@@ -172,8 +173,7 @@ namespace ACE.Managers
                 sessionLock.EnterReadLock();
                 try
                 {
-                    foreach (var session in sessionStore)
-                        session.Update(lastTick);
+                    Parallel.ForEach(sessionStore, s => s.Update(lastTick));
                 }
                 finally
                 {
