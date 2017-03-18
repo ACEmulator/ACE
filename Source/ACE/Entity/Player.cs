@@ -308,6 +308,7 @@ namespace ACE.Entity
                 if (newLevel.GrantsSkillPoint)
                 {
                     character.AvailableSkillCredits++;
+                    character.TotalSkillCredits++;
                     creditEarned = true;
                 }
                 //break if we reach max
