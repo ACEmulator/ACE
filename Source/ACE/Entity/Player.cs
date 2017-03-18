@@ -266,7 +266,7 @@ namespace ACE.Entity
 
         private bool CheckForLevelup(CharacterLevel currentLevel)
         {
-            return PropertiesInt64[PropertyInt64.TotalExperience] >= currentLevel.TotalXp;
+            return character.TotalExperience >= currentLevel.TotalXp;
 
             // TODO: implement.  just stubbing for now, will implement later.
         }
