@@ -24,7 +24,7 @@ namespace ACE.Factories
 
             wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Position;
 
-            //wo.PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Gravity;
+            wo.PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Gravity;
 
             //game data min required flags;
             wo.GameData.Type = (ushort)0x1355;
