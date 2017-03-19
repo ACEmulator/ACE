@@ -80,6 +80,9 @@ namespace ACE.Factories
             wo.ModelData.AddTexture(0, 0xC3, 0xC4);
             wo.ModelData.AddModel(0, 0x2D7C);
             wo.PhysicsData.PhysicsState = PhysicsState.Gravity | PhysicsState.IgnoreCollision | PhysicsState.Ethereal;
+            
+            // This is probably not the right way to do this all of this infromation is sent in the message - OG II
+            newPlayer.GameData.Burden += wo.GameData.Burden;
 
             return wo;
         }
