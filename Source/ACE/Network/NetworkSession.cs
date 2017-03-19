@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+
 using ACE.Network.GameMessages;
 using ACE.Network.Handlers;
 using ACE.Network.Managers;
@@ -12,110 +13,124 @@ namespace ACE.Network
 {
     public class NetworkSession
     {
+        private readonly Object lockObject = new Object();
+
         private const int minimumTimeBetweenBundles = 5; // 5ms
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
-        private Session session;
-        private NetworkBundle currentBundle;
-        private DateTime nextResync;
-        private DateTime nextAck;
-        private DateTime nextSend;
+        private readonly Session session;
+
+        private NetworkBundle currentBundle = new NetworkBundle();
+
+        private DateTime nextResync = DateTime.UtcNow;
+        private DateTime nextAck = DateTime.UtcNow;
+        private DateTime nextSend = DateTime.UtcNow;
         private bool sendAck = false;
         private bool sendResync = false;
         private uint lastReceivedSequence = 0;
-        private ConcurrentDictionary<uint /*seq*/, ServerPacket> CachedPackets { get; } = new ConcurrentDictionary<uint, ServerPacket>();
-        private ConcurrentQueue<ServerPacket> PacketQueue { get; } = new ConcurrentQueue<ServerPacket>();
 
-        public SessionConnectionData ConnectionData { get; private set; }
+        private readonly Dictionary<uint /*seq*/, ServerPacket> cachedPackets = new Dictionary<uint /*seq*/, ServerPacket>();
+
+        private readonly Queue<ServerPacket> packetQueue = new Queue<ServerPacket>();
+
+        public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
         public NetworkSession(Session session)
         {
             this.session = session;
-            ConnectionData  = new SessionConnectionData();
-            currentBundle = new NetworkBundle();
-            nextSend = DateTime.UtcNow;
-            nextResync = DateTime.UtcNow;
-            nextAck = DateTime.UtcNow;
         }
 
         public void EnqueueSend(params GameMessage[] messages)
         {
-            currentBundle.EncryptedChecksum = true;
-            foreach (var message in messages)
-                currentBundle.Enqueue(message);
+            lock (lockObject)
+            {
+                currentBundle.EncryptedChecksum = true;
+
+                foreach (var message in messages)
+                    currentBundle.Enqueue(message);
+            }
         }
 
         public void EnqueueSend(params ServerPacket[] packets)
         {
-            foreach (var packet in packets)
-                PacketQueue.Enqueue(packet);
+            lock (lockObject)
+            {
+                foreach (var packet in packets)
+                    packetQueue.Enqueue(packet);
+            }
         }
 
         public void Update(double lastTick)
         {
-            ConnectionData.ServerTime += lastTick;
-
-            if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
+            lock (lockObject)
             {
-                currentBundle.TimeSync = true;
-                currentBundle.EncryptedChecksum = true;
-                nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
-            }
+                ConnectionData.ServerTime += lastTick;
 
-            if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
-            {
-                currentBundle.SendAck = true;
-                nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
-            }
+                if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
+                {
+                    currentBundle.TimeSync = true;
+                    currentBundle.EncryptedChecksum = true;
+                    nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
+                }
 
-            if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
-            {
-                FlushBundle();
-            }
+                if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
+                {
+                    currentBundle.SendAck = true;
+                    nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
+                }
 
-            FlushPackets();
+                if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                {
+                    FlushBundle();
+                }
+
+                FlushPackets();
+            }
         }
 
         public void HandlePacket(ClientPacket packet)
         {
-            lastReceivedSequence = packet.Header.Sequence;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-                FlagEcho(packet.HeaderOptional.ClientTime);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
-                AcknowledgeSequence(packet.HeaderOptional.Sequence);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+            lock (lockObject)
             {
-                //Do something with this...
-                //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
-                //Client seems to send them alternatingly every 2 or 4 seconds per port.
-                //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
-            }
+                lastReceivedSequence = packet.Header.Sequence;
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                    Retransmit(sequence);
-            }
+                if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
+                    FlagEcho(packet.HeaderOptional.ClientTime);
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-            {
-                AuthenticationHandler.HandleLoginRequest(packet, session);
-                return;
-            }
+                if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
+                    AcknowledgeSequence(packet.HeaderOptional.Sequence);
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-            {
-                sendResync = true;
-                AuthenticationHandler.HandleConnectResponse(packet, session);
-                return;
-            }
+                if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+                {
+                    //Do something with this...
+                    //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
+                    //Client seems to send them alternatingly every 2 or 4 seconds per port.
+                    //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
+                }
 
-            foreach (ClientPacketFragment fragment in packet.Fragments)
-                InboundMessageManager.HandleClientFragment(fragment, session);
+                if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                {
+                    foreach (uint sequence in packet.HeaderOptional.RetransmitData)
+                        Retransmit(sequence);
+                }
+
+                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+                {
+                    AuthenticationHandler.HandleLoginRequest(packet, session);
+                    return;
+                }
+
+                if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
+                {
+                    sendResync = true;
+                    AuthenticationHandler.HandleConnectResponse(packet, session);
+                    return;
+                }
+
+                foreach (ClientPacketFragment fragment in packet.Fragments)
+                    InboundMessageManager.HandleClientFragment(fragment, session);
+            }
         }
 
         private void FlagEcho(float clientTime)
@@ -131,12 +146,10 @@ namespace ACE.Network
             //if (!sendAck)
             //    sendAck = true;
 
-            var removalList = CachedPackets.Where(x => x.Key < sequence);
-
-            foreach (var item in removalList)
+            foreach (var key in cachedPackets.Keys.ToList())
             {
-                ServerPacket removedPacket;
-                CachedPackets.TryRemove(item.Key, out removedPacket);
+                if (key < sequence)
+                    cachedPackets.Remove(key);
             }
         }
 
@@ -144,7 +157,7 @@ namespace ACE.Network
         {
             ServerPacket cachedPacket;
 
-            if (CachedPackets.TryGetValue(sequence, out cachedPacket))
+            if (cachedPackets.TryGetValue(sequence, out cachedPacket))
             {
                 Console.WriteLine("Retransmit " + sequence);
 
@@ -168,24 +181,22 @@ namespace ACE.Network
 
         private void FlushPackets()
         {
-            while (PacketQueue.Count > 0)
+            while (packetQueue.Count > 0)
             {
-                ServerPacket packet;
-                if (PacketQueue.TryDequeue(out packet))
-                {
-                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
-                        ConnectionData.PacketSequence = 2;
+                ServerPacket packet = packetQueue.Dequeue();
 
-                    packet.Header.Sequence = ConnectionData.PacketSequence++;
-                    packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
-                    packet.Header.Table = 0x14;
-                    packet.Header.Time = (ushort)ConnectionData.ServerTime;
+                if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
+                    ConnectionData.PacketSequence = 2;
 
-                    if (packet.Header.Sequence >= 2u)
-                        CachedPackets.TryAdd(packet.Header.Sequence, packet);
+                packet.Header.Sequence = ConnectionData.PacketSequence++;
+                packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
+                packet.Header.Table = 0x14;
+                packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
-                    SendPacket(packet);
-                }
+                if (packet.Header.Sequence >= 2u)
+                    cachedPackets.Add(packet.Header.Sequence, packet);
+
+                SendPacket(packet);
             }
         }
 
@@ -342,7 +353,7 @@ namespace ACE.Network
                     }
                 }
 
-                PacketQueue.Enqueue(packet);
+                packetQueue.Enqueue(packet);
             }
         }
 

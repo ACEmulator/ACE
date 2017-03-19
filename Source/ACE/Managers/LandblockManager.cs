@@ -1,25 +1,22 @@
-﻿using ACE.Database;
+﻿using System;
+
+using ACE.Database;
 using ACE.Entity;
-using ACE.Entity.Events;
 using ACE.Network;
+
 using log4net;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Managers
 {
-    public class LandblockManager
+    public static class LandblockManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static object landblockMutex = new object();
+        private static readonly object landblockMutex = new object();
 
         // debating during this into a dictionary keyed on LandblockId.  would be functionally equivalent
         // and get rid of the 2D array shenanigans
-        private static Landblock[,] landblocks = new Landblock[256, 256];
+        private static readonly Landblock[,] landblocks = new Landblock[256, 256];
 
         public static async void PlayerEnterWorld(Session session)
         {
@@ -44,7 +41,16 @@ namespace ACE.Managers
             Landblock block = GetLandblock(worldObject.Position.LandblockId, true);
             block.RemoveWorldObject(worldObject.Guid, false);
         }
-        
+
+        /// <summary>
+        /// Relocates an object to the appropriate landblock
+        /// </summary>
+        public static void RelocateObject(WorldObject worldObject)
+        {
+            var block = GetLandblock(worldObject.Position.LandblockId, true);
+            block.AddWorldObject(worldObject);
+        }
+
         /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propogate is true (outdoor world roaming).
@@ -103,13 +109,6 @@ namespace ACE.Managers
             return landblocks[x, y];
         }
 
-        public static void RelocateObject(WorldObject wo)
-        {
-            // relocates an object to the appropriate landblock
-            var newBlock = GetLandblock(wo.Position.LandblockId, true);
-            newBlock.AddWorldObject(wo);
-        }
-
         /// <summary>
         /// sets the adjacencies of the specified landblocks.  nulls are allowed in the use case of deleting
         /// or unloading a landblock.  Landblock2 is {adjacency} of Landblock1.  if autoLoad is true, and
@@ -120,6 +119,7 @@ namespace ACE.Managers
         /// <param name="landblock1">a landblock</param>
         /// <param name="landblock2">a landblock</param>
         /// <param name="adjacency">the adjacency of landblock2 relative to landblock1</param>
+        /// <param name="autoLoad">Will load landBlock2 if it's not loaded already</param>
         private static void SetAdjacency(LandblockId landblock1, LandblockId landblock2, Adjacency adjacency, bool autoLoad = false)
         {
             // suppress adjacency logic for indoor areas
@@ -130,9 +130,8 @@ namespace ACE.Managers
             Landblock lb2 = landblocks[landblock2.LandblockX, landblock2.LandblockY];
 
             if (autoLoad && lb2 == null)
-            {
                 lb2 = GetLandblock(landblock2, false);
-            }
+
             lb1.SetAdjacency(adjacency, lb2);
 
             if (lb2 != null)
