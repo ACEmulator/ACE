@@ -160,6 +160,23 @@ namespace ACE.Command.Handlers
             }
         }
 
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void animation(Session session, params string[] parameters)
+        {
+            uint animationId;
+            try
+            {
+                animationId = Convert.ToUInt32(parameters[0]);
+            }
+            catch (Exception)
+            {
+                //ex...more info.. if needed..
+                ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
+                return;
+            }
+            session.Network.EnqueueSend(new GameMessageAnimation(session.Player, session, AnimationActivity.Idle, AnimationType.General, AnimationFlags.None, StanceMode.Standing, (Animations)animationId, 1.5f));
+        }
+
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)
         {

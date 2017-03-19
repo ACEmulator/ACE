@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETWORKDEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -197,6 +197,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageAnimation.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
@@ -247,6 +248,13 @@
     <Compile Include="Network\PacketHeader.cs" />
     <Compile Include="Network\PacketHeaderFlags.cs" />
     <Compile Include="Network\PacketHeaderOptional.cs" />
+    <Compile Include="Network\Sequence\UShortSequence.cs" />
+    <Compile Include="Network\Sequence\SequenceType.cs" />
+    <Compile Include="Network\Sequence\SequenceManager.cs" />
+    <Compile Include="Network\Sequence\ULongSequence.cs" />
+    <Compile Include="Network\Sequence\ByteSequence.cs" />
+    <Compile Include="Network\Sequence\UIntSequence.cs" />
+    <Compile Include="Network\Sequence\ISequence.cs" />
     <Compile Include="Network\ServerPacket.cs" />
     <Compile Include="Network\ServerPacketFragment.cs" />
     <Compile Include="Network\Session.cs" />

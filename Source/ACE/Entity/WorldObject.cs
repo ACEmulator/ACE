@@ -5,6 +5,7 @@ using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
+using ACE.Network.Sequence;
 using System.IO;
 
 namespace ACE.Entity
@@ -61,6 +62,8 @@ namespace ACE.Entity
 
         public GameData GameData { get; }
 
+        public SequenceManager Sequences { get; }
+
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -69,6 +72,10 @@ namespace ACE.Entity
             GameData = new GameData();
             ModelData = new ModelData();
             PhysicsData = new PhysicsData();
+
+            Sequences = new SequenceManager();
+            Sequences.AddSequence(SequenceType.AnimationMessage, new UShortSequence(1));
+            Sequences.AddSequence(SequenceType.Animation, new UShortSequence(1));
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
