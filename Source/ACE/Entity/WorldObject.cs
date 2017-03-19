@@ -20,7 +20,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort WeenieClassid { get; protected set; }
 
-        public ushort Icon { get; protected set; }
+        public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
 
