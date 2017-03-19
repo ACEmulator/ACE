@@ -8,7 +8,7 @@
 
 ## Getting Started
 
-* Install MySQL
+* Install MySQL.(all database steps can be skipped by using the [ace-db](https://hub.docker.com/r/maxc0c0s/ace-db-image/) docker image.)
 * Create three databases named `ace_auth`, `ace_character`, and `ace_world`.
 * Load AuthenticationBase.sql and CharacterBase.sql for their respective databases. 
 * Load all incremental SQL updates in the Database\Updates sub directories. 
