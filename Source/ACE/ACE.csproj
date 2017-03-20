@@ -203,6 +203,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAttribute2ndLevel.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyBool.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyDouble.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />

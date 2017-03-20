@@ -95,8 +95,8 @@ namespace ACE.Network.GameAction.Actions
         public override void Handle()
         {
             Session.Player.UpdatePosition(position);
-            if(forward.Command != 0)
-                Session.Network.EnqueueSend(new GameMessageAnimation(Session.Player, Session, AnimationActivity.Idle, AnimationType.General, AnimationFlags.None, StanceMode.Standing, Animations.Run, 3.0f));
+            //if(forward.Command != 0)
+            //    Session.Network.EnqueueSend(new GameMessageAnimation(Session.Player, Session, AnimationActivity.Idle, AnimationType.General, AnimationFlags.None, StanceMode.Standing, Animations.Run, 3.0f));
         }
     }
 }
