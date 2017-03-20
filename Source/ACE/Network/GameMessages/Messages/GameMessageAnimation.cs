@@ -1,14 +1,37 @@
 ﻿using System;
 using ACE.Network.Enum;
 using ACE.Network.Sequence;
+using System.Collections.Generic;
 
 namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageAnimation : GameMessage
     {
-        public GameMessageAnimation(Entity.WorldObject animationTarget, Session session, AnimationActivity activity, 
-            AnimationType type, AnimationFlags flags, StanceMode stance, Animations animation, float speed)
+        public GameMessageAnimation()
             : base(GameMessageOpcode.Animation, GameMessageGroup.Group0A)
+        {
+
+        }
+
+        public GameMessageAnimation(Entity.WorldObject animationTarget, Session session, AnimationActivity activity,
+            AnimationType type, AnimationFlags flags, StanceMode stance, Animations animation, float speed)
+            : this()
+        {
+            WriteBase(animationTarget, session, activity, type, flags, stance);
+            List<AnimationItem> animations = new List<AnimationItem>() { new AnimationItem(animation, speed) };
+            WriteAnimations(animationTarget, animations);
+        }
+        
+        public GameMessageAnimation(Entity.WorldObject animationTarget, Session session, Animations animation, float speed = 1.0f)
+            : this()
+        {
+            WriteBase(animationTarget, session, AnimationActivity.Idle, AnimationType.General, AnimationFlags.None, StanceMode.Standing);
+            List<AnimationItem> animations = new List<AnimationItem>() { new AnimationItem(animation, speed) };
+            WriteAnimations(animationTarget, animations);
+        }
+
+        private void WriteBase(Entity.WorldObject animationTarget, Session session, AnimationActivity activity,
+            AnimationType type, AnimationFlags flags, StanceMode stance)
         {
             Writer.WriteGuid(animationTarget.Guid);
             Writer.Write((ushort)session.Player.TotalLogins);
@@ -18,15 +41,35 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write((byte)type);
             Writer.Write((byte)flags);
             Writer.Write((ushort)stance);
+        }
 
-            if(type == AnimationType.General)
+        private void WriteAnimations(Entity.WorldObject animationTarget, List<AnimationItem> animations)
+        {
+            uint generalFlags = (uint)animations.Count << 7;
+            Writer.Write((uint)generalFlags);
+            foreach (var animation in animations)
             {
-                uint generalFlags = 1 << 7;
-                Writer.Write((uint)generalFlags);
-                Writer.Write((ushort)animation);
+                Writer.Write((ushort)animation.Animation);
                 Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Animation));
-                Writer.Write(speed);
+                Writer.Write(animation.Speed);
             }
+        }
+    }
+    public struct AnimationItem
+    {
+        public Animations Animation { get; set; }
+        public float Speed { get; set; }
+
+        public AnimationItem(Animations animation)
+        {
+            Animation = animation;
+            Speed = 1.0f;
+        }
+
+        public AnimationItem(Animations animation, float speed)
+        {
+            Animation = animation;
+            Speed = speed;
         }
     }
 
@@ -48,19 +91,19 @@ namespace ACE.Network.GameMessages.Messages
     [Flags]
     public enum AnimationFlags
     {
-        None        = 0x0,
-        HasTarget   = 0x1, 
-        Jumping     = 0x2 // Needs to be investigated
+        None = 0x0,
+        HasTarget = 0x1,
+        Jumping = 0x2 // Needs to be investigated
     }
 
     public enum StanceMode
     {
-        UANoShieldAttack        = 0x3C,
-        Standing                = 0x3D,
-        MeleeNoShieldAttack     = 0x3E,
-        BowAttack               = 0x3F,
-        MeleeShieldAttack       = 0x40,
-        Spellcasting            = 0x49
+        UANoShieldAttack = 0x3C,
+        Standing = 0x3D,
+        MeleeNoShieldAttack = 0x3E,
+        BowAttack = 0x3F,
+        MeleeShieldAttack = 0x40,
+        Spellcasting = 0x49
     }
 
     public enum Animations
