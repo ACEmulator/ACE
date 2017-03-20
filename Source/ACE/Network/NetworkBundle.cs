@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using ACE.Network.GameMessages;
-using System.Threading;
 
 namespace ACE.Network
 {
@@ -54,8 +53,7 @@ namespace ACE.Network
 
         public bool EncryptedChecksum { get; set; }
 
-        private long currentSize = 0;
-        public long CurrentSize { get { return currentSize; } }
+        public int CurrentSize { get; private set; }
 
         public NetworkBundle()
         {
@@ -68,7 +66,7 @@ namespace ACE.Network
 
         public void Enqueue(GameMessage message)
         {
-            Interlocked.Add(ref currentSize, message.Data.Length);
+            CurrentSize += (int)message.Data.Length;
             Messages.Enqueue(message);
         }
     }
