@@ -256,16 +256,28 @@ namespace ACE.Entity
 
         public void GrantXp(ulong amount)
         {
+            LevelingChart chart = DatabaseManager.Charts.GetLevelingXpChart();
             character.GrantXp(amount);
             var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
             var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            CharacterLevel current = chart.Levels[(int)character.Level];
+            while (CheckForLevelup(current))
+            {
+                character.LevelUp(current);
+                current = chart.Levels[(int)character.Level];
+                var levelUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
+                var aspUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                var tspUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.TotalSkillCredits, character.TotalSkillCredits);
+                PlayParticleEffect(138);
+                Session.Network.EnqueueSend(levelUpdate, aspUpdate, tspUpdate);
+            }
         }
 
-        private void CheckForLevelup()
+        private bool CheckForLevelup(CharacterLevel currentLevel)
         {
-            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            return character.TotalExperience >= currentLevel.TotalXp;
 
             // TODO: implement.  just stubbing for now, will implement later.
         }
@@ -368,6 +380,33 @@ namespace ACE.Entity
                 return true;
             else
                 return false;
+        }
+
+        public void SpendSp(Skill skill)
+        {
+            CharacterSkill cskill = character.Skills[skill];
+
+            SkillStatus newStatus = cskill.Status;
+
+            if (cskill.Status == SkillStatus.Inactive || cskill.Status == SkillStatus.Untrained)
+            {
+                newStatus = SkillStatus.Trained;
+
+                uint result = SpendSkillPoints(cskill.Skill);
+
+                var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, newStatus, cskill.Ranks, 0, result);
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+
+                Session.Network.EnqueueSend(skillUpdate, soundEvent);
+            }
+        }
+
+        private uint SpendSkillPoints(Skill skill)
+        {
+            character.SpendSkillPoints(skill.GetCost().TrainingCost);
+            var aspUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+            Session.Network.EnqueueSend(aspUpdate);
+            return 0;
         }
 
         /// <summary>

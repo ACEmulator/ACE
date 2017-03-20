@@ -155,6 +155,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionTrainSkill.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
@@ -196,6 +197,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateBool.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateVital.cs" />
