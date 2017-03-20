@@ -30,13 +30,18 @@ namespace ACE.Network
 
         private DateTime logOffRequestTime;
 
+        private DateTime lastSaveTime;
+
+        private DateTime lastAgeIntUpdateTime;
+        private DateTime lastSendAgeIntUpdateTime;
+
         // connection related
         public IPEndPoint EndPoint { get; }
 
         public uint GameEventSequence { get; set; }
 
         public byte UpdateAttributeSequence { get; set; }
-
+        public byte UpdateAttribute2ndLevelSequence { get; set; }
         public byte UpdateSkillSequence { get; set; }
 
         public byte UpdatePropertyInt64Sequence { get; set; }
@@ -62,8 +67,13 @@ namespace ACE.Network
             Player = new Player(this);
             CharacterRequested = null;
 
+            lastSaveTime = DateTime.MinValue;
+            lastAgeIntUpdateTime = DateTime.MinValue;
+            lastSendAgeIntUpdateTime = DateTime.MinValue;
+
             GameEventSequence = 0;
             UpdateAttributeSequence = 0;
+            UpdateAttribute2ndLevelSequence = 0;
             UpdateSkillSequence = 0;
             UpdatePropertyInt64Sequence = 0;
             UpdatePropertyIntSequence = 0;
@@ -74,7 +84,7 @@ namespace ACE.Network
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
         {
-            Id      = accountId;
+            Id = accountId;
             Account = account;
             AccessLevel = accountAccesslevel;
         }
@@ -98,6 +108,40 @@ namespace ACE.Network
             {
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
+            }
+
+            if (Player != null)
+            {
+                if (lastSaveTime == DateTime.MinValue)
+                    lastSaveTime = DateTime.UtcNow;
+                if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
+                {
+                    SaveSession();
+                    lastSaveTime = DateTime.UtcNow;
+                }
+
+                if (lastAgeIntUpdateTime == DateTime.MinValue)
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
+                {
+                    Player.UpdateAge();
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+                }
+                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
+                {
+                    Player.SendAgeInt();
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+                }
+            }
+        }
+
+        public void SaveSession()
+        {
+            if(this.Player != null) { 
+                this.Player.SaveOptions();
+                this.Player.SaveCharacter();
             }
         }
 
@@ -147,13 +191,17 @@ namespace ACE.Network
         private void HandleDisconnectResponse()
         {
             if (Player != null)
+            {
+                SaveSession();
                 Player.Logout(true);
+            }
 
             WorldManager.Remove(this);
         }
 
         public void LogOffPlayer()
         {
+            SaveSession();
             Player.Logout();
 
             logOffRequestTime = DateTime.UtcNow;

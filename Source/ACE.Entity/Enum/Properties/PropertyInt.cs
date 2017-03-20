@@ -133,6 +133,7 @@ namespace ACE.Entity.Enum.Properties
         AiCpThreshold,
         AiAdvancementStrategy,
         Version,
+        [PersistedProperty(true, typeof(Character), 1u)]
         Age,
         VendorHappyMean,
         VendorHappyVariance,
