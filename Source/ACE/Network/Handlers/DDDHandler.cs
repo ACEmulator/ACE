@@ -1,6 +1,7 @@
 ﻿
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.Handlers
 {
@@ -9,7 +10,8 @@ namespace ACE.Network.Handlers
         [GameMessage(GameMessageOpcode.DDD_InterrogationResponse, SessionState.AuthConnected)]
         public static void DDD_InterrogationResponse(ClientPacketFragment fragment, Session session)
         {
-            // Because we're not delivering any content at this time, we can instruct the client to end the DDD session.
+            GameMessageDDDEndDDD patchStatusMessage = new GameMessageDDDEndDDD();
+            session.Network.EnqueueSend(patchStatusMessage);
         }
 
         [GameMessage(GameMessageOpcode.DDD_EndDDD, SessionState.AuthConnected)]

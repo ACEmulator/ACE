@@ -72,13 +72,11 @@ namespace ACE.Network.Handlers
 
             GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            // looks like account settings/info, expansion information ect? (this is needed for world entry)
-            GameMessageDDDInterrogation unknown75e5Message = new GameMessageDDDInterrogation();
-            GameMessageDDDEndDDD patchStatusMessage = new GameMessageDDDEndDDD();
+            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
+            
             session.Network.EnqueueSend(characterListMessage);
             session.Network.EnqueueSend(serverNameMessage);
-            session.Network.EnqueueSend(unknown75e5Message);
-            session.Network.EnqueueSend(patchStatusMessage);
+            session.Network.EnqueueSend(dddInterrogation);
 
             session.State = SessionState.AuthConnected;
         }
