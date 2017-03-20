@@ -104,6 +104,7 @@
     <Compile Include="TupleExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="default.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
