@@ -7,17 +7,18 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
+using ACE.Network.Enum;
 
 namespace ACE.Command
 {
     public static class AdminCommands
     {
-        //// commandname parameters
-        //[CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
-        //public static void HandleHelp(Session session, params string[] parameters)
-        //{
-        //    //TODO: output
-        //}
+        // // commandname parameters
+        // [CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
+        // public static void HandleHelp(Session session, params string[] parameters)
+        // {
+        //     //TODO: output
+        // }
 
         // adminvision { on | off | toggle | check}
         [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
@@ -27,9 +28,9 @@ namespace ACE.Command
             // Controls whether or not the admin can see admin-only visible items. Note that if you turn this feature off, you will need to log out and back in before the visible items become invisible.
             // @adminvision - Allows the admin to see admin - only visible items.
 
-            //TODO: output
+            // TODO: output
 
-            //output: Admin Visible is {state}
+            // output: Admin Visible is {state}
 
             ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
         }
@@ -52,7 +53,7 @@ namespace ACE.Command
             // This command sets whether monsters will attack you unprovoked.When turned on, monsters will attack you as if you are a normal player.  When turned off, monsters will ignore you.
             // @attackable - Sets whether monsters will attack you or not.
 
-            //TODO: output
+            // TODO: output
         }
 
         // ban < acct > < days > < hours > < minutes >
@@ -63,7 +64,7 @@ namespace ACE.Command
             // This command bans the specified player account for the specified time.This player will not be able to enter the game with any character until the time expires.
             // @ban - Bans the specified player account.
 
-            //TODO: output
+            // TODO: output
         }
 
         // unban < acct >
@@ -74,7 +75,7 @@ namespace ACE.Command
             // This command removes the ban from the specified account.The player will then be able to log into the game.
             // @unban - Unbans the specified player account.
 
-            //TODO: output
+            // TODO: output
         }
 
         // banlist
@@ -83,7 +84,7 @@ namespace ACE.Command
         {
             // @banlist - Lists all banned accounts on this world.
 
-            //TODO: output
+            // TODO: output
         }
 
         // boot { account | char | iid } who
@@ -94,7 +95,7 @@ namespace ACE.Command
             // This command boots the specified character out of the game.You can specify who to boot by account, character name, or player instance id.  'who' is the account / character / instance id to actually boot.
             // @boot - Boots the character out of the game.
 
-            //TODO: output
+            // TODO: output
         }
 
         // cloak < on / off / player / creature >
@@ -109,7 +110,7 @@ namespace ACE.Command
             // < creature > You will appear as a creature. (No + and an orange radar dot.)
             // @cloak - Sets your cloaking state.
 
-            //TODO: output
+            // TODO: output
         }
 
         // deaf < on / off >
@@ -120,7 +121,7 @@ namespace ACE.Command
             // @deaf on -Make yourself deaf to players.
             // @deaf off -You can hear players again.
 
-            //TODO: output
+            // TODO: output
         }
 
         // deaf < hear | mute > < player >
@@ -130,7 +131,7 @@ namespace ACE.Command
             // @deaf hear[name] -add a player to the list of players that you can hear.
             // @deaf mute[name] -remove a player from the list of players you can hear.
 
-            //TODO: output
+            // TODO: output
         }
 
         // delete
@@ -139,7 +140,7 @@ namespace ACE.Command
         {
             // @delete - Deletes the selected object. Players may not be deleted this way.
 
-            //TODO: output
+            // TODO: output
         }
 
         // draw
@@ -148,7 +149,7 @@ namespace ACE.Command
         {
             // @draw - Draws undrawable things.
 
-            //TODO: output
+            // TODO: output
         }
 
         // finger [ [-a] character] [-m account]
@@ -159,7 +160,7 @@ namespace ACE.Command
             // Given a character name, this command displays the name of the owning account.If the -m option is specified, the argument is considered an account name and the characters owned by that account are displayed.If the -a option is specified, then the character name is fingered but their account is implicitly fingered as well.
             // @finger - Show the given character's account name or vice-versa.
 
-            //TODO: output
+            // TODO: output
         }
 
         // freeze
@@ -168,7 +169,7 @@ namespace ACE.Command
         {
             // @freeze - Freezes the selected target for 10 minutes or until unfrozen.
 
-            //TODO: output
+            // TODO: output
         }
 
         // unfreeze
@@ -177,7 +178,7 @@ namespace ACE.Command
         {
             // @unfreeze - Unfreezes the selected target.
 
-            //TODO: output
+            // TODO: output
         }
 
         // gag < char name >
@@ -189,7 +190,7 @@ namespace ACE.Command
             // @gag - Prevents a character from talking.
             // @ungag -Allows a gagged character to talk again.
 
-            //TODO: output
+            // TODO: output
         }
 
         // ungag < char name >
@@ -199,7 +200,7 @@ namespace ACE.Command
             // usage: @ungag < char name >
             // @ungag -Allows a gagged character to talk again.
 
-            //TODO: output
+            // TODO: output
         }
 
         // home < recall number >
@@ -212,7 +213,7 @@ namespace ACE.Command
             // @home has the alias @recall
             // @home[recall number] -Teleports you to your sanctuary position.
 
-            //TODO: output
+            // TODO: output
         }
 
         // mrt
@@ -221,7 +222,7 @@ namespace ACE.Command
         {
             // @mrt - Toggles the ability to bypass housing boundaries.
 
-            //TODO: output
+            // TODO: output
         }
 
         // limbo [on / off]
@@ -231,7 +232,7 @@ namespace ACE.Command
             // @limbo[on / off] - Puts the targeted player in 'limbo' which means that the player cannot damage anything or be damaged by anything.The player will not recieve direct tells, or channel messages, such as fellowship messages and allegiance chat.  The player will be unable to salvage.This status times out after 15 minutes, use '@limbo on' again on the player to reset the timer. You and the player will be notifed when limbo wears off.If neither on or off are specified, on is assumed.
             // @limbo - Puts the selected target in limbo.
 
-            //TODO: output
+            // TODO: output
         }
 
         // myiid
@@ -240,7 +241,7 @@ namespace ACE.Command
         {
             // @myiid - Displays your Instance ID(IID).
 
-            //TODO: output
+            // TODO: output
         }
 
         // myserver
@@ -249,7 +250,7 @@ namespace ACE.Command
         {
             // @myserver - Displays the number of the game server on which you are currently located.
 
-            //TODO: output
+            // TODO: output
         }
 
         // neversaydie [on/off]
@@ -258,9 +259,9 @@ namespace ACE.Command
         {
             // @neversaydie [on/off] - Turn immortality on or off. Defaults to on.
 
-            //TODO: output
+            // TODO: output
 
-            //output: You are now immortal.
+            // output: You are now immortal.
 
             ChatPacket.SendServerMessage(session, "You are now immortal.", ChatMessageType.Broadcast);
         }
@@ -271,7 +272,7 @@ namespace ACE.Command
         {
             // @pk - Toggles or sets your own PK state.
 
-            //TODO: output
+            // TODO: output
         }
 
         // portal_bypass
@@ -280,7 +281,7 @@ namespace ACE.Command
         {
             // @portal_bypass - Toggles the ability to bypass portal restrictions.
 
-            //TODO: output
+            // TODO: output
         }
 
         // querypluginlist
@@ -292,7 +293,7 @@ namespace ACE.Command
             // @querypluginlist<pluginname> - View information about a specific plugin.NOTE: Results are dependent upon 3rd party authors providing correct information.
             // @queryplugin < pluginname > -View information about a specific plugin.
 
-            //TODO: output
+            // TODO: output
         }
 
         // queryplugin
@@ -301,7 +302,7 @@ namespace ACE.Command
         {
             // @queryplugin < pluginname > -View information about a specific plugin.
 
-            //TODO: output
+            // TODO: output
         }
 
         // repeat < Num > < Command >
@@ -312,7 +313,7 @@ namespace ACE.Command
             // EX: "@repeat 5 @say Hi" - say Hi 5 times.
             // @repeat < Num > < Command > -Repeat a command a number of times.
 
-            //TODO: output
+            // TODO: output
         }
 
         // regen
@@ -321,7 +322,7 @@ namespace ACE.Command
         {
             // @regen - Sends the selected generator a regeneration message.
 
-            //TODO: output
+            // TODO: output
         }
 
         // reportbug < code | content > < description >
@@ -332,9 +333,9 @@ namespace ACE.Command
             // This command emails your report to the AC1 Bugs folder at Turbine.
             // @reportbug - Email a bug report to Turbine.
 
-            //LOL
+            // LOL
 
-            //TODO: output
+            // TODO: output
         }
 
         // run < on | off | toggle | check >
@@ -345,7 +346,7 @@ namespace ACE.Command
             // Boosts the run skill of the PSR so they can pursue the "bad folks".The enchantment will wear off after a while.This command defualts to toggle.
             // @run - Temporarily boosts your run skill.
 
-            //TODO: output
+            // TODO: output
         }
 
         // save < recall number >
@@ -357,7 +358,7 @@ namespace ACE.Command
             // NOTE: Calling @save without a number saves your sanctuary position, calling it with saves  it in a separate save spot.
             // @save - Sets your sanctuary position or a named recall point.
 
-            //TODO: output
+            // TODO: output
         }
 
         // serverlist
@@ -376,7 +377,7 @@ namespace ACE.Command
             // -If the server is your current server or the master
             // @serverlist - Shows a list of the logical servers that control this world.
 
-            //TODO: output
+            // TODO: output
         }
 
         // snoop [start / stop] [Character Name]
@@ -387,7 +388,7 @@ namespace ACE.Command
             // - If no character name is supplied, the currently selected character will be used.If neither start nor stop is specified, start will be assumed.
             // @snoop - Listen in on a player's private communication.
 
-            //TODO: output
+            // TODO: output
         }
 
         // smite [all]
@@ -396,7 +397,7 @@ namespace ACE.Command
         {
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
 
-            //TODO: output
+            // TODO: output
         }
 
         // tele [name] longitude latitude
@@ -467,7 +468,7 @@ namespace ACE.Command
         {
             // @teleto - Teleports you to the specified character.
 
-            //TODO: output
+            // TODO: output
         }
 
         // telepoi location
@@ -550,7 +551,7 @@ namespace ACE.Command
         {
             // @trophies - Shows a list of the trophies dropped by the target creature, and the percentage chance of dropping.
 
-            //TODO: output
+            // TODO: output
         }
 
         // unlock {-all | IID}
@@ -561,7 +562,7 @@ namespace ACE.Command
             // Cleans the SQL lock on either everyone or the given player.
             // @unlock - Cleans the SQL lock on either everyone or the given player.
 
-            //TODO: output
+            // TODO: output
         }
 
         // gamecast <message>
@@ -573,7 +574,7 @@ namespace ACE.Command
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecast - Sends a world-wide broadcast.
 
-            //TODO: output
+            // TODO: output
         }
 
         // add <spell>
@@ -582,7 +583,7 @@ namespace ACE.Command
         {
             // @add spell - Adds the specified spell to your own spellbook.
 
-            //TODO: output
+            // TODO: output
         }
 
         // adminhouse
@@ -604,7 +605,7 @@ namespace ACE.Command
             // @adminhouse payrent on / off: sets the targeted house to not require / require normal maintenance payments.
             // @adminhouse - House management tools for admins.
 
-            //TODO: output
+            // TODO: output
         }
 
         // bornagain deletedCharID[, newCharName[, accountName]]
@@ -617,7 +618,7 @@ namespace ACE.Command
             // If needed, you can specify an account name as a third parameter if the character should be restored to an account other than its original owner.  Again, use a comma between the arguments.
             // @bornagain - Restores a deleted character to an account.
 
-            //TODO: output
+            // TODO: output
         }
 
         // copychar < character name >, < copy name >
@@ -628,7 +629,7 @@ namespace ACE.Command
             // Given the name of an existing character "character name", this command makes a copy of that character with the name "copy name" and places it into your character list.
             // @copychar - Copies an existing character into your character list.
 
-            //TODO: output
+            // TODO: output
         }
 
         // create wclassid (string or number)
@@ -639,7 +640,7 @@ namespace ACE.Command
             // @create - Creates an object in the world.
             // usage: @create wclassid (string or number)
 
-            //TODO: output
+            // TODO: output
         }
 
         // ci wclassid (string or number)
@@ -649,7 +650,7 @@ namespace ACE.Command
             // Creates the given object in the admin's inventory
             // @ci - Creates an object in your inventory.
 
-            //TODO: output
+            // TODO: output
         }
 
         // cm <material type> <quantity> <ave. workmanship>
@@ -658,7 +659,7 @@ namespace ACE.Command
         {
             // Format is: @cm <material type> <quantity> <ave. workmanship>
 
-            //TODO: output
+            // TODO: output
         }
 
         // deathxp
@@ -667,7 +668,7 @@ namespace ACE.Command
         {
             // @deathxp - Displays how much experience this creature is worth when killed.
 
-            //TODO: output
+            // TODO: output
         }
 
         // de_n name, text
@@ -684,7 +685,7 @@ namespace ACE.Command
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
-            //TODO: output
+            // TODO: output
         }
 
         // direct_emote_name name, text
@@ -701,7 +702,7 @@ namespace ACE.Command
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
-            //TODO: output
+            // TODO: output
         }
 
         // de_s text
@@ -718,7 +719,7 @@ namespace ACE.Command
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
-            //TODO: output
+            // TODO: output
         }
 
         // direct_emote_select text
@@ -730,7 +731,7 @@ namespace ACE.Command
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
-            //TODO: output
+            // TODO: output
         }
 
         // dispel
@@ -741,7 +742,7 @@ namespace ACE.Command
             // This command removes all enchantments from you, or the object you have selected.
             // @dispel - Dispels all enchantments from you (or the selected object).
 
-            //TODO: output
+            // TODO: output
         }
 
         // event
@@ -753,7 +754,7 @@ namespace ACE.Command
             // @event status<eventSubstring> - get the status of all registered events or get all of the registered events that have <eventSubstring> in the name.
             // @event - Maniuplates the state of an event.
 
-            //TODO: output
+            // TODO: output
         }
 
         // fumble
@@ -762,7 +763,7 @@ namespace ACE.Command
         {
             // @fumble - Forces the selected target to drop everything they contain to the ground.
 
-            //TODO: output
+            // TODO: output
         }
 
         // god
@@ -771,9 +772,9 @@ namespace ACE.Command
         {
             // @god - Sets your own stats to the specified level.
 
-            //TODO: output
+            // TODO: output
 
-            //output: You are now a god!!!
+            // output: You are now a god!!!
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
         }
@@ -784,9 +785,9 @@ namespace ACE.Command
         {
             // @magic god -Sets your magic stats to the specfied level.
 
-            //TODO: output
+            // TODO: output
 
-            //output: You are now a magic god!!!
+            // output: You are now a magic god!!!
 
             ChatPacket.SendServerMessage(session, "You are now a magic god!!!", ChatMessageType.Broadcast);
         }
@@ -799,11 +800,15 @@ namespace ACE.Command
             // This command fully restores your(or the selected creature's) health, mana, and stamina.
             // @heal - Heals yourself(or the selected creature).
 
-            //TODO: output
-            //session.Player.Character.Health.Current = session.Player.Character.Health.Value;
-            //session.Player.Character.Stamina.Current = session.Player.Character.Stamina.Value;
-            //session.Player.Character.Mana.Current = session.Player.Character.Mana.Value;
-            //session.Player.Session.
+            // TODO: Get player's selected target and heal them instead of self
+
+            // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
+
+            var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.UnbuffedValue);
+            var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.UnbuffedValue);
+            var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Mana, session.Player.Mana.UnbuffedValue);
+
+            session.Network.EnqueueSend(updatePlayersHealth, updatePlayersStamina, updatePlayersMana);
         }
 
         // housekeep
@@ -813,7 +818,7 @@ namespace ACE.Command
             // @housekeep[never { off | on}] -With no parameters, this command displays the housekeeping info for the selected item.With the 'never' flag, it sets the item to never housekeep, or turns that state off.
             // @housekeep - Queries or sets the housekeeping status for the selected item.
 
-            //TODO: output
+            // TODO: output
         }
 
         // idlist
@@ -822,7 +827,7 @@ namespace ACE.Command
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            //TODO: output
+            // TODO: output
         }
 
         // gamecastlocalemote <message>
@@ -834,7 +839,7 @@ namespace ACE.Command
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastlocalemote - Sends text to all players within chat range, formatted exactly as entered.
 
-            //TODO: output
+            // TODO: output
         }
 
         // location
@@ -843,7 +848,7 @@ namespace ACE.Command
         {
             // @location - Causes your current location to be continuously displayed on the screen.
 
-            //TODO: output
+            // TODO: output
         }
 
         // morph
@@ -852,7 +857,7 @@ namespace ACE.Command
         {
             // @morph - Morphs your bodily form into that of the specified creature. Be careful with this one!
 
-            //TODO: output
+            // TODO: output
         }
 
         // qst
@@ -866,7 +871,7 @@ namespace ACE.Command
             // @qst bestow < quest flag > -Stamps the specific quest flag on the targeted player.If this fails, it's probably because you spelled the quest flag wrong.
             // @qst - Query, stamp, and erase quests on the targeted player.
 
-            //TODO: output
+            // TODO: output
         }
 
         // raise
@@ -875,7 +880,7 @@ namespace ACE.Command
         {
             // @raise - Raises your experience (or the experience in a skill) by the given amount.
 
-            //TODO: output
+            // TODO: output
         }
 
         // rename <Current Name> <New Name>
@@ -911,7 +916,7 @@ namespace ACE.Command
             {
                 var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
                 session.Network.EnqueueSend(sysChatMsg);
-            }              
+            }
         }
 
         // setadvclass
@@ -920,7 +925,7 @@ namespace ACE.Command
         {
             // @setadvclass - Sets the advancement class of one of your own skills.
 
-            //TODO: output
+            // TODO: output
         }
 
         // spendxp
@@ -929,7 +934,7 @@ namespace ACE.Command
         {
             // @spendxp - Allows you to more quickly spend your available xp into the specified skill.
 
-            //TODO: output
+            // TODO: output
         }
 
         // trainskill
@@ -938,7 +943,7 @@ namespace ACE.Command
         {
             // @trainskill - Attempts to train the specified skill by spending skill credits on it.
 
-            //TODO: output
+            // TODO: output
         }
 
         // reloadsysmsg
@@ -947,20 +952,20 @@ namespace ACE.Command
         {
             // @reloadsysmsg - Causes all servers to reload system_messages.txt.
 
-            //TODO: output
+            // TODO: output
         }
 
         // gamecastlocal <message>
         [CommandHandler("gamecastlocal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void Handlegamecastlocal(Session session, params string[] parameters)
         {
-            // Local Server Broadcast from         
+            // Local Server Broadcast from
             // usage: @gamecastlocal<message>
             // This command sends the specified text to every player on the current server.
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastlocal Sends a server-wide broadcast.
 
-            //TODO: output
+            // TODO: output
         }
 
         // sticky { on | off }
@@ -971,7 +976,7 @@ namespace ACE.Command
             // This command sets whether you loose any items should you die.When set to 'on', you will be complete protected from item-loss rules.
             // @sticky - Sets whether you loose items should you die.
 
-            //TODO: output
+            // TODO: output
         }
 
         // userlimit { num }
@@ -980,7 +985,7 @@ namespace ACE.Command
         {
             // @userlimit - Sets how many clients are allowed to connect to this world.
 
-            //TODO: output
+            // TODO: output
         }
 
         // watchmen
@@ -989,7 +994,7 @@ namespace ACE.Command
         {
             // @watchmen - Displays a list of accounts with the specified level of admin access.
 
-            //TODO: output
+            // TODO: output
         }
 
         // gamecastemote <message>
@@ -1001,7 +1006,7 @@ namespace ACE.Command
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastemote - Sends text to all players, formatted exactly as entered.
 
-            //TODO: output
+            // TODO: output
         }
 
         // dumpattackers
@@ -1010,7 +1015,7 @@ namespace ACE.Command
         {
             // @dumpattackers - Displays the detection and enemy information for the selected creature.
 
-            //TODO: output
+            // TODO: output
         }
 
         // knownobjs
@@ -1019,7 +1024,7 @@ namespace ACE.Command
         {
             // @knownobjs - Display a list of objects that the client is aware of.
 
-            //TODO: output
+            // TODO: output
         }
 
         // lbinterval
@@ -1028,7 +1033,7 @@ namespace ACE.Command
         {
             // @lbinterval - Sets how often in seconds the server farm will rebalance the server farm load.
 
-            //TODO: output
+            // TODO: output
         }
 
         // lbthresh
@@ -1038,25 +1043,25 @@ namespace ACE.Command
             // the @lbthresh command sets the maximum amount of load servers can trade at each balance. Large load transfers at once can cause poor server performance.  (Large would be about 400, small is about 20.)
             // @lbthresh - Set how much load can be transferred between two servers during a single load balance.
 
-            //TODO: output
+            // TODO: output
         }
 
         // radar
         [CommandHandler("radar", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void Handleradar(Session session, params string[] parameters)
         {
-            //  @radar - Toggles your radar on and off.
+            // @radar - Toggles your radar on and off.
 
-            //TODO: output
+            // TODO: output
         }
 
         // rares dump
         [CommandHandler("rares dump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleRaresDump(Session session, params string[] parameters)
         {
-            //  @rares dump - Lists all tiers of rare items.
+            // @rares dump - Lists all tiers of rare items.
 
-            //TODO: output
+            // TODO: output
         }
 
         // stormnumstormed
@@ -1065,7 +1070,7 @@ namespace ACE.Command
         {
             // @stormnumstormed - Sets how many characters are teleported away during a portal storm.
 
-            //TODO: output
+            // TODO: output
         }
 
         // stormthresh
@@ -1074,7 +1079,7 @@ namespace ACE.Command
         {
             // @stormthresh - Sets how many character can be in a landblock before we do a portal storm.
 
-            //TODO: output
+            // TODO: output
         }
     }
 }
