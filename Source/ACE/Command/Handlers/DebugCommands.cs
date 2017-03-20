@@ -173,7 +173,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            session.Network.EnqueueSend(new GameMessageAnimation(session.Player, session, (Animations)animationId, 1.0f));
+            session.Network.EnqueueSend(new GameMessageAnimation(session.Player, session, (AnimationType)animationId, 1.0f));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]

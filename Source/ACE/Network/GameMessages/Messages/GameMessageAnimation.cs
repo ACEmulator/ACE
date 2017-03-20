@@ -14,7 +14,7 @@ namespace ACE.Network.GameMessages.Messages
         }
 
         public GameMessageAnimation(Entity.WorldObject animationTarget, Session session, AnimationActivity activity,
-            AnimationType type, AnimationFlags flags, StanceMode stance, Animations animation, float speed)
+            AnimationAction type, AnimationFlags flags, StanceMode stance, AnimationType animation, float speed)
             : this()
         {
             WriteBase(animationTarget, session, activity, type, flags, stance);
@@ -22,16 +22,16 @@ namespace ACE.Network.GameMessages.Messages
             WriteAnimations(animationTarget, animations);
         }
         
-        public GameMessageAnimation(Entity.WorldObject animationTarget, Session session, Animations animation, float speed = 1.0f)
+        public GameMessageAnimation(Entity.WorldObject animationTarget, Session session, AnimationType animation, float speed = 1.0f)
             : this()
         {
-            WriteBase(animationTarget, session, AnimationActivity.Idle, AnimationType.General, AnimationFlags.None, StanceMode.Standing);
+            WriteBase(animationTarget, session, AnimationActivity.Idle, AnimationAction.General, AnimationFlags.None, StanceMode.Standing);
             List<AnimationItem> animations = new List<AnimationItem>() { new AnimationItem(animation, speed) };
             WriteAnimations(animationTarget, animations);
         }
 
         private void WriteBase(Entity.WorldObject animationTarget, Session session, AnimationActivity activity,
-            AnimationType type, AnimationFlags flags, StanceMode stance)
+            AnimationAction type, AnimationFlags flags, StanceMode stance)
         {
             Writer.WriteGuid(animationTarget.Guid);
             Writer.Write((ushort)session.Player.TotalLogins);
@@ -57,16 +57,16 @@ namespace ACE.Network.GameMessages.Messages
     }
     public struct AnimationItem
     {
-        public Animations Animation { get; set; }
+        public AnimationType Animation { get; set; }
         public float Speed { get; set; }
 
-        public AnimationItem(Animations animation)
+        public AnimationItem(AnimationType animation)
         {
             Animation = animation;
             Speed = 1.0f;
         }
 
-        public AnimationItem(Animations animation, float speed)
+        public AnimationItem(AnimationType animation, float speed)
         {
             Animation = animation;
             Speed = speed;
@@ -79,7 +79,7 @@ namespace ACE.Network.GameMessages.Messages
         Active = 1
     }
 
-    public enum AnimationType
+    public enum AnimationAction
     {
         General = 0,
         MoveToObject = 6,
@@ -106,7 +106,7 @@ namespace ACE.Network.GameMessages.Messages
         Spellcasting = 0x49
     }
 
-    public enum Animations
+    public enum AnimationType
     {
         Run = 7,
         FistJump = 76,
