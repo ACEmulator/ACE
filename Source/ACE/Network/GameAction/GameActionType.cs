@@ -13,6 +13,7 @@ namespace ACE.Network.GameAction
         RaiseVital                  = 0x0044,
         RaiseAbility                = 0x0045,
         RaiseSkill                  = 0x0046,
+        TrainSkill                  = 0x0047,
         Tell                        = 0x005D,
         LoginComplete               = 0x00A1,
         IdentifyObject              = 0x00C8,
@@ -25,11 +26,16 @@ namespace ACE.Network.GameAction
         IndexChannels               = 0x0149,
 
         SetCharacterOptions         = 0x01A1,
-        
+
+        QueryAge                    = 0x01C2,
+        QueryBirth                  = 0x01C4,
+
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,
 
         HouseQuery                  = 0x021E,
+
+        TeleToMarketPlace           = 0x028D,
 
         MoveToState                 = 0xF61C,
         AutonomousPosition          = 0xF753,

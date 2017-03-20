@@ -124,10 +124,10 @@ namespace ACE.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
-                //Do something with this...
-                //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
-                //Client seems to send them alternatingly every 2 or 4 seconds per port.
-                //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
+                // Do something with this...
+                // Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
+                // Client seems to send them alternatingly every 2 or 4 seconds per port.
+                // We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
@@ -166,7 +166,7 @@ namespace ACE.Network
         private void AcknowledgeSequence(uint sequence)
         {
             // TODO Sending Acks seems to cause some issues.  Needs further research.
-            //if (!sendAck)
+            // if (!sendAck)
             //    sendAck = true;
 
             var removalList = cachedPackets.Where(x => x.Key < sequence);
@@ -243,7 +243,7 @@ namespace ACE.Network
         /// This function handles turning a bundle of messages (representing all messages accrued in a timeslice),
         /// into 1 or more packets, combining multiple messages into one packet or spliting large message across
         /// several packets as needed.
-        /// 
+        ///
         /// 1 Create Packet
         /// 2 If first packet for this bundle, fill any optional headers
         /// 3 Append messages that will fit
@@ -271,19 +271,19 @@ namespace ACE.Network
                 {
                     firstPacket = false;
 
-                    if (bundle.SendAck) //0x4000
+                    if (bundle.SendAck) // 0x4000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                         packet.BodyWriter.Write(lastReceivedSequence);
                     }
 
-                    if (bundle.TimeSync) //0x1000000
+                    if (bundle.TimeSync) // 0x1000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
                         packet.BodyWriter.Write(ConnectionData.ServerTime);
                     }
 
-                    if (bundle.ClientTime != -1f) //0x4000000
+                    if (bundle.ClientTime != -1f) // 0x4000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                         packet.BodyWriter.Write(bundle.ClientTime);
@@ -320,7 +320,7 @@ namespace ACE.Network
 
                         if (dataToSend > availableSpace) // Message is too large to fit in packet
                         {
-                            carryOverMessage = currentMessageFragment; 
+                            carryOverMessage = currentMessageFragment;
                             if (fragmentCount == 0) // If this is first message in packet, this is just a really large message, so proceed with splitting it
                                 dataToSend = availableSpace;
                             else // Otherwise there are other messages already, so we'll break and come back and see if the message will fit

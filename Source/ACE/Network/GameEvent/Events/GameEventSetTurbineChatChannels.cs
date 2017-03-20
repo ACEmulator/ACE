@@ -6,7 +6,7 @@ namespace ACE.Network.GameEvent.Events
         /// <summary>
         /// societyCelestialHand, societyEldrytchWeb and societyRadiantBlood do not appear to be used by the latest client.
         /// </summary>
-        public GameEventSetTurbineChatChannels(Session session, uint allegiance, uint general, uint trade, uint lfg, uint rolePlay, uint olhtoi, uint society, uint societyCelestialHand, uint societyEldrytchWeb, uint societyRadiantBlood) 
+        public GameEventSetTurbineChatChannels(Session session, uint allegiance, uint general, uint trade, uint lfg, uint rolePlay, uint olhtoi, uint society, uint societyCelestialHand, uint societyEldrytchWeb, uint societyRadiantBlood)
             : base(GameEventType.SetTurbineChatChannels, GameMessageGroup.Group09, session)
         {
             Writer.Write(allegiance);

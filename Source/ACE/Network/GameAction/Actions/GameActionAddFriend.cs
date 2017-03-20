@@ -20,7 +20,7 @@ namespace ACE.Network.GameAction.Actions
         {
             var result = await Session.Player.AddFriend(friendName);
 
-            switch(result)
+            switch (result)
             {
                 case Enum.AddFriendResult.AlreadyInList:
                     ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);

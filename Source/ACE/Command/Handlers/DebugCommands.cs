@@ -66,43 +66,95 @@ namespace ACE.Command.Handlers
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
-            uint xp = 0;
-
-            if (parameters?.Length > 0 && uint.TryParse(parameters[0], out xp))
+            if (parameters?.Length > 0)
             {
-                session.Player.GrantXp(xp);
+                ulong xp = 0;
+                string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
+                // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
+                if (ulong.TryParse(xpAmountToParse, out xp))
+                {
+                    session.Player.GrantXp(xp);
+                    return;
+                }
             }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234", ChatMessageType.Broadcast);
-                return;
-            }
+            ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
+            return;
         }
 
-
-        [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void playeffect(Session session, params string[] parameters)
+        // playsound [Sound] (volumelevel)
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandlePlaySound(Session session, params string[] parameters)
         {
-
-            uint effectid;
             try
             {
-                effectid = Convert.ToUInt32(parameters[0]);
+                Network.Enum.Sound sound = Network.Enum.Sound.Invalid;
+                string message = "";
+                float volume = 1f;
+                var soundEvent = new GameMessageSound(session.Player.Guid, Network.Enum.Sound.Invalid, volume);
+
+                if (parameters.Length > 1)
+                    if (parameters[1] != "")
+                        volume = float.Parse(parameters[1]);
+
+                message = $"Unable to find a sound called {parameters[0]} to play.";
+
+                if (Enum.TryParse(parameters[0], true, out sound))
+                {
+                    if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
+                    {
+                        message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
+                        soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
+                    }
+                }
+
+                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(soundEvent, sysChatMessage);
             }
             catch (Exception)
             {
-                //ex...more info.. if needed..
-                ChatPacket.SendServerMessage(session, $"Invalid Effect value", ChatMessageType.Broadcast);
-                return;
+                // Do Nothing
             }
+        }
 
-            session.Player.PlayParticleEffect(effectid);
+        // effect [Effect] (scale)
+        [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandlePlayEffect(Session session, params string[] parameters)
+        {
+            try
+            {
+                Network.Enum.Effect effect = Network.Enum.Effect.Invalid;
+                string message = "";
+                float scale = 1f;
+                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.Invalid);
+
+                if (parameters.Length > 1)
+                    if (parameters[1] != "")
+                        scale = float.Parse(parameters[1]);
+
+                message = $"Unable to find a effect called {parameters[0]} to play.";
+
+                if (Enum.TryParse(parameters[0], true, out effect))
+                {
+                    if (Enum.IsDefined(typeof(Network.Enum.Effect), effect))
+                    {
+                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.Effect), effect)}";
+                        effectEvent = new GameMessageEffect(session.Player.Guid, effect, scale);
+                    }
+                }
+
+                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(effectEvent, sysChatMessage);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
+            }
         }
 
         [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void chatdump(Session session, params string[] parameters)
         {
-            for(int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
             }
@@ -118,7 +170,13 @@ namespace ACE.Command.Handlers
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(AdminObjectFactory.CreateLifestone(session.Player.Position.InFrontOf(3.0f)));
+            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
+        }
+
+        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreatePortal(Session session, params string[] parameters)
+        {
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
     }
 }

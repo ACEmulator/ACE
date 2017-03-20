@@ -22,21 +22,33 @@ namespace ACE.Network
         public float ClientTime
         {
             get { return clientTime; }
-            set { clientTime = value; propChanged = true; }
+            set
+            {
+                clientTime = value;
+                propChanged = true;
+            }
         }
 
         private bool timeSync;
         public bool TimeSync
         {
             get { return timeSync; }
-            set { timeSync = value; propChanged = true; }
+            set
+            {
+                timeSync = value;
+                propChanged = true;
+            }
         }
 
         private bool ackSeq;
         public bool SendAck
         {
             get { return ackSeq; }
-            set { ackSeq = value; propChanged = true; }
+            set
+            {
+                ackSeq = value;
+                propChanged = true;
+            }
         }
 
         public bool EncryptedChecksum { get; set; }

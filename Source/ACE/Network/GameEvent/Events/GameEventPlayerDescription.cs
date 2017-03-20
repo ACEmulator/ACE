@@ -10,56 +10,56 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None             = 0x0000,
-            PropertyInt32    = 0x0001,
-            PropertyBool     = 0x0002,
-            PropertyDouble   = 0x0004,
-            Link             = 0x0008,
-            PropertyString   = 0x0010,
-            Position         = 0x0020,
-            Resource         = 0x0040,
-            PropertyInt64    = 0x0080,
+            None = 0x0000,
+            PropertyInt32 = 0x0001,
+            PropertyBool = 0x0002,
+            PropertyDouble = 0x0004,
+            Link = 0x0008,
+            PropertyString = 0x0010,
+            Position = 0x0020,
+            Resource = 0x0040,
+            PropertyInt64 = 0x0080,
         }
 
         [Flags]
         private enum DescriptionVectorFlag
         {
-            None             = 0x0000,
-            Attribute        = 0x0001,
-            Skill            = 0x0002,
-            Spell            = 0x0100,
-            Enchantment      = 0x0200
+            None = 0x0000,
+            Attribute = 0x0001,
+            Skill = 0x0002,
+            Spell = 0x0100,
+            Enchantment = 0x0200
         }
 
         [Flags]
         private enum DescriptionAttributeFlag
         {
-            None             = 0x0000,
-            Strength         = 0x0001,
-            Endurance        = 0x0002,
-            Quickness        = 0x0004,
-            Coordination     = 0x0008,
-            Focus            = 0x0010,
-            Self             = 0x0020,
-            Health           = 0x0040,
-            Stamina          = 0x0080,
-            Mana             = 0x0100,
+            None = 0x0000,
+            Strength = 0x0001,
+            Endurance = 0x0002,
+            Quickness = 0x0004,
+            Coordination = 0x0008,
+            Focus = 0x0010,
+            Self = 0x0020,
+            Health = 0x0040,
+            Stamina = 0x0080,
+            Mana = 0x0100,
             // server always sends full mask (any cases where this shouldn't happen?)
-            Full             = Strength | Endurance | Quickness | Coordination | Focus | Self | Health | Stamina | Mana
+            Full = Strength | Endurance | Quickness | Coordination | Focus | Self | Health | Stamina | Mana
         }
 
         [Flags]
         private enum DescriptionOptionFlag
         {
-            None             = 0x0000,
-            Shortcut         = 0x0001,
-            Component        = 0x0008,
-            SpellTab         = 0x0010,
-            Unk20            = 0x0020,
+            None = 0x0000,
+            Shortcut = 0x0001,
+            Component = 0x0008,
+            SpellTab = 0x0010,
+            Unk20 = 0x0020,
             CharacterOption2 = 0x0040,
-            Unk100           = 0x0100,
-            WindowLayout     = 0x0200,
-            Unk400           = 0x0400,
+            Unk100 = 0x0100,
+            WindowLayout = 0x0200,
+            Unk400 = 0x0400,
         }
 
         public GameEventPlayerDescription(Session session)
@@ -70,7 +70,7 @@ namespace ACE.Network.GameEvent.Events
 
         private void WriteEventBody()
         {
-            var propertyFlags    = DescriptionPropertyFlag.None;
+            var propertyFlags = DescriptionPropertyFlag.None;
             var propertyFlagsPos = Writer.BaseStream.Position;
             Writer.Write(0u);
             Writer.Write(0x0Au);
@@ -167,7 +167,7 @@ namespace ACE.Network.GameEvent.Events
             var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
             Writer.Write((uint)vectorFlags);
             Writer.Write(1u);
-            
+
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
                 var attributeFlags = DescriptionAttributeFlag.Full;
@@ -176,42 +176,42 @@ namespace ACE.Network.GameEvent.Events
                 if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
                 {
                     Writer.Write(this.Session.Player.Strength.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Strength.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Strength.Base);
                     Writer.Write(this.Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
                 {
                     Writer.Write(this.Session.Player.Endurance.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Endurance.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Endurance.Base);
                     Writer.Write(this.Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
                 {
                     Writer.Write(this.Session.Player.Quickness.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Quickness.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Quickness.Base);
                     Writer.Write(this.Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
                 {
                     Writer.Write(this.Session.Player.Coordination.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Coordination.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Coordination.Base);
                     Writer.Write(this.Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
                 {
                     Writer.Write(this.Session.Player.Focus.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Focus.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Focus.Base);
                     Writer.Write(this.Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
                 {
                     Writer.Write(this.Session.Player.Self.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Self.UnbuffedValue);
+                    Writer.Write(this.Session.Player.Self.Base);
                     Writer.Write(this.Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
@@ -279,7 +279,7 @@ namespace ACE.Network.GameEvent.Events
             var optionFlags = DescriptionOptionFlag.CharacterOption2;
             Writer.Write((uint)optionFlags);
             Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
-            
+
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
             }*/

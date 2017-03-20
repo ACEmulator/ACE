@@ -19,7 +19,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            switch(option)
+            switch (option)
             {
                 case CharacterOption.AppearOffline:
                     Session.Player.AppearOffline(optionValue);
@@ -28,7 +28,7 @@ namespace ACE.Network.GameAction.Actions
                 default:
                     Session.Player.SetCharacterOption(option, optionValue);
                     break;
-            }            
+            }
         }
     }
 }

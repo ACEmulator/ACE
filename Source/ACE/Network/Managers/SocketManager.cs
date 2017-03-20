@@ -17,7 +17,7 @@ namespace ACE.Network.Managers
             foreach (var loginListener in Listeners)
                 loginListener.Start();
         }
-        
+
         public static Socket GetSocket()
         {
             return Listeners[0].Socket;

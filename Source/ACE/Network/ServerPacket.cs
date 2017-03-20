@@ -8,9 +8,6 @@ namespace ACE.Network
 {
     public class ServerPacket : Packet
     {
-        //public PacketHeader Header { get; private set; }
-        //public MemoryStream Data { get; } = new MemoryStream();
-
         public BinaryWriter BodyWriter { get; private set; }
 
         private List<ServerPacketFragment> fragments = new List<ServerPacketFragment>();

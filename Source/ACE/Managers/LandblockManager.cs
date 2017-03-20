@@ -63,7 +63,7 @@ namespace ACE.Managers
             // standard check/lock/recheck pattern
             if (landblocks[x, y] == null)
             {
-                lock(landblockMutex)
+                lock (landblockMutex)
                 {
                     if (landblocks[x, y] == null)
                     {
@@ -113,7 +113,7 @@ namespace ACE.Managers
         /// sets the adjacencies of the specified landblocks.  nulls are allowed in the use case of deleting
         /// or unloading a landblock.  Landblock2 is {adjacency} of Landblock1.  if autoLoad is true, and
         /// landblock2 is null, it will be auto loaded.
-        /// 
+        ///
         /// NOTE: ASSUMES A LOCK ON landblockMutex
         /// </summary>
         /// <param name="landblock1">a landblock</param>

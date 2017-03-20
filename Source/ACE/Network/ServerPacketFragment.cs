@@ -6,7 +6,7 @@ namespace ACE.Network
 {
     public class ServerPacketFragment : PacketFragment
     {
-        //public PacketFragmentHeader Header { get; private set; }
+        // public PacketFragmentHeader Header { get; private set; }
 
         public byte[] Content { get; set; }
 

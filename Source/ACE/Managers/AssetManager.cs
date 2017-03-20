@@ -14,7 +14,7 @@ namespace ACE.Managers
         public static void Initialise()
         {
             var locations = DatabaseManager.World.GetLocations();
-            foreach(var loc in locations)
+            foreach (var loc in locations)
                 teleportLocations.Add(loc.Location, loc.Position);
         }
 

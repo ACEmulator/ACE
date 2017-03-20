@@ -94,8 +94,8 @@ namespace ACE.Managers
             }
             finally
             {
-                sessionLock.ExitReadLock();                
-            }   
+                sessionLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -126,8 +126,8 @@ namespace ACE.Managers
             }
             finally
             {
-                sessionLock.ExitReadLock();                
-            }   
+                sessionLock.ExitReadLock();
+            }
         }
 
         public static List<Session> GetAll(bool isOnlineRequired = true)
