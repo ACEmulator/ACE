@@ -7,23 +7,23 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     /// <summary>
-    /// Used to replace default Pallete colors / not required
+    /// Used to replace default Palette colors / not required
     /// </summary>
-    public class ModelPallete
+    public class ModelPalette
     {
 
         /// <summary>
         ///  Palette portal.dat entry minus 0x04000000
         /// </summary>
-        public ushort PaletteID { get; }
+        public ushort PaletteId { get; }
 
         public byte Offset { get; }
 
         public byte Length { get; }
 
-        public ModelPallete(ushort paletteID, byte offset, byte length)
+        public ModelPalette(ushort paletteId, byte offset, byte length)
         {
-            PaletteID = paletteID;
+            PaletteId = paletteId;
             Offset = offset;
             Length = length;
         }

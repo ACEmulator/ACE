@@ -11,23 +11,24 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-        
-        private List<ModelPallete> modelPalletes = new List<ModelPallete>();
+        public uint PaletteGuid = 0;
+
+        private List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
 
         private List<Model> models = new List<Model>();
 
-        public void AddPallet (ushort palleteID, byte offset, byte length)
+        public void AddPallet (ushort paletteID, byte offset, byte length)
         {
-            ModelPallete newpallet = new ModelPallete(palleteID, offset,length);
-            modelPalletes.Add(newpallet);
+            ModelPalette newpallet = new ModelPalette(paletteID, offset,length);
+            modelPalettes.Add(newpallet);
         }
 
         public void AddTexture(byte index, ushort oldtexture, ushort newtexture)
         {
-            ModelTexture nextexture = new ModelTexture(index, oldtexture, newtexture);
-            modelTextures.Add(nextexture);
+            ModelTexture nextTexture = new ModelTexture(index, oldtexture, newtexture);
+            modelTextures.Add(nextTexture);
         }
 
         public void AddModel(byte index, ushort modelresourceid)
@@ -40,13 +41,15 @@ namespace ACE.Entity
         public void Serialize(BinaryWriter writer)
         {
             writer.Write((byte)0x11);
-            writer.Write((byte)modelPalletes.Count);
+            writer.Write((byte)modelPalettes.Count);
             writer.Write((byte)modelTextures.Count);
             writer.Write((byte)models.Count);
 
-            foreach (ModelPallete pallet in modelPalletes)
+            if (modelPalettes.Count > 0)
+                writer.Write((ushort)PaletteGuid);
+            foreach (ModelPalette pallet in modelPalettes)
             {
-                writer.Write((ushort)pallet.PaletteID);
+                writer.Write((ushort)pallet.PaletteId);
                 writer.Write((byte)pallet.Offset);
                 writer.Write((byte)pallet.Length);
 
