@@ -14,25 +14,15 @@ namespace ACE.Factories
         /// </summary>
         public static ImmutableWorldObject CreateLifestone(ushort weenieClassId, Position newPosition, LifestoneType lifestoneType)
         {
-<<<<<<< HEAD:Source/ACE/Factories/AdminObjectFactory.cs
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar |
                          WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone,
                 new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", 0,
                 ObjectDescriptionFlag.LifeStone, weenie, newPosition);
-=======
-            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
-            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
->>>>>>> upstream/master:Source/ACE/Factories/LifestoneObjectFactory.cs
-
             // model id 0x000026 is one of several lifestone IDs
             wo.PhysicsData.MTableResourceId = 0x09000026u;
             wo.PhysicsData.Stable = 0x20000014u;
-<<<<<<< HEAD:Source/ACE/Factories/AdminObjectFactory.cs
-            wo.PhysicsData.CSetup = (uint) 0x020002EEu;
-=======
             wo.PhysicsData.CSetup = (uint)lifestoneType;
->>>>>>> upstream/master:Source/ACE/Factories/LifestoneObjectFactory.cs
 
             wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable |
                                                     PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Position;
@@ -86,7 +76,7 @@ namespace ACE.Factories
             wo.ModelData.AddTexture(0, 0xC3, 0xC4);
             wo.ModelData.AddModel(0, 0x2D7C);
             wo.PhysicsData.PhysicsState = PhysicsState.Gravity | PhysicsState.IgnoreCollision | PhysicsState.Ethereal;
-            
+
             // This is probably not the right way to do this all of this infromation is sent in the message - OG II
             newPlayer.GameData.Burden += wo.GameData.Burden;
 

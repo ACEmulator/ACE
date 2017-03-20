@@ -130,7 +130,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("createtrainingwand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateTrainingWand(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(AdminObjectFactory.CreateTrainingWand(session.Player));
+            LandblockManager.AddObject(LifestoneObjectFactory.CreateTrainingWand(session.Player));
         }
     }
 }
