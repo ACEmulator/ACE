@@ -11,7 +11,7 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-        public uint PaletteGuid = 0;
+        public uint PaletteGuid { get; set; } = 0;
 
         private List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
