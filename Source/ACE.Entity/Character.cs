@@ -183,6 +183,21 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Sets the skill to trained status for a character
+        /// </summary>
+        /// <param name="skill"></param>
+        public bool TrainSkill(Skill skill, uint creditsSpent)
+        {
+            if(Skills[skill].Status != SkillStatus.Trained && Skills[skill].Status != SkillStatus.Specialized)
+                if(PropertiesInt[PropertyInt.AvailableSkillCredits] >= creditsSpent) { 
+                    Skills[skill] = new CharacterSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    AvailableSkillCredits = PropertiesInt[PropertyInt.AvailableSkillCredits] - creditsSpent;
+                    return true;
+                }
+            return false;
+        }
+
+        /// <summary>
         /// gives avaiable xp and total xp of the amount specified
         /// </summary>
         public void GrantXp(ulong amount)

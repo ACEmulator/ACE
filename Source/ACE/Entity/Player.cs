@@ -280,6 +280,46 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Public method for adding a new skill by spending skill credits.
+        /// </summary>
+        /// <remarks>
+        ///  The client will throw up more then one train skill dialog and the user has the chance to spend twice.
+        /// </remarks>
+        /// <param name="skill"></param>
+        /// <param name="creditsSpent"></param>
+        public void TrainSkill(Skill skill, uint creditsSpent)
+        {
+            if (character.AvailableSkillCredits >= creditsSpent)
+            {
+                //attempt to train the specified skill
+                bool trainNewSkill = character.TrainSkill(skill, creditsSpent);
+                //create an update to send to the client
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                //as long as the skill is sent, the train new triangle button on the client will not lock up. 
+                //Sending Skill.None with status untrained worked in test
+                var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
+                //create a string placeholder for the correct after
+                string trainSkillMessageText = "";
+
+                //if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
+                if (trainNewSkill)
+                {
+                    //replace the trainSkillUpdate message with the correct skill assignment:
+                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
+                    trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {character.AvailableSkillCredits} credits available.";
+                }
+                else
+                {
+                    trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {character.AvailableSkillCredits} credits available.";
+                }
+
+                //create the final game message and send to the client
+                var message = new GameMessageSystemChat(trainSkillMessageText, ChatMessageType.Advancement);
+                Session.Network.EnqueueSend(trainSkillUpdate, currentCredits, message);
+            }
+        }
+
+        /// <summary>
         /// Determines if the player has advanced a level
         /// </summary>
         /// <remarks>
