@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -800,7 +801,7 @@ namespace ACE.Command
             // This command fully restores your(or the selected creature's) health, mana, and stamina.
             // @heal - Heals yourself(or the selected creature).
 
-            // TODO: Get player's selected target and heal them instead of self
+            // TODO: Check if player has a selected target, heal target otherwise heal player.
 
             // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
 
