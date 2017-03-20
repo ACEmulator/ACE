@@ -81,7 +81,7 @@ namespace ACE.Network.Managers
         public static void HandleGameAction(GameActionType opcode, ClientPacketFragment fragment, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))
-                Console.WriteLine($"Received unhandled action opcode: 0x{(uint)opcode:X4}");
+                Console.WriteLine($"Received unhandled GameActionType: 0x{(uint)opcode:X4}");
             else
             {
                 Type actionType;

@@ -20,7 +20,7 @@ namespace ACE.Database
         
         Task<bool> CreateCharacter(Character character);
 
-        Task UpdateCharacter(Character character);
+        void UpdateCharacter(Character character);
 
         Task<Character> LoadCharacter(uint id);
 
