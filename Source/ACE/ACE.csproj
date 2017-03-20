@@ -101,10 +101,11 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
-    <Compile Include="Factories\AdminObjectFactory.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
+    <Compile Include="Factories\LifestoneObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
+    <Compile Include="Factories\PortalObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
@@ -210,7 +211,6 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerTeleport.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterError.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterEnterWorldServerReady.cs" />
-    <Compile Include="Network\GameMessages\Messages\GameMessageCreateLifestone.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateObject.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
