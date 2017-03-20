@@ -13,9 +13,11 @@ namespace ACE.Network.GameAction.Actions
     {
         public GameActionTeleToMarketPlace(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
+        // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
+        private static readonly Position marketplaceDrop = new Position(23855548, 49.16f, -31.62f, 0.10f, 0f, 0f, -0.71f, 0.71f); // Is this the right drop?
+
         public override void Handle()
         {
-            Position marketplaceDrop = new Position(23855548, 49.16f, -31.62f, 0.10f, 0f, 0f, -0.71f, 0.71f); // Is this the right drop?
             string message = $"{Session.Player.Name} is recalling to the marketplace.";
 
             var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);

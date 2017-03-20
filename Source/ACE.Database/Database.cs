@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using MySql.Data.MySqlClient;
+using log4net;
 
 namespace ACE.Database
 {
@@ -28,6 +29,8 @@ namespace ACE.Database
     {
         public class DatabaseTransaction
         {
+            private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
             private readonly Database database;
             private readonly List<Tuple<StoredPreparedStatement, object[]>> queries = new List<Tuple<StoredPreparedStatement, object[]>>();
 
@@ -71,7 +74,7 @@ namespace ACE.Database
 #if NETWORKDEBUG
                                     foreach (MySqlParameter p in command.Parameters)
                                     {
-                                        Console.WriteLine(p.Value);
+                                        log.Info(p.Value);
                                     }
 #endif
                                 }

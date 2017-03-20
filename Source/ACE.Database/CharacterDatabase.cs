@@ -171,7 +171,7 @@ namespace ACE.Database
             return (charsWithName == 0);
         }
 
-        public async void UpdateCharacter(Character character)
+        public async Task UpdateCharacter(Character character)
         {
             ExecutePreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, character.Id, character.Position.LandblockId.Raw, character.Position.Offset.X, character.Position.Offset.Y, character.Position.Offset.Z, character.Position.Facing.X, character.Position.Facing.Y, character.Position.Facing.Z, character.Position.Facing.W);
 

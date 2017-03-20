@@ -386,13 +386,6 @@ namespace ACE.Entity
         /// <summary>
         /// spends the xp on this ability.
         /// </summary>
-        /// <remarks>
-        ///     Known Issues:
-        ///         1. Attributes are possibly out of sequence:
-        ///             When you try to raise a primary attribute (Strength, Endurance, Coordination, Quickness
-        ///             Focus, or Self) past 121 rank points, the client will not accept any more points and prevents
-        ///             any other attributes from advancing.
-        /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendAbilityXp(CharacterAbility ability, uint amount)
         {
@@ -546,6 +539,10 @@ namespace ACE.Entity
         /// <summary>
         /// spends the xp on this skill.
         /// </summary>
+        /// <remarks>
+        ///     Known Issues:
+        ///         1. Not checking and accounting for XP gained from skill usage.
+        /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendSkillXp(CharacterSkill skill, uint amount)
         {
@@ -745,7 +742,7 @@ namespace ACE.Entity
             }
             catch (NullReferenceException)
             {
-
+                // Do Nothing since player data hasn't loaded in
             }
         }
 
@@ -757,7 +754,7 @@ namespace ACE.Entity
             }
             catch (NullReferenceException)
             {
-
+                // Do Nothing since player data hasn't loaded in
             }
         }
 
@@ -891,12 +888,6 @@ namespace ACE.Entity
 
             // remove the player from landblock management
             LandblockManager.RemoveObject(this);
-
-            // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
-            // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
-            //DatabaseManager.Character.SaveCharacterOptions(character);
-
-            //DatabaseManager.Character.UpdateCharacter(character);
 
             if (!clientSessionTerminatedAbruptly)
             {

@@ -99,18 +99,20 @@ namespace ACE.Command.Handlers
                 message = $"Unable to find a sound called {parameters[0]} to play.";
 
                 if (Enum.TryParse(parameters[0], true, out sound))
+                {
                     if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
                     {
                         message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
                         soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
                     }
+                }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(soundEvent, sysChatMessage);
             }
             catch (Exception)
             {
-                //ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
+                // Do Nothing
             }
         }
 
@@ -132,18 +134,20 @@ namespace ACE.Command.Handlers
                 message = $"Unable to find a effect called {parameters[0]} to play.";
 
                 if (Enum.TryParse(parameters[0], true, out effect))
+                {
                     if (Enum.IsDefined(typeof(Network.Enum.Effect), effect))
                     {
                         message = $"Playing effect {Enum.GetName(typeof(Network.Enum.Effect), effect)}";
                         effectEvent = new GameMessageEffect(session.Player.Guid, effect, scale);
                     }
+                }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(effectEvent, sysChatMessage);
             }
             catch (Exception)
             {
-                //ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
+                // Do Nothing
             }
         }
 
