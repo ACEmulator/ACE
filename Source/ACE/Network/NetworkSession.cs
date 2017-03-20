@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -13,14 +14,13 @@ namespace ACE.Network
 {
     public class NetworkSession
     {
-        private readonly Object lockObject = new Object();
-
         private const int minimumTimeBetweenBundles = 5; // 5ms
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
         private readonly Session session;
 
+        private readonly Object currentBundleLock = new Object();
         private NetworkBundle currentBundle = new NetworkBundle();
 
         private DateTime nextResync = DateTime.UtcNow;
@@ -30,8 +30,18 @@ namespace ACE.Network
         private bool sendResync = false;
         private uint lastReceivedSequence = 0;
 
-        private readonly Dictionary<uint /*seq*/, ServerPacket> cachedPackets = new Dictionary<uint /*seq*/, ServerPacket>();
+        /// <summary>
+        /// This is referenced from many threads:<para />
+        /// ConnectionListener.OnDataReceieve()->Session.HandlePacket()->This.HandlePacket(packet), This path can come from any client or other thinkable object.<para />
+        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) 
+        /// </summary>
+        private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
 
+        /// <summary>
+        /// This is referenced by one thread:<para />
+        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) <para />
+        /// Technically, it is referenced ONCE by EnqueueSend when the client first connects to the server, but there's no collision risk at that point.
+        /// </summary>
         private readonly Queue<ServerPacket> packetQueue = new Queue<ServerPacket>();
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
@@ -41,9 +51,12 @@ namespace ACE.Network
             this.session = session;
         }
 
+        /// <summary>
+        /// It is assumed that this might be called from any thread.
+        /// </summary>
         public void EnqueueSend(params GameMessage[] messages)
         {
-            lock (lockObject)
+            lock (currentBundleLock)
             {
                 currentBundle.EncryptedChecksum = true;
 
@@ -52,21 +65,24 @@ namespace ACE.Network
             }
         }
 
+        /// <summary>
+        /// At the moment, this is only called once, when a client initially connects to the server.
+        /// </summary>
         public void EnqueueSend(params ServerPacket[] packets)
         {
-            lock (lockObject)
-            {
-                foreach (var packet in packets)
-                    packetQueue.Enqueue(packet);
-            }
+            foreach (var packet in packets)
+                packetQueue.Enqueue(packet);
         }
 
+        /// <summary>
+        /// It is assumed that this will only be called from a single thread. WorldManager.UpdateWorld()->Session.Update(lastTick)->This
+        /// </summary>
         public void Update(double lastTick)
         {
-            lock (lockObject)
-            {
-                ConnectionData.ServerTime += lastTick;
+            ConnectionData.ServerTime += lastTick;
 
+            lock (currentBundleLock)
+            {
                 if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
                 {
                     currentBundle.TimeSync = true;
@@ -82,62 +98,69 @@ namespace ACE.Network
 
                 if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
                 {
-                    FlushBundle();
+                    // Flush the bundle here
+                    var bundleToSend = currentBundle;
+                    currentBundle = new NetworkBundle();
+                    SendBundle(bundleToSend);
+                    nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
                 }
-
-                FlushPackets();
             }
+
+            FlushPackets();
         }
 
+        /// <summary>
+        /// This is called from ConnectionListener.OnDataReceieve()->Session.HandlePacket()->This
+        /// </summary>
         public void HandlePacket(ClientPacket packet)
         {
-            lock (lockObject)
+            lastReceivedSequence = packet.Header.Sequence;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
+                FlagEcho(packet.HeaderOptional.ClientTime);
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
+                AcknowledgeSequence(packet.HeaderOptional.Sequence);
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
-                lastReceivedSequence = packet.Header.Sequence;
-
-                if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-                    FlagEcho(packet.HeaderOptional.ClientTime);
-
-                if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
-                    AcknowledgeSequence(packet.HeaderOptional.Sequence);
-
-                if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
-                {
-                    //Do something with this...
-                    //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
-                    //Client seems to send them alternatingly every 2 or 4 seconds per port.
-                    //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
-                }
-
-                if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-                {
-                    foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                        Retransmit(sequence);
-                }
-
-                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-                {
-                    AuthenticationHandler.HandleLoginRequest(packet, session);
-                    return;
-                }
-
-                if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-                {
-                    sendResync = true;
-                    AuthenticationHandler.HandleConnectResponse(packet, session);
-                    return;
-                }
-
-                foreach (ClientPacketFragment fragment in packet.Fragments)
-                    InboundMessageManager.HandleClientFragment(fragment, session);
+                //Do something with this...
+                //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
+                //Client seems to send them alternatingly every 2 or 4 seconds per port.
+                //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
             }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+            {
+                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
+                    Retransmit(sequence);
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            {
+                AuthenticationHandler.HandleLoginRequest(packet, session);
+                return;
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
+            {
+                sendResync = true;
+                AuthenticationHandler.HandleConnectResponse(packet, session);
+                return;
+            }
+
+            foreach (ClientPacketFragment fragment in packet.Fragments)
+                InboundMessageManager.HandleClientFragment(fragment, session);
         }
 
         private void FlagEcho(float clientTime)
         {
-            //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
-            currentBundle.ClientTime = clientTime;
-            currentBundle.EncryptedChecksum = true;
+            lock (currentBundle)
+            {
+                //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
+                currentBundle.ClientTime = clientTime;
+                currentBundle.EncryptedChecksum = true;
+            }
         }
 
         private void AcknowledgeSequence(uint sequence)
@@ -146,10 +169,12 @@ namespace ACE.Network
             //if (!sendAck)
             //    sendAck = true;
 
-            foreach (var key in cachedPackets.Keys.ToList())
+            var removalList = cachedPackets.Where(x => x.Key < sequence);
+
+            foreach (var item in removalList)
             {
-                if (key < sequence)
-                    cachedPackets.Remove(key);
+                ServerPacket removedPacket;
+                cachedPackets.TryRemove(item.Key, out removedPacket);
             }
         }
 
@@ -168,17 +193,6 @@ namespace ACE.Network
             }
         }
 
-        private void FlushBundle()
-        {
-            if (currentBundle.NeedsSending)
-            {
-                var bundleToSend = currentBundle;
-                currentBundle = new NetworkBundle();
-                SendBundle(bundleToSend);
-                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
-            }
-        }
-
         private void FlushPackets()
         {
             while (packetQueue.Count > 0)
@@ -194,7 +208,7 @@ namespace ACE.Network
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
                 if (packet.Header.Sequence >= 2u)
-                    cachedPackets.Add(packet.Header.Sequence, packet);
+                    cachedPackets.TryAdd(packet.Header.Sequence, packet);
 
                 SendPacket(packet);
             }
