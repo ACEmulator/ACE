@@ -11,7 +11,8 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-        
+        public ushort PalleteGuid = 0;
+
         private List<ModelPallete> modelPalletes = new List<ModelPallete>();
 
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
@@ -44,6 +45,9 @@ namespace ACE.Entity
             writer.Write((byte)modelTextures.Count);
             writer.Write((byte)models.Count);
 
+            if (modelPalletes.Count > 0)
+                writer.Write((ushort)PalleteGuid);
+
             foreach (ModelPallete pallet in modelPalletes)
             {
                 writer.Write((ushort)pallet.PaletteID);
@@ -61,8 +65,8 @@ namespace ACE.Entity
 
             foreach (Model model in models)
             {
-                writer.Write((ushort)model.ModelID);
                 writer.Write((byte)model.Index);
+                writer.Write((ushort)model.ModelID);
             }
 
             writer.Align();

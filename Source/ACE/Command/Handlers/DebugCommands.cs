@@ -120,5 +120,12 @@ namespace ACE.Command.Handlers
         {
             LandblockManager.AddObject(AdminObjectFactory.CreateLifestone(session.Player.Position.InFrontOf(3.0f)));
         }
+
+        [CommandHandler("createmonster", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateMonster(Session session, params string[] parameters)
+        {
+            uint templateid = 1;
+            LandblockManager.AddObject(MonsterFactory.CreateMonster(templateid, session.Player.Position.InFrontOf(3.0f)));
+        }
     }
 }
