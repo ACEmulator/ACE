@@ -1,7 +1,6 @@
 ﻿using System;
 
 using ACE.Entity;
-using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.GameAction.Actions
 {
