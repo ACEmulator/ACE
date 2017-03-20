@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ACE.Database;
@@ -14,16 +15,16 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
+using ACE.Entity.Events;
+using log4net;
 
 namespace ACE.Entity
 {
     public class Player : MutableWorldObject
     {
-        // all the objects being tracked
-        private Dictionary<ObjectGuid, MutableWorldObject> subscribedObjects = new Dictionary<ObjectGuid, MutableWorldObject>();
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public Session Session { get; }
-
 
         /// <summary>
         /// This will be false when in portal space
@@ -40,7 +41,15 @@ namespace ACE.Entity
         /// </summary>
         public uint PortalIndex { get; set; } = 1u;
 
+        /// <summary>
+        /// tick-stamp for the server time of the last time the player changed state (combat state?)
+        /// </summary>
+        public double LastStateChangeTicks { get; set; }
+
         private Character character;
+        
+        private object clientObjectMutex = new object();
+        private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -200,6 +209,7 @@ namespace ACE.Entity
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
             WeenieFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
 
+            // apply defaults.  "Load" should be overwriting these with values specific to the character
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -209,9 +219,9 @@ namespace ACE.Entity
             ListeningRadius = 5f;
         }
 
-        public async void Load()
+        public async Task Load(Character preloadedCharacter = null)
         {
-            character = await DatabaseManager.Character.LoadCharacter(Guid.Low);
+            character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
 
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -231,6 +241,7 @@ namespace ACE.Entity
             Position = character.Position;
             IsOnline = true;
 
+            // SendSelf will trigger the entrance into portal space
             SendSelf();
             SendFriendStatusUpdates();
 
@@ -628,8 +639,24 @@ namespace ACE.Entity
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
 
-            // must be sent after the teleport packet
-            UpdatePosition(newPosition);
+            lock(clientObjectMutex)
+            {
+                clientObjectList.Clear();
+            }
+
+            DelayedUpdatePosition(newPosition);
+        }
+
+        public void UpdatePosition(Position newPosition)
+        {
+            this.Position = newPosition;
+            SendUpdatePosition();
+        }
+
+        private void DelayedUpdatePosition(Position newPosition)
+        {
+            var t = new Thread(() => { Thread.Sleep(10); this.Position = newPosition; SendUpdatePosition(); });
+            t.Start();
         }
 
         public void SetTitle(uint title)
@@ -639,19 +666,47 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(updateTitle, message);
         }
 
-        public void Subscribe(MutableWorldObject worldObject)
+        public void ObjectMoved(MutableWorldObject sender)
         {
-            subscribedObjects.Add(worldObject.Guid, worldObject);
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(sender));
         }
 
-        public void Unsubscribe(ObjectGuid objectId)
+        public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
         {
-            if (subscribedObjects.ContainsKey(objectId))
-            {
-                subscribedObjects.Remove(objectId);
+            // TODO: Implement
+        }
 
-                // TODO: send a destroy packet
+        /// <summary>
+        /// forces either an update or a create object to be sent to the client
+        /// </summary>
+        public void TrackObject(WorldObject worldObject)
+        {
+            bool sendUpdate = true;
+
+            if (worldObject.Guid == this.Guid)
+                return;
+
+            lock (clientObjectMutex)
+            {
+                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
+
+                // check for a short circuit.  if we don't need to update, don't!
+                if (sendUpdate)
+                    if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
+                        return;
+
+                if (!sendUpdate)
+                    clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
+                else
+                    clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
+
+            log.Debug($"Telling {Name} about {worldObject.Name}");
+
+            if (sendUpdate)
+                Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
+            else
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
         }
 
         /// <summary>
@@ -667,6 +722,9 @@ namespace ACE.Entity
             IsOnline = false;
 
             SendFriendStatusUpdates();
+
+            // remove the player from landblock management
+            LandblockManager.RemoveObject(this);
 
             // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
             // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
@@ -689,6 +747,37 @@ namespace ACE.Entity
                 var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Roleplay");
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
+        }
+
+        public void StopTrackingObject(ObjectGuid objectId)
+        {
+            bool sendUpdate = true;
+            lock (clientObjectMutex)
+            {
+                sendUpdate = clientObjectList.ContainsKey(objectId);
+
+                if (!sendUpdate)
+                {
+                    clientObjectList.Remove(objectId);
+                }
+            }
+
+            if (sendUpdate)
+            {
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(objectId));
+            }
+        }
+
+        public void SendUpdatePosition()
+        {
+            this.LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+        }
+
+        public void SendAutonomousPosition()
+        {
+            
+            // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
     }
 }

@@ -8,7 +8,7 @@ namespace ACE.Entity
         Player = 0x50,
     }
 
-    public class ObjectGuid
+    public struct ObjectGuid
     {
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
@@ -18,10 +18,19 @@ namespace ACE.Entity
 
         public ObjectGuid(uint low, GuidType high)
         {
-            Debug.Assert(low <= 0xFFFFFFu);
             Full = low | ((uint)high << 24);
         }
 
         public bool IsPlayer() { return High == GuidType.Player; }
+
+        public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
+        {
+            return g1.Full == g2.Full;
+        }
+
+        public static bool operator !=(ObjectGuid g1, ObjectGuid g2)
+        {
+            return g1.Full != g2.Full;
+        }
     }
 }

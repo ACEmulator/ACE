@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -69,9 +73,12 @@
     <Compile Include="Enum\ChatMessageType.cs" />
     <Compile Include="Enum\EnumHelper.cs" />
     <Compile Include="Enum\GroupChatType.cs" />
+    <Compile Include="Enum\LifestoneType.cs" />
+    <Compile Include="Enum\MapScope.cs" />
     <Compile Include="Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
+    <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
     <Compile Include="Enum\Properties\PropertyDouble.cs" />
     <Compile Include="Enum\Properties\PropertyInt.cs" />
@@ -83,11 +90,13 @@
     <Compile Include="Enum\TurbineChatType.cs" />
     <Compile Include="ExperienceExpenditure.cs" />
     <Compile Include="Friend.cs" />
+    <Compile Include="LandblockId.cs" />
     <Compile Include="LevelingChart.cs" />
     <Compile Include="ObjectGuid.cs" />
     <Compile Include="PersistedPropertyAttribute.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Quadrant.cs" />
     <Compile Include="SkillCostAttribute.cs" />
     <Compile Include="SkillUsableUntrainedAttribute.cs" />
     <Compile Include="ExperienceExpenditureChart.cs" />
