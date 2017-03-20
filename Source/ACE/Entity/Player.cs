@@ -254,20 +254,92 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
+        /// <summary>
+        /// Raise the available XP by a specified amount
+        /// </summary>
+        /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(ulong amount)
         {
-            character.GrantXp(amount);
-            var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-            var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-            Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            //until we are max level we must make sure that we send 
+            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            CharacterLevel maxLevel = chart.Levels.Last();
+            if (character.Level != maxLevel.Level)
+            {
+                ulong amountLeftToEnd = maxLevel.TotalXp - character.TotalExperience;
+                if (amount > amountLeftToEnd)
+                {
+                    amount = amountLeftToEnd;
+                }
+                character.GrantXp(amount);
+                CheckForLevelup();
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            }
         }
 
+        /// <summary>
+        /// Determines if the player has advanced a level
+        /// </summary>
+        /// <remarks>
+        /// Known issues:
+        ///         1. XP updates from outside of the grantxp command have not been done yet.
+        /// </remarks>
         private void CheckForLevelup()
         {
+            // Question: Where do *we* call CheckForLevelup()? : 
+            //      From within the player.cs file, the options might be:
+            //           GrantXp()
+            //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
+            //           XP Updates?
+            var startingLevel = character.Level;
             var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            CharacterLevel maxLevel = chart.Levels.Last();
+            bool creditEarned = false;
+            if (character.Level == maxLevel.Level) return;
 
-            // TODO: implement.  just stubbing for now, will implement later.
+            // increases until the correct level is found
+            while (chart.Levels[Convert.ToInt32(character.Level)].TotalXp <= character.TotalExperience)
+            {
+                character.Level++;
+                CharacterLevel newLevel = chart.Levels.FirstOrDefault(item => item.Level == character.Level);
+                //increase the skill credits if the chart allows this level to grant a credit
+                if (newLevel.GrantsSkillPoint)
+                {
+                    character.AvailableSkillCredits++;
+                    creditEarned = true;
+                }
+                //break if we reach max
+                if (character.Level == maxLevel.Level)
+                {
+                    //new enum soon ;)
+                    PlayParticleEffect(0x8d);
+                    break;
+                }
+            }
+
+            if (character.Level > startingLevel)
+            {
+                string level = $"{character.Level}";
+                string skillCredits = $"{character.AvailableSkillCredits}";
+                string xpAvailable = $"{character.AvailableExperience:#,###0}";
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
+                string levelUpMessageText = (character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
+                var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
+                string xpUpdateText = (character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes."; ;
+                var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                if (character.Level != maxLevel.Level && !creditEarned)
+                {
+                    string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
+                    var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
+                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
+                } else
+                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
+                //play level up effect
+                PlayParticleEffect(0x8a);
+            }
         }
 
         public void SpendXp(Enum.Ability ability, uint amount)
