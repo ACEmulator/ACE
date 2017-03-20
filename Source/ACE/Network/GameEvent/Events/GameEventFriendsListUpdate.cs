@@ -14,9 +14,9 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         public enum FriendsUpdateTypeFlag
         {
-            FullList            = 0x0000,
-            FriendAdded         = 0x0001,
-            FriendRemoved       = 0x0002,
+            FullList = 0x0000,
+            FriendAdded = 0x0001,
+            FriendRemoved = 0x0002,
             FriendStatusChanged = 0x0004
         }
 
@@ -29,8 +29,8 @@ namespace ACE.Network.GameEvent.Events
         /// This constructor should only be used for sending the full friend list
         /// </summary>
         /// <param name="session"></param>
-        public GameEventFriendsListUpdate(Session session) 
-            : base (GameEventType.FriendsListUpdate, GameMessageGroup.Group09, session)
+        public GameEventFriendsListUpdate(Session session)
+            : base(GameEventType.FriendsListUpdate, GameMessageGroup.Group09, session)
         {
             updateType = FriendsUpdateTypeFlag.FullList;
             WriteEventBody();
@@ -44,8 +44,8 @@ namespace ACE.Network.GameEvent.Events
         /// <param name="friend"></param>
         /// <param name="overrideOnlineStatus">Set to true if you want to force a value for the online status of the friend.  Useful if you know the status and don't want to have the WorldManager check</param>
         /// <param name="onlineStatusVal">If overrideOnlineStatus is true, then this is the online status value that you want to force in the packet</param>
-        public GameEventFriendsListUpdate(Session session, FriendsUpdateTypeFlag updateType, Friend friend, bool overrideOnlineStatus = false, bool onlineStatusVal = false) 
-            : base (GameEventType.FriendsListUpdate, GameMessageGroup.Group09, session)
+        public GameEventFriendsListUpdate(Session session, FriendsUpdateTypeFlag updateType, Friend friend, bool overrideOnlineStatus = false, bool onlineStatusVal = false)
+            : base(GameEventType.FriendsListUpdate, GameMessageGroup.Group09, session)
         {
             this.updateType = updateType;
             this.friend = friend;
@@ -74,12 +74,12 @@ namespace ACE.Network.GameEvent.Events
                 else
                 {
                     Session friendSession = WorldManager.Find(f.Id);
-                    if(friendSession != null && friendSession.Player?.GetVirtualOnlineStatus() == true)
+                    if (friendSession != null && friendSession.Player?.GetVirtualOnlineStatus() == true)
                         isOnline = true;
-                }                    
+                }
 
                 Writer.Write(f.Id.Full); // friend Object ID
-                Writer.Write(isOnline ? 1u : 0u); // is Online               
+                Writer.Write(isOnline ? 1u : 0u); // is Online
                 Writer.Write(0u); // Unknown
                 Writer.WriteString16L(f.Name); // Friend Name
 

@@ -10,7 +10,7 @@ namespace ACE.Network.GameAction.Actions
         private uint xpSpent;
 
         public GameActionRaiseSkill(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-        
+
         public override void Read()
         {
             skill = (Skill)Fragment.Payload.ReadUInt32();

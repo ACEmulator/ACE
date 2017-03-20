@@ -111,5 +111,17 @@ namespace ACE.Entity
         {
             return (Math.Abs(this.LandblockX - block.LandblockX) <= 1 && Math.Abs(this.LandblockY - block.LandblockY) <= 1);
         }
+        public override bool Equals(object obj)
+        {
+            if (obj is LandblockId)
+                return ((LandblockId)obj) == this;
+            else
+                return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

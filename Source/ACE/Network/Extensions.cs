@@ -8,7 +8,7 @@ namespace ACE.Network
     public static class Extensions
     {
         private static uint CalculatePadMultiple(uint length, uint multiple) { return multiple * ((length + multiple - 1u) / multiple) - length; }
-        
+
         public static void WriteString16L(this BinaryWriter writer, string data)
         {
             writer.Write((ushort)data.Length);
@@ -17,13 +17,13 @@ namespace ACE.Network
             // client expects string length to be a multiple of 4 including the 2 bytes for length
             writer.Pad(CalculatePadMultiple(sizeof(ushort) + (uint)data.Length, 4u));
         }
-        
+
         public static void WriteUInt16BE(this BinaryWriter writer, ushort value)
         {
             ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
             writer.Write(beValue);
         }
-        
+
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }
 
         public static void Align(this BinaryWriter writer)
@@ -50,7 +50,7 @@ namespace ACE.Network
             string asciiLine = "";
             for (int i = 0; i < buffer.Length; i++)
             {
-                if(column >= columns)
+                if (column >= columns)
                 {
                     row++;
                     column = 0;

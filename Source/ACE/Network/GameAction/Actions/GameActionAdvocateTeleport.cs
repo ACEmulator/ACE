@@ -15,7 +15,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Read()
         {
-            target   = Fragment.Payload.ReadString16L();
+            target = Fragment.Payload.ReadString16L();
             position = new Position(Fragment.Payload);
         }
 
@@ -25,13 +25,13 @@ namespace ACE.Network.GameAction.Actions
             if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
-            uint cell  = position.LandblockId.Raw;
+            uint cell = position.LandblockId.Raw;
             uint cellX = (cell >> 3);
 
-            //TODO: Wrap command in a check to confirm session.character IsAdvocate or higher access level
-            
-            //TODO: Maybe output to chat window coords teleported to.
-            //ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
+            // TODO: Wrap command in a check to confirm session.character IsAdvocate or higher access level
+
+            // TODO: Maybe output to chat window coords teleported to.
+            // ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
             ChatPacket.SendServerMessage(Session, "Teleporting...", ChatMessageType.Broadcast);
             Session.Player.Teleport(position);
         }

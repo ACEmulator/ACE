@@ -12,7 +12,7 @@ namespace ACE.Network.GameAction.Actions
     // NOTE: The client doesn't send this packet if the only options that were changed are normally called in the GameActionSetSingleCharacterOption packet.
     // For example, if the user selects/unselects "Auto Repeat Attacks", the GameActionSetSingleCharacterOption packet is sent. Then if the user clicks on Apply
     // this packet (GameActionSetCharacterOptions) will not be sent.
-    // On the other hand, if the user selects/unselects "Auto Repeat Attacks", then selects/unselects "Disable Most Weather Effects" (this won't trigger the SetSingleCharacterOption packet), 
+    // On the other hand, if the user selects/unselects "Auto Repeat Attacks", then selects/unselects "Disable Most Weather Effects" (this won't trigger the SetSingleCharacterOption packet),
     // then clicks Apply, this packet (GameActionSetCharacterOptions) WILL be sent.
     // The options that trigger a GameActionSetSingleCharacterOption packet are denoted by having a value set (as in <enum_field> = <val>) in the CharacterOptions enum.
 
@@ -37,10 +37,10 @@ namespace ACE.Network.GameAction.Actions
             characterOptions1Flag = Fragment.Payload.ReadUInt32();
 
             // TODO: Read shortcuts into object so it's available in the Handle method.
-            if((flags & (uint)CharacterOptionDataFlag.Shortcut) != 0)
+            if ((flags & (uint)CharacterOptionDataFlag.Shortcut) != 0)
             {
                 uint numShortcuts = Fragment.Payload.ReadUInt32();
-                for(int i = 0; i < numShortcuts; i++)
+                for (int i = 0; i < numShortcuts; i++)
                 {
                     Fragment.Payload.ReadInt32(); // index
                     Fragment.Payload.ReadUInt32(); // objectId (guid?)
@@ -50,7 +50,7 @@ namespace ACE.Network.GameAction.Actions
 
             uint numTab1Spells = Fragment.Payload.ReadUInt32();
 
-            if(numTab1Spells > 0)
+            if (numTab1Spells > 0)
             {
                 tab1Spells = new uint[numTab1Spells];
                 for (int i = 0; i < numTab1Spells; i++)
@@ -61,7 +61,7 @@ namespace ACE.Network.GameAction.Actions
             if ((flags & (uint)CharacterOptionDataFlag.MultiSpellList) != 0)
             {
                 // Reads in 4 tabs of spells?
-                for(int i = 0; i < 4; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     uint count = Fragment.Payload.ReadUInt32();
                     for (int j = 0; j < count; j++)
@@ -93,12 +93,12 @@ namespace ACE.Network.GameAction.Actions
                 }
             }
 
-            
+
             if ((flags & (uint)CharacterOptionDataFlag.DesiredComps) != 0)
             {
                 uint sizeInfo = Fragment.Payload.ReadUInt32(); // sizeInfo
                 uint num = sizeInfo & 0xFFFF;
-                for(int i = 0; i < num; ++i)
+                for (int i = 0; i < num; ++i)
                 {
                     desiredComponents.Add(Fragment.Payload.ReadUInt32(), Fragment.Payload.ReadInt32());
                 }
@@ -137,22 +137,22 @@ namespace ACE.Network.GameAction.Actions
         {
             // Set the options on the player object
             Dictionary<CharacterOption, bool> optionValues = new Dictionary<CharacterOption, bool>(); // Have to use a list since I can't change the values of the actual list while enumerating over it.
-            foreach(var option in Session.Player.CharacterOptions)
+            foreach (var option in Session.Player.CharacterOptions)
             {
                 if (option.Key.GetCharacterOptions1Attribute() != null)
                 {
                     if (((uint)option.Key.GetCharacterOptions1Attribute().Option & characterOptions1Flag) != 0)
                         optionValues.Add(option.Key, true);
                     else
-                        optionValues.Add(option.Key, false);                    
+                        optionValues.Add(option.Key, false);
                 }
-                else if(option.Key.GetCharacterOptions2Attribute() != null)
+                else if (option.Key.GetCharacterOptions2Attribute() != null)
                 {
                     if (((uint)option.Key.GetCharacterOptions2Attribute().Option & characterOptions2Flag) != 0)
                         optionValues.Add(option.Key, true);
                     else
-                        optionValues.Add(option.Key, false);                    
-                }                
+                        optionValues.Add(option.Key, false);
+                }
             }
 
             foreach (var option in optionValues)

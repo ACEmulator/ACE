@@ -22,17 +22,16 @@ namespace ACE.Network.GameAction.Actions
 
             var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
 
-            //TODO: This is missing the floaty animation wind up and appropriate pause before teleportation begins.
+            // TODO: This is missing the floaty animation wind up and appropriate pause before teleportation begins.
 
             // This is the pcap verified message sent to change just the current mana
             // Not needed in this command, leaving for example
-            //var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Session.Player.Mana.Current / 2);
+            // var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Session.Player.Mana.Current / 2);
 
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
 
-
-            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage); //TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-
+            // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
+            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
 
             // TODO: Wait until MovementEvent completes then send the following message
             Session.Player.Teleport(marketplaceDrop);

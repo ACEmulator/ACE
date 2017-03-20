@@ -31,12 +31,12 @@ namespace ACE.Entity
 
         private Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
-        private byte cellGridMaxX = 8; // todo: load from cell.dat
-        private byte cellGridMaxY = 8; // todo: load from cell.dat
+        // private byte cellGridMaxX = 8; // todo: load from cell.dat
+        // private byte cellGridMaxY = 8; // todo: load from cell.dat
 
         // not sure if a full object is necessary here.  I don't think a Landcell has any
         // inherent functionality that needs to be modelled in an object.
-        private Landcell[,] cellGrid; // todo: load from cell.dat
+        // private Landcell[,] cellGrid; // todo: load from cell.dat
 
         private bool running = false;
 
@@ -120,7 +120,7 @@ namespace ACE.Entity
             get { return adjacencies[Adjacency.NorthWest]; }
             set { adjacencies[Adjacency.NorthWest] = value; }
         }
-        
+
         public void StartUseTime()
         {
             running = true;

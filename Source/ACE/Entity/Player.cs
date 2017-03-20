@@ -47,7 +47,7 @@ namespace ACE.Entity
         public double LastStateChangeTicks { get; set; }
 
         private Character character;
-        
+
         private object clientObjectMutex = new object();
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
@@ -199,7 +199,7 @@ namespace ACE.Entity
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
-            GameData.ItemCapacity = 102;  
+            GameData.ItemCapacity = 102;
             GameData.ContainerCapacity = 7;
             GameData.RadarBehavior = RadarBehavior.ShowAlways;
             GameData.RadarColour = RadarColor.White;
@@ -231,10 +231,10 @@ namespace ACE.Entity
                     character.IsArch = true;
                 if (Session.AccessLevel == AccessLevel.Envoy)
                     character.IsEnvoy = true;
-                //TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
-                //if (Session.AccessLevel == AccessLevel.Sentinel)
+                // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
+                // if (Session.AccessLevel == AccessLevel.Sentinel)
                 //    character.IsSentinel = true;
-                //if (Session.AccessLevel == AccessLevel.Advocate)
+                // if (Session.AccessLevel == AccessLevel.Advocate)
                 //    character.IsAdvocate= true;
             }
 
@@ -260,7 +260,7 @@ namespace ACE.Entity
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(ulong amount)
         {
-            //until we are max level we must make sure that we send 
+            // until we are max level we must make sure that we send
             var chart = DatabaseManager.Charts.GetLevelingXpChart();
             CharacterLevel maxLevel = chart.Levels.Last();
             if (character.Level != maxLevel.Level)
@@ -288,7 +288,7 @@ namespace ACE.Entity
         /// </remarks>
         private void CheckForLevelup()
         {
-            // Question: Where do *we* call CheckForLevelup()? : 
+            // Question: Where do *we* call CheckForLevelup()? :
             //      From within the player.cs file, the options might be:
             //           GrantXp()
             //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
@@ -304,14 +304,14 @@ namespace ACE.Entity
             {
                 character.Level++;
                 CharacterLevel newLevel = chart.Levels.FirstOrDefault(item => item.Level == character.Level);
-                //increase the skill credits if the chart allows this level to grant a credit
+                // increase the skill credits if the chart allows this level to grant a credit
                 if (newLevel.GrantsSkillPoint)
                 {
                     character.AvailableSkillCredits++;
                     character.TotalSkillCredits++;
                     creditEarned = true;
                 }
-                //break if we reach max
+                // break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
                     PlayParticleEffect(Effect.WeddingBliss);
@@ -327,7 +327,7 @@ namespace ACE.Entity
                 var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
                 string levelUpMessageText = (character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
                 var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
-                string xpUpdateText = (character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes."; ;
+                string xpUpdateText = (character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes.";
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
                 var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
                 if (character.Level != maxLevel.Level && !creditEarned)
@@ -335,9 +335,10 @@ namespace ACE.Entity
                     string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
                     var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
-                } else
+                }
+                else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
-                //play level up effect
+                // play level up effect
                 PlayParticleEffect(Effect.LevelUp);
             }
         }
@@ -362,9 +363,10 @@ namespace ACE.Entity
                     abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
-                //checks if max rank is achieved and plays fireworks w/ special text
-                if (IsAbilityMaxRank(ranks, isSecondary)) {
-                    //fireworks
+                // checks if max rank is achieved and plays fireworks w/ special text
+                if (IsAbilityMaxRank(ranks, isSecondary))
+                {
+                    // fireworks
                     PlayParticleEffect(Effect.WeddingBliss);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
@@ -406,7 +408,7 @@ namespace ACE.Entity
                     break;
             }
 
-            //do not advance if we cannot spend xp to rank up our skill by 1 point
+            // do not advance if we cannot spend xp to rank up our skill by 1 point
             if (ability.Ranks >= (chart.Ranks.Count - 1))
                 return result;
 
@@ -462,7 +464,7 @@ namespace ACE.Entity
 
             if (isAbilityVitals)
                 xpChart = DatabaseManager.Charts.GetVitalXpChart();
-            else 
+            else
                 xpChart = DatabaseManager.Charts.GetAbilityXpChart();
 
             if (rank == (xpChart.Ranks.Count - 1))
@@ -508,11 +510,11 @@ namespace ACE.Entity
 
             if (result > 0u)
             {
-                //if the skill ranks out at the top of our xp chart 
-                //then we will start fireworks effects and have special text!
+                // if the skill ranks out at the top of our xp chart
+                // then we will start fireworks effects and have special text!
                 if (IsSkillMaxRank(ranks, status))
                 {
-                    //fireworks on rank up is 0x8D
+                    // fireworks on rank up is 0x8D
                     PlayParticleEffect(Effect.WeddingBliss);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
@@ -529,7 +531,7 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
-        //plays particle effect like spell casting or bleed etc..
+        // plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(Effect effectId)
         {
             var effectEvent = new GameMessageEffect(this.Guid, effectId);
@@ -556,7 +558,7 @@ namespace ACE.Entity
             else
                 return result;
 
-            //do not advance if we cannot spend xp to rank up our skill by 1 point
+            // do not advance if we cannot spend xp to rank up our skill by 1 point
             if (skill.Ranks >= (chart.Ranks.Count - 1))
                 return result;
 
@@ -616,7 +618,7 @@ namespace ACE.Entity
                 foreach (var friendSession in inverseFriends)
                 {
                     friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
-                }                
+                }
             }
         }
 
@@ -697,7 +699,7 @@ namespace ACE.Entity
         /// </summary>
         public void AppearOffline(bool appearOffline)
         {
-            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);            
+            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
             SendFriendStatusUpdates();
         }
 
@@ -780,7 +782,7 @@ namespace ACE.Entity
 
             Session.Network.EnqueueSend(player, title, friends);
         }
-        
+
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
             PhysicsData.PhysicsState = state;
@@ -802,7 +804,7 @@ namespace ACE.Entity
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
 
-            lock(clientObjectMutex)
+            lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
             }
@@ -818,7 +820,12 @@ namespace ACE.Entity
 
         private void DelayedUpdatePosition(Position newPosition)
         {
-            var t = new Thread(() => { Thread.Sleep(10); this.Position = newPosition; SendUpdatePosition(); });
+            var t = new Thread(() =>
+            {
+                Thread.Sleep(10);
+                this.Position = newPosition;
+                SendUpdatePosition();
+            });
             t.Start();
         }
 
@@ -874,7 +881,7 @@ namespace ACE.Entity
 
         /// <summary>
         /// Do the player log out work.<para />
-        /// If you want to force a player to logout, use Session.LogOffPlayer(). 
+        /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
         public void Logout(bool clientSessionTerminatedAbruptly = false)
         {
@@ -933,7 +940,7 @@ namespace ACE.Entity
 
         public void SendAutonomousPosition()
         {
-            
+
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
     }

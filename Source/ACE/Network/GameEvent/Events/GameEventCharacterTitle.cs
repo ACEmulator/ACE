@@ -2,7 +2,7 @@
 {
     public class GameEventCharacterTitle : GameEventMessage
     {
-        public GameEventCharacterTitle(Session session) 
+        public GameEventCharacterTitle(Session session)
             : base(GameEventType.CharacterTitle, GameMessageGroup.Group09, session)
         {
             Writer.Write(1u);
