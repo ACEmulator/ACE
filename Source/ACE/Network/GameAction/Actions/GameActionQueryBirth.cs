@@ -24,7 +24,7 @@ namespace ACE.Network.GameAction.Actions
             DateTime playerDOB = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             playerDOB = playerDOB.AddSeconds(Session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.CreationTimestamp]).ToUniversalTime();
 
-            var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB.ToString("G")}.",ChatMessageType.Broadcast);
+            var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB.ToString("G")}.", ChatMessageType.Broadcast);
 
             Session.Network.EnqueueSend(dobEvent);
         }

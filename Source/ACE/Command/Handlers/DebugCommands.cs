@@ -70,7 +70,7 @@ namespace ACE.Command.Handlers
             {
                 ulong xp = 0;
                 string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
-                //12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
+                // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
                 if (ulong.TryParse(xpAmountToParse, out xp))
                 {
                     session.Player.GrantXp(xp);
@@ -154,7 +154,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void chatdump(Session session, params string[] parameters)
         {
-            for(int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
             }
@@ -176,7 +176,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f),"Test Portal",PortalType.Purple));
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
     }
 }

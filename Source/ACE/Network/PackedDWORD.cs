@@ -10,12 +10,12 @@ namespace ACE.Network
     public struct PackedDWORD
     {
         private uint rawValue;
-        
+
         public PackedDWORD(uint value)
         {
             rawValue = value;
         }
-        
+
         public static implicit operator PackedDWORD(uint value)
         {
             return new PackedDWORD(value);

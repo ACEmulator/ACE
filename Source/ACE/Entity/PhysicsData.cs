@@ -20,7 +20,7 @@ namespace ACE.Entity
         public uint Stable;
         public uint Petable;
 
-        //these are all related
+        // these are all related
         public uint ItemsEquipedCount;
         public uint Parent;
         public EquipMask EquipperPhysicsDescriptionFlag;
@@ -38,13 +38,13 @@ namespace ACE.Entity
         public uint DefaultScript;
         public float DefaultScriptIntensity;
 
-        //thanks Kaezin for help understanding this structure.
-        //Update this when the object moves
+        // thanks Kaezin for help understanding this structure.
+        // Update this when the object moves
         public ushort PositionSequence = (ushort)1;
         public ushort unknownseq0 = (ushort)1; // unknown for now
-        public ushort PhysicsSequence = (ushort)1; // physics state change 
+        public ushort PhysicsSequence = (ushort)1; // physics state change
         public ushort JumpSequence = (ushort)1; // increments when you Jump.
-        public ushort PortalSequence = (ushort)1; //increments when you portal
+        public ushort PortalSequence = (ushort)1; // increments when you portal
         public ushort unknownseq1 = (ushort)1;
         public ushort SpawnSequence = (ushort)1; // increments with spawn player / critter / boss ?
 
@@ -59,14 +59,14 @@ namespace ACE.Entity
             children.Add(newitem);
         }
 
-        //todo: return bytes of data for network write ? ?
+        // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
-    
+
             writer.Write((uint)PhysicsDescriptionFlag);
-           
-            //autonomous_movement - required always ?
-            //if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+
+            // autonomous_movement - required always ?
+            // if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             writer.Write((uint)PhysicsState);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
@@ -78,11 +78,11 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
                 writer.Write((uint)MTableResourceId);
 
-            //stable_id =  BYTE1(v12) & 8 )  =  8 
+            // stable_id =  BYTE1(v12) & 8 )  =  8
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
                 writer.Write((uint)Stable);
 
-            //setup id
+            // setup id
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
                 writer.Write((uint)Petable);
 
@@ -131,7 +131,7 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
                 writer.Write((float)DefaultScriptIntensity);
-            
+
             writer.Write((ushort)PositionSequence);
             writer.Write((ushort)unknownseq0);
             writer.Write((ushort)(PhysicsSequence));
@@ -142,8 +142,7 @@ namespace ACE.Entity
             writer.Write((ushort)0);
             writer.Write((ushort)(SpawnSequence));
 
-            writer.Align();        
+            writer.Align();
         }
-
     }
 }

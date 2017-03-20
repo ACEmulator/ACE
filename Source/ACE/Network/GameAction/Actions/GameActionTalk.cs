@@ -62,7 +62,7 @@ namespace ACE.Network.GameAction.Actions
 
                 // TODO: This needs to be changed to a different method. GetByRadius or GetNear, however we decide to do proximity updates...
                 var targets = WorldManager.GetAll();
-                
+
                 foreach (var target in targets)
                     target.Network.EnqueueSend(new GameMessage[] { creatureMessage });
             }

@@ -2,7 +2,7 @@
 {
     public class GameMessageEmoteText : GameMessage
     {
-        public GameMessageEmoteText(uint senderId, string senderName, string emoteText) 
+        public GameMessageEmoteText(uint senderId, string senderName, string emoteText)
             : base(GameMessageOpcode.EmoteText, GameMessageGroup.Group09)
         {
             Writer.Write(senderId);

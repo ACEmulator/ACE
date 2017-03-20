@@ -5,10 +5,10 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCharacterEnterWorldServerReady : GameMessage
     {
-        public GameMessageCharacterEnterWorldServerReady() 
+        public GameMessageCharacterEnterWorldServerReady()
             : base(GameMessageOpcode.CharacterEnterWorldServerReady, GameMessageGroup.Group09)
         {
-            
+
         }
     }
 }

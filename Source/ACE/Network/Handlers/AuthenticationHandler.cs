@@ -39,13 +39,13 @@ namespace ACE.Network.Handlers
                 session.SendCharacterError(CharacterError.AccountDoesntExist);
                 return;
             }
-            
+
             if (WorldManager.Find(account.Name) != null)
             {
                 session.SendCharacterError(CharacterError.AccountInUse);
                 return;
             }
-            
+
             /*if (glsTicket != digest)
             {
             }*/

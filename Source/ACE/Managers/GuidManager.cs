@@ -15,8 +15,9 @@ namespace ACE.Managers
         private const uint playerMin = 0x50000001;
         private const uint playerMax = 0x59999999;
         private static uint player = 0x50000001;
-        private static Hashtable usedplayerguids;
-        private static Hashtable avaliableplayerguids;
+
+        // private static Hashtable usedplayerguids;
+        // private static Hashtable avaliableplayerguids;
 
         // Npc / Doors / Portals / Etc
         private const uint staticObjextMin = 0x6000001;
@@ -32,18 +33,6 @@ namespace ACE.Managers
         private const uint itemMin = 0x9000001;
         private const uint itemMax = 0x9999999;
         private static uint item = 0x9000001;
-
-        //not needed yet..
-        //public static void Initialise()
-        //{
-        //    usedplayerguids = new Hashtable();
-        //    avaliableplayerguids = new Hashtable();
-        //    for (uint i = playerMin; i < playerMax; i++)
-        //    {
-        //        avaliableplayerguids.Add(i, i);
-        //    }
-        //}
-
 
         /// <summary>
         /// Returns New Player Guid

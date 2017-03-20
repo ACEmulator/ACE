@@ -30,13 +30,13 @@ namespace ACE.Entity
         public double LastUpdatedTicks { get; set; }
 
         public virtual Position Position
-        { 
+        {
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
         }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
-        
+
         public WeenieHeaderFlag WeenieFlags { get; protected set; }
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
@@ -83,7 +83,7 @@ namespace ACE.Entity
 
             ModelData.Serialize(writer);
             PhysicsData.Serialize(writer);
-            
+
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.Write((ushort)WeenieClassid);
@@ -213,7 +213,7 @@ namespace ACE.Entity
             writer.Write((uint)updatePositionFlags);
 
             Position.Serialize(writer, false);
-            
+
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.W);
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
@@ -227,7 +227,7 @@ namespace ACE.Entity
             {
                 // velocity would go here
             }
-            
+
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 0));
             writer.Write((ushort)++MovementIndex);
