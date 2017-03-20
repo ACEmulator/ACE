@@ -154,7 +154,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void chatdump(Session session, params string[] parameters)
         {
-            for(int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
             }
@@ -170,11 +170,10 @@ namespace ACE.Command.Handlers
             }
             catch (Exception)
             {
-                //ex...more info.. if needed..
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            session.Network.EnqueueSend(new GameMessageAnimation(session.Player, session, AnimationActivity.Idle, AnimationType.General, AnimationFlags.None, StanceMode.Standing, (Animations)animationId, 1.5f));
+            session.Network.EnqueueSend(new GameMessageAnimation(session.Player, session, (Animations)animationId, 1.0f));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
