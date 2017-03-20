@@ -805,9 +805,13 @@ namespace ACE.Command
 
             // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
 
-            var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.UnbuffedValue);
-            var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.UnbuffedValue);
-            var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Mana, session.Player.Mana.UnbuffedValue);
+            session.Player.Health.Current = session.Player.Health.UnbuffedValue;
+            session.Player.Stamina.Current = session.Player.Stamina.UnbuffedValue;
+            session.Player.Mana.Current = session.Player.Mana.UnbuffedValue;
+
+            var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
+            var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.Current);
+            var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Mana, session.Player.Mana.Current);
 
             session.Network.EnqueueSend(updatePlayersHealth, updatePlayersStamina, updatePlayersMana);
         }
