@@ -97,7 +97,7 @@
     <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Entity\EquippedItem.cs" />
     <Compile Include="Entity\Model.cs" />
-    <Compile Include="Entity\ModelPallete.cs" />
+    <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
