@@ -65,8 +65,8 @@ namespace ACE.Entity
 
             foreach (Model model in models)
             {
-                writer.Write((byte)model.Index);
                 writer.Write((ushort)model.ModelID);
+                writer.Write((byte)model.Index);
             }
 
             writer.Align();

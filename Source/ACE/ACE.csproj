@@ -94,6 +94,7 @@
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\Landcell.cs" />
+    <Compile Include="Entity\Monster.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Entity\EquippedItem.cs" />
     <Compile Include="Entity\Model.cs" />
