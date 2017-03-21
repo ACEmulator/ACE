@@ -3,7 +3,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventIdentifyObjectResponse : GameEventMessage
     {
-        public GameEventIdentifyObjectResponse(Session session, uint objectID) 
+        public GameEventIdentifyObjectResponse(Session session, uint objectID)
             : base(GameEventType.IdentifyObjectResponse, GameMessageGroup.Group09, session)
         {
             // TODO

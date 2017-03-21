@@ -4,7 +4,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventTell : GameEventMessage
     {
-        public GameEventTell(Session session, string messageText, string senderName, uint senderID, uint targetID, ChatMessageType chatMessageType) 
+        public GameEventTell(Session session, string messageText, string senderName, uint senderID, uint targetID, ChatMessageType chatMessageType)
             : base(GameEventType.Tell, GameMessageGroup.Group09, session)
         {
             Writer.WriteString16L(messageText);

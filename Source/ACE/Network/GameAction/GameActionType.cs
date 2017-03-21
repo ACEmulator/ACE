@@ -13,6 +13,7 @@ namespace ACE.Network.GameAction
         RaiseVital                  = 0x0044,
         RaiseAbility                = 0x0045,
         RaiseSkill                  = 0x0046,
+        TrainSkill                  = 0x0047,
         Tell                        = 0x005D,
         LoginComplete               = 0x00A1,
         IdentifyObject              = 0x00C8,

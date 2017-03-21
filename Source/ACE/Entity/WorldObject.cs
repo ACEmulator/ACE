@@ -31,13 +31,13 @@ namespace ACE.Entity
         public double LastUpdatedTicks { get; set; }
 
         public virtual Position Position
-        { 
+        {
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
         }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
-        
+
         public WeenieHeaderFlag WeenieFlags { get; protected set; }
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }

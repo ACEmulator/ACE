@@ -4,7 +4,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdatePropertyInt64 : GameMessage
     {
-        public GameMessagePrivateUpdatePropertyInt64(Session session, PropertyInt64 property, ulong value) 
+        public GameMessagePrivateUpdatePropertyInt64(Session session, PropertyInt64 property, ulong value)
             : base(GameMessageOpcode.PrivateUpdatePropertyInt64, GameMessageGroup.Group09)
         {
             Writer.Write(session.UpdatePropertyInt64Sequence++);

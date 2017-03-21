@@ -7,7 +7,7 @@ using System.IO;
 namespace ACE.Entity
 {
     /// <summary>
-    /// This Class is used to add children 
+    /// This Class is used to add children
     /// </summary>
     public class EquippedItem
     {

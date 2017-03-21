@@ -4,10 +4,10 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageDDDEndDDD : GameMessage
     {
-        public GameMessageDDDEndDDD() 
+        public GameMessageDDDEndDDD()
             : base(GameMessageOpcode.DDD_EndDDD, GameMessageGroup.Group05)
         {
-            
+
         }
     }
 }

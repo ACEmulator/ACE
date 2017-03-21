@@ -1,11 +1,13 @@
-﻿using ACE.Entity.Events;
-using ACE.Managers;
-using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using ACE.Entity.Events;
+using ACE.Managers;
+
+using log4net;
 
 namespace ACE.Entity
 {
@@ -26,17 +28,17 @@ namespace ACE.Entity
 
         private LandblockId id;
 
-        private object objectCacheLocker = new object();
-        private Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
+        private readonly object objectCacheLocker = new object();
+        private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
-        private Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
+        private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
-        private byte cellGridMaxX = 8; // todo: load from cell.dat
-        private byte cellGridMaxY = 8; // todo: load from cell.dat
+        // private byte cellGridMaxX = 8; // todo: load from cell.dat
+        // private byte cellGridMaxY = 8; // todo: load from cell.dat
 
         // not sure if a full object is necessary here.  I don't think a Landcell has any
         // inherent functionality that needs to be modelled in an object.
-        private Landcell[,] cellGrid; // todo: load from cell.dat
+        // private Landcell[,] cellGrid; // todo: load from cell.dat
 
         private bool running = false;
 
@@ -120,7 +122,7 @@ namespace ACE.Entity
             get { return adjacencies[Adjacency.NorthWest]; }
             set { adjacencies[Adjacency.NorthWest] = value; }
         }
-        
+
         public void StartUseTime()
         {
             running = true;
@@ -152,20 +154,6 @@ namespace ACE.Entity
             }
         }
 
-        public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
-        {
-            // only players receive this
-            List<Player> players = null;
-
-            lock (objectCacheLocker)
-            {
-                players = this.worldObjects.Values.OfType<Player>().ToList();
-            }
-
-            BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
-            Broadcast(args, true, Quadrant.All);
-        }
-
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
         {
             WorldObject wo = null;
@@ -189,6 +177,20 @@ namespace ACE.Entity
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
             }
+        }
+
+        public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
+        {
+            // only players receive this
+            List<Player> players = null;
+
+            lock (objectCacheLocker)
+            {
+                players = this.worldObjects.Values.OfType<Player>().ToList();
+            }
+
+            BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
+            Broadcast(args, true, Quadrant.All);
         }
 
         /// <summary>

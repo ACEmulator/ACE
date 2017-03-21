@@ -10,14 +10,7 @@ namespace ACE.Network.GameAction.Actions
     [GameAction(GameActionType.IndexChannels)]
     public class GameActionChannelIndex : GameActionPacket
     {
-        //private GroupChatType chatChannelID;
-
         public GameActionChannelIndex(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        //public override void Read()
-        //{
-        //    chatChannelID = (GroupChatType)Fragment.Payload.ReadUInt32();
-        //}
 
         public override void Handle()
         {
