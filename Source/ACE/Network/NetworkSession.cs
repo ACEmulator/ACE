@@ -157,7 +157,7 @@ namespace ACE.Network
         {
             lock (currentBundle)
             {
-                //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
+                // Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
                 currentBundle.ClientTime = clientTime;
                 currentBundle.EncryptedChecksum = true;
             }
