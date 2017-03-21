@@ -55,7 +55,7 @@ namespace ACE.Common
         {
             try
             {
-                Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@".\Config.json"));
+                Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@"Config.json"));
             }
             catch (Exception exception)
             {
