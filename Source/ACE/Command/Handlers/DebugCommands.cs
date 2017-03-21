@@ -53,6 +53,7 @@ namespace ACE.Command.Handlers
                     case "me":
                     {
                         LootGenerationFactory.AddToContainer(loot, session.Player);
+                        session.Player.TrackObject(loot);
                         // TODO: Have to send game message CFS 
                         break;
                     }
