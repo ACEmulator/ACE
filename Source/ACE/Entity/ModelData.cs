@@ -19,9 +19,9 @@ namespace ACE.Entity
 
         private List<Model> models = new List<Model>();
 
-        public void AddPallet (ushort paletteID, byte offset, byte length)
+        public void AddPallet(ushort paletteID, byte offset, byte length)
         {
-            ModelPalette newpallet = new ModelPalette(paletteID, offset,length);
+            ModelPalette newpallet = new ModelPalette(paletteID, offset, length);
             modelPalettes.Add(newpallet);
         }
 
@@ -37,7 +37,7 @@ namespace ACE.Entity
             models.Add(newmodel);
         }
 
-        //todo: render object network code
+        // todo: render object network code
         public void Serialize(BinaryWriter writer)
         {
             writer.Write((byte)0x11);

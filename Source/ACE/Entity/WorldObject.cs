@@ -1,8 +1,11 @@
-﻿
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
 using System.Collections.Generic;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Managers;
+using ACE.Network.Sequence;
 using System.IO;
 using System.Linq;
 using ACE.Managers;
@@ -67,6 +70,8 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
+        public SequenceManager Sequences { get; }
+
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -75,6 +80,10 @@ namespace ACE.Entity
             GameData = new GameData();
             ModelData = new ModelData();
             PhysicsData = new PhysicsData();
+
+            Sequences = new SequenceManager();
+            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence());
+            Sequences.AddSequence(SequenceType.Motion, new UShortSequence());
         }
 
         public void AddToInventory(WorldObject worldObject)

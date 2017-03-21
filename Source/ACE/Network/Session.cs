@@ -52,7 +52,7 @@ namespace ACE.Network
 
         public byte UpdatePropertyBoolSequence { get; set; }
 
-        public byte UpdatePropertyDoubleSequence { get; set; } 
+        public byte UpdatePropertyDoubleSequence { get; set; }
 
         public NetworkSession Network { get; set; }
 
@@ -139,7 +139,8 @@ namespace ACE.Network
 
         public void SaveSession()
         {
-            if(this.Player != null) { 
+            if (this.Player != null)
+            {
                 this.Player.SaveOptions();
                 this.Player.SaveCharacter();
             }
@@ -180,7 +181,7 @@ namespace ACE.Network
                 return;
             }
 
-            //Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
+            // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
             if (Network != null)
                 Network.HandlePacket(packet);
 
@@ -203,7 +204,7 @@ namespace ACE.Network
         {
             SaveSession();
             Player.Logout();
-
+            Network.EnqueueSend(new GameMessageMotion(Player, this, MotionCommand.Logout1, 1.0f));
             logOffRequestTime = DateTime.UtcNow;
         }
 

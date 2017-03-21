@@ -4,7 +4,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageServerName : GameMessage
     {
-        public GameMessageServerName(string serverName) 
+        public GameMessageServerName(string serverName)
             : base(GameMessageOpcode.ServerName, GameMessageGroup.Group09)
         {
             Writer.Write(0u);

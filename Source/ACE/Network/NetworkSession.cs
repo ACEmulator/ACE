@@ -1,9 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+
 using ACE.Network.GameMessages;
 using ACE.Network.Handlers;
 using ACE.Network.Managers;
@@ -16,67 +18,100 @@ namespace ACE.Network
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
-        private Session session;
-        private NetworkBundle currentBundle;
-        private DateTime nextResync;
-        private DateTime nextAck;
-        private DateTime nextSend;
+        private readonly Session session;
+
+        private readonly Object currentBundleLock = new Object();
+        private NetworkBundle currentBundle = new NetworkBundle();
+
+        private DateTime nextResync = DateTime.UtcNow;
+        private DateTime nextAck = DateTime.UtcNow;
+        private DateTime nextSend = DateTime.UtcNow;
         private bool sendAck = false;
         private bool sendResync = false;
         private uint lastReceivedSequence = 0;
-        private ConcurrentDictionary<uint /*seq*/, ServerPacket> CachedPackets { get; } = new ConcurrentDictionary<uint, ServerPacket>();
-        private ConcurrentQueue<ServerPacket> PacketQueue { get; } = new ConcurrentQueue<ServerPacket>();
 
-        public SessionConnectionData ConnectionData { get; private set; }
+        /// <summary>
+        /// This is referenced from many threads:<para />
+        /// ConnectionListener.OnDataReceieve()->Session.HandlePacket()->This.HandlePacket(packet), This path can come from any client or other thinkable object.<para />
+        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) 
+        /// </summary>
+        private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
+
+        /// <summary>
+        /// This is referenced by one thread:<para />
+        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) <para />
+        /// Technically, it is referenced ONCE by EnqueueSend when the client first connects to the server, but there's no collision risk at that point.
+        /// </summary>
+        private readonly Queue<ServerPacket> packetQueue = new Queue<ServerPacket>();
+
+        public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
         public NetworkSession(Session session)
         {
             this.session = session;
-            ConnectionData  = new SessionConnectionData();
-            currentBundle = new NetworkBundle();
-            nextSend = DateTime.UtcNow;
-            nextResync = DateTime.UtcNow;
-            nextAck = DateTime.UtcNow;
         }
 
+        /// <summary>
+        /// It is assumed that this might be called from any thread.
+        /// </summary>
         public void EnqueueSend(params GameMessage[] messages)
         {
-            currentBundle.EncryptedChecksum = true;
-            foreach (var message in messages)
-                currentBundle.Enqueue(message);
+            lock (currentBundleLock)
+            {
+                currentBundle.EncryptedChecksum = true;
+
+                foreach (var message in messages)
+                    currentBundle.Enqueue(message);
+            }
         }
 
+        /// <summary>
+        /// At the moment, this is only called once, when a client initially connects to the server.
+        /// </summary>
         public void EnqueueSend(params ServerPacket[] packets)
         {
             foreach (var packet in packets)
-                PacketQueue.Enqueue(packet);
+                packetQueue.Enqueue(packet);
         }
 
+        /// <summary>
+        /// It is assumed that this will only be called from a single thread. WorldManager.UpdateWorld()->Session.Update(lastTick)->This
+        /// </summary>
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
 
-            if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
+            lock (currentBundleLock)
             {
-                currentBundle.TimeSync = true;
-                currentBundle.EncryptedChecksum = true;
-                nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
-            }
+                if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
+                {
+                    currentBundle.TimeSync = true;
+                    currentBundle.EncryptedChecksum = true;
+                    nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
+                }
 
-            if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
-            {
-                currentBundle.SendAck = true;
-                nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
-            }
+                if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
+                {
+                    currentBundle.SendAck = true;
+                    nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
+                }
 
-            if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
-            {
-                FlushBundle();
+                if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                {
+                    // Flush the bundle here
+                    var bundleToSend = currentBundle;
+                    currentBundle = new NetworkBundle();
+                    SendBundle(bundleToSend);
+                    nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
+                }
             }
 
             FlushPackets();
         }
 
+        /// <summary>
+        /// This is called from ConnectionListener.OnDataReceieve()->Session.HandlePacket()->This
+        /// </summary>
         public void HandlePacket(ClientPacket packet)
         {
             lastReceivedSequence = packet.Header.Sequence;
@@ -89,10 +124,10 @@ namespace ACE.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
-                //Do something with this...
-                //Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
-                //Client seems to send them alternatingly every 2 or 4 seconds per port.
-                //We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
+                // Do something with this...
+                // Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
+                // Client seems to send them alternatingly every 2 or 4 seconds per port.
+                // We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
@@ -120,23 +155,26 @@ namespace ACE.Network
 
         private void FlagEcho(float clientTime)
         {
-            //Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
-            currentBundle.ClientTime = clientTime;
-            currentBundle.EncryptedChecksum = true;
+            lock (currentBundle)
+            {
+                // Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
+                currentBundle.ClientTime = clientTime;
+                currentBundle.EncryptedChecksum = true;
+            }
         }
 
         private void AcknowledgeSequence(uint sequence)
         {
             // TODO Sending Acks seems to cause some issues.  Needs further research.
-            //if (!sendAck)
+            // if (!sendAck)
             //    sendAck = true;
 
-            var removalList = CachedPackets.Where(x => x.Key < sequence);
+            var removalList = cachedPackets.Where(x => x.Key < sequence);
 
             foreach (var item in removalList)
             {
                 ServerPacket removedPacket;
-                CachedPackets.TryRemove(item.Key, out removedPacket);
+                cachedPackets.TryRemove(item.Key, out removedPacket);
             }
         }
 
@@ -144,7 +182,7 @@ namespace ACE.Network
         {
             ServerPacket cachedPacket;
 
-            if (CachedPackets.TryGetValue(sequence, out cachedPacket))
+            if (cachedPackets.TryGetValue(sequence, out cachedPacket))
             {
                 Console.WriteLine("Retransmit " + sequence);
 
@@ -155,37 +193,24 @@ namespace ACE.Network
             }
         }
 
-        private void FlushBundle()
-        {
-            if (currentBundle.NeedsSending)
-            {
-                var bundleToSend = currentBundle;
-                currentBundle = new NetworkBundle();
-                SendBundle(bundleToSend);
-                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
-            }
-        }
-
         private void FlushPackets()
         {
-            while (PacketQueue.Count > 0)
+            while (packetQueue.Count > 0)
             {
-                ServerPacket packet;
-                if (PacketQueue.TryDequeue(out packet))
-                {
-                    if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
-                        ConnectionData.PacketSequence = 2;
+                ServerPacket packet = packetQueue.Dequeue();
 
-                    packet.Header.Sequence = ConnectionData.PacketSequence++;
-                    packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
-                    packet.Header.Table = 0x14;
-                    packet.Header.Time = (ushort)ConnectionData.ServerTime;
+                if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
+                    ConnectionData.PacketSequence = 2;
 
-                    if (packet.Header.Sequence >= 2u)
-                        CachedPackets.TryAdd(packet.Header.Sequence, packet);
+                packet.Header.Sequence = ConnectionData.PacketSequence++;
+                packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
+                packet.Header.Table = 0x14;
+                packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
-                    SendPacket(packet);
-                }
+                if (packet.Header.Sequence >= 2u)
+                    cachedPackets.TryAdd(packet.Header.Sequence, packet);
+
+                SendPacket(packet);
             }
         }
 
@@ -218,7 +243,7 @@ namespace ACE.Network
         /// This function handles turning a bundle of messages (representing all messages accrued in a timeslice),
         /// into 1 or more packets, combining multiple messages into one packet or spliting large message across
         /// several packets as needed.
-        /// 
+        ///
         /// 1 Create Packet
         /// 2 If first packet for this bundle, fill any optional headers
         /// 3 Append messages that will fit
@@ -246,19 +271,19 @@ namespace ACE.Network
                 {
                     firstPacket = false;
 
-                    if (bundle.SendAck) //0x4000
+                    if (bundle.SendAck) // 0x4000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                         packet.BodyWriter.Write(lastReceivedSequence);
                     }
 
-                    if (bundle.TimeSync) //0x1000000
+                    if (bundle.TimeSync) // 0x1000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
                         packet.BodyWriter.Write(ConnectionData.ServerTime);
                     }
 
-                    if (bundle.ClientTime != -1f) //0x4000000
+                    if (bundle.ClientTime != -1f) // 0x4000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                         packet.BodyWriter.Write(bundle.ClientTime);
@@ -295,7 +320,7 @@ namespace ACE.Network
 
                         if (dataToSend > availableSpace) // Message is too large to fit in packet
                         {
-                            carryOverMessage = currentMessageFragment; 
+                            carryOverMessage = currentMessageFragment;
                             if (fragmentCount == 0) // If this is first message in packet, this is just a really large message, so proceed with splitting it
                                 dataToSend = availableSpace;
                             else // Otherwise there are other messages already, so we'll break and come back and see if the message will fit
@@ -342,7 +367,7 @@ namespace ACE.Network
                     }
                 }
 
-                PacketQueue.Enqueue(packet);
+                packetQueue.Enqueue(packet);
             }
         }
 

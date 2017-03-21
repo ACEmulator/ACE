@@ -4,11 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
-
-using ACE.Network;
-using ACE.Entity;
-using ACE.Common;
 using System.Threading.Tasks;
+
+using ACE.Common;
+using ACE.Entity;
+using ACE.Network;
 
 namespace ACE.Managers
 {
@@ -20,13 +20,13 @@ namespace ACE.Managers
         private static readonly List<Session> sessionStore = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
-        private static volatile bool pendingWorldStop;
+        private static bool pendingWorldStop;
 
         public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
 
         public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
 
-        public static double PortalYearTicks { get; set; } = WorldStartFromTime.Ticks;
+        public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
 
         public static void Initialise()
         {
@@ -94,8 +94,8 @@ namespace ACE.Managers
             }
             finally
             {
-                sessionLock.ExitReadLock();                
-            }   
+                sessionLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -126,8 +126,8 @@ namespace ACE.Managers
             }
             finally
             {
-                sessionLock.ExitReadLock();                
-            }   
+                sessionLock.ExitReadLock();
+            }
         }
 
         public static List<Session> GetAll(bool isOnlineRequired = true)
@@ -181,6 +181,7 @@ namespace ACE.Managers
                 }
 
                 Thread.Sleep(1);
+
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
             }

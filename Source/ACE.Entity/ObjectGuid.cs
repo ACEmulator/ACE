@@ -33,5 +33,18 @@ namespace ACE.Entity
         {
             return g1.Full != g2.Full;
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ObjectGuid)
+                return ((ObjectGuid)obj) == this;
+            else
+                return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

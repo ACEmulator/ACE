@@ -41,7 +41,7 @@ namespace ACE.Network.GameMessages
         ObjectDelete                    = 0xF747,
         UpdatePosition                  = 0xF748,
         SetState                        = 0xF74B,
-        MovementEvent                   = 0xF74C,
+        Motion                          = 0xF74C,
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
         AutonomousPosition              = 0xF753,

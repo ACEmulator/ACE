@@ -2,15 +2,15 @@
 {
     public enum EquipMask : uint
     {
-        Head                = 0x00000001,			
+        Head                = 0x00000001,
         UnderwearChest      = 0x00000002,
         UnderwearAbdomen    = 0x00000004,
         UnderwearUpperArm   = 0x00000008,
-        UnderwearLowerArms  = 0x00000010,			
+        UnderwearLowerArms  = 0x00000010,
         Hands               = 0x00000020,
         UnderwearUpperLegs  = 0x00000040,
         UnderwearLowerLegs  = 0x00000080,
-        Feet                = 0x00000100,			
+        Feet                = 0x00000100,
         OuterwearChest      = 0x00000200,
         OuterwearAbdomen    = 0x00000400,
         OuterwearUpperArms  = 0x00000800,
@@ -24,7 +24,7 @@
         RingLeft            = 0x00080000,
         MeleeWeapon         = 0x00100000,
         Shield              = 0x00200000,
-        MissileWeapon       = 0x00400000, 
+        MissileWeapon       = 0x00400000,
         Ammunition          = 0x00800000,
         Wand                = 0x01000000,
     }

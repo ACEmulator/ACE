@@ -24,7 +24,7 @@ namespace ACE.Entity
         /// <summary>
         /// Texture portal.dat entry minus 0x05000000
         /// </summary>
-        public ushort NewTexture { get; } 
+        public ushort NewTexture { get; }
 
         public ModelTexture(byte index, ushort oldtexture, ushort newtexture)
         {

@@ -5,7 +5,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateSkill : GameMessage
     {
-        public GameMessagePrivateUpdateSkill(Session session, Skill skill, SkillStatus status, uint ranks, uint baseValue, uint totalInvestment) 
+        public GameMessagePrivateUpdateSkill(Session session, Skill skill, SkillStatus status, uint ranks, uint baseValue, uint totalInvestment)
             : base(GameMessageOpcode.PrivateUpdateSkill, GameMessageGroup.Group09)
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.

@@ -5,6 +5,7 @@ using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
+using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Command.Handlers
@@ -210,6 +211,31 @@ namespace ACE.Command.Handlers
             }
         }
 
+        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void chatdump(Session session, params string[] parameters)
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
+            }
+        }
+
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void animation(Session session, params string[] parameters)
+        {
+            uint animationId;
+            try
+            {
+                animationId = Convert.ToUInt32(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
+                return;
+            }
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, (MotionCommand)animationId, 1.0f));
+        }
+
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)
         {
@@ -218,6 +244,18 @@ namespace ACE.Command.Handlers
                 session.Player.Position.Offset.Z + 8000f, session.Player.Position.Facing.X,
                 session.Player.Position.Facing.Y, session.Player.Position.Facing.Z, session.Player.Position.Facing.W);
             session.Player.Teleport(newPosition);
+        }
+
+        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateLifeStone(Session session, params string[] parameters)
+        {
+            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
+        }
+
+        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreatePortal(Session session, params string[] parameters)
+        {
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
     }
 }

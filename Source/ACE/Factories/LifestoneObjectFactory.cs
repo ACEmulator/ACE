@@ -29,9 +29,9 @@ namespace ACE.Factories
 
             wo.PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Gravity;
 
-            //game data min required flags;
-            wo.GameData.Type = (ushort) 0x1355;
-            wo.GameData.Icon = (ushort) 0x1036;
+            // game data min required flags;
+            wo.GameData.Type = (ushort)0x1355;
+            wo.GameData.Icon = (ushort)0x1036;
 
             wo.GameData.Usable = Usable.UsableRemote;
             wo.GameData.RadarColour = RadarColor.Blue;

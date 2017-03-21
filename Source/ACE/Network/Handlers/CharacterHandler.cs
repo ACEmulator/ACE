@@ -26,7 +26,7 @@ namespace ACE.Network.Handlers
         public static void CharacterEnterWorld(ClientPacketFragment fragment, Session session)
         {
             ObjectGuid guid = fragment.Payload.ReadGuid();
-            string account  = fragment.Payload.ReadString16L();
+            string account = fragment.Payload.ReadString16L();
 
             if (account != session.Account)
             {
@@ -48,14 +48,14 @@ namespace ACE.Network.Handlers
             session.State = SessionState.WorldConnected;
 
             session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-            
+
             LandblockManager.PlayerEnterWorld(session);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
         public static async void CharacterDelete(ClientPacketFragment fragment, Session session)
         {
-            string account     = fragment.Payload.ReadString16L();
+            string account = fragment.Payload.ReadString16L();
             uint characterSlot = fragment.Payload.ReadUInt32();
 
             if (account != session.Account)
@@ -114,10 +114,10 @@ namespace ACE.Network.Handlers
                 return;
 
             Character character = Character.CreateFromClientFragment(fragment.Payload, session.Id);
-            
-            // TODO: profanity filter 
+
+            // TODO: profanity filter
             // sendCharacterCreateResponse(session, 4);
-            
+
             bool isAvailable = DatabaseManager.Character.IsNameAvailable(character.Name);
             if (!isAvailable)
             {
@@ -126,7 +126,7 @@ namespace ACE.Network.Handlers
             }
 
             uint lowGuid = DatabaseManager.Character.GetMaxId();
-            character.Id        = lowGuid;
+            character.Id = lowGuid;
             character.AccountId = session.Id;
 
             if (!await DatabaseManager.Character.CreateCharacter(character))

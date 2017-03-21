@@ -27,28 +27,27 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\x64\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>default.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>default.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
@@ -122,6 +121,11 @@
     <Compile Include="Network\Enum\Effect.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
+    <Compile Include="Network\Enum\MotionActivity.cs" />
+    <Compile Include="Network\Enum\MotionCommand.cs" />
+    <Compile Include="Network\Enum\MotionFlags.cs" />
+    <Compile Include="Network\Enum\MotionStance.cs" />
+    <Compile Include="Network\Enum\MotionType.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
     <Compile Include="Network\Enum\RadarColor.cs" />
     <Compile Include="Network\Enum\UiEffects.cs" />
@@ -145,6 +149,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryBirth.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionTrainSkill.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSetCharacterOptions.cs" />
@@ -194,17 +199,20 @@
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterLogOff.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageMotion.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAttribute2ndLevel.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyBool.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyDouble.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateSkill.cs" />
@@ -250,6 +258,13 @@
     <Compile Include="Network\PacketHeader.cs" />
     <Compile Include="Network\PacketHeaderFlags.cs" />
     <Compile Include="Network\PacketHeaderOptional.cs" />
+    <Compile Include="Network\Sequence\UShortSequence.cs" />
+    <Compile Include="Network\Sequence\SequenceType.cs" />
+    <Compile Include="Network\Sequence\SequenceManager.cs" />
+    <Compile Include="Network\Sequence\ULongSequence.cs" />
+    <Compile Include="Network\Sequence\ByteSequence.cs" />
+    <Compile Include="Network\Sequence\UIntSequence.cs" />
+    <Compile Include="Network\Sequence\ISequence.cs" />
     <Compile Include="Network\ServerPacket.cs" />
     <Compile Include="Network\ServerPacketFragment.cs" />
     <Compile Include="Network\Session.cs" />

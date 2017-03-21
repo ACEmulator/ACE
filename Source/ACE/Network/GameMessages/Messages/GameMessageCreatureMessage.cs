@@ -4,7 +4,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCreatureMessage : GameMessage
     {
-        public GameMessageCreatureMessage(string messageText, string senderName, uint senderID, ChatMessageType chatMessageType) 
+        public GameMessageCreatureMessage(string messageText, string senderName, uint senderID, ChatMessageType chatMessageType)
             : base(GameMessageOpcode.CreatureMessage, GameMessageGroup.Group09)
         {
             Writer.WriteString16L(messageText);

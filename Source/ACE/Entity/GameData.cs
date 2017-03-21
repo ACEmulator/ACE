@@ -31,7 +31,7 @@ namespace ACE.Entity
         public ushort Struture; // uses;
         public ushort MaxStructure; // usesLimit;
         public ushort StackSize;
-        public ushort MaxStackSize; //stack max size
+        public ushort MaxStackSize; // stack max size
 
         public uint ContainerId;
         public uint Wielder;
@@ -46,7 +46,7 @@ namespace ACE.Entity
         public ushort Spell;
 
         // Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
-        public uint HouseOwner; 
+        public uint HouseOwner;
         public uint HouseRestrictions;
 
         public uint HookItemTypes;
@@ -58,10 +58,10 @@ namespace ACE.Entity
         public Material Material;
         public uint PetOwner;
 
-        //WeenieHeaderFlag2
+        // WeenieHeaderFlag2
         public uint Cooldown;
         public decimal CooldownDuration;
-        
+
     }
 
 }
