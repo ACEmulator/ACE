@@ -232,6 +232,10 @@ namespace ACE.Entity
             writer.Write((ushort)(player?.TotalLogins ?? 0));
             writer.Write((ushort)++MovementIndex);
             writer.Write((ushort)TeleportIndex);
+
+            // TODO: this is the "contact" flag, which is a flag for whether or not
+            // the player is "in contact" with the ground.  Sending the 0 here causes
+            // others to see the player being update with arms horizontal and falling.
             writer.Write((ushort)0);
         }
     }
