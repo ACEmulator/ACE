@@ -2,3 +2,5 @@
 --------
 - Added a basic set of telelocations.
 
+
+3/21/2017 ------- Added some tables for storing of objects and their models, palettes and textures
