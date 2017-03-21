@@ -113,6 +113,7 @@
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
+    <Compile Include="Network\Enum\WeenieClasses.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\AmmoType.cs" />

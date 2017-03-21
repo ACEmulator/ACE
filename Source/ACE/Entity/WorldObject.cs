@@ -2,10 +2,10 @@
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using ACE.Managers;
 
 namespace ACE.Entity
 {
@@ -18,7 +18,7 @@ namespace ACE.Entity
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public ushort WeenieClassid { get; protected set; }
+        public WeenieClass WeenieClassid { get; protected set; }
 
         public ushort Icon { get; set; }
 
@@ -30,13 +30,13 @@ namespace ACE.Entity
         public double LastUpdatedTicks { get; set; }
 
         public virtual Position Position
-        { 
+        {
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
         }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
-        
+
         public WeenieHeaderFlag WeenieFlags { get; protected set; }
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
@@ -61,6 +61,12 @@ namespace ACE.Entity
 
         public GameData GameData { get; }
 
+        public bool IsContainer { get; set; } = false;
+
+        private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
+
+        private readonly object inventoryMutex = new object();
+
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -69,6 +75,47 @@ namespace ACE.Entity
             GameData = new GameData();
             ModelData = new ModelData();
             PhysicsData = new PhysicsData();
+        }
+
+        public void AddToInventory(WorldObject worldObject)
+        {
+            lock (inventoryMutex)
+            {
+                if (inventory.ContainsKey(worldObject.Guid))
+                    return;
+
+                inventory.Add(worldObject.Guid, worldObject);
+            }
+        }
+
+        public void HandleDropItem(ObjectGuid objectGuid)
+        {
+            lock (inventoryMutex)
+            {
+                if (inventory.ContainsKey(objectGuid))
+                {
+                    var obj = inventory[objectGuid];
+                    LandblockManager.AddObject(obj);
+                    inventory.Remove(objectGuid);
+                }
+            }
+        }
+
+        public void RemoveFromInventory(ObjectGuid objectGuid)
+        {
+            lock (inventoryMutex)
+            {
+                if (inventory.ContainsKey(objectGuid))
+                    inventory.Remove(objectGuid);
+            }
+        }
+
+        public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
+        {
+            lock (inventoryMutex)
+            {
+                inventory.TryGetValue(objectGuid, out worldObject);
+            }
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -83,7 +130,7 @@ namespace ACE.Entity
 
             ModelData.Serialize(writer);
             PhysicsData.Serialize(writer);
-            
+
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.Write((ushort)WeenieClassid);
@@ -213,7 +260,7 @@ namespace ACE.Entity
             writer.Write((uint)updatePositionFlags);
 
             Position.Serialize(writer, false);
-            
+
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.W);
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
@@ -227,7 +274,7 @@ namespace ACE.Entity
             {
                 // velocity would go here
             }
-            
+
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 0));
             writer.Write((ushort)++MovementIndex);

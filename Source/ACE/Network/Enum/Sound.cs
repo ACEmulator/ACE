@@ -3,10 +3,6 @@ namespace ACE.Network.Enum
 {
     public enum Sound : uint
     {
-<<<<<<< HEAD
-        AbilityIncrease             = 0x008B, // also applies to skills
-        DropItem                    = 0x0090
-=======
         Invalid                 = 0x00,
         Speak1                  = 0x01,
         Random                  = 0x02,
@@ -212,6 +208,5 @@ namespace ACE.Network.Enum
         HealthDownVoid          = 0xCA,
         RegenDownVoid           = 0xCB,
         SkillDownVoid           = 0xCC
->>>>>>> upstream/master
     }
 }

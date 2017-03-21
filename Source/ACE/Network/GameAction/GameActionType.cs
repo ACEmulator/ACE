@@ -34,15 +34,10 @@ namespace ACE.Network.GameAction
         PingRequest                 = 0x01E9,
 
         HouseQuery                  = 0x021E,
-<<<<<<< HEAD
+
         QueryItemMana               = 0x0263,
-        MoveToState                 = 0xF61C,      
-=======
-
         TeleToMarketPlace           = 0x028D,
-
         MoveToState                 = 0xF61C,
->>>>>>> upstream/master
         AutonomousPosition          = 0xF753,
     }
 }

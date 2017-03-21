@@ -15,8 +15,8 @@ namespace ACE.Entity
         public ushort Type;
 
         public ushort Icon;  // - 0x06000000
-        
-        //WenieHeaderFlags
+
+        // WenieHeaderFlags
         public string NamePlural;
         public byte ItemCapacity;
         public byte ContainerCapacity;

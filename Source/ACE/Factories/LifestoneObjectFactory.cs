@@ -17,7 +17,7 @@ namespace ACE.Factories
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar |
                          WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone,
-                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", 0,
+                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", WeenieClass.W_UNDEF_CLASS,
                 ObjectDescriptionFlag.LifeStone, weenie, newPosition);
             // model id 0x000026 is one of several lifestone IDs
             wo.PhysicsData.MTableResourceId = 0x09000026u;
@@ -40,48 +40,5 @@ namespace ACE.Factories
 
             return wo;
         }
-
-        public static WorldObject CreateTrainingWand(Player newPlayer)
-        {
-            const WeenieHeaderFlag weenie =
-                WeenieHeaderFlag.Usable | WeenieHeaderFlag.HookItemTypes | WeenieHeaderFlag.Value |
-                WeenieHeaderFlag.TargetType | WeenieHeaderFlag.Container | WeenieHeaderFlag.Wielder |
-                WeenieHeaderFlag.Burden;
-
-            var wo = new ImmutableWorldObject(ObjectType.Caster,
-                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Training Wand", 1,
-                ObjectDescriptionFlag.Inscribable, weenie, newPlayer.Position);
-
-            wo.GameData.ContainerId = newPlayer.Guid.Full;
-            wo.GameData.Icon = 0x2A3C;
-            wo.Icon = 0x2A3C;
-            wo.GameData.Value = 25;
-            wo.GameData.Burden = 50;
-            wo.GameData.TargetType = 16;
-            wo.GameData.Type = 0x31CC;
-
-            wo.GameData.Usable = Usable.UsableNo;
-
-            wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable
-                                                    | PhysicsDescriptionFlag.CSetup |
-                                                    PhysicsDescriptionFlag.AnimationFrame;
-
-            wo.PhysicsData.AnimationFrame = 0x00000065;
-
-            wo.PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
-            wo.PhysicsData.Stable = 0x20000014;
-            wo.PhysicsData.Petable = 0x3400002B;
-            wo.PhysicsData.CSetup = 0x2000ED7;
-            //wo.ModelData.
-            wo.ModelData.AddTexture(0, 0xC3, 0xC4);
-            wo.ModelData.AddModel(0, 0x2D7C);
-            wo.PhysicsData.PhysicsState = PhysicsState.Gravity | PhysicsState.IgnoreCollision | PhysicsState.Ethereal;
-
-            // This is probably not the right way to do this all of this infromation is sent in the message - OG II
-            newPlayer.GameData.Burden += wo.GameData.Burden;
-
-            return wo;
-        }
-
     }
 }

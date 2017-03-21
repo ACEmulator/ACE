@@ -120,7 +120,7 @@ namespace ACE.Entity
             get { return adjacencies[Adjacency.NorthWest]; }
             set { adjacencies[Adjacency.NorthWest] = value; }
         }
-        
+
         public void StartUseTime()
         {
             running = true;
