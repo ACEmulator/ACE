@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Network.Sequence
+namespace ACE.Network.Enum
 {
-    public enum SequenceType
+    public enum MotionActivity
     {
-        MotionMessage,
-        Motion
+        Idle = 0,
+        Active = 1
     }
 }

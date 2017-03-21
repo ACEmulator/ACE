@@ -74,8 +74,8 @@ namespace ACE.Entity
             PhysicsData = new PhysicsData();
 
             Sequences = new SequenceManager();
-            Sequences.AddSequence(SequenceType.AnimationMessage, new UShortSequence(1));
-            Sequences.AddSequence(SequenceType.Animation, new UShortSequence(1));
+            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence());
+            Sequences.AddSequence(SequenceType.Motion, new UShortSequence());
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -90,7 +90,7 @@ namespace ACE.Entity
 
             ModelData.Serialize(writer);
             PhysicsData.Serialize(writer);
-            
+
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.Write((ushort)WeenieClassid);
@@ -220,7 +220,7 @@ namespace ACE.Entity
             writer.Write((uint)updatePositionFlags);
 
             Position.Serialize(writer, false);
-            
+
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.W);
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
@@ -234,7 +234,7 @@ namespace ACE.Entity
             {
                 // velocity would go here
             }
-            
+
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 0));
             writer.Write((ushort)++MovementIndex);

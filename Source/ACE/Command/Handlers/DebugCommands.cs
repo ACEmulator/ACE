@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
+using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
@@ -173,7 +174,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            session.Network.EnqueueSend(new GameMessageAnimation(session.Player, session, (AnimationType)animationId, 1.0f));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, (MotionCommand)animationId, 1.0f));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]

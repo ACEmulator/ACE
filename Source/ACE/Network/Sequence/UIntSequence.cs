@@ -19,7 +19,7 @@ namespace ACE.Network.Sequence
         {
             get
             {
-                return BitConverter.GetBytes(++value);
+                return BitConverter.GetBytes(value++);
             }
         }
     }

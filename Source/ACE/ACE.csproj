@@ -121,6 +121,11 @@
     <Compile Include="Network\Enum\Effect.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
+    <Compile Include="Network\Enum\MotionActivity.cs" />
+    <Compile Include="Network\Enum\MotionCommand.cs" />
+    <Compile Include="Network\Enum\MotionFlags.cs" />
+    <Compile Include="Network\Enum\MotionStance.cs" />
+    <Compile Include="Network\Enum\MotionType.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
     <Compile Include="Network\Enum\RadarColor.cs" />
     <Compile Include="Network\Enum\UiEffects.cs" />
@@ -191,13 +196,14 @@
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterLogOff.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
-    <Compile Include="Network\GameMessages\Messages\GameMessageAnimation.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageMotion.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />

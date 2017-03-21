@@ -203,7 +203,7 @@ namespace ACE.Network
         {
             SaveSession();
             Player.Logout();
-            Network.EnqueueSend(new GameMessageAnimation(Player, this, AnimationType.Logout1, 1.0f));
+            Network.EnqueueSend(new GameMessageMotion(Player, this, MotionCommand.Logout1, 1.0f));
             logOffRequestTime = DateTime.UtcNow;
         }
 
