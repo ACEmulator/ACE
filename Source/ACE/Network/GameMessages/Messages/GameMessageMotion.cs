@@ -38,8 +38,19 @@ namespace ACE.Network.GameMessages.Messages
             WriteAnimations(animationTarget, animations);
         }
 
+        public enum MotionState
+        {
+          bf_current_style = 01,
+          bf_forward_command = 02,
+          bf_forward_speed = 04,
+          bf_sidestep_command = 08,
+          bf_sidestep_speed = 10,
+          bf_turn_command = 20,
+          bf_turn_speed = 40
+        }
         private void WriteBase(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
             MotionType type, MotionFlags flags, MotionStance stance)
+
         {
             Writer.WriteGuid(animationTarget.Guid);
             Writer.Write((ushort)session.Player.TotalLogins);
@@ -49,6 +60,11 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write((byte)type);
             Writer.Write((byte)flags);
             Writer.Write((ushort)stance);
+
+            // TODO: Almost there CFS
+
+            Writer.Write((uint)MotionState.bf_forward_command);
+            Writer.Write((uint)MotionState.bf_turn_command);
         }
 
         private void WriteAnimations(Entity.WorldObject animationTarget, List<MotionItem> items)

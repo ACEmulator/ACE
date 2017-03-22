@@ -27,7 +27,7 @@ namespace ACE.Network.GameAction.Actions
                 (uint)this.Session.Player.GameData.Burden);
             // TODO: animation bend down --> update container to 0 for ground or guid of chest or copse --> Set age for decay countdown --> Animation Stand up --> send put inventory in 3d space 
             //var movementMessage = new GameMessageMovement(this.Session.Player,1,1,1,0);
-            var movementMessage = new GameMessageMotion(this.Session.Player,this.Session, MotionActivity.Active, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid,1.00f);
+            var movementMessage = new GameMessageMotion(this.Session.Player,this.Session, MotionActivity.Active, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid, 1.00f);
             var dropSound = new GameMessageSound(this.Session.Player.Guid, Sound.DropItem, (float) 1.0);
 
             this.Session.Network.EnqueueSend(burdenUpdate);
