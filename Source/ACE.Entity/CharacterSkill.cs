@@ -62,12 +62,13 @@ namespace ACE.Entity
 
         public uint ExperienceSpent { get; set; }
 
-        public CharacterSkill(Character character, Skill skill, SkillStatus status, uint ranks)
+        public CharacterSkill(Character character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
         {
             this.character = character;
             Skill = skill;
             Status = status;
             Ranks = ranks;
+            ExperienceSpent = xpSpent;
         }
     }
 }

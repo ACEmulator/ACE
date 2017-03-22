@@ -5,6 +5,7 @@ using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
+using ACE.Network.Sequence;
 using System.IO;
 
 namespace ACE.Entity
@@ -30,13 +31,13 @@ namespace ACE.Entity
         public double LastUpdatedTicks { get; set; }
 
         public virtual Position Position
-        { 
+        {
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
         }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
-        
+
         public WeenieHeaderFlag WeenieFlags { get; protected set; }
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
@@ -61,6 +62,8 @@ namespace ACE.Entity
 
         public GameData GameData { get; }
 
+        public SequenceManager Sequences { get; }
+
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -69,6 +72,10 @@ namespace ACE.Entity
             GameData = new GameData();
             ModelData = new ModelData();
             PhysicsData = new PhysicsData();
+
+            Sequences = new SequenceManager();
+            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence());
+            Sequences.AddSequence(SequenceType.Motion, new UShortSequence());
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -83,7 +90,7 @@ namespace ACE.Entity
 
             ModelData.Serialize(writer);
             PhysicsData.Serialize(writer);
-            
+
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.Write((ushort)WeenieClassid);
@@ -213,7 +220,7 @@ namespace ACE.Entity
             writer.Write((uint)updatePositionFlags);
 
             Position.Serialize(writer, false);
-            
+
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.W);
             if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
@@ -227,11 +234,15 @@ namespace ACE.Entity
             {
                 // velocity would go here
             }
-            
+
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 0));
             writer.Write((ushort)++MovementIndex);
             writer.Write((ushort)TeleportIndex);
+
+            // TODO: this is the "contact" flag, which is a flag for whether or not
+            // the player is "in contact" with the ground.  Sending the 0 here causes
+            // others to see the player being update with arms horizontal and falling.
             writer.Write((ushort)0);
         }
     }

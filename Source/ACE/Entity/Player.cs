@@ -47,7 +47,7 @@ namespace ACE.Entity
         public double LastStateChangeTicks { get; set; }
 
         private Character character;
-        
+
         private object clientObjectMutex = new object();
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
@@ -199,7 +199,7 @@ namespace ACE.Entity
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
-            GameData.ItemCapacity = 102;  
+            GameData.ItemCapacity = 102;
             GameData.ContainerCapacity = 7;
             GameData.RadarBehavior = RadarBehavior.ShowAlways;
             GameData.RadarColour = RadarColor.White;
@@ -231,10 +231,10 @@ namespace ACE.Entity
                     character.IsArch = true;
                 if (Session.AccessLevel == AccessLevel.Envoy)
                     character.IsEnvoy = true;
-                //TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
-                //if (Session.AccessLevel == AccessLevel.Sentinel)
+                // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
+                // if (Session.AccessLevel == AccessLevel.Sentinel)
                 //    character.IsSentinel = true;
-                //if (Session.AccessLevel == AccessLevel.Advocate)
+                // if (Session.AccessLevel == AccessLevel.Advocate)
                 //    character.IsAdvocate= true;
             }
 
@@ -254,20 +254,133 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
+        /// <summary>
+        /// Raise the available XP by a specified amount
+        /// </summary>
+        /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(ulong amount)
         {
-            character.GrantXp(amount);
-            var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-            var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-            var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-            Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            // until we are max level we must make sure that we send
+            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            CharacterLevel maxLevel = chart.Levels.Last();
+            if (character.Level != maxLevel.Level)
+            {
+                ulong amountLeftToEnd = maxLevel.TotalXp - character.TotalExperience;
+                if (amount > amountLeftToEnd)
+                {
+                    amount = amountLeftToEnd;
+                }
+                character.GrantXp(amount);
+                CheckForLevelup();
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+            }
         }
 
+        /// <summary>
+        /// Public method for adding a new skill by spending skill credits.
+        /// </summary>
+        /// <remarks>
+        ///  The client will throw up more then one train skill dialog and the user has the chance to spend twice.
+        /// </remarks>
+        /// <param name="skill"></param>
+        /// <param name="creditsSpent"></param>
+        public void TrainSkill(Skill skill, uint creditsSpent)
+        {
+            if (character.AvailableSkillCredits >= creditsSpent)
+            {
+                //attempt to train the specified skill
+                bool trainNewSkill = character.TrainSkill(skill, creditsSpent);
+                //create an update to send to the client
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                //as long as the skill is sent, the train new triangle button on the client will not lock up. 
+                //Sending Skill.None with status untrained worked in test
+                var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
+                //create a string placeholder for the correct after
+                string trainSkillMessageText = "";
+
+                //if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
+                if (trainNewSkill)
+                {
+                    //replace the trainSkillUpdate message with the correct skill assignment:
+                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
+                    trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {character.AvailableSkillCredits} credits available.";
+                }
+                else
+                {
+                    trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {character.AvailableSkillCredits} credits available.";
+                }
+
+                //create the final game message and send to the client
+                var message = new GameMessageSystemChat(trainSkillMessageText, ChatMessageType.Advancement);
+                Session.Network.EnqueueSend(trainSkillUpdate, currentCredits, message);
+            }
+        }
+
+        /// <summary>
+        /// Determines if the player has advanced a level
+        /// </summary>
+        /// <remarks>
+        /// Known issues:
+        ///         1. XP updates from outside of the grantxp command have not been done yet.
+        /// </remarks>
         private void CheckForLevelup()
         {
+            // Question: Where do *we* call CheckForLevelup()? :
+            //      From within the player.cs file, the options might be:
+            //           GrantXp()
+            //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
+            //           XP Updates?
+            var startingLevel = character.Level;
             var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            CharacterLevel maxLevel = chart.Levels.Last();
+            bool creditEarned = false;
+            if (character.Level == maxLevel.Level) return;
 
-            // TODO: implement.  just stubbing for now, will implement later.
+            // increases until the correct level is found
+            while (chart.Levels[Convert.ToInt32(character.Level)].TotalXp <= character.TotalExperience)
+            {
+                character.Level++;
+                CharacterLevel newLevel = chart.Levels.FirstOrDefault(item => item.Level == character.Level);
+                // increase the skill credits if the chart allows this level to grant a credit
+                if (newLevel.GrantsSkillPoint)
+                {
+                    character.AvailableSkillCredits++;
+                    character.TotalSkillCredits++;
+                    creditEarned = true;
+                }
+                // break if we reach max
+                if (character.Level == maxLevel.Level)
+                {
+                    PlayParticleEffect(Effect.WeddingBliss);
+                    break;
+                }
+            }
+
+            if (character.Level > startingLevel)
+            {
+                string level = $"{character.Level}";
+                string skillCredits = $"{character.AvailableSkillCredits}";
+                string xpAvailable = $"{character.AvailableExperience:#,###0}";
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
+                string levelUpMessageText = (character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
+                var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
+                string xpUpdateText = (character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes.";
+                var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                if (character.Level != maxLevel.Level && !creditEarned)
+                {
+                    string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
+                    var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
+                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
+                }
+                else
+                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
+                // play level up effect
+                PlayParticleEffect(Effect.LevelUp);
+            }
         }
 
         public void SpendXp(Enum.Ability ability, uint amount)
@@ -275,11 +388,11 @@ namespace ACE.Entity
             uint baseValue = character.Abilities[ability].Base;
             uint result = SpendAbilityXp(character.Abilities[ability], amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
+            uint ranks = character.Abilities[ability].Ranks;
+            uint newValue = character.Abilities[ability].UnbuffedValue;
+            string messageText = "";
             if (result > 0u)
             {
-                uint ranks = character.Abilities[ability].Ranks;
-                uint newValue = character.Abilities[ability].UnbuffedValue;
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 GameMessage abilityUpdate;
                 if (!isSecondary)
                 {
@@ -290,9 +403,21 @@ namespace ACE.Entity
                     abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
                 }
 
-                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
-                var message = new GameMessageSystemChat($"Your base {ability} is now {newValue}!", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(xpUpdate, abilityUpdate, soundEvent, message);
+                // checks if max rank is achieved and plays fireworks w/ special text
+                if (IsAbilityMaxRank(ranks, isSecondary))
+                {
+                    // fireworks
+                    PlayParticleEffect(Effect.WeddingBliss);
+                    messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
+                }
+                else
+                {
+                    messageText = $"Your base {ability} is now {newValue}!";
+                }
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
+                var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
+                Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);
             }
             else
             {
@@ -303,12 +428,6 @@ namespace ACE.Entity
         /// <summary>
         /// spends the xp on this ability.
         /// </summary>
-        /// <remarks>
-        ///     Known Issues:
-        ///         1. +10 skill throws an exception when it would go outside the bounds of ranks list
-        ///         2. the client doesn't increase the "next point" amount properly when using +10
-        ///         3. no fireworks for hitting max ranks
-        /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendAbilityXp(CharacterAbility ability, uint amount)
         {
@@ -329,15 +448,39 @@ namespace ACE.Entity
                     break;
             }
 
+            // do not advance if we cannot spend xp to rank up our skill by 1 point
+            if (ability.Ranks >= (chart.Ranks.Count - 1))
+                return result;
+
             uint rankUps = 0u;
             uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
             uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
-            uint rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            uint rank10 = 0u;
+            int rank10Offset = 0;
+
+            if (ability.Ranks + 10 >= (chart.Ranks.Count))
+            {
+                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
+            else
+            {
+                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+            }
 
             if (amount == rank1)
                 rankUps = 1u;
             else if (amount == rank10)
-                rankUps = 10u;
+            {
+                if (rank10Offset > 0u)
+                {
+                    rankUps = Convert.ToUInt32(rank10Offset);
+                }
+                else
+                {
+                    rankUps = 10u;
+                }
+            }
 
             if (rankUps > 0)
             {
@@ -349,6 +492,25 @@ namespace ACE.Entity
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Check a rank against the ability charts too determine if the skill is at max
+        /// </summary>
+        /// <returns>Returns true if ability is max rank; false if ability is below max rank</returns>
+        private bool IsAbilityMaxRank(uint rank, bool isAbilityVitals)
+        {
+            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+
+            if (isAbilityVitals)
+                xpChart = DatabaseManager.Charts.GetVitalXpChart();
+            else
+                xpChart = DatabaseManager.Charts.GetAbilityXpChart();
+
+            if (rank == (xpChart.Ranks.Count - 1))
+                return true;
+            else
+                return false;
         }
 
         /// <summary>
@@ -383,17 +545,17 @@ namespace ACE.Entity
             var status = character.Skills[skill].Status;
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.AbilityIncrease, 1f);
+            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
             string messageText = "";
 
             if (result > 0u)
             {
-                //if the skill ranks out at the top of our xp chart 
-                //then we will start fireworks effects and have special text!
+                // if the skill ranks out at the top of our xp chart
+                // then we will start fireworks effects and have special text!
                 if (IsSkillMaxRank(ranks, status))
                 {
-                    //fireworks on rank up is 0x8D
-                    PlayParticleEffect(0x8D);
+                    // fireworks on rank up is 0x8D
+                    PlayParticleEffect(Effect.WeddingBliss);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -409,16 +571,20 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
-        //plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(uint effectid)
+        // plays particle effect like spell casting or bleed etc..
+        public void PlayParticleEffect(Effect effectId)
         {
-            var effectevent = new GameMessageEffect(this.Guid, effectid);
-            Session.Network.EnqueueSend(effectevent);
+            var effectEvent = new GameMessageEffect(this.Guid, effectId);
+            Session.Network.EnqueueSend(effectEvent);
         }
 
         /// <summary>
         /// spends the xp on this skill.
         /// </summary>
+        /// <remarks>
+        ///     Known Issues:
+        ///         1. Not checking and accounting for XP gained from skill usage.
+        /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
         private uint SpendSkillXp(CharacterSkill skill, uint amount)
         {
@@ -432,7 +598,7 @@ namespace ACE.Entity
             else
                 return result;
 
-            //do not advance if we cannot spend xp to rank up our skill by 1 point
+            // do not advance if we cannot spend xp to rank up our skill by 1 point
             if (skill.Ranks >= (chart.Ranks.Count - 1))
                 return result;
 
@@ -492,7 +658,7 @@ namespace ACE.Entity
                 foreach (var friendSession in inverseFriends)
                 {
                     friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
-                }                
+                }
             }
         }
 
@@ -573,7 +739,7 @@ namespace ACE.Entity
         /// </summary>
         public void AppearOffline(bool appearOffline)
         {
-            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);            
+            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
             SendFriendStatusUpdates();
         }
 
@@ -590,11 +756,50 @@ namespace ACE.Entity
         /// </summary>
         public void SaveOptions()
         {
-            DatabaseManager.Character.SaveCharacterOptions(character);
+            if (character != null)
+                DatabaseManager.Character.SaveCharacterOptions(character);
 
             // TODO: Save other options as we implement them.
         }
-        
+
+        public void SaveCharacter()
+        {
+            if (character != null)
+            {
+                DatabaseManager.Character.UpdateCharacter(character);
+#if DEBUG
+                if (Session.Player != null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
+                }
+#endif
+            }
+        }
+
+        public void UpdateAge()
+        {
+            try
+            {
+                character.Age++;
+            }
+            catch (NullReferenceException)
+            {
+                // Do Nothing since player data hasn't loaded in
+            }
+        }
+
+        public void SendAgeInt()
+        {
+            try
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
+            }
+            catch (NullReferenceException)
+            {
+                // Do Nothing since player data hasn't loaded in
+            }
+        }
+
         /// <summary>
         /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
         /// </summary>
@@ -617,7 +822,7 @@ namespace ACE.Entity
 
             Session.Network.EnqueueSend(player, title, friends);
         }
-        
+
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
             PhysicsData.PhysicsState = state;
@@ -639,7 +844,7 @@ namespace ACE.Entity
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
 
-            lock(clientObjectMutex)
+            lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
             }
@@ -655,7 +860,12 @@ namespace ACE.Entity
 
         private void DelayedUpdatePosition(Position newPosition)
         {
-            var t = new Thread(() => { Thread.Sleep(10); this.Position = newPosition; SendUpdatePosition(); });
+            var t = new Thread(() =>
+            {
+                Thread.Sleep(10);
+                this.Position = newPosition;
+                SendUpdatePosition();
+            });
             t.Start();
         }
 
@@ -711,7 +921,7 @@ namespace ACE.Entity
 
         /// <summary>
         /// Do the player log out work.<para />
-        /// If you want to force a player to logout, use Session.LogOffPlayer(). 
+        /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
         public void Logout(bool clientSessionTerminatedAbruptly = false)
         {
@@ -725,12 +935,6 @@ namespace ACE.Entity
 
             // remove the player from landblock management
             LandblockManager.RemoveObject(this);
-
-            // NOTE: Adding this here for now because some chracter options do not trigger the GameActionSetCharacterOptions packet to fire when apply is clicked (which is where we are currently saving to the db).
-            // Once we get a CharacterSave method, we might consider removing this and putting it in that method instead.
-            DatabaseManager.Character.SaveCharacterOptions(character);
-
-            DatabaseManager.Character.UpdateCharacter(character);
 
             if (!clientSessionTerminatedAbruptly)
             {
@@ -776,7 +980,7 @@ namespace ACE.Entity
 
         public void SendAutonomousPosition()
         {
-            
+
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
     }

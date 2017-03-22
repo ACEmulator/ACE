@@ -25,6 +25,7 @@ namespace ACE.Network.GameMessages
         PublicUpdateAttribute           = 0x02E4,
         PrivateUpdateVital              = 0x02E7,
         PublicUpdateVital               = 0x02E8,
+        PrivateUpdateAttribute2ndLevel  = 0x02E9,
 
         CharacterCreateResponse         = 0xF643,
         CharacterRestoreResponse        = 0xF643, // This is a duplicate...
@@ -40,6 +41,7 @@ namespace ACE.Network.GameMessages
         ObjectDelete                    = 0xF747,
         UpdatePosition                  = 0xF748,
         SetState                        = 0xF74B,
+        Motion                          = 0xF74C,
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
         AutonomousPosition              = 0xF753,

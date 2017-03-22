@@ -31,7 +31,7 @@ namespace ACE.Entity
         /// TODO: implement
         /// </summary>
         public double LastAnimatedTicks { get; set; }
-        
+
         public override Position Position
         {
             get { return base.Position; }
@@ -42,7 +42,7 @@ namespace ACE.Entity
 
                 log.Debug($"{Name} moved to {Position}");
 
-                base.Position = value;                
+                base.Position = value;
             }
         }
     }

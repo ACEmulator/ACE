@@ -21,8 +21,8 @@ namespace ACE.Network.GameAction.Actions
         {
             var result = await Session.Player.RemoveFriend(friendId);
 
-            if(result == Enum.RemoveFriendResult.NotInFriendsList)
-                ChatPacket.SendServerMessage(Session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);                            
+            if (result == Enum.RemoveFriendResult.NotInFriendsList)
+                ChatPacket.SendServerMessage(Session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);
         }
     }
 }

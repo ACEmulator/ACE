@@ -23,7 +23,7 @@ namespace ACE.Network.GameAction.Actions
             if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
                 return;
 
-            //TODO: Unsubscribe from channel (chatChannelID) and save to db. Channel subscriptions are meant to persist between sessions.
+            // TODO: Unsubscribe from channel (chatChannelID) and save to db. Channel subscriptions are meant to persist between sessions.
         }
     }
 }

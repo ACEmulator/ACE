@@ -1,4 +1,6 @@
 ﻿
+using System.Linq;
+
 namespace ACE.Entity.Enum
 {
     /// <summary>
@@ -237,6 +239,17 @@ namespace ACE.Entity.Enum
         {
             return Enum.EnumHelper.GetAttributeOfType<SkillUsableUntrainedAttribute>(skill);
         }
+
+        /// <summary>
+        /// Will add a space infront of capital letter words in a string
+        /// </summary>
+        /// <param name="skill"></param>
+        /// <returns>string with spaces infront of capital letters</returns>
+        public static string ToSentence(this Skill skill)
+        {
+            return new string(skill.ToString().ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
+        }
+
     }
 
     public enum SkillStatus : uint

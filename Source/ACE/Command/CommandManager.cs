@@ -25,7 +25,7 @@ namespace ACE.Command
                     {
                         var commandHandler = new CommandHandlerInfo()
                         {
-                            Handler   = (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), method),
+                            Handler = (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), method),
                             Attribute = attribute
                         };
 
@@ -43,10 +43,9 @@ namespace ACE.Command
         {
             Console.WriteLine("");
             Console.WriteLine("ACEmulator command prompt ready.");
-            //Console.WriteLine("Type acehelp and press enter for additional instructions."); TODO: flesh out acehelp to assist new server owners
             Console.WriteLine("");
 
-            for (;;)
+            for (; ;)
             {
                 Console.Write("ACE >> ");
 
@@ -67,7 +66,7 @@ namespace ACE.Command
         public static void ParseCommand(string commandLine, out string command, out string[] parameters)
         {
             var commandSplit = commandLine.Split(' ');
-            command    = commandSplit[0];
+            command = commandSplit[0];
             parameters = new string[commandSplit.Length - 1];
 
             Array.Copy(commandSplit, 1, parameters, 0, commandSplit.Length - 1);
@@ -81,7 +80,7 @@ namespace ACE.Command
                         listParameters.Add(parameters[start]);
                     else
                     {
-                        listParameters.Add(parameters[start].Replace("\"",""));
+                        listParameters.Add(parameters[start].Replace("\"", ""));
                         for (int end = start + 1; end < parameters.Length; end++)
                         {
                             if (!parameters[end].EndsWith("\""))
@@ -150,7 +149,7 @@ namespace ACE.Command
                 session.Player.PropertiesBool.TryGetValue(PropertyBool.IsPsr, out isEnvoy);
                 session.Player.PropertiesBool.TryGetValue(PropertyBool.IsArch, out isArch);
                 session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdmin, out isAdmin);
-                
+
                 if (commandInfo.Attribute.Access == AccessLevel.Advocate && !(isAdvocate || isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
                     || commandInfo.Attribute.Access == AccessLevel.Sentinel && !(isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
                     || commandInfo.Attribute.Access == AccessLevel.Envoy && !(isEnvoy || isArch || isAdmin || isSUDOauthorized)
