@@ -99,6 +99,7 @@
     <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
+    <Compile Include="Entity\MotionData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\LifestoneObjectFactory.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
+    <Compile Include="Network\Enum\MotionState.cs" />
     <Compile Include="Network\Enum\WeenieClasses.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
