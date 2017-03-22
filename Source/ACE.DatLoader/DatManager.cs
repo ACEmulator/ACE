@@ -27,7 +27,7 @@ namespace ACE.DatLoader
         {
             try
             {
-                datFile = ConfigManager.Config.Server.DatFilesDirectory + "\\client_cell_1.dat";
+                datFile = ConfigManager.Config.Server.DatFilesDirectory + "client_cell_1.dat";
                 cellDat = new CellDatDatabase(datFile);
                 count = cellDat.AllFiles.Count();
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
@@ -40,7 +40,7 @@ namespace ACE.DatLoader
 
             try
             {
-                datFile = ConfigManager.Config.Server.DatFilesDirectory + "\\client_portal.dat";
+                datFile = ConfigManager.Config.Server.DatFilesDirectory + "client_portal.dat";
                 portalDat = new PortalDatDatabase(datFile);
                 count = portalDat.AllFiles.Count();
                 log.Info($"Successfully opened {datFile} file, containing {count} records");

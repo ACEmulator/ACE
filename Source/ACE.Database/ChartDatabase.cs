@@ -33,7 +33,7 @@ namespace ACE.Database
 
         public ExperienceExpenditureChart GetAbilityXpChart()
         {
-            return LoadRankChart(@".\abilityXp.json");
+            return LoadRankChart(@"abilityXp.json");
         }
 
         public LevelingChart GetLevelingXpChart()
@@ -43,17 +43,17 @@ namespace ACE.Database
         
         public ExperienceExpenditureChart GetSpecializedSkillXpChart()
         {
-            return LoadRankChart(@".\skillXp-Specialized.json");
+            return LoadRankChart(@"skillXp-Specialized.json");
         }
 
         public ExperienceExpenditureChart GetTrainedSkillXpChart()
         {
-            return LoadRankChart(@".\skillXp-Trained.json");
+            return LoadRankChart(@"skillXp-Trained.json");
         }
 
         public ExperienceExpenditureChart GetVitalXpChart()
         {
-            return LoadRankChart(@".\vitalXp.json");
+            return LoadRankChart(@"vitalXp.json");
         }
 
         private LevelingChart LoadLevelChartFromFile(string filename)
