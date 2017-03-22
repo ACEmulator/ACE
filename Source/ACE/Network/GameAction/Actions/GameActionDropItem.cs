@@ -3,10 +3,11 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Managers;
+using ACE.Network.GameMessages;
 
 namespace ACE.Network.GameAction.Actions
 {
+    using global::ACE.Network.GameEvent.Events;
 
     [GameAction(GameActionType.DropItem)]
     public class GameActionDropItem : GameActionPacket
@@ -18,15 +19,19 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            ChatPacket.SendServerMessage(Session, $"You want to drop that don't you?", ChatMessageType.Broadcast);
+            //ChatPacket.SendServerMessage(this.Session, $"You want to drop that don't you?", ChatMessageType.Broadcast);
 
-            Session.Player.HandleDropItem(objectGuid);
-            
-            //var burdenUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal,
-            //    (uint)(Session.Player.GameData.Burden - inventoryItem.GameData.Burden));
+            this.Session.Player.HandleDropItem(this.objectGuid);
+
+            var burdenUpdate = new GameMessagePrivateUpdatePropertyInt(this.Session, PropertyInt.EncumbVal,
+                (uint)this.Session.Player.GameData.Burden);
             // TODO: animation bend down --> update container to 0 for ground or guid of chest or copse --> Set age for decay countdown --> Animation Stand up --> send put inventory in 3d space 
-            var dropSound = new GameMessageSound(Session.Player.Guid, Sound.DropItem, (float) 1.0);
-            Session.Network.EnqueueSend(dropSound);
+            var movementMessage = new GameMessageMovement(this.Session.Player,1,1,1,0);
+            var dropSound = new GameMessageSound(this.Session.Player.Guid, Sound.DropItem, (float) 1.0);
+
+            this.Session.Network.EnqueueSend(burdenUpdate);
+            this.Session.Network.EnqueueSend(movementMessage);
+            this.Session.Network.EnqueueSend(dropSound);
         }
 
         public override void Read() => objectGuid = new ObjectGuid(Fragment.Payload.ReadUInt32());

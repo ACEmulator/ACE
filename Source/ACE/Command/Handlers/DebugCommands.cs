@@ -35,7 +35,7 @@ namespace ACE.Command.Handlers
                 "Test Portal", PortalType.Purple));
         }
 
-        [CommandHandler("createtrainingwand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateTrainingWand(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))

@@ -97,19 +97,6 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleDropItem(ObjectGuid objectGuid)
-        {
-            lock (inventoryMutex)
-            {
-                if (inventory.ContainsKey(objectGuid))
-                {
-                    var obj = inventory[objectGuid];
-                    LandblockManager.AddObject(obj);
-                    inventory.Remove(objectGuid);
-                }
-            }
-        }
-
         public void RemoveFromInventory(ObjectGuid objectGuid)
         {
             lock (inventoryMutex)
@@ -119,6 +106,17 @@ namespace ACE.Entity
             }
         }
 
+        public void HandleDropItem(ObjectGuid objectGuid)
+        {
+            lock (this.inventoryMutex)
+            {
+                if (!this.inventory.ContainsKey(objectGuid)) return;
+                var obj = this.inventory[objectGuid];
+                this.GameData.Burden = obj.GameData.Burden;
+                LandblockManager.AddObject(obj);
+                this.inventory.Remove(objectGuid);
+            }
+        }
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
         {
             lock (inventoryMutex)
