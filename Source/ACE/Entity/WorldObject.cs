@@ -74,8 +74,8 @@ namespace ACE.Entity
             PhysicsData = new PhysicsData();
 
             Sequences = new SequenceManager();
-            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence());
-            Sequences.AddSequence(SequenceType.Motion, new UShortSequence());
+            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
+            Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
