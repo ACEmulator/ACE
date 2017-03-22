@@ -18,7 +18,11 @@ namespace ACE.Network.GameMessages.Messages
             : this()
         {
             WriteBase(animationTarget, session, activity, type, flags, stance);
-            List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            List<MotionItem> animations = new List<MotionItem>();
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
             WriteAnimations(animationTarget, animations);
         }
 
@@ -26,7 +30,11 @@ namespace ACE.Network.GameMessages.Messages
             : this()
         {
             WriteBase(animationTarget, session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing);
-            List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            List<MotionItem> animations = new List<MotionItem>();
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
             WriteAnimations(animationTarget, animations);
         }
 

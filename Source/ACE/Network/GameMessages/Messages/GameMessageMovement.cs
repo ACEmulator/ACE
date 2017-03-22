@@ -25,7 +25,8 @@ namespace ACE.Network.GameMessages.Messages
             this.Writer.Write((byte)0);
             this.Writer.Write((byte)0);
             this.Writer.Write((byte)0);
-            this.Writer.Write((ushort)1);
+            this.Writer.Write((byte)0);
+            this.Writer.Write((byte)2);
             this.Writer.Write((ushort)0);
             this.Writer.Write((ushort)0);
             this.Writer.Write((ushort)0);
