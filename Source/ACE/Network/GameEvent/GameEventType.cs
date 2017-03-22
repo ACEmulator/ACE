@@ -15,6 +15,7 @@ namespace ACE.Network.GameEvent
         ChannelBroadcast                    = 0x0147,
         ChannelList                         = 0x0148,
         ChannelIndex                        = 0x0149,
+        DropTemp                            = 0x019A,
 
         QueryAgeResponse                    = 0x01C3,
 
@@ -23,8 +24,9 @@ namespace ACE.Network.GameEvent
 
         HouseStatus                         = 0x0226,
         DisplayStatusMessage                = 0x028A,
-        DisplayParameterizedStatusMessage   = 0x028B,
+        DisplayParametrizedStatusMessage    = 0x028B,
         SetTurbineChatChannels              = 0x0295,
-        Tell                                = 0x02BD
+        Tell                                = 0x02BD,
+        Movement                            = 0xF74C
     }
 }

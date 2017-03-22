@@ -99,6 +99,7 @@
     <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
+    <Compile Include="Entity\MotionData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\LifestoneObjectFactory.cs" />
@@ -112,7 +113,7 @@
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
-    <Compile Include="Network\Enum\WeenieClasses.cs" />
+    <Compile Include="Network\Enum\MotionState.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\AmmoType.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Network\Enum\Useable.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\Enum\CombatUse.cs" />
+    <Compile Include="Network\Enum\WeenieClasses.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
@@ -199,6 +201,9 @@
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3D.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageMovement.cs" />
     <Compile Include="Network\GameMessages\Messages\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />

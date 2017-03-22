@@ -2,13 +2,10 @@
 using ACE.Network;
 using ACE.Network.Enum;
 using System.Collections.Generic;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using ACE.Network.Sequence;
 using System.IO;
-using System.Linq;
 using ACE.Managers;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -72,6 +69,8 @@ namespace ACE.Entity
 
         public SequenceManager Sequences { get; }
 
+        public UpdatePositionFlag UpdatePositionFlags { get; set; }
+
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -82,8 +81,9 @@ namespace ACE.Entity
             PhysicsData = new PhysicsData();
 
             Sequences = new SequenceManager();
-            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
-            Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
+            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence());
+            Sequences.AddSequence(SequenceType.Motion, new UShortSequence());
+            Sequences.AddSequence(SequenceType.ServerControl, new UShortSequence());
         }
 
         public void AddToInventory(WorldObject worldObject)
@@ -97,19 +97,6 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleDropItem(ObjectGuid objectGuid)
-        {
-            lock (inventoryMutex)
-            {
-                if (inventory.ContainsKey(objectGuid))
-                {
-                    var obj = inventory[objectGuid];
-                    LandblockManager.AddObject(obj);
-                    inventory.Remove(objectGuid);
-                }
-            }
-        }
-
         public void RemoveFromInventory(ObjectGuid objectGuid)
         {
             lock (inventoryMutex)
@@ -119,6 +106,27 @@ namespace ACE.Entity
             }
         }
 
+        public void HandleDropItem(ObjectGuid objectGuid, Session session)
+        {
+            lock (this.inventoryMutex)
+            {
+                if (!this.inventory.ContainsKey(objectGuid)) return;
+                var obj = this.inventory[objectGuid];
+                this.GameData.Burden = obj.GameData.Burden;
+
+                // TODO: Not sure if the next two lines need to be here.
+                obj.GameData.ContainerId = 0;
+                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
+                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
+
+                // TODO: Send the last part of the sequence.   GameMessageUpdatePosition - I am doing something wrong here 
+                obj.UpdatePositionFlags = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement | UpdatePositionFlag.NoQuaternionY  | UpdatePositionFlag.NoQuaternionX;
+                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
+
+                LandblockManager.AddObject(obj);
+                this.inventory.Remove(objectGuid);
+            }
+        }
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
         {
             lock (inventoryMutex)
@@ -264,35 +272,39 @@ namespace ACE.Entity
 
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
-            var updatePositionFlags = UpdatePositionFlag.Contact;
             writer.WriteGuid(Guid);
-            writer.Write((uint)updatePositionFlags);
+            writer.Write((uint)UpdatePositionFlags);
 
             Position.Serialize(writer, false);
 
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
+            if ((UpdatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
                 writer.Write(Position.Facing.W);
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
+            if ((UpdatePositionFlags & UpdatePositionFlag.NoQuaternionX) == 0)
                 writer.Write(Position.Facing.X);
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
+            if ((UpdatePositionFlags & UpdatePositionFlag.NoQuaternionY) == 0)
                 writer.Write(Position.Facing.Y);
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
+            if ((UpdatePositionFlags & UpdatePositionFlag.NoQuaternionZ) == 0)
                 writer.Write(Position.Facing.Z);
 
-            if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
+            if ((UpdatePositionFlags & UpdatePositionFlag.Velocity) != 0)
             {
-                // velocity would go here
+
             }
 
+            // ToDo: Need to fix this - hardcoded for now.
+            if ((UpdatePositionFlags & UpdatePositionFlag.Placement) != 0)
+                writer.Write((byte)0x065);
+
             var player = Guid.IsPlayer() ? this as Player : null;
-            writer.Write((ushort)(player?.TotalLogins ?? 0));
-            writer.Write((ushort)++MovementIndex);
-            writer.Write((ushort)TeleportIndex);
+            writer.Write((player?.TotalLogins ?? 0));
+            writer.Write(++MovementIndex);
+            writer.Write(TeleportIndex);
 
             // TODO: this is the "contact" flag, which is a flag for whether or not
             // the player is "in contact" with the ground.  Sending the 0 here causes
             // others to see the player being update with arms horizontal and falling.
-            writer.Write((ushort)0);
+            if ((UpdatePositionFlags & UpdatePositionFlag.Contact) != 0)
+                writer.Write((uint)0);
         }
     }
 }

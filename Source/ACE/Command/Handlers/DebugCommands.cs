@@ -35,7 +35,7 @@ namespace ACE.Command.Handlers
                 "Test Portal", PortalType.Purple));
         }
 
-        [CommandHandler("createtrainingwand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateTrainingWand(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))
@@ -53,6 +53,7 @@ namespace ACE.Command.Handlers
                     case "me":
                     {
                         LootGenerationFactory.AddToContainer(loot, session.Player);
+                        session.Player.TrackObject(loot);
                         // TODO: Have to send game message CFS 
                         break;
                     }
@@ -211,15 +212,6 @@ namespace ACE.Command.Handlers
             }
         }
 
-        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void chatdump(Session session, params string[] parameters)
-        {
-            for (int i = 0; i < 1000; i++)
-            {
-                ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
-            }
-        }
-
         [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void animation(Session session, params string[] parameters)
         {
@@ -246,16 +238,5 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(newPosition);
         }
 
-        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void CreateLifeStone(Session session, params string[] parameters)
-        {
-            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
-        }
-
-        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void CreatePortal(Session session, params string[] parameters)
-        {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
-        }
     }
 }
