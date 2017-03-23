@@ -17,7 +17,7 @@ namespace ACE.Factories
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar |
                          WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone,
-                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", WeenieClass.W_UNDEF_CLASS,
+                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", WeenieClass.Undef,
                 ObjectDescriptionFlag.LifeStone, weenie, newPosition);
             // model id 0x000026 is one of several lifestone IDs
             wo.PhysicsData.MTableResourceId = 0x09000026u;

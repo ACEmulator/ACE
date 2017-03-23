@@ -20,6 +20,7 @@ namespace ACE.Network.GameAction.Actions
         {
             MotionData motionData = new MotionData
             {
+                // TODO: Need to setup enums for motion data
                 MotionStateFlag = MotionStateFlag.ForwardCommand,
                 ForwardCommand = 24
             };

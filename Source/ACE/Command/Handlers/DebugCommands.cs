@@ -31,7 +31,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(WeenieClass.W_PORTALGATEWAY_CLASS, session.Player.Position.InFrontOf(3.0f),
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(WeenieClass.PortalGateway, session.Player.Position.InFrontOf(3.0f),
                 "Test Portal", PortalType.Purple));
         }
 
