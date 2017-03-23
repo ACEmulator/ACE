@@ -7,6 +7,7 @@ namespace ACE.Common
 {
     public struct ConfigServerNetwork
     {
+        public string Host { get; set; }
         public uint Port { get; set; }
     }
 
@@ -55,7 +56,7 @@ namespace ACE.Common
         {
             try
             {
-                Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@".\Config.json"));
+                Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@"Config.json"));
             }
             catch (Exception exception)
             {

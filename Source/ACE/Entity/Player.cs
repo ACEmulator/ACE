@@ -939,7 +939,7 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                // TODO: Evt_Movement__MovementEvent_ID = F74C
+                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.Logout1));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 

@@ -2,14 +2,15 @@
     "Server": {
         "WorldName": "ACEmulator",
         "Welcome": "Welcome to this ACE server!\nFor more information visit http://www.acemulator.org.",
-        "Network": {
-            "Port": 9000
-        },
+      "Network": {
+        "Host": "0.0.0.0",
+        "Port": 9000
+      },
         "Accounts": {
             "OverrideCharacterPermissions": true,
             "DefaultAccessLevel": 0
         },
-        "DatFilesDirectory": "c:\\ACE"
+        "DatFilesDirectory": "c:\\ACE\\"
     },
     "MySql": {
         "Authentication": {
