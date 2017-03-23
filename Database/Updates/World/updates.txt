@@ -2,3 +2,4 @@
 --------
 - Added a basic set of telelocations.
 
+2017_03_22_weenies_and_objects.sql - large implemenation of object permanence and weenie structuring

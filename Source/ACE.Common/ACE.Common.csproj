@@ -70,8 +70,11 @@
     <Compile Include="Cryptography\Hash32.cs" />
     <Compile Include="Cryptography\ISAAC.cs" />
     <Compile Include="Cryptography\SHA2.cs" />
+    <Compile Include="DbTableAttribute.cs" />
     <Compile Include="DerethDateTime.cs" />
     <Compile Include="Extensions\BinaryReaderExtensions.cs" />
+    <Compile Include="DbFieldAttribute.cs" />
+    <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Time.cs" />
   </ItemGroup>

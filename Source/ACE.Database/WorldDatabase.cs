@@ -10,7 +10,8 @@ namespace ACE.Database
     {
         private enum WorldPreparedStatement
         {
-            TeleportLocationSelect
+            TeleportLocationSelect,
+            GetWeenieClass,
         }
 
         protected override Type preparedStatementType => typeof(WorldPreparedStatement);
@@ -18,6 +19,7 @@ namespace ACE.Database
         protected override void InitialisePreparedStatements()
         {
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
+            ContructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
         }
 
         public List<TeleportLocation> GetLocations()
