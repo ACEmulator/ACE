@@ -69,6 +69,13 @@ namespace ACE.Entity
             // if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             writer.Write((uint)PhysicsState);
 
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            {
+                // TODO: Implement properly
+                writer.Write(0u); // number of bytes in movement object
+                writer.Write(0u); // unknown dword
+            }
+
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
                 writer.Write((uint)AnimationFrame);
 

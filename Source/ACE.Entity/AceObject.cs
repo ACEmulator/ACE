@@ -35,7 +35,7 @@ namespace ACE.Entity
         [DbField("posY", (int)MySqlDbType.Float)]
         public float PosY { get; set; }
 
-        [DbField("posX", (int)MySqlDbType.Float)]
+        [DbField("posZ", (int)MySqlDbType.Float)]
         public float PosZ { get; set; }
 
         [DbField("qW", (int)MySqlDbType.Float)]

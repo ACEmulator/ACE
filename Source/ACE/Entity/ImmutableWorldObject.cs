@@ -20,13 +20,14 @@ namespace ACE.Entity
             this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
             this.Position = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
+            this.WeenieFlags = (WeenieHeaderFlag)9437232; // hard code for testing, need to bugfix this
 
             this.PhysicsData.MTableResourceId = aceO.MotionTableId;
             this.PhysicsData.Stable = aceO.SoundTableId;
             this.PhysicsData.CSetup = aceO.ModelTableId;
 
+            // this should probably be determined based on the presence of data.
             this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
-
             this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
             // game data min required flags;
