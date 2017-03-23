@@ -1,9 +1,8 @@
 ﻿using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Entity;
+
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -19,26 +18,24 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            //ChatPacket.SendServerMessage(this.Session, $"You want to drop that don't you?", ChatMessageType.Broadcast);
-
-            this.Session.Player.HandleDropItem(this.objectGuid);
-
-            var burdenUpdate = new GameMessagePrivateUpdatePropertyInt(this.Session, PropertyInt.EncumbVal,
-                (uint)this.Session.Player.GameData.Burden);
+            var burdenUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal,
+                (uint)Session.Player.GameData.Burden);
 
             // TODO: animation bend down --> update container to 0 for ground or guid of chest or copse --> Set age for decay countdown --> Animation Stand up --> send put inventory in 3d space 
 
-            MotionData motionData = new MotionData { MotionStateFlag = MotionStateFlag.ForwardCommand };
-            motionData.ForwardCommand = 24;
+            MotionData motionData = new MotionData
+            {
+                MotionStateFlag = MotionStateFlag.ForwardCommand,
+                ForwardCommand = 24
+            };
+            var movementMessage1 = new GameMessageMotion(Session.Player,Session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid, motionData, 1.00f);
 
-            var movementMessage1 = new GameMessageMotion(this.Session.Player,this.Session, MotionActivity.Active, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid, motionData, 1.00f);
+            motionData.MotionStateFlag = MotionStateFlag.NoMotionState;
+            motionData.ForwardCommand = 0;
 
-            MotionData motionData2 = new MotionData();            
-
-            var movementMessage2 = new GameMessageMotion(this.Session.Player, this.Session, MotionActivity.Active, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid, motionData2, 1.00f);
-            var dropSound = new GameMessageSound(this.Session.Player.Guid, Sound.DropItem, (float) 1.0);
-
-            this.Session.Network.EnqueueSend(burdenUpdate, movementMessage1, movementMessage2, dropSound);
+            var movementMessage2 = new GameMessageMotion(Session.Player, Session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid, motionData, 1.00f);
+            Session.Network.EnqueueSend(movementMessage1, burdenUpdate, movementMessage2, new GameMessagePutObjectIn3D(Session, Session.Player, objectGuid), new GameMessageSound(Session.Player.Guid, Sound.DropItem, (float)1.0), new GameMessageUpdateInstanceId(objectGuid, Session.Player.Guid));
+            Session.Player.HandleDropItem(objectGuid, Session);
         }
 
         public override void Read() => objectGuid = new ObjectGuid(Fragment.Payload.ReadUInt32());

@@ -9,6 +9,7 @@ namespace ACE.Network.Enum
     [Flags]
     public enum MotionStateFlag : uint
     {
+        NoMotionState   = 0x00000000,
         CurrentStyle    = 0x00000001,
         ForwardCommand  = 0x00000002,
         ForwardSpeed    = 0x00000004,

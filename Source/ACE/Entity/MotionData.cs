@@ -6,22 +6,15 @@ namespace ACE.Entity
 {
     public class MotionData
     {
-        public ushort CurrentStyle;
-        public ushort ForwardCommand;
-        public ushort SideStepCommand;
-        public ushort TurnCommand;
-        public float  TurnSpeed;
-        public float ForwardSpeed;
-        public float SideStepSpeed;
-        public uint Bitfield;
-        public MotionStateFlag MotionStateFlag;
-        public MotionData motionData = new MotionData();
-
-        public void Initialize()
-        {
-            
-        }
-
+        public ushort CurrentStyle = 0;
+        public ushort ForwardCommand = 0;
+        public ushort SideStepCommand = 0;
+        public ushort TurnCommand = 0;
+        public float  TurnSpeed = 0.00f;
+        public float ForwardSpeed = 0.00f;
+        public float SideStepSpeed = 0.00f;
+        public uint Bitfield = 0;
+        public MotionStateFlag MotionStateFlag = 0;
 
         public void Serialize(BinaryWriter writer)
         {

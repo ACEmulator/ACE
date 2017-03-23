@@ -62,8 +62,7 @@ namespace ACE.Network.GameMessages.Messages
             Writer.WriteGuid(animationTarget.Guid);
             Writer.Write((ushort)session.Player.TotalLogins);
             Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.MotionMessage));
-            //Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ServerControl)); //  needs more research, it changes sometimes, but not every packet
-            Writer.Write((ushort)1);
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ServerControl));
             Writer.Write((ushort)activity);
             Writer.Write((byte)type);
             Writer.Write((byte)flags);

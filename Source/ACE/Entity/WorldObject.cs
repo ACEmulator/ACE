@@ -2,13 +2,10 @@
 using ACE.Network;
 using ACE.Network.Enum;
 using System.Collections.Generic;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using ACE.Network.Sequence;
 using System.IO;
-using System.Linq;
 using ACE.Managers;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -84,6 +81,7 @@ namespace ACE.Entity
             Sequences = new SequenceManager();
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence());
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence());
+            Sequences.AddSequence(SequenceType.ServerControl, new UShortSequence());
         }
 
         public void AddToInventory(WorldObject worldObject)
@@ -106,13 +104,20 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleDropItem(ObjectGuid objectGuid)
+        public void HandleDropItem(ObjectGuid objectGuid, Session session)
         {
             lock (this.inventoryMutex)
             {
                 if (!this.inventory.ContainsKey(objectGuid)) return;
                 var obj = this.inventory[objectGuid];
                 this.GameData.Burden = obj.GameData.Burden;
+                // TODO: Not sure if the next two lines need to be here.
+                obj.GameData.ContainerId = 0;
+                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
+                obj.PhysicsData.PhysicsDescriptionFlag = obj.PhysicsData.Position | obj.PhysicsData.PhysicsState;
+
+                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
+
                 LandblockManager.AddObject(obj);
                 this.inventory.Remove(objectGuid);
             }
