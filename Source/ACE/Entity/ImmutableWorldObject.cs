@@ -14,7 +14,7 @@ namespace ACE.Entity
     public class ImmutableWorldObject : WorldObject
     {
         public ImmutableWorldObject(AceObject aceO)
-            : base(ObjectType.LifeStone, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
             this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
