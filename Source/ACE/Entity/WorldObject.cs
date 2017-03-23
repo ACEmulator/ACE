@@ -114,9 +114,10 @@ namespace ACE.Entity
                 // TODO: Not sure if the next two lines need to be here.
                 obj.GameData.ContainerId = 0;
                 obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
-                obj.PhysicsData.PhysicsDescriptionFlag = obj.PhysicsData.Position | obj.PhysicsData.PhysicsState;
+                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
 
-                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
+                // TODO: Send the last part of the sequence.   GameMessageUpdatePosition - I am doing something wrong here 
+                // session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
 
                 LandblockManager.AddObject(obj);
                 this.inventory.Remove(objectGuid);
