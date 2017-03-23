@@ -80,6 +80,7 @@
     <Compile Include="CharacterAbility.cs" />
     <Compile Include="CharacterLevel.cs" />
     <Compile Include="CharacterSkill.cs" />
+    <Compile Include="Creature.cs" />
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
@@ -111,6 +112,9 @@
     <Compile Include="LandblockId.cs" />
     <Compile Include="LevelingChart.cs" />
     <Compile Include="ObjectGuid.cs" />
+    <Compile Include="ObjectModel.cs" />
+    <Compile Include="ObjectPalette.cs" />
+    <Compile Include="ObjectTexture.cs" />
     <Compile Include="PersistedPropertyAttribute.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

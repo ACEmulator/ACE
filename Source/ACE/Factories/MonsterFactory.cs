@@ -1,4 +1,8 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Managers;
+using ACE.Network.Enum;
+using ACE.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,16 +13,11 @@ namespace ACE.Factories
 {
     public class MonsterFactory
     {
-        public static WorldObject CreateMonster(uint templateId, Position position)
+        public static WorldObject CreateMonster(uint templateId, Position newPosition)
         {
-            // TODO: Implement
+            Monster mo = new Monster("Drudge Sneaker", newPosition);
 
-            // read template from the database, create an object
-            // do whatever else it takes to make a monster
-
-            // assign it the position
-
-            return null;
+            return mo;
         }
     }
 }

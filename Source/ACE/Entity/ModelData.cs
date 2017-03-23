@@ -11,9 +11,9 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-        public uint PaletteGuid { get; set; } = 0;
+        public ushort PalleteGuid = 0;
 
-        private List<ModelPalette> modelPalettes = new List<ModelPalette>();
+        private List<ModelPallete> modelPalletes = new List<ModelPallete>();
 
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
 
@@ -45,9 +45,10 @@ namespace ACE.Entity
             writer.Write((byte)modelTextures.Count);
             writer.Write((byte)models.Count);
 
-            if (modelPalettes.Count > 0)
-                writer.Write((ushort)PaletteGuid);
-            foreach (ModelPalette pallet in modelPalettes)
+            if (modelPalletes.Count > 0)
+                writer.Write((ushort)PalleteGuid);
+
+            foreach (ModelPallete pallet in modelPalletes)
             {
                 writer.Write((ushort)pallet.PaletteId);
                 writer.Write((byte)pallet.Offset);

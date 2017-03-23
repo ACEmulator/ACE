@@ -195,5 +195,12 @@ namespace ACE.Command.Handlers
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
+
+        [CommandHandler("createmonster", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateMonster(Session session, params string[] parameters)
+        {
+            uint templateid = 1;
+            LandblockManager.AddObject(MonsterFactory.CreateMonster(templateid, session.Player.Position.InFrontOf(3.0f)));
+        }
     }
 }
