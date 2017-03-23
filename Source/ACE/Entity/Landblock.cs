@@ -8,6 +8,7 @@ using ACE.Entity.Events;
 using ACE.Managers;
 
 using log4net;
+using ACE.Database;
 
 namespace ACE.Entity
 {
@@ -68,6 +69,12 @@ namespace ACE.Entity
             // TODO: Load spawn data
 
             // TODO: load objects from world database such as lifestones, doors, player corpses, NPCs, Vendors
+            var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
+            foreach (var o in objects)
+            {
+                ImmutableWorldObject iwo = new ImmutableWorldObject(o);
+                worldObjects.Add(iwo.Guid, iwo);
+            }
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)

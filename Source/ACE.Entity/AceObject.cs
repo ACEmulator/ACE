@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     [DbTable("ace_object")]
-    [DbGetList("vw_ace_object", 3, "landblock")]
+    [DbGetList("vw_ace_object", 2, "landblock")]
     public class AceObject : BaseAceObject
     {
         [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
