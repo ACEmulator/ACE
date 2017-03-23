@@ -197,8 +197,55 @@ namespace ACE.Database
             }
         }
 
+        private void ConstructGetListStatement<T1>(T1 id, Type type)
+        {
+            uint statementId = Convert.ToUInt32(id);
+            DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
+            DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
+            
+            if (dbTable == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            if (getList == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            List<MySqlDbType> types = new List<MySqlDbType>();
+            var properties = GetPropertyCache(type);
+            string tableName = getList.TableName;
+            string selectList = null;
+            string whereList = null;
+
+            foreach (var p in properties)
+            {
+                if (p.Item2.Get)
+                {
+                    if (selectList != null)
+                        selectList += ", ";
+                    selectList += p.Item2.DbFieldName;
+                }
+
+                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                {
+                    if (whereList != null)
+                        whereList += ", ";
+                    whereList += "`" + p.Item2.DbFieldName + "` = ?";
+                    types.Add((MySqlDbType)p.Item2.DbFieldType);
+                }
+            }
+            
+            string query = $"SELECT {selectList} FROM `{tableName}` WHERE {whereList}";
+
+            PrepareStatement(statementId, query, types);
+        }
+
         public void ContructStatement<T1>(T1 id, Type type, ConstructedStatementType statementType)
         {
+            if (statementType == ConstructedStatementType.GetList)
+            {
+                ConstructGetListStatement(id, type);
+                return;
+            }
+
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
             Debug.Assert(dbTable != null, $"Statement Construction failed for type {type}");
 
@@ -270,28 +317,7 @@ namespace ACE.Database
                     break;
             }
 
-            try
-            {
-                using (var connection = new MySqlConnection(connectionString))
-                {
-                    connection.Open();
-                    using (var command = new MySqlCommand(query, connection))
-                    {
-                        types.ForEach(t => command.Parameters.Add("", t));
-
-                        command.Prepare();
-
-                        uint uintId = Convert.ToUInt32(id);
-                        preparedStatements.Add(uintId, new StoredPreparedStatement(uintId, query, types.ToArray()));
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine($"An exception occured while preparing statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
-                Debug.Assert(false);
-            }
+            PrepareStatement(Convert.ToUInt32(id), query, types);
         }
 
         public bool ExecuteConstructedGetStatement<T1>(T1 id, Type type, Dictionary<string, object> criteria, object instance)
@@ -341,6 +367,58 @@ namespace ACE.Database
             }
 
             return false;
+        }
+
+        public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
+        {
+            List<T2> results = new List<T2>();
+            uint statementId = Convert.ToUInt32(id);
+            DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
+
+            StoredPreparedStatement preparedStatement;
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null);
+                return null;
+            }
+
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    using (var command = new MySqlCommand(preparedStatement.Query, connection))
+                    {
+                        var properties = GetPropertyCache(typeof(T2));
+                        foreach (var p in properties)
+                        {
+                            if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                                command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName];
+                        }
+
+                        connection.Open();
+                        using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                        {
+                            while (commandReader.Read())
+                            {
+                                T2 o = Activator.CreateInstance<T2>();
+                                foreach (var p in properties)
+                                {
+                                    p.Item1.SetValue(o, commandReader[p.Item2.DbFieldName]);
+                                }
+
+                                results.Add(o);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySqlException exception)
+            {
+                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
+                Console.WriteLine($"Exception: {exception.Message}");
+            }
+
+            return results;
         }
 
         public bool ExecuteConstructedInsertStatement<T1>(T1 id, Type type, object instance)
@@ -568,6 +646,32 @@ namespace ACE.Database
 
             propertyCache.Add(t, newValue);
             return newValue;
+        }
+
+        private void PrepareStatement(uint id, string query, List<MySqlDbType> types)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        types.ForEach(t => command.Parameters.Add("", t));
+
+                        command.Prepare();
+
+                        uint uintId = Convert.ToUInt32(id);
+                        preparedStatements.Add(uintId, new StoredPreparedStatement(uintId, query, types.ToArray()));
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"An exception occured while preparing statement {id}!");
+                Console.WriteLine($"Exception: {exception.Message}");
+                Debug.Assert(false);
+            }
         }
     }
 }

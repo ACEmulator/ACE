@@ -1,10 +1,11 @@
+DROP VIEW IF EXISTS `vw_ace_object`;
 DROP TABLE IF EXISTS `ace_object_palette_changes`;
 DROP TABLE IF EXISTS `ace_object_texture_map_changes`;
 DROP TABLE IF EXISTS `ace_object_animation_changes`;
 DROP TABLE IF EXISTS `ace_object`;
 
 DROP TABLE IF EXISTS `weenie_palette_changes`;
-DROP TABLE IF EXISTS `weenie_animiation_changes`;
+DROP TABLE IF EXISTS `weenie_animation_changes`;
 DROP TABLE IF EXISTS `weenie_texture_map_changes`;
 DROP TABLE IF EXISTS `weenie_creature_data`;
 DROP TABLE IF EXISTS `weenie_class`;
@@ -76,9 +77,9 @@ CREATE TABLE `weenie_class` (
 
 CREATE TABLE IF NOT EXISTS `weenie_palette_changes` (
   `weenieClassId` SMALLINT(5) UNSIGNED NOT NULL,
-  `subPaletteId` TINYINT(3) UNSIGNED NOT NULL,
-  `offset` TINYINT(3) UNSIGNED NOT NULL,
-  `length` TINYINT(3) UNSIGNED NOT NULL,
+  `subPaletteId` INT(10) UNSIGNED NOT NULL,
+  `offset` SMALLINT(5) UNSIGNED NOT NULL,
+  `length` SMALLINT(5) UNSIGNED NOT NULL,
   PRIMARY KEY (`weenieClassId`,`subPaletteId`),
   CONSTRAINT `FK_weenie_palette_data__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
@@ -92,12 +93,12 @@ CREATE TABLE IF NOT EXISTS `weenie_texture_map_changes` (
   CONSTRAINT `FK_weenie_texture_map_changes__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `weenie_animiation_changes` (
+CREATE TABLE IF NOT EXISTS `weenie_animation_changes` (
   `weenieClassId` SMALLINT(5) UNSIGNED NOT NULL,
   `index` TINYINT(3) UNSIGNED NOT NULL,
   `animationId` INT(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`weenieClassId`,`index`),
-  CONSTRAINT `FK_weenie_animiation_changes__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
+  CONSTRAINT `FK_weenie_animation_changes__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `weenie_creature_data` (
@@ -138,9 +139,9 @@ CREATE TABLE IF NOT EXISTS `ace_object` (
 
 CREATE TABLE IF NOT EXISTS `ace_object_palette_changes` (
   `baseAceObjectId` INT(10) UNSIGNED NOT NULL,
-  `subPaletteId` TINYINT(3) UNSIGNED NOT NULL,
-  `offset` TINYINT(3) UNSIGNED NOT NULL,
-  `length` TINYINT(3) UNSIGNED NOT NULL,
+  `subPaletteId` INT(10) UNSIGNED NOT NULL,
+  `offset` SMALLINT(5) UNSIGNED NOT NULL,
+  `length` SMALLINT(5) UNSIGNED NOT NULL,
   PRIMARY KEY (`baseAceObjectId`,`subPaletteId`),
   CONSTRAINT `FK_ace_object_palette_data__baseAceObjectId` FOREIGN KEY (`baseAceObjectId`) REFERENCES `ace_object` (`baseAceObjectId`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
@@ -159,5 +160,9 @@ CREATE TABLE IF NOT EXISTS `ace_object_animation_changes` (
   `index` TINYINT(3) UNSIGNED NOT NULL,
   `animationId` INT(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`baseAceObjectId`,`index`),
-  CONSTRAINT `FK_ace_object_animiation_changes__baseAceObjectId` FOREIGN KEY (`baseAceObjectId`) REFERENCES `ace_object` (`baseAceObjectId`)
+  CONSTRAINT `FK_ace_object_animation_changes__baseAceObjectId` FOREIGN KEY (`baseAceObjectId`) REFERENCES `ace_object` (`baseAceObjectId`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+CREATE OR REPLACE VIEW `vw_ace_object` AS (
+  SELECT BAO.*, AO.weenieClassId, AO.landblock, AO.cell, AO.posX, AO.posY, AO.qW, AO.qX, AO.qY, AO.qZ FROM ace_object AO
+  INNER JOIN base_ace_object BAO ON AO.baseAceObjectId = BAO.baseAceObjectId);

@@ -7,5 +7,7 @@ namespace ACE.Database
     public interface IWorldDatabase
     {
         List<TeleportLocation> GetLocations();
+
+        List<AceObject> GetObjectsByLandblock(ushort landblock);
     }
 }

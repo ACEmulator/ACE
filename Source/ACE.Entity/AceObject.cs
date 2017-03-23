@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     [DbTable("ace_object")]
+    [DbGetList("vw_ace_object", 3, "landblock")]
     public class AceObject : BaseAceObject
     {
+        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        public override uint AceObjectId { get; set; }
+
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
         public ushort WeenieClassId { get; set; }
-
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32)]
-        public override uint AceObjectId { get; set; }
         
         public Position Position
         {

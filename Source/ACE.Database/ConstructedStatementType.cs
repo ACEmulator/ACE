@@ -10,6 +10,7 @@ namespace ACE.Database
     {
         Insert,
         Update,
-        Get
+        Get,
+        GetList
     }
 }
