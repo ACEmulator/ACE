@@ -23,6 +23,7 @@ namespace ACE.Factories
                                                                inventoryItem.PhysicsData.PhysicsDescriptionFlag;
         }
 
+        // This is throw away code to understand the world object creation process.
 
         public static WorldObject CreateTrainingWand(Player player)
         {
@@ -32,8 +33,10 @@ namespace ACE.Factories
                 WeenieHeaderFlag.Burden;
 
             var wo = new ImmutableWorldObject(ObjectType.Caster,
-                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Training Wand", WeenieClass.W_WANDTRAINING_CLASS,
+                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Training Wand", WeenieClass.WandTraining,
                 ObjectDescriptionFlag.Inscribable, weenie, null);
+
+            // Todo: Swap this out and read from Weenie database as soon as that PR is merged.
 
             wo.GameData.Icon = 0x2A3C;
             wo.Icon = 0x2A3C;

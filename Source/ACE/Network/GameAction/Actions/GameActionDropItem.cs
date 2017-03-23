@@ -18,13 +18,9 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            var burdenUpdate = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal,
-                (uint)Session.Player.GameData.Burden);
-
-            // TODO: animation bend down --> update container to 0 for ground or guid of chest or copse --> Set age for decay countdown --> Animation Stand up --> send put inventory in 3d space 
-
             MotionData motionData = new MotionData
             {
+                // TODO: Need to setup enums for motion data
                 MotionStateFlag = MotionStateFlag.ForwardCommand,
                 ForwardCommand = 24
             };
@@ -34,7 +30,19 @@ namespace ACE.Network.GameAction.Actions
             motionData.ForwardCommand = 0;
 
             var movementMessage2 = new GameMessageMotion(Session.Player, Session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing, MotionCommand.MotionInvalid, motionData, 1.00f);
-            Session.Network.EnqueueSend(movementMessage1, burdenUpdate, movementMessage2, new GameMessagePutObjectIn3D(Session, Session.Player, objectGuid), new GameMessageSound(Session.Player.Guid, Sound.DropItem, (float)1.0), new GameMessageUpdateInstanceId(objectGuid, Session.Player.Guid));
+            var targetContainer = new ObjectGuid(0);
+
+            Session.Network.EnqueueSend(
+                new GameMessagePrivateUpdatePropertyInt(this.Session,
+                    PropertyInt.EncumbVal,
+                    (uint)Session.Player.GameData.Burden),
+                movementMessage1,
+                new GameMessageUpdateInstanceId(this.objectGuid, targetContainer),
+                movementMessage2,
+                new GameMessagePutObjectIn3D(Session, Session.Player, objectGuid),
+                new GameMessageSound(Session.Player.Guid, Sound.DropItem, (float)1.0),
+                new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+
             Session.Player.HandleDropItem(objectGuid, Session);
         }
 

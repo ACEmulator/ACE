@@ -114,7 +114,6 @@
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\MotionState.cs" />
-    <Compile Include="Network\Enum\WeenieClasses.cs" />
     <Compile Include="Network\Enum\Ability.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\AmmoType.cs" />
@@ -139,6 +138,7 @@
     <Compile Include="Network\Enum\Useable.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\Enum\CombatUse.cs" />
+    <Compile Include="Network\Enum\WeenieClasses.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
