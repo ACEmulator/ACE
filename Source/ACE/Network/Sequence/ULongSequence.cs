@@ -15,10 +15,25 @@ namespace ACE.Network.Sequence
             value = startingValue;
         }
 
+        public byte[] CurrentValue
+        {
+            get
+            {
+                if (value == 0)
+                    return BitConverter.GetBytes(UInt64.MaxValue);
+                return BitConverter.GetBytes(value - 1);
+            }
+        }
+
         public byte[] NextValue
         {
             get
             {
+                if (value == UInt64.MaxValue)
+                {
+                    value = 0;
+                    return BitConverter.GetBytes(UInt64.MaxValue);
+                }
                 return BitConverter.GetBytes(value++);
             }
         }

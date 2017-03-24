@@ -18,6 +18,13 @@ namespace ACE.Network.Sequence
             }
         }
 
+        public byte[] GetCurrentSequence(SequenceType type)
+        {
+            if (!sequenceList.ContainsKey(type))
+                throw new ArgumentOutOfRangeException("type");
+            return sequenceList[type].CurrentValue;
+        }
+
         public byte[] GetNextSequence(SequenceType type)
         {
             if (!sequenceList.ContainsKey(type))
