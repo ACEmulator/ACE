@@ -62,24 +62,15 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
-            // 3/24/2017 - sending the Movement flag makes the object not work in the client.  we need to
-            // fix this at some point
-
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) > 0)
-                PhysicsDescriptionFlag = PhysicsDescriptionFlag ^ PhysicsDescriptionFlag.Movement;
-
             writer.Write((uint)PhysicsDescriptionFlag);
 
-            // autonomous_movement - required always ?
-            // if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             writer.Write((uint)PhysicsState);
 
-            // TODO: fix this - it doesn't work!
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
                 // TODO: Implement properly
                 writer.Write(0u); // number of bytes in movement object
-                writer.Write(0u); // unknown dword
+                // autonomous flag goes here, but is omitted if the movement bytes is 0
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
