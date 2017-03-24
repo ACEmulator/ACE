@@ -14,15 +14,18 @@ namespace ACE.Factories
         /// </summary>
         public static ImmutableWorldObject CreateLifestone(ushort weenieClassId, Position newPosition, LifestoneType lifestoneType)
         {
-            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
-            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
-
+            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar |
+                         WeenieHeaderFlag.UseRadius;
+            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone,
+                new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", WeenieClass.Undef,
+                ObjectDescriptionFlag.LifeStone, weenie, newPosition);
             // model id 0x000026 is one of several lifestone IDs
             wo.PhysicsData.MTableResourceId = 0x09000026u;
             wo.PhysicsData.Stable = 0x20000014u;
             wo.PhysicsData.CSetup = (uint)lifestoneType;
 
-            wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Position;
+            wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable |
+                                                    PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Position;
 
             wo.PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Gravity;
 

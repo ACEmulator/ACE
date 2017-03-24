@@ -1,20 +1,77 @@
 ﻿using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
-using ACE.Factories;
 
 namespace ACE.Command.Handlers
 {
     public static class DebugCommands
     {
+        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void chatdump(Session session, params string[] parameters)
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
+            }
+        }
+
+        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateLifeStone(Session session, params string[] parameters)
+        {
+            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509,
+                session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
+        }
+
+        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreatePortal(Session session, params string[] parameters)
+        {
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(WeenieClass.PortalGateway, session.Player.Position.InFrontOf(3.0f),
+                "Test Portal", PortalType.Purple));
+        }
+
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateTrainingWand(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @createtrainingwand me or @createtrainingwand ground",
+                   ChatMessageType.Broadcast);
+                return;
+            }
+            string location = parameters[0];
+            if (location == "me" | location == "ground")
+            {
+                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                switch (location)
+                {
+                    case "me":
+                    {
+                        LootGenerationFactory.AddToContainer(loot, session.Player);
+                        session.Player.TrackObject(loot);
+                        // TODO: Have to send game message CFS 
+                        break;
+                    }
+                    case "ground":
+                    {
+                        LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(2.0f));
+                        LandblockManager.AddObject(loot);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @createtrainingwand me or @createtrainingwand ground",
+                    ChatMessageType.Broadcast);
+            }
+        }
+
         // echo "text to send back to yourself" [ChatMessageType]
         [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleDebugEcho(Session session, params string[] parameters)
@@ -39,7 +96,9 @@ namespace ACE.Command.Handlers
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Position;
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session,
+                $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]",
+                ChatMessageType.Broadcast);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -60,7 +119,8 @@ namespace ACE.Command.Handlers
                 positionData[i] = position;
             }
 
-            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2],
+                positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
         // grantxp uint
@@ -80,41 +140,6 @@ namespace ACE.Command.Handlers
             }
             ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
             return;
-        }
-
-        // playsound [Sound] (volumelevel)
-        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void HandlePlaySound(Session session, params string[] parameters)
-        {
-            try
-            {
-                Network.Enum.Sound sound = Network.Enum.Sound.Invalid;
-                string message = "";
-                float volume = 1f;
-                var soundEvent = new GameMessageSound(session.Player.Guid, Network.Enum.Sound.Invalid, volume);
-
-                if (parameters.Length > 1)
-                    if (parameters[1] != "")
-                        volume = float.Parse(parameters[1]);
-
-                message = $"Unable to find a sound called {parameters[0]} to play.";
-
-                if (Enum.TryParse(parameters[0], true, out sound))
-                {
-                    if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
-                    {
-                        message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
-                        soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
-                    }
-                }
-
-                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(soundEvent, sysChatMessage);
-            }
-            catch (Exception)
-            {
-                // Do Nothing
-            }
         }
 
         // effect [Effect] (scale)
@@ -152,12 +177,38 @@ namespace ACE.Command.Handlers
             }
         }
 
-        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void chatdump(Session session, params string[] parameters)
+        // playsound [Sound] (volumelevel)
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandlePlaySound(Session session, params string[] parameters)
         {
-            for (int i = 0; i < 1000; i++)
+            try
             {
-                ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
+                Network.Enum.Sound sound = Network.Enum.Sound.Invalid;
+                string message = "";
+                float volume = 1f;
+                var soundEvent = new GameMessageSound(session.Player.Guid, Network.Enum.Sound.Invalid, volume);
+
+                if (parameters.Length > 1)
+                    if (parameters[1] != "")
+                        volume = float.Parse(parameters[1]);
+
+                message = $"Unable to find a sound called {parameters[0]} to play.";
+
+                if (Enum.TryParse(parameters[0], true, out sound))
+                {
+                    if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
+                    {
+                        message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
+                        soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
+                    }
+                }
+
+                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(soundEvent, sysChatMessage);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
             }
         }
 
@@ -180,20 +231,12 @@ namespace ACE.Command.Handlers
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)
         {
-            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock, session.Player.Position.Offset.X, session.Player.Position.Offset.Y, session.Player.Position.Offset.Z + 8000f, session.Player.Position.Facing.X, session.Player.Position.Facing.Y, session.Player.Position.Facing.Z, session.Player.Position.Facing.W);
+            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock,
+                session.Player.Position.Offset.X, session.Player.Position.Offset.Y,
+                session.Player.Position.Offset.Z + 8000f, session.Player.Position.Facing.X,
+                session.Player.Position.Facing.Y, session.Player.Position.Facing.Z, session.Player.Position.Facing.W);
             session.Player.Teleport(newPosition);
         }
 
-        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void CreateLifeStone(Session session, params string[] parameters)
-        {
-            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
-        }
-
-        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void CreatePortal(Session session, params string[] parameters)
-        {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
-        }
     }
 }

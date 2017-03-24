@@ -9,6 +9,7 @@ namespace ACE.Network.Sequence
     public enum SequenceType
     {
         MotionMessage,
-        Motion
+        Motion,
+        ServerControl
     }
 }

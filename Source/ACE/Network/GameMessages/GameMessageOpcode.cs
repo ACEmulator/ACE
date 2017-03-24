@@ -17,6 +17,7 @@ namespace ACE.Network.GameMessages
         PublicUpdatePropertyDouble      = 0x02D4,
         PrivateUpdatePropertyString     = 0x02D5,
         PublicUpdatePropertyString      = 0x02D6,
+        UpdateInstanceId                = 0x02DA,
         PrivateUpdateSkill              = 0x02DD,
         PublicUpdateSkill               = 0x02DE,
         PrivateUpdateSkillLevel         = 0x02DF,

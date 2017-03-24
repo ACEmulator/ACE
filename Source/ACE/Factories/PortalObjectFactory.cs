@@ -12,7 +12,7 @@ namespace ACE.Factories
         /// <summary>
         /// creates a portal at the position provided
         /// </summary>
-        public static ImmutableWorldObject CreatePortal(ushort weenieClassId, Position newPosition, string portalTitle, PortalType portalType)
+        public static ImmutableWorldObject CreatePortal(WeenieClass weenieClassId, Position newPosition, string portalTitle, PortalType portalType)
         {
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
             ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.Portal, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), portalTitle, weenieClassId, ObjectDescriptionFlag.Portal, weenie, newPosition);

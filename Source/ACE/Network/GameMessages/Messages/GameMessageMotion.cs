@@ -1,10 +1,11 @@
-﻿using System;
-using ACE.Network.Enum;
+﻿using ACE.Network.Enum;
 using ACE.Network.Sequence;
 using System.Collections.Generic;
 
 namespace ACE.Network.GameMessages.Messages
 {
+    using global::ACE.Entity;
+
     public class GameMessageMotion : GameMessage
     {
         public GameMessageMotion()
@@ -18,7 +19,26 @@ namespace ACE.Network.GameMessages.Messages
             : this()
         {
             WriteBase(animationTarget, session, activity, type, flags, stance);
-            List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            List<MotionItem> animations = new List<MotionItem>();
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
+            WriteAnimations(animationTarget, animations);
+        }
+
+        public GameMessageMotion(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
+           MotionType type, MotionFlags flags, MotionStance stance, MotionCommand command, MotionData motionData, float speed)
+           : this()
+        {
+            this.WriteBase(animationTarget, session, activity, type, flags, stance);
+            this.Writer.Write((uint)motionData.MotionStateFlag);
+            motionData.Serialize(this.Writer);
+            List<MotionItem> animations = new List<MotionItem>();
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
             WriteAnimations(animationTarget, animations);
         }
 
@@ -26,17 +46,23 @@ namespace ACE.Network.GameMessages.Messages
             : this()
         {
             WriteBase(animationTarget, session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing);
-            List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            List<MotionItem> animations = new List<MotionItem>();
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
             WriteAnimations(animationTarget, animations);
         }
 
+
         private void WriteBase(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
             MotionType type, MotionFlags flags, MotionStance stance)
+
         {
             Writer.WriteGuid(animationTarget.Guid);
             Writer.Write((ushort)session.Player.TotalLogins);
-            Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.MotionMessage));
-            Writer.Write((ushort)1); // Index, needs more research, it changes sometimes, but not every packet
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.MotionMessage));
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ServerControl));
             Writer.Write((ushort)activity);
             Writer.Write((byte)type);
             Writer.Write((byte)flags);

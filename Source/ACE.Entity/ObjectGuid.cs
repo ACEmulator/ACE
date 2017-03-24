@@ -18,6 +18,7 @@ namespace ACE.Entity
 
         public ObjectGuid(uint low, GuidType high)
         {
+            //Debug.Assert(low <= 0xFFFFFFu);
             Full = low | ((uint)high << 24);
         }
 

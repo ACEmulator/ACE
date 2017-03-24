@@ -240,6 +240,7 @@ namespace ACE.Entity
 
             Position = character.Position;
             IsOnline = true;
+            IsContainer = true;
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
