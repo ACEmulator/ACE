@@ -112,6 +112,7 @@
     <Compile Include="Enum\StatusMessageType1.cs" />
     <Compile Include="Enum\StatusMessageType2.cs" />
     <Compile Include="Enum\TurbineChatType.cs" />
+    <Compile Include="Enum\UpdatePositionFlag.cs" />
     <Compile Include="ExperienceExpenditure.cs" />
     <Compile Include="Friend.cs" />
     <Compile Include="LandblockId.cs" />

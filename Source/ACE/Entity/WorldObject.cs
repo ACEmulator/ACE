@@ -1,4 +1,4 @@
-﻿
+
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
@@ -42,6 +42,8 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
+        public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
+
         public ushort MovementIndex
         {
             get { return PhysicsData.PositionSequence; }
@@ -54,6 +56,11 @@ namespace ACE.Entity
             set { PhysicsData.PortalSequence = value; }
         }
 
+        public ushort ForcePositionIndex
+        {
+            get { return PhysicsData.ForcePositionSequence; }
+            set { PhysicsData.ForcePositionSequence = value; }
+        }
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
         public ModelData ModelData { get; }
@@ -215,35 +222,15 @@ namespace ACE.Entity
 
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
-            var updatePositionFlags = UpdatePositionFlag.Contact;
             writer.WriteGuid(Guid);
-            writer.Write((uint)updatePositionFlags);
 
-            Position.Serialize(writer, false);
-
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
-                writer.Write(Position.Facing.W);
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
-                writer.Write(Position.Facing.X);
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
-                writer.Write(Position.Facing.Y);
-            if ((updatePositionFlags & UpdatePositionFlag.NoQuaternionW) == 0)
-                writer.Write(Position.Facing.Z);
-
-            if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
-            {
-                // velocity would go here
-            }
+            Position.Serialize(writer, PositionFlag);
 
             var player = Guid.IsPlayer() ? this as Player : null;
-            writer.Write((ushort)(player?.TotalLogins ?? 0));
+            writer.Write((ushort)(player?.TotalLogins ?? 1)); // instance sequence
             writer.Write((ushort)++MovementIndex);
             writer.Write((ushort)TeleportIndex);
-
-            // TODO: this is the "contact" flag, which is a flag for whether or not
-            // the player is "in contact" with the ground.  Sending the 0 here causes
-            // others to see the player being update with arms horizontal and falling.
-            writer.Write((ushort)0);
+            writer.Write((ushort)ForcePositionIndex);
         }
     }
 }

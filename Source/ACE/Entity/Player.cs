@@ -197,6 +197,8 @@ namespace ACE.Entity
         {
             Session = session;
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
+            // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
+            PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
             GameData.ItemCapacity = 102;
@@ -874,11 +876,6 @@ namespace ACE.Entity
             var updateTitle = new GameEventUpdateTitle(Session, title);
             var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(updateTitle, message);
-        }
-
-        public void ObjectMoved(MutableWorldObject sender)
-        {
-            Session.Network.EnqueueSend(new GameMessageUpdatePosition(sender));
         }
 
         public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
