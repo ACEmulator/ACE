@@ -14,7 +14,7 @@ namespace ACE.Network.GameAction.Actions
         public GameActionTeleToMarketPlace(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
         // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
-        private static readonly Position marketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
+        // private static readonly Position marketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
 
         public override void Handle()
         {
@@ -30,11 +30,14 @@ namespace ACE.Network.GameAction.Actions
 
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
 
-            // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
+            var animationEvent = new GameMessageMotion(Session.Player, Session, MotionCommand.MarketplaceRecall);
 
-            // TODO: Wait until MovementEvent completes then send the following message
-            Session.Player.Teleport(marketplaceDrop);
+            // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
+            Session.Network.EnqueueSend(updateCombatMode, animationEvent, sysChatMessage);
+
+            // Wait until MovementEvent completes then send the following message
+            // Session.Player.Teleport(marketplaceDrop);
+            Session.DoMarketplaceRecall();
         }
     }
 }

@@ -291,20 +291,20 @@ namespace ACE.Entity
         {
             if (character.AvailableSkillCredits >= creditsSpent)
             {
-                //attempt to train the specified skill
+                // attempt to train the specified skill
                 bool trainNewSkill = character.TrainSkill(skill, creditsSpent);
-                //create an update to send to the client
+                // create an update to send to the client
                 var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
-                //as long as the skill is sent, the train new triangle button on the client will not lock up. 
-                //Sending Skill.None with status untrained worked in test
+                // as long as the skill is sent, the train new triangle button on the client will not lock up.
+                // Sending Skill.None with status untrained worked in test
                 var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
-                //create a string placeholder for the correct after
+                // create a string placeholder for the correct after
                 string trainSkillMessageText = "";
 
-                //if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
+                // if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
                 if (trainNewSkill)
                 {
-                    //replace the trainSkillUpdate message with the correct skill assignment:
+                    // replace the trainSkillUpdate message with the correct skill assignment:
                     trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
                     trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {character.AvailableSkillCredits} credits available.";
                 }
@@ -313,7 +313,7 @@ namespace ACE.Entity
                     trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {character.AvailableSkillCredits} credits available.";
                 }
 
-                //create the final game message and send to the client
+                // create the final game message and send to the client
                 var message = new GameMessageSystemChat(trainSkillMessageText, ChatMessageType.Advancement);
                 Session.Network.EnqueueSend(trainSkillUpdate, currentCredits, message);
             }
@@ -938,7 +938,7 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.Logout1));
+                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.LogOut));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 
@@ -951,6 +951,18 @@ namespace ACE.Entity
                 var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Roleplay");
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
+        }
+
+        public void SendToMarketPlace()
+        {
+            // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
+            // private static readonly Position marketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
+            // Session.Player.Teleport(marketplaceDrop);
+
+            // TODO: check current position of player against recorded position at time of command issuance, if they don't match, send the you've moved too far error (and thunk sound?).
+            // Enum_0498 of StatusMessageType1 ??
+            // Not sure what kind of tolerance there was with this check in respect to how far from initial start point one could move..
+            Session.Player.Teleport(new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f));
         }
 
         public void StopTrackingObject(ObjectGuid objectId)
