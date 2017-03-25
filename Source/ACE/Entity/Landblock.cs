@@ -186,6 +186,23 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// get the WorldObject specified by objectID
+        /// </summary>
+        public WorldObject GetWorldObjectByGuid(ObjectGuid objectId)
+        {
+            WorldObject wo = null;
+
+            lock (objectCacheLocker)
+            {
+                if (this.worldObjects.ContainsKey(objectId))
+                {
+                    wo = this.worldObjects[objectId];
+                }
+            }
+            return wo;
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this

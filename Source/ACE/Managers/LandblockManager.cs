@@ -52,6 +52,17 @@ namespace ACE.Managers
         }
 
         /// <summary>
+        /// Find a worldobject by its guid in the specified landblock
+        /// </summary>
+        public static WorldObject GetObjectByGuid(LandblockId blockId, ObjectGuid objectId)
+        {
+            var block = GetLandblock(blockId, true);
+            WorldObject wo = block.GetWorldObjectByGuid(objectId);
+
+            return wo;
+        }
+
+        /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propogate is true (outdoor world roaming).
         /// </summary>

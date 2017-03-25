@@ -1,4 +1,6 @@
-﻿using ACE.Network.GameEvent.Events;
+﻿using ACE.Entity;
+using ACE.Managers;
+using ACE.Network.GameEvent.Events;
 using System;
 
 namespace ACE.Network.GameAction.Actions
@@ -6,24 +8,34 @@ namespace ACE.Network.GameAction.Actions
     [GameAction(GameActionType.QueryHealth)]
     public class GameActionQueryHealth : GameActionPacket
     {
-        private uint objectid;
+        private ObjectGuid objectId;
 
         public GameActionQueryHealth(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
         public override void Read()
         {
-            objectid = Fragment.Payload.ReadUInt32();
+            uint fullId = Fragment.Payload.ReadUInt32();
+            this.objectId = new ObjectGuid(fullId);
         }
 
         public override void Handle()
         {
-            // ONLY A TEST
-            // Real solution: Check if objectid is a player or monster and get the health info from that
-            // compute percentage from max health and current health (this.Session.Player.Health.Current), if a player factor in vitae
+            // TODO: Extend to creatures as well, as we momentarily only have players
 
-            var updateHealth = new GameEventUpdateHealth(Session, objectid, 1.0f);
+            if (objectId.IsPlayer())
+            {
+                var tmpLandblock = this.Session.Player.Position.LandblockId;
+                var pl = (Player)LandblockManager.GetObjectByGuid(tmpLandblock, objectId);
 
-            Session.Network.EnqueueSend(updateHealth);
+                if (pl != null)
+                {
+                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
+
+                    var updateHealth = new GameEventUpdateHealth(Session, this.objectId.Full, healthPercentage);
+                    Session.Network.EnqueueSend(updateHealth);
+                }
+            }
+
         }
     }
 }
