@@ -20,7 +20,7 @@ namespace ACE.Entity
             this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
             this.Position = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
-            this.WeenieFlags = (WeenieHeaderFlag)9437232; // hard code for testing, need to bugfix this
+            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
 
             this.PhysicsData.MTableResourceId = aceO.MotionTableId;
             this.PhysicsData.Stable = aceO.SoundTableId;
@@ -37,7 +37,6 @@ namespace ACE.Entity
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
-
         }
 
         public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)

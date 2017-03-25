@@ -28,6 +28,7 @@ CREATE TABLE `base_ace_object` (
   `cooldownId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   `effects` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   `containersCapacity` TINYINT(3) UNSIGNED NOT NULL DEFAULT 0,
+  `header` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   `hookTypeId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   `iconId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   `iconOverlayId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -164,5 +165,6 @@ CREATE TABLE IF NOT EXISTS `ace_object_animation_changes` (
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE OR REPLACE VIEW `vw_ace_object` AS (
-  SELECT BAO.*, AO.weenieClassId, AO.landblock, AO.cell, AO.posX, AO.posY, AO.posZ, AO.qW, AO.qX, AO.qY, AO.qZ FROM ace_object AO
+  SELECT BAO.*, AO.weenieClassId, AO.landblock, AO.cell, AO.posX, AO.posY, AO.posZ, AO.qW, AO.qX, AO.qY, AO.qZ 
+  FROM ace_object AO
   INNER JOIN base_ace_object BAO ON AO.baseAceObjectId = BAO.baseAceObjectId);

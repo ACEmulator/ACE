@@ -132,6 +132,9 @@ namespace ACE.Entity
         [DbField("value", (int)MySqlDbType.UInt32)]
         public uint Value { get; set; }
 
+        [DbField("header", (int)MySqlDbType.UInt32)]
+        public uint WeenieFlags { get; set; }
+
         [DbField("workmanship", (int)MySqlDbType.Float)]
         public float Workmanship { get; set; }
 
