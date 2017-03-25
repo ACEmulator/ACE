@@ -8,7 +8,6 @@ namespace ACE.Network.Enum
 {
     public enum MotionCommand
     {
-
         Invalid,
         HoldRun,
         HoldSidestep,
@@ -431,12 +430,5 @@ namespace ACE.Network.Enum
         OffhandPunchSlowHigh,
         OffhandPunchSlowMed,
         OffhandPunchSlowLow
-
-        //Run = 7,
-        //FistJump = 76,
-        //ShakeFist = 121,
-        //Bow = 125,
-        //Logout1 = 286,
-        //Logout2 = 885
     }
 }
