@@ -911,7 +911,7 @@ namespace ACE.Entity
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
 
-            log.Debug($"Telling {Name} about {worldObject.Name}");
+            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
 
             if (sendUpdate)
                 Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
