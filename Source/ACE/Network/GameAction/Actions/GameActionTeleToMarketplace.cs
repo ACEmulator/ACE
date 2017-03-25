@@ -14,7 +14,7 @@ namespace ACE.Network.GameAction.Actions
         public GameActionTeleToMarketPlace(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
 
         // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
-        private static readonly Position marketplaceDrop = new Position(23855548, 49.16f, -31.62f, 0.10f, 0f, 0f, -0.71f, 0.71f); // Is this the right drop?
+        private static readonly Position marketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
 
         public override void Handle()
         {
