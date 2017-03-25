@@ -25,8 +25,8 @@ namespace ACE.Factories
             wo.PhysicsData.PhysicsState = PhysicsState.Ethereal | PhysicsState.ReportCollision | PhysicsState.LightingOn | PhysicsState.Gravity;
 
             // game data min required flags;
-            wo.GameData.Type = (ushort)0x82D;
-            wo.GameData.Icon = (ushort)0x106B;
+            // wo.GameData.Type = (ushort)0x82D;
+            // wo.GameData.Icon = (ushort)0x106B;
 
             wo.GameData.Usable = Usable.UsableRemote;
             wo.GameData.RadarColour = RadarColor.Portal;

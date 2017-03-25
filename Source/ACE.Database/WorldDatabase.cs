@@ -10,7 +10,9 @@ namespace ACE.Database
     {
         private enum WorldPreparedStatement
         {
-            TeleportLocationSelect
+            TeleportLocationSelect,
+            GetWeenieClass,
+            GetObjectsByLandblock
         }
 
         protected override Type preparedStatementType => typeof(WorldPreparedStatement);
@@ -18,6 +20,8 @@ namespace ACE.Database
         protected override void InitialisePreparedStatements()
         {
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
+            // ContructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
+            ContructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
         }
 
         public List<TeleportLocation> GetLocations()
@@ -36,6 +40,13 @@ namespace ACE.Database
             }
 
             return locations;
+        }
+
+        public List<AceObject> GetObjectsByLandblock(ushort landblock)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("landblock", landblock);
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
         }
     }
 }

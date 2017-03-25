@@ -62,12 +62,16 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
-
             writer.Write((uint)PhysicsDescriptionFlag);
 
-            // autonomous_movement - required always ?
-            // if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             writer.Write((uint)PhysicsState);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            {
+                // TODO: Implement properly
+                writer.Write(0u); // number of bytes in movement object
+                // autonomous flag goes here, but is omitted if the movement bytes is 0
+            }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
                 writer.Write((uint)AnimationFrame);

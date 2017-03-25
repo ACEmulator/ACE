@@ -88,6 +88,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ChartDatabaseTests.cs" />
+    <Compile Include="ConstructedStatementTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">

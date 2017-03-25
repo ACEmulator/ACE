@@ -12,9 +12,9 @@ namespace ACE.Entity
     {
         public string Name;
 
-        public ushort Type;
+        // public ushort Type;
 
-        public ushort Icon;  // - 0x06000000
+        // public ushort Icon;  // - 0x06000000
 
         // WenieHeaderFlags
         public string NamePlural;
