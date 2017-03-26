@@ -42,9 +42,9 @@ namespace ACE.Database.Tests
             o.AceObjectId = 1;
             o.Name = "foo";
 
-            worldDb.ContructStatement(TestEnum.FooInsert, typeof(BaseAceObject), ConstructedStatementType.Insert);
-            worldDb.ContructStatement(TestEnum.FooUpdate, typeof(BaseAceObject), ConstructedStatementType.Update);
-            worldDb.ContructStatement(TestEnum.FooGet, typeof(BaseAceObject), ConstructedStatementType.Get);
+            worldDb.ConstructStatement(TestEnum.FooInsert, typeof(BaseAceObject), ConstructedStatementType.Insert);
+            worldDb.ConstructStatement(TestEnum.FooUpdate, typeof(BaseAceObject), ConstructedStatementType.Update);
+            worldDb.ConstructStatement(TestEnum.FooGet, typeof(BaseAceObject), ConstructedStatementType.Get);
 
             worldDb.ExecuteConstructedInsertStatement(TestEnum.FooInsert, typeof(BaseAceObject), o);
             
@@ -68,7 +68,7 @@ namespace ACE.Database.Tests
         [TestMethod]
         public void ExecuteGetListStatement_SimpleCase_DoesNotThrow()
         {
-            worldDb.ContructStatement(TestEnum.GetLifestonesByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
+            worldDb.ConstructStatement(TestEnum.GetLifestonesByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
 
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("landblock", (ushort)458);

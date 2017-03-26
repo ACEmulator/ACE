@@ -238,7 +238,7 @@ namespace ACE.Database
             PrepareStatement(statementId, query, types);
         }
 
-        public void ContructStatement<T1>(T1 id, Type type, ConstructedStatementType statementType)
+        public void ConstructStatement<T1>(T1 id, Type type, ConstructedStatementType statementType)
         {
             if (statementType == ConstructedStatementType.GetList)
             {
