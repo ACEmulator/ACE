@@ -762,6 +762,9 @@ namespace ACE.Entity
             // TODO: Save other options as we implement them.
         }
 
+        /// <summary>
+        /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
+        /// </summary>
         public void SaveCharacter()
         {
             if (character != null)
@@ -855,6 +858,7 @@ namespace ACE.Entity
         public void UpdatePosition(Position newPosition)
         {
             this.Position = newPosition;
+            this.character.Position = newPosition;
             SendUpdatePosition();
         }
 
@@ -864,6 +868,7 @@ namespace ACE.Entity
             {
                 Thread.Sleep(10);
                 this.Position = newPosition;
+                this.character.Position = newPosition;
                 SendUpdatePosition();
             });
             t.Start();
