@@ -8,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 using MySql.Data.MySqlClient;
+using System.Collections.ObjectModel;
 
 namespace ACE.Database
 {
@@ -26,7 +27,7 @@ namespace ACE.Database
             CharacterStartupGearInsert,
             CharacterListSelect,
             CharacterMaxIndex,
-            CharacterPositionSelect,
+            
             CharacterUniqueNameSelect,
             CharacterSkillsSelect,
             CharacterStatsSelect,
@@ -37,7 +38,10 @@ namespace ACE.Database
             CharacterFriendsRemoveAll,
             CharacterOptionsUpdate,
 
+            CharacterPositionSelect,
             CharacterPositionInsert,
+            CharacterPositionUpdate,
+            CharacterPositionList,
 
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
@@ -84,13 +88,15 @@ namespace ACE.Database
 
             // world entry
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `characterOptions1`, `characterOptions2` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints`, `skillXpSpent` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthXpSpent`, `strengthRanks`, `endurance`, `enduranceXpSpent`, `enduranceRanks`, `coordination`, `coordinationXpSpent`, `coordinationRanks`, `quickness`,  `quicknessXpSpent`, `quicknessRanks`, `focus`, `focusXpSpent`, `focusRanks`, `self`, `selfXpSpent`, `selfRanks`, `healthRanks`, `healthXpSpent`, `healthCurrent`, `staminaRanks`, `staminaXpSpent`, `staminaCurrent`, `manaRanks`, `manaXpSpent`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterAppearanceSelect, "SELECT  `eyes`, `nose`, `mouth`, `eyeColor`, `hairColor`, `hairStyle`, `hairHue`, `skinHue` FROM `character_appearance` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsSelect, "SELECT cf.`friendId`, c.`name` FROM `character_friends` cf JOIN `character` c ON (cf.`friendId` = c.`guid`) WHERE cf.`id` = ?;", MySqlDbType.UInt32);
 
-            AddPreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, "REPLACE INTO character_position (id, cell, positionX, positionY, positionZ, rotationX, rotationY, rotationZ, rotationW) VALUES (?, ?, ?, ?, ?, ?, ? ,? ,?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float, MySqlDbType.Float);
+            ConstructStatement(CharacterPreparedStatement.CharacterPositionSelect, typeof(Position), ConstructedStatementType.Get);
+            ConstructStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), ConstructedStatementType.Insert);
+            ConstructStatement(CharacterPreparedStatement.CharacterPositionUpdate, typeof(Position), ConstructedStatementType.Update);
+            ConstructStatement(CharacterPreparedStatement.CharacterPositionList, typeof(Position), ConstructedStatementType.GetList);
 
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_bool` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_int` WHERE `guid` = ?;", MySqlDbType.UInt32);
@@ -122,22 +128,26 @@ namespace ACE.Database
             return result.Read<uint>(0, "MAX(`guid`)") + 1;
         }
 
-        public async Task<Position> GetPosition(uint id)
+        /// <summary>
+        /// Returns a CharacterPosition object containing the physical location of a player/character.
+        /// </summary>
+        public Position GetLocation(uint id)
         {
-            MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPositionSelect, id);
-            Position pos;
-            if (result.Count > 0)
-            {
-                pos = new Position(result.Read<uint>(0, "cell"), result.Read<float>(0, "positionX"), result.Read<float>(0, "positionY"), result.Read<float>(0, "positionZ"),
-                    result.Read<float>(0, "rotationX"), result.Read<float>(0, "rotationY"), result.Read<float>(0, "rotationZ"), result.Read<float>(0, "rotationW"));
-            }
-            else
-            {
-                // use fallback position if position information doesn't exist in the DB, show error in the future
-                pos = new Position(0x7F0401AD, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
-            }
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("character_id", id);
+            criteria.Add("positionType", PositionType.Location);
 
-            return pos;
+            Position newCharacterPosition = CharacterPositionExtensions.StartingPosition(id);
+
+            if (ExecuteConstructedGetStatement(CharacterPreparedStatement.CharacterPositionSelect, typeof(Position), criteria, newCharacterPosition))
+                return newCharacterPosition;
+
+            newCharacterPosition = CharacterPositionExtensions.StartingPosition(id);
+
+            // Save new position
+            ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newCharacterPosition);
+
+            return newCharacterPosition;
         }
 
         public async Task<List<CachedCharacter>> GetByAccount(uint accountId)
@@ -173,7 +183,12 @@ namespace ACE.Database
 
         public async Task UpdateCharacter(Character character)
         {
-            ExecutePreparedStatement(CharacterPreparedStatement.CharacterPositionInsert, character.Id, character.Position.LandblockId.Raw, character.Position.Offset.X, character.Position.Offset.Y, character.Position.Offset.Z, character.Position.Facing.X, character.Position.Facing.Y, character.Position.Facing.Z, character.Position.Facing.W);
+            // Save all of the player positions
+            // TODO: Remove this after allowing positions to be saved on demand
+            foreach(var pos in character.Positions)
+            {
+                ExecuteConstructedUpdateStatement(CharacterPreparedStatement.CharacterPositionUpdate, typeof(Position), pos.Value);
+            }
 
             var transaction = BeginTransaction();
             UpdateCharacterProperties(character, transaction);
@@ -260,12 +275,15 @@ namespace ACE.Database
                 c.TemplateOption = result.Read<uint>(0, "templateOption");
                 c.StartArea = result.Read<uint>(0, "startArea");
 
-                c.Position = await this.GetPosition(guid);
+                // Loads the positions into the player object and resets the landlock id
+                LoadCharacterPositions(c);
+                c.Location = c.Positions[PositionType.Location];
+                c.Location.LandblockId = new LandblockId(c.Location.cell);
 
                 uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
                 uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
                 LoadCharacterOptions(characterOptions1Flag, characterOptions2Flag, c);
-
+                
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSkillsSelect, id);
 
                 for (uint i = 0; i < result?.Count; i++)
@@ -374,6 +392,17 @@ namespace ACE.Database
             ExecutePreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, character.CharacterOptions.GetCharacterOptions1Flag(), character.CharacterOptions.GetCharacterOptions2Flag(), character.Id);
         }
 
+        /// <summary>
+        /// Saves a CharacterPosition, when the character is first created
+        /// </summary>
+        public void InitCharacterPositions(Character character)
+        {
+            foreach (Position position in character.Positions.Values)
+            {
+                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), position);
+            }
+        }
+
         public async Task LoadCharacterProperties(DbObject dbObject)
         {
             var results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolSelect, dbObject.Id);
@@ -396,6 +425,45 @@ namespace ACE.Database
             for (uint i = 0; i < results.Count; i++)
                 dbObject.SetPropertyString(results.Read<PropertyString>(i, "propertyId"), results.Read<string>(i, "propertyValue"));
         }
+
+        public List<Position> GetCharacterPositions(Character character)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("character_id", character.Id);
+            return ExecuteConstructedGetListStatement<CharacterPreparedStatement, Position>(CharacterPreparedStatement.CharacterPositionList, criteria);
+        }
+
+        /// <summary>
+        /// Attempts to load characters positions from the database. If no position is available, a new position will be created to allow the player to spawn.
+        /// </summary>
+        public void LoadCharacterPositions(Character character)
+        {
+            // get a list of positions from the vw_character_positions view
+            var dbPositionList = GetCharacterPositions(character);
+
+            // Check for positions and insert defaults if missing:
+            if (dbPositionList.Count == 0)
+            {
+                // load the default position
+                Position newCharacterPosition = CharacterPositionExtensions.StartingPosition(character.Id);
+                Position newRecallPosition = CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.LastPortal);
+                dbPositionList.Add(newCharacterPosition);
+                dbPositionList.Add(newRecallPosition);
+
+                // Did not find a position in the database, so we will create one here.
+                // WE SHOULD NOT GET HERE ANYMORE?!
+                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newCharacterPosition);
+                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newRecallPosition);
+            }
+
+            // This will load each available position from the database, into the object's positions
+            foreach (Position item in dbPositionList)
+            {
+                character.SetCharacterPositions(item.positionType, item);
+            }
+
+        }
+
 
         public void SaveCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
         {
