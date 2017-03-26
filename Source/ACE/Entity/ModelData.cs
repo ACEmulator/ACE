@@ -7,7 +7,7 @@ namespace ACE.Entity
 {
 
     /// <summary>
-    /// Segment to Control AC Model / Pallets and Textures
+    /// Segment to Control AC Model / Palettes and Textures
     /// </summary>
     public class ModelData
     {
@@ -19,10 +19,10 @@ namespace ACE.Entity
 
         private List<Model> models = new List<Model>();
 
-        public void AddPallet(ushort paletteID, byte offset, byte length)
+        public void AddPalette(ushort paletteID, byte offset, byte length)
         {
-            ModelPalette newpallet = new ModelPalette(paletteID, offset, length);
-            modelPalettes.Add(newpallet);
+            ModelPalette newpalette = new ModelPalette(paletteID, offset, length);
+            modelPalettes.Add(newpalette);
         }
 
         public void AddTexture(byte index, ushort oldtexture, ushort newtexture)
@@ -47,11 +47,11 @@ namespace ACE.Entity
 
             if (modelPalettes.Count > 0)
                 writer.Write((ushort)PaletteGuid);
-            foreach (ModelPalette pallet in modelPalettes)
+            foreach (ModelPalette palette in modelPalettes)
             {
-                writer.Write((ushort)pallet.PaletteId);
-                writer.Write((byte)pallet.Offset);
-                writer.Write((byte)pallet.Length);
+                writer.Write((ushort)palette.PaletteId);
+                writer.Write((byte)palette.Offset);
+                writer.Write((byte)palette.Length);
 
             }
 
@@ -64,8 +64,8 @@ namespace ACE.Entity
 
             foreach (Model model in models)
             {
-                writer.Write((ushort)model.ModelID);
                 writer.Write((byte)model.Index);
+                writer.Write((ushort)model.ModelID);
             }
 
             writer.Align();
