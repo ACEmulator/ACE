@@ -31,25 +31,25 @@
         Contact = 0x04,
 
         /// <summary>
-        /// The zero qw - orientation quaternion has 0 w component -it is always sent.
+        /// The zero qw - orientation quaternion has 0 w component 
         /// </summary>
         [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
         ZeroQw = 0x08,
 
         /// <summary>
-        /// The zero qx - orientation quaternion has 0 x component -it is always sent.
+        /// The zero qx - orientation quaternion has 0 x component 
         /// </summary>
         [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
         ZeroQx = 0x10,
 
         /// <summary>
-        /// The zero qy - orientation quaternion has 0 y component -it is always sent.
+        /// The zero qy - orientation quaternion has 0 y component 
         /// </summary>
         [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
         ZeroQy = 0x20,
 
         /// <summary>
-        /// The zero qz - orientation quaternion has 0 z component -it is always sent.
+        /// The zero qz - orientation quaternion has 0 z component 
         /// </summary>
         [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "Reviewed. Suppression is OK here.")]
         ZeroQz = 0x40
