@@ -26,7 +26,7 @@ namespace ACE.Managers
 
             await session.Player.Load(c);
 
-            Landblock block = GetLandblock(c.Position.LandblockId, true);
+            Landblock block = GetLandblock(c.PhysicalPosition.LandblockId, true);
             block.AddWorldObject(session.Player);
         }
 

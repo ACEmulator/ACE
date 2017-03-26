@@ -69,7 +69,7 @@ namespace ACE.Entity
         public uint TotalSkillPoints { get; set; }
 
         public uint TotalLogins { get; set; } = 1u;  // total amount of times the player has logged into this character
-        
+
         public CharacterAbility Strength { get; set; }
 
         public CharacterAbility Endurance { get; set; }
@@ -90,13 +90,17 @@ namespace ACE.Entity
 
         public Appearance Appearance { get; set; } = new Appearance();
 
-        public Position Position { get; set; }
+        public Position PhysicalPosition { get; set; }
 
         public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
 
         private Dictionary<CharacterOption, bool> characterOptions;
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions { get; }
-        
+
+        private Dictionary<CharacterPositionType, CharacterPosition> characterPositions;
+
+        public ReadOnlyDictionary<CharacterPositionType, CharacterPosition> CharacterPositions { get; }
+
         public ulong AvailableExperience
         {
             get { return propertiesInt64[PropertyInt64.AvailableExperience]; }
@@ -173,6 +177,12 @@ namespace ACE.Entity
 
             InitializeCharacterOptions();
             CharacterOptions = new ReadOnlyDictionary<CharacterOption, bool>(characterOptions);
+
+            // initialize the blank character positions
+            InitializeCharacterPositions();
+            CharacterPositions = new ReadOnlyDictionary<CharacterPositionType, CharacterPosition>(characterPositions);
+            PhysicalPosition = new Position(CharacterPositions[CharacterPositionType.PhysicalLocation].cell, CharacterPositions[CharacterPositionType.PhysicalLocation].positionX, CharacterPositions[CharacterPositionType.PhysicalLocation].positionY, CharacterPositions[CharacterPositionType.PhysicalLocation].positionZ, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationX, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationY, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationZ, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationW);
+
         }
 
         public Character(uint id, uint accountId)
@@ -262,6 +272,26 @@ namespace ACE.Entity
             foreach (CharacterOption characterOption in System.Enum.GetValues(typeof(CharacterOption)))
             {
                 characterOptions.Add(characterOption, false);
+            }
+        }
+
+        public void SetCharacterPositions(CharacterPositionType type, CharacterPosition position)
+        {
+            if (characterPositions.ContainsKey(type)) { 
+                characterPositions[type] = position;
+                characterPositions[type].character_id = Id;
+                characterPositions[type].positionType = (uint)type;
+            }
+        }
+
+        private void InitializeCharacterPositions()
+        {
+
+            characterPositions = new Dictionary<CharacterPositionType, CharacterPosition>(System.Enum.GetValues(typeof(CharacterPositionType)).Length);
+
+            foreach (CharacterPositionType characterPosition in System.Enum.GetValues(typeof(CharacterPositionType)))
+            {
+                characterPositions.Add(characterPosition, CharacterPositionExtensions.StartingPosition);
             }
         }
 

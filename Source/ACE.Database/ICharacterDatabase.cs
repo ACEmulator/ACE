@@ -39,9 +39,19 @@ namespace ACE.Database
         Task LoadCharacterProperties(DbObject dbObject);
 
         /// <summary>
+        /// loads positons into the provided db object
+        /// </summary>
+        Task LoadCharacterPositions(Character character);
+
+        /// <summary>
         /// Saves character options (F11 tab)
         /// </summary>
         void SaveCharacterOptions(Character character);
+
+        /// <summary>
+        /// Saves the character positions
+        /// </summary>
+        void SaveCharacterPositions(Character character);
 
         /// <summary>
         /// saves all object properties in the provided db object

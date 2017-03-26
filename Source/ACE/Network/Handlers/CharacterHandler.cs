@@ -132,6 +132,7 @@ namespace ACE.Network.Handlers
             uint lowGuid = DatabaseManager.Character.GetMaxId();
             character.Id = lowGuid;
             character.AccountId = session.Id;
+            character.DateOfBirth = character.CreationTimeStamp.ToString();
 
             if (!await DatabaseManager.Character.CreateCharacter(character))
             {
@@ -140,7 +141,9 @@ namespace ACE.Network.Handlers
             }
 
             CharacterCreateSetDefaultCharacterOptions(character);
+            CharacterCreateSetDefaultCharacterPositions(character);
             DatabaseManager.Character.SaveCharacterOptions(character);
+            DatabaseManager.Character.SaveCharacterPositions(character);
 
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
@@ -166,6 +169,22 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
             character.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
+        }
+
+        private static void CharacterCreateSetDefaultCharacterPositions(Character character)
+        {
+            var newStartingPosition = CharacterPositionExtensions.StartingPosition;
+            var newInvalidPosition = CharacterPositionExtensions.InvalidPosition;
+            newStartingPosition.character_id = character.Id;
+            newInvalidPosition.character_id = character.Id;
+            character.SetCharacterPositions(CharacterPositionType.PhysicalLocation, CharacterPositionExtensions.StartingPosition);
+            character.SetCharacterPositions(CharacterPositionType.LifestoneUsed, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(CharacterPositionType.LifestoneTied, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(CharacterPositionType.PortalRecall, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(CharacterPositionType.PrimaryPortalRecall, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(CharacterPositionType.SecondaryPortalRecall, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(CharacterPositionType.AllegianceHometown, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(CharacterPositionType.MansionRecall, CharacterPositionExtensions.InvalidPosition);
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
