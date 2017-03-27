@@ -291,20 +291,20 @@ namespace ACE.Entity
         {
             if (character.AvailableSkillCredits >= creditsSpent)
             {
-                //attempt to train the specified skill
+                // attempt to train the specified skill
                 bool trainNewSkill = character.TrainSkill(skill, creditsSpent);
-                //create an update to send to the client
+                // create an update to send to the client
                 var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
-                //as long as the skill is sent, the train new triangle button on the client will not lock up. 
-                //Sending Skill.None with status untrained worked in test
+                // as long as the skill is sent, the train new triangle button on the client will not lock up.
+                // Sending Skill.None with status untrained worked in test
                 var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
-                //create a string placeholder for the correct after
+                // create a string placeholder for the correct after
                 string trainSkillMessageText = "";
 
-                //if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
+                // if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
                 if (trainNewSkill)
                 {
-                    //replace the trainSkillUpdate message with the correct skill assignment:
+                    // replace the trainSkillUpdate message with the correct skill assignment:
                     trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
                     trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {character.AvailableSkillCredits} credits available.";
                 }
@@ -313,7 +313,7 @@ namespace ACE.Entity
                     trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {character.AvailableSkillCredits} credits available.";
                 }
 
-                //create the final game message and send to the client
+                // create the final game message and send to the client
                 var message = new GameMessageSystemChat(trainSkillMessageText, ChatMessageType.Advancement);
                 Session.Network.EnqueueSend(trainSkillUpdate, currentCredits, message);
             }
@@ -769,6 +769,9 @@ namespace ACE.Entity
         {
             if (character != null)
             {
+                // save the player position to the database blob
+                character.Position = Session.Player.Position;
+
                 DatabaseManager.Character.UpdateCharacter(character);
 #if DEBUG
                 if (Session.Player != null)
@@ -858,7 +861,6 @@ namespace ACE.Entity
         public void UpdatePosition(Position newPosition)
         {
             this.Position = newPosition;
-            this.character.Position = newPosition;
             SendUpdatePosition();
         }
 
@@ -868,7 +870,6 @@ namespace ACE.Entity
             {
                 Thread.Sleep(10);
                 this.Position = newPosition;
-                this.character.Position = newPosition;
                 SendUpdatePosition();
             });
             t.Start();
