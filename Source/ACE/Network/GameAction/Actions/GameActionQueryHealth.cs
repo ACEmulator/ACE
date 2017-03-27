@@ -20,22 +20,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            // TODO: Extend to creatures as well, as we momentarily only have players
-
-            if (objectId.IsPlayer())
-            {
-                var tmpLandblock = this.Session.Player.Position.LandblockId;
-                var pl = (Player)LandblockManager.GetObjectByGuid(tmpLandblock, objectId);
-
-                if (pl != null)
-                {
-                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
-
-                    var updateHealth = new GameEventUpdateHealth(Session, this.objectId.Full, healthPercentage);
-                    Session.Network.EnqueueSend(updateHealth);
-                }
-            }
-
+            LandblockManager.HandleQueryHealth(this.Session, objectId);
         }
     }
 }

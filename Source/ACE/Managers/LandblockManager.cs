@@ -52,14 +52,12 @@ namespace ACE.Managers
         }
 
         /// <summary>
-        /// Find a worldobject by its guid in the specified landblock
+        /// Handle the QueryHealth action between the source Object and its target
         /// </summary>
-        public static WorldObject GetObjectByGuid(LandblockId blockId, ObjectGuid objectId)
+        public static void HandleQueryHealth(Session source, ObjectGuid targetId)
         {
-            var block = GetLandblock(blockId, true);
-            WorldObject wo = block.GetWorldObjectByGuid(objectId);
-
-            return wo;
+            var block = GetLandblock(source.Player.Position.LandblockId, true);
+            block.HandleQueryHealth(source, targetId);
         }
 
         /// <summary>
