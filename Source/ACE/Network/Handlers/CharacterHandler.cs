@@ -47,7 +47,11 @@ namespace ACE.Network.Handlers
 
             session.State = SessionState.WorldConnected;
 
-            session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            // check the value of the welcome message. Only display it if it is not empty
+            if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            }
 
             LandblockManager.PlayerEnterWorld(session);
         }
