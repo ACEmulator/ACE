@@ -4,11 +4,13 @@ using System.Net.Sockets;
 using System.Text;
 using ACE.Managers;
 using ACE.Common;
+using log4net;
 
 namespace ACE.Network
 {
     public class ConnectionListener
     {
+        private static readonly ILog packetLog = LogManager.GetLogger("Packets");
         public Socket Socket { get; private set; }
 
         private IPEndPoint listenerEndpoint;
@@ -79,16 +81,17 @@ namespace ACE.Network
             }
 
             IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
-            var session = WorldManager.Find(ipEndpoint);
 
-#if NETWORKDEBUG
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(String.Format("Received Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", data.Length, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));
-            sb.AppendLine(data.BuildPacketString());
-            Console.WriteLine(sb.ToString());
-#endif
+            if (packetLog.IsDebugEnabled)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine(String.Format("Received Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", data.Length, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));
+                sb.AppendLine(data.BuildPacketString());
+                packetLog.Debug(sb.ToString());
+            }
+
             var packet = new ClientPacket(data);
-            session.HandlePacket(packet);
+            WorldManager.HandlePacket(packet, ipEndpoint);
 
             Listen();
         }

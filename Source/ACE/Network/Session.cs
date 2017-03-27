@@ -36,6 +36,7 @@ namespace ACE.Network
         private DateTime lastSendAgeIntUpdateTime;
 
         // connection related
+        public ushort ClientId { get; }
         public IPEndPoint EndPoint { get; }
 
         public uint GameEventSequence { get; set; }
@@ -56,9 +57,10 @@ namespace ACE.Network
 
         public NetworkSession Network { get; set; }
 
-        public Session(IPEndPoint endPoint)
+        public Session(IPEndPoint endPoint, ushort clientId)
         {
             EndPoint = endPoint;
+            ClientId = clientId;
             Network = new NetworkSession(this);
         }
 
@@ -197,7 +199,7 @@ namespace ACE.Network
                 Player.Logout(true);
             }
 
-            WorldManager.Remove(this);
+            WorldManager.RemoveSession(this);
         }
 
         public void LogOffPlayer()

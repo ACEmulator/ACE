@@ -6,14 +6,19 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
+using ACE.Common;
 using ACE.Network.GameMessages;
 using ACE.Network.Handlers;
 using ACE.Network.Managers;
+
+using log4net;
 
 namespace ACE.Network
 {
     public class NetworkSession
     {
+        private static readonly ILog packetLog = LogManager.GetLogger("Packets");
+
         private const int minimumTimeBetweenBundles = 5; // 5ms
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
@@ -229,13 +234,15 @@ namespace ACE.Network
         {
             Socket socket = SocketManager.GetSocket();
             byte[] payload = packet.GetPayload();
-#if NETWORKDEBUG
-            System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(String.Format("Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port));
-            sb.AppendLine(payload.BuildPacketString());
-            Console.WriteLine(sb.ToString());
-#endif
+
+            if (packetLog.IsDebugEnabled)
+            {
+                System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine(String.Format("Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port));
+                sb.AppendLine(payload.BuildPacketString());
+                packetLog.Debug(sb.ToString());
+            }
             socket.SendTo(payload, session.EndPoint);
         }
 
