@@ -51,9 +51,14 @@ namespace ACE.Network
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
-        public NetworkSession(Session session)
+        public ushort ClientId { get; }
+        public ushort ServerId { get; }
+
+        public NetworkSession(Session session, ushort clientId, ushort serverId)
         {
             this.session = session;
+            ClientId = clientId;
+            ServerId = serverId;
         }
 
         /// <summary>
@@ -208,7 +213,7 @@ namespace ACE.Network
                     ConnectionData.PacketSequence = 2;
 
                 packet.Header.Sequence = ConnectionData.PacketSequence++;
-                packet.Header.Id = 0x0B; // This value is currently the hard coded Server ID. It can be something different...
+                packet.Header.Id = ServerId;
                 packet.Header.Table = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
 

@@ -36,7 +36,6 @@ namespace ACE.Network
         private DateTime lastSendAgeIntUpdateTime;
 
         // connection related
-        public ushort ClientId { get; }
         public IPEndPoint EndPoint { get; }
 
         public uint GameEventSequence { get; set; }
@@ -57,11 +56,10 @@ namespace ACE.Network
 
         public NetworkSession Network { get; set; }
 
-        public Session(IPEndPoint endPoint, ushort clientId)
+        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
-            ClientId = clientId;
-            Network = new NetworkSession(this);
+            Network = new NetworkSession(this, clientId, serverId);
         }
 
         public void InitSessionForWorldLogin()

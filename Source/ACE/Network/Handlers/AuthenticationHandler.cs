@@ -30,9 +30,9 @@ namespace ACE.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session)
         {
-            var connectResponse = new PacketOutboundConnectRequest(ISAAC.ServerSeed, ISAAC.ClientSeed);
+            var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
 
-            session.Network.EnqueueSend(connectResponse);
+            session.Network.EnqueueSend(connectRequest);
 
             if (account == null)
             {
@@ -48,12 +48,6 @@ namespace ACE.Network.Handlers
 
             /*if (glsTicket != digest)
             {
-            }*/
-
-            /*if (WorldManager.ServerIsFull())
-            {
-                session.SendCharacterError(CharacterError.LogonServerFull);
-                return;
             }*/
 
             // TODO: check for account bans
@@ -74,9 +68,7 @@ namespace ACE.Network.Handlers
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
             GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-            session.Network.EnqueueSend(characterListMessage);
-            session.Network.EnqueueSend(serverNameMessage);
-            session.Network.EnqueueSend(dddInterrogation);
+            session.Network.EnqueueSend(characterListMessage, serverNameMessage, dddInterrogation);
 
             session.State = SessionState.AuthConnected;
         }

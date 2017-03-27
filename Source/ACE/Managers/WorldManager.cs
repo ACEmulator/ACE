@@ -79,7 +79,7 @@ namespace ACE.Managers
                         if (sessionMap[i] == null)
                         {
                             Log.Info(log, "Creating new session for {0} with id {1}", endPoint, i);
-                            session = new Session(endPoint, i);
+                            session = new Session(endPoint, i, ServerId);
                             sessions.Add(session);
                             sessionMap[i] = session;
                             break;
@@ -95,7 +95,7 @@ namespace ACE.Managers
             if (session == null)
             {
                 Log.Warn(log, "Failed to create a new session for {0}", endPoint);
-                var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1));
+                var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
                 errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
             }
             return session;
@@ -109,8 +109,8 @@ namespace ACE.Managers
                 Log.Info(log, "Removing session for {0} with id {1}", session.EndPoint, session.Id);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
-                if (sessionMap[session.ClientId] == session)
-                    sessionMap[session.ClientId] = null;
+                if (sessionMap[session.Network.ClientId] == session)
+                    sessionMap[session.Network.ClientId] = null;
             }
             finally
             {
