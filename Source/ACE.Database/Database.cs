@@ -227,7 +227,7 @@ namespace ACE.Database
                 if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
                 {
                     if (whereList != null)
-                        whereList += ", ";
+                        whereList += " AND ";
                     whereList += "`" + p.Item2.DbFieldName + "` = ?";
                     types.Add((MySqlDbType)p.Item2.DbFieldType);
                 }
@@ -294,7 +294,7 @@ namespace ACE.Database
                 if (p.Item2.IsCriteria)
                 {
                     if (whereList != null)
-                        whereList += ", ";
+                        whereList += " AND ";
                     whereList += "`" + p.Item2.DbFieldName + "` = ?";
 
                     if (statementType == ConstructedStatementType.Get || statementType == ConstructedStatementType.Update)
