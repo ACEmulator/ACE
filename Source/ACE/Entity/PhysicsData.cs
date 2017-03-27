@@ -41,11 +41,11 @@ namespace ACE.Entity
         // thanks Kaezin for help understanding this structure.
         // Update this when the object moves
         public ushort PositionSequence = (ushort)1;
-        public ushort unknownseq0 = (ushort)1; // unknown for now
+        public ushort InstanceSequence = (ushort)1; // unknown for now
         public ushort PhysicsSequence = (ushort)1; // physics state change
         public ushort JumpSequence = (ushort)1; // increments when you Jump.
         public ushort PortalSequence = (ushort)1; // increments when you portal
-        public ushort unknownseq1 = (ushort)1;
+        public ushort ForcePositionSequence = (ushort)0;
         public ushort SpawnSequence = (ushort)1; // increments with spawn player / critter / boss ?
 
         public PhysicsData()
@@ -62,6 +62,7 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
+
             writer.Write((uint)PhysicsDescriptionFlag);
 
             writer.Write((uint)PhysicsState);
@@ -137,11 +138,11 @@ namespace ACE.Entity
                 writer.Write((float)DefaultScriptIntensity);
 
             writer.Write((ushort)PositionSequence);
-            writer.Write((ushort)unknownseq0);
+            writer.Write((ushort)InstanceSequence);
             writer.Write((ushort)(PhysicsSequence));
             writer.Write((ushort)JumpSequence);
             writer.Write((ushort)PortalSequence);
-            writer.Write((ushort)unknownseq1);
+            writer.Write((ushort)ForcePositionSequence);
             writer.Write((ushort)0);
             writer.Write((ushort)0);
             writer.Write((ushort)(SpawnSequence));

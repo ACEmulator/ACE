@@ -1,9 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Numerics;
-
-namespace ACE.Entity
+﻿namespace ACE.Entity
 {
+    using System;
+    using System.IO;
+    using System.Numerics;
+    using Enum;
+
     public class Position
     {
         private const float xyMidPoint = 96f;
@@ -72,6 +73,56 @@ namespace ACE.Entity
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
             Offset = new Vector3(xOffset, yOffset, zOffset);
             Facing = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+        }
+
+        public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
+        {
+            payload.Write((uint)updatePositionFlags);
+
+            if (writeLandblock)
+                payload.Write(LandblockId.Raw);
+
+            payload.Write(Offset.X);
+            payload.Write(Offset.Y);
+            payload.Write(Offset.Z);
+
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQw) != 0)
+            {
+                payload.Write(Facing.W);
+            }
+
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQx) != 0)
+            {
+                payload.Write(Facing.X);                
+            }
+
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) != 0)
+            {
+                payload.Write(Facing.Y);                
+            }
+            
+            if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
+            {
+                // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
+                payload.Write((uint)0x65);
+            }
+            else
+            {
+                payload.Write((uint)0);
+            }
+
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) != 0)
+            {
+                payload.Write(Facing.Z);                
+            }
+            
+            if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
+            {
+                // velocity would go here
+                payload.Write((float)0f);
+                payload.Write((float)0f);
+                payload.Write((float)0f);
+            }
         }
 
         public void Serialize(BinaryWriter payload, bool writeQuaternion = true, bool writeLandblock = true)
