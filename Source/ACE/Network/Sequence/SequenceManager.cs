@@ -12,7 +12,7 @@ namespace ACE.Network.Sequence
 
         public void AddSequence(SequenceType type, ISequence sequence)
         {
-            if(!sequenceList.ContainsKey(type))
+            if (!sequenceList.ContainsKey(type))
             {
                 sequenceList.Add(type, sequence);
             }
