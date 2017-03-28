@@ -7,6 +7,7 @@ namespace ACE.Network.GameAction
         Talk                        = 0x0015,
         RemoveFriend                = 0x0017,
         AddFriend                   = 0x0018,
+        DropItem                    = 0x001B,
         AllegianceUpdateRequest     = 0x001F,
         RemoveAllFriends            = 0x0025,
         TitleSet                    = 0x002C,

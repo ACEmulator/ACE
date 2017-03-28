@@ -1,10 +1,11 @@
-﻿using System;
-using ACE.Network.Enum;
+﻿using ACE.Network.Enum;
 using ACE.Network.Sequence;
 using System.Collections.Generic;
 
 namespace ACE.Network.GameMessages.Messages
 {
+    using global::ACE.Entity;
+
     public class GameMessageMotion : GameMessage
     {
         public GameMessageMotion()
@@ -19,6 +20,25 @@ namespace ACE.Network.GameMessages.Messages
         {
             WriteBase(animationTarget, session, activity, type, flags, stance);
             List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
+            WriteAnimations(animationTarget, animations);
+        }
+
+        public GameMessageMotion(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
+           MotionType type, MotionFlags flags, MotionStance stance, MotionCommand command, MotionData motionData, float speed)
+           : this()
+        {
+            this.WriteBase(animationTarget, session, activity, type, flags, stance);
+            this.Writer.Write((uint)motionData.MotionStateFlag);
+            motionData.Serialize(this.Writer);
+            List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
             WriteAnimations(animationTarget, animations);
         }
 
@@ -27,16 +47,24 @@ namespace ACE.Network.GameMessages.Messages
         {
             WriteBase(animationTarget, session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing);
             List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            if (command != MotionCommand.MotionInvalid)
+            {
+                animations.Add(new MotionItem(command, speed));
+            }
             WriteAnimations(animationTarget, animations);
         }
 
+
         private void WriteBase(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
             MotionType type, MotionFlags flags, MotionStance stance)
+
         {
             Writer.WriteGuid(animationTarget.Guid);
             Writer.Write((ushort)session.Player.TotalLogins);
             Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.MotionMessage));
             Writer.Write((ushort)1); // Index, needs more research, it changes sometimes, but not every packet
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.MotionMessage));
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ServerControl));
             Writer.Write((ushort)activity);
             Writer.Write((byte)type);
             Writer.Write((byte)flags);
@@ -56,42 +84,3 @@ namespace ACE.Network.GameMessages.Messages
         }
     }
 }
-/*
-GameMessageMotion (Aka Animation)
-uint ObjectId - ID of object moving
-ushort logins - Number of user logins (instance_timestamp)
-ushort sequence - Number of animations this login for this object (movement_timestamp)
-ushort index - Changes sometimes, but not every message (server_control_timestamp)
-ushort activity - Idle/Active
-byte motionType - Kind of motion (move to position, turn, or general)
-byte typeFlags - flags for some additional information on packet (ex. target for sticky melee)
-ushort stance - current(?) stance
-if(motionType == 0) //General
-    uint generalFlags
-    if(generalFlags & 01)
-        ushort stance2
-    if(generalFlags & 02)
-        ushort forwardCommand
-    if(generalFlags & 08)
-        ushort sidestepCommand
-    if(generalFlags & 20)
-        ushort turnCommand
-    if(generalFlags & 04)
-        float forwardSpeed
-    if(generalFlags & 10)
-        float sidestepSpeed
-    if(generalFlags & 40)
-        float turnSpeed
-    list(length = generalFlags << 7)
-        ushort animationId
-        ushort sequence
-        float animationSpeed
-if(motionType == 6)
-    //Todo MoveToObject
-if(motionType == 7)
-    //Todo MoveToPosition
-if(motionType == 8)
-    //Todo TurnToObject
-if(motionType == 9)
-    //Todo TurnToPosition
-*/

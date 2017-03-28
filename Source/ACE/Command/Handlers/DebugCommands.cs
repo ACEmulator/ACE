@@ -195,5 +195,42 @@ namespace ACE.Command.Handlers
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
+
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateTrainingWand(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @createtrainingwand me or @createtrainingwand ground",
+                   ChatMessageType.Broadcast);
+                return;
+            }
+            string location = parameters[0];
+            if (location == "me" | location == "ground")
+            {
+                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                switch (location)
+                {
+                    case "me":
+                        {
+                            LootGenerationFactory.AddToContainer(loot, session.Player);
+                            session.Player.TrackObject(loot);
+                            // TODO: Have to send game message CFS 
+                            break;
+                        }
+                    case "ground":
+                        {
+                            LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(2.0f));
+                            LandblockManager.AddObject(loot);
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @createtrainingwand me or @createtrainingwand ground",
+                    ChatMessageType.Broadcast);
+            }
+        }
     }
 }
