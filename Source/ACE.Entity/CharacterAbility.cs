@@ -54,6 +54,17 @@ namespace ACE.Entity
             }
         }
 
+        public uint MaxValue
+        {
+            get
+            {
+                // TODO: once buffs are implemented, make sure we have a max Value wich calculates the buffs in, 
+                // as it's needed for the UpdateHealth GameMessage. For now this is just the unbuffed value.
+
+                return UnbuffedValue;
+            }
+        }
+
         public uint ExperienceSpent { get; set; }
         
         public CharacterAbility(Character character, Ability ability)
