@@ -207,17 +207,20 @@ namespace ACE.Entity
                     // check adjacent landblocks for the targetId
                     foreach (var block in adjacencies)
                     {
-                        lock (objectCacheLocker)
+                        lock (block.Value.objectCacheLocker)
                         {
                             if (block.Value.worldObjects.ContainsKey(targetId))
                                 pl = (Player)this.worldObjects[targetId];
                         }
                     }
                 }
-                float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
+                if (pl != null)
+                {
+                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
 
-                var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
-                source.Network.EnqueueSend(updateHealth);
+                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
+                    source.Network.EnqueueSend(updateHealth);
+                }
             }
         }
 
