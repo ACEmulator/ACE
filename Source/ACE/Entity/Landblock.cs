@@ -9,6 +9,8 @@ using ACE.Managers;
 
 using log4net;
 using ACE.Database;
+using ACE.Network.GameEvent.Events;
+using ACE.Network;
 
 namespace ACE.Entity
 {
@@ -183,6 +185,42 @@ namespace ACE.Entity
             {
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
+            }
+        }
+
+        /// <summary>
+        /// Handle the QueryHealth action between the source Object and its target
+        /// </summary>
+        public void HandleQueryHealth(Session source, ObjectGuid targetId)
+        {
+            if (targetId.IsPlayer())
+            {
+                Player pl = null;
+
+                lock (objectCacheLocker)
+                {
+                    if (this.worldObjects.ContainsKey(targetId))
+                        pl = (Player)this.worldObjects[targetId];
+                }
+                if (pl == null)
+                {
+                    // check adjacent landblocks for the targetId
+                    foreach (var block in adjacencies)
+                    {
+                        lock (block.Value.objectCacheLocker)
+                        {
+                            if (block.Value.worldObjects.ContainsKey(targetId))
+                                pl = (Player)this.worldObjects[targetId];
+                        }
+                    }
+                }
+                if (pl != null)
+                {
+                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
+
+                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
+                    source.Network.EnqueueSend(updateHealth);
+                }
             }
         }
 

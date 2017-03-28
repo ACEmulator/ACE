@@ -30,6 +30,7 @@ namespace ACE.Network.GameAction
 
         QueryAge                    = 0x01C2,
         QueryBirth                  = 0x01C4,
+        QueryHealth                 = 0x01BF,
 
         Emote                       = 0x01E1,
         PingRequest                 = 0x01E9,

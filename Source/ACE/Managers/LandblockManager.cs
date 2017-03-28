@@ -52,6 +52,15 @@ namespace ACE.Managers
         }
 
         /// <summary>
+        /// Handle the QueryHealth action between the source Object and its target
+        /// </summary>
+        public static void HandleQueryHealth(Session source, ObjectGuid targetId)
+        {
+            var block = GetLandblock(source.Player.Position.LandblockId, true);
+            block.HandleQueryHealth(source, targetId);
+        }
+
+        /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propogate is true (outdoor world roaming).
         /// </summary>
