@@ -33,7 +33,7 @@ namespace ACE.Network
         /// <summary>
         /// This is referenced from many threads:<para />
         /// ConnectionListener.OnDataReceieve()->Session.HandlePacket()->This.HandlePacket(packet), This path can come from any client or other thinkable object.<para />
-        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) 
+        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)
         /// </summary>
         private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
 

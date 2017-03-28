@@ -73,7 +73,7 @@ namespace ACE.Network.Handlers
             GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
             GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
-            
+
             session.Network.EnqueueSend(characterListMessage);
             session.Network.EnqueueSend(serverNameMessage);
             session.Network.EnqueueSend(dddInterrogation);

@@ -10,7 +10,7 @@ namespace ACE.Network.GameAction.Actions
         private uint creditsSpent;
 
         public GameActionTrainSkill(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-        
+
         public override void Read()
         {
             skill = (Skill)Fragment.Payload.ReadUInt32();
@@ -19,7 +19,7 @@ namespace ACE.Network.GameAction.Actions
 
         public override void Handle()
         {
-            //train skills
+            // train skills
             Session.Player.TrainSkill(skill, creditsSpent);
         }
     }
