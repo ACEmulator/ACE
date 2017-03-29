@@ -1,9 +1,10 @@
 # ACEmulator Change Log
 
-### 2017-03-28
 [Mogwai]
 * Added changelog.md to clearly identify changes from 1 commit to another.
-* Rebased DB scripts to simplify redeployment.
+* Updated readme.md.
+
+### 2017-03-28
 [Jyrus]
 * Fixed remaning stylecop warnings
 
