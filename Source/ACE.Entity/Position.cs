@@ -100,7 +100,7 @@
             {
                 payload.Write(Facing.Y);                
             }
-            
+
             if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
             {
                 // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
@@ -113,9 +113,9 @@
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) != 0)
             {
-                payload.Write(Facing.Z);                
+                payload.Write(Facing.Z);
             }
-            
+
             if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
             {
                 // velocity would go here

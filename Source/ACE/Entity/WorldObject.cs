@@ -10,6 +10,10 @@ using System.IO;
 
 namespace ACE.Entity
 {
+    using System.Collections.Generic;
+
+    using global::ACE.Managers;
+
     public abstract class WorldObject
     {
         public ObjectGuid Guid { get; }
@@ -21,7 +25,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort WeenieClassid { get; protected set; }
 
-        public ushort Icon { get; protected set; }
+        public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -41,8 +45,6 @@ namespace ACE.Entity
         public WeenieHeaderFlag WeenieFlags { get; protected set; }
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
-
-        public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
 
         public ushort MovementIndex
         {
@@ -69,7 +71,15 @@ namespace ACE.Entity
 
         public GameData GameData { get; }
 
+        public bool IsContainer { get; set; } = false;
+
+        private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
+
+        private readonly object inventoryMutex = new object();
+
         public SequenceManager Sequences { get; }
+
+        public UpdatePositionFlag UpdatePositionFlags { get; set; } = UpdatePositionFlag.Contact;
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
@@ -83,6 +93,55 @@ namespace ACE.Entity
             Sequences = new SequenceManager();
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
+            Sequences.AddSequence(SequenceType.ServerControl, new UShortSequence(3));
+        }
+
+        public void AddToInventory(WorldObject worldObject)
+        {
+            lock (inventoryMutex)
+            {
+                if (inventory.ContainsKey(worldObject.Guid))
+                    return;
+
+                inventory.Add(worldObject.Guid, worldObject);
+            }
+        }
+
+        public void RemoveFromInventory(ObjectGuid objectGuid)
+        {
+            lock (inventoryMutex)
+            {
+                if (inventory.ContainsKey(objectGuid))
+                    inventory.Remove(objectGuid);
+            }
+        }
+
+        public void HandleDropItem(ObjectGuid objectGuid, Session session)
+        {
+            lock (this.inventoryMutex)
+            {
+                if (!this.inventory.ContainsKey(objectGuid)) return;
+                var obj = this.inventory[objectGuid];
+                this.GameData.Burden = obj.GameData.Burden;
+
+                // TODO: Not sure if the next two lines need to be here.
+                obj.GameData.ContainerId = 0;
+                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
+                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
+
+                obj.UpdatePositionFlags = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
+
+                LandblockManager.AddObject(obj);
+                this.inventory.Remove(objectGuid);
+            }
+        }
+        public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
+        {
+            lock (inventoryMutex)
+            {
+                inventory.TryGetValue(objectGuid, out worldObject);
+            }
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -223,8 +282,11 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-
-            Position.Serialize(writer, PositionFlag);
+            if (Guid.IsPlayer())
+            {
+                UpdatePositionFlags = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Placement;
+            }
+            Position.Serialize(writer, UpdatePositionFlags);
 
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 1)); // instance sequence

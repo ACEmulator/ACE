@@ -56,6 +56,8 @@ namespace ACE.Entity
             get { return character.CharacterOptions; }
         }
 
+        public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
+
         public ReadOnlyCollection<Friend> Friends
         {
             get { return character.Friends; }

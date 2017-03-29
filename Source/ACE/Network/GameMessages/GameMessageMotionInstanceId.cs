@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Network.Sequence
+namespace ACE.Network.GameMessages
 {
-    public enum SequenceType
+    class GameMessageMotionInstanceId
     {
-        MotionMessage,
-        Motion,
-        ServerControl
     }
 }

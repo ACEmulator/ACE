@@ -93,6 +93,7 @@
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\Landcell.cs" />
+    <Compile Include="Entity\MotionData.cs" />
     <Compile Include="Entity\MutableWorldObject.cs" />
     <Compile Include="Entity\EquippedItem.cs" />
     <Compile Include="Entity\Model.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\AmmoType.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\MotionState.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
     <Compile Include="Network\Enum\Effect.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
@@ -142,6 +144,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionDropItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryBirth.cs" />
@@ -196,7 +199,10 @@
     <Compile Include="Network\GameEvent\GameEventType.cs" />
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
+    <Compile Include="Network\GameMessages\GameMessageMotionInstanceId.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\GameMessageUpdateInstanceId.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3D.cs" />
     <Compile Include="Network\GameMessages\Messages\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
