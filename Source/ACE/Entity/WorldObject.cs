@@ -282,7 +282,10 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-
+            if (Guid.IsPlayer())
+            {
+                UpdatePositionFlags = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Placement;
+            }
             Position.Serialize(writer, UpdatePositionFlags);
 
             var player = Guid.IsPlayer() ? this as Player : null;
