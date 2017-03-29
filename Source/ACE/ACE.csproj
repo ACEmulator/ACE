@@ -110,6 +110,7 @@
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
+    <Compile Include="Network\ClientMessage.cs" />
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />

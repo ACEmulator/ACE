@@ -17,6 +17,7 @@ namespace ACE.Network
 {
     public class NetworkSession
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger("Packets");
 
         private const int minimumTimeBetweenBundles = 5; // 5ms
@@ -27,6 +28,9 @@ namespace ACE.Network
 
         private readonly Object currentBundleLock = new Object();
         private NetworkBundle currentBundle = new NetworkBundle();
+
+        private SortedDictionary<uint, ClientPacket> outOfOrderPackets = new SortedDictionary<uint, ClientPacket>();
+        private SortedDictionary<uint, MessageBuffer> partialFragments = new SortedDictionary<uint, MessageBuffer>();
 
         private DateTime nextResync = DateTime.UtcNow;
         private DateTime nextAck = DateTime.UtcNow;
@@ -124,8 +128,28 @@ namespace ACE.Network
         /// </summary>
         public void HandlePacket(ClientPacket packet)
         {
-            lastReceivedSequence = packet.Header.Sequence;
+            if (packet.Header.Sequence <= lastReceivedSequence && packet.Header.Sequence != 0)
+            {
+                log.DebugFormat("Packet {0} received again for account {1}", packet.Header.Sequence, session.Account);
+                return;
+            }
 
+            if (packet.Header.Sequence > lastReceivedSequence + 1)
+            {
+                log.DebugFormat("Packet {0} received out of order for account {1}", packet.Header.Sequence, session.Account);
+                lock (outOfOrderPackets)
+                {
+                    if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
+                        outOfOrderPackets.Add(packet.Header.Sequence, packet);
+                }
+                return;
+            }
+
+            ProcessPacket(packet);
+        }
+
+        private void ProcessPacket(ClientPacket packet)
+        {
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
                 FlagEcho(packet.HeaderOptional.ClientTime);
 
@@ -160,7 +184,40 @@ namespace ACE.Network
             }
 
             foreach (ClientPacketFragment fragment in packet.Fragments)
-                InboundMessageManager.HandleClientFragment(fragment, session);
+                ProcessFragment(fragment);
+
+            if (packet.Header.Sequence != 0)
+                lastReceivedSequence = packet.Header.Sequence;
+        }
+
+        private void ProcessFragment(ClientPacketFragment fragment)
+        {
+            if (fragment.Header.Count != 1)
+            {
+                lock (partialFragments)
+                {
+                    MessageBuffer buffer = null;
+                    if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
+                    {
+                        buffer.AddFragment(fragment);
+                        if (buffer.Complete)
+                        {
+                            ClientMessage message = buffer.GetMessage();
+                            InboundMessageManager.HandleClientMessage(message, session);
+                            partialFragments.Remove(fragment.Header.Sequence);
+                        }
+                    }
+                    else
+                    {
+                        partialFragments.Add(fragment.Header.Sequence, new MessageBuffer(fragment.Header.Count));
+                    }
+                }
+            }
+            else
+            {
+                ClientMessage message = new ClientMessage(fragment.Data);
+                InboundMessageManager.HandleClientMessage(message, session);
+            }
         }
 
         private void FlagEcho(float clientTime)
@@ -348,19 +405,19 @@ namespace ACE.Network
                         // Set sequence, if new, pull next sequence from ConnectionData, if it is a carryOver, reuse that sequence
                         currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? ConnectionData.FragmentSequence++ : currentMessageFragment.sequence;
 
-                        // Build ServerPacketFragment structure
-                        ServerPacketFragment fragment = new ServerPacketFragment();
-                        PacketFragmentHeader fragmentHeader = fragment.Header;
-                        fragmentHeader.Sequence = currentMessageFragment.sequence;
-                        fragmentHeader.Id = 0x80000000;
-                        fragmentHeader.Count = currentMessageFragment.count;
-                        fragmentHeader.Index = currentMessageFragment.index;
-                        fragmentHeader.Group = (ushort)currentMessageFragment.message.Group;
 
                         // Read data starting at current position reading dataToSend bytes
                         currentGameMessage.Data.Seek(currentMessageFragment.position, SeekOrigin.Begin);
-                        fragment.Content = new byte[dataToSend];
-                        currentGameMessage.Data.Read(fragment.Content, 0, (int)dataToSend);
+                        byte[] data = new byte[dataToSend];
+                        currentGameMessage.Data.Read(data, 0, (int)dataToSend);
+
+                        // Build ServerPacketFragment structure
+                        ServerPacketFragment fragment = new ServerPacketFragment(data);
+                        fragment.Header.Sequence = currentMessageFragment.sequence;
+                        fragment.Header.Id = 0x80000000;
+                        fragment.Header.Count = currentMessageFragment.count;
+                        fragment.Header.Index = currentMessageFragment.index;
+                        fragment.Header.Group = (ushort)currentMessageFragment.message.Group;
 
                         // Increment position and index
                         currentMessageFragment.position = currentMessageFragment.position + dataToSend;
@@ -380,6 +437,41 @@ namespace ACE.Network
                 }
 
                 packetQueue.Enqueue(packet);
+            }
+        }
+
+        private class MessageBuffer
+        {
+            private List<ClientPacketFragment> fragments = new List<ClientPacketFragment>();
+
+            public uint TotalFragments { get; }
+
+            public bool Complete { get { return fragments.Count == TotalFragments; } }
+
+            public MessageBuffer(uint totalFragments)
+            {
+                TotalFragments = totalFragments;
+            }
+
+            public void AddFragment(ClientPacketFragment fragment)
+            {
+                lock (fragments)
+                {
+                    if (!Complete && !fragments.Any(x => x.Header.Id == fragment.Header.Id))
+                        fragments.Add(fragment);
+                }
+            }
+
+            public ClientMessage GetMessage()
+            {
+                fragments.Sort(delegate(ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Id - (int)y.Header.Id; });
+                MemoryStream stream = new MemoryStream();
+                BinaryWriter writer = new BinaryWriter(stream);
+                foreach (ClientPacketFragment fragment in fragments)
+                {
+                    writer.Write(fragment.Data);
+                }
+                return new ClientMessage(stream);
             }
         }
 

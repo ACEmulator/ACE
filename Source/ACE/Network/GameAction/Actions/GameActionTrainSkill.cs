@@ -3,24 +3,15 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.TrainSkill)]
-    public class GameActionTrainSkill : GameActionPacket
+    public static class GameActionTrainSkill
     {
-        private Skill skill;
-        private uint creditsSpent;
-
-        public GameActionTrainSkill(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.TrainSkill)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            skill = (Skill)Fragment.Payload.ReadUInt32();
-            creditsSpent = Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
+            var skill = (Skill)message.Payload.ReadUInt32();
+            var creditsSpent = message.Payload.ReadUInt32();
             // train skills
-            Session.Player.TrainSkill(skill, creditsSpent);
+            session.Player.TrainSkill(skill, creditsSpent);
         }
     }
 }

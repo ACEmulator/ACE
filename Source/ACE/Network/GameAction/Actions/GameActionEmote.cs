@@ -2,20 +2,12 @@
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.Emote)]
-    public class GameActionEmote : GameActionPacket
+    public static class GameActionEmote
     {
-        private string emote;
-
-        public GameActionEmote(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.Emote)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            this.emote = Fragment.Payload.ReadString16L();
-        }
-
-        public override void Handle()
-        {
+            var emote = message.Payload.ReadString16L();
             // TODO: send emote text to other characters
             // The emote text comes from the client ready to broadcast.
             // For example: *afk* comes as "decides to rest for a while."

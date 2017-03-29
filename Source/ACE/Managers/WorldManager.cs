@@ -35,15 +35,14 @@ namespace ACE.Managers
         {
             var thread = new Thread(UpdateWorld);
             thread.Start();
-
-            Log.Debug(log, "ServerTime initialized to {0}", WorldStartFromTime.ToString());
+            log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime.ToString());
         }
 
         public static void HandlePacket(ClientPacket packet, IPEndPoint endPoint)
         {
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                Log.Info(log, "Login Request from {0}", endPoint);
+                log.DebugFormat("Login Request from {0}", endPoint);
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
                     session.HandlePacket(packet);
@@ -56,11 +55,11 @@ namespace ACE.Managers
                     if (session.EndPoint.Equals(endPoint))
                         session.HandlePacket(packet);
                     else
-                        Log.Warn(log, "Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                        log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                 }
                 else
                 {
-                    Log.Warn(log, "Null Session for Id {0}", packet.Header.Id);
+                    log.DebugFormat("Null Session for Id {0}", packet.Header.Id);
                 }
             }
         }
@@ -78,7 +77,7 @@ namespace ACE.Managers
                     {
                         if (sessionMap[i] == null)
                         {
-                            Log.Info(log, "Creating new session for {0} with id {1}", endPoint, i);
+                            log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
                             session = new Session(endPoint, i, ServerId);
                             sessions.Add(session);
                             sessionMap[i] = session;
@@ -94,7 +93,7 @@ namespace ACE.Managers
             // If session is still null we either have no room or had some kind of failure, we'll create a temporary session just to send an error back.
             if (session == null)
             {
-                Log.Warn(log, "Failed to create a new session for {0}", endPoint);
+                log.DebugFormat("Failed to create a new session for {0}", endPoint);
                 var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
                 errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
             }
@@ -106,7 +105,7 @@ namespace ACE.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                Log.Info(log, "Removing session for {0} with id {1}", session.EndPoint, session.Id);
+                log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Id);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
@@ -115,19 +114,6 @@ namespace ACE.Managers
             finally
             {
                 sessionLock.ExitWriteLock();
-            }
-        }
-
-        public static Session Find(IPEndPoint endPoint)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
             }
         }
 
@@ -209,7 +195,7 @@ namespace ACE.Managers
 
         private static void UpdateWorld()
         {
-            Log.Info(log, "Starting UpdateWorld thread");
+            log.DebugFormat("Starting UpdateWorld thread");
             double lastTick = 0d;
 
             var worldTickTimer = new Stopwatch();

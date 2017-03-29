@@ -5,27 +5,17 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.AllegianceUpdateRequest)]
-    public class GameActionAllegianceUpdateRequest : GameActionPacket
+    public static class GameActionAllegianceUpdateRequest
     {
-        public GameActionAllegianceUpdateRequest(Session session, ClientPacketFragment fragment) : base(session, fragment)
+        [GameAction(GameActionType.AllegianceUpdateRequest)]
+        public static void Handle(ClientMessage message, Session session)
         {
-        }
-
-        private uint unknown1;
-
-        public override void Read()
-        {
-            unknown1 = Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
+            var unknown1 = message.Payload.ReadUInt32();
             // TODO
 
-            var allegianceUpdate = new GameEventAllegianceUpdate(Session);
+            var allegianceUpdate = new GameEventAllegianceUpdate(session);
 
-            Session.Network.EnqueueSend(allegianceUpdate);
+            session.Network.EnqueueSend(allegianceUpdate);
         }
     }
 }

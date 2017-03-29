@@ -3,15 +3,13 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.LoginComplete)]
-    public class GameActionLoginComplete : GameActionPacket
+    public static class GameActionLoginComplete
     {
-        public GameActionLoginComplete(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Handle()
+        [GameAction(GameActionType.LoginComplete)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            Session.Player.InWorld = true;
-            Session.Player.SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
+            session.Player.InWorld = true;
+            session.Player.SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
         }
     }
 }
