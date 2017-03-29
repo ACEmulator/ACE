@@ -1,8 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-03-29
 [Mogwai]
 * Added changelog.md to clearly identify changes from 1 commit to another.
 * Updated readme.md.
+* Rebased database scripts.
+* Fully populated world database based on PCAP data.
 
 ### 2017-03-28
 [Jyrus]

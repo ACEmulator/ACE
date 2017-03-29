@@ -62,6 +62,8 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
+            if (Velocity == null && (PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) > 0)
+                PhysicsDescriptionFlag -= PhysicsDescriptionFlag.Velocity;
 
             writer.Write((uint)PhysicsDescriptionFlag);
 
