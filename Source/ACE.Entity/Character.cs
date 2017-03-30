@@ -97,9 +97,9 @@ namespace ACE.Entity
         private Dictionary<CharacterOption, bool> characterOptions;
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions { get; }
 
-        private Dictionary<CharacterPositionType, CharacterPosition> characterPositions;
+        private Dictionary<PositionTypes, CharacterPosition> characterPositions;
 
-        public ReadOnlyDictionary<CharacterPositionType, CharacterPosition> CharacterPositions { get; }
+        public ReadOnlyDictionary<PositionTypes, CharacterPosition> CharacterPositions { get; }
 
         public ulong AvailableExperience
         {
@@ -180,8 +180,8 @@ namespace ACE.Entity
 
             // initialize the blank character positions
             InitializeCharacterPositions();
-            CharacterPositions = new ReadOnlyDictionary<CharacterPositionType, CharacterPosition>(characterPositions);
-            PhysicalPosition = new Position(CharacterPositions[CharacterPositionType.PhysicalLocation].cell, CharacterPositions[CharacterPositionType.PhysicalLocation].positionX, CharacterPositions[CharacterPositionType.PhysicalLocation].positionY, CharacterPositions[CharacterPositionType.PhysicalLocation].positionZ, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationX, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationY, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationZ, CharacterPositions[CharacterPositionType.PhysicalLocation].rotationW);
+            CharacterPositions = new ReadOnlyDictionary<PositionTypes, CharacterPosition>(characterPositions);
+            PhysicalPosition = new Position(CharacterPositions[PositionTypes.PhysicalLocation].cell, CharacterPositions[PositionTypes.PhysicalLocation].positionX, CharacterPositions[PositionTypes.PhysicalLocation].positionY, CharacterPositions[PositionTypes.PhysicalLocation].positionZ, CharacterPositions[PositionTypes.PhysicalLocation].rotationX, CharacterPositions[PositionTypes.PhysicalLocation].rotationY, CharacterPositions[PositionTypes.PhysicalLocation].rotationZ, CharacterPositions[PositionTypes.PhysicalLocation].rotationW);
 
         }
 
@@ -198,8 +198,9 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, uint creditsSpent)
         {
-            if(Skills[skill].Status != SkillStatus.Trained && Skills[skill].Status != SkillStatus.Specialized)
-                if(PropertiesInt[PropertyInt.AvailableSkillCredits] >= creditsSpent) { 
+            if (Skills[skill].Status != SkillStatus.Trained && Skills[skill].Status != SkillStatus.Specialized)
+                if (PropertiesInt[PropertyInt.AvailableSkillCredits] >= creditsSpent)
+                {
                     Skills[skill] = new CharacterSkill(this, skill, SkillStatus.Trained, 0, 0);
                     AvailableSkillCredits = PropertiesInt[PropertyInt.AvailableSkillCredits] - creditsSpent;
                     return true;
@@ -249,7 +250,7 @@ namespace ACE.Entity
         {
             Friend friend = friends.SingleOrDefault(f => f.Id.Low == lowId);
 
-            if(friend != null)
+            if (friend != null)
                 friends.Remove(friend);
         }
 
@@ -275,24 +276,25 @@ namespace ACE.Entity
             }
         }
 
-        public void SetCharacterPositions(CharacterPositionType type, CharacterPosition position)
+        public void SetCharacterPositions(PositionTypes type, CharacterPosition position)
         {
-            if (characterPositions.ContainsKey(type)) { 
+            if (characterPositions.ContainsKey(type))
+            {
                 characterPositions[type] = position;
-                characterPositions[type].character_id = Id;
-                characterPositions[type].positionType = (uint)type;
+            }
+            else
+            {
+                characterPositions.Add(type, position);
             }
         }
 
         private void InitializeCharacterPositions()
         {
 
-            characterPositions = new Dictionary<CharacterPositionType, CharacterPosition>(System.Enum.GetValues(typeof(CharacterPositionType)).Length);
+            characterPositions = new Dictionary<PositionTypes, CharacterPosition>(System.Enum.GetValues(typeof(PositionTypes)).Length);
 
-            foreach (CharacterPositionType characterPosition in System.Enum.GetValues(typeof(CharacterPositionType)))
-            {
-                characterPositions.Add(characterPosition, CharacterPositionExtensions.StartingPosition);
-            }
+            characterPositions.Add(PositionTypes.PhysicalLocation, CharacterPositionExtensions.StartingPosition(Id));
+            characterPositions.Add(PositionTypes.PortalRecall, CharacterPositionExtensions.StartingPosition(Id));
         }
 
         /// <summary>

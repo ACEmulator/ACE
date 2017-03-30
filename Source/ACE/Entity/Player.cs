@@ -56,7 +56,7 @@ namespace ACE.Entity
             get { return character.CharacterOptions; }
         }
 
-        public ReadOnlyDictionary<CharacterPositionType, CharacterPosition> CharacterPositions
+        public ReadOnlyDictionary<PositionTypes, CharacterPosition> CharacterPositions
         {
             get { return character.CharacterPositions; }
         }
@@ -775,78 +775,13 @@ namespace ACE.Entity
         public void SetPhysicalCharacterPosition()
         {
             // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            character.SetCharacterPositions(CharacterPositionType.PhysicalLocation, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, CharacterPositionType.PhysicalLocation));
-        }
-
-        /// <summary>
-        /// Set's the active lifestone for use when recalling "@ls or /lifestone"
-        /// </summary>
-        public void SetLifestoneUseCharacterPosition()
-        {
-            // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            character.SetCharacterPositions(CharacterPositionType.LifestoneUsed, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, CharacterPositionType.LifestoneUsed));
-        }
-
-        /// <summary>
-        /// Set's the tied lifestone for use casting the Lifestone Recall spell
-        /// </summary>
-        public void SetLifestoneTiedCharacterPosition(CharacterPosition newPosition)
-        {
-            // TODO: Set too destination of the tied portal
-            character.SetCharacterPositions(CharacterPositionType.LifestoneUsed, newPosition);
-        }
-
-        /// <summary>
-        /// Set's the last portal used
-        /// </summary>
-        public void SetPortalRecallCharacterPosition(CharacterPosition newPosition)
-        {
-            // TODO : Save the Portal Recall position information from the destination of a portal
-            character.SetCharacterPositions(CharacterPositionType.PortalRecall, newPosition);
-        }
-
-        /// <summary>
-        /// Set's the Primary tied portal CharacterPosition for use with the portal recall spells
-        /// </summary>
-        public void SetPrimaryPortalRecallCharacterPosition(CharacterPosition newPosition)
-        {
-            // TODO : Save the Portal Recall position information from the destination of a portal
-            character.SetCharacterPositions(CharacterPositionType.PrimaryPortalRecall, newPosition);
-        }
-
-        /// <summary>
-        /// Set's the Secondary tied portal CharacterPosition for use with the portal recall spells
-        /// </summary>
-        public void SetSecondaryPortalRecallCharacterPosition(CharacterPosition newPosition)
-        {
-            // TODO : Save the Portal Recall position information from the destination of a portal
-            character.SetCharacterPositions(CharacterPositionType.SecondaryPortalRecall, newPosition);
-        }
-
-        /// <summary>
-        /// Set's allegiance recall position
-        /// </summary>
-        public void SetAllegianceCharacterPosition(CharacterPosition newPosition)
-        {
-            // TODO : Save the Allegiance Recall position information from the destination of a bind stone
-            character.SetCharacterPositions(CharacterPositionType.AllegianceHometown, newPosition);
-        }
-
-        /// <summary>
-        /// Set's mansion recall position
-        /// </summary>
-        public void SetMansionCharacterPosition(CharacterPosition newPosition)
-        {
-            // TODO : Save the Mansion Recall position information from the destination of a house box
-            character.SetCharacterPositions(CharacterPositionType.MansionRecall, newPosition);
+            character.SetCharacterPositions(PositionTypes.PhysicalLocation, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, PositionTypes.PhysicalLocation));
         }
 
         /// <summary>
         /// Saves a CharacterPosition to the character position dictionary
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="newPosition"></param>
-        public void SetCharacterPosition(CharacterPositionType type, CharacterPosition newPosition)
+        public void SetCharacterPosition(PositionTypes type, CharacterPosition newPosition)
         {
             character.SetCharacterPositions(type, newPosition);
         }

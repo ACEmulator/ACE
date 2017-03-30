@@ -143,7 +143,7 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
             DatabaseManager.Character.SaveCharacterOptions(character);
-            DatabaseManager.Character.SaveCharacterPositions(character);
+            // DatabaseManager.Character.CreateInitialCharacterPositions(character); // removing to save postions on demand
 
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
@@ -173,18 +173,7 @@ namespace ACE.Network.Handlers
 
         private static void CharacterCreateSetDefaultCharacterPositions(Character character)
         {
-            var newStartingPosition = CharacterPositionExtensions.StartingPosition;
-            var newInvalidPosition = CharacterPositionExtensions.InvalidPosition;
-            newStartingPosition.character_id = character.Id;
-            newInvalidPosition.character_id = character.Id;
-            character.SetCharacterPositions(CharacterPositionType.PhysicalLocation, CharacterPositionExtensions.StartingPosition);
-            character.SetCharacterPositions(CharacterPositionType.LifestoneUsed, CharacterPositionExtensions.InvalidPosition);
-            character.SetCharacterPositions(CharacterPositionType.LifestoneTied, CharacterPositionExtensions.InvalidPosition);
-            character.SetCharacterPositions(CharacterPositionType.PortalRecall, CharacterPositionExtensions.InvalidPosition);
-            character.SetCharacterPositions(CharacterPositionType.PrimaryPortalRecall, CharacterPositionExtensions.InvalidPosition);
-            character.SetCharacterPositions(CharacterPositionType.SecondaryPortalRecall, CharacterPositionExtensions.InvalidPosition);
-            character.SetCharacterPositions(CharacterPositionType.AllegianceHometown, CharacterPositionExtensions.InvalidPosition);
-            character.SetCharacterPositions(CharacterPositionType.MansionRecall, CharacterPositionExtensions.InvalidPosition);
+            character.SetCharacterPositions(PositionTypes.PhysicalLocation, CharacterPositionExtensions.StartingPosition(character.Id));
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

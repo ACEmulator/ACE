@@ -105,7 +105,6 @@
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
     <Compile Include="Enum\PortalType.cs" />
-    <Compile Include="Enum\Positions.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
     <Compile Include="Enum\Properties\PropertyDouble.cs" />
     <Compile Include="Enum\Properties\PropertyInt.cs" />

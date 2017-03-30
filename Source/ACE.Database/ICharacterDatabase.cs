@@ -10,7 +10,7 @@ namespace ACE.Database
     {
         Task<Position> GetPosition(uint id);
 
-        CharacterPosition GetCharacterPosition(uint id, CharacterPositionType type);
+        CharacterPosition GetCharacterPosition(uint id, PositionTypes type);
 
         void DeleteOrRestore(ulong unixTime, uint id);
 
@@ -53,7 +53,7 @@ namespace ACE.Database
         /// <summary>
         /// Saves the character positions
         /// </summary>
-        void SaveCharacterPositions(Character character);
+        //void CreateInitialCharacterPositions(Character character); // removing to save postions on demand
 
         /// <summary>
         /// saves all object properties in the provided db object
