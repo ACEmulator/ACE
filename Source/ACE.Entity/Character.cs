@@ -97,9 +97,9 @@ namespace ACE.Entity
         private Dictionary<CharacterOption, bool> characterOptions;
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions { get; }
 
-        private Dictionary<PositionTypes, CharacterPosition> characterPositions;
+        private Dictionary<PositionType, CharacterPosition> characterPositions;
 
-        public ReadOnlyDictionary<PositionTypes, CharacterPosition> CharacterPositions { get; }
+        public ReadOnlyDictionary<PositionType, CharacterPosition> CharacterPositions { get; }
 
         public ulong AvailableExperience
         {
@@ -180,8 +180,8 @@ namespace ACE.Entity
 
             // initialize the blank character positions
             InitializeCharacterPositions();
-            CharacterPositions = new ReadOnlyDictionary<PositionTypes, CharacterPosition>(characterPositions);
-            Location = new Position(CharacterPositions[PositionTypes.Location].cell, CharacterPositions[PositionTypes.Location].positionX, CharacterPositions[PositionTypes.Location].positionY, CharacterPositions[PositionTypes.Location].positionZ, CharacterPositions[PositionTypes.Location].rotationX, CharacterPositions[PositionTypes.Location].rotationY, CharacterPositions[PositionTypes.Location].rotationZ, CharacterPositions[PositionTypes.Location].rotationW);
+            CharacterPositions = new ReadOnlyDictionary<PositionType, CharacterPosition>(characterPositions);
+            Location = new Position(CharacterPositions[PositionType.Location].cell, CharacterPositions[PositionType.Location].positionX, CharacterPositions[PositionType.Location].positionY, CharacterPositions[PositionType.Location].positionZ, CharacterPositions[PositionType.Location].rotationX, CharacterPositions[PositionType.Location].rotationY, CharacterPositions[PositionType.Location].rotationZ, CharacterPositions[PositionType.Location].rotationW);
 
         }
 
@@ -276,7 +276,7 @@ namespace ACE.Entity
             }
         }
 
-        public void SetCharacterPositions(PositionTypes type, CharacterPosition position)
+        public void SetCharacterPositions(PositionType type, CharacterPosition position)
         {
             if (characterPositions.ContainsKey(type))
             {
@@ -291,10 +291,10 @@ namespace ACE.Entity
         private void InitializeCharacterPositions()
         {
 
-            characterPositions = new Dictionary<PositionTypes, CharacterPosition>(System.Enum.GetValues(typeof(PositionTypes)).Length);
+            characterPositions = new Dictionary<PositionType, CharacterPosition>(System.Enum.GetValues(typeof(PositionType)).Length);
 
-            characterPositions.Add(PositionTypes.Location, CharacterPositionExtensions.StartingPosition(Id));
-            characterPositions.Add(PositionTypes.PortalRecall, CharacterPositionExtensions.StartingPosition(Id));
+            characterPositions.Add(PositionType.Location, CharacterPositionExtensions.StartingPosition(Id));
+            characterPositions.Add(PositionType.PortalRecall, CharacterPositionExtensions.StartingPosition(Id));
         }
 
         /// <summary>

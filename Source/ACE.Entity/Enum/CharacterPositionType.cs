@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity.Enum
 {
-    public enum PositionTypes
+    public enum PositionType
     {
         /// <summary>
         /// Position of the bound lifestone
@@ -107,7 +107,7 @@
 
             startingPosition.character_id = characterId;
             startingPosition.cell = 2130969005;
-            startingPosition.positionType = (int)PositionTypes.Location;
+            startingPosition.positionType = (int)PositionType.Location;
             startingPosition.positionX = 12.3199f;
             startingPosition.positionY = -28.482f;
             startingPosition.positionZ = 0.0049999995f;
@@ -120,7 +120,7 @@
             
         }
 
-        public static CharacterPosition InvalidPosition(uint characterId, PositionTypes type)
+        public static CharacterPosition InvalidPosition(uint characterId, PositionType type)
         {
             var invalidPosition = new CharacterPosition();
 
@@ -141,7 +141,7 @@
         /// <summary>
         /// Returns a CharacterPosition from a Position and characterId.
         /// </summary>
-        public static CharacterPosition positionToCharacterPosition(uint characterId, Position position, PositionTypes type)
+        public static CharacterPosition positionToCharacterPosition(uint characterId, Position position, PositionType type)
         {
 
             var newCharacterPosition = new CharacterPosition();

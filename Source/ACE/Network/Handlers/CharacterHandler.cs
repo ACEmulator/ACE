@@ -143,7 +143,8 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
             DatabaseManager.Character.SaveCharacterOptions(character);
-            DatabaseManager.Character.savecharacterpositions(character);
+            DatabaseManager.Character.SaveCharacterPositions(character);
+
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
@@ -170,9 +171,10 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
-        private static void CharacterCreateSetDefaultCharacterPositions(Character character)
+        public static void CharacterCreateSetDefaultCharacterPositions(Character character)
         {
-            character.SetCharacterPositions(PositionTypes.Location, CharacterPositionExtensions.StartingPosition(character.Id));
+            character.SetCharacterPositions(PositionType.Location, CharacterPositionExtensions.StartingPosition(character.Id));
+            character.SetCharacterPositions(PositionType.PortalRecall, CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.PortalRecall));
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

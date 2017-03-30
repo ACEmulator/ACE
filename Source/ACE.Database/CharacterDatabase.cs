@@ -8,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 using MySql.Data.MySqlClient;
+using System.Collections.ObjectModel;
 
 namespace ACE.Database
 {
@@ -127,7 +128,7 @@ namespace ACE.Database
 
         public async Task<Position> GetPosition(uint id)
         {
-            MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPositionSelect, id, PositionTypes.Location);
+            MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPositionSelect, id, PositionType.Location);
             Position pos;
             if (result.Count > 0)
             {
@@ -153,7 +154,7 @@ namespace ACE.Database
         /// </summary>
         /// <remarks>
         /// </remarks>
-        public CharacterPosition GetCharacterPosition(uint id, PositionTypes type)
+        public CharacterPosition GetCharacterPosition(uint id, PositionType type)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("character_id", id);
@@ -165,7 +166,7 @@ namespace ACE.Database
                 return newCharacterPosition;
 
             // Did not find a position in the database, so we will create one here.
-            if (type == PositionTypes.Location)
+            if (type == PositionType.Location)
             {
                 newCharacterPosition = CharacterPositionExtensions.StartingPosition(id);
             } else {
@@ -451,25 +452,33 @@ namespace ACE.Database
 
 
         /// <summary>
-        /// Attempts to load character positions from the database. If no position is available, a new position will be created.
+        /// Attempts to load characters positions from the database. If no position is available, a new position will be created to allow the player to spawn.
         /// </summary>
         public void LoadCharacterPositions(Character character)
         {
-            if (character.CharacterPositions.Count == 0)
-            {
-                CharacterHandler.CharacterCreateSetDefaultCharacterPositions(character);
-            }
-            else
-            {
+            // get a list of positions from the vw_character_positions view
 
-                foreach (CharacterPosition availablePositions in character.CharacterPositions.Values)
-                {
-                    CharacterPosition result = GetCharacterPosition(character.Id, availablePositions.positionType);
-                    if (result.cell != 0)
-                        character.SetCharacterPositions(type, (CharacterPosition)result);
-                }
-            }
+            // for each position, just add it to the defaults if not available
+            //if (character.CharacterPositions.Count == 0)
+            //{
+            //    // just add the defaults
+            //    // CharacterCreateSetDefaultCharacterPositions(character);
+            //}
+
+            // temporay dictionary to allow enumeration over currently available postions
+
+            //Dictionary<PositionType, CharacterPosition> temporaryPositions = character.CharacterPositions;
+
+            //foreach (var item in temporaryPositions)
+            //{
+            //    PositionType type = (PositionType)item.Value.positionType;
+            //    CharacterPosition result = GetCharacterPosition(character.Id, type);
+            //    if (result.cell != 0)
+            //        character.SetCharacterPositions(type, result);
+            //}
+            
         }
+
 
         public void SaveCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
         {

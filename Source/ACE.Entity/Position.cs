@@ -15,6 +15,14 @@
 
         public Quaternion Facing { get; set; }
 
+        public uint PositionX { get; set; }
+        public uint PositionY { get; set; }
+        public uint PositionZ { get; set; }
+        public uint RotationX { get; set; }
+        public uint RotationY { get; set; }
+        public uint RotationZ { get; set; }
+        public uint RotationW { get; set; }
+
         public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
         {
             LandblockId = new LandblockId(landblock);

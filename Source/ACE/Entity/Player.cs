@@ -56,7 +56,7 @@ namespace ACE.Entity
             get { return character.CharacterOptions; }
         }
 
-        public ReadOnlyDictionary<PositionTypes, CharacterPosition> CharacterPositions
+        public ReadOnlyDictionary<PositionType, CharacterPosition> CharacterPositions
         {
             get { return character.CharacterPositions; }
         }
@@ -775,13 +775,13 @@ namespace ACE.Entity
         public void SetPhysicalCharacterPosition()
         {
             // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            character.SetCharacterPositions(PositionTypes.Location, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, PositionTypes.Location));
+            character.SetCharacterPositions(PositionType.Location, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, PositionType.Location));
         }
 
         /// <summary>
         /// Saves a CharacterPosition to the character position dictionary
         /// </summary>
-        public void SetCharacterPosition(PositionTypes type, CharacterPosition newPosition)
+        public void SetCharacterPosition(PositionType type, CharacterPosition newPosition)
         {
             character.SetCharacterPositions(type, newPosition);
         }
