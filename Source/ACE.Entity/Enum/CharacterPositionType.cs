@@ -3,11 +3,6 @@
     public enum PositionTypes
     {
         /// <summary>
-        /// Physical position of the player
-        /// </summary>
-        PhysicalLocation = 0x01,
-
-        /// <summary>
         /// Position of the bound lifestone
         /// </summary>
         LifestoneUsed = 0x04,
@@ -112,7 +107,7 @@
 
             startingPosition.character_id = characterId;
             startingPosition.cell = 2130969005;
-            startingPosition.positionType = (int)PositionTypes.PhysicalLocation;
+            startingPosition.positionType = (int)PositionTypes.Location;
             startingPosition.positionX = 12.3199f;
             startingPosition.positionY = -28.482f;
             startingPosition.positionZ = 0.0049999995f;

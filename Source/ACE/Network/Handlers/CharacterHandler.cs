@@ -143,8 +143,7 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
             DatabaseManager.Character.SaveCharacterOptions(character);
-            // DatabaseManager.Character.CreateInitialCharacterPositions(character); // removing to save postions on demand
-
+            DatabaseManager.Character.savecharacterpositions(character);
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
@@ -173,7 +172,7 @@ namespace ACE.Network.Handlers
 
         private static void CharacterCreateSetDefaultCharacterPositions(Character character)
         {
-            character.SetCharacterPositions(PositionTypes.PhysicalLocation, CharacterPositionExtensions.StartingPosition(character.Id));
+            character.SetCharacterPositions(PositionTypes.Location, CharacterPositionExtensions.StartingPosition(character.Id));
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

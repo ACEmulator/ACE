@@ -51,11 +51,6 @@ namespace ACE.Database
         void SaveCharacterOptions(Character character);
 
         /// <summary>
-        /// Saves the character positions
-        /// </summary>
-        //void CreateInitialCharacterPositions(Character character); // removing to save postions on demand
-
-        /// <summary>
         /// saves all object properties in the provided db object
         /// </summary>
         void SaveCharacterProperties(DbObject dbObject, Database.DatabaseTransaction transaction);

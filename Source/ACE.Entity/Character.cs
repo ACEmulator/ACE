@@ -90,7 +90,7 @@ namespace ACE.Entity
 
         public Appearance Appearance { get; set; } = new Appearance();
 
-        public Position PhysicalPosition { get; set; }
+        public Position Location { get; set; }
 
         public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
 
@@ -181,7 +181,7 @@ namespace ACE.Entity
             // initialize the blank character positions
             InitializeCharacterPositions();
             CharacterPositions = new ReadOnlyDictionary<PositionTypes, CharacterPosition>(characterPositions);
-            PhysicalPosition = new Position(CharacterPositions[PositionTypes.PhysicalLocation].cell, CharacterPositions[PositionTypes.PhysicalLocation].positionX, CharacterPositions[PositionTypes.PhysicalLocation].positionY, CharacterPositions[PositionTypes.PhysicalLocation].positionZ, CharacterPositions[PositionTypes.PhysicalLocation].rotationX, CharacterPositions[PositionTypes.PhysicalLocation].rotationY, CharacterPositions[PositionTypes.PhysicalLocation].rotationZ, CharacterPositions[PositionTypes.PhysicalLocation].rotationW);
+            Location = new Position(CharacterPositions[PositionTypes.Location].cell, CharacterPositions[PositionTypes.Location].positionX, CharacterPositions[PositionTypes.Location].positionY, CharacterPositions[PositionTypes.Location].positionZ, CharacterPositions[PositionTypes.Location].rotationX, CharacterPositions[PositionTypes.Location].rotationY, CharacterPositions[PositionTypes.Location].rotationZ, CharacterPositions[PositionTypes.Location].rotationW);
 
         }
 
@@ -293,7 +293,7 @@ namespace ACE.Entity
 
             characterPositions = new Dictionary<PositionTypes, CharacterPosition>(System.Enum.GetValues(typeof(PositionTypes)).Length);
 
-            characterPositions.Add(PositionTypes.PhysicalLocation, CharacterPositionExtensions.StartingPosition(Id));
+            characterPositions.Add(PositionTypes.Location, CharacterPositionExtensions.StartingPosition(Id));
             characterPositions.Add(PositionTypes.PortalRecall, CharacterPositionExtensions.StartingPosition(Id));
         }
 

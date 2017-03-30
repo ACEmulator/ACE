@@ -245,7 +245,7 @@ namespace ACE.Entity
                 //    character.IsAdvocate= true;
             }
 
-            Position = character.PhysicalPosition;
+            Position = character.Location;
             IsOnline = true;
 
             // SendSelf will trigger the entrance into portal space
@@ -775,7 +775,7 @@ namespace ACE.Entity
         public void SetPhysicalCharacterPosition()
         {
             // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            character.SetCharacterPositions(PositionTypes.PhysicalLocation, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, PositionTypes.PhysicalLocation));
+            character.SetCharacterPositions(PositionTypes.Location, CharacterPositionExtensions.positionToCharacterPosition(character.Id, Session.Player.Position, PositionTypes.Location));
         }
 
         /// <summary>
