@@ -5,6 +5,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("character_position")]
+    [DbGetList("vw_character_positions", 23, "character_id")]
     public class CharacterPosition
     {
         [DbField("character_id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]

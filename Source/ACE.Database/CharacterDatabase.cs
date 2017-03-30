@@ -41,6 +41,7 @@ namespace ACE.Database
             CharacterPositionSelect,
             CharacterPositionInsert,
             CharacterPositionUpdate,
+            CharacterPositionList,
 
             CharacterPropertiesBoolSelect,
             CharacterPropertiesIntSelect,
@@ -95,6 +96,7 @@ namespace ACE.Database
             ConstructStatement(CharacterPreparedStatement.CharacterPositionSelect, typeof(CharacterPosition), ConstructedStatementType.Get);
             ConstructStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(CharacterPosition), ConstructedStatementType.Insert);
             ConstructStatement(CharacterPreparedStatement.CharacterPositionUpdate, typeof(CharacterPosition), ConstructedStatementType.Update);
+            ConstructStatement(CharacterPreparedStatement.CharacterPositionList, typeof(CharacterPosition), ConstructedStatementType.GetList);
 
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_bool` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntSelect, "SELECT `propertyId`, `propertyValue` FROM `character_properties_int` WHERE `guid` = ?;", MySqlDbType.UInt32);
@@ -450,6 +452,12 @@ namespace ACE.Database
                 dbObject.SetPropertyString(results.Read<PropertyString>(i, "propertyId"), results.Read<string>(i, "propertyValue"));
         }
 
+        public List<Position> GetCharacterPositions(Character character)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("character_id", character.Id);
+            return ExecuteConstructedGetListStatement<CharacterPreparedStatement, Position>(CharacterPreparedStatement.CharacterPositionList, criteria);
+        }
 
         /// <summary>
         /// Attempts to load characters positions from the database. If no position is available, a new position will be created to allow the player to spawn.
@@ -457,7 +465,7 @@ namespace ACE.Database
         public void LoadCharacterPositions(Character character)
         {
             // get a list of positions from the vw_character_positions view
-
+            var dbPositionList = GetCharacterPositions(character);
             // for each position, just add it to the defaults if not available
             //if (character.CharacterPositions.Count == 0)
             //{
@@ -476,7 +484,7 @@ namespace ACE.Database
             //    if (result.cell != 0)
             //        character.SetCharacterPositions(type, result);
             //}
-            
+
         }
 
 
