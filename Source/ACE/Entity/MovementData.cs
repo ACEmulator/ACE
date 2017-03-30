@@ -12,12 +12,12 @@ namespace ACE.Entity
         public ushort TurnCommand = 0;
         public float TurnSpeed = 0.00f;
         public float ForwardSpeed = 0.00f;
-        public float SideStepSpeed = 0.00f;
-        public uint Bitfield = 0;
+        public float SideStepSpeed = 0.00f;        
         public MovementStateFlag MovementStateFlag = 0;
 
         public void Serialize(BinaryWriter writer)
         {
+            writer.Write((uint)this.MovementStateFlag);
 
             if ((this.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
                 writer.Write((uint)this.CurrentStyle);
@@ -34,10 +34,7 @@ namespace ACE.Entity
             if ((this.MovementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
                 writer.Write((float)this.SideStepSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-                writer.Write((uint)this.CurrentStyle);
-
-            if ((this.MovementStateFlag & MovementStateFlag.TurnCommand) != 0)
+          if ((this.MovementStateFlag & MovementStateFlag.TurnCommand) != 0)
                 writer.Write((uint)this.TurnCommand);
 
             if ((this.MovementStateFlag & MovementStateFlag.TurnSpeed) != 0)
