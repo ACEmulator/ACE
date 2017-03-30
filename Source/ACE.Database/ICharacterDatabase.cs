@@ -10,6 +10,8 @@ namespace ACE.Database
     {
         Task<Position> GetPosition(uint id);
 
+        CharacterPosition GetCharacterPosition(uint id, CharacterPositionType type);
+
         void DeleteOrRestore(ulong unixTime, uint id);
 
         Task<List<CachedCharacter>> GetByAccount(uint accountId);
@@ -41,7 +43,7 @@ namespace ACE.Database
         /// <summary>
         /// loads positons into the provided db object
         /// </summary>
-        Task LoadCharacterPositions(Character character);
+        void LoadCharacterPositions(Character character);
 
         /// <summary>
         /// Saves character options (F11 tab)

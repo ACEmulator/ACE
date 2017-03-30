@@ -153,39 +153,33 @@ namespace ACE.Database
         /// <summary>
         /// Returns the Player's CharacterPosition for the type provided the paramaters
         /// </summary>
-        public async Task<CharacterPosition> GetCharacterPosition(uint id, CharacterPositionType type)
+        /// <remarks>
+        /// TODO: Change character starting position
+        /// </remarks>
+        public CharacterPosition GetCharacterPosition(uint id, CharacterPositionType type)
         {
-            // Query for certain type
-            MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPositionSelect, id, type);
-            CharacterPosition newCharacterPosition = new CharacterPosition();
-            if (result.Count > 0)
-            {
-                newCharacterPosition.cell = result.Read<uint>(0, "cell");
-                newCharacterPosition.positionType = (uint) type;
-                newCharacterPosition.positionX = result.Read<float>(0, "positionX");
-                newCharacterPosition.positionY = result.Read<float>(0, "positionY");
-                newCharacterPosition.positionZ = result.Read<float>(0, "positionZ");
-                newCharacterPosition.rotationX = result.Read<float>(0, "rotationX");
-                newCharacterPosition.rotationY = result.Read<float>(0, "rotationY");
-                newCharacterPosition.rotationZ = result.Read<float>(0, "rotationZ");
-                newCharacterPosition.rotationW = result.Read<float>(0, "rotationW");
-            }
-            else
-            {
-                // Did not find a position in the database, so we will create one here.
-                if (type == CharacterPositionType.PhysicalLocation)
-                {
-                    newCharacterPosition = CharacterPositionExtensions.StartingPosition;
-                } else {
-                    newCharacterPosition = CharacterPositionExtensions.InvalidPosition;
-                }
-                // reset the id until we make starting postion add the ID
-                newCharacterPosition.character_id = id;
-                newCharacterPosition.positionType = (uint) type;
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("character_id", id);
+            criteria.Add("positionType", type);
 
-                // Did not find a position in the database, so we will create one here.
-                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(CharacterPosition), newCharacterPosition);
+            CharacterPosition newCharacterPosition = new CharacterPosition();
+
+            if (ExecuteConstructedGetStatement(CharacterPreparedStatement.CharacterPositionSelect, typeof(CharacterPosition), criteria, newCharacterPosition))
+                return newCharacterPosition;
+
+            // Did not find a position in the database, so we will create one here.
+            if (type == CharacterPositionType.PhysicalLocation)
+            {
+                newCharacterPosition = CharacterPositionExtensions.StartingPosition;
+            } else {
+                newCharacterPosition = CharacterPositionExtensions.InvalidPosition;
             }
+            // reset the id until we make starting postion add the ID
+            newCharacterPosition.character_id = id;
+            newCharacterPosition.positionType = (uint) type;
+
+            // Save new position
+            ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(CharacterPosition), newCharacterPosition);
 
             return newCharacterPosition;
         }
@@ -319,7 +313,7 @@ namespace ACE.Database
                 uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
                 uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
                 LoadCharacterOptions(characterOptions1Flag, characterOptions2Flag, c);
-                await LoadCharacterPositions(c);
+                LoadCharacterPositions(c);
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSkillsSelect, id);
 
                 for (uint i = 0; i < result?.Count; i++)
@@ -466,11 +460,11 @@ namespace ACE.Database
         /// <summary>
         /// Attempts to load character positions from the database. If no position is available, a new position will be created.
         /// </summary>
-        public async Task LoadCharacterPositions(Character character)
+        public void LoadCharacterPositions(Character character)
         {
             foreach (CharacterPositionType type in System.Enum.GetValues(typeof(CharacterPositionType)))
             {
-                CharacterPosition result = await GetCharacterPosition(character.Id, type);
+                CharacterPosition result = GetCharacterPosition(character.Id, type);
                 character.SetCharacterPositions(type, (CharacterPosition) result);
             }
         }
