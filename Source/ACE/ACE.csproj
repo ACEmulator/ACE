@@ -126,7 +126,7 @@
     <Compile Include="Network\Enum\MotionFlags.cs" />
     <Compile Include="Network\Enum\MotionStance.cs" />
     <Compile Include="Network\Enum\MovementStateFlag.cs" />
-    <Compile Include="Network\Enum\MotionType.cs" />
+    <Compile Include="Network\Enum\MovementTypes.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
     <Compile Include="Network\Enum\RadarColor.cs" />
     <Compile Include="Network\Enum\UiEffects.cs" />

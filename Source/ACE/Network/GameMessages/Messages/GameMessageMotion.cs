@@ -14,7 +14,7 @@ namespace ACE.Network.GameMessages.Messages
         }
 
         public GameMessageMotion(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
-            MotionType type, MotionFlags flags, MotionStance stance, MotionCommand command, float speed)
+            MovementTypes type, MotionFlags flags, MotionStance stance, MotionCommand command, float speed)
             : this()
         {
             WriteBase(animationTarget, session, activity, type, flags, stance);
@@ -25,22 +25,26 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageMotion(Entity.WorldObject animationTarget, Session session, MotionCommand command, float speed = 1.0f)
             : this()
         {
-            WriteBase(animationTarget, session, MotionActivity.Idle, MotionType.General, MotionFlags.None, MotionStance.Standing);
+            WriteBase(animationTarget, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing);
             List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
             WriteAnimations(animationTarget, animations);
         }
 
         private void WriteBase(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
-            MotionType type, MotionFlags flags, MotionStance stance)
+            MovementTypes type, MotionFlags flags, MotionStance stance, ushort autonomous = 0)
         {
-            Writer.WriteGuid(animationTarget.Guid);
-            Writer.Write((ushort)session.Player.TotalLogins);
-            Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.MotionMessage));
-            Writer.Write((ushort)1); // Index, needs more research, it changes sometimes, but not every packet
-            Writer.Write((ushort)activity);
-            Writer.Write((byte)type);
-            Writer.Write((byte)flags);
-            Writer.Write((ushort)stance);
+            Writer.WriteGuid(animationTarget.Guid); // Object_Id
+            Writer.Write((ushort)session.Player.TotalLogins); // Instance_Timestamp
+            Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.MotionMessage)); // Movement_Timestamp
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ServerControl)); // Server_Control_Timestamp
+            // The order of these is in question between the movement and server control.   Looks like in the client this is the right order
+            // in AC Log View it is reversed.
+            // TODO: reseach the correct order.   We can probably get away with either for now.
+            Writer.Write(autonomous); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
+            Writer.Write((ushort)type); // movement_type
+            Writer.Write((ushort)flags); // these can be or and has sticky object | is long jump mode |
+            Writer.Write((ushort)stance); // called command in the client
+
         }
 
         private void WriteAnimations(Entity.WorldObject animationTarget, List<MotionItem> items)
