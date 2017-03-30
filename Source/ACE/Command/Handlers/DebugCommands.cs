@@ -10,6 +10,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Factories;
+using System.Globalization;
 
 namespace ACE.Command.Handlers
 {
@@ -195,5 +196,23 @@ namespace ACE.Command.Handlers
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
+
+        [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        public static void TestSpell(Session session, params string[] parameters)
+        {
+            float x = float.Parse(parameters[0], CultureInfo.InvariantCulture.NumberFormat);
+            float y = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
+            float z = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
+
+            // we got to keep track because we going to send a effect..
+            AceVector3 velocity = new AceVector3(36f, 9.8f, -1.3f);
+
+            ObjectGuid spellguid = new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None);
+            LandblockManager.AddObject(SpellFactory.CreateCastedSpell(20974, session.Player.Position, spellguid, velocity));
+
+            var effectEvent = new GameMessageEffect(spellguid, Effect.Launch, 1f);
+            session.Network.EnqueueSend(effectEvent);
+        }
+
     }
 }
