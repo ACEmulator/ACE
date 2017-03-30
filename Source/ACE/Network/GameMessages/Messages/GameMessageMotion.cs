@@ -29,6 +29,9 @@ namespace ACE.Network.GameMessages.Messages
         {
             WriteBase(animationTarget, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing);
             var movement = new MovementData();
+            movement.Bitfield = 2;
+            movement.MovementStateFlag = MovementStateFlag.ForwardCommand;
+            movement.ForwardCommand = 24;
             movement.Serialize(Writer);
             // TODO: Pickup here CFS
             // List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
