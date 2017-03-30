@@ -183,7 +183,7 @@ namespace ACE.Network
 
             // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
             if (Network != null)
-                Network.HandlePacket(packet);
+                Network.ProcessPacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse();

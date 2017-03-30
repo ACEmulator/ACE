@@ -29,15 +29,17 @@ namespace ACE.Network
         private readonly Object currentBundleLock = new Object();
         private NetworkBundle currentBundle = new NetworkBundle();
 
-        private SortedDictionary<uint, ClientPacket> outOfOrderPackets = new SortedDictionary<uint, ClientPacket>();
-        private SortedDictionary<uint, MessageBuffer> partialFragments = new SortedDictionary<uint, MessageBuffer>();
+        private Dictionary<uint, ClientPacket> outOfOrderPackets = new Dictionary<uint, ClientPacket>();
+        private Dictionary<uint, MessageBuffer> partialFragments = new Dictionary<uint, MessageBuffer>();
+        private Dictionary<uint, ClientMessage> outOfOrderFragments = new Dictionary<uint, ClientMessage>();
 
         private DateTime nextResync = DateTime.UtcNow;
         private DateTime nextAck = DateTime.UtcNow;
         private DateTime nextSend = DateTime.UtcNow;
         private bool sendAck = false;
         private bool sendResync = false;
-        private uint lastReceivedSequence = 0;
+        private uint lastReceivedPacketSequence = 1;
+        private uint lastReceivedFragmentSequence = 0;
 
         /// <summary>
         /// This is referenced from many threads:<para />
@@ -66,8 +68,10 @@ namespace ACE.Network
         }
 
         /// <summary>
-        /// It is assumed that this might be called from any thread.
+        /// Enequeues a GameMessage for sending to this client.
+        /// This may be called from many threads.
         /// </summary>
+        /// <param name="messages">One or more GameMessages to send</param>
         public void EnqueueSend(params GameMessage[] messages)
         {
             lock (currentBundleLock)
@@ -80,17 +84,21 @@ namespace ACE.Network
         }
 
         /// <summary>
-        /// At the moment, this is only called once, when a client initially connects to the server.
+        /// Enqueues a ServerPacket for sending to this client.
+        /// Currently this is only used publicly once during login.  If that changes it's thread safety should be re
         /// </summary>
+        /// <param name="packets"></param>
         public void EnqueueSend(params ServerPacket[] packets)
         {
             foreach (var packet in packets)
                 packetQueue.Enqueue(packet);
         }
 
+        // It is assumed that this will only be called from a single thread.WorldManager.UpdateWorld()->Session.Update(lastTick)->This
         /// <summary>
-        /// It is assumed that this will only be called from a single thread. WorldManager.UpdateWorld()->Session.Update(lastTick)->This
+        /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
+        /// <param name="lastTick">Amount of time that has passed for the last cycle.</param>
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
@@ -123,20 +131,27 @@ namespace ACE.Network
             FlushPackets();
         }
 
+        // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
         /// <summary>
-        /// This is called from ConnectionListener.OnDataReceieve()->Session.HandlePacket()->This
+        /// Processes and incoming packet from a client.
         /// </summary>
-        public void HandlePacket(ClientPacket packet)
+        /// <param name="packet">The ClientPacket to process.</param>
+        public void ProcessPacket(ClientPacket packet)
         {
-            if (packet.Header.Sequence <= lastReceivedSequence && packet.Header.Sequence != 0)
+            log.DebugFormat("[{0}] Processing packet {1}", session.Account, packet.Header.Sequence);
+            // Check if this packet's sequence is a retransmit which we have already processed.
+            // TODO it seems AckSeq packets can arrive with the same sequence
+            if (packet.Header.Sequence <= lastReceivedPacketSequence && packet.Header.Sequence != 0)
             {
-                log.DebugFormat("Packet {0} received again for account {1}", packet.Header.Sequence, session.Account);
+                log.DebugFormat("[{0}] Packet {1} received again", session.Account, packet.Header.Sequence);
                 return;
             }
 
-            if (packet.Header.Sequence > lastReceivedSequence + 1)
+            // Check if this packet's sequence is greater then the next one we should be getting.
+            // If true we must store it to replay once we have caught up.
+            if (packet.Header.Sequence > lastReceivedPacketSequence + 1)
             {
-                log.DebugFormat("Packet {0} received out of order for account {1}", packet.Header.Sequence, session.Account);
+                log.DebugFormat("[{0}] Packet {1} received out of order", session.Account, packet.Header.Sequence);
                 lock (outOfOrderPackets)
                 {
                     if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
@@ -145,14 +160,26 @@ namespace ACE.Network
                 return;
             }
 
-            ProcessPacket(packet);
+            // If we reach here, this is a packet we should proceed with processing.
+            HandlePacket(packet);
+
+            // Finally check if we have any out of order packets or fragments we need to process;
+            CheckOutOfOrderPackets();
+            CheckOutOfOrderFragments();
         }
 
-        private void ProcessPacket(ClientPacket packet)
+        /// <summary>
+        /// Handles a packet, reading the flags and processing all fragments.
+        /// </summary>
+        /// <param name="packet">ClientPacket to handle</param>
+        private void HandlePacket(ClientPacket packet)
         {
+            log.DebugFormat("[{0}] Handling packet {1}", session.Account, packet.Header.Sequence);
+            // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
                 FlagEcho(packet.HeaderOptional.ClientTime);
 
+            // If we have an AcknowledgeSequence flag, we can clear our cached packet buffer up to that sequence.
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
                 AcknowledgeSequence(packet.HeaderOptional.Sequence);
 
@@ -164,18 +191,25 @@ namespace ACE.Network
                 // We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
             }
 
+            // If the client is requesting a retransmission, pull those packets from the queue and resend them.
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
             {
                 foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                     Retransmit(sequence);
             }
 
+            // This should be set on the first packet to the server indicating the client is logging in.
+            // This is the start of a three-way handshake between the client and server (LoginRequest, ConnectRequest, ConnectResponse)
+            // Note this would be sent to each server a client would connect too (Login and each world).
+            // In our current implimenation we handle all roles in this one server.
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 AuthenticationHandler.HandleLoginRequest(packet, session);
                 return;
             }
 
+            // This should be set on the second packet to the server from the client.
+            // This comletes the three-way handshake.
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
                 sendResync = true;
@@ -183,40 +217,123 @@ namespace ACE.Network
                 return;
             }
 
+            // Process all fragments out of the packet
             foreach (ClientPacketFragment fragment in packet.Fragments)
                 ProcessFragment(fragment);
 
+            // Update the last received sequence.
             if (packet.Header.Sequence != 0)
-                lastReceivedSequence = packet.Header.Sequence;
+                lastReceivedPacketSequence = packet.Header.Sequence;
         }
 
+        /// <summary>
+        /// Processes a fragment, combining split fragments as needed, then handling them
+        /// </summary>
+        /// <param name="fragment">ClientPacketFragment to process</param>
         private void ProcessFragment(ClientPacketFragment fragment)
         {
+            log.DebugFormat("[{0}] Processing fragment {1}", session.Account, fragment.Header.Sequence);
+            ClientMessage message = null;
+            // Check if this fragment is split
             if (fragment.Header.Count != 1)
             {
-                lock (partialFragments)
+                // Packet is split
+                log.DebugFormat("[{0}] Fragment {1} is split, this index {2} of {3} fragments", session.Account, fragment.Header.Sequence, fragment.Header.Index, fragment.Header.Count);
+                MessageBuffer buffer = null;
+
+                // partialFragments is only ever used here in the main update loop, so no need to lock.
+                if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
                 {
-                    MessageBuffer buffer = null;
-                    if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
+                    // Existing buffer, add this to it and check if we are finally complete.
+                    log.DebugFormat("[{0}] Adding fragment {1} to existing buffer. Buffer at {2} of {3}", session.Account, fragment.Header.Sequence, buffer.Count, buffer.TotalFragments);
+                    buffer.AddFragment(fragment);
+                    if (buffer.Complete)
                     {
-                        buffer.AddFragment(fragment);
-                        if (buffer.Complete)
-                        {
-                            ClientMessage message = buffer.GetMessage();
-                            InboundMessageManager.HandleClientMessage(message, session);
-                            partialFragments.Remove(fragment.Header.Sequence);
-                        }
+                        // The buffer is complete, so we can go ahead and handle
+                        log.DebugFormat("[{0}] Buffer {1} is complete", buffer.Sequence, session.Account);
+                        message = buffer.GetMessage();
+                        partialFragments.Remove(fragment.Header.Sequence);
                     }
-                    else
-                    {
-                        partialFragments.Add(fragment.Header.Sequence, new MessageBuffer(fragment.Header.Count));
-                    }
+                }
+                else
+                {
+                    // No existing buffer, so add a new one for this fragment sequence.
+                    log.DebugFormat("[{0}] Creating new buffer {1} for this split fragment", session.Account, fragment.Header.Sequence);
+                    partialFragments.Add(fragment.Header.Sequence, new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count));
                 }
             }
             else
             {
-                ClientMessage message = new ClientMessage(fragment.Data);
-                InboundMessageManager.HandleClientMessage(message, session);
+                // Packet is not split, proceed with handling it.
+                log.DebugFormat("[{0}] Fragment {1} is not split", session.Account, fragment.Header.Sequence);
+                message = new ClientMessage(fragment.Data);
+            }
+
+            // If message is not null, we have a complete message to handle
+            if (message != null)
+            {
+                // First check if this message is the next sequence, if it is not, add it to our outOfOrderFragments
+                if (fragment.Header.Sequence == lastReceivedFragmentSequence + 1)
+                {
+                    log.DebugFormat("[{0}] Handling fragment {1}", session.Account, fragment.Header.Sequence);
+                    HandleFragment(message);
+                }
+                else
+                {
+                    log.DebugFormat("[{0}] Fragment {1} is early, lastReceivedFragmentSequence = {2}", session.Account, fragment.Header.Sequence, lastReceivedFragmentSequence);
+                    // outOfOrderFragments is only ever touched in the main Update loop, so no need to lock.
+                    outOfOrderFragments.Add(fragment.Header.Sequence, message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles a ClientMessage by calling using InboundMessageManager
+        /// </summary>
+        /// <param name="message">ClientMessage to process</param>
+        private void HandleFragment(ClientMessage message)
+        {
+            InboundMessageManager.HandleClientMessage(message, session);
+            lastReceivedFragmentSequence++;
+        }
+
+        /// <summary>
+        /// Checks if we now have packets queued out of order which should be processed as the next sequence.
+        /// </summary>
+        private void CheckOutOfOrderPackets()
+        {
+            ClientPacket packet = null;
+
+            // outOfOrderPackets can be hit by multiple threads as network packets arrive, so will need to lock.
+            // We'll lock, retrieve, then process outside of the lock so we won't hold it for processing.
+            // We'll recursively call back into this until we do not have a packet to process.
+            lock (outOfOrderPackets)
+            {
+                if (outOfOrderPackets.TryGetValue(lastReceivedPacketSequence + 1, out packet))
+                {
+                    outOfOrderPackets.Remove(packet.Header.Sequence);
+                }
+            }
+            if (packet != null)
+            {
+                log.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", session.Account, packet.Header.Sequence);
+                HandlePacket(packet);
+                CheckOutOfOrderPackets();
+            }
+        }
+
+        /// <summary>
+        /// Checks if we now have fragments queued out of order which should be handled as the next sequence.
+        /// </summary>
+        private void CheckOutOfOrderFragments()
+        {
+            // outOfOrderFragments is only touched in the main Update loop, so no need to lock.
+            ClientMessage message = null;
+            while (outOfOrderFragments.TryGetValue(lastReceivedFragmentSequence + 1, out message))
+            {
+                outOfOrderFragments.Remove(lastReceivedFragmentSequence + 1);
+                log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", session.Account, lastReceivedFragmentSequence + 1);
+                HandleFragment(message);
             }
         }
 
@@ -251,7 +368,7 @@ namespace ACE.Network
 
             if (cachedPackets.TryGetValue(sequence, out cachedPacket))
             {
-                Console.WriteLine("Retransmit " + sequence);
+                log.DebugFormat("[{0}] Retransmit {1}", session.Account, sequence);
 
                 if (!cachedPacket.Header.HasFlag(PacketHeaderFlags.Retransmission))
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
@@ -295,13 +412,16 @@ namespace ACE.Network
         private void SendPacketRaw(ServerPacket packet)
         {
             Socket socket = SocketManager.GetSocket();
+            if (packet.Header.Sequence == 0)
+                socket = SocketManager.GetSocket(0);
+
             byte[] payload = packet.GetPayload();
 
             if (packetLog.IsDebugEnabled)
             {
                 System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine(String.Format("Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port));
+                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Account));
                 sb.AppendLine(payload.BuildPacketString());
                 packetLog.Debug(sb.ToString());
             }
@@ -343,7 +463,7 @@ namespace ACE.Network
                     if (bundle.SendAck) // 0x4000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.AckSequence;
-                        packet.BodyWriter.Write(lastReceivedSequence);
+                        packet.BodyWriter.Write(lastReceivedPacketSequence);
                     }
 
                     if (bundle.TimeSync) // 0x1000000
@@ -444,12 +564,14 @@ namespace ACE.Network
         {
             private List<ClientPacketFragment> fragments = new List<ClientPacketFragment>();
 
+            public uint Sequence { get; }
+            public int Count { get { return fragments.Count; } }
             public uint TotalFragments { get; }
-
             public bool Complete { get { return fragments.Count == TotalFragments; } }
 
-            public MessageBuffer(uint totalFragments)
+            public MessageBuffer(uint sequence, uint totalFragments)
             {
+                Sequence = sequence;
                 TotalFragments = totalFragments;
             }
 

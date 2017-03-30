@@ -77,7 +77,7 @@ namespace ACE.Managers
                     {
                         if (sessionMap[i] == null)
                         {
-                            log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
+                            log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
                             session = new Session(endPoint, i, ServerId);
                             sessions.Add(session);
                             sessionMap[i] = session;
@@ -93,7 +93,7 @@ namespace ACE.Managers
             // If session is still null we either have no room or had some kind of failure, we'll create a temporary session just to send an error back.
             if (session == null)
             {
-                log.DebugFormat("Failed to create a new session for {0}", endPoint);
+                log.WarnFormat("Failed to create a new session for {0}", endPoint);
                 var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
                 errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
             }
@@ -105,7 +105,7 @@ namespace ACE.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Id);
+                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.Id);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
