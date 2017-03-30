@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 namespace ACE.Network.GameMessages.Messages
 {
+    using global::ACE.Entity;
+
     public class GameMessageMotion : GameMessage
     {
         public GameMessageMotion()
@@ -26,8 +28,11 @@ namespace ACE.Network.GameMessages.Messages
             : this()
         {
             WriteBase(animationTarget, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing);
-            List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
-            WriteAnimations(animationTarget, animations);
+            var movement = new MovementData();
+            movement.Serialize(Writer);
+            // TODO: Pickup here CFS
+            // List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
+            // WriteAnimations(animationTarget, animations);
         }
 
         private void WriteBase(Entity.WorldObject animationTarget, Session session, MotionActivity activity,
@@ -43,7 +48,7 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write(autonomous); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
             Writer.Write((ushort)type); // movement_type
             Writer.Write((ushort)flags); // these can be or and has sticky object | is long jump mode |
-            Writer.Write((ushort)stance); // called command in the client
+            Writer.Write((uint)stance); // called command in the client
 
         }
 
