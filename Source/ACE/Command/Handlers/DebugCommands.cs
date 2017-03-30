@@ -200,10 +200,8 @@ namespace ACE.Command.Handlers
         /// Debug command to saves the character from in-game.
         /// </summary>
         /// <remarks>Added a quick way to invoke the character save routine.</remarks>
-        /// <param name="session"></param>
-        /// <param name="parameters"></param>
-        [CommandHandler("save", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void Save(Session session, params string[] parameters)
+        [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleSaveNow(Session session, params string[] parameters)
         {
             session.SaveSession();
         }
@@ -212,8 +210,6 @@ namespace ACE.Command.Handlers
         /// Returns the Player's GUID
         /// </summary>
         /// <remarks>Added a quick way to access the player GUID.</remarks>
-        /// <param name="session"></param>
-        /// <param name="parameters"></param>
         [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void WhoAmI(Session session, params string[] parameters)
         {
