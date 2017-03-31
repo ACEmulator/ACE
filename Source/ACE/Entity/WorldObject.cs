@@ -83,7 +83,7 @@ namespace ACE.Entity
 
             Sequences = new SequenceManager();
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
-            Sequences.AddSequence(SequenceType.MotionMessageIdle, new UShortSequence(2));
+            Sequences.AddSequence(SequenceType.MotionMessageAutonomous, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
         }
 

@@ -182,10 +182,10 @@ namespace ACE.Command.Handlers
         public static void Movement(Session session, params string[] parameters)
         {
             var movement = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
             movement.ForwardCommand = 0;
             movement.MovementStateFlag = MovementStateFlag.NoMotionState;
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
 
         }
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
