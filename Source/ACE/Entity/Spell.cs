@@ -34,7 +34,7 @@ namespace ACE.Entity
             PhysicsData.Velocity = velocity;
             PhysicsData.Friction = (float)friction;
             PhysicsData.Elastcity = (float)elasticity;
-            PhysicsData.DefaultScript = (uint)script; // this needs a enum
+            PhysicsData.DefaultScript = (uint)script;
             PhysicsData.DefaultScriptIntensity = 1;
             PhysicsData.PhysicsState = PhysicsState.Spell;
         }
