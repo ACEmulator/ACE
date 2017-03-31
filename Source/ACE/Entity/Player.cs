@@ -941,7 +941,7 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.Logout1));
+                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.LogOut));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 
@@ -954,6 +954,18 @@ namespace ACE.Entity
                 var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Roleplay");
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
+        }
+
+        public void SendToMarketPlace()
+        {
+            // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
+            // private static readonly Position marketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
+            // Session.Player.Teleport(marketplaceDrop);
+
+            // TODO: check current position of player against recorded position at time of command issuance, if they don't match, send the you've moved too far error (and thunk sound?).
+            // Enum_0498 of StatusMessageType1 ??
+            // Not sure what kind of tolerance there was with this check in respect to how far from initial start point one could move..
+            Session.Player.Teleport(new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f));
         }
 
         public void StopTrackingObject(ObjectGuid objectId)

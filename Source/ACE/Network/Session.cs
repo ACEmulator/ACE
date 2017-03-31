@@ -30,6 +30,8 @@ namespace ACE.Network
 
         private DateTime logOffRequestTime;
 
+        private DateTime marketplaceRequestTime;
+
         private DateTime lastSaveTime;
 
         private DateTime lastAgeIntUpdateTime;
@@ -108,6 +110,12 @@ namespace ACE.Network
             {
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
+            }
+
+            if (marketplaceRequestTime != DateTime.MinValue && marketplaceRequestTime.AddSeconds(14) <= DateTime.UtcNow)
+            {
+                marketplaceRequestTime = DateTime.MinValue;
+                Player.SendToMarketPlace();
             }
 
             if (Player != null)
@@ -205,6 +213,11 @@ namespace ACE.Network
             SaveSession();
             Player.Logout();
             logOffRequestTime = DateTime.UtcNow;
+        }
+
+        public void DoMarketplaceRecall()
+        {
+            marketplaceRequestTime = DateTime.UtcNow;
         }
 
         private async void SendFinalLogOffMessages()
