@@ -18,6 +18,7 @@ namespace ACE.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
         private static Session[] sessionMap = new Session[128]; // TODO Placeholder, should be config MaxSessions
         private static readonly List<Session> sessions = new List<Session>();
