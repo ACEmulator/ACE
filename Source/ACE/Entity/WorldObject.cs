@@ -10,6 +10,10 @@ using System.IO;
 
 namespace ACE.Entity
 {
+    using System.Collections.Generic;
+
+    using global::ACE.Managers;
+
     public abstract class WorldObject
     {
         public ObjectGuid Guid { get; }
@@ -21,7 +25,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort WeenieClassid { get; protected set; }
 
-        public ushort Icon { get; protected set; }
+        public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -62,6 +66,12 @@ namespace ACE.Entity
             set { PhysicsData.ForcePositionSequence = value; }
         }
 
+        private bool IsContainer { get; set; } = false;
+
+        private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
+
+        private readonly object inventoryMutex = new object();
+
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
         public ModelData ModelData { get; }
@@ -71,6 +81,10 @@ namespace ACE.Entity
         public GameData GameData { get; }
 
         public SequenceManager Sequences { get; }
+
+        public object InventoryMutex => this.inventoryMutex;
+
+        public Dictionary<ObjectGuid, WorldObject> Inventory => this.inventory;
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
@@ -85,6 +99,71 @@ namespace ACE.Entity
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
             Sequences.AddSequence(SequenceType.ServerControl, new UShortSequence(3));
+        }
+
+        public void AddToInventory(WorldObject worldObject)
+        {
+            lock (InventoryMutex)
+            {
+                if (Inventory.ContainsKey(worldObject.Guid))
+                    return;
+
+                Inventory.Add(worldObject.Guid, worldObject);
+            }
+        }
+
+        public void RemoveFromInventory(ObjectGuid objectGuid)
+        {
+            lock (InventoryMutex)
+            {
+                if (Inventory.ContainsKey(objectGuid))
+                    Inventory.Remove(objectGuid);
+            }
+        }
+
+        /// <summary>
+        /// This is used to do the housekeeping on the server side to take an object from inventory into 3D world.
+        /// </summary>
+        public void HandleDropItem(ObjectGuid objectGuid, Session session)
+        {
+            lock (this.InventoryMutex)
+            {
+                // Find the item in inventory
+                if (!this.Inventory.ContainsKey(objectGuid)) return;
+                var obj = this.Inventory[objectGuid];
+
+                // We are droping the item - let's keep track of change in burden
+                this.GameData.Burden -= obj.GameData.Burden;
+
+                // Set the flags and determine a position.
+
+                // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
+                obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
+                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
+
+                // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
+                obj.GameData.ContainerId = 0;
+                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
+                obj.PhysicsData.PhysicsState = PhysicsState.Gravity;
+                obj.GameData.RadarBehavior = RadarBehavior.ShowAlways;
+                obj.GameData.RadarColour = RadarColor.White;
+
+                // Let the client know our response.
+                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
+
+                // Tell the landblock so it can tell everyone around what just hit the ground.
+                LandblockManager.AddObject(obj);
+                // Remove from the inventory list.
+                this.Inventory.Remove(objectGuid);
+            }
+        }
+        public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
+        {
+            lock (InventoryMutex)
+            {
+                Inventory.TryGetValue(objectGuid, out worldObject);
+            }
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -225,7 +304,6 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-
             Position.Serialize(writer, PositionFlag);
 
             var player = Guid.IsPlayer() ? this as Player : null;

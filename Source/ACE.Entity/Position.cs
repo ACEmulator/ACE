@@ -99,17 +99,7 @@
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) != 0)
             {
                 payload.Write(Facing.Y);                
-            }
-            
-            if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
-            {
-                // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
-                payload.Write((uint)0x65);
-            }
-            else
-            {
-                payload.Write((uint)0);
-            }
+            }           
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) != 0)
             {
@@ -122,6 +112,16 @@
                 payload.Write((float)0f);
                 payload.Write((float)0f);
                 payload.Write((float)0f);
+            }
+
+            if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
+            {
+                // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
+                payload.Write((uint)0x65);
+            }
+            else
+            {
+                payload.Write((uint)0);
             }
         }
 
