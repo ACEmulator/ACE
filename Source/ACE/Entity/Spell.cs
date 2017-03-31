@@ -10,32 +10,41 @@ using log4net;
 namespace ACE.Entity
 {
     /// <summary>
-    /// factory class for creating objects related to administration or content-recreation
+    /// Spell Entity
     /// </summary>
     public class Spell :  MutableWorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Spell(Position position, DefaultScript script, AceVector3 velocity, float friction, float elasticity) : base(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None))
-        {
 
-            Name = "Ball of Death";
-            WeenieClassid = 0;
+        public ushort SpellID;
+        public DefaultScript DefaultScript;
+        public float DefaultScriptIntensity;
+
+        public Spell(Position position, AceVector3 velocity, float friction, float elasticity) : base(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None))
+        {
             Position = position;
 
             WeenieFlags = WeenieHeaderFlag.Spell;
-            GameData.Spell = (ushort)27;
+            GameData.Spell = SpellID;
 
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elastcity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
 
+            // default values - the correct value come from SpellFactory
+            Name = "Ball of Death";
+            WeenieClassid = 0;
+            SpellID = (ushort)27;
+            DefaultScript = Network.Enum.DefaultScript.PS_ProjectileCollision;
+            DefaultScriptIntensity = (float)1;
             PhysicsData.CSetup = (uint)33555469;
             PhysicsData.Stable = (uint)536870967;
             PhysicsData.Petable = (uint)872415237;
+
             PhysicsData.Velocity = velocity;
             PhysicsData.Friction = (float)friction;
             PhysicsData.Elastcity = (float)elasticity;
-            PhysicsData.DefaultScript = (uint)script;
-            PhysicsData.DefaultScriptIntensity = 1;
+            PhysicsData.DefaultScript = (uint)DefaultScript;
+            PhysicsData.DefaultScriptIntensity = (float)DefaultScriptIntensity;
             PhysicsData.PhysicsState = PhysicsState.Spell;
         }
 

@@ -109,7 +109,6 @@
     <Compile Include="Enum\Properties\PropertyInt64.cs" />
     <Compile Include="Enum\Properties\PropertyString.cs" />
     <Compile Include="Enum\Skill.cs" />
-    <Compile Include="Enum\SpellType.cs" />
     <Compile Include="Enum\StatusMessageType1.cs" />
     <Compile Include="Enum\StatusMessageType2.cs" />
     <Compile Include="Enum\TurbineChatType.cs" />

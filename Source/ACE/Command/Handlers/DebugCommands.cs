@@ -197,17 +197,17 @@ namespace ACE.Command.Handlers
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
 
-        // @testspell 2 10 10 10 10 20
+        // @testspell 0 10 10 10 10 20
         [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
         public static void TestSpell(Session session, params string[] parameters)
         {
-            Network.Enum.DefaultScript script = Network.Enum.DefaultScript.PS_Launch;
+            uint templatid;
             float x, y, z;
             float friction;
             float electicity;
-
             try
             {
+                templatid = Convert.ToUInt32(parameters[0]);
                 x = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
                 y = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
                 z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
@@ -221,16 +221,8 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            if (Enum.TryParse(parameters[0], true, out script))
-            {
-                if (Enum.IsDefined(typeof(Network.Enum.DefaultScript), script))
-                {
-                    AceVector3 velocity = new AceVector3(x, y, z);
-                    LandblockManager.AddObject(new Entity.Spell(session.Player.Position.InFrontOf(3.0f), script, velocity, friction, electicity));
-                }
-            }
-
+            AceVector3 velocity = new AceVector3(x, y, z);
+            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Position.InFrontOf(3.0f), velocity, friction, electicity));
         }
-
     }
 }

@@ -106,6 +106,7 @@
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\PortalObjectFactory.cs" />
     <Compile Include="Entity\Spell.cs" />
+    <Compile Include="Factories\SpellObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
