@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="AceObject.cs" />
     <Compile Include="AnimationOverride.cs" />
     <Compile Include="Appearance.cs" />

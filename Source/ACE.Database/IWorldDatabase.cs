@@ -9,5 +9,7 @@ namespace ACE.Database
         List<TeleportLocation> GetLocations();
 
         List<AceObject> GetObjectsByLandblock(ushort landblock);
+
+        List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
     }
 }
