@@ -197,21 +197,39 @@ namespace ACE.Command.Handlers
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
 
+        // @testspell 2 10 10 10 10 20
         [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
         public static void TestSpell(Session session, params string[] parameters)
         {
-            float x = float.Parse(parameters[0], CultureInfo.InvariantCulture.NumberFormat);
-            float y = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
-            float z = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
+            Network.Enum.DefaultScript script = Network.Enum.DefaultScript.PS_Launch;
+            float x, y, z;
+            float friction;
+            float electicity;
 
-            // we got to keep track because we going to send a effect..
-            AceVector3 velocity = new AceVector3(36f, 9.8f, -1.3f);
+            try
+            {
+                x = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
+                y = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
+                z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
+                friction = float.Parse(parameters[4], CultureInfo.InvariantCulture.NumberFormat);
+                electicity = float.Parse(parameters[5], CultureInfo.InvariantCulture.NumberFormat);
+                ChatPacket.SendServerMessage(session, $"Casting! ", ChatMessageType.Broadcast);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, $"Invalid Spell Parameters", ChatMessageType.Broadcast);
+                return;
+            }
 
-            ObjectGuid spellguid = new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None);
-            LandblockManager.AddObject(SpellFactory.CreateCastedSpell(20974, session.Player.Position, spellguid, velocity));
+            if (Enum.TryParse(parameters[0], true, out script))
+            {
+                if (Enum.IsDefined(typeof(Network.Enum.DefaultScript), script))
+                {
+                    AceVector3 velocity = new AceVector3(x, y, z);
+                    LandblockManager.AddObject(new Entity.Spell(session.Player.Position.InFrontOf(3.0f), script, velocity, friction, electicity));
+                }
+            }
 
-            var effectEvent = new GameMessageEffect(spellguid, Effect.Launch, 1f);
-            session.Network.EnqueueSend(effectEvent);
         }
 
     }

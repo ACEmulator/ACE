@@ -44,6 +44,15 @@ namespace ACE.Entity
 
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
 
+        /// <summary>
+        /// Called from local player
+        /// You must implement your own override method
+        /// </summary>
+        /// <param name="session">Network Session Object</param>
+        public virtual void PlayScript(Session session)
+        {
+        }
+
         public ushort MovementIndex
         {
             get { return PhysicsData.PositionSequence; }
