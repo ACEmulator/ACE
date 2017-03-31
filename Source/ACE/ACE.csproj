@@ -251,7 +251,6 @@
     <Compile Include="Network\Packets\PacketInboundWorldLoginRequest.cs" />
     <Compile Include="Network\Packets\PacketInboundLoginRequest.cs" />
     <Compile Include="Network\NetworkSession.cs" />
-    <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />
     <Compile Include="Network\PacketFragment.cs" />

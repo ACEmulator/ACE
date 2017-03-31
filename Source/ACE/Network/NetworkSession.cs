@@ -29,9 +29,9 @@ namespace ACE.Network
         private readonly Object currentBundleLock = new Object();
         private NetworkBundle currentBundle = new NetworkBundle();
 
-        private Dictionary<uint, ClientPacket> outOfOrderPackets = new Dictionary<uint, ClientPacket>();
-        private Dictionary<uint, MessageBuffer> partialFragments = new Dictionary<uint, MessageBuffer>();
-        private Dictionary<uint, ClientMessage> outOfOrderFragments = new Dictionary<uint, ClientMessage>();
+        private ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
+        private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
+        private ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
 
         private DateTime nextResync = DateTime.UtcNow;
         private DateTime nextAck = DateTime.UtcNow;
@@ -152,11 +152,8 @@ namespace ACE.Network
             if (packet.Header.Sequence > lastReceivedPacketSequence + 1)
             {
                 log.DebugFormat("[{0}] Packet {1} received out of order", session.Account, packet.Header.Sequence);
-                lock (outOfOrderPackets)
-                {
-                    if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
-                        outOfOrderPackets.Add(packet.Header.Sequence, packet);
-                }
+                if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
+                    outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
                 return;
             }
 
@@ -239,9 +236,8 @@ namespace ACE.Network
             {
                 // Packet is split
                 log.DebugFormat("[{0}] Fragment {1} is split, this index {2} of {3} fragments", session.Account, fragment.Header.Sequence, fragment.Header.Index, fragment.Header.Count);
-                MessageBuffer buffer = null;
 
-                // partialFragments is only ever used here in the main update loop, so no need to lock.
+                MessageBuffer buffer = null;
                 if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
                 {
                     // Existing buffer, add this to it and check if we are finally complete.
@@ -252,14 +248,15 @@ namespace ACE.Network
                         // The buffer is complete, so we can go ahead and handle
                         log.DebugFormat("[{0}] Buffer {1} is complete", buffer.Sequence, session.Account);
                         message = buffer.GetMessage();
-                        partialFragments.Remove(fragment.Header.Sequence);
+                        MessageBuffer removed = null;
+                        partialFragments.TryRemove(fragment.Header.Sequence, out removed);
                     }
                 }
                 else
                 {
                     // No existing buffer, so add a new one for this fragment sequence.
                     log.DebugFormat("[{0}] Creating new buffer {1} for this split fragment", session.Account, fragment.Header.Sequence);
-                    partialFragments.Add(fragment.Header.Sequence, new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count));
+                    partialFragments.TryAdd(fragment.Header.Sequence, new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count));
                 }
             }
             else
@@ -281,8 +278,7 @@ namespace ACE.Network
                 else
                 {
                     log.DebugFormat("[{0}] Fragment {1} is early, lastReceivedFragmentSequence = {2}", session.Account, fragment.Header.Sequence, lastReceivedFragmentSequence);
-                    // outOfOrderFragments is only ever touched in the main Update loop, so no need to lock.
-                    outOfOrderFragments.Add(fragment.Header.Sequence, message);
+                    outOfOrderFragments.TryAdd(fragment.Header.Sequence, message);
                 }
             }
         }
@@ -304,21 +300,10 @@ namespace ACE.Network
         {
             ClientPacket packet = null;
 
-            // outOfOrderPackets can be hit by multiple threads as network packets arrive, so will need to lock.
-            // We'll lock, retrieve, then process outside of the lock so we won't hold it for processing.
-            // We'll recursively call back into this until we do not have a packet to process.
-            lock (outOfOrderPackets)
-            {
-                if (outOfOrderPackets.TryGetValue(lastReceivedPacketSequence + 1, out packet))
-                {
-                    outOfOrderPackets.Remove(packet.Header.Sequence);
-                }
-            }
-            if (packet != null)
+            while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out packet))
             {
                 log.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", session.Account, packet.Header.Sequence);
                 HandlePacket(packet);
-                CheckOutOfOrderPackets();
             }
         }
 
@@ -327,11 +312,9 @@ namespace ACE.Network
         /// </summary>
         private void CheckOutOfOrderFragments()
         {
-            // outOfOrderFragments is only touched in the main Update loop, so no need to lock.
             ClientMessage message = null;
-            while (outOfOrderFragments.TryGetValue(lastReceivedFragmentSequence + 1, out message))
+            while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out message))
             {
-                outOfOrderFragments.Remove(lastReceivedFragmentSequence + 1);
                 log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", session.Account, lastReceivedFragmentSequence + 1);
                 HandleFragment(message);
             }
@@ -612,6 +595,73 @@ namespace ACE.Network
                 count = 0;
                 position = 0;
                 sequence = 0;
+            }
+        }
+
+        private class NetworkBundle
+        {
+            private bool propChanged = false;
+
+            public bool NeedsSending
+            {
+                get
+                {
+                    return propChanged || Messages.Count > 0;
+                }
+            }
+
+            public Queue<GameMessage> Messages;
+
+            private float clientTime;
+            public float ClientTime
+            {
+                get { return clientTime; }
+                set
+                {
+                    clientTime = value;
+                    propChanged = true;
+                }
+            }
+
+            private bool timeSync;
+            public bool TimeSync
+            {
+                get { return timeSync; }
+                set
+                {
+                    timeSync = value;
+                    propChanged = true;
+                }
+            }
+
+            private bool ackSeq;
+            public bool SendAck
+            {
+                get { return ackSeq; }
+                set
+                {
+                    ackSeq = value;
+                    propChanged = true;
+                }
+            }
+
+            public bool EncryptedChecksum { get; set; }
+
+            public int CurrentSize { get; private set; }
+
+            public NetworkBundle()
+            {
+                Messages = new Queue<GameMessage>();
+                clientTime = -1f;
+                timeSync = false;
+                ackSeq = false;
+                EncryptedChecksum = false;
+            }
+
+            public void Enqueue(GameMessage message)
+            {
+                CurrentSize += (int)message.Data.Length;
+                Messages.Enqueue(message);
             }
         }
     }
