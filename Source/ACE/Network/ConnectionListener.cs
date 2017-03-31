@@ -91,7 +91,7 @@ namespace ACE.Network
             }
 
             var packet = new ClientPacket(data);
-            WorldManager.HandlePacket(packet, ipEndpoint);
+            WorldManager.ProcessPacket(packet, ipEndpoint);
 
             Listen();
         }

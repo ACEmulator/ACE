@@ -170,7 +170,7 @@ namespace ACE.Network
             return true;
         }
 
-        public void HandlePacket(ClientPacket packet)
+        public void ProcessPacket(ClientPacket packet)
         {
             if (!CheckState(packet))
             {
