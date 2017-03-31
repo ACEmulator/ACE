@@ -6,6 +6,7 @@ using System.Collections.Generic;
 namespace ACE.Network.GameMessages.Messages
 {
     using System.Diagnostics.Eventing.Reader;
+    using System.Runtime.Remoting.Messaging;
 
     using global::ACE.Entity;
 
@@ -64,6 +65,7 @@ namespace ACE.Network.GameMessages.Messages
             if (animationTarget == null)
             {
                 Log("We have a null for animationTarget - that is wrong, wrong wrong.");
+                return;
             }
             var generalFlags = (uint)items.Count << 7;
             Writer.Write(generalFlags);
