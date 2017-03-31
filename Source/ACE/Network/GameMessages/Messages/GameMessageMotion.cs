@@ -1,4 +1,4 @@
-﻿using System;
+﻿using log4net;
 using ACE.Network.Enum;
 using ACE.Network.Sequence;
 using System.Collections.Generic;
@@ -11,6 +11,13 @@ namespace ACE.Network.GameMessages.Messages
 
     public class GameMessageMotion : GameMessage
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private void Log(string message)
+        {
+            log.Debug($"Error: {message}");
+        }
+
         public GameMessageMotion()
             : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
         {
@@ -46,7 +53,7 @@ namespace ACE.Network.GameMessages.Messages
             // in AC Log View it is reversed.
             // TODO: reseach the correct order.   We can probably get away with either for now.
             Writer.Write((ushort)type); // movement_type
-            Writer.Write((byte)activity); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement            
+            Writer.Write((byte)activity); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
             Writer.Write((byte)flags); // these can be or and has sticky object | is long jump mode |
             Writer.Write((ushort)stance); // called command in the client
 
@@ -54,7 +61,10 @@ namespace ACE.Network.GameMessages.Messages
 
         private void WriteAnimations(WorldObject animationTarget, List<MotionItem> items)
         {
-            if (animationTarget == null) throw new ArgumentNullException(nameof(animationTarget));
+            if (animationTarget == null)
+            {
+                Log("We have a null for animationTarget - that is wrong, wrong wrong.");
+            }
             var generalFlags = (uint)items.Count << 7;
             Writer.Write(generalFlags);
             foreach (var item in items)
