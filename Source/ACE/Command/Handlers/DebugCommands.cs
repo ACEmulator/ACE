@@ -177,6 +177,17 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, (MotionCommand)animationId, 1.0f));
         }
 
+        // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
+        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void Movement(Session session, params string[] parameters)
+        {
+            var movement = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            movement.ForwardCommand = 0;
+            movement.MovementStateFlag = MovementStateFlag.NoMotionState;
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+
+        }
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)
         {
