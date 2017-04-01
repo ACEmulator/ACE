@@ -17,13 +17,7 @@ CREATE TABLE IF NOT EXISTS `ace_creature_generators` (
   PRIMARY KEY (`generatorid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Generators (=groups) for all type of creatures: Drudges, Eaters, Banderlings, etc.';
 
--- Dumping data for table ace_world.ace_creature_generators: ~2 rows (approximately)
-/*!40000 ALTER TABLE `ace_creature_generators` DISABLE KEYS */;
-INSERT INTO `ace_creature_generators` (`generatorid`, `name`) VALUES
-	(3, 'Drduges (Black)'),
-	(8, 'Drduges (Normal)');
-/*!40000 ALTER TABLE `ace_creature_generators` ENABLE KEYS */;
-
+-- Data exporting was unselected.
 -- Dumping structure for table ace_world.ace_creature_generator_data
 CREATE TABLE IF NOT EXISTS `ace_creature_generator_data` (
   `generatorid` int(10) unsigned NOT NULL,
@@ -35,14 +29,7 @@ CREATE TABLE IF NOT EXISTS `ace_creature_generator_data` (
   CONSTRAINT `FKace_creature_generator_data__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Creature templates that all belong into one generator: i.e. all normal drudges. Probability of spawning this particular creature from this group.';
 
--- Dumping data for table ace_world.ace_creature_generator_data: ~3 rows (approximately)
-/*!40000 ALTER TABLE `ace_creature_generator_data` DISABLE KEYS */;
-INSERT INTO `ace_creature_generator_data` (`generatorid`, `weenieClassId`, `probability`) VALUES
-	(8, 35440, 50),
-	(8, 35441, 40),
-	(8, 42437, 10);
-/*!40000 ALTER TABLE `ace_creature_generator_data` ENABLE KEYS */;
-
+-- Data exporting was unselected.
 -- Dumping structure for table ace_world.ace_creature_generator_locations
 CREATE TABLE IF NOT EXISTS `ace_creature_generator_locations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -62,12 +49,7 @@ CREATE TABLE IF NOT EXISTS `ace_creature_generator_locations` (
   CONSTRAINT `FKace_creature_generator_locations__generatorId` FOREIGN KEY (`generatorId`) REFERENCES `ace_creature_generators` (`generatorid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='Locations for the random generated creatures. Specify the quantitiy of how many creatures from this generator should be spawned around this location.';
 
--- Dumping data for table ace_world.ace_creature_generator_locations: ~1 rows (approximately)
-/*!40000 ALTER TABLE `ace_creature_generator_locations` DISABLE KEYS */;
-INSERT INTO `ace_creature_generator_locations` (`id`, `generatorId`, `quantity`, `landblock`, `cell`, `posX`, `posY`, `posZ`, `qW`, `qX`, `qY`, `qZ`) VALUES
-	(1, 8, 3, 4344, 25, 82.1302, 9.98661, 94.005, 0.983917, 0, 0, 0.178627);
-/*!40000 ALTER TABLE `ace_creature_generator_locations` ENABLE KEYS */;
-
+-- Data exporting was unselected.
 -- Dumping structure for table ace_world.ace_creature_static_locations
 CREATE TABLE IF NOT EXISTS `ace_creature_static_locations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -86,12 +68,7 @@ CREATE TABLE IF NOT EXISTS `ace_creature_static_locations` (
   CONSTRAINT `FKace_creature_static_locations__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1 COMMENT='Location for an exact - not random - creature to spawn: i.e. the 3 (?) water golems on Mayoi beach would be in here.';
 
--- Dumping data for table ace_world.ace_creature_static_locations: ~1 rows (approximately)
-/*!40000 ALTER TABLE `ace_creature_static_locations` DISABLE KEYS */;
-INSERT INTO `ace_creature_static_locations` (`id`, `weenieClassId`, `landblock`, `cell`, `posX`, `posY`, `posZ`, `qW`, `qX`, `qY`, `qZ`) VALUES
-	(2, 35442, 43443, 15, 47.7673, 154.315, 94.005, 0.278842, 0, 0, 0.960337);
-/*!40000 ALTER TABLE `ace_creature_static_locations` ENABLE KEYS */;
-
+-- Data exporting was unselected.
 -- Dumping structure for view ace_world.vw_ace_creature_static
 -- Creating temporary table to overcome VIEW dependency errors
 CREATE TABLE `vw_ace_creature_static` (
