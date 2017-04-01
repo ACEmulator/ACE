@@ -132,6 +132,9 @@
     <Compile Include="TupleExtensions.cs" />
     <Compile Include="BaseAceObject.cs" />
     <Compile Include="Weenie.cs" />
+    <Compile Include="WeenieAnimationOverride.cs" />
+    <Compile Include="WeeniePaletteOverride.cs" />
+    <Compile Include="WeenieTextureMapOverride.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="default.ruleset" />

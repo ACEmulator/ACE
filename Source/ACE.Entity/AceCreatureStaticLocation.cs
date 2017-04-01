@@ -1,5 +1,6 @@
 ﻿using ACE.Common;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
@@ -44,5 +45,11 @@ namespace ACE.Entity
 
         [DbField("qZ", (int)MySqlDbType.Float)]
         public float QZ { get; set; }
+
+        public List<WeeniePaletteOverride> WeeniePaletteOverrides { get; set; } = new List<WeeniePaletteOverride>();
+
+        public List<WeenieTextureMapOverride> WeenieTextureMapOverrides { get; set; } = new List<WeenieTextureMapOverride>();
+
+        public List<WeenieAnimationOverride> WeenieAnimationOverrides { get; set; } = new List<WeenieAnimationOverride>();
     }
 }

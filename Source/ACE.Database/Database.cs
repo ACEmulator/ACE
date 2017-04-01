@@ -221,7 +221,7 @@ namespace ACE.Database
                 {
                     if (selectList != null)
                         selectList += ", ";
-                    selectList += p.Item2.DbFieldName;
+                    selectList += "`" + p.Item2.DbFieldName + "`";
                 }
 
                 if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
@@ -267,7 +267,7 @@ namespace ACE.Database
                 {
                     if (selectList != null)
                         selectList += ", ";
-                    selectList += p.Item2.DbFieldName;
+                    selectList += "`" + p.Item2.DbFieldName + "`";
                 }
 
                 if (p.Item2.Update && statementType == ConstructedStatementType.Update)
@@ -282,7 +282,7 @@ namespace ACE.Database
                 {
                     if (insertList != null)
                         insertList += ", ";
-                    insertList += p.Item2.DbFieldName;
+                    insertList += "`" + p.Item2.DbFieldName + "`";
 
                     if (insertValues != null)
                         insertValues += ", ";
