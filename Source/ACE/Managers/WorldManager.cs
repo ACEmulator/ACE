@@ -106,7 +106,7 @@ namespace ACE.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.Id);
+                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)

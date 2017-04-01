@@ -102,7 +102,7 @@ namespace ACE.Network
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
-
+            NetworkBundle bundleToSend = null;
             lock (currentBundleLock)
             {
                 if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
@@ -120,12 +120,19 @@ namespace ACE.Network
 
                 if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
                 {
-                    // Flush the bundle here
-                    var bundleToSend = currentBundle;
+                    // Swap out bundle so we can process it
+                    bundleToSend = currentBundle;
                     currentBundle = new NetworkBundle();
-                    SendBundle(bundleToSend);
-                    nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
                 }
+            }
+
+            // Send our bundle if we have one
+            // We should be able to execute this outside the lock as Sending is single threaded
+            // and all future writes from other threads will go to the new bundle
+            if (bundleToSend != null)
+            {
+                SendBundle(bundleToSend);
+                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
             }
 
             FlushPackets();
@@ -139,11 +146,14 @@ namespace ACE.Network
         public void ProcessPacket(ClientPacket packet)
         {
             log.DebugFormat("[{0}] Processing packet {1}", session.Account, packet.Header.Sequence);
-            // Check if this packet's sequence is a retransmit which we have already processed.
-            // TODO it seems AckSeq packets can arrive with the same sequence
-            if (packet.Header.Sequence <= lastReceivedPacketSequence && packet.Header.Sequence != 0)
+            // Check if this packet's sequence is a sequence which we have already processed.
+            // There are some exceptions:
+            // Sequence 0 as we have several Seq 0 packets during connect.  This also cathes a case where it seems CICMDCommand arrives at any point with 0 sequence value too.
+            // If the only header on the packet is AckSequence. It seems AckSequence can come in with the same sequence value sometimes.
+            if (packet.Header.Sequence <= lastReceivedPacketSequence && packet.Header.Sequence != 0 &&
+                !(packet.Header.Flags == PacketHeaderFlags.AckSequence && packet.Header.Sequence == lastReceivedPacketSequence))
             {
-                log.DebugFormat("[{0}] Packet {1} received again", session.Account, packet.Header.Sequence);
+                log.WarnFormat("[{0}] Packet {1} received again", session.Account, packet.Header.Sequence);
                 return;
             }
 
@@ -151,7 +161,7 @@ namespace ACE.Network
             // If true we must store it to replay once we have caught up.
             if (packet.Header.Sequence > lastReceivedPacketSequence + 1)
             {
-                log.DebugFormat("[{0}] Packet {1} received out of order", session.Account, packet.Header.Sequence);
+                log.WarnFormat("[{0}] Packet {1} received out of order", session.Account, packet.Header.Sequence);
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
                 return;
@@ -172,9 +182,16 @@ namespace ACE.Network
         private void HandlePacket(ClientPacket packet)
         {
             log.DebugFormat("[{0}] Handling packet {1}", session.Account, packet.Header.Sequence);
+
+            uint issacXor = packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
+            if (!packet.VerifyChecksum(issacXor))
+            {
+                log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.Account, packet.Header.Sequence);
+            }
+
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
-                FlagEcho(packet.HeaderOptional.ClientTime);
+                FlagEcho(packet.HeaderOptional.EchoRequestClientTime);
 
             // If we have an AcknowledgeSequence flag, we can clear our cached packet buffer up to that sequence.
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
@@ -429,7 +446,7 @@ namespace ACE.Network
 
             MessageFragment carryOverMessage = null;
 
-            while (firstPacket || carryOverMessage != null || bundle.Messages.Count > 0)
+            while (firstPacket || carryOverMessage != null || bundle.HasMoreMessages)
             {
                 ServerPacket packet = new ServerPacket();
                 PacketHeader packetHeader = packet.Header;
@@ -465,13 +482,13 @@ namespace ACE.Network
                     availableSpace -= (uint)packet.Data.Length;
                 }
 
-                if (carryOverMessage != null || bundle.Messages.Count > 0)
+                if (carryOverMessage != null || bundle.HasMoreMessages)
                 {
                     packetHeader.Flags |= PacketHeaderFlags.BlobFragments;
                     int fragmentCount = 0;
-                    while (carryOverMessage != null || bundle.Messages.Count > 0)
+                    while (carryOverMessage != null || bundle.HasMoreMessages)
                     {
-                        MessageFragment currentMessageFragment;
+                        MessageFragment currentMessageFragment = null;
 
                         if (carryOverMessage != null) // If we have a carryOverMessage, use that
                         {
@@ -480,7 +497,7 @@ namespace ACE.Network
                         }
                         else // If we don't have a carryOverMessage, go ahead and dequeue next message from the bundle
                         {
-                            currentMessageFragment = new MessageFragment(bundle.Messages.Dequeue());
+                            currentMessageFragment = new MessageFragment(bundle.Dequeue());
                         }
 
                         var currentGameMessage = currentMessageFragment.message;
@@ -606,13 +623,21 @@ namespace ACE.Network
             {
                 get
                 {
-                    return propChanged || Messages.Count > 0;
+                    return propChanged || messages.Count > 0;
+                }
+            }
+            public bool HasMoreMessages
+            {
+                get
+                {
+                    return messages.Count > 0;
                 }
             }
 
-            public Queue<GameMessage> Messages;
 
-            private float clientTime;
+            private Queue<GameMessage> messages = new Queue<GameMessage>();
+
+            private float clientTime = -1f;
             public float ClientTime
             {
                 get { return clientTime; }
@@ -623,7 +648,7 @@ namespace ACE.Network
                 }
             }
 
-            private bool timeSync;
+            private bool timeSync = false;
             public bool TimeSync
             {
                 get { return timeSync; }
@@ -634,7 +659,7 @@ namespace ACE.Network
                 }
             }
 
-            private bool ackSeq;
+            private bool ackSeq = false;
             public bool SendAck
             {
                 get { return ackSeq; }
@@ -645,23 +670,23 @@ namespace ACE.Network
                 }
             }
 
-            public bool EncryptedChecksum { get; set; }
+            public bool EncryptedChecksum { get; set; } = false;
 
             public int CurrentSize { get; private set; }
 
             public NetworkBundle()
             {
-                Messages = new Queue<GameMessage>();
-                clientTime = -1f;
-                timeSync = false;
-                ackSeq = false;
-                EncryptedChecksum = false;
             }
 
             public void Enqueue(GameMessage message)
             {
                 CurrentSize += (int)message.Data.Length;
-                Messages.Enqueue(message);
+                messages.Enqueue(message);
+            }
+
+            public GameMessage Dequeue()
+            {
+                return messages.Dequeue();
             }
         }
     }

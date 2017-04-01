@@ -1,9 +1,12 @@
-﻿using System.IO;
+﻿using ACE.Common.Cryptography;
+using log4net;
+using System.IO;
 
 namespace ACE.Network
 {
     public class ClientPacket : Packet
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public BinaryReader Payload { get; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
 
@@ -32,6 +35,21 @@ namespace ACE.Network
                 while (Payload.BaseStream.Position != Payload.BaseStream.Length)
                     Fragments.Add(new ClientPacketFragment(Payload));
             }
+        }
+
+        public bool VerifyChecksum(uint issacXor)
+        {
+            uint fragmentChecksum = 0u;
+            foreach (ClientPacketFragment fragment in Fragments)
+            {
+                fragmentChecksum += fragment.CalculateHash32();
+            }
+
+            uint payloadChecksum = HeaderOptional.CalculateHash32() + fragmentChecksum;
+
+            uint finalChecksum = Header.CalculateHash32() + (payloadChecksum ^ issacXor);
+            log.DebugFormat("Checksum is calculated as {0} and is {1} in header", finalChecksum, Header.Checksum);
+            return finalChecksum == Header.Checksum;
         }
     }
 }
