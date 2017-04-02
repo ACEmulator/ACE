@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
