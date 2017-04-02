@@ -4,25 +4,17 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.RemoveFriend)]
-    public class GameActionRemoveFriend : GameActionPacket
+    public static class GameActionRemoveFriend
     {
-        private ObjectGuid friendId;
-
-        public GameActionRemoveFriend(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.RemoveFriend)]
+        public async static void Handle(ClientMessage message, Session session)
         {
-            uint lowId = Fragment.Payload.ReadUInt32() & 0xFFFFFF;
-            friendId = new ObjectGuid(lowId, GuidType.Player);
-        }
-
-        public async override void Handle()
-        {
-            var result = await Session.Player.RemoveFriend(friendId);
+            uint lowId = message.Payload.ReadUInt32() & 0xFFFFFF;
+            var friendId = new ObjectGuid(lowId, GuidType.Player);
+            var result = await session.Player.RemoveFriend(friendId);
 
             if (result == Enum.RemoveFriendResult.NotInFriendsList)
-                ChatPacket.SendServerMessage(Session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);
         }
     }
 }

@@ -61,6 +61,7 @@ namespace ACE.Entity
             get { return PhysicsData.ForcePositionSequence; }
             set { PhysicsData.ForcePositionSequence = value; }
         }
+
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
         public ModelData ModelData { get; }
@@ -82,6 +83,7 @@ namespace ACE.Entity
 
             Sequences = new SequenceManager();
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
+            Sequences.AddSequence(SequenceType.MotionMessageAutonomous, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
         }
 

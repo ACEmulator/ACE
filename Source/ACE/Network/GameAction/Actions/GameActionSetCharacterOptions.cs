@@ -16,45 +16,43 @@ namespace ACE.Network.GameAction.Actions
     // then clicks Apply, this packet (GameActionSetCharacterOptions) WILL be sent.
     // The options that trigger a GameActionSetSingleCharacterOption packet are denoted by having a value set (as in <enum_field> = <val>) in the CharacterOptions enum.
 
-    [GameAction(GameActionType.SetCharacterOptions)]
-    public class GameActionSetCharacterOptions : GameActionPacket
+    public static class GameActionSetCharacterOptions
     {
-        private uint characterOptions1Flag;
-        private uint characterOptions2Flag;
-        private uint spellbookFilters;
-        private uint[] tab1Spells;
-        private Dictionary<uint, int> desiredComponents = new Dictionary<uint, int>();
-
-        public GameActionSetCharacterOptions(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.SetCharacterOptions)]
+        public static void Handle(ClientMessage message, Session session)
         {
+            uint characterOptions1Flag = 0;
+            uint characterOptions2Flag = 0;
+            uint spellbookFilters = 0;
+            uint[] tab1Spells;
+            Dictionary<uint, int> desiredComponents = new Dictionary<uint, int>();
+
             // Thanks to tfarley (aclogview) for guidance on how to parse some of these flags.  The protocol docs are incomplete.
 
             // Flags
-            uint flags = Fragment.Payload.ReadUInt32();
+            uint flags = message.Payload.ReadUInt32();
 
-            characterOptions1Flag = Fragment.Payload.ReadUInt32();
+            characterOptions1Flag = message.Payload.ReadUInt32();
 
             // TODO: Read shortcuts into object so it's available in the Handle method.
             if ((flags & (uint)CharacterOptionDataFlag.Shortcut) != 0)
             {
-                uint numShortcuts = Fragment.Payload.ReadUInt32();
+                uint numShortcuts = message.Payload.ReadUInt32();
                 for (int i = 0; i < numShortcuts; i++)
                 {
-                    Fragment.Payload.ReadInt32(); // index
-                    Fragment.Payload.ReadUInt32(); // objectId (guid?)
-                    Fragment.Payload.ReadUInt32(); // spellId
+                    message.Payload.ReadInt32(); // index
+                    message.Payload.ReadUInt32(); // objectId (guid?)
+                    message.Payload.ReadUInt32(); // spellId
                 }
             }
 
-            uint numTab1Spells = Fragment.Payload.ReadUInt32();
+            uint numTab1Spells = message.Payload.ReadUInt32();
 
             if (numTab1Spells > 0)
             {
                 tab1Spells = new uint[numTab1Spells];
                 for (int i = 0; i < numTab1Spells; i++)
-                    tab1Spells[i] = Fragment.Payload.ReadUInt32();  // SpellID
+                    tab1Spells[i] = message.Payload.ReadUInt32();  // SpellID
             }
 
             // TODO: I think this has been replaced by the "SpellLists8" struct, but we need to verify
@@ -63,9 +61,9 @@ namespace ACE.Network.GameAction.Actions
                 // Reads in 4 tabs of spells?
                 for (int i = 0; i < 4; i++)
                 {
-                    uint count = Fragment.Payload.ReadUInt32();
+                    uint count = message.Payload.ReadUInt32();
                     for (int j = 0; j < count; j++)
-                        Fragment.Payload.ReadUInt32(); // spellId
+                        message.Payload.ReadUInt32(); // spellId
                 }
             }
 
@@ -75,9 +73,9 @@ namespace ACE.Network.GameAction.Actions
                 // Reads in 6 tabs of spells?
                 for (int i = 0; i < 6; i++)
                 {
-                    uint count = Fragment.Payload.ReadUInt32();
+                    uint count = message.Payload.ReadUInt32();
                     for (int j = 0; j < count; j++)
-                        Fragment.Payload.ReadUInt32(); // spellId
+                        message.Payload.ReadUInt32(); // spellId
                 }
             }
 
@@ -87,26 +85,26 @@ namespace ACE.Network.GameAction.Actions
                 // Reads in 7 tabs of spells?
                 for (int i = 0; i < 7; i++)
                 {
-                    uint count = Fragment.Payload.ReadUInt32();
+                    uint count = message.Payload.ReadUInt32();
                     for (int j = 0; j < count; j++)
-                        Fragment.Payload.ReadUInt32(); // spellId
+                        message.Payload.ReadUInt32(); // spellId
                 }
             }
 
 
             if ((flags & (uint)CharacterOptionDataFlag.DesiredComps) != 0)
             {
-                uint sizeInfo = Fragment.Payload.ReadUInt32(); // sizeInfo
+                uint sizeInfo = message.Payload.ReadUInt32(); // sizeInfo
                 uint num = sizeInfo & 0xFFFF;
                 for (int i = 0; i < num; ++i)
                 {
-                    desiredComponents.Add(Fragment.Payload.ReadUInt32(), Fragment.Payload.ReadInt32());
+                    desiredComponents.Add(message.Payload.ReadUInt32(), message.Payload.ReadInt32());
                 }
             }
 
             if ((flags & (uint)CharacterOptionDataFlag.SpellbookFilters) != 0)
             {
-                spellbookFilters = Fragment.Payload.ReadUInt32();
+                spellbookFilters = message.Payload.ReadUInt32();
             }
             else
             {
@@ -115,13 +113,13 @@ namespace ACE.Network.GameAction.Actions
 
             if ((flags & (uint)CharacterOptionDataFlag.CharacterOptions2) != 0)
             {
-                characterOptions2Flag = Fragment.Payload.ReadUInt32();
+                characterOptions2Flag = message.Payload.ReadUInt32();
             }
 
             // TODO: Read into an object so it's available in the Handle method.
             if ((flags & (uint)CharacterOptionDataFlag.TimestampFormat) != 0)
             {
-                Fragment.Payload.ReadString16L(); // TODO: verify this is correct
+                message.Payload.ReadString16L(); // TODO: verify this is correct
             }
 
             // TODO: Not sure on the order of the next 3 or how to parse them
@@ -131,13 +129,11 @@ namespace ACE.Network.GameAction.Actions
             // if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0) { }
 
             // if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0) { }
-        }
 
-        public override void Handle()
-        {
+
             // Set the options on the player object
             Dictionary<CharacterOption, bool> optionValues = new Dictionary<CharacterOption, bool>(); // Have to use a list since I can't change the values of the actual list while enumerating over it.
-            foreach (var option in Session.Player.CharacterOptions)
+            foreach (var option in session.Player.CharacterOptions)
             {
                 if (option.Key.GetCharacterOptions1Attribute() != null)
                 {
@@ -156,13 +152,13 @@ namespace ACE.Network.GameAction.Actions
             }
 
             foreach (var option in optionValues)
-                Session.Player.SetCharacterOption(option.Key, option.Value);
+                session.Player.SetCharacterOption(option.Key, option.Value);
 
 
             // TODO: Set other options from the packet
 
             // Save the options
-            Session.Player.SaveOptions();
+            session.Player.SaveOptions();
 
             return;
         }

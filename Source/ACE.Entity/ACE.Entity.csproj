@@ -77,6 +77,7 @@
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="AceCreatureStaticLocation.cs" />
+    <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
     <Compile Include="AnimationOverride.cs" />
     <Compile Include="Appearance.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Enum\CharacterOption.cs" />
     <Compile Include="Enum\CharacterOptions1.cs" />
     <Compile Include="Enum\CharacterOptions2.cs" />
+    <Compile Include="Enum\PositionType.cs" />
     <Compile Include="Enum\ChatDisplayMask.cs" />
     <Compile Include="Enum\ChatFilterMask.cs" />
     <Compile Include="Enum\ChatMessageType.cs" />

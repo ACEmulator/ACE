@@ -1,17 +1,21 @@
-﻿using System.IO;
+﻿using ACE.Common.Cryptography;
+using System.IO;
 
 namespace ACE.Network
 {
     public class ClientPacketFragment : PacketFragment
     {
-        public BinaryReader Payload { get; }
-        public MemoryStream Data { get; private set; }
-
         public ClientPacketFragment(BinaryReader payload)
         {
             Header = new PacketFragmentHeader(payload);
-            Data = new MemoryStream(payload.ReadBytes((int)(Header.Size - PacketFragmentHeader.HeaderSize)));
-            Payload = new BinaryReader(Data);
+            Data = payload.ReadBytes((int)(Header.Size - PacketFragmentHeader.HeaderSize));
+        }
+
+        public uint CalculateHash32()
+        {
+            byte[] fragmentHeaderBytes = Header.GetRaw();
+            uint fragmentChecksum = Hash32.Calculate(fragmentHeaderBytes, fragmentHeaderBytes.Length) + Hash32.Calculate(Data, Data.Length);
+            return fragmentChecksum;
         }
     }
 }

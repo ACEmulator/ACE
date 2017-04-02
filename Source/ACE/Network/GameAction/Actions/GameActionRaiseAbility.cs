@@ -3,17 +3,13 @@ using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.RaiseAbility)]
-    public class GameActionRaiseAbility : GameActionPacket
+    public static class GameActionRaiseAbility
     {
-        private Entity.Enum.Ability ability;
-        private uint xpSpent;
-
-        public GameActionRaiseAbility(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.RaiseAbility)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            var networkAbility = (Ability)Fragment.Payload.ReadUInt32();
+            Entity.Enum.Ability ability = Entity.Enum.Ability.None;
+            var networkAbility = (Ability)message.Payload.ReadUInt32();
             switch (networkAbility)
             {
                 case Ability.Strength:
@@ -37,12 +33,8 @@ namespace ACE.Network.GameAction.Actions
                 case Ability.Undefined:
                     return;
             }
-            xpSpent = Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
-            Session.Player.SpendXp(ability, xpSpent);
+            var xpSpent = message.Payload.ReadUInt32();
+            session.Player.SpendXp(ability, xpSpent);
         }
     }
 }

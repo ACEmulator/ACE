@@ -10,17 +10,15 @@ namespace ACE.Network.Packets
 {
     public class PacketOutboundConnectRequest : ServerPacket
     {
-        public PacketOutboundConnectRequest(byte[] isaacServerSeed, byte[] isaacClientSeed) : base()
+        public PacketOutboundConnectRequest(double serverTime, ulong cookie, uint clientId, byte[] isaacServerSeed, byte[] isaacClientSeed) : base()
         {
             this.Header.Flags = PacketHeaderFlags.ConnectRequest;
-            BodyWriter.Write(0u);
-            BodyWriter.Write(0u);
-            BodyWriter.Write(13626398284849559039ul); // some sort of check value?
-            BodyWriter.Write((ushort)0);
-            BodyWriter.Write((ushort)0);
-            BodyWriter.Write(isaacServerSeed);
-            BodyWriter.Write(isaacClientSeed);
-            BodyWriter.Write(0u);
+            BodyWriter.Write(serverTime); // CConnectHeader.ServerTime
+            BodyWriter.Write(cookie); // CConnectHeader.Cookie
+            BodyWriter.Write(clientId); // CConnectHeader.NetID
+            BodyWriter.Write(isaacServerSeed); // CConnectHeader.OutgoingSeed
+            BodyWriter.Write(isaacClientSeed); // CConnectHeader.IncomingSeed
+            BodyWriter.Write(0u); // Padding for alignment?
         }
     }
 }

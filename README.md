@@ -5,12 +5,16 @@
  * Currently intended for developers that wish to contribute to the ACEmulator project.
 
 ***
+## Recommended Tools
+* SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
+* Hex Editor (Hexplorer or 010 Editor are both good)
+* ACLogView [on Github](https://github.com/tfarley/aclogview)
 
 ## Getting Started
 
-* Install MySQL
+* Install MySQL (MariaDB is preferred, but either will work).
 * Create three databases named `ace_auth`, `ace_character`, and `ace_world`.
-* Load AuthenticationBase.sql and CharacterBase.sql for their respective databases. 
+* Load AuthenticationBase.sql, CharacterBase.sql, and WorldBase.sql for their respective databases. 
 * Load all incremental SQL updates in the Database\Updates sub directories. 
 * Copy `Config.json.example` to `Config.json` and modify database settings, such as your database password.
 * Build and run ACE.
@@ -29,5 +33,12 @@
 
 ## Contact
 
+- [Discord Channel](https://discord.gg/mVtGhSv) (best option)
 - [ACEmulator Forums](http://acemulator.org/forums)
-- [Discord Channel](https://discord.gg/mVtGhSv)
+
+## Other Resources
+* [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php)
+* [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)
+* [Miach's PCAP Repository](http://aka-steve.com/AC/AC-Files/AC1%20PCAPS/All%20PCAPS/)
+* [Mag-nus Logs Repository](http://aka-steve.com/AC/AC-Files/AC1%20PCAPS/All%20Mag-nus%20Logs/)
+* [AC Dungeon Viewer](https://github.com/floaterxk/DungeonViewerAC)

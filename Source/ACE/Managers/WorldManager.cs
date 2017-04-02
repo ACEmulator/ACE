@@ -10,14 +10,18 @@ using ACE.Common;
 using ACE.Entity;
 using ACE.Network;
 
+using log4net;
+
 namespace ACE.Managers
 {
     public static class WorldManager
     {
-        // commented: unused.  uncomment if you'll use it.
-        // private static uint sessionTimeout = 150u; // max time between packets before the client disconnects
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly List<Session> sessionStore = new List<Session>();
+        // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
+        public const ushort ServerId = 0xB;
+        private static Session[] sessionMap = new Session[128]; // TODO Placeholder, should be config MaxSessions
+        private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
         private static bool pendingWorldStop;
@@ -32,44 +36,86 @@ namespace ACE.Managers
         {
             var thread = new Thread(UpdateWorld);
             thread.Start();
-
-            Console.WriteLine("");
-            Console.WriteLine("ServerTime initialized to " + WorldStartFromTime.ToString());
+            log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime.ToString());
         }
 
-        public static Session Find(IPEndPoint endPoint)
+        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
-            Session session;
-
-            sessionLock.EnterReadLock();
-            try
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                session = sessionStore.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
+                log.DebugFormat("Login Request from {0}", endPoint);
+                var session = FindOrCreateSession(endPoint);
                 if (session != null)
-                    return session;
+                    session.ProcessPacket(packet);
             }
-            finally
+            else if (sessionMap.Length > packet.Header.Id)
             {
-                sessionLock.ExitReadLock();
+                var session = sessionMap[packet.Header.Id];
+                if (session != null)
+                {
+                    if (session.EndPoint.Equals(endPoint))
+                        session.ProcessPacket(packet);
+                    else
+                        log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                }
+                else
+                {
+                    log.DebugFormat("Null Session for Id {0}", packet.Header.Id);
+                }
             }
+        }
 
+        public static Session FindOrCreateSession(IPEndPoint endPoint)
+        {
+            Session session = null;
             sessionLock.EnterWriteLock();
             try
             {
-                // this needs to be checked again, another thread could of created a session between the read and write lock
-                session = sessionStore.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
-                if (session != null)
-                    return session;
-
-                session = new Session(endPoint);
-                sessionStore.Add(session);
+                session = sessions.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
+                if (session == null)
+                {
+                    for (ushort i = 0; i < sessionMap.Length; i++)
+                    {
+                        if (sessionMap[i] == null)
+                        {
+                            log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
+                            session = new Session(endPoint, i, ServerId);
+                            sessions.Add(session);
+                            sessionMap[i] = session;
+                            break;
+                        }
+                    }
+                }
             }
             finally
             {
                 sessionLock.ExitWriteLock();
             }
-
+            // If session is still null we either have no room or had some kind of failure, we'll create a temporary session just to send an error back.
+            if (session == null)
+            {
+                log.WarnFormat("Failed to create a new session for {0}", endPoint);
+                var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
+                errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
+            }
             return session;
+        }
+
+        public static void RemoveSession(Session session)
+        {
+            sessionLock.EnterWriteLock();
+            try
+            {
+                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
+                if (sessions.Contains(session))
+                    sessions.Remove(session);
+                if (sessionMap[session.Network.ClientId] == session)
+                    sessionMap[session.Network.ClientId] = null;
+            }
+            finally
+            {
+                sessionLock.ExitWriteLock();
+            }
         }
 
         public static Session Find(string account)
@@ -77,7 +123,7 @@ namespace ACE.Managers
             sessionLock.EnterReadLock();
             try
             {
-                return sessionStore.SingleOrDefault(s => s.Account == account);
+                return sessions.SingleOrDefault(s => s.Account == account);
             }
             finally
             {
@@ -90,7 +136,7 @@ namespace ACE.Managers
             sessionLock.EnterReadLock();
             try
             {
-                return sessionStore.SingleOrDefault(s => s.Player?.Guid.Low == characterGuid.Low);
+                return sessions.SingleOrDefault(s => s.Player?.Guid.Low == characterGuid.Low);
             }
             finally
             {
@@ -107,9 +153,9 @@ namespace ACE.Managers
             try
             {
                 if (isOnlineRequired)
-                    return sessionStore.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+                    return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
 
-                return sessionStore.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+                return sessions.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
             }
             finally
             {
@@ -122,7 +168,7 @@ namespace ACE.Managers
             sessionLock.EnterReadLock();
             try
             {
-                return sessionStore.Where(s => s.Player?.Friends.FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
+                return sessions.Where(s => s.Player?.Friends.FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
             }
             finally
             {
@@ -136,9 +182,9 @@ namespace ACE.Managers
             try
             {
                 if (isOnlineRequired)
-                    return sessionStore.Where(s => s.Player != null && s.Player.IsOnline).ToList();
+                    return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
-                return sessionStore.Where(s => s.Player != null).ToList();
+                return sessions.Where(s => s.Player != null).ToList();
             }
             finally
             {
@@ -146,23 +192,11 @@ namespace ACE.Managers
             }
         }
 
-        public static void Remove(Session session)
-        {
-            sessionLock.EnterWriteLock();
-            try
-            {
-                sessionStore.Remove(session);
-            }
-            finally
-            {
-                sessionLock.ExitWriteLock();
-            }
-        }
-
         public static void StopWorld() { pendingWorldStop = true; }
 
         private static void UpdateWorld()
         {
+            log.DebugFormat("Starting UpdateWorld thread");
             double lastTick = 0d;
 
             var worldTickTimer = new Stopwatch();
@@ -173,7 +207,7 @@ namespace ACE.Managers
                 sessionLock.EnterReadLock();
                 try
                 {
-                    Parallel.ForEach(sessionStore, s => s.Update(lastTick));
+                    Parallel.ForEach(sessions, s => s.Update(lastTick));
                 }
                 finally
                 {

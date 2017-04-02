@@ -8,11 +8,11 @@ namespace ACE.Network.Packets
 {
     public class PacketInboundConnectResponse
     {
-        public ulong Check { get; private set; }
+        public ulong Check { get; }
 
         public PacketInboundConnectResponse(ClientPacket packet)
         {
-            Check = packet.Payload.ReadUInt64(); // 13626398284849559039 - sent in previous packet
+            Check = packet.Payload.ReadUInt64();
         }
     }
 }

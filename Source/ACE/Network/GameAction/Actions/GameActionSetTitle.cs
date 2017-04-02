@@ -1,21 +1,13 @@
 ﻿
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.TitleSet)]
-    public class GameActionSetTitle : GameActionPacket
+    public static class GameActionSetTitle
     {
-        private uint title;
-
-        public GameActionSetTitle(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.TitleSet)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            title = Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
-            Session.Player.SetTitle(title);
+            var title = message.Payload.ReadUInt32();
+            session.Player.SetTitle(title);
         }
     }
 }
