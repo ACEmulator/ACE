@@ -182,10 +182,11 @@ namespace ACE.Command.Handlers
         public static void Movement(Session session, params string[] parameters)
         {
             var movement = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
             movement.ForwardCommand = 0;
             movement.MovementStateFlag = MovementStateFlag.NoMotionState;
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+
         }
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)
@@ -206,42 +207,6 @@ namespace ACE.Command.Handlers
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
 
-<<<<<<< HEAD
-        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void CreateTrainingWand(Session session, params string[] parameters)
-        {
-            if (!(parameters?.Length > 0))
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                   ChatMessageType.Broadcast);
-                return;
-            }
-            string location = parameters[0];
-            if (location == "me" | location == "ground")
-            {
-                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
-                switch (location)
-                {
-                    case "me":
-                        {
-                            LootGenerationFactory.AddToContainer(loot, session.Player);
-                            session.Player.TrackObject(loot);
-                            // TODO: Have to send game message CFS
-                            break;
-                        }
-                    case "ground":
-                        {
-                            LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(2.0f));
-                            LandblockManager.AddObject(loot);
-                            break;
-                        }
-                }
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                    ChatMessageType.Broadcast);
-=======
         /// <summary>
         /// Debug command to saves the character from in-game.
         /// </summary>
@@ -295,7 +260,43 @@ namespace ACE.Command.Handlers
             catch (Exception)
             {
                 // Do Nothing
->>>>>>> 868f082200d7858037eef5cf2c64b6ef68c376c7
+            }
+        }
+
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateTrainingWand(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
+                   ChatMessageType.Broadcast);
+                return;
+            }
+            string location = parameters[0];
+            if (location == "me" | location == "ground")
+            {
+                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                switch (location)
+                {
+                    case "me":
+                        {
+                            LootGenerationFactory.AddToContainer(loot, session.Player);
+                            session.Player.TrackObject(loot);
+                            // TODO: Have to send game message CFS
+                            break;
+                        }
+                    case "ground":
+                        {
+                            LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(2.0f));
+                            LandblockManager.AddObject(loot);
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
+                    ChatMessageType.Broadcast);
             }
         }
     }

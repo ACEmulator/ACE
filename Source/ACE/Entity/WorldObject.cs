@@ -12,6 +12,7 @@ namespace ACE.Entity
 {
     using System.Collections.Generic;
 
+    using global::ACE.Entity.Enum.Properties;
     using global::ACE.Managers;
 
     public abstract class WorldObject
@@ -122,7 +123,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// This is used to do the housekeeping on the server side to take an object from inventory into 3D world.
+        /// This is used to do the housekeeping on the server side to take an object from inventory into 3D world then tell the world
         /// </summary>
         public void HandleDropItem(ObjectGuid objectGuid, Session session)
         {
@@ -156,6 +157,32 @@ namespace ACE.Entity
                 LandblockManager.AddObject(obj);
                 // Remove from the inventory list.
                 this.Inventory.Remove(objectGuid);
+
+                // OK, now let's tell the world and our client what we have done.
+                var targetContainer = new ObjectGuid(0);
+                session.Network.EnqueueSend(
+                   new GameMessagePrivateUpdatePropertyInt(session,
+                       PropertyInt.EncumbVal,
+                       (uint)session.Player.GameData.Burden));
+                var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
+                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+
+
+                // Set Container id to 0 - you are free
+                session.Network.EnqueueSend(
+                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+
+                var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
+                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+
+                // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
+                // Put the darn thing in 3d space
+                // Make the thud sound
+                // Send the container update again.   I have no idea why, but that is what they did in live.
+                session.Network.EnqueueSend(
+                    new GameMessagePutObjectIn3d(session, session.Player, objectGuid),
+                    new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
+                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
             }
         }
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
