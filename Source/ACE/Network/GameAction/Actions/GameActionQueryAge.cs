@@ -6,23 +6,14 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.QueryAge)]
-    public class GameActionQueryAge : GameActionPacket
+    public static class GameActionQueryAge
     {
-        private string target;
-
-        public GameActionQueryAge(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.QueryAge)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            target = Fragment.Payload.ReadString16L();
-        }
-
-        public override void Handle()
-        {
-
+            var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime();
-            playerDOB = playerDOB.AddSeconds(Session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.Age]);
+            playerDOB = playerDOB.AddSeconds(session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.Age]);
             TimeSpan tsAge = playerDOB - new DateTime();
 
             string age = "";
@@ -73,9 +64,9 @@ namespace ACE.Network.GameAction.Actions
                 age = age + tsAge.ToString("%s") + "s";
 
 
-            var ageEvent = new GameEvent.Events.GameEventQueryAgeResponse(Session, "", age);
+            var ageEvent = new GameEvent.Events.GameEventQueryAgeResponse(session, "", age);
 
-            Session.Network.EnqueueSend(ageEvent);
+            session.Network.EnqueueSend(ageEvent);
         }
     }
 }

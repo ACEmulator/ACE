@@ -2,35 +2,59 @@
 {
     using System;
     using System.IO;
-    using System.Numerics;
     using Enum;
+    using Common;
+    using MySql.Data.MySqlClient;
 
+    [DbTable("character_position")]
+    [DbGetList("vw_character_positions", 23, "character_id")]
     public class Position
     {
-        private const float xyMidPoint = 96f;
-
         public LandblockId LandblockId { get; set; }
 
-        public Vector3 Offset { get; set; }
+        [DbField("character_id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        public virtual uint character_id { get; set; }
 
-        public Quaternion Facing { get; set; }
+        [DbField("cell", (int)MySqlDbType.UInt32)]
+        public uint cell { get; set; }
 
-        public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
+        [DbField("positionType", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        public virtual uint dbpositionType { get; set; }
+
+        public PositionType positionType
         {
-            LandblockId = new LandblockId(landblock);
-            Offset  = new Vector3(x, y, z);
-            Facing  = new Quaternion(qx, qy, qz, qw);
+            get
+            {
+                return (PositionType)dbpositionType;
+            }
+            set
+            {
+                dbpositionType = (uint)value;
+            }
         }
 
-        public Position(BinaryReader payload)
-        {
-            LandblockId = new LandblockId(payload.ReadUInt32());
-            Offset  = new Vector3(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle());
+        [DbField("positionX", (int)MySqlDbType.Float)]
+        public float positionX { get; set; }
 
-            // packet stream isn't the same order as the quaternion constructor
-            float qw = payload.ReadSingle();
-            Facing  = new Quaternion(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle(), qw);
-        }
+        [DbField("positionY", (int)MySqlDbType.Float)]
+        public float positionY { get; set; }
+
+        [DbField("positionZ", (int)MySqlDbType.Float)]
+        public float positionZ { get; set; }
+
+        [DbField("rotationX", (int)MySqlDbType.Float)]
+        public float rotationX { get; set; }
+
+        [DbField("rotationY", (int)MySqlDbType.Float)]
+        public float rotationY { get; set; }
+
+        [DbField("rotationZ", (int)MySqlDbType.Float)]
+        public float rotationZ { get; set; }
+
+        [DbField("rotationW", (int)MySqlDbType.Float)]
+        public float rotationW { get; set; }
+
+        private const float xyMidPoint = 96f;
 
         public bool IsInQuadrant(Quadrant q)
         {
@@ -38,19 +62,84 @@
             if (q == Quadrant.All)
                 return true;
 
-            if ((q & Quadrant.NorthEast) > 0 && Offset.X > xyMidPoint && Offset.Y > xyMidPoint)
+            if ((q & Quadrant.NorthEast) > 0 && positionX > xyMidPoint && positionY > xyMidPoint)
                 return true;
 
-            if ((q & Quadrant.NorthWest) > 0 && Offset.X <= xyMidPoint && Offset.Y > xyMidPoint)
+            if ((q & Quadrant.NorthWest) > 0 && positionX <= xyMidPoint && positionY > xyMidPoint)
                 return true;
 
-            if ((q & Quadrant.SouthEast) > 0 && Offset.X <= xyMidPoint && Offset.Y <= xyMidPoint)
+            if ((q & Quadrant.SouthEast) > 0 && positionX <= xyMidPoint && positionY <= xyMidPoint)
                 return true;
 
-            if ((q & Quadrant.SouthWest) > 0 && Offset.X <= xyMidPoint && Offset.Y <= xyMidPoint)
+            if ((q & Quadrant.SouthWest) > 0 && positionX <= xyMidPoint && positionY <= xyMidPoint)
                 return true;
 
             return false;
+        }
+        public Position InFrontOf(double distanceInFront = 3.0f)
+        {
+            float qw = rotationW; // north
+            float qz = rotationZ; // south
+
+            double x = 2 * qw * qz;
+            double y = 1 - 2 * qz * qz;
+
+            var heading = Math.Atan2(x, y);
+            var dx = -1 * Convert.ToSingle(Math.Sin(heading) * distanceInFront);
+            var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
+
+            // move the Z slightly up and let gravity pull it down.  just makes things easier.
+            return new Position(LandblockId.Raw, positionX + dx, positionY + dy, positionZ + 0.5f, 0f, 0f, 0f, 0f);
+        }
+
+        public Position() : base() {
+
+        }
+
+        public Position(uint characterId, PositionType type, uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
+        {
+            LandblockId = new LandblockId(cell);
+            
+            character_id = characterId;
+            positionType = type;
+            cell = newCell;
+            positionX = newPositionX;
+            positionY = newPositionY;
+            positionZ = newPositionZ;
+            rotationX = newRotationX;
+            rotationY = newRotationY;
+            rotationZ = newRotationZ;
+            rotationW = newRotationW;
+        }
+
+        public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
+        {
+            LandblockId = new LandblockId(landblock);
+            cell = LandblockId.Raw;
+            positionX = x;
+            positionY = y;
+            positionZ = z;
+            rotationX = qx;
+            rotationY = qy;
+            rotationZ = qz;
+            rotationW = qw;
+        }
+
+        public Position(BinaryReader payload)
+        {
+            LandblockId = new LandblockId(payload.ReadUInt32());
+            cell = LandblockId.Raw;
+            // Offset  = new Vector3(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle());
+            positionX = payload.ReadSingle();
+            positionY = payload.ReadSingle();
+            positionZ = payload.ReadSingle();
+            // float qw = payload.ReadSingle();
+            rotationW = payload.ReadSingle();
+            // Facing  = new Quaternion(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle(), qw);
+            rotationX = payload.ReadSingle();
+            rotationY = payload.ReadSingle();
+            rotationZ = payload.ReadSingle();
+            // packet stream isn't the same order as the quaternion constructor
         }
 
         public Position(float northSouth, float eastWest)
@@ -71,8 +160,15 @@
             float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
-            Offset = new Vector3(xOffset, yOffset, zOffset);
-            Facing = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+            // Offset 
+            positionX = xOffset;
+            positionY = yOffset;
+            positionZ = zOffset;
+            // Facing 
+            rotationX = 0.0f;
+            rotationY = 0.0f;
+            rotationZ = 0.0f;
+            rotationW = 1.0f;
         }
 
         public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
@@ -82,23 +178,23 @@
             if (writeLandblock)
                 payload.Write(LandblockId.Raw);
 
-            payload.Write(Offset.X);
-            payload.Write(Offset.Y);
-            payload.Write(Offset.Z);
+            payload.Write(positionX);
+            payload.Write(positionY);
+            payload.Write(positionZ);
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQw) != 0)
             {
-                payload.Write(Facing.W);
+                payload.Write(rotationW);
             }
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQx) != 0)
             {
-                payload.Write(Facing.X);                
+                payload.Write(rotationX);                
             }
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) != 0)
             {
-                payload.Write(Facing.Y);                
+                payload.Write(rotationY);                
             }
             
             if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
@@ -113,7 +209,7 @@
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) != 0)
             {
-                payload.Write(Facing.Z);                
+                payload.Write(rotationZ);                
             }
             
             if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
@@ -130,34 +226,20 @@
             if (writeLandblock)
                 payload.Write(LandblockId.Raw);
 
-            payload.Write(Offset.X);
-            payload.Write(Offset.Y);
-            payload.Write(Offset.Z);
+            payload.Write(positionX);
+            payload.Write(positionY);
+            payload.Write(positionZ);
 
             if (writeQuaternion)
             {
-                payload.Write(Facing.W);
-                payload.Write(Facing.X);
-                payload.Write(Facing.Y);
-                payload.Write(Facing.Z);
+                payload.Write(rotationW);
+                payload.Write(rotationX);
+                payload.Write(rotationY);
+                payload.Write(rotationZ);
             }
         }
 
-        public Position InFrontOf(double distanceInFront = 3.0f)
-        {
-            float qw = Facing.W; // north
-            float qz = Facing.Z; // south
 
-            double x = 2 * qw * qz;
-            double y = 1 - 2 * qz * qz;
-
-            var heading = Math.Atan2(x, y);
-            var dx = -1 * Convert.ToSingle(Math.Sin(heading) * distanceInFront);
-            var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
-
-            // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            return new Position(LandblockId.Raw, Offset.X + dx, Offset.Y + dy, Offset.Z + 0.5f, 0f, 0f, 0f, 0f);
-        }
 
         private float GetZFromCellXY(uint cell, float xOffset, float yOffset)
         {
@@ -180,7 +262,7 @@
 
         public override string ToString()
         {
-            return $"{LandblockId.Landblock.ToString("X")}: {Offset.X} {Offset.Y} {Offset.Z}";
+            return $"{LandblockId.Landblock.ToString("X")}: {positionX} {positionY} {positionZ}";
         }
     }
 }

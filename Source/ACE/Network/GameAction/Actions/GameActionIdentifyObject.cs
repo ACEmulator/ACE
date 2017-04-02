@@ -5,26 +5,16 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.IdentifyObject)]
-    public class GameActionIdentifyObject : GameActionPacket
+    public static class GameActionIdentifyObject
     {
-        public GameActionIdentifyObject(Session session, ClientPacketFragment fragment) : base(session, fragment)
+        [GameAction(GameActionType.IdentifyObject)]
+        public static void Handle(ClientMessage message, Session session)
         {
-        }
-
-        private uint objectID;
-
-        public override void Read()
-        {
-            objectID = Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
+            var objectID = message.Payload.ReadUInt32();
             // TODO
 
-            var identifyObjectResponse = new GameEventIdentifyObjectResponse(Session, objectID);
-            Session.Network.EnqueueSend(identifyObjectResponse);
+            var identifyObjectResponse = new GameEventIdentifyObjectResponse(session, objectID);
+            session.Network.EnqueueSend(identifyObjectResponse);
         }
     }
 }

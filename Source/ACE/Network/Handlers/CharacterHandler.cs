@@ -17,16 +17,16 @@ namespace ACE.Network.Handlers
     public static class CharacterHandler
     {
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
-        public static void CharacterEnterWorldRequest(ClientPacketFragment fragment, Session session)
+        public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
         {
             session.Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
-        public static void CharacterEnterWorld(ClientPacketFragment fragment, Session session)
+        public static void CharacterEnterWorld(ClientMessage message, Session session)
         {
-            ObjectGuid guid = fragment.Payload.ReadGuid();
-            string account = fragment.Payload.ReadString16L();
+            ObjectGuid guid = message.Payload.ReadGuid();
+            string account = message.Payload.ReadString16L();
 
             if (account != session.Account)
             {
@@ -57,10 +57,10 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
-        public static async void CharacterDelete(ClientPacketFragment fragment, Session session)
+        public static async void CharacterDelete(ClientMessage message, Session session)
         {
-            string account = fragment.Payload.ReadString16L();
-            uint characterSlot = fragment.Payload.ReadUInt32();
+            string account = message.Payload.ReadString16L();
+            uint characterSlot = message.Payload.ReadUInt32();
 
             if (account != session.Account)
             {
@@ -87,9 +87,9 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static void CharacterRestore(ClientPacketFragment fragment, Session session)
+        public static void CharacterRestore(ClientMessage message, Session session)
         {
-            ObjectGuid guid = fragment.Payload.ReadGuid();
+            ObjectGuid guid = message.Payload.ReadGuid();
 
             var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
             if (cachedCharacter == null)
@@ -108,16 +108,16 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
-        public static async void CharacterCreate(ClientPacketFragment fragment, Session session)
+        public static async void CharacterCreate(ClientMessage message, Session session)
         {
             // known issues:
             // 1. getting the "next" character id is not thread-safe
 
-            string account = fragment.Payload.ReadString16L();
+            string account = message.Payload.ReadString16L();
             if (account != session.Account)
                 return;
 
-            Character character = Character.CreateFromClientFragment(fragment.Payload, session.Id);
+            Character character = Character.CreateFromClientFragment(message.Payload, session.Id);
 
             // TODO: profanity filter
             // sendCharacterCreateResponse(session, 4);
@@ -140,7 +140,9 @@ namespace ACE.Network.Handlers
             }
 
             CharacterCreateSetDefaultCharacterOptions(character);
+            CharacterCreateSetDefaultCharacterPositions(character);
             DatabaseManager.Character.SaveCharacterOptions(character);
+            DatabaseManager.Character.InitCharacterPositions(character);
 
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
@@ -168,13 +170,19 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
+        public static void CharacterCreateSetDefaultCharacterPositions(Character character)
+        {
+            character.SetCharacterPositions(PositionType.Location, CharacterPositionExtensions.StartingPosition(character.Id));
+            character.SetCharacterPositions(PositionType.LastPortal, CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.LastPortal));
+        }
+
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
         {
             session.Network.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
-        public static void CharacterLogOff(ClientPacketFragment fragment, Session session)
+        public static void CharacterLogOff(ClientMessage message, Session session)
         {
             session.LogOffPlayer();
         }

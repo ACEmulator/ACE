@@ -5,22 +5,15 @@ using System;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.QueryHealth)]
-    public class GameActionQueryHealth : GameActionPacket
+    public static class GameActionQueryHealth
     {
-        private ObjectGuid objectId;
-
-        public GameActionQueryHealth(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.QueryHealth)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            uint fullId = Fragment.Payload.ReadUInt32();
-            this.objectId = new ObjectGuid(fullId);
-        }
+            uint fullId = message.Payload.ReadUInt32();
+            var objectId = new ObjectGuid(fullId);
 
-        public override void Handle()
-        {
-            LandblockManager.HandleQueryHealth(this.Session, objectId);
+            LandblockManager.HandleQueryHealth(session, objectId);
         }
     }
 }

@@ -89,6 +89,7 @@
     <Compile Include="Entity\BroadcastAction.cs" />
     <Compile Include="Entity\Events\BroadcastEventArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
+    <Compile Include="Entity\MovementData.cs" />
     <Compile Include="Entity\Events\SpellCastArgs.cs" />
     <Compile Include="Entity\ImmutableWorldObject.cs" />
     <Compile Include="Entity\Landblock.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
+    <Compile Include="Network\ClientMessage.cs" />
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
@@ -126,7 +128,8 @@
     <Compile Include="Network\Enum\MotionCommand.cs" />
     <Compile Include="Network\Enum\MotionFlags.cs" />
     <Compile Include="Network\Enum\MotionStance.cs" />
-    <Compile Include="Network\Enum\MotionType.cs" />
+    <Compile Include="Network\Enum\MovementStateFlag.cs" />
+    <Compile Include="Network\Enum\MovementTypes.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
     <Compile Include="Network\Enum\RadarColor.cs" />
     <Compile Include="Network\Enum\Spell.cs" />
@@ -251,7 +254,6 @@
     <Compile Include="Network\Packets\PacketInboundWorldLoginRequest.cs" />
     <Compile Include="Network\Packets\PacketInboundLoginRequest.cs" />
     <Compile Include="Network\NetworkSession.cs" />
-    <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />
     <Compile Include="Network\PacketFragment.cs" />

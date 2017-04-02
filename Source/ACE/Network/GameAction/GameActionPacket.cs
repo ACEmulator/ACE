@@ -23,13 +23,13 @@ namespace ACE.Network.GameAction
         public abstract void Handle();
 
         [GameMessageAttribute(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
-        public static void HandleGameAction(ClientPacketFragment fragement, Session session)
+        public static void HandleGameAction(ClientMessage message, Session session)
         {
             // TODO: verify sequence
-            uint sequence = fragement.Payload.ReadUInt32();
-            uint opcode   = fragement.Payload.ReadUInt32();
+            uint sequence = message.Payload.ReadUInt32();
+            uint opcode   = message.Payload.ReadUInt32();
 
-            InboundMessageManager.HandleGameAction((GameActionType)opcode, fragement, session);
+            InboundMessageManager.HandleGameAction((GameActionType)opcode, message, session);
         }
     }
 }
