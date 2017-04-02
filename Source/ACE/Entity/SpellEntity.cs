@@ -12,16 +12,16 @@ namespace ACE.Entity
     /// <summary>
     /// Spell Entity
     /// </summary>
-    public class Spell :  MutableWorldObject
+    public class SpellEntity :  MutableWorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        public ushort SpellID;
-        public DefaultScript DefaultScript;
+        public Spell SpellID;
+        public Effect DefaultScript;
         public float DefaultScriptIntensity;
 
-        public Spell(Position position, AceVector3 velocity, float friction, float elasticity) : base(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None))
+        public SpellEntity(Position position, AceVector3 velocity, float friction, float elasticity) : base(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None))
         {
             Position = position;
 
@@ -33,8 +33,8 @@ namespace ACE.Entity
             // default values - the correct value come from SpellFactory
             Name = "Ball of Death";
             WeenieClassid = 0;
-            SpellID = (ushort)27;
-            DefaultScript = Network.Enum.DefaultScript.PS_ProjectileCollision;
+            SpellID = Spell.FlameBolt;
+            DefaultScript = Network.Enum.Effect.ProjectileCollision;
             DefaultScriptIntensity = (float)1;
             PhysicsData.CSetup = (uint)33555469;
             PhysicsData.Stable = (uint)536870967;

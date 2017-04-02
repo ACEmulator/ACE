@@ -213,8 +213,7 @@ namespace ACE.Command.Handlers
                 z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
                 friction = float.Parse(parameters[4], CultureInfo.InvariantCulture.NumberFormat);
                 electicity = float.Parse(parameters[5], CultureInfo.InvariantCulture.NumberFormat);
-                ChatPacket.SendServerMessage(session, $"Casting! ", ChatMessageType.Broadcast);
-            }
+           }
             catch (Exception)
             {
                 ChatPacket.SendServerMessage(session, $"Invalid Spell Parameters", ChatMessageType.Broadcast);
@@ -222,7 +221,7 @@ namespace ACE.Command.Handlers
             }
 
             AceVector3 velocity = new AceVector3(x, y, z);
-            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Position.InFrontOf(3.0f), velocity, friction, electicity));
+            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Position.InFrontOf(2.0f), velocity, friction, electicity));
         }
     }
 }

@@ -190,7 +190,7 @@ namespace ACE.Entity
                 writer.Write(GameData.Burden);
 
             if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
-                writer.Write(GameData.Spell);
+                writer.Write((uint)GameData.Spell);
 
             if ((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
                 writer.Write(GameData.HouseOwner);
