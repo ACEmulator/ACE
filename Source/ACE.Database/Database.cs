@@ -31,11 +31,10 @@ namespace ACE.Database
     public class Database
     {
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public class DatabaseTransaction
         {
-            private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
             private readonly Database database;
             private readonly List<Tuple<StoredPreparedStatement, object[]>> queries = new List<Tuple<StoredPreparedStatement, object[]>>();
 
@@ -76,7 +75,7 @@ namespace ACE.Database
                                 for (int i = 0; i < query.Item2.Length; i++)
                                 {
                                     command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
-#if NETWORKDEBUG
+#if DBDEBUG
                                     foreach (MySqlParameter p in command.Parameters)
                                     {
                                         log.Info(p.Value);
@@ -263,6 +262,9 @@ namespace ACE.Database
             var properties = GetPropertyCache(type);
             foreach (var p in properties)
             {
+#if DBDEBUG
+                log.Debug("P1: " + p.Item1  + " P2: " + p.Item2);
+#endif
                 if (p.Item2.Get)
                 {
                     if (selectList != null)
@@ -316,7 +318,13 @@ namespace ACE.Database
                     query = $"UPDATE `{tableName}` SET {updateList} WHERE {whereList}";
                     break;
             }
-
+#if DBDEBUG
+            log.Debug("Id: " + Convert.ToUInt32(id) + "Query: " + query);
+            foreach(var name in types)
+            {
+                log.Debug("Types: + " + name.ToString());
+            }
+#endif
             PrepareStatement(Convert.ToUInt32(id), query, types);
         }
 
@@ -426,6 +434,7 @@ namespace ACE.Database
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
             StoredPreparedStatement preparedStatement;
+
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
                 Debug.Assert(preparedStatement != null);
@@ -521,9 +530,22 @@ namespace ACE.Database
                 {
                     using (var command = new MySqlCommand(preparedStatement.Query, connection))
                     {
-                        for (int i = 0; i < preparedStatement.Types.Count; i++)
+#if DBDEBUG
+                        log.Debug(preparedStatement.Query);
+#endif
+                        for (int i = 0; i < preparedStatement.Types.Count; i++) {
+#if DBDEBUG
+                            log.Debug(preparedStatement.Types[i]);
+                            foreach (MySqlParameter p in command.Parameters)
+                            {
+                                log.Debug(p.Value);
+                            }
+#endif
                             command.Parameters.Add("", preparedStatement.Types[i]).Value = parameters[i];
-
+#if DBDEBUG
+                            log.Debug(command.Parameters);
+#endif
+                        }
                         if (async)
                         {
                             await connection.OpenAsync();
@@ -658,7 +680,10 @@ namespace ACE.Database
                     using (var command = new MySqlCommand(query, connection))
                     {
                         types.ForEach(t => command.Parameters.Add("", t));
-
+#if DBDEBUG
+                        Console.WriteLine(types);
+                        Console.WriteLine(query);
+#endif
                         command.Prepare();
 
                         uint uintId = Convert.ToUInt32(id);

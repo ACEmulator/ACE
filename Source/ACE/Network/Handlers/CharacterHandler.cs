@@ -132,6 +132,7 @@ namespace ACE.Network.Handlers
             uint lowGuid = DatabaseManager.Character.GetMaxId();
             character.Id = lowGuid;
             character.AccountId = session.Id;
+            character.DateOfBirth = character.CreationTimeStamp.ToString();
 
             if (!await DatabaseManager.Character.CreateCharacter(character))
             {
@@ -140,7 +141,9 @@ namespace ACE.Network.Handlers
             }
 
             CharacterCreateSetDefaultCharacterOptions(character);
+            CharacterCreateSetDefaultCharacterPositions(character);
             DatabaseManager.Character.SaveCharacterOptions(character);
+            DatabaseManager.Character.SaveCharacterPositions(character);
 
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
@@ -166,6 +169,12 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
             character.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
+        }
+
+        public static void CharacterCreateSetDefaultCharacterPositions(Character character)
+        {
+            character.SetCharacterPositions(PositionType.Location, CharacterPositionExtensions.StartingPosition(character.Id));
+            character.SetCharacterPositions(PositionType.PortalRecall, CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.PortalRecall));
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

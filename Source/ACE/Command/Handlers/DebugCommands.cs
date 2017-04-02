@@ -206,5 +206,25 @@ namespace ACE.Command.Handlers
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
+
+        /// <summary>
+        /// Debug command to saves the character from in-game.
+        /// </summary>
+        /// <remarks>Added a quick way to invoke the character save routine.</remarks>
+        [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleSaveNow(Session session, params string[] parameters)
+        {
+            session.SaveSession();
+        }
+
+        /// <summary>
+        /// Returns the Player's GUID
+        /// </summary>
+        /// <remarks>Added a quick way to access the player GUID.</remarks>
+        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void WhoAmI(Session session, params string[] parameters)
+        {
+            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
+        }
     }
 }

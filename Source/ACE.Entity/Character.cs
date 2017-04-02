@@ -69,7 +69,7 @@ namespace ACE.Entity
         public uint TotalSkillPoints { get; set; }
 
         public uint TotalLogins { get; set; } = 1u;  // total amount of times the player has logged into this character
-        
+
         public CharacterAbility Strength { get; set; }
 
         public CharacterAbility Endurance { get; set; }
@@ -90,13 +90,17 @@ namespace ACE.Entity
 
         public Appearance Appearance { get; set; } = new Appearance();
 
-        public Position Position { get; set; }
+        public Position Location { get; set; }
 
         public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
 
         private Dictionary<CharacterOption, bool> characterOptions;
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions { get; }
-        
+
+        private Dictionary<PositionType, CharacterPosition> characterPositions;
+
+        public ReadOnlyDictionary<PositionType, CharacterPosition> CharacterPositions { get; }
+
         public ulong AvailableExperience
         {
             get { return propertiesInt64[PropertyInt64.AvailableExperience]; }
@@ -173,6 +177,12 @@ namespace ACE.Entity
 
             InitializeCharacterOptions();
             CharacterOptions = new ReadOnlyDictionary<CharacterOption, bool>(characterOptions);
+
+            // initialize the blank character positions
+            InitializeCharacterPositions();
+            CharacterPositions = new ReadOnlyDictionary<PositionType, CharacterPosition>(characterPositions);
+            Location = new Position(CharacterPositions[PositionType.Location].cell, CharacterPositions[PositionType.Location].positionX, CharacterPositions[PositionType.Location].positionY, CharacterPositions[PositionType.Location].positionZ, CharacterPositions[PositionType.Location].rotationX, CharacterPositions[PositionType.Location].rotationY, CharacterPositions[PositionType.Location].rotationZ, CharacterPositions[PositionType.Location].rotationW);
+
         }
 
         public Character(uint id, uint accountId)
@@ -188,8 +198,9 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, uint creditsSpent)
         {
-            if(Skills[skill].Status != SkillStatus.Trained && Skills[skill].Status != SkillStatus.Specialized)
-                if(PropertiesInt[PropertyInt.AvailableSkillCredits] >= creditsSpent) { 
+            if (Skills[skill].Status != SkillStatus.Trained && Skills[skill].Status != SkillStatus.Specialized)
+                if (PropertiesInt[PropertyInt.AvailableSkillCredits] >= creditsSpent)
+                {
                     Skills[skill] = new CharacterSkill(this, skill, SkillStatus.Trained, 0, 0);
                     AvailableSkillCredits = PropertiesInt[PropertyInt.AvailableSkillCredits] - creditsSpent;
                     return true;
@@ -239,7 +250,7 @@ namespace ACE.Entity
         {
             Friend friend = friends.SingleOrDefault(f => f.Id.Low == lowId);
 
-            if(friend != null)
+            if (friend != null)
                 friends.Remove(friend);
         }
 
@@ -263,6 +274,27 @@ namespace ACE.Entity
             {
                 characterOptions.Add(characterOption, false);
             }
+        }
+
+        public void SetCharacterPositions(PositionType type, CharacterPosition position)
+        {
+            if (characterPositions.ContainsKey(type))
+            {
+                characterPositions[type] = position;
+            }
+            else
+            {
+                characterPositions.Add(type, position);
+            }
+        }
+
+        private void InitializeCharacterPositions()
+        {
+
+            characterPositions = new Dictionary<PositionType, CharacterPosition>(System.Enum.GetValues(typeof(PositionType)).Length);
+
+            characterPositions.Add(PositionType.Location, CharacterPositionExtensions.StartingPosition(Id));
+            characterPositions.Add(PositionType.PortalRecall, CharacterPositionExtensions.StartingPosition(Id));
         }
 
         /// <summary>

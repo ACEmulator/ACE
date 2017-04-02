@@ -10,6 +10,8 @@ namespace ACE.Database
     {
         Task<Position> GetPosition(uint id);
 
+        CharacterPosition GetCharacterPosition(uint id, PositionType type);
+
         void DeleteOrRestore(ulong unixTime, uint id);
 
         Task<List<CachedCharacter>> GetByAccount(uint accountId);
@@ -32,16 +34,26 @@ namespace ACE.Database
         Task DeleteFriend(uint characterId, uint friendCharacterId);
         Task AddFriend(uint characterId, uint friendCharacterId);
         Task RemoveAllFriends(uint characterId);
-        
+
         /// <summary>
         /// loads object properties into the provided db object
         /// </summary>
         Task LoadCharacterProperties(DbObject dbObject);
 
         /// <summary>
+        /// loads positons into the provided db object
+        /// </summary>
+        void LoadCharacterPositions(Character character);
+
+        /// <summary>
         /// Saves character options (F11 tab)
         /// </summary>
         void SaveCharacterOptions(Character character);
+
+        /// <summary>
+        /// Saves character options (F11 tab)
+        /// </summary>
+        void SaveCharacterPositions(Character character);
 
         /// <summary>
         /// saves all object properties in the provided db object
