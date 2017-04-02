@@ -8,7 +8,9 @@ namespace ACE.Database
 {
     public interface ICharacterDatabase
     {
-        Task<Position> GetPosition(uint id);
+        Position GetLocation(uint id);
+
+        List<Position> GetCharacterPositions(Character character);
 
         void DeleteOrRestore(ulong unixTime, uint id);
 
@@ -32,16 +34,26 @@ namespace ACE.Database
         Task DeleteFriend(uint characterId, uint friendCharacterId);
         Task AddFriend(uint characterId, uint friendCharacterId);
         Task RemoveAllFriends(uint characterId);
-        
+
         /// <summary>
         /// loads object properties into the provided db object
         /// </summary>
         Task LoadCharacterProperties(DbObject dbObject);
 
         /// <summary>
+        /// loads positons into the provided db object
+        /// </summary>
+        void LoadCharacterPositions(Character character);
+
+        /// <summary>
         /// Saves character options (F11 tab)
         /// </summary>
         void SaveCharacterOptions(Character character);
+
+        /// <summary>
+        /// Saves character options (F11 tab)
+        /// </summary>
+        void InitCharacterPositions(Character character);
 
         /// <summary>
         /// saves all object properties in the provided db object
