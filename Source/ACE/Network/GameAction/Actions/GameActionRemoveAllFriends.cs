@@ -1,14 +1,12 @@
 ﻿
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.RemoveAllFriends)]
-    public class GameActionRemoveAllFriends : GameActionPacket
+    public static class GameActionRemoveAllFriends
     {
-        public GameActionRemoveAllFriends(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Handle()
+        [GameAction(GameActionType.RemoveAllFriends)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            Session.Player.RemoveAllFriends();
+            session.Player.RemoveAllFriends();
         }
     }
 }

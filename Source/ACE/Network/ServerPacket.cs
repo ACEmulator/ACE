@@ -66,7 +66,7 @@ namespace ACE.Network
                     }
 
                     Header.Size = (ushort)(stream.Length - PacketHeader.HeaderSize);
-                    Header.CalculateHash32(out headerChecksum);
+                    headerChecksum = Header.CalculateHash32();
                     uint payloadChecksum = bodyChecksum + fragmentChecksum;
                     Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
                     writer.Seek(0, SeekOrigin.Begin);

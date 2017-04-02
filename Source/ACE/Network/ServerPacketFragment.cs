@@ -6,22 +6,19 @@ namespace ACE.Network
 {
     public class ServerPacketFragment : PacketFragment
     {
-        // public PacketFragmentHeader Header { get; private set; }
-
-        public byte[] Content { get; set; }
-
-        public ServerPacketFragment()
+        public ServerPacketFragment(byte[] data)
         {
             Header = new PacketFragmentHeader();
+            Data = data;
         }
 
         public uint GetPayload(BinaryWriter writer)
         {
-            Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Content.Length);
+            Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Data.Length);
             byte[] fragmentHeaderBytes = Header.GetRaw();
-            uint fragmentChecksum = Hash32.Calculate(fragmentHeaderBytes, fragmentHeaderBytes.Length) + Hash32.Calculate(Content, Content.Length);
+            uint fragmentChecksum = Hash32.Calculate(fragmentHeaderBytes, fragmentHeaderBytes.Length) + Hash32.Calculate(Data, Data.Length);
             writer.Write(fragmentHeaderBytes);
-            writer.Write(Content);
+            writer.Write(Data);
             return fragmentChecksum;
         }
     }

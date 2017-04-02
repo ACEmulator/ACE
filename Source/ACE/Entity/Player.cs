@@ -56,6 +56,11 @@ namespace ACE.Entity
             get { return character.CharacterOptions; }
         }
 
+        public ReadOnlyDictionary<PositionType, Position> Positions
+        {
+            get { return character.Positions; }
+        }
+
         public ReadOnlyCollection<Friend> Friends
         {
             get { return character.Friends; }
@@ -240,7 +245,9 @@ namespace ACE.Entity
                 //    character.IsAdvocate= true;
             }
 
-            Position = character.Position;
+            Position = character.Positions[PositionType.Location];
+            // TODO: copy object to prevent dataloss here, resetting position inline; character_id and LandblockId may also be missing
+            Position.positionType = PositionType.Location;
             IsOnline = true;
 
             this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
@@ -768,15 +775,31 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Set the currenly position of the character, to later save in the database.
+        /// </summary>
+        public void SetPhysicalCharacterPosition()
+        {
+            // Saves the current player position after converting from a Position Object, to a CharacterPosition object
+            character.SetCharacterPositions(PositionType.Location, Session.Player.Position);
+        }
+
+        /// <summary>
+        /// Saves a CharacterPosition to the character position dictionary
+        /// </summary>
+        public void SetCharacterPosition(PositionType type, Position newPosition)
+        {
+            character.SetCharacterPositions(type, newPosition);
+        }
+
+        /// <summary>
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
         /// </summary>
         public void SaveCharacter()
         {
             if (character != null)
             {
-                // save the player position to the database blob
-                character.Position = Session.Player.Position;
-
+                // Save the current position to persistent storage
+                SetPhysicalCharacterPosition();
                 DatabaseManager.Character.UpdateCharacter(character);
 #if DEBUG
                 if (Session.Player != null)

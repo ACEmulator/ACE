@@ -4,34 +4,26 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.AddFriend)]
-    public class GameActionAddFriend : GameActionPacket
+    public static class GameActionAddFriend
     {
-        private string friendName;
-
-        public GameActionAddFriend(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.AddFriend)]
+        public static async void Handle(ClientMessage message, Session session)
         {
-            friendName = Fragment.Payload.ReadString16L().Trim();
-        }
-
-        public async override void Handle()
-        {
-            var result = await Session.Player.AddFriend(friendName);
+            var friendName = message.Payload.ReadString16L().Trim();
+            var result = await session.Player.AddFriend(friendName);
 
             switch (result)
             {
                 case Enum.AddFriendResult.AlreadyInList:
-                    ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, "That character is already in your friends list", ChatMessageType.Broadcast);
                     break;
 
                 case Enum.AddFriendResult.FriendWithSelf:
-                    ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
                     break;
 
                 case Enum.AddFriendResult.CharacterDoesNotExist:
-                    ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, "That character does not exist", ChatMessageType.Broadcast);
                     break;
             }
         }

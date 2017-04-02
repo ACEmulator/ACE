@@ -5,24 +5,15 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.AdvocateTeleport)]
-    public class GameActionAdvocateTeleport : GameActionPacket
+    public static class GameActionAdvocateTeleport
     {
-        private string target;
-        private Position position;
-
-        public GameActionAdvocateTeleport(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.AdvocateTeleport)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            target = Fragment.Payload.ReadString16L();
-            position = new Position(Fragment.Payload);
-        }
-
-        public override void Handle()
-        {
+            var target = message.Payload.ReadString16L();
+            var position = new Position(message.Payload);
             // this check is also done clientside, see: PlayerDesc::PlayerIsPSR
-            if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
+            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
                 return;
 
             uint cell = position.LandblockId.Raw;
@@ -32,8 +23,8 @@ namespace ACE.Network.GameAction.Actions
 
             // TODO: Maybe output to chat window coords teleported to.
             // ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
-            ChatPacket.SendServerMessage(Session, "Teleporting...", ChatMessageType.Broadcast);
-            Session.Player.Teleport(position);
+            ChatPacket.SendServerMessage(session, "Teleporting...", ChatMessageType.Broadcast);
+            session.Player.Teleport(position);
         }
     }
 }

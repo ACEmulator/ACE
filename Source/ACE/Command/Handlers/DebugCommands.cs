@@ -39,7 +39,7 @@ namespace ACE.Command.Handlers
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Position;
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.positionX}, {position.positionY}, {position.positionZ} | Facing: {position.rotationX}, {position.rotationY}, {position.rotationZ}, {position.rotationW}]", ChatMessageType.Broadcast);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -182,16 +182,16 @@ namespace ACE.Command.Handlers
         public static void Movement(Session session, params string[] parameters)
         {
             var movement = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
             movement.ForwardCommand = 0;
             movement.MovementStateFlag = MovementStateFlag.NoMotionState;
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
 
         }
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void spacejump(Session session, params string[] parameters)
         {
-            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock, session.Player.Position.Offset.X, session.Player.Position.Offset.Y, session.Player.Position.Offset.Z + 8000f, session.Player.Position.Facing.X, session.Player.Position.Facing.Y, session.Player.Position.Facing.Z, session.Player.Position.Facing.W);
+            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock, session.Player.Position.positionX, session.Player.Position.positionY, session.Player.Position.positionZ + 8000f, session.Player.Position.rotationX, session.Player.Position.rotationY, session.Player.Position.rotationZ, session.Player.Position.rotationW);
             session.Player.Teleport(newPosition);
         }
 
@@ -205,6 +205,62 @@ namespace ACE.Command.Handlers
         public static void CreatePortal(Session session, params string[] parameters)
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+        }
+
+        /// <summary>
+        /// Debug command to saves the character from in-game.
+        /// </summary>
+        /// <remarks>Added a quick way to invoke the character save routine.</remarks>
+        [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleSaveNow(Session session, params string[] parameters)
+        {
+            session.SaveSession();
+        }
+
+        /// <summary>
+        /// Returns the Player's GUID
+        /// </summary>
+        /// <remarks>Added a quick way to access the player GUID.</remarks>
+        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleWhoAmI(Session session, params string[] parameters)
+        {
+            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
+        }
+
+        /// <summary>
+        /// Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.
+        /// </summary>
+        [CommandHandler("reset-pos", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandleResetPosition(Session session, params string[] parameters)
+        {
+            try
+            {
+                // if (parameters.Length > 1)
+                //    if (parameters[1] != "")
+                //        scale = float.Parse(parameters[1]);
+
+                string message = "Error saving position.";
+
+                PositionType type = new PositionType();
+
+                if (Enum.TryParse(parameters[0], true, out type))
+                {
+                    if (Enum.IsDefined(typeof(PositionType), type))
+                    {
+                        message = $"Saving position {Enum.GetName(typeof(PositionType), type)}";
+                        session.Player.SetCharacterPosition(type, CharacterPositionExtensions.InvalidPosition(session.Id, type));
+                    }
+                }
+
+                float scale = 1f;
+                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.AttribDownRed, scale);
+                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(effectEvent, sysChatMessage);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
+            }
         }
     }
 }

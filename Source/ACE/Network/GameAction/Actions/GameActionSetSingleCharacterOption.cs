@@ -3,30 +3,21 @@ using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.SetSingleCharacterOption)]
-    public class GameActionSetSingleCharacterOption : GameActionPacket
+    public static class GameActionSetSingleCharacterOption
     {
-        private CharacterOption option;
-        private bool optionValue;
-
-        public GameActionSetSingleCharacterOption(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.SetSingleCharacterOption)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            option = (CharacterOption)Fragment.Payload.ReadUInt32();
-            optionValue = Fragment.Payload.ReadUInt32() == 0 ? false : true;
-        }
-
-        public override void Handle()
-        {
+            var option = (CharacterOption)message.Payload.ReadUInt32();
+            var optionValue = message.Payload.ReadUInt32() == 0 ? false : true;
             switch (option)
             {
                 case CharacterOption.AppearOffline:
-                    Session.Player.AppearOffline(optionValue);
+                    session.Player.AppearOffline(optionValue);
                     break;
 
                 default:
-                    Session.Player.SetCharacterOption(option, optionValue);
+                    session.Player.SetCharacterOption(option, optionValue);
                     break;
             }
         }

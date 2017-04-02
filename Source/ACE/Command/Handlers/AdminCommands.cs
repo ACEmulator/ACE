@@ -458,7 +458,7 @@ namespace ACE.Command
 
             // TODO: Check if water block?
 
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.Offset.X}, {position.Offset.Y}, {position.Offset.Z} | Facing: {position.Facing.X}, {position.Facing.Y}, {position.Facing.Z}, {position.Facing.W}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.positionX}, {position.positionY}, {position.positionZ} | Facing: {position.rotationX}, {position.rotationY}, {position.rotationZ}, {position.rotationW}]", ChatMessageType.Broadcast);
 
             session.Player.Teleport(position);
         }
