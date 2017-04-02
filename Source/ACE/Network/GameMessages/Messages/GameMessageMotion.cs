@@ -25,7 +25,7 @@ namespace ACE.Network.GameMessages.Messages
 
         }
 
-        public GameMessageMotion(WorldObject animationTarget, Session session, MotionActivity activity,
+        public GameMessageMotion(WorldObject animationTarget, Session session, MotionAutonomous activity,
             MovementTypes type, MotionFlags flags, MotionStance stance, MovementData movement, List<MotionItem> animations = null)
             : this()
         {
@@ -38,26 +38,25 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageMotion(Entity.WorldObject animationTarget, Session session, MotionCommand command, float speed = 1.0f)
             : this()
         {
-            WriteBase(animationTarget, session, MotionActivity.Idle, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing);
+            WriteBase(animationTarget, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing);
             List<MotionItem> animations = new List<MotionItem>() { new MotionItem(command, speed) };
             WriteAnimations(animationTarget, animations);
         }
 
-        private void WriteBase(WorldObject animationTarget, Session session, MotionActivity activity,
+        private void WriteBase(WorldObject animationTarget, Session session, MotionAutonomous autonomous,
             MovementTypes type, MotionFlags flags, MotionStance stance)
         {
             Writer.WriteGuid(animationTarget.Guid); // Object_Id (uint)
             Writer.Write((ushort)session.Player.TotalLogins); // Instance_Timestamp
             Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.MotionMessage)); // Movement_Timestamp
-            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ServerControl)); // Server_Control_Timestamp
-            // The order of these is in question between the movement and server control.   Looks like in the client this is the right order
-            // in AC Log View it is reversed.
-            // TODO: reseach the correct order.   We can probably get away with either for now.
+            if (autonomous == MotionAutonomous.False)
+                Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.MotionMessageAutonomous)); // Server_Control_Timestamp
+            else
+                Writer.Write(animationTarget.Sequences.GetCurrentSequence(Sequence.SequenceType.MotionMessageAutonomous)); // Server_Control_Timestamp
             Writer.Write((ushort)type); // movement_type
-            Writer.Write((byte)activity); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
+            Writer.Write((byte)autonomous); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
             Writer.Write((byte)flags); // these can be or and has sticky object | is long jump mode |
             Writer.Write((ushort)stance); // called command in the client
-
         }
 
         private void WriteAnimations(WorldObject animationTarget, List<MotionItem> items)
@@ -83,8 +82,8 @@ GameMessageMotion (Aka Animation)
 uint ObjectId - ID of object moving
 ushort logins - Number of user logins (instance_timestamp)
 ushort sequence - Number of animations this login for this object (movement_timestamp)
-ushort index - Changes sometimes, but not every message (server_control_timestamp)
-ushort activity - Idle/Active
+ushort idleSequence - Number of idle animations this login for this object (server_control_timestamp)
+ushort activity - Idle/Active, Idle will be sent by the server for periodic idle animations
 byte motionType - Kind of motion (move to position, turn, or general)
 byte typeFlags - flags for some additional information on packet (ex. target for sticky melee)
 ushort stance - current(?) stance

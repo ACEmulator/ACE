@@ -8,17 +8,15 @@ using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.TeleToMarketPlace)]
-    public class GameActionTeleToMarketPlace : GameActionPacket
+    public static class GameActionTeleToMarketPlace
     {
-        public GameActionTeleToMarketPlace(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
         // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
         private static readonly Position marketplaceDrop = new Position(23855548, 49.16f, -31.62f, 0.10f, 0f, 0f, -0.71f, 0.71f); // Is this the right drop?
 
-        public override void Handle()
+        [GameAction(GameActionType.TeleToMarketPlace)]
+        public static void Handle(ClientMessage clientMessage, Session session)
         {
-            string message = $"{Session.Player.Name} is recalling to the marketplace.";
+            string message = $"{session.Player.Name} is recalling to the marketplace.";
 
             var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
 
@@ -28,13 +26,13 @@ namespace ACE.Network.GameAction.Actions
             // Not needed in this command, leaving for example
             // var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Session.Player.Mana.Current / 2);
 
-            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
+            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.CombatMode, 1);
 
             // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
+            session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
 
             // TODO: Wait until MovementEvent completes then send the following message
-            Session.Player.Teleport(marketplaceDrop);
+            session.Player.Teleport(marketplaceDrop);
         }
     }
 }

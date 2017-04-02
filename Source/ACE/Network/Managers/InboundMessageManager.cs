@@ -11,15 +11,23 @@ namespace ACE.Network.Managers
     {
         private class MessageHandlerInfo
         {
-            public FragmentHandler Handler { get; set; }
+            public MessageHandler Handler { get; set; }
             public GameMessageAttribute Attribute { get; set; }
         }
 
-        public delegate void FragmentHandler(ClientPacketFragment fragement, Session session);
+        private class ActionHandlerInfo
+        {
+            public ActionHandler Handler { get; set; }
+            public GameActionAttribute Attribute { get; set; }
+        }
 
-        private static Dictionary<GameMessageOpcode, MessageHandlerInfo> fragmentHandlers;
+        public delegate void MessageHandler(ClientMessage message, Session session);
 
-        private static Dictionary<GameActionType, Type> actionHandlers;
+        public delegate void ActionHandler(ClientMessage message, Session session);
+
+        private static Dictionary<GameMessageOpcode, MessageHandlerInfo> messageHandlers;
+
+        private static Dictionary<GameActionType, ActionHandlerInfo> actionHandlers;
 
         public static void Initialise()
         {
@@ -29,21 +37,21 @@ namespace ACE.Network.Managers
 
         private static void DefineMessageHandlers()
         {
-            fragmentHandlers = new Dictionary<GameMessageOpcode, MessageHandlerInfo>();
+            messageHandlers = new Dictionary<GameMessageOpcode, MessageHandlerInfo>();
 
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 foreach (var methodInfo in type.GetMethods())
                 {
-                    foreach (var fragmentHandlerAttribute in methodInfo.GetCustomAttributes<GameMessageAttribute>())
+                    foreach (var messageHandlerAttribute in methodInfo.GetCustomAttributes<GameMessageAttribute>())
                     {
-                        var fragmentHandler = new MessageHandlerInfo()
+                        var messageHandler = new MessageHandlerInfo()
                         {
-                            Handler   = (FragmentHandler)Delegate.CreateDelegate(typeof(FragmentHandler), methodInfo),
-                            Attribute = fragmentHandlerAttribute
+                            Handler   = (MessageHandler)Delegate.CreateDelegate(typeof(MessageHandler), methodInfo),
+                            Attribute = messageHandlerAttribute
                         };
 
-                        fragmentHandlers[fragmentHandlerAttribute.Opcode] = fragmentHandler;
+                        messageHandlers[messageHandlerAttribute.Opcode] = messageHandler;
                     }
                 }
             }
@@ -51,45 +59,54 @@ namespace ACE.Network.Managers
 
         private static void DefineActionHandlers()
         {
-            actionHandlers = new Dictionary<GameActionType, Type>();
+            actionHandlers = new Dictionary<GameActionType, ActionHandlerInfo>();
 
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
-                foreach (var actionHandlerAttribute in type.GetCustomAttributes<GameActionAttribute>())
-                    actionHandlers[actionHandlerAttribute.Opcode] = type;
-            }
-        }
-
-        public static void HandleClientFragment(ClientPacketFragment fragment, Session session)
-        {
-            var opcode = (GameMessageOpcode)fragment.Payload.ReadUInt32();
-
-            if (!fragmentHandlers.ContainsKey(opcode))
-                Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
-            else
-            {
-                MessageHandlerInfo fragmentHandlerInfo;
-                if (fragmentHandlers.TryGetValue(opcode, out fragmentHandlerInfo))
+                foreach (var methodInfo in type.GetMethods())
                 {
-                    if (fragmentHandlerInfo.Attribute.State == session.State)
-                        fragmentHandlerInfo.Handler.Invoke(fragment, session);
+                    foreach (var actionHandlerAttribute in methodInfo.GetCustomAttributes<GameActionAttribute>())
+                    {
+                        var actionhandler = new ActionHandlerInfo()
+                        {
+                            Handler = (ActionHandler)Delegate.CreateDelegate(typeof(ActionHandler), methodInfo),
+                            Attribute = actionHandlerAttribute
+                        };
+
+                        actionHandlers[actionHandlerAttribute.Opcode] = actionhandler;
+                    }
                 }
             }
         }
 
-        // TODO: This needs to be reworked. Activator.CreateInstance is not going to be performant.
-        public static void HandleGameAction(GameActionType opcode, ClientPacketFragment fragment, Session session)
+
+        public static void HandleClientMessage(ClientMessage message, Session session)
+        {
+            var opcode = (GameMessageOpcode)message.Opcode;
+
+            if (!messageHandlers.ContainsKey(opcode))
+                Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
+            else
+            {
+                MessageHandlerInfo messageHandlerInfo;
+                if (messageHandlers.TryGetValue(opcode, out messageHandlerInfo))
+                {
+                    if (messageHandlerInfo.Attribute.State == session.State)
+                        messageHandlerInfo.Handler.Invoke(message, session);
+                }
+            }
+        }
+
+        public static void HandleGameAction(GameActionType opcode, ClientMessage message, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))
                 Console.WriteLine($"Received unhandled GameActionType: 0x{(uint)opcode:X4}");
             else
             {
-                Type actionType;
-                if (actionHandlers.TryGetValue(opcode, out actionType))
+                ActionHandlerInfo actionHandlerInfo;
+                if (actionHandlers.TryGetValue(opcode, out actionHandlerInfo))
                 {
-                    var gameAction = (GameActionPacket)Activator.CreateInstance(actionType, session, fragment);
-                    gameAction.Read();
-                    gameAction.Handle();
+                    actionHandlerInfo.Handler.Invoke(message, session);
                 }
             }
         }

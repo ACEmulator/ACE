@@ -10,6 +10,6 @@ namespace ACE.Network.Sequence
     {
         MotionMessage,
         Motion,
-        ServerControl
+        MotionMessageAutonomous
     }
 }

@@ -9,20 +9,12 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.Talk)]
-    public class GameActionTalk : GameActionPacket
+    public static class GameActionTalk
     {
-        public GameActionTalk(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        private string message;
-
-        public override void Read()
+        [GameAction(GameActionType.Talk)]
+        public static void Handle(ClientMessage clientMessage, Session session)
         {
-            message = Fragment.Payload.ReadString16L();
-        }
-
-        public override void Handle()
-        {
+            var message = clientMessage.Payload.ReadString16L();
             if (message.StartsWith("@"))
             {
                 string command;
@@ -30,26 +22,26 @@ namespace ACE.Network.GameAction.Actions
                 CommandManager.ParseCommand(message.Remove(0, 1), out command, out parameters);
 
                 CommandHandlerInfo commandHandler;
-                var response = CommandManager.GetCommandHandler(Session, command, parameters, out commandHandler);
+                var response = CommandManager.GetCommandHandler(session, command, parameters, out commandHandler);
                 if (response == CommandHandlerResponse.Ok)
-                    ((CommandHandler)commandHandler.Handler).Invoke(Session, parameters);
+                    ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
                 else if (response == CommandHandlerResponse.SudoOk)
                 {
                     string[] sudoParameters = new string[parameters.Length - 1];
                     for (int i = 1; i < parameters.Length; i++)
                         sudoParameters[i - 1] = parameters[i];
 
-                    ((CommandHandler)commandHandler.Handler).Invoke(Session, sudoParameters);
+                    ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
                 }
                 else
                 {
                     switch (response)
                     {
                         case CommandHandlerResponse.InvalidCommand:
-                            ChatPacket.SendServerMessage(Session, $"Invalid command {command}!", ChatMessageType.Broadcast);
+                            ChatPacket.SendServerMessage(session, $"Invalid command {command}!", ChatMessageType.Broadcast);
                             break;
                         case CommandHandlerResponse.InvalidParameterCount:
-                            ChatPacket.SendServerMessage(Session, $"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Broadcast);
+                            ChatPacket.SendServerMessage(session, $"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Broadcast);
                             break;
                         default:
                             break;
@@ -58,7 +50,7 @@ namespace ACE.Network.GameAction.Actions
             }
             else
             {
-                var creatureMessage = new GameMessageCreatureMessage(message, Session.Player.Name, Session.Player.Guid.Full, ChatMessageType.Speech);
+                var creatureMessage = new GameMessageCreatureMessage(message, session.Player.Name, session.Player.Guid.Full, ChatMessageType.Speech);
 
                 // TODO: This needs to be changed to a different method. GetByRadius or GetNear, however we decide to do proximity updates...
                 var targets = WorldManager.GetAll();

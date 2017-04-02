@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.Enum
 {
-    public enum MotionActivity
+    public enum MotionAutonomous
     {
-        Idle = 0,
-        Active = 1
+        False = 0,
+        True = 1
     }
 }

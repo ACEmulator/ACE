@@ -4,14 +4,12 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.HouseQuery)]
-    public class GameActionHouseQuery : GameActionPacket
+    public static class GameActionHouseQuery
     {
-        public GameActionHouseQuery(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Handle()
+        [GameAction(GameActionType.HouseQuery)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
+            session.Network.EnqueueSend(new GameEventHouseStatus(session));
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace ACE.Network.GameAction
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class GameActionAttribute : Attribute
     {
         public GameActionType Opcode { get; }

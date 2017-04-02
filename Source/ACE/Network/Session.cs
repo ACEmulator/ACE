@@ -56,10 +56,10 @@ namespace ACE.Network
 
         public NetworkSession Network { get; set; }
 
-        public Session(IPEndPoint endPoint)
+        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
-            Network = new NetworkSession(this);
+            Network = new NetworkSession(this, clientId, serverId);
         }
 
         public void InitSessionForWorldLogin()
@@ -170,7 +170,7 @@ namespace ACE.Network
             return true;
         }
 
-        public void HandlePacket(ClientPacket packet)
+        public void ProcessPacket(ClientPacket packet)
         {
             if (!CheckState(packet))
             {
@@ -183,7 +183,7 @@ namespace ACE.Network
 
             // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
             if (Network != null)
-                Network.HandlePacket(packet);
+                Network.ProcessPacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
                 HandleDisconnectResponse();
@@ -197,7 +197,7 @@ namespace ACE.Network
                 Player.Logout(true);
             }
 
-            WorldManager.Remove(this);
+            WorldManager.RemoveSession(this);
         }
 
         public void LogOffPlayer()

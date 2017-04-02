@@ -9,9 +9,9 @@ namespace ACE.Network.Packets
 {
     public class PacketInboundLoginRequest
     {
-        public uint Timestamp { get; private set; }
-        public string Account { get; private set; }
-        public string GlsTicket { get; private set; }
+        public uint Timestamp { get; }
+        public string Account { get; }
+        public string GlsTicket { get; }
 
         public PacketInboundLoginRequest(ClientPacket packet)
         {
