@@ -137,8 +137,8 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
                 writer.Write((float)DefaultScriptIntensity);
 
+            // TODO: There are 9 of these - but we need to research the correct sequence.   I know that the last one is instance (totalLogins) Og II
             writer.Write((ushort)PositionSequence);
-            writer.Write((ushort)InstanceSequence);
             writer.Write((ushort)(PhysicsSequence));
             writer.Write((ushort)JumpSequence);
             writer.Write((ushort)PortalSequence);
@@ -146,6 +146,7 @@ namespace ACE.Entity
             writer.Write((ushort)0);
             writer.Write((ushort)0);
             writer.Write((ushort)(SpawnSequence));
+            writer.Write((ushort)InstanceSequence);
 
             writer.Align();
         }

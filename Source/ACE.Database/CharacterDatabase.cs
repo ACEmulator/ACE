@@ -79,11 +79,11 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendDelete, "DELETE FROM  `character_friends` WHERE `id` = ? AND `friendId` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsRemoveAll, "DELETE FROM  `character_friends` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `deleted` = 0 AND `deleteTime` = 0 AND `name` = ?;", MySqlDbType.VarString);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, "UPDATE `character` SET `characterOptions1` = ?, `characterOptions2` = ? WHERE guid = ?", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, "UPDATE `character` SET `totalLogins` = ?, `characterOptions1` = ?, `characterOptions2` = ? WHERE guid = ?", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterRename, "UPDATE `character` SET `name` = ? WHERE `guid` = ?;", MySqlDbType.VarString, MySqlDbType.UInt32);
 
             // world entry
-            AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `characterOptions1`, `characterOptions2` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterSelect, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea`, `totalLogins`, `characterOptions1`, `characterOptions2` FROM `character` WHERE `guid` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterPositionSelect, "SELECT `cell`, `positionX`, `positionY`, `positionZ`, `rotationX`, `rotationY`, `rotationZ`, `rotationW` FROM `character_position` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsSelect, "SELECT `skillId`, `skillStatus`, `skillPoints`, `skillXpSpent` FROM `character_skills` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsSelect, "SELECT `strength`, `strengthXpSpent`, `strengthRanks`, `endurance`, `enduranceXpSpent`, `enduranceRanks`, `coordination`, `coordinationXpSpent`, `coordinationRanks`, `quickness`,  `quicknessXpSpent`, `quicknessRanks`, `focus`, `focusXpSpent`, `focusRanks`, `self`, `selfXpSpent`, `selfRanks`, `healthRanks`, `healthXpSpent`, `healthCurrent`, `staminaRanks`, `staminaXpSpent`, `staminaCurrent`, `manaRanks`, `manaXpSpent`, `manaCurrent` FROM `character_stats` WHERE `id` = ?;", MySqlDbType.UInt32);
@@ -259,6 +259,7 @@ namespace ACE.Database
                 c.Name = result.Read<string>(0, "name");
                 c.TemplateOption = result.Read<uint>(0, "templateOption");
                 c.StartArea = result.Read<uint>(0, "startArea");
+                c.TotalLogins = result.Read<uint>(0, "totalLogins");
 
                 c.Position = await this.GetPosition(guid);
 
@@ -371,7 +372,7 @@ namespace ACE.Database
 
         public void SaveCharacterOptions(Character character)
         {
-            ExecutePreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, character.CharacterOptions.GetCharacterOptions1Flag(), character.CharacterOptions.GetCharacterOptions2Flag(), character.Id);
+            ExecutePreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, character.TotalLogins, character.CharacterOptions.GetCharacterOptions1Flag(), character.CharacterOptions.GetCharacterOptions2Flag(), character.Id);
         }
 
         public async Task LoadCharacterProperties(DbObject dbObject)
