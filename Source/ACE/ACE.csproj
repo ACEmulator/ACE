@@ -150,6 +150,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryBirth.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryHealth.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionPutItemInContainer.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTrainSkill.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveChannel.cs" />
