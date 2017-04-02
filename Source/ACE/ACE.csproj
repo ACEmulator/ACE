@@ -110,6 +110,7 @@
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
+    <Compile Include="Network\ClientMessage.cs" />
     <Compile Include="Network\ClientPacket.cs" />
     <Compile Include="Network\ClientPacketFragment.cs" />
     <Compile Include="Network\ConnectionListener.cs" />
@@ -253,7 +254,6 @@
     <Compile Include="Network\Packets\PacketInboundWorldLoginRequest.cs" />
     <Compile Include="Network\Packets\PacketInboundLoginRequest.cs" />
     <Compile Include="Network\NetworkSession.cs" />
-    <Compile Include="Network\NetworkBundle.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketDirection.cs" />
     <Compile Include="Network\PacketFragment.cs" />

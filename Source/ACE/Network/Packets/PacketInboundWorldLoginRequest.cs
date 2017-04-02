@@ -9,7 +9,7 @@ namespace ACE.Network.Packets
 {
     public class PacketInboundWorldLoginRequest
     {
-        public ulong ConnectionKey { get; private set; }
+        public ulong ConnectionKey { get; }
 
         public PacketInboundWorldLoginRequest(ClientPacket packet)
         {

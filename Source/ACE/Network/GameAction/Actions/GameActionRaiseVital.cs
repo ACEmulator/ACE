@@ -4,22 +4,13 @@ using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.RaiseVital)]
-    public class GameActionRaiseVital : GameActionPacket
+    public static class GameActionRaiseVital
     {
-        private Vital vital;
-        private uint xpSpent;
-
-        public GameActionRaiseVital(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.RaiseVital)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            vital = (Vital)Fragment.Payload.ReadUInt32();
-            xpSpent = Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
+            var vital = (Vital)message.Payload.ReadUInt32();
+            var xpSpent = message.Payload.ReadUInt32();
             Entity.Enum.Ability ability;
 
             switch (vital)
@@ -34,11 +25,11 @@ namespace ACE.Network.GameAction.Actions
                     ability = Entity.Enum.Ability.Mana;
                     break;
                 default:
-                    ChatPacket.SendServerMessage(Session, $"Unable to Handle GameActionRaiseVital for vital {vital}", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, $"Unable to Handle GameActionRaiseVital for vital {vital}", ChatMessageType.Broadcast);
                     return;
             }
 
-            Session.Player.SpendXp(ability, xpSpent);
+            session.Player.SpendXp(ability, xpSpent);
         }
     }
 }

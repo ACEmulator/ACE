@@ -13,33 +13,33 @@ namespace ACE.Network.Handlers
     public static class TurbineChatHandler
     {
         [GameMessage(GameMessageOpcode.TurbineChat, SessionState.WorldConnected)]
-        public static void TurbineChatReceived(ClientPacketFragment fragment, Session session)
+        public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
         {
-            fragment.Payload.ReadUInt32(); // Bytes to follow
-            var turbineChatType = (TurbineChatType)fragment.Payload.ReadUInt32();
-            fragment.Payload.ReadUInt32(); // Always 2
-            fragment.Payload.ReadUInt32(); // Always 1
-            fragment.Payload.ReadUInt32(); // Always 0
-            fragment.Payload.ReadUInt32(); // Always 0
-            fragment.Payload.ReadUInt32(); // Always 0
-            fragment.Payload.ReadUInt32(); // Always 0
-            fragment.Payload.ReadUInt32(); // Bytes to follow
+            clientMessage.Payload.ReadUInt32(); // Bytes to follow
+            var turbineChatType = (TurbineChatType)clientMessage.Payload.ReadUInt32();
+            clientMessage.Payload.ReadUInt32(); // Always 2
+            clientMessage.Payload.ReadUInt32(); // Always 1
+            clientMessage.Payload.ReadUInt32(); // Always 0
+            clientMessage.Payload.ReadUInt32(); // Always 0
+            clientMessage.Payload.ReadUInt32(); // Always 0
+            clientMessage.Payload.ReadUInt32(); // Always 0
+            clientMessage.Payload.ReadUInt32(); // Bytes to follow
 
             if (turbineChatType == TurbineChatType.OutboundMessage)
             {
-                fragment.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
-                fragment.Payload.ReadUInt32(); // Always 2
-                fragment.Payload.ReadUInt32(); // Always 2
-                var channelID = fragment.Payload.ReadUInt32();
+                clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
+                clientMessage.Payload.ReadUInt32(); // Always 2
+                clientMessage.Payload.ReadUInt32(); // Always 2
+                var channelID = clientMessage.Payload.ReadUInt32();
 
-                var messageLen = fragment.Payload.ReadByte();
-                var messageBytes = fragment.Payload.ReadBytes(messageLen * 2);
+                var messageLen = clientMessage.Payload.ReadByte();
+                var messageBytes = clientMessage.Payload.ReadBytes(messageLen * 2);
                 var message = Encoding.Unicode.GetString(messageBytes);
 
-                fragment.Payload.ReadUInt32(); // Always 0x0C
-                var senderID = fragment.Payload.ReadUInt32();
-                fragment.Payload.ReadUInt32(); // Always 0
-                fragment.Payload.ReadUInt32(); // Always 1 or 2
+                clientMessage.Payload.ReadUInt32(); // Always 0x0C
+                var senderID = clientMessage.Payload.ReadUInt32();
+                clientMessage.Payload.ReadUInt32(); // Always 0
+                clientMessage.Payload.ReadUInt32(); // Always 1 or 2
 
                 if (channelID == 7) // TODO this is hardcoded right now
                 {

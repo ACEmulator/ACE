@@ -7,25 +7,17 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.ListChannels)]
-    public class GameActionChannelList : GameActionPacket
+    public static class GameActionChannelList
     {
-        private GroupChatType chatChannelID;
-
-        public GameActionChannelList(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.ListChannels)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            chatChannelID = (GroupChatType)Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
+            var chatChannelID = (GroupChatType)message.Payload.ReadUInt32();
             // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
-            if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
+            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
                 return;
 
-            Session.Network.EnqueueSend(new GameEventChannelList(Session, chatChannelID));
+            session.Network.EnqueueSend(new GameEventChannelList(session, chatChannelID));
         }
     }
 }

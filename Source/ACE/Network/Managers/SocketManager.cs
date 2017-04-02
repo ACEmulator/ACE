@@ -38,9 +38,9 @@ namespace ACE.Network.Managers
                 listener.Start();
         }
 
-        public static Socket GetSocket()
+        public static Socket GetSocket(int id = 1)
         {
-            return Listeners[0].Socket;
+            return Listeners[id].Socket;
         }
     }
 }

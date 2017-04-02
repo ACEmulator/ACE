@@ -46,14 +46,15 @@ namespace ACE.Network
             }
         }
 
-        public void CalculateHash32(out uint checksum)
+        public uint CalculateHash32()
         {
+            uint checksum = 0;
             uint original = Checksum;
-
             Checksum = 0x0BADD70DD;
             byte[] rawHeader = GetRaw();
             checksum = Hash32.Calculate(rawHeader, rawHeader.Length);
             Checksum = original;
+            return checksum;
         }
 
         public bool HasFlag(PacketHeaderFlags flags) { return (flags & Flags) != 0; }

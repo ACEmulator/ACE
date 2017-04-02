@@ -6,27 +6,18 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.QueryBirth)]
-    public class GameActionQueryBirth : GameActionPacket
+    public static class GameActionQueryBirth
     {
-        private string target;
-
-        public GameActionQueryBirth(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.QueryBirth)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            target = Fragment.Payload.ReadString16L();
-        }
-
-        public override void Handle()
-        {
-
+            var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            playerDOB = playerDOB.AddSeconds(Session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.CreationTimestamp]).ToUniversalTime();
+            playerDOB = playerDOB.AddSeconds(session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.CreationTimestamp]).ToUniversalTime();
 
             var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB.ToString("G")}.", ChatMessageType.Broadcast);
 
-            Session.Network.EnqueueSend(dobEvent);
+            session.Network.EnqueueSend(dobEvent);
         }
     }
 }

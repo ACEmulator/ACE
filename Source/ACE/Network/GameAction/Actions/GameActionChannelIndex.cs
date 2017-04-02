@@ -7,18 +7,16 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.IndexChannels)]
-    public class GameActionChannelIndex : GameActionPacket
+    public static class GameActionChannelIndex
     {
-        public GameActionChannelIndex(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Handle()
+        [GameAction(GameActionType.IndexChannels)]
+        public static void Handle(ClientMessage message, Session session)
         {
             // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
-            if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
+            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
                 return;
 
-            Session.Network.EnqueueSend(new GameEventChannelIndex(Session));
+            session.Network.EnqueueSend(new GameEventChannelIndex(session));
         }
     }
 }

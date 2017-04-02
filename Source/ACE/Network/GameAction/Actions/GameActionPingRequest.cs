@@ -4,14 +4,12 @@ using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.PingRequest)]
-    public class GameActionPingRequest : GameActionPacket
+    public static class GameActionPingRequest
     {
-        public GameActionPingRequest(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Handle()
+        [GameAction(GameActionType.PingRequest)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            Session.Network.EnqueueSend(new GameEventPingResponse(Session));
+            session.Network.EnqueueSend(new GameEventPingResponse(session));
         }
     }
 }

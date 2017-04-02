@@ -5,22 +5,14 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    [GameAction(GameActionType.AddChannel)]
-    public class GameActionAddChannel : GameActionPacket
+    public static class GameActionAddChannel
     {
-        private GroupChatType chatChannelID;
-
-        public GameActionAddChannel(Session session, ClientPacketFragment fragment) : base(session, fragment) { }
-
-        public override void Read()
+        [GameAction(GameActionType.AddChannel)]
+        public static void Handle(ClientMessage message, Session session)
         {
-            chatChannelID = (GroupChatType)Fragment.Payload.ReadUInt32();
-        }
-
-        public override void Handle()
-        {
+            var chatChannelID = (GroupChatType)message.Payload.ReadUInt32();
             // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
-            if (!Session.Player.IsAdmin && !Session.Player.IsArch && !Session.Player.IsPsr)
+            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
                 return;
 
             // TODO: Subscribe to channel (chatChannelID) and save to db. Channel subscriptions are meant to persist between sessions.

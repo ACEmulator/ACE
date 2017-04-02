@@ -97,8 +97,8 @@ namespace ACE.Entity
 
             Sequences = new SequenceManager();
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
+            Sequences.AddSequence(SequenceType.MotionMessageAutonomous, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
-            Sequences.AddSequence(SequenceType.ServerControl, new UShortSequence(3));
         }
 
         public void AddToInventory(WorldObject worldObject)
