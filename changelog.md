@@ -73,3 +73,7 @@
 ### 2017-03-30
 [StackOverflow]
 * Start of a SpellFactory + World Object Fixes and a real Vector3 - AceVector
+
+### 2017-04-02
+[StackOverflow]
+* SpellFactory + World Object Fixes and a real Vector3  - Improvements- AceVector
