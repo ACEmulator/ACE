@@ -10,6 +10,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Factories;
+using System.Globalization;
 
 namespace ACE.Command.Handlers
 {
@@ -205,6 +206,34 @@ namespace ACE.Command.Handlers
         public static void CreatePortal(Session session, params string[] parameters)
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+        }
+
+        // @testspell 0 10 10 10 10 20
+        [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        public static void TestSpell(Session session, params string[] parameters)
+        {
+            uint templatid;
+            float x, y, z;
+            float friction;
+            float electicity;
+            try
+            {
+                templatid = Convert.ToUInt32(parameters[0]);
+                x = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
+                y = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
+                z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
+                friction = float.Parse(parameters[4], CultureInfo.InvariantCulture.NumberFormat);
+                electicity = float.Parse(parameters[5], CultureInfo.InvariantCulture.NumberFormat);
+                ChatPacket.SendServerMessage(session, $"Casting! ", ChatMessageType.Broadcast);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, $"Invalid Spell Parameters", ChatMessageType.Broadcast);
+                return;
+            }
+
+            AceVector3 velocity = new AceVector3(x, y, z);
+            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Position.InFrontOf(3.0f), velocity, friction, electicity));
         }
     }
 }

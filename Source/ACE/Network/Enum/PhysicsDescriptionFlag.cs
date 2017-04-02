@@ -6,7 +6,13 @@ namespace ACE.Network.Enum
     public enum PhysicsDescriptionFlag
     {
         None                   = 0x00000,
+        /// <summary>
+        /// Model Resource / ACLOG Calls it_setup_id
+        /// </summary>
         CSetup                 = 0x000001,
+        /// <summary>
+        /// Motion Table - Animation Set
+        /// </summary>
         MTable                 = 0x000002,
         Velocity               = 0x000004,
         Acceleration           = 0x000008,
@@ -17,7 +23,13 @@ namespace ACE.Network.Enum
         Friction               = 0x000100,
         Elastcity              = 0x000200,
         Timestamp              = 0x000400,
+        /// <summary>
+        ///  Sound Table
+        /// </summary>
         Stable                 = 0x000800,
+        /// <summary>
+        /// Physics Table Id
+        /// </summary>
         Petable                = 0x001000,
         DefaultScript          = 0x002000,
         DefaultScriptIntensity = 0x004000,

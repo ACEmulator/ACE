@@ -130,6 +130,7 @@
     <Compile Include="TextureMapOverride.cs" />
     <Compile Include="TupleExtensions.cs" />
     <Compile Include="BaseAceObject.cs" />
+    <Compile Include="Vector3.cs" />
     <Compile Include="Weenie.cs" />
   </ItemGroup>
   <ItemGroup>

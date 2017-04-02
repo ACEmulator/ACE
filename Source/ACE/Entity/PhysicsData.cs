@@ -30,10 +30,10 @@ namespace ACE.Entity
         public float Friction;
         public float Elastcity;
         public uint AnimationFrame;
-        public Position Acceleration;
+        public AceVector3 Acceleration;
         public float Translucency;
-        public Position Velocity;
-        public Position Omega; // rotation
+        public AceVector3 Velocity;
+        public AceVector3 Omega; // rotation
 
         public uint DefaultScript;
         public float DefaultScriptIntensity;
