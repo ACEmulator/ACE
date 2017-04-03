@@ -21,6 +21,7 @@ using ACE.Network.Sequence;
 using System.Collections.Concurrent;
 using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
+using ACE.Network.Motion;
 
 namespace ACE.Entity
 {
@@ -1061,7 +1062,8 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.Logout1));
+                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Logout1));
+                Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 

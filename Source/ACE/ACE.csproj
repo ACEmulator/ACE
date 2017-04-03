@@ -222,14 +222,14 @@
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
-    <Compile Include="Network\GameMessages\Messages\MotionItem.cs" />
+    <Compile Include="Network\Motion\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterLogOff.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterRestore.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
-    <Compile Include="Network\GameMessages\Messages\GameMessageMotion.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageUpdateMotion.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageScript.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
@@ -265,6 +265,8 @@
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\SocketManager.cs" />
     <Compile Include="Network\GameMessageGroup.cs" />
+    <Compile Include="Network\Motion\GeneralMotion.cs" />
+    <Compile Include="Network\Motion\MotionState.cs" />
     <Compile Include="Network\PackedDWORD.cs" />
     <Compile Include="Network\Packets\PacketOutboundReferral.cs" />
     <Compile Include="Network\Packets\PacketOutboundServerSwitch.cs" />

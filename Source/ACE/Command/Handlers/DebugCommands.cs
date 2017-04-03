@@ -10,6 +10,7 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
+using ACE.Network.Motion;
 
 namespace ACE.Command.Handlers
 {
@@ -174,18 +175,20 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, (MotionCommand)animationId, 1.0f));
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void Movement(Session session, params string[] parameters)
         {
-            var movement = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
-            movement.ForwardCommand = 0;
-            movement.MovementStateFlag = MovementStateFlag.NoMotionState;
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            var movement = new GeneralMotion(MotionStance.Standing);
+            movement.MovementData.ForwardCommand = 24;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            movement = new GeneralMotion(MotionStance.Standing);
+            movement.MovementData.ForwardCommand = 0;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]

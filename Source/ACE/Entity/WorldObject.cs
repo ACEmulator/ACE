@@ -15,6 +15,7 @@ namespace ACE.Entity
 
     using global::ACE.Entity.Enum.Properties;
     using global::ACE.Managers;
+    using Network.Motion;
 
     public abstract class WorldObject
     {
@@ -153,15 +154,16 @@ namespace ACE.Entity
                    new GameMessagePrivateUpdatePropertyInt(session,
                        PropertyInt.EncumbVal,
                        (uint)session.Player.GameData.Burden));
-                var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+                GeneralMotion movement1 = new GeneralMotion(MotionStance.Standing);
+                movement1.MovementData.ForwardCommand = 24;
+                session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement1));
 
                 // Set Container id to 0 - you are free
                 session.Network.EnqueueSend(
                     new GameMessageUpdateInstanceId(objectGuid, targetContainer));
 
-                var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
-                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+                var movement2 = new GeneralMotion(MotionStance.Standing);
+                session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement2));
 
                 // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
                 // Put the darn thing in 3d space
