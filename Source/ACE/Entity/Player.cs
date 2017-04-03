@@ -935,7 +935,11 @@ namespace ACE.Entity
                         return;
 
                 if (!sendUpdate)
+                {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
+                    worldObject.PlayScript(this.Session);
+                }
+
                 else
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }

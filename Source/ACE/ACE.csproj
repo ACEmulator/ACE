@@ -101,11 +101,13 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
+    <Compile Include="Entity\SpellEntity.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\LifestoneObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\PortalObjectFactory.cs" />
+    <Compile Include="Factories\SpellObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
@@ -130,6 +132,7 @@
     <Compile Include="Network\Enum\MovementTypes.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
     <Compile Include="Network\Enum\RadarColor.cs" />
+    <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\UiEffects.cs" />
     <Compile Include="Network\Enum\CharacterOptionDataFlag.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
