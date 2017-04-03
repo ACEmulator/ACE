@@ -16,7 +16,6 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-
         public Spell SpellID;
         public Effect DefaultScript;
         public float DefaultScriptIntensity;
