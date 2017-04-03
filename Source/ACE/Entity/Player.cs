@@ -250,6 +250,9 @@ namespace ACE.Entity
             Position.positionType = PositionType.Location;
             IsOnline = true;
 
+            this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
+            PhysicsData.InstanceSequence = (ushort)TotalLogins;
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
             SendFriendStatusUpdates();
@@ -860,7 +863,7 @@ namespace ACE.Entity
 
             if (packet)
             {
-                Session.Network.EnqueueSend(new GameMessageSetState(Guid, state, character.TotalLogins, ++PortalIndex));
+                Session.Network.EnqueueSend(new GameMessageSetState(Guid, state, TotalLogins, ++PortalIndex));
                 // TODO: this should be broadcast
             }
         }
