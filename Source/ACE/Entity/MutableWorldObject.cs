@@ -31,6 +31,30 @@ namespace ACE.Entity
             this.WeenieClassid = weenieClassId;
         }
 
+        public MutableWorldObject(ObjectType type,
+            ObjectGuid guid,
+            string name,
+            ushort weenieClassId,
+            ObjectDescriptionFlag descriptionFlag,
+            WeenieHeaderFlag weenieFlag,
+            Position position,
+            Spell spellId,
+            uint modelId,
+            uint soundTableId,
+            uint physicsTableId) : base(type, guid)
+        {
+            this.Name = name;
+            this.DescriptionFlags = descriptionFlag;
+            this.WeenieFlags = weenieFlag;
+            this.Position = position;
+            this.WeenieClassid = weenieClassId;
+
+            this.GameData.Spell = spellId;
+            this.PhysicsData.CSetup = modelId;
+            this.PhysicsData.Stable = soundTableId;
+            this.PhysicsData.Petable = physicsTableId;
+        }
+
         /// <summary>
         /// tick-stamp for the last time a movement update was sent
         /// </summary>

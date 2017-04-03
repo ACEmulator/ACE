@@ -214,7 +214,7 @@ namespace ACE.Entity
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
-    
+
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;

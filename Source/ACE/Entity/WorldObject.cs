@@ -26,7 +26,7 @@ namespace ACE.Entity
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public ushort WeenieClassid { get; set; }
+        public ushort WeenieClassid { get; protected set; }
 
         public ushort Icon { get; set; }
 
