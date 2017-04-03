@@ -28,6 +28,7 @@ namespace ACE.Entity.Enum
         ReportCollisionAsEnviroment = 0x00200000,
         EdgeSlide                   = 0x00400000,
         Sledding                    = 0x00800000,
-        Frozen                      = 0x01000000
+        Frozen                      = 0x01000000,
+        Spell                       = 0x28F48
     }
 }

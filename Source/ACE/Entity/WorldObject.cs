@@ -26,7 +26,7 @@ namespace ACE.Entity
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public ushort WeenieClassid { get; protected set; }
+        public ushort WeenieClassid { get; set; }
 
         public ushort Icon { get; set; }
 
@@ -50,6 +50,8 @@ namespace ACE.Entity
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
+
+        public virtual void PlayScript(Session session) { }
 
         public ushort MovementIndex
         {
@@ -321,7 +323,7 @@ namespace ACE.Entity
                 writer.Write(GameData.Burden);
 
             if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
-                writer.Write(GameData.Spell);
+                writer.Write((uint)GameData.Spell);
 
             if ((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
                 writer.Write(GameData.HouseOwner);
