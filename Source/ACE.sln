@@ -22,6 +22,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.DatLoader", "ACE.DatLoa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.DatLoader.Tests", "ACE.DatLoader.Tests\ACE.DatLoader.Tests.csproj", "{099DAC65-CB36-43CD-A7D7-6DEADA862299}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root items", "root items", "{1BA67CED-4F8D-433A-90E1-9871DD6A31EF}"
+	ProjectSection(SolutionItems) = preProject
+		..\changelog.md = ..\changelog.md
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

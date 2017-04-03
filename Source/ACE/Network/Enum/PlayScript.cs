@@ -1,7 +1,7 @@
 ﻿
 namespace ACE.Network.Enum
 {
-    public enum Effect : uint
+    public enum PlayScript : uint
     {
         Invalid                     = 0x00,
         Test1                       = 0x01,

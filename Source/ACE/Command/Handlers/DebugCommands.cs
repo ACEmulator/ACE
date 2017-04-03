@@ -1,5 +1,4 @@
 ﻿using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -10,6 +9,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Factories;
+using System.Globalization;
 
 namespace ACE.Command.Handlers
 {
@@ -123,10 +123,10 @@ namespace ACE.Command.Handlers
         {
             try
             {
-                Network.Enum.Effect effect = Network.Enum.Effect.Invalid;
+                Network.Enum.PlayScript effect = Network.Enum.PlayScript.Invalid;
                 string message = "";
                 float scale = 1f;
-                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.Invalid);
+                var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.Invalid);
 
                 if (parameters.Length > 1)
                     if (parameters[1] != "")
@@ -136,10 +136,10 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parameters[0], true, out effect))
                 {
-                    if (Enum.IsDefined(typeof(Network.Enum.Effect), effect))
+                    if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
-                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.Effect), effect)}";
-                        effectEvent = new GameMessageEffect(session.Player.Guid, effect, scale);
+                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
+                        effectEvent = new GameMessageScript(session.Player.Guid, effect, scale);
                     }
                 }
 
@@ -253,14 +253,41 @@ namespace ACE.Command.Handlers
                 }
 
                 float scale = 1f;
-                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.AttribDownRed, scale);
+                var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.AttribDownRed, scale);
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(effectEvent, sysChatMessage);
             }
             catch (Exception)
             {
                 // Do Nothing
+        }
             }
+
+        // @testspell 0 10 10 10 10 20
+        [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        public static void TestSpell(Session session, params string[] parameters)
+        {
+            uint templatid;
+            float x, y, z;
+            float friction;
+            float electicity;
+            try
+            {
+                templatid = Convert.ToUInt32(parameters[0]);
+                x = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
+                y = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
+                z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
+                friction = float.Parse(parameters[4], CultureInfo.InvariantCulture.NumberFormat);
+                electicity = float.Parse(parameters[5], CultureInfo.InvariantCulture.NumberFormat);
+           }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, $"Invalid Spell Parameters", ChatMessageType.Broadcast);
+                return;
+            }
+
+            AceVector3 velocity = new AceVector3(x, y, z);
+            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Position.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
         [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
