@@ -19,12 +19,15 @@ namespace ACE.Entity
 
         private List<Model> models = new List<Model>();
 
-        public void AddPalette(ushort paletteID, byte offset, byte length)
+        public void AddPalette(uint paletteID, ushort offset, ushort length)
         {
             ModelPalette newpalette = new ModelPalette(paletteID, offset, length);
             modelPalettes.Add(newpalette);
         }
 
+        /// <summary>
+        /// old and new textures are suspected to be packedDWORDs.
+        /// </summary>
         public void AddTexture(byte index, ushort oldtexture, ushort newtexture)
         {
             ModelTexture nextTexture = new ModelTexture(index, oldtexture, newtexture);
@@ -47,6 +50,7 @@ namespace ACE.Entity
 
             if (modelPalettes.Count > 0)
                 writer.Write((ushort)PaletteGuid);
+
             foreach (ModelPalette palette in modelPalettes)
             {
                 writer.Write((ushort)palette.PaletteId);

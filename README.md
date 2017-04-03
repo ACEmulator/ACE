@@ -13,8 +13,8 @@
 ## Getting Started
 
 * Install MySQL (MariaDB is preferred, but either will work).
-* Create three databases named `ace_auth`, `ace_character`, and `ace_world`.
-* Load AuthenticationBase.sql, CharacterBase.sql, and WorldBase.sql for their respective databases. 
+* Unzip the world database: `database/base/ace_world_dump.zip'
+* Run the 3 sql dumps in your MySQL install to create the 3 databases: ace_auth, ace_character, and ace_world.
 * Load all incremental SQL updates in the Database\Updates sub directories. 
 * Copy `Config.json.example` to `Config.json` and modify database settings, such as your database password.
 * Build and run ACE.

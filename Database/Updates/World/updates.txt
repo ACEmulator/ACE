@@ -1,7 +1,0 @@
-2/4/2017
---------
-- Added a basic set of telelocations.
-
-2017_03_22_weenies_and_objects.sql - large implemenation of object permanence and weenie structuring
-2017_03_23_data_scripts\landblock_weenies.sql - all the weenie objects needed for lifestones
-2017_03_23_data_scripts\landblock_data.sql - all lifestones captured in pcaps

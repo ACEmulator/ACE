@@ -41,9 +41,12 @@
 * Migrated GetPosition to GetLocation, Seporated Logic, added ORM calls on selecting data
 * Moved the Character.Location to Character.CharacterPositions[PositionType.Location] dictionary
 
+### 2017-03-29
 [Mogwai]
 * Added changelog.md to clearly identify changes from 1 commit to another.
 * Updated readme.md.
+* Rebased database scripts.
+* Fully populated world database based on PCAP data.
 
 ### 2017-03-28
 [Jyrus]

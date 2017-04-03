@@ -15,13 +15,13 @@ namespace ACE.Entity
         /// <summary>
         ///  Palette portal.dat entry minus 0x04000000
         /// </summary>
-        public ushort PaletteId { get; }
+        public uint PaletteId { get; }
 
-        public byte Offset { get; }
+        public ushort Offset { get; }
 
-        public byte Length { get; }
+        public ushort Length { get; }
 
-        public ModelPalette(ushort paletteId, byte offset, byte length)
+        public ModelPalette(uint paletteId, ushort offset, ushort length)
         {
             PaletteId = paletteId;
             Offset = offset;

@@ -12,7 +12,10 @@ namespace ACE.Database
         {
             TeleportLocationSelect,
             GetWeenieClass,
-            GetObjectsByLandblock
+            GetObjectsByLandblock,
+            GetPaletteOverridesByObject,
+            GetAnimationOverridesByObject,
+            GetTextureOverridesByObject
         }
 
         protected override Type preparedStatementType => typeof(WorldPreparedStatement);
@@ -22,6 +25,9 @@ namespace ACE.Database
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
             // ContructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
         }
 
         public List<TeleportLocation> GetLocations()
@@ -46,7 +52,38 @@ namespace ACE.Database
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("landblock", landblock);
-            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            objects.ForEach(o =>
+            {
+                o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
+                o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
+                o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
+            });
+            return objects;
+        }
+        
+        private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("baseAceObjectId", aceObjectId);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetTextureOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("baseAceObjectId", aceObjectId);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, PaletteOverride>(WorldPreparedStatement.GetPaletteOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<AnimationOverride> GetAceObjectAnimations(uint aceObjectId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("baseAceObjectId", aceObjectId);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetAnimationOverridesByObject, criteria);
+            return objects;
         }
     }
 }
