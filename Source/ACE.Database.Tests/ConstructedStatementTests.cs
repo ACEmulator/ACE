@@ -18,7 +18,7 @@ namespace ACE.Database.Tests
             GetLifestonesByLandblock
         }
 
-        Database worldDb;
+        static Database worldDb;
 
         [ClassInitialize]
         public static void TestSetup(TestContext context)
@@ -27,8 +27,8 @@ namespace ACE.Database.Tests
             File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
 
             ConfigManager.Initialise();
-            Database db = new Database();
-            db.Initialise(ConfigManager.Config.MySql.World.Host,
+            worldDb = new Database();
+            worldDb.Initialise(ConfigManager.Config.MySql.World.Host,
                           ConfigManager.Config.MySql.World.Port,
                           ConfigManager.Config.MySql.World.Username,
                           ConfigManager.Config.MySql.World.Password,
@@ -47,7 +47,7 @@ namespace ACE.Database.Tests
             worldDb.ConstructStatement(TestEnum.FooGet, typeof(BaseAceObject), ConstructedStatementType.Get);
 
             worldDb.ExecuteConstructedInsertStatement(TestEnum.FooInsert, typeof(BaseAceObject), o);
-            
+
             BaseAceObject o2 = new BaseAceObject();
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("baseAceObjectId", 1u);

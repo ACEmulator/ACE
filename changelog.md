@@ -1,4 +1,14 @@
 # ACEmulator Change Log
+
+### 2017-04-03
+[Mogwai]
+* Velocity vector fixed
+* Fixed protection level of weenie class in mutable world object.
+
+### 2017-04-02
+[StackOverflow]
+* SpellFactory + World Object Fixes and a real Vector3  - Improvements- AceVector
+
 ### 2017-03-31
 [fantoms]
 * Added debug command to test positions.
@@ -7,6 +17,10 @@
 * Changed a log4net debug line.
 * Changed the name class name `CharacterPositionType` to `PositionType`
 * Reworked `Position.cs` with ORM.
+
+### 2017-03-30
+[StackOverflow]
+* Start of a SpellFactory + World Object Fixes and a real Vector3 - AceVector
 
 ### 2017-03-29
 [fantoms]
@@ -70,10 +84,3 @@
 [Mogwai]
 * weenies weenies everywhere. object structure pass 1
 
-### 2017-03-30
-[StackOverflow]
-* Start of a SpellFactory + World Object Fixes and a real Vector3 - AceVector
-
-### 2017-04-02
-[StackOverflow]
-* SpellFactory + World Object Fixes and a real Vector3  - Improvements- AceVector
