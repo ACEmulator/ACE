@@ -262,5 +262,42 @@ namespace ACE.Command.Handlers
                 // Do Nothing
             }
         }
+
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateTrainingWand(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
+                   ChatMessageType.Broadcast);
+                return;
+            }
+            string location = parameters[0];
+            if (location == "me" | location == "ground")
+            {
+                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                switch (location)
+                {
+                    case "me":
+                        {
+                            LootGenerationFactory.AddToContainer(loot, session.Player);
+                            session.Player.TrackObject(loot);
+                            // TODO: Have to send game message CFS
+                            break;
+                        }
+                    case "ground":
+                        {
+                            LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(2.0f));
+                            LandblockManager.AddObject(loot);
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
+                    ChatMessageType.Broadcast);
+            }
+        }
     }
 }

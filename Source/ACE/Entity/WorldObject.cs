@@ -10,6 +10,13 @@ using System.IO;
 
 namespace ACE.Entity
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.Remoting.Messaging;
+
+    using global::ACE.Entity.Enum.Properties;
+    using global::ACE.Managers;
+
     public abstract class WorldObject
     {
         public ObjectGuid Guid { get; }
@@ -21,7 +28,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort WeenieClassid { get; protected set; }
 
-        public ushort Icon { get; protected set; }
+        public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -62,6 +69,12 @@ namespace ACE.Entity
             set { PhysicsData.ForcePositionSequence = value; }
         }
 
+        private bool IsContainer { get; set; } = false;
+
+        private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
+
+        private readonly object inventoryMutex = new object();
+
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
         public ModelData ModelData { get; }
@@ -85,6 +98,131 @@ namespace ACE.Entity
             Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.MotionMessageAutonomous, new UShortSequence(2));
             Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
+        }
+
+        public void AddToInventory(WorldObject worldObject)
+        {
+            lock (this.inventoryMutex)
+            {
+                if (inventory.ContainsKey(worldObject.Guid))
+                    return;
+
+                inventory.Add(worldObject.Guid, worldObject);
+            }
+        }
+
+        public void RemoveFromInventory(ObjectGuid objectGuid)
+        {
+            lock (inventoryMutex)
+            {
+                if (inventory.ContainsKey(objectGuid))
+                    inventory.Remove(objectGuid);
+            }
+        }
+
+        /// <summary>
+        /// This is used to do the housekeeping on the server side to take an object from inventory into 3D world then tell the world
+        /// </summary>
+        public void HandleDropItem(ObjectGuid objectGuid, Session session)
+        {
+            lock (this.inventoryMutex)
+            {
+                // Find the item in inventory
+                if (!this.inventory.ContainsKey(objectGuid)) return;
+                var obj = this.inventory[objectGuid];
+
+                // We are droping the item - let's keep track of change in burden
+                this.GameData.Burden -= obj.GameData.Burden;
+
+                // Set the flags and determine a position.
+
+                // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
+                obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
+                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
+
+                // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
+                obj.GameData.ContainerId = 0;
+                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
+                obj.PhysicsData.PhysicsState = PhysicsState.Gravity;
+                obj.GameData.RadarBehavior = RadarBehavior.ShowAlways;
+                obj.GameData.RadarColour = RadarColor.White;
+
+                // Let the client know our response.
+                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
+
+                // Tell the landblock so it can tell everyone around what just hit the ground.
+                LandblockManager.AddObject(obj);
+                // Remove from the inventory list.
+                this.inventory.Remove(objectGuid);
+
+                // OK, now let's tell the world and our client what we have done.
+                var targetContainer = new ObjectGuid(0);
+                session.Network.EnqueueSend(
+                   new GameMessagePrivateUpdatePropertyInt(session,
+                       PropertyInt.EncumbVal,
+                       (uint)session.Player.GameData.Burden));
+                var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
+                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+
+
+                // Set Container id to 0 - you are free
+                session.Network.EnqueueSend(
+                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+
+                var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
+                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+
+                // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
+                // Put the darn thing in 3d space
+                // Make the thud sound
+                // Send the container update again.   I have no idea why, but that is what they did in live.
+                session.Network.EnqueueSend(
+                    new GameMessagePutObjectIn3d(session, session.Player, objectGuid),
+                    new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
+                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+            }
+        }
+
+        /// <summary>
+        /// This is used to do the housekeeping on the server side to take an object from inventory into 3D world then tell the world
+        /// </summary>
+        public void HandlePutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid,  Session session)
+        {
+            lock (this.inventoryMutex)
+            {
+                // Find the item we want to pick up
+                var obj = LandblockManager.GetWorldObject(session, itemGuid);
+                if  (obj == null)
+                {
+                    return;
+                    // TODO: yea, this is probably not how you do this
+                }
+                // We are picking up the  the item - let's keep track of change in burden
+                // TODO: Add check for too encumbered and send "You are too encumbered to pick that up.  Also check pack capacity
+                this.GameData.Burden += obj.GameData.Burden;
+
+                // let's move to pick up the item
+                this.PositionFlag = UpdatePositionFlag.Contact |
+                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+                this.Position.positionX = obj.Position.positionX;
+                this.Position.positionY = obj.Position.positionY;
+                this.Position.positionZ = obj.Position.positionZ;
+                this.Position.rotationW = obj.Position.rotationW;
+                this.Position.rotationZ = obj.Position.rotationZ;
+
+                session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+                // TODO: Finish out pick up item
+
+
+            }
+        }
+        public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
+        {
+            lock (inventoryMutex)
+            {
+                inventory.TryGetValue(objectGuid, out worldObject);
+            }
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -225,7 +363,6 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-
             Position.Serialize(writer, PositionFlag);
 
             var player = Guid.IsPlayer() ? this as Player : null;

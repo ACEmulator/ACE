@@ -188,6 +188,16 @@ namespace ACE.Entity
             }
         }
 
+        public WorldObject GetWorldObject(ObjectGuid objectId)
+        {
+           Log($"Getting WorldObject {objectId.Full:X}");
+
+           lock (objectCacheLocker)
+           {
+               return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
+           }
+        }
+
         /// <summary>
         /// Handle the QueryHealth action between the source Object and its target
         /// </summary>

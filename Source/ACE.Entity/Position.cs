@@ -219,6 +219,7 @@
                 payload.Write((float)0f);
                 payload.Write((float)0f);
             }
+
         }
 
         public void Serialize(BinaryWriter payload, bool writeQuaternion = true, bool writeLandblock = true)

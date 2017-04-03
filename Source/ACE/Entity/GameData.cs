@@ -11,9 +11,7 @@ namespace ACE.Entity
     public class GameData
     {
         public string Name;
-
-        // public ushort Type;
-
+        public ushort Type;
         // public ushort Icon;  // - 0x06000000
 
         // WenieHeaderFlags

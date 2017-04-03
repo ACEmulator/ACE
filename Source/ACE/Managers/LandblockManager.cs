@@ -61,8 +61,17 @@ namespace ACE.Managers
         }
 
         /// <summary>
+        /// return wo in preparation to take it off the landblock and put it in a container.
+        /// </summary>
+        public static WorldObject GetWorldObject(Session source, ObjectGuid targetId)
+        {
+            var block = GetLandblock(source.Player.Position.LandblockId, true);
+            return block.GetWorldObject(targetId);
+        }
+
+        /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
-        /// adjacent landblocks if propogate is true (outdoor world roaming).
+        /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
         private static Landblock GetLandblock(LandblockId landblockId, bool propogate)
         {
