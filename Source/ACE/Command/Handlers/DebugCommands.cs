@@ -123,10 +123,10 @@ namespace ACE.Command.Handlers
         {
             try
             {
-                Network.Enum.Effect effect = Network.Enum.Effect.Invalid;
+                Network.Enum.PlayScript effect = Network.Enum.PlayScript.Invalid;
                 string message = "";
                 float scale = 1f;
-                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.Invalid);
+                var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.Invalid);
 
                 if (parameters.Length > 1)
                     if (parameters[1] != "")
@@ -136,10 +136,10 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parameters[0], true, out effect))
                 {
-                    if (Enum.IsDefined(typeof(Network.Enum.Effect), effect))
+                    if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
-                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.Effect), effect)}";
-                        effectEvent = new GameMessageEffect(session.Player.Guid, effect, scale);
+                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
+                        effectEvent = new GameMessageScript(session.Player.Guid, effect, scale);
                     }
                 }
 
@@ -253,15 +253,15 @@ namespace ACE.Command.Handlers
                 }
 
                 float scale = 1f;
-                var effectEvent = new GameMessageEffect(session.Player.Guid, Network.Enum.Effect.AttribDownRed, scale);
+                var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.AttribDownRed, scale);
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(effectEvent, sysChatMessage);
             }
             catch (Exception)
             {
                 // Do Nothing
-            }
         }
+            }
 
         // @testspell 0 10 10 10 10 20
         [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]

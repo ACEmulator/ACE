@@ -32,8 +32,8 @@ namespace ACE.Entity
         public uint AnimationFrame;
         public AceVector3 Acceleration;
         public float Translucency;
-        public AceVector3 Velocity;
-        public AceVector3 Omega; // rotation
+        public AceVector3 Velocity = new AceVector3(0f, 0f, 0f);
+        public AceVector3 Omega = new AceVector3(0f, 0f, 0f);
 
         public uint DefaultScript;
         public float DefaultScriptIntensity;

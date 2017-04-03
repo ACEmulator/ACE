@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using System;
 using System.Collections.Generic;
@@ -17,57 +18,67 @@ namespace ACE.Factories
         public static WorldObject CreateSpell(uint templateId, Position position, AceVector3 velocity, float friction, float electicity)
         {
 
-            Entity.SpellEntity wo = new Entity.SpellEntity(position, velocity, friction, electicity);
+            ushort weenieClassId = 0;
+            MutableWorldObject mobj = new MutableWorldObject(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position);
+
+            // Default
+            mobj.GameData.Name = "Ball of Death";
+            mobj.GameData.Spell = Spell.FlameBolt;
+            mobj.PhysicsData.CSetup = (uint)33555469;
+            mobj.PhysicsData.Stable = (uint)536870967;
+            mobj.PhysicsData.Petable = (uint)872415237;
+            mobj.PhysicsData.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
+            mobj.PhysicsData.DefaultScriptIntensity = (float)1;
+
+            mobj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elastcity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
+            mobj.PhysicsData.Velocity = velocity;
+            mobj.PhysicsData.Friction = (float)friction;
+            mobj.PhysicsData.Elastcity = (float)electicity;
+            mobj.PhysicsData.PhysicsState = PhysicsState.Spell;
 
             // todo: impletment more advanced templating.
             switch (templateId)
             {
                 case 0:
-                    wo.SpellID = Spell.FlameBolt;
-                    wo.DefaultScript = Network.Enum.Effect.ProjectileCollision;
-                    wo.DefaultScriptIntensity = (float)1;
-                    wo.PhysicsData.CSetup = (uint)33555469;
-                    wo.PhysicsData.Stable = (uint)536870967;
-                    wo.PhysicsData.Petable = (uint)872415237;
+                    mobj.WeenieClassid = 20974;
+                    mobj.GameData.Spell = Spell.FlameBolt;
+                    mobj.PhysicsData.CSetup = (uint)33555469;
+                    mobj.PhysicsData.Stable = (uint)536870967;
+                    mobj.PhysicsData.Petable = (uint)872415237;
                     break;
                 case 1:
-                    wo.SpellID = Spell.ForceBolt;
-                    wo.DefaultScript = Network.Enum.Effect.ProjectileCollision;
-                    wo.DefaultScriptIntensity = (float)1;
-                    wo.PhysicsData.CSetup = (uint)33555443;
-                    wo.PhysicsData.Stable = (uint)536870971;
-                    wo.PhysicsData.Petable = (uint)872415241;
+                    mobj.WeenieClassid = 7264;
+                    mobj.GameData.Spell = Spell.ForceBolt;
+                    mobj.PhysicsData.CSetup = (uint)33555443;
+                    mobj.PhysicsData.Stable = (uint)536870971;
+                    mobj.PhysicsData.Petable = (uint)872415241;
                     break;
                 case 2:
-                    // Lighting Bolt
-                    wo.SpellID = Spell.LightningBolt;
-                    wo.DefaultScript = Network.Enum.Effect.ProjectileCollision;
-                    wo.DefaultScriptIntensity = (float)1;
-                    wo.PhysicsData.CSetup = (uint)33555440;
-                    wo.PhysicsData.Stable = (uint)536870968;
-                    wo.PhysicsData.Petable = (uint)872415239;
+                    mobj.WeenieClassid = 1635;
+                    mobj.GameData.Spell = Spell.LightningBolt;
+                    mobj.PhysicsData.CSetup = (uint)33555440;
+                    mobj.PhysicsData.Stable = (uint)536870968;
+                    mobj.PhysicsData.Petable = (uint)872415239;
                     break;
                 case 3:
-                    // WCID = 1503
-                    wo.SpellID = Spell.FrostBolt;
-                    wo.DefaultScript = Network.Enum.Effect.ProjectileCollision;
-                    wo.DefaultScriptIntensity = (float)1;
-                    wo.PhysicsData.CSetup = (uint)33555444;
-                    wo.PhysicsData.Stable = (uint)536870966;
-                    wo.PhysicsData.Petable = (uint)872415238;
+                    mobj.WeenieClassid = 1503;
+                    mobj.GameData.Spell = Spell.FrostBolt;
+                    mobj.PhysicsData.CSetup = (uint)33555444;
+                    mobj.PhysicsData.Stable = (uint)536870966;
+                    mobj.PhysicsData.Petable = (uint)872415238;
                     break;
                 case 4:
-                    // WCID = 1636
-                    wo.SpellID = Spell.WhirlingBlade;
-                    wo.DefaultScript = Network.Enum.Effect.ProjectileCollision;
-                    wo.DefaultScriptIntensity = (float)1;
-                    wo.PhysicsData.CSetup = (uint)33555452;
-                    wo.PhysicsData.Stable = (uint)536870972;
-                    wo.PhysicsData.Petable = (uint)872415240;
+                    mobj.WeenieClassid = 1636;
+                    mobj.GameData.Spell = Spell.WhirlingBlade;
+                    mobj.PhysicsData.CSetup = (uint)33555452;
+                    mobj.PhysicsData.Stable = (uint)536870972;
+                    mobj.PhysicsData.Petable = (uint)872415240;
                     break;
             }
 
-            return wo;
+            mobj.PlayerScript = PlayScript.Launch;
+
+            return mobj;
         }
     }
 }

@@ -198,10 +198,10 @@ namespace ACE.Entity
             set { character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid)
+        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar, new Position(0, 0, 0, 0, 0, 0, 0, 0))
         {
             Session = session;
-            DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable;
+
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
             Name = session.CharacterRequested.Name;
@@ -214,8 +214,7 @@ namespace ACE.Entity
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
-            WeenieFlags = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar;
-
+    
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
@@ -363,7 +362,7 @@ namespace ACE.Entity
                 // break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
-                    PlayParticleEffect(Effect.WeddingBliss);
+                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
                     break;
                 }
             }
@@ -388,7 +387,7 @@ namespace ACE.Entity
                 else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 // play level up effect
-                PlayParticleEffect(Effect.LevelUp);
+                PlayParticleEffect(Network.Enum.PlayScript.LevelUp);
             }
         }
 
@@ -416,7 +415,7 @@ namespace ACE.Entity
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
-                    PlayParticleEffect(Effect.WeddingBliss);
+                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -564,7 +563,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    PlayParticleEffect(Effect.WeddingBliss);
+                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -581,9 +580,9 @@ namespace ACE.Entity
         }
 
         // plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(Effect effectId)
+        public void PlayParticleEffect(PlayScript effectId)
         {
-            var effectEvent = new GameMessageEffect(this.Guid, effectId);
+            var effectEvent = new GameMessageScript(this.Guid, effectId);
             Session.Network.EnqueueSend(effectEvent);
         }
 

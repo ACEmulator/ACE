@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using log4net;
+using ACE.Network;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -13,12 +16,19 @@ namespace ACE.Entity
     /// any world object that can change a state of some sort that requires clients be updated.  players, monsters,
     /// doors, etc.
     /// </summary>
-    public abstract class MutableWorldObject : WorldObject
+    public class MutableWorldObject : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public MutableWorldObject(ObjectType type, ObjectGuid guid) : base(type, guid)
+        public PlayScript PlayerScript = Network.Enum.PlayScript.Invalid;
+
+        public MutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
         {
+            this.Name = name;
+            this.DescriptionFlags = descriptionFlag;
+            this.WeenieFlags = weenieFlag;
+            this.Position = position;
+            this.WeenieClassid = weenieClassId;
         }
 
         /// <summary>
@@ -43,6 +53,15 @@ namespace ACE.Entity
                 log.Debug($"{Name} moved to {Position}");
 
                 base.Position = value;
+            }
+        }
+
+        public override void PlayScript(Session session)
+        {
+            if (PlayerScript != Network.Enum.PlayScript.Invalid)
+            {
+                var scriptEvent = new GameMessageScript(this.Guid, PlayerScript, 1f);
+                session.Network.EnqueueSend(scriptEvent);
             }
         }
     }
