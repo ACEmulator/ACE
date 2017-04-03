@@ -85,10 +85,6 @@ namespace ACE.Entity
 
         public SequenceManager Sequences { get; }
 
-        public object InventoryMutex => this.inventoryMutex;
-
-        public Dictionary<ObjectGuid, WorldObject> Inventory => this.inventory;
-
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -106,21 +102,21 @@ namespace ACE.Entity
 
         public void AddToInventory(WorldObject worldObject)
         {
-            lock (InventoryMutex)
+            lock (this.inventoryMutex)
             {
-                if (Inventory.ContainsKey(worldObject.Guid))
+                if (inventory.ContainsKey(worldObject.Guid))
                     return;
 
-                Inventory.Add(worldObject.Guid, worldObject);
+                inventory.Add(worldObject.Guid, worldObject);
             }
         }
 
         public void RemoveFromInventory(ObjectGuid objectGuid)
         {
-            lock (InventoryMutex)
+            lock (inventoryMutex)
             {
-                if (Inventory.ContainsKey(objectGuid))
-                    Inventory.Remove(objectGuid);
+                if (inventory.ContainsKey(objectGuid))
+                    inventory.Remove(objectGuid);
             }
         }
 
@@ -129,11 +125,11 @@ namespace ACE.Entity
         /// </summary>
         public void HandleDropItem(ObjectGuid objectGuid, Session session)
         {
-            lock (this.InventoryMutex)
+            lock (this.inventoryMutex)
             {
                 // Find the item in inventory
-                if (!this.Inventory.ContainsKey(objectGuid)) return;
-                var obj = this.Inventory[objectGuid];
+                if (!this.inventory.ContainsKey(objectGuid)) return;
+                var obj = this.inventory[objectGuid];
 
                 // We are droping the item - let's keep track of change in burden
                 this.GameData.Burden -= obj.GameData.Burden;
@@ -158,7 +154,7 @@ namespace ACE.Entity
                 // Tell the landblock so it can tell everyone around what just hit the ground.
                 LandblockManager.AddObject(obj);
                 // Remove from the inventory list.
-                this.Inventory.Remove(objectGuid);
+                this.inventory.Remove(objectGuid);
 
                 // OK, now let's tell the world and our client what we have done.
                 var targetContainer = new ObjectGuid(0);
@@ -193,11 +189,11 @@ namespace ACE.Entity
         /// </summary>
         public void HandlePutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid,  Session session)
         {
-            lock (this.InventoryMutex)
+            lock (this.inventoryMutex)
             {
                 // Find the item we want to pick up
                 var obj = LandblockManager.GetWorldObject(session, itemGuid);
-                if (Object.ReferenceEquals(null, obj))
+                if  (obj == null)
                 {
                     return;
                     // TODO: yea, this is probably not how you do this
@@ -216,60 +212,16 @@ namespace ACE.Entity
                 this.Position.rotationZ = obj.Position.rotationZ;
 
                 session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
-
-                // Set the flags and determine a position.
-
-                //obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
-                //   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                //obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
-
-                //// TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
-                //obj.GameData.ContainerId = containerGuid.Full;
-                //obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
-                //obj.PhysicsData.PhysicsState = PhysicsState.Gravity;
-                //obj.GameData.RadarBehavior = RadarBehavior.ShowAlways;
-                //obj.GameData.RadarColour = RadarColor.White;
-
-                //// Let the client know our response.
-                //session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
-
-                //// Tell the landblock so it can tell everyone around what just hit the ground.
-                //LandblockManager.AddObject(obj);
-                //// Remove from the inventory list.
-                //this.Inventory.Remove(objectGuid);
-
-                //// OK, now let's tell the world and our client what we have done.
-                //var targetContainer = new ObjectGuid(0);
-                //session.Network.EnqueueSend(
-                //   new GameMessagePrivateUpdatePropertyInt(session,
-                //       PropertyInt.EncumbVal,
-                //       (uint)session.Player.GameData.Burden));
-                //var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-                //session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+                // TODO: Finish out pick up item
 
 
-                //// Set Container id to 0 - you are free
-                //session.Network.EnqueueSend(
-                //    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
-
-                //var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
-                //session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
-
-                //// Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
-                //// Put the darn thing in 3d space
-                //// Make the thud sound
-                //// Send the container update again.   I have no idea why, but that is what they did in live.
-                //session.Network.EnqueueSend(
-                //    new GameMessagePutObjectIn3d(session, session.Player, objectGuid),
-                //    new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
-                //    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
             }
         }
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
         {
-            lock (InventoryMutex)
+            lock (inventoryMutex)
             {
-                Inventory.TryGetValue(objectGuid, out worldObject);
+                inventory.TryGetValue(objectGuid, out worldObject);
             }
         }
 
