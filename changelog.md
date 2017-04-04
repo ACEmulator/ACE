@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-04-03
+[Jyrus]
+* Add changes to ACE-World ace_object and weenie tables to widen the indexing restrictions to allow more fields to be used for unique indexing
+* Add Portal weenie and object table data
+
 [Mogwai]
 * Velocity vector fixed
 * Fixed protection level of weenie class in mutable world object.
