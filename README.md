@@ -9,6 +9,7 @@
 * SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
 * Hex Editor (Hexplorer or 010 Editor are both good)
 * ACLogView [on Github](https://github.com/tfarley/aclogview)
+* StyleCop Visual Studio Extension [on visualstudio.com](https://marketplace.visualstudio.com/items?itemName=ChrisDahlberg.StyleCop)
 
 ## Getting Started
 
