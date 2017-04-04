@@ -2,8 +2,7 @@
 ### 2017-04-03
 [Jyrus]
 * Add changes to ACE-World ace_object and weenie tables to widen the indexing restrictions to allow more fields to be used for unique indexing
-* Add Portal weenie table data
-* Add Portal object table data
+* Add Portal weenie and object table data
 
 ### 2017-03-31
 [fantoms]
