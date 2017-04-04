@@ -10,7 +10,7 @@ namespace ACE.Database.Tests
     [TestClass]
     public class ConstructedStatementTests
     {
-        enum TestEnum
+        public enum TestEnum
         {
             FooInsert,
             FooUpdate,
@@ -18,7 +18,7 @@ namespace ACE.Database.Tests
             GetLifestonesByLandblock
         }
 
-        static Database worldDb;
+        private static Database worldDb;
 
         [ClassInitialize]
         public static void TestSetup(TestContext context)
