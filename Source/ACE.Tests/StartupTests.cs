@@ -22,6 +22,7 @@ namespace ACE.Tests
         [TestMethod]
         public void DatabaseManager_Initialize()
         {
+            // this triggers all the prepared statement validation
             DatabaseManager.Initialise();
         }
 
