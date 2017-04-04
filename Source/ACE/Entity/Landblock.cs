@@ -77,6 +77,13 @@ namespace ACE.Entity
                 ImmutableWorldObject iwo = new ImmutableWorldObject(o);
                 worldObjects.Add(iwo.Guid, iwo);
             }
+
+            var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
+            foreach (var c in creatures)
+            {
+                Creature cwo = new Creature(c);
+                worldObjects.Add(cwo.Guid, cwo);
+            }
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)

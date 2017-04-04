@@ -5,3 +5,6 @@
 2017_03_22_weenies_and_objects.sql - large implemenation of object permanence and weenie structuring
 2017_03_23_data_scripts\landblock_weenies.sql - all the weenie objects needed for lifestones
 2017_03_23_data_scripts\landblock_data.sql - all lifestones captured in pcaps
+
+2017_04_01_creature_generators.sql - generator tables for random and static creature spawning
+2017_04_01_data_scripts\creature_generators_testdata.sql - testdate for spawning a Drudge Sneaker near the Holtburg Lifestone

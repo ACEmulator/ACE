@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
     <Compile Include="AnimationOverride.cs" />
@@ -134,6 +135,9 @@
     <Compile Include="BaseAceObject.cs" />
     <Compile Include="Vector3.cs" />
     <Compile Include="Weenie.cs" />
+    <Compile Include="WeenieAnimationOverride.cs" />
+    <Compile Include="WeeniePaletteOverride.cs" />
+    <Compile Include="WeenieTextureMapOverride.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="default.ruleset" />

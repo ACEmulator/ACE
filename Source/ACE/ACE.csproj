@@ -87,6 +87,7 @@
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\BroadcastAction.cs" />
+    <Compile Include="Entity\Creature.cs" />
     <Compile Include="Entity\Events\BroadcastEventArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
     <Compile Include="Entity\MovementData.cs" />
