@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-04-04
+[Mogwai]
+* Added AppVeyor integration
+* Rebased all Database scripts
+
 ### 2017-04-03
 [Lidefeath]
 * Add basic creature spawn tables to the database
