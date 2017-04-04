@@ -21,11 +21,7 @@ namespace ACE.Entity
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public PlayScript PlayerScript = Network.Enum.PlayScript.Invalid;
-
-        public MutableWorldObject(ObjectType type, ObjectGuid guid) : base(type, guid)
-        {
-        }
-
+        
         public MutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
         {
             this.Name = name;
