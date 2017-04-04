@@ -19,7 +19,7 @@ namespace ACE.Entity
 
         private List<Model> models = new List<Model>();
 
-        public void AddPalette(uint paletteID, ushort offset, ushort length)
+        public void AddPalette(ushort paletteID, byte offset, byte length)
         {
             ModelPalette newpalette = new ModelPalette(paletteID, offset, length);
             modelPalettes.Add(newpalette);

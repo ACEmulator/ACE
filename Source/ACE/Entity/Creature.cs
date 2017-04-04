@@ -44,7 +44,7 @@ namespace ACE.Entity
 
             aceC.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)(ao.AnimationId - 0x01000000)));
             aceC.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)(to.OldId - 0x05000000), (ushort)(to.NewId - 0x05000000)));
-            aceC.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette((po.SubPaletteId - 0x04000000), po.Offset, (ushort)(po.Length / 8)));
+            aceC.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette((ushort)(po.SubPaletteId - 0x04000000), (byte)po.Offset, (byte)(po.Length / 8)));
             this.ModelData.PaletteGuid = aceC.PaletteId - 0x04000000;
         }
     }
