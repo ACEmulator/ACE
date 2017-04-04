@@ -10,4 +10,4 @@ before_build:
 build:
   project: source\ACE.sln
   verbosity: minimal
-test: off
+test: on

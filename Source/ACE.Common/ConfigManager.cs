@@ -62,7 +62,9 @@ namespace ACE.Common
             {
                 Console.WriteLine("An exception occured while loading the configuration file!");
                 Console.WriteLine($"Exception: {exception.Message}");
-                Environment.Exit(-1);
+
+                // environment.exit swallows this exception for testing purposes.  we want to expose it.
+                throw;
             }
         }
     }
