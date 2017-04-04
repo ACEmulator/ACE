@@ -11,16 +11,12 @@ namespace ACE.Entity
     public class Creature : MutableWorldObject
     {
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.TypeId, new ObjectGuid(aceC.AceObjectId))
+            : base((ObjectType)aceC.TypeId, new ObjectGuid(aceC.AceObjectId), aceC.Name, aceC.WeenieClassId, (ObjectDescriptionFlag)aceC.WdescBitField, (WeenieHeaderFlag)aceC.WeenieFlags, aceC.Position)
         {
-            this.Name = aceC.Name;
-            this.DescriptionFlags = (ObjectDescriptionFlag)aceC.WdescBitField;
-            this.Position = aceC.Position;
             if (aceC.WeenieClassId < 0x8000u)
                 this.WeenieClassid = aceC.WeenieClassId;
             else
                 this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
-            this.WeenieFlags = (WeenieHeaderFlag)aceC.WeenieFlags;
 
             this.PhysicsData.MTableResourceId = aceC.MotionTableId;
             this.PhysicsData.Stable = aceC.SoundTableId;
