@@ -16,6 +16,96 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`ace_world` /*!40100 DEFAULT CHARACTER S
 
 USE `ace_world`;
 
+/*Table structure for table `ace_creature_generator_data` */
+
+DROP TABLE IF EXISTS `ace_creature_generator_data`;
+
+CREATE TABLE `ace_creature_generator_data` (
+  `generatorid` int(10) unsigned NOT NULL,
+  `weenieClassId` smallint(5) unsigned NOT NULL,
+  `probability` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`generatorid`,`weenieClassId`),
+  KEY `FKace_creature_generator_data__weenieClassId` (`weenieClassId`),
+  CONSTRAINT `FKace_creature_generator_data__generatorId` FOREIGN KEY (`generatorid`) REFERENCES `ace_creature_generators` (`generatorid`),
+  CONSTRAINT `FKace_creature_generator_data__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Creature templates that all belong into one generator: i.e. all normal drudges. Probability of spawning this particular creature from this group.';
+
+/*Data for the table `ace_creature_generator_data` */
+
+insert  into `ace_creature_generator_data`(`generatorid`,`weenieClassId`,`probability`) values 
+(8,35440,50),
+(8,35441,40),
+(8,42437,10);
+
+/*Table structure for table `ace_creature_generator_locations` */
+
+DROP TABLE IF EXISTS `ace_creature_generator_locations`;
+
+CREATE TABLE `ace_creature_generator_locations` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `generatorId` int(10) unsigned NOT NULL,
+  `quantity` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `landblock` smallint(5) unsigned DEFAULT NULL,
+  `cell` smallint(5) unsigned DEFAULT NULL,
+  `posX` float DEFAULT NULL,
+  `posY` float DEFAULT NULL,
+  `posZ` float DEFAULT NULL,
+  `qW` float DEFAULT NULL,
+  `qX` float DEFAULT NULL,
+  `qY` float DEFAULT NULL,
+  `qZ` float DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FKace_creature_generator_locations__generatorId` (`generatorId`),
+  CONSTRAINT `FKace_creature_generator_locations__generatorId` FOREIGN KEY (`generatorId`) REFERENCES `ace_creature_generators` (`generatorid`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='Locations for the random generated creatures. Specify the quantitiy of how many creatures from this generator should be spawned around this location.';
+
+/*Data for the table `ace_creature_generator_locations` */
+
+insert  into `ace_creature_generator_locations`(`id`,`generatorId`,`quantity`,`landblock`,`cell`,`posX`,`posY`,`posZ`,`qW`,`qX`,`qY`,`qZ`) values 
+(1,8,3,4344,25,82.1302,9.98661,94.005,0.983917,0,0,0.178627);
+
+/*Table structure for table `ace_creature_generators` */
+
+DROP TABLE IF EXISTS `ace_creature_generators`;
+
+CREATE TABLE `ace_creature_generators` (
+  `generatorid` int(10) unsigned NOT NULL,
+  `name` text NOT NULL,
+  PRIMARY KEY (`generatorid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Generators (=groups) for all type of creatures: Drudges, Eaters, Banderlings, etc.';
+
+/*Data for the table `ace_creature_generators` */
+
+insert  into `ace_creature_generators`(`generatorid`,`name`) values 
+(3,'Drduges (Black)'),
+(8,'Drduges (Normal)');
+
+/*Table structure for table `ace_creature_static_locations` */
+
+DROP TABLE IF EXISTS `ace_creature_static_locations`;
+
+CREATE TABLE `ace_creature_static_locations` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `weenieClassId` smallint(5) unsigned NOT NULL,
+  `landblock` smallint(5) unsigned DEFAULT NULL,
+  `cell` smallint(5) unsigned DEFAULT NULL,
+  `posX` float DEFAULT NULL,
+  `posY` float DEFAULT NULL,
+  `posZ` float DEFAULT NULL,
+  `qW` float DEFAULT NULL,
+  `qX` float DEFAULT NULL,
+  `qY` float DEFAULT NULL,
+  `qZ` float DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FKace_creature_static_locations__weenieClassId` (`weenieClassId`),
+  CONSTRAINT `FKace_creature_static_locations__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1 COMMENT='Location for an exact - not random - creature to spawn: i.e. the 3 (?) water golems on Mayoi beach would be in here.';
+
+/*Data for the table `ace_creature_static_locations` */
+
+insert  into `ace_creature_static_locations`(`id`,`weenieClassId`,`landblock`,`cell`,`posX`,`posY`,`posZ`,`qW`,`qX`,`qY`,`qZ`) values 
+(2,35442,43443,15,47.7673,154.315,94.005,0.278842,0,0,0.960337);
+
 /*Table structure for table `ace_object` */
 
 DROP TABLE IF EXISTS `ace_object`;
@@ -14289,6 +14379,75 @@ insert  into `weenie_texture_map_changes`(`weenieClassId`,`index`,`oldId`,`newId
 (34516,20,83886126,83897668),
 (34516,21,83886124,83897668);
 
+/*Table structure for table `vw_ace_creature_static` */
+
+DROP TABLE IF EXISTS `vw_ace_creature_static`;
+
+/*!50001 DROP VIEW IF EXISTS `vw_ace_creature_static` */;
+/*!50001 DROP TABLE IF EXISTS `vw_ace_creature_static` */;
+
+/*!50001 CREATE TABLE  `vw_ace_creature_static`(
+ `baseAceObjectId` int(10) unsigned ,
+ `name` text ,
+ `typeId` int(10) unsigned ,
+ `paletteId` int(10) unsigned ,
+ `ammoType` int(10) unsigned ,
+ `blipColor` tinyint(3) unsigned ,
+ `bitField` int(10) unsigned ,
+ `burden` int(10) unsigned ,
+ `combatUse` tinyint(3) unsigned ,
+ `cooldownDuration` double ,
+ `cooldownId` int(10) unsigned ,
+ `effects` int(10) unsigned ,
+ `containersCapacity` tinyint(3) unsigned ,
+ `header` int(10) unsigned ,
+ `hookTypeId` int(10) unsigned ,
+ `iconId` int(10) unsigned ,
+ `iconOverlayId` int(10) unsigned ,
+ `iconUnderlayId` int(10) unsigned ,
+ `hookItemTypes` int(10) unsigned ,
+ `itemsCapacity` tinyint(3) unsigned ,
+ `location` tinyint(3) unsigned ,
+ `materialType` tinyint(3) unsigned ,
+ `maxStackSize` smallint(5) unsigned ,
+ `maxStructure` smallint(5) unsigned ,
+ `radar` tinyint(3) unsigned ,
+ `pscript` smallint(5) unsigned ,
+ `spellId` smallint(5) unsigned ,
+ `stackSize` smallint(5) unsigned ,
+ `structure` smallint(5) unsigned ,
+ `targetTypeId` int(10) unsigned ,
+ `usability` int(10) unsigned ,
+ `useRadius` float ,
+ `validLocations` int(10) unsigned ,
+ `value` int(10) unsigned ,
+ `workmanship` float ,
+ `animationFrameId` int(10) unsigned ,
+ `defaultScript` int(10) unsigned ,
+ `defaultScriptIntensity` float ,
+ `elasticity` float ,
+ `friction` float ,
+ `locationId` int(10) unsigned ,
+ `modelTableId` int(10) unsigned ,
+ `motionTableId` int(10) unsigned ,
+ `objectScale` float ,
+ `physicsBitField` int(10) unsigned ,
+ `physicsState` int(10) unsigned ,
+ `physicsTableId` int(10) unsigned ,
+ `soundTableId` int(10) unsigned ,
+ `translucency` float ,
+ `weenieClassId` smallint(5) unsigned ,
+ `landblock` smallint(5) unsigned ,
+ `cell` smallint(5) unsigned ,
+ `posX` float ,
+ `posY` float ,
+ `posZ` float ,
+ `qW` float ,
+ `qX` float ,
+ `qY` float ,
+ `qZ` float 
+)*/;
+
 /*Table structure for table `vw_ace_object` */
 
 DROP TABLE IF EXISTS `vw_ace_object`;
@@ -14357,6 +14516,13 @@ DROP TABLE IF EXISTS `vw_ace_object`;
  `qY` float ,
  `qZ` float 
 )*/;
+
+/*View structure for view vw_ace_creature_static */
+
+/*!50001 DROP TABLE IF EXISTS `vw_ace_creature_static` */;
+/*!50001 DROP VIEW IF EXISTS `vw_ace_creature_static` */;
+
+/*!50001 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_ace_creature_static` AS (select `bao`.`baseAceObjectId` AS `baseAceObjectId`,`bao`.`name` AS `name`,`bao`.`typeId` AS `typeId`,`bao`.`paletteId` AS `paletteId`,`bao`.`ammoType` AS `ammoType`,`bao`.`blipColor` AS `blipColor`,`bao`.`bitField` AS `bitField`,`bao`.`burden` AS `burden`,`bao`.`combatUse` AS `combatUse`,`bao`.`cooldownDuration` AS `cooldownDuration`,`bao`.`cooldownId` AS `cooldownId`,`bao`.`effects` AS `effects`,`bao`.`containersCapacity` AS `containersCapacity`,`bao`.`header` AS `header`,`bao`.`hookTypeId` AS `hookTypeId`,`bao`.`iconId` AS `iconId`,`bao`.`iconOverlayId` AS `iconOverlayId`,`bao`.`iconUnderlayId` AS `iconUnderlayId`,`bao`.`hookItemTypes` AS `hookItemTypes`,`bao`.`itemsCapacity` AS `itemsCapacity`,`bao`.`location` AS `location`,`bao`.`materialType` AS `materialType`,`bao`.`maxStackSize` AS `maxStackSize`,`bao`.`maxStructure` AS `maxStructure`,`bao`.`radar` AS `radar`,`bao`.`pscript` AS `pscript`,`bao`.`spellId` AS `spellId`,`bao`.`stackSize` AS `stackSize`,`bao`.`structure` AS `structure`,`bao`.`targetTypeId` AS `targetTypeId`,`bao`.`usability` AS `usability`,`bao`.`useRadius` AS `useRadius`,`bao`.`validLocations` AS `validLocations`,`bao`.`value` AS `value`,`bao`.`workmanship` AS `workmanship`,`bao`.`animationFrameId` AS `animationFrameId`,`bao`.`defaultScript` AS `defaultScript`,`bao`.`defaultScriptIntensity` AS `defaultScriptIntensity`,`bao`.`elasticity` AS `elasticity`,`bao`.`friction` AS `friction`,`bao`.`locationId` AS `locationId`,`bao`.`modelTableId` AS `modelTableId`,`bao`.`motionTableId` AS `motionTableId`,`bao`.`objectScale` AS `objectScale`,`bao`.`physicsBitField` AS `physicsBitField`,`bao`.`physicsState` AS `physicsState`,`bao`.`physicsTableId` AS `physicsTableId`,`bao`.`soundTableId` AS `soundTableId`,`bao`.`translucency` AS `translucency`,`acsl`.`weenieClassId` AS `weenieClassId`,`acsl`.`landblock` AS `landblock`,`acsl`.`cell` AS `cell`,`acsl`.`posX` AS `posX`,`acsl`.`posY` AS `posY`,`acsl`.`posZ` AS `posZ`,`acsl`.`qW` AS `qW`,`acsl`.`qX` AS `qX`,`acsl`.`qY` AS `qY`,`acsl`.`qZ` AS `qZ` from ((`ace_creature_static_locations` `acsl` join `weenie_class` `wc` on((`wc`.`weenieClassId` = `acsl`.`weenieClassId`))) join `base_ace_object` `bao` on((`wc`.`baseAceObjectId` = `bao`.`baseAceObjectId`)))) */;
 
 /*View structure for view vw_ace_object */
 

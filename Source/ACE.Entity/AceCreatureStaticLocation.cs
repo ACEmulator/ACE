@@ -8,9 +8,6 @@ namespace ACE.Entity
     [DbGetList("vw_ace_creature_static", 3, "landblock")]
     public class AceCreatureStaticLocation : BaseAceObject
     {
-        //[DbField("Id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        //public uint Id { get; set; }
-
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
         public ushort WeenieClassId { get; set; }
 

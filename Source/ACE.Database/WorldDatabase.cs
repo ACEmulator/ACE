@@ -60,7 +60,7 @@ namespace ACE.Database
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("landblock", landblock);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach( o =>
+            objects.ForEach(o =>
             {
                 o.WeeniePaletteOverrides = GetWeeniePalettes(o.WeenieClassId);
                 o.WeenieTextureMapOverrides = GetWeenieTextureMaps(o.WeenieClassId);
@@ -74,7 +74,7 @@ namespace ACE.Database
          {
              Dictionary<string, object> criteria = new Dictionary<string, object>();
              criteria.Add("weenieClassId", weenieClassId);
-             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes , criteria);
+             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
          }
 
         private List<WeenieTextureMapOverride> GetWeenieTextureMaps(uint weenieClassId)

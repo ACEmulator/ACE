@@ -681,7 +681,7 @@ namespace ACE.Database
             {
                 Console.WriteLine($"An exception occured while preparing statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
-                Debug.Assert(false, "Prepared Statement Exception");
+                Debug.Assert(false, "Prepared Statement Exception: " + query);
             }
         }
     }
