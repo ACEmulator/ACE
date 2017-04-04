@@ -106,6 +106,7 @@
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\PortalObjectFactory.cs" />
+    <Compile Include="Factories\SpellObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
@@ -119,7 +120,7 @@
     <Compile Include="Network\Enum\AmmoType.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
-    <Compile Include="Network\Enum\Effect.cs" />
+    <Compile Include="Network\Enum\PlayScript.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
     <Compile Include="Network\Enum\MotionActivity.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Network\Enum\MovementTypes.cs" />
     <Compile Include="Network\Enum\RadarBehavior.cs" />
     <Compile Include="Network\Enum\RadarColor.cs" />
+    <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\UiEffects.cs" />
     <Compile Include="Network\Enum\CharacterOptionDataFlag.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
@@ -212,7 +214,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterDelete.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCreatureMessage.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageMotion.cs" />
-    <Compile Include="Network\GameMessages\Messages\GameMessageEffect.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageScript.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageEmoteText.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAbility.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateAttribute2ndLevel.cs" />

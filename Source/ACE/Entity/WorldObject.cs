@@ -51,6 +51,8 @@ namespace ACE.Entity
 
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
 
+        public virtual void PlayScript(Session session) { }
+
         public ushort MovementIndex
         {
             get { return PhysicsData.PositionSequence; }
@@ -321,7 +323,7 @@ namespace ACE.Entity
                 writer.Write(GameData.Burden);
 
             if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
-                writer.Write(GameData.Spell);
+                writer.Write((uint)GameData.Spell);
 
             if ((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
                 writer.Write(GameData.HouseOwner);

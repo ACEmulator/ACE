@@ -30,10 +30,10 @@ namespace ACE.Entity
         public float Friction;
         public float Elastcity;
         public uint AnimationFrame;
-        public Position Acceleration;
+        public AceVector3 Acceleration;
         public float Translucency;
-        public Position Velocity;
-        public Position Omega; // rotation
+        public AceVector3 Velocity = null;
+        public AceVector3 Omega = new AceVector3(0f, 0f, 0f);
 
         public uint DefaultScript;
         public float DefaultScriptIntensity;
@@ -62,6 +62,12 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) > 0 && this.Velocity == null)
+            {
+                // velocity is null, but the flag wants to include it.  unset the flag.
+                PhysicsDescriptionFlag ^= PhysicsDescriptionFlag.Velocity;
+            }
 
             writer.Write((uint)PhysicsDescriptionFlag);
 
