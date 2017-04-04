@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-04-03
+[Lidefeath]
+* Add basic creature spawn tables to the database
+* Load a static Drudge Sneaker Spawn near the Holtburg LS in Landblock.cs
+
 [Jyrus]
 * Add changes to ACE-World ace_object and weenie tables to widen the indexing restrictions to allow more fields to be used for unique indexing
 * Add Portal weenie and object table data
@@ -66,6 +70,9 @@
 ### 2017-03-28
 [Jyrus]
 * Fixed remaning stylecop warnings
+
+[Lidefeath]
+* Added UpdateHealth GameAction and Event for Players
 
 ### 2017-03-27
 [fantoms]
