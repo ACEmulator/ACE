@@ -33,8 +33,10 @@ namespace ACE.Network.Motion
             Commands.Add(motionItem);
         }
 
-        public override void WritePayload(WorldObject animationTarget, BinaryWriter writer)
+        public override byte[] GetPayload(WorldObject animationTarget)
         {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
             writer.Write((byte)MovementTypes.General); // movement_type
             MotionFlags flags = MotionFlags.None;
             if (HasTarget)
@@ -57,6 +59,7 @@ namespace ACE.Network.Motion
                 writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
                 writer.Write(item.Speed);
             }
+            return stream.ToArray();
         }
     }
 }

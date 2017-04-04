@@ -11,8 +11,9 @@ namespace ACE.Network.Motion
     public abstract class MotionState
     {
         public bool IsAutonomous { get; }
-        public virtual void WritePayload(WorldObject animationTarget, BinaryWriter writer)
+        public virtual byte[] GetPayload(WorldObject animationTarget)
         {
+            return null;
         }
     }
 }

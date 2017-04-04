@@ -26,7 +26,8 @@ namespace ACE.Network.GameMessages.Messages
 
             ushort autonomous = newState.IsAutonomous ? (ushort)1 : (ushort)0;
             Writer.Write(autonomous); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
-            newState.WritePayload(animationTarget, Writer);
+            var movementData = newState.GetPayload(animationTarget);
+            Writer.Write(movementData);
             Writer.Align();
         }
     }

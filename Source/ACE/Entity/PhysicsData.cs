@@ -2,6 +2,7 @@
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.Sequence;
+using ACE.Network.Motion;
 using System.Collections.Generic;
 using System.IO;
 
@@ -36,6 +37,13 @@ namespace ACE.Entity
         public AceVector3 Velocity = null;
         public AceVector3 Omega = new AceVector3(0f, 0f, 0f);
 
+        private MotionState currentMotionState = null;
+        public MotionState CurrentMotionState
+        {
+            get { return currentMotionState; }
+            set { currentMotionState = value; }
+        }
+
         public uint DefaultScript;
         public float DefaultScriptIntensity;
 
@@ -53,7 +61,7 @@ namespace ACE.Entity
         }
 
         // todo: return bytes of data for network write ? ?
-        public void Serialize(BinaryWriter writer)
+        public void Serialize(WorldObject wo, BinaryWriter writer)
         {
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) > 0 && this.Velocity == null)
             {
@@ -67,9 +75,18 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
-                // TODO: Implement properly
-                writer.Write(0u); // number of bytes in movement object
-                // autonomous flag goes here, but is omitted if the movement bytes is 0
+                if (currentMotionState != null)
+                {
+                    var movementData = currentMotionState.GetPayload(wo);
+                    writer.Write(movementData.Length); // number of bytes in movement object
+                    writer.Write(movementData);
+                    uint autonomous = currentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    writer.Write(autonomous);
+                }
+                else
+                {
+                    writer.Write(0u); // number of bytes in movement object
+                }
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)

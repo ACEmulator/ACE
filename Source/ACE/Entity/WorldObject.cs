@@ -16,9 +16,11 @@ namespace ACE.Entity
     using global::ACE.Entity.Enum.Properties;
     using global::ACE.Managers;
     using Network.Motion;
+    using log4net;
 
     public abstract class WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public ObjectGuid Guid { get; }
 
         public ObjectType Type { get; protected set; }
@@ -50,6 +52,8 @@ namespace ACE.Entity
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
+
+        public CombatMode CombatMode { get; private set; }
 
         public virtual void PlayScript(Session session) { }
 
@@ -90,6 +94,32 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
 
             PhysicsData = new PhysicsData(Sequences);
+        }
+
+        public void SetCombatMode(CombatMode newCombatMode)
+        {
+            log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);
+            // TODO: any sort of validation
+            CombatMode = newCombatMode;
+            switch (CombatMode)
+            {
+                case CombatMode.Peace:
+                    SetMotionState(new GeneralMotion(MotionStance.Standing));
+                    break;
+                case CombatMode.Melee:
+                    var gm = new GeneralMotion(MotionStance.UANoShieldAttack);
+                    gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
+                    SetMotionState(gm);
+                    break;
+            }
+        }
+
+        public void SetMotionState(MotionState motionState)
+        {
+            Player p = (Player)this;
+            PhysicsData.CurrentMotionState = motionState;
+            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            p.Session.Network.EnqueueSend(updateMotion);
         }
 
         public void AddToInventory(WorldObject worldObject)
@@ -228,7 +258,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             ModelData.Serialize(writer);
-            PhysicsData.Serialize(writer);
+            PhysicsData.Serialize(this, writer);
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);

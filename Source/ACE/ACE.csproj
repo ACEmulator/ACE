@@ -129,11 +129,11 @@
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\AmmoType.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\CombatMode.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
     <Compile Include="Network\Enum\PlayScript.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
-    <Compile Include="Network\Enum\MotionActivity.cs" />
     <Compile Include="Network\Enum\MotionCommand.cs" />
     <Compile Include="Network\Enum\MotionFlags.cs" />
     <Compile Include="Network\Enum\MotionStance.cs" />
@@ -161,6 +161,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionTeleToLifestone.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionDie.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionUseItem.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionChangeCombatMode.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryBirth.cs" />

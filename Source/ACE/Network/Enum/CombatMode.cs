@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.Enum
 {
-    public enum MotionAutonomous
+    public enum CombatMode
     {
-        False = 0,
-        True = 1
+        Peace = 1,
+        Melee = 2,
+        Missle = 4,
+        Magic = 8
     }
 }
