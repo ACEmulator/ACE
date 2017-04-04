@@ -1,4 +1,7 @@
 # ACEmulator Core Server
+
+Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl7cb9xq5am/branch/master?svg=true)](https://ci.appveyor.com/project/ACEmulator/ace/branch/master)
+
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
  * MySQL and MariaDB are used as the database engine.
  * Latest client supported.
