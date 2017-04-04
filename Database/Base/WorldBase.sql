@@ -59,7 +59,7 @@ CREATE TABLE `ace_object_palette_changes` (
   `subPaletteId` int(10) unsigned NOT NULL,
   `offset` smallint(5) unsigned NOT NULL,
   `length` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`baseAceObjectId`,`subPaletteId`),
+  PRIMARY KEY (`baseAceObjectId`,`subPaletteId`,`offset`,`length`),
   CONSTRAINT `FK_ace_object_palette_data__baseAceObjectId` FOREIGN KEY (`baseAceObjectId`) REFERENCES `ace_object` (`baseAceObjectId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -72,7 +72,7 @@ CREATE TABLE `ace_object_texture_map_changes` (
   `index` tinyint(3) unsigned NOT NULL,
   `oldId` int(10) unsigned NOT NULL,
   `newId` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`baseAceObjectId`,`index`),
+  PRIMARY KEY (`baseAceObjectId`,`index`,`oldId`),
   CONSTRAINT `FK_ace_object_texture_map_changes__baseAceObjectId` FOREIGN KEY (`baseAceObjectId`) REFERENCES `ace_object` (`baseAceObjectId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -206,7 +206,7 @@ CREATE TABLE `weenie_palette_changes` (
   `subPaletteId` int(10) unsigned NOT NULL,
   `offset` smallint(5) unsigned NOT NULL,
   `length` smallint(5) unsigned NOT NULL,
-  PRIMARY KEY (`weenieClassId`,`subPaletteId`),
+  PRIMARY KEY (`weenieClassId`,`subPaletteId`,`offset`,`length`),
   CONSTRAINT `FK_weenie_palette_data__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -219,7 +219,7 @@ CREATE TABLE `weenie_texture_map_changes` (
   `index` tinyint(3) unsigned NOT NULL,
   `oldId` int(10) unsigned NOT NULL,
   `newId` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`weenieClassId`,`index`),
+  PRIMARY KEY (`weenieClassId`,`index`,`oldId`),
   CONSTRAINT `FK_weenie_texture_map_changes__weenieClassId` FOREIGN KEY (`weenieClassId`) REFERENCES `weenie_class` (`weenieClassId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
