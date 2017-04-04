@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity.Enum
+﻿namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The TurbineChatType identifies the type of Turbine Chat message.<para />

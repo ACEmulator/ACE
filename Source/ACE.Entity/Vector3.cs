@@ -8,35 +8,34 @@ namespace ACE.Entity
     /// </summary>
     public class AceVector3
     {
-        private Vector3 Vector;
+        private Vector3 vector;
 
         public AceVector3(float x, float y, float z)
         {
-            Vector.X = x; Vector.Y = y; Vector.Z = z;
+            vector.X = x; vector.Y = y; vector.Z = z;
         }
 
         public void Update(float x, float y, float z)
         {
-            Vector.X = x; Vector.Y = y; Vector.Z = z;
+            vector.X = x; vector.Y = y; vector.Z = z;
         }
-
-
+        
         public Vector3 Forward()
         {
-            //todo figure out how to calculate vector forward for AC.
-            return Vector;
+            // todo figure out how to calculate vector forward for AC.
+            return vector;
         }
 
         public Vector3 Get()
         {
-            return Vector;
+            return vector;
         }
 
         public void Serialize(BinaryWriter payload)
         {
-            payload.Write(Vector.X);
-            payload.Write(Vector.Y);
-            payload.Write(Vector.Z);
+            payload.Write(vector.X);
+            payload.Write(vector.Y);
+            payload.Write(vector.Z);
         }
     }
 }

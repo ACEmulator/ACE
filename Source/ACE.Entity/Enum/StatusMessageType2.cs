@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity.Enum
+﻿namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The StatusMessageType2 identifies the specific message to be displayed in the chat window.<para />

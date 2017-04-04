@@ -14,20 +14,6 @@ using System.Reflection;
 
 namespace ACE.Database
 {
-    public class StoredPreparedStatement
-    {
-        public uint Id { get; }
-        public string Query { get; }
-        public List<MySqlDbType> Types { get; } = new List<MySqlDbType>();
-
-        public StoredPreparedStatement(uint id, string query, params MySqlDbType[] types)
-        {
-            Id    = id;
-            Query = query;
-            Types.AddRange(types);
-        }
-    }
-
     public class Database
     {
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
@@ -42,12 +28,12 @@ namespace ACE.Database
 
             public void AddPreparedStatement<T>(T id, params object[] parameters)
             {
-                Debug.Assert(typeof(T) == database.preparedStatementType);
+                Debug.Assert(typeof(T) == database.PreparedStatementType, "Invalid prepared statement type.");
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
                 {
-                    Debug.Assert(preparedStatement != null);
+                    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
                 }
 
@@ -104,7 +90,7 @@ namespace ACE.Database
                     {
                         Console.WriteLine("An exception occured while rolling back transaction!");
                         Console.WriteLine($"Exception: {rollbackException.Message}");
-                        Debug.Assert(false);
+                        Debug.Assert(false, "Transaction was rolled back.");
                     }
 
                     return false;
@@ -123,7 +109,7 @@ namespace ACE.Database
         private string connectionString;
         private readonly Dictionary<uint, StoredPreparedStatement> preparedStatements = new Dictionary<uint, StoredPreparedStatement>();
 
-        protected virtual Type preparedStatementType { get; }
+        protected virtual Type PreparedStatementType { get; }
 
         public void Initialise(string host, uint port, string user, string password, string database)
         {
@@ -168,8 +154,8 @@ namespace ACE.Database
 
         protected void AddPreparedStatement<T>(T id, string query, params MySqlDbType[] types)
         {
-            Debug.Assert(typeof(T) == preparedStatementType);
-            Debug.Assert(types.Length == query.Count(c => c == '?'));
+            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            Debug.Assert(types.Length == query.Count(c => c == '?'), "Invalid prepared statement parameter length.");
 
             try
             {
@@ -192,7 +178,7 @@ namespace ACE.Database
             {
                 Console.WriteLine($"An exception occured while preparing statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
-                Debug.Assert(false);
+                Debug.Assert(false, "Preparation of statement failed.");
             }
         }
 
@@ -335,7 +321,7 @@ namespace ACE.Database
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
             }
 
@@ -386,7 +372,7 @@ namespace ACE.Database
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
             }
 
@@ -437,7 +423,7 @@ namespace ACE.Database
 
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
             }
 
@@ -471,7 +457,7 @@ namespace ACE.Database
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
             }
 
@@ -515,12 +501,12 @@ namespace ACE.Database
 
         private async void ExecutePreparedStatement<T>(bool async, T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == preparedStatementType);
+            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return;
             }
 
@@ -568,12 +554,12 @@ namespace ACE.Database
 
         protected MySqlResult SelectPreparedStatement<T>(T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == preparedStatementType);
+            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
             }
 
@@ -610,12 +596,12 @@ namespace ACE.Database
 
         protected async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == preparedStatementType);
+            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
-                Debug.Assert(preparedStatement != null);
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
             }
 
@@ -695,7 +681,7 @@ namespace ACE.Database
             {
                 Console.WriteLine($"An exception occured while preparing statement {id}!");
                 Console.WriteLine($"Exception: {exception.Message}");
-                Debug.Assert(false);
+                Debug.Assert(false, "Prepared Statement Exception: " + query);
             }
         }
     }

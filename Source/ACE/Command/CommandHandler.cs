@@ -8,5 +8,4 @@ using System.Threading.Tasks;
 namespace ACE.Command
 {
     public delegate void CommandHandler(Session session, params string[] parameters);
-
 }

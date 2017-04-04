@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network
+﻿namespace ACE.Network
 {
     public enum GameMessageGroup
     {

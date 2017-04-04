@@ -1,5 +1,4 @@
-﻿
-using ACE.Network.Enum;
+﻿using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.Managers;
 

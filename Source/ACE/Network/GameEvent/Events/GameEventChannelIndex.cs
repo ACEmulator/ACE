@@ -1,5 +1,4 @@
-﻿
-using ACE.Entity;
+﻿using ACE.Entity;
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 
@@ -14,7 +13,6 @@ namespace ACE.Network.GameEvent.Events
 
         private void WriteEventBody()
         {
-
             // TODO: this probably could be done better but I'm not sure if there's a point, it's not like the client out of the box supports making up new channels
 
             // Admin

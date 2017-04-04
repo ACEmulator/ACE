@@ -1,5 +1,4 @@
-﻿
-using ACE.Network.GameEvent.Events;
+﻿using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages;
 using ACE.Network.Managers;
 

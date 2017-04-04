@@ -5,7 +5,6 @@ using System.IO;
 
 namespace ACE.Entity
 {
-
     /// <summary>
     /// Segment to Control AC Model / Palettes and Textures
     /// </summary>
@@ -52,7 +51,6 @@ namespace ACE.Entity
                 writer.Write((ushort)palette.PaletteId);
                 writer.Write((byte)palette.Offset);
                 writer.Write((byte)palette.Length);
-
             }
 
             foreach (ModelTexture texture in modelTextures)
@@ -69,8 +67,6 @@ namespace ACE.Entity
             }
 
             writer.Align();
-
         }
-
     }
 }

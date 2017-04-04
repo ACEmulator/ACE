@@ -1,5 +1,4 @@
-﻿
-using ACE.Network.GameEvent.Events;
+﻿using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions

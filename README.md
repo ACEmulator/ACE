@@ -1,4 +1,7 @@
 # ACEmulator Core Server
+
+Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl7cb9xq5am/branch/master?svg=true)](https://ci.appveyor.com/project/ACEmulator/ace/branch/master)
+
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
  * MySQL and MariaDB are used as the database engine.
  * Latest client supported.
@@ -9,6 +12,7 @@
 * SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
 * Hex Editor (Hexplorer or 010 Editor are both good)
 * ACLogView [on Github](https://github.com/tfarley/aclogview)
+* StyleCop Visual Studio Extension [on visualstudio.com](https://marketplace.visualstudio.com/items?itemName=ChrisDahlberg.StyleCop)
 
 ## Getting Started
 

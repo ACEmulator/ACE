@@ -1,4 +1,3 @@
-
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
@@ -167,7 +166,6 @@ namespace ACE.Entity
                 var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
                 session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
 
-
                 // Set Container id to 0 - you are free
                 session.Network.EnqueueSend(
                     new GameMessageUpdateInstanceId(objectGuid, targetContainer));
@@ -195,7 +193,7 @@ namespace ACE.Entity
             {
                 // Find the item we want to pick up
                 var obj = LandblockManager.GetWorldObject(session, itemGuid);
-                if  (obj == null)
+                if (obj == null)
                 {
                     return;
                     // TODO: yea, this is probably not how you do this
@@ -207,18 +205,17 @@ namespace ACE.Entity
                 // let's move to pick up the item
                 this.PositionFlag = UpdatePositionFlag.Contact |
                    UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                this.Position.positionX = obj.Position.positionX;
-                this.Position.positionY = obj.Position.positionY;
-                this.Position.positionZ = obj.Position.positionZ;
-                this.Position.rotationW = obj.Position.rotationW;
-                this.Position.rotationZ = obj.Position.rotationZ;
+                this.Position.PositionX = obj.Position.PositionX;
+                this.Position.PositionY = obj.Position.PositionY;
+                this.Position.PositionZ = obj.Position.PositionZ;
+                this.Position.RotationW = obj.Position.RotationW;
+                this.Position.RotationZ = obj.Position.RotationZ;
 
                 session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
                 // TODO: Finish out pick up item
-
-
             }
         }
+
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
         {
             lock (inventoryMutex)

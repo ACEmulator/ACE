@@ -79,7 +79,6 @@ namespace ACE.Network.Managers
             }
         }
 
-
         public static void HandleClientMessage(ClientMessage message, Session session)
         {
             var opcode = (GameMessageOpcode)message.Opcode;

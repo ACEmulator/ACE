@@ -24,9 +24,25 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.DatLoader.Tests", "ACE.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root items", "root items", "{1BA67CED-4F8D-433A-90E1-9871DD6A31EF}"
 	ProjectSection(SolutionItems) = preProject
+		..\appveyor.yml = ..\appveyor.yml
 		..\changelog.md = ..\changelog.md
 		..\README.md = ..\README.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AppVeyor", "AppVeyor", "{27B511EF-7B73-4345-AF4D-9C44DB478080}"
+	ProjectSection(SolutionItems) = preProject
+		AppVeyor\AppVeyorBeforeCompile.bat = AppVeyor\AppVeyorBeforeCompile.bat
+		AppVeyor\Config.json = AppVeyor\Config.json
+		AppVeyor\MySqlInstall.bat = AppVeyor\MySqlInstall.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B0075B4-AC3B-4A20-901E-8D8F3C8C65CF}"
+	ProjectSection(SolutionItems) = preProject
+		Settings.StyleCop = Settings.StyleCop
+		test.runsettings = test.runsettings
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Tests", "ACE.Tests\ACE.Tests.csproj", "{D8EE6B89-EA54-4F84-988E-BF323C3662C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,6 +78,10 @@ Global
 		{099DAC65-CB36-43CD-A7D7-6DEADA862299}.Debug|x64.Build.0 = Debug|x64
 		{099DAC65-CB36-43CD-A7D7-6DEADA862299}.Release|x64.ActiveCfg = Release|x64
 		{099DAC65-CB36-43CD-A7D7-6DEADA862299}.Release|x64.Build.0 = Release|x64
+		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Debug|x64.ActiveCfg = Debug|x64
+		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Debug|x64.Build.0 = Debug|x64
+		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Release|x64.ActiveCfg = Release|x64
+		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

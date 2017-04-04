@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using ACE.Common.Extensions;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -24,7 +23,6 @@ namespace ACE.Network.GameAction.Actions
                     age = age + tsAge.ToString("%d") + "d ";
                 if (Convert.ToInt16(tsAge.ToString("%d")) > 7)
                 {
-
                     int months  = 0;
                     int weeks   = 0;
                     int days    = 0;
@@ -50,7 +48,6 @@ namespace ACE.Network.GameAction.Actions
                         age = age + weeks + "w ";
                     if (days > 0)
                         age = age + days + "d ";
-
                 }
             }
 
@@ -62,7 +59,6 @@ namespace ACE.Network.GameAction.Actions
 
             if (tsAge.ToString("%s") != "0")
                 age = age + tsAge.ToString("%s") + "s";
-
 
             var ageEvent = new GameEvent.Events.GameEventQueryAgeResponse(session, "", age);
 

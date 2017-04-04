@@ -446,8 +446,7 @@ namespace ACE.DatLoader
         [DatFileTypeExtension("rendermesh")]
         [DatFileTypeIdRange(0x19000000, 0x19FFFFFF)]
         RenderMesh              = 50, // DB_TYPE_RENDER_MESH
-
-
+        
         // the following special files are called out in a different section of the decompiled client:
 
         [DatDatabaseType(DatDatabaseType.Portal)]

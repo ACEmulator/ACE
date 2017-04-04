@@ -11,7 +11,6 @@ namespace ACE.DatLoader
     {
         public PortalDatDatabase(string filename) : base(filename, DatDatabaseType.Portal)
         {
-
         }
 
         public void ExtractCategorizedContents(string path)

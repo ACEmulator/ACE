@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.GameEvent.Events
+﻿namespace ACE.Network.GameEvent.Events
 {
     public class GameEventIdentifyObjectResponse : GameEventMessage
     {

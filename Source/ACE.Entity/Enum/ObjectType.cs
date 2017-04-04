@@ -3,7 +3,7 @@
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum ObjectType  : uint
+    public enum ObjectType : uint
     {
         None                       = 0x00000000,
         MeleeWeapn                 = 0x00000001,

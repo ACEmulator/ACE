@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.GameMessages
+﻿namespace ACE.Network.GameMessages
 {
     public abstract class GameMessage
     {

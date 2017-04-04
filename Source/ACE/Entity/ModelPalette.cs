@@ -11,7 +11,6 @@ namespace ACE.Entity
     /// </summary>
     public class ModelPalette
     {
-
         /// <summary>
         ///  Palette portal.dat entry minus 0x04000000
         /// </summary>

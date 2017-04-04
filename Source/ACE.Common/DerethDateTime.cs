@@ -36,14 +36,17 @@ namespace ACE.Common
         /// <para>A <see cref="DerethDateTime"/> instance set to the Derethian Date, Portal Year and Time when the worlds first opened.</para>
         /// </summary>
         private static DerethDateTime retailDayOne_Derethian            = new DerethDateTime(10, Months.Leafcull, 1, Hours.Darktide);
+
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Lore Corrected Derethian Date, Portal Year and Time when the worlds first opened.</para>
         /// </summary>
         private static DerethDateTime retailDayOne_Derethian_Lore       = new DerethDateTime().ConvertRealWorldToLoreDateTime(new DateTime(1999, 11, 2, 00, 00, 00));
+
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Derethian Date, Portal Year and Time when the worlds closed.</para>
         /// </summary>
         private static DerethDateTime retailDayLast_Derethian           = new DerethDateTime(206, Months.Solclaim, 24, Hours.Gloaming);
+
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Lore Corrected Derethian Date, Portal Year and Time when the worlds closed.</para>
         /// </summary>
@@ -67,8 +70,8 @@ namespace ACE.Common
         {
             Snowreap    = -2,
             Coldeve     = -1,
-            Wintersebb  =  0,
-            Morningthaw =  1,
+            Wintersebb  = 0,
+            Morningthaw = 1,
             Solclaim,
             Seedsow,
             Leafdawning,
@@ -170,7 +173,7 @@ namespace ACE.Common
                     hour    = (int)Hours.Morntide_and_Half;
                 }
             }
-        } //= MinValue;
+        }
 
         /// <summary>
         /// Gets the day of the month represented by this instance.
@@ -195,7 +198,7 @@ namespace ACE.Common
                     day = 1;
                 }
             }
-        } //= 1;
+        }
 
         /// <summary>
         /// Gets the month component of the date represented by this instance.
@@ -222,12 +225,12 @@ namespace ACE.Common
                     month = (int)Months.Snowreap;
                 }
             }
-        } //= (int)Months.Morningthaw;
+        }
 
         /// <summary>
         /// Gets the month name component of the date represented by this instance.
         /// </summary>
-        public Months MonthName { get { return (Months)Month; } } //= (int)Months.Morningthaw;
+        public Months MonthName { get { return (Months)Month; } }
 
         /// <summary>
         /// Gets the year component of the date represented by this instance.
@@ -250,16 +253,17 @@ namespace ACE.Common
                     year = 401;
                 }
             }
-        } //= 10;
+        }
 
         /// <summary>
         /// Gets the year component of the date represented by this instance.
         /// </summary>
-        public int PY { get { return year; } } //= 10;
+        public int PY { get { return year; } }
+
         /// <summary>
         /// Gets the year component of the date represented by this instance.
         /// </summary>
-        public int PortalYear { get { return year; } } //= 10;
+        public int PortalYear { get { return year; } }
 
         /// <summary>
         /// Gets the hour component of the time represented by this instance.
@@ -284,22 +288,22 @@ namespace ACE.Common
                     hour = (int)Hours.Darktide;
                 }
             }
-        } //= (int)Hours.Morntide_and_Half;
+        }
 
         /// <summary>
         /// Gets the hour name component of the time represented by this instance.
         /// </summary>
-        public Hours HourName { get { return (Hours)Hour; } } //= (int)Hours.Morntide_and_Half;
+        public Hours HourName { get { return (Hours)Hour; } }
 
         /// <summary>
         /// Gets the hour component of the time represented by this instance.
         /// </summary>
-        public int Time { get { return hour; } } //= (int)Hours.Morntide_and_Half;
+        public int Time { get { return hour; } }
 
         /// <summary>
         /// Gets the hour name component of the time represented by this instance.
         /// </summary>
-        public Hours TimeName { get { return (Hours)Hour; } } //= (int)Hours.Morntide_and_Half;
+        public Hours TimeName { get { return (Hours)Hour; } }
 
         /// <summary>
         /// Gets the time of day for this instance.
@@ -511,10 +515,9 @@ namespace ACE.Common
         /// <param name="hour">The hour or time (of day) (1 through 16).<para>Each day begins at Darktide and ends at Gloaming-and-Half.</para></param>
         public DerethDateTime(int year = 10, int month = (int)Months.Morningthaw, int day = 1, int hour = (int)Hours.Darktide)
         {
-
             if (year < 10 | year > 401)
                 throw new ArgumentOutOfRangeException("year", "year is less than 10 or greater than 401");
-            if (month < (int)Months.Snowreap | month > (int)Months.Frostfell )
+            if (month < (int)Months.Snowreap | month > (int)Months.Frostfell)
                 throw new ArgumentOutOfRangeException("month", "month is less than " + Months.Snowreap + " or greater than " + Months.Frostfell);
             if (day < 1 | day > 30)
                 throw new ArgumentOutOfRangeException("day", "day is less than 1 or greater than 30");
@@ -586,7 +589,6 @@ namespace ACE.Common
         /// <param name="time">The hour or time (of day) (<see cref="Hours"/>).<para>Each day begins at Darktide and ends at Gloaming-and-Half.</para></param>
         public DerethDateTime(int year = 10, Months month = Months.Morningthaw, int day = 1, Hours time = Hours.Darktide)
         {
-
             if (year < 10 | year > 401)
                 throw new ArgumentOutOfRangeException("year", "year is less than 10 or greater than 401");
             if ((int)month < (int)Months.Snowreap | (int)month > (int)Months.Frostfell)
@@ -638,7 +640,7 @@ namespace ACE.Common
         /// <param name="numOfYearsToAdd">A number of years. The numOfYearsToAdd parameter can be negative or positive.</param>
         public DerethDateTime AddYears(int numOfYearsToAdd)
         {
-            if ( (Year + numOfYearsToAdd) < 10 | (Year + numOfYearsToAdd) > 401)
+            if ((Year + numOfYearsToAdd) < 10 | (Year + numOfYearsToAdd) > 401)
                 throw new ArgumentOutOfRangeException("numOfYearsToAdd", "numOfYearsToAdd results in a portal year less than 10 or greater than 401");
             return new DerethDateTime(year: Year + numOfYearsToAdd, month: Month, day: Day, hour: Hour);
         }
@@ -701,7 +703,7 @@ namespace ACE.Common
             if (newYear < 10 | newYear > 401)
                 throw new ArgumentOutOfRangeException("numOfMonthsToAdd", "numOfMonthsToAdd results in a portal year less than 10 or greater than 401");
 
-            return new DerethDateTime(year: newYear, month:newMonth, day: Day, hour: Hour);
+            return new DerethDateTime(year: newYear, month: newMonth, day: Day, hour: Hour);
         }
 
         /// <summary>
@@ -889,7 +891,7 @@ namespace ACE.Common
         /// </summary>
         public override string ToString()
         {
-            return "Date: " + Enum.GetName(typeof(Months), Month) + " " + Day + ", " + Year + " P.Y.  Time: " + Enum.GetName(typeof(Hours), Hour).Replace("_","-");
+            return "Date: " + Enum.GetName(typeof(Months), Month) + " " + Day + ", " + Year + " P.Y.  Time: " + Enum.GetName(typeof(Hours), Hour).Replace("_", "-");
         }
 
         /// <summary>
@@ -1033,9 +1035,7 @@ namespace ACE.Common
             else
                 convertedHour = (int)Hours.Darktide;
 
-
             return new DerethDateTime(year: convertedYear, month: convertedMonth, day: convertedDay, hour: convertedHour);
-
         }
 
         /// <summary>
@@ -1051,6 +1051,5 @@ namespace ACE.Common
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to Lore Time.
         /// </summary>
         public DerethDateTime UTCNowToLoreTime { get { return ConvertRealWorldToLoreDateTime(DateTime.UtcNow); } }
-
     }
 }

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using ACE.Entity;
 
 namespace ACE.Database
 {
-
     public class WorldDatabase : Database, IWorldDatabase
     {
         private enum WorldPreparedStatement
@@ -19,7 +17,7 @@ namespace ACE.Database
             GetWeenieAnimations
         }
 
-        protected override Type preparedStatementType => typeof(WorldPreparedStatement);
+        protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
 
         protected override void InitialisePreparedStatements()
         {
@@ -62,7 +60,7 @@ namespace ACE.Database
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("landblock", landblock);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach( o =>
+            objects.ForEach(o =>
             {
                 o.WeeniePaletteOverrides = GetWeeniePalettes(o.WeenieClassId);
                 o.WeenieTextureMapOverrides = GetWeenieTextureMaps(o.WeenieClassId);
@@ -76,7 +74,7 @@ namespace ACE.Database
          {
              Dictionary<string, object> criteria = new Dictionary<string, object>();
              criteria.Add("weenieClassId", weenieClassId);
-             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes , criteria);
+             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
          }
 
         private List<WeenieTextureMapOverride> GetWeenieTextureMaps(uint weenieClassId)

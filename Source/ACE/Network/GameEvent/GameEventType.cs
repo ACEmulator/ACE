@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.GameEvent
+﻿namespace ACE.Network.GameEvent
 {
     public enum GameEventType
     {

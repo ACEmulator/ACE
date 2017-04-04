@@ -91,7 +91,6 @@ namespace ACE.Network.GameAction.Actions
                 }
             }
 
-
             if ((flags & (uint)CharacterOptionDataFlag.DesiredComps) != 0)
             {
                 uint sizeInfo = message.Payload.ReadUInt32(); // sizeInfo
@@ -129,8 +128,7 @@ namespace ACE.Network.GameAction.Actions
             // if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0) { }
 
             // if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0) { }
-
-
+            
             // Set the options on the player object
             Dictionary<CharacterOption, bool> optionValues = new Dictionary<CharacterOption, bool>(); // Have to use a list since I can't change the values of the actual list while enumerating over it.
             foreach (var option in session.Player.CharacterOptions)
@@ -153,8 +151,7 @@ namespace ACE.Network.GameAction.Actions
 
             foreach (var option in optionValues)
                 session.Player.SetCharacterOption(option.Key, option.Value);
-
-
+            
             // TODO: Set other options from the packet
 
             // Save the options

@@ -1,5 +1,4 @@
-﻿
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.Managers;
 using System.Collections.Generic;
@@ -28,7 +27,6 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write(numClientsConnected);
             foreach (var name in playerNames.ToArray())
                 Writer.WriteString16L(name);
-
         }
     }
 }

@@ -14,7 +14,6 @@ namespace ACE.DatLoader
         /// </summary>
         private DatFile()
         {
-
         }
 
         public uint BitFlags { get; private set; }
@@ -29,7 +28,7 @@ namespace ACE.DatLoader
 
         public uint Iteration { get; private set; }
 
-        public DatDatabaseType DatType {get; private set;}
+        public DatDatabaseType DatType { get; private set; }
 
         /// <summary>
         /// populates a new CellFile from the specified buffer.
@@ -58,7 +57,7 @@ namespace ACE.DatLoader
             var type = typeof(DatFileType);
             var enumTypes = Enum.GetValues(typeof(DatFileType)).Cast<DatFileType>().ToList();
 
-            foreach(var fileType in enumTypes)
+            foreach (var fileType in enumTypes)
             {
                 var memInfo = type.GetMember(fileType.ToString());
                 var datType = memInfo[0].GetCustomAttributes(typeof(DatDatabaseTypeAttribute), false).Cast<DatDatabaseTypeAttribute>().ToList();

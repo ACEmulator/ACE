@@ -246,7 +246,7 @@ namespace ACE.Entity
 
             Position = character.Positions[PositionType.Location];
             // TODO: copy object to prevent dataloss here, resetting position inline; character_id and LandblockId may also be missing
-            Position.positionType = PositionType.Location;
+            Position.PositionType = PositionType.Location;
             IsOnline = true;
 
             this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
@@ -1012,7 +1012,6 @@ namespace ACE.Entity
 
         public void SendAutonomousPosition()
         {
-
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
     }

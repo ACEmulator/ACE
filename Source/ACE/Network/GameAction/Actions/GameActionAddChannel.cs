@@ -1,5 +1,4 @@
-﻿
-using ACE.Common.Extensions;
+﻿using ACE.Common.Extensions;
 using ACE.Entity;
 using ACE.Entity.Enum;
 

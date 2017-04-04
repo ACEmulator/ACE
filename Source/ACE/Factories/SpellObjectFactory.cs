@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace ACE.Factories
 {
-
     /// <summary>
     /// Spell Factory for creating objects related to Spells.
     /// </summary>
@@ -17,7 +16,6 @@ namespace ACE.Factories
     {
         public static WorldObject CreateSpell(uint templateId, Position position, AceVector3 velocity, float friction, float electicity)
         {
-
             ushort weenieClassId = 0;
             Spell spellId = 0;
             uint modelId = 0;

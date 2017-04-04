@@ -6,4 +6,3 @@
             : base(GameEventType.PingResponse, GameMessageGroup.Group09, session) { }
     }
 }
-

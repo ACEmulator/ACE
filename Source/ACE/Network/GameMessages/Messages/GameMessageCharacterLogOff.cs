@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.GameMessages.Messages
+﻿namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCharacterLogOff : GameMessage
     {
