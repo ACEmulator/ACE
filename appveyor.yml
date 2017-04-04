@@ -14,4 +14,4 @@ build:
 test:
   assemblies:
     only:
-    - **\ACE.Tests.dll
+    - '**\ACE.Tests.dll'
