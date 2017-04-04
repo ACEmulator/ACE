@@ -10,4 +10,7 @@ before_build:
 build:
   project: source\ACE.sln
   verbosity: minimal
-test: on
+test:
+  assemblies:
+    only:
+    - ACE.Tests
