@@ -63,10 +63,9 @@ namespace ACE.Database
 
             CharacterStatsUpdate,
             CharacterSkillsUpdate,
-
         }
 
-        protected override Type preparedStatementType => typeof(CharacterPreparedStatement);
+        protected override Type PreparedStatementType => typeof(CharacterPreparedStatement);
 
         protected override void InitialisePreparedStatements()
         {
@@ -119,13 +118,12 @@ namespace ACE.Database
 
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsUpdate, "UPDATE `character_stats` SET `strengthXpSpent` = ?, `strengthRanks` = ?, `enduranceXpSpent` = ?, `enduranceRanks` = ?, `coordinationXpSpent` = ?, `coordinationRanks` = ?, `quicknessXpSpent` = ?, `quicknessRanks` = ?, `focusXpSpent` = ?, `focusRanks` = ?, `selfXpSpent` = ?, `selfRanks` = ?, `healthCurrent`= ?, `healthXpSpent` = ?, `healthRanks` = ?, `staminaCurrent` = ?, `staminaXpSpent` = ?, `staminaRanks` = ?, `manaCurrent` = ?, `manaXpSpent` = ?, `manaRanks` = ? WHERE `id` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, "UPDATE `character_skills` SET `skillStatus` = ?, `skillPoints` = ?, `skillXpSpent` = ? WHERE `id` = ? AND `skillId` = ?;", MySqlDbType.UByte, MySqlDbType.UInt16, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte);
-
         }
 
         public uint GetMaxId()
         {
             var result = SelectPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex);
-            Debug.Assert(result != null);
+            Debug.Assert(result != null, "Invalid prepared statement value.");
             return result.Read<uint>(0, "MAX(`guid`)") + 1;
         }
 
@@ -176,7 +174,7 @@ namespace ACE.Database
         public bool IsNameAvailable(string name)
         {
             var result = SelectPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, name);
-            Debug.Assert(result != null);
+            Debug.Assert(result != null, "Invalid prepared statement value.");
 
             uint charsWithName = result.Read<uint>(0, "cnt");
             return (charsWithName == 0);
@@ -186,7 +184,7 @@ namespace ACE.Database
         {
             // Save all of the player positions
             // TODO: Remove this after allowing positions to be saved on demand
-            foreach(var pos in character.Positions)
+            foreach (var pos in character.Positions)
             {
                 ExecuteConstructedUpdateStatement(CharacterPreparedStatement.CharacterPositionUpdate, typeof(Position), pos.Value);
             }
@@ -280,7 +278,7 @@ namespace ACE.Database
                 // Loads the positions into the player object and resets the landlock id
                 LoadCharacterPositions(c);
                 c.Location = c.Positions[PositionType.Location];
-                c.Location.LandblockId = new LandblockId(c.Location.cell);
+                c.Location.LandblockId = new LandblockId(c.Location.Cell);
 
                 uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
                 uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
@@ -383,7 +381,7 @@ namespace ACE.Database
                 }
             }
 
-            foreach(var option in optionsToSetToTrue)
+            foreach (var option in optionsToSetToTrue)
             {
                 character.SetCharacterOption(option, true);
             }
@@ -461,12 +459,10 @@ namespace ACE.Database
             // This will load each available position from the database, into the object's positions
             foreach (Position item in dbPositionList)
             {
-                character.SetCharacterPositions(item.positionType, item);
+                character.SetCharacterPositions(item.PositionType, item);
             }
-
         }
-
-
+        
         public void SaveCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
         {
             // known issue: properties that were removed from the bucket will not updated.  this is a problem if we
@@ -566,7 +562,7 @@ namespace ACE.Database
         public uint SetCharacterAccessLevelByName(string characterName, AccessLevel accessLevel)
         {
             var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, characterName);
-            Debug.Assert(result != null);
+            Debug.Assert(result != null, "Invalid prepared statement value.");
 
             uint boolId;
             switch (accessLevel)
@@ -625,12 +621,12 @@ namespace ACE.Database
         public uint RenameCharacter(string oldName, string newName)
         {
             var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, newName);
-            Debug.Assert(result != null);
+            Debug.Assert(result != null, "Invalid prepared statement value.");
 
             if (IsNameAvailable(newName))
             {
                 result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, oldName);
-                Debug.Assert(result != null);
+                Debug.Assert(result != null, "Invalid prepared statement value.");
 
                 try
                 {

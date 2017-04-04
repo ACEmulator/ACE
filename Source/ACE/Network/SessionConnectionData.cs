@@ -1,5 +1,4 @@
-﻿
-using ACE.Common.Cryptography;
+﻿using ACE.Common.Cryptography;
 using ACE.Managers;
 
 namespace ACE.Network

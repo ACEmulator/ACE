@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity.Enum
+﻿namespace ACE.Entity.Enum
 {
     public enum AccessLevel
     {

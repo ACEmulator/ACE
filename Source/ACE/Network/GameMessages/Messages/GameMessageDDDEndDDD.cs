@@ -7,7 +7,6 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageDDDEndDDD()
             : base(GameMessageOpcode.DDD_EndDDD, GameMessageGroup.Group05)
         {
-
         }
     }
 }

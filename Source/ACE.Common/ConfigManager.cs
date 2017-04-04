@@ -8,43 +8,56 @@ namespace ACE.Common
     public struct ConfigServerNetwork
     {
         public string Host { get; set; }
+
         public uint Port { get; set; }
     }
 
     public struct ConfigAccountDefaults
     {
         public bool OverrideCharacterPermissions { get; set; }
+
         public uint DefaultAccessLevel { get; set; }
     }
 
     public struct ConfigServer
     {
         public string WorldName { get; set; }
+
         public string Welcome { get; set; }
+
         public ConfigServerNetwork Network { get; set; }
+
         public ConfigAccountDefaults Accounts { get; set; }
+
         public string DatFilesDirectory { get; set; }
     }
 
     public struct ConfigMySqlDatabase
     {
         public string Host { get; set; }
+
         public uint Port { get; set; }
+
         public string Database { get; set; }
+
         public string Username { get; set; }
+
         public string Password { get; set; }
     }
 
     public struct ConfigMySql
     {
         public ConfigMySqlDatabase Authentication { get; set; }
+
         public ConfigMySqlDatabase Character { get; set; }
+
         public ConfigMySqlDatabase World { get; set; }
     }
 
     public struct Config
     {
         public ConfigServer Server { get; set; }
+
         public ConfigMySql MySql { get; set; }
     }
 

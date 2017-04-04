@@ -1,5 +1,4 @@
-﻿
-using ACE.Common.Extensions;
+﻿using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameEvent.Events;

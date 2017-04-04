@@ -68,4 +68,3 @@ namespace ACE.Network.GameMessages
         DDD_EndDDD                      = 0xF7EA,
     }
 }
-

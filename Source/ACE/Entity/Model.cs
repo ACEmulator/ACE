@@ -12,7 +12,6 @@ namespace ACE.Entity
     /// </summary>
     public class Model
     {
-
         /// <summary>
         /// Index of Model being replace
         /// </summary>

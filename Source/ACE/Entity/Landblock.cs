@@ -303,32 +303,32 @@ namespace ACE.Entity
             {
                 Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
 
-                if (wo.Position.positionX < adjacencyLoadRange)
+                if (wo.Position.PositionX < adjacencyLoadRange)
                 {
                     WestAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.SouthEast);
 
-                    if (wo.Position.positionY < adjacencyLoadRange)
+                    if (wo.Position.PositionY < adjacencyLoadRange)
                         SouthWestAdjacency?.Broadcast(args, false, Quadrant.NorthEast);
 
-                    if (wo.Position.positionY > (maxXY - adjacencyLoadRange))
+                    if (wo.Position.PositionY > (maxXY - adjacencyLoadRange))
                         NorthWestAdjacency?.Broadcast(args, false, Quadrant.SouthEast);
                 }
 
-                if (wo.Position.positionY < adjacencyLoadRange)
+                if (wo.Position.PositionY < adjacencyLoadRange)
                     SouthAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.NorthWest);
 
-                if (wo.Position.positionX > (maxXY - adjacencyLoadRange))
+                if (wo.Position.PositionX > (maxXY - adjacencyLoadRange))
                 {
                     EastAdjacency?.Broadcast(args, false, Quadrant.NorthWest | Quadrant.SouthWest);
 
-                    if (wo.Position.positionY < adjacencyLoadRange)
+                    if (wo.Position.PositionY < adjacencyLoadRange)
                         SouthEastAdjacency?.Broadcast(args, false, Quadrant.NorthWest);
 
-                    if (wo.Position.positionY > (maxXY - adjacencyLoadRange))
+                    if (wo.Position.PositionY > (maxXY - adjacencyLoadRange))
                         NorthEastAdjacency?.Broadcast(args, false, Quadrant.SouthWest);
                 }
 
-                if (wo.Position.positionY > (maxXY - adjacencyLoadRange))
+                if (wo.Position.PositionY > (maxXY - adjacencyLoadRange))
                     NorthAdjacency?.Broadcast(args, false, Quadrant.SouthEast | Quadrant.SouthWest);
             }
         }

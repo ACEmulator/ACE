@@ -1,6 +1,5 @@
 ﻿using ACE.Entity;
 
-
 namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePutObjectIn3d : GameMessage

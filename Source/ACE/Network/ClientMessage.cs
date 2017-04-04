@@ -10,7 +10,9 @@ namespace ACE.Network
     public class ClientMessage
     {
         public BinaryReader Payload { get; }
+
         public MemoryStream Data { get; }
+
         public uint Opcode { get; }
 
         public ClientMessage(MemoryStream stream)

@@ -1,5 +1,4 @@
-﻿
-using System.Linq;
+﻿using System.Linq;
 
 namespace ACE.Entity.Enum
 {
@@ -249,7 +248,6 @@ namespace ACE.Entity.Enum
         {
             return new string(skill.ToString().ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
         }
-
     }
 
     public enum SkillStatus : uint

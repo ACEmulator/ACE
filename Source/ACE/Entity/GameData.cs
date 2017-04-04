@@ -59,7 +59,5 @@ namespace ACE.Entity
         // WeenieHeaderFlag2
         public uint Cooldown;
         public decimal CooldownDuration;
-
     }
-
 }

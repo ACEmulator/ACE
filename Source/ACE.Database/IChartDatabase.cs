@@ -1,5 +1,4 @@
-﻿
-using ACE.Entity;
+﻿using ACE.Entity;
 
 namespace ACE.Database
 {

@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity.Enum
+﻿namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The ChatMessageType categorizes chat window messages to control color and filtering.<para />
@@ -247,7 +246,6 @@ namespace ACE.Entity.Enum
         /// </summary>
         Craft               = 0x18,
 
-
         /// <summary>
         /// Green Text
         /// LogTextTypeEnumMapper: Salvaging
@@ -258,7 +256,7 @@ namespace ACE.Entity.Enum
         /// Does Nothing - Unknown purpose/filter?
         /// Client doesn't display it. Commenting out because why offer it as an option?
         /// </summary>
-        //x1A                 = 0x1A,
+        // x1A                 = 0x1A,
 
         /// <summary>
         /// Light cyan(sky blue) - Unknown purpose/filter?

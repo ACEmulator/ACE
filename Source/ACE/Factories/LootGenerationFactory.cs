@@ -16,6 +16,7 @@
             // sending positon of the container so we know what landblock to register with.
             inventoryItem.PhysicsData.Position = container.PhysicsData.Position;
         }
+
         public static void Spawn(WorldObject inventoryItem, Position position)
         {
             inventoryItem.PhysicsData.Position = position.InFrontOf(2.00f);
@@ -65,4 +66,3 @@
         }
     }
 }
-

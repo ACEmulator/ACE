@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACE.Network.Enum
 {
-    public enum Spell   : uint
+    public enum Spell : uint
     {
         FlameBolt           = 0x1B,
         FrostBolt           = 0x1C,

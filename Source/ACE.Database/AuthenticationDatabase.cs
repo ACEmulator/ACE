@@ -19,7 +19,7 @@ namespace ACE.Database
             AccountUpdateAccessLevel
         }
 
-        protected override Type preparedStatementType => typeof(AuthenticationPreparedStatement);
+        protected override Type PreparedStatementType => typeof(AuthenticationPreparedStatement);
 
         protected override void InitialisePreparedStatements()
         {
@@ -32,7 +32,7 @@ namespace ACE.Database
         public uint GetMaxId()
         {
             var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex);
-            Debug.Assert(result != null);
+            Debug.Assert(result != null, "Invalid prepared statement value.");
             return result.Read<uint>(0, "MAX(`id`)") + 1;
         }
 
@@ -63,7 +63,7 @@ namespace ACE.Database
         public void GetAccountIdByName(string accountName, out uint id)
         {
             var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountSelect, accountName);
-            Debug.Assert(result != null);
+            Debug.Assert(result != null, "Invalid prepared statement value.");
 
             id = result.Read<uint>(0, "id");
         }

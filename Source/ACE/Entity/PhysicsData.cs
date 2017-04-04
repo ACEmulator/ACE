@@ -50,7 +50,6 @@ namespace ACE.Entity
 
         public PhysicsData()
         {
-
         }
 
         public void AddEquipedItem(uint index, EquipMask equiperflag)
@@ -62,7 +61,6 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(BinaryWriter writer)
         {
-
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) > 0 && this.Velocity == null)
             {
                 // velocity is null, but the flag wants to include it.  unset the flag.

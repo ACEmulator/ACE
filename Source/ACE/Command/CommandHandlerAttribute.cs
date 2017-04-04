@@ -8,8 +8,11 @@ namespace ACE.Command
     public class CommandHandlerAttribute : Attribute
     {
         public string Command { get; }
+
         public AccessLevel Access { get; }
+
         public CommandHandlerFlag Flags { get; }
+
         public int ParameterCount { get; }
 
         public CommandHandlerAttribute(string command, AccessLevel access, CommandHandlerFlag flags = CommandHandlerFlag.None, int parameterCount = -1)

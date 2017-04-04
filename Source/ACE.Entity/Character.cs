@@ -279,12 +279,12 @@ namespace ACE.Entity
             if (positionType == PositionType.Undef)
                 return;
 
-            setPosition.character_id = Id;
-            setPosition.positionType = positionType;
+            setPosition.CharacterId = Id;
+            setPosition.PositionType = positionType;
 
             if (positions.ContainsKey(positionType))
             {
-                if(positions[positionType] != setPosition)
+                if (positions[positionType] != setPosition)
                     positions[positionType] = setPosition;
             }
             else
@@ -295,9 +295,7 @@ namespace ACE.Entity
 
         private void InitializeCharacterPositions()
         {
-
             positions = new Dictionary<PositionType, Position>(System.Enum.GetValues(typeof(PositionType)).Length);
-
         }
 
         /// <summary>
@@ -354,7 +352,7 @@ namespace ACE.Entity
             character.StartArea = reader.ReadUInt32();
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
-            //character.TotalSkillPoints = reader.ReadUInt32();  // garbage ? 
+            // character.TotalSkillPoints = reader.ReadUInt32();  // garbage ? 
 
             return character;
         }

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -458,7 +457,7 @@ namespace ACE.Command
 
             // TODO: Check if water block?
 
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.positionX}, {position.positionY}, {position.positionZ} | Facing: {position.rotationX}, {position.rotationY}, {position.rotationZ}, {position.rotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
 
             session.Player.Teleport(position);
         }
@@ -499,7 +498,6 @@ namespace ACE.Command
                 }
                 else
                     cell = (uint)int.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber);
-
 
                 var positionData = new float[7];
                 for (uint i = 0u; i < 7u; i++)

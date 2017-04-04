@@ -22,7 +22,6 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageMotion()
             : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
         {
-
         }
 
         public GameMessageMotion(WorldObject animationTarget, Session session, MotionAutonomous activity,

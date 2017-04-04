@@ -39,7 +39,7 @@ namespace ACE.Command.Handlers
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Position;
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.positionX}, {position.positionY}, {position.positionZ} | Facing: {position.rotationX}, {position.rotationY}, {position.rotationZ}, {position.rotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -153,7 +153,7 @@ namespace ACE.Command.Handlers
         }
 
         [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void chatdump(Session session, params string[] parameters)
+        public static void ChatDump(Session session, params string[] parameters)
         {
             for (int i = 0; i < 1000; i++)
             {
@@ -162,7 +162,7 @@ namespace ACE.Command.Handlers
         }
 
         [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void animation(Session session, params string[] parameters)
+        public static void Animation(Session session, params string[] parameters)
         {
             uint animationId;
             try
@@ -186,12 +186,12 @@ namespace ACE.Command.Handlers
             movement.ForwardCommand = 0;
             movement.MovementStateFlag = MovementStateFlag.NoMotionState;
             session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
-
         }
+
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void spacejump(Session session, params string[] parameters)
+        public static void SpaceJump(Session session, params string[] parameters)
         {
-            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock, session.Player.Position.positionX, session.Player.Position.positionY, session.Player.Position.positionZ + 8000f, session.Player.Position.rotationX, session.Player.Position.rotationY, session.Player.Position.rotationZ, session.Player.Position.rotationW);
+            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock, session.Player.Position.PositionX, session.Player.Position.PositionY, session.Player.Position.PositionZ + 8000f, session.Player.Position.RotationX, session.Player.Position.RotationY, session.Player.Position.RotationZ, session.Player.Position.RotationW);
             session.Player.Teleport(newPosition);
         }
 

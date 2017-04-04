@@ -500,12 +500,12 @@ namespace ACE.Network
                             currentMessageFragment = new MessageFragment(bundle.Dequeue());
                         }
 
-                        var currentGameMessage = currentMessageFragment.message;
+                        var currentGameMessage = currentMessageFragment.Message;
 
                         availableSpace -= PacketFragmentHeader.HeaderSize; // Account for fragment header
 
                         // Compute amount of data to send based on the total length and current position
-                        uint dataToSend = (uint)currentGameMessage.Data.Length - currentMessageFragment.position;
+                        uint dataToSend = (uint)currentGameMessage.Data.Length - currentMessageFragment.Position;
 
                         if (dataToSend > availableSpace) // Message is too large to fit in packet
                         {
@@ -516,32 +516,31 @@ namespace ACE.Network
                                 break;
                         }
 
-                        if (currentMessageFragment.count == 0) // Compute number of fragments if we have not already
+                        if (currentMessageFragment.Count == 0) // Compute number of fragments if we have not already
                         {
                             uint remainingData = (uint)currentGameMessage.Data.Length - dataToSend;
-                            currentMessageFragment.count = (ushort)(Math.Ceiling((double)remainingData / PacketFragment.MaxFragmentDataSize) + 1);
+                            currentMessageFragment.Count = (ushort)(Math.Ceiling((double)remainingData / PacketFragment.MaxFragmentDataSize) + 1);
                         }
 
                         // Set sequence, if new, pull next sequence from ConnectionData, if it is a carryOver, reuse that sequence
-                        currentMessageFragment.sequence = currentMessageFragment.sequence == 0 ? ConnectionData.FragmentSequence++ : currentMessageFragment.sequence;
-
+                        currentMessageFragment.Sequence = currentMessageFragment.Sequence == 0 ? ConnectionData.FragmentSequence++ : currentMessageFragment.Sequence;
 
                         // Read data starting at current position reading dataToSend bytes
-                        currentGameMessage.Data.Seek(currentMessageFragment.position, SeekOrigin.Begin);
+                        currentGameMessage.Data.Seek(currentMessageFragment.Position, SeekOrigin.Begin);
                         byte[] data = new byte[dataToSend];
                         currentGameMessage.Data.Read(data, 0, (int)dataToSend);
 
                         // Build ServerPacketFragment structure
                         ServerPacketFragment fragment = new ServerPacketFragment(data);
-                        fragment.Header.Sequence = currentMessageFragment.sequence;
+                        fragment.Header.Sequence = currentMessageFragment.Sequence;
                         fragment.Header.Id = 0x80000000;
-                        fragment.Header.Count = currentMessageFragment.count;
-                        fragment.Header.Index = currentMessageFragment.index;
-                        fragment.Header.Group = (ushort)currentMessageFragment.message.Group;
+                        fragment.Header.Count = currentMessageFragment.Count;
+                        fragment.Header.Index = currentMessageFragment.Index;
+                        fragment.Header.Group = (ushort)currentMessageFragment.Message.Group;
 
                         // Increment position and index
-                        currentMessageFragment.position = currentMessageFragment.position + dataToSend;
-                        currentMessageFragment.index++;
+                        currentMessageFragment.Position = currentMessageFragment.Position + dataToSend;
+                        currentMessageFragment.Index++;
 
                         // Add fragment to packet
                         packet.AddFragment(fragment);
@@ -599,19 +598,23 @@ namespace ACE.Network
 
         private class MessageFragment
         {
-            public GameMessage message { get; private set; }
-            public uint position { get; set; }
-            public uint sequence { get; set; }
-            public ushort index { get; set; }
-            public ushort count { get; set; }
+            public GameMessage Message { get; private set; }
+
+            public uint Position { get; set; }
+
+            public uint Sequence { get; set; }
+
+            public ushort Index { get; set; }
+
+            public ushort Count { get; set; }
 
             public MessageFragment(GameMessage message)
             {
-                this.message = message;
-                index = 0;
-                count = 0;
-                position = 0;
-                sequence = 0;
+                this.Message = message;
+                Index = 0;
+                Count = 0;
+                Position = 0;
+                Sequence = 0;
             }
         }
 
@@ -633,7 +636,6 @@ namespace ACE.Network
                     return messages.Count > 0;
                 }
             }
-
 
             private Queue<GameMessage> messages = new Queue<GameMessage>();
 

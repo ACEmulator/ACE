@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using ACE.Entity;
 
 namespace ACE.Database
 {
-
     public class WorldDatabase : Database, IWorldDatabase
     {
         private enum WorldPreparedStatement
@@ -19,7 +17,7 @@ namespace ACE.Database
             GetWeenieAnimations
         }
 
-        protected override Type preparedStatementType => typeof(WorldPreparedStatement);
+        protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
 
         protected override void InitialisePreparedStatements()
         {

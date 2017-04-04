@@ -147,7 +147,6 @@ namespace ACE.Network.GameAction.Actions
                     }
                     break;
 
-
                 case GroupChatType.TellFellowship:
                     {
                         var statusMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.YouDoNotBelongToAFellowship);

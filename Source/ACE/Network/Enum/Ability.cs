@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.Enum
+﻿namespace ACE.Network.Enum
 {
     /// <summary>
     /// used for calls when raising abilities

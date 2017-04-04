@@ -1,5 +1,4 @@
-﻿
-using ACE.Network.GameMessages;
+﻿using ACE.Network.GameMessages;
 
 namespace ACE.Network.GameEvent
 {

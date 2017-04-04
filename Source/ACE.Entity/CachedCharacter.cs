@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity
+﻿namespace ACE.Entity
 {
     public class CachedCharacter
     {

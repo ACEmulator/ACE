@@ -11,7 +11,6 @@ namespace ACE.DatLoader
     {
         public CellDatDatabase(string filename) : base(filename, DatDatabaseType.Cell)
         {
-
         }
 
         public void ExtractLandblockContents(string path)

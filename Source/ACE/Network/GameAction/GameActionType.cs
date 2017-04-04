@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.GameAction
+﻿namespace ACE.Network.GameAction
 {
     public enum GameActionType
     {

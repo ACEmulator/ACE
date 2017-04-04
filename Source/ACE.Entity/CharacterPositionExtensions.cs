@@ -2,7 +2,6 @@ using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
-
     public class CharacterPositionExtensions
     {
         public static Position StartingPosition(uint characterId)

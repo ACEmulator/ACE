@@ -50,31 +50,31 @@ namespace ACE.Entity
 
         public void SetPropertyBool(PropertyBool property, bool value)
         {
-            Debug.Assert(property < PropertyBool.Count);
+            Debug.Assert(property < PropertyBool.Count, "Invalid Property.");
             propertiesBool[property] = value;
         }
 
         public void SetPropertyDouble(PropertyDouble property, double value)
         {
-            Debug.Assert(property < PropertyDouble.Count);
+            Debug.Assert(property < PropertyDouble.Count, "Invalid Property.");
             propertiesDouble[property] = value;
         }
 
         public void SetPropertyInt(PropertyInt property, uint value)
         {
-            Debug.Assert(property < PropertyInt.Count);
+            Debug.Assert(property < PropertyInt.Count, "Invalid Property.");
             propertiesInt[property] = value;
         }
 
         public void SetPropertyInt64(PropertyInt64 property, ulong value)
         {
-            Debug.Assert(property < PropertyInt64.Count);
+            Debug.Assert(property < PropertyInt64.Count, "Invalid Property.");
             propertiesInt64[property] = value;
         }
 
         public void SetPropertyString(PropertyString property, string value)
         {
-            Debug.Assert(property < PropertyString.Count);
+            Debug.Assert(property < PropertyString.Count, "Invalid Property.");
             propertiesString[property] = value;
         }
 

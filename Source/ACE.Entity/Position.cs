@@ -13,46 +13,46 @@
         public LandblockId LandblockId { get; set; }
 
         [DbField("character_id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint character_id { get; set; }
+        public virtual uint CharacterId { get; set; }
 
         [DbField("cell", (int)MySqlDbType.UInt32)]
-        public uint cell { get; set; }
+        public uint Cell { get; set; }
 
         [DbField("positionType", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint dbpositionType { get; set; }
+        public virtual uint DbPositionType { get; set; }
 
-        public PositionType positionType
+        public PositionType PositionType
         {
             get
             {
-                return (PositionType)dbpositionType;
+                return (PositionType)DbPositionType;
             }
             set
             {
-                dbpositionType = (uint)value;
+                DbPositionType = (uint)value;
             }
         }
 
         [DbField("positionX", (int)MySqlDbType.Float)]
-        public float positionX { get; set; }
+        public float PositionX { get; set; }
 
         [DbField("positionY", (int)MySqlDbType.Float)]
-        public float positionY { get; set; }
+        public float PositionY { get; set; }
 
         [DbField("positionZ", (int)MySqlDbType.Float)]
-        public float positionZ { get; set; }
+        public float PositionZ { get; set; }
 
         [DbField("rotationX", (int)MySqlDbType.Float)]
-        public float rotationX { get; set; }
+        public float RotationX { get; set; }
 
         [DbField("rotationY", (int)MySqlDbType.Float)]
-        public float rotationY { get; set; }
+        public float RotationY { get; set; }
 
         [DbField("rotationZ", (int)MySqlDbType.Float)]
-        public float rotationZ { get; set; }
+        public float RotationZ { get; set; }
 
         [DbField("rotationW", (int)MySqlDbType.Float)]
-        public float rotationW { get; set; }
+        public float RotationW { get; set; }
 
         private const float xyMidPoint = 96f;
 
@@ -62,24 +62,24 @@
             if (q == Quadrant.All)
                 return true;
 
-            if ((q & Quadrant.NorthEast) > 0 && positionX > xyMidPoint && positionY > xyMidPoint)
+            if ((q & Quadrant.NorthEast) > 0 && PositionX > xyMidPoint && PositionY > xyMidPoint)
                 return true;
 
-            if ((q & Quadrant.NorthWest) > 0 && positionX <= xyMidPoint && positionY > xyMidPoint)
+            if ((q & Quadrant.NorthWest) > 0 && PositionX <= xyMidPoint && PositionY > xyMidPoint)
                 return true;
 
-            if ((q & Quadrant.SouthEast) > 0 && positionX <= xyMidPoint && positionY <= xyMidPoint)
+            if ((q & Quadrant.SouthEast) > 0 && PositionX <= xyMidPoint && PositionY <= xyMidPoint)
                 return true;
 
-            if ((q & Quadrant.SouthWest) > 0 && positionX <= xyMidPoint && positionY <= xyMidPoint)
+            if ((q & Quadrant.SouthWest) > 0 && PositionX <= xyMidPoint && PositionY <= xyMidPoint)
                 return true;
 
             return false;
         }
         public Position InFrontOf(double distanceInFront = 3.0f)
         {
-            float qw = rotationW; // north
-            float qz = rotationZ; // south
+            float qw = RotationW; // north
+            float qz = RotationZ; // south
 
             double x = 2 * qw * qz;
             double y = 1 - 2 * qz * qz;
@@ -89,56 +89,55 @@
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            return new Position(LandblockId.Raw, positionX + dx, positionY + dy, positionZ + 0.5f, 0f, 0f, 0f, 0f);
+            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, 0f, 0f);
         }
 
         public Position() : base() {
-
         }
 
         public Position(uint characterId, PositionType type, uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
-            LandblockId = new LandblockId(cell);
+            LandblockId = new LandblockId(Cell);
             
-            character_id = characterId;
-            positionType = type;
-            cell = newCell;
-            positionX = newPositionX;
-            positionY = newPositionY;
-            positionZ = newPositionZ;
-            rotationX = newRotationX;
-            rotationY = newRotationY;
-            rotationZ = newRotationZ;
-            rotationW = newRotationW;
+            CharacterId = characterId;
+            PositionType = type;
+            Cell = newCell;
+            PositionX = newPositionX;
+            PositionY = newPositionY;
+            PositionZ = newPositionZ;
+            RotationX = newRotationX;
+            RotationY = newRotationY;
+            RotationZ = newRotationZ;
+            RotationW = newRotationW;
         }
 
         public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
         {
             LandblockId = new LandblockId(landblock);
-            cell = LandblockId.Raw;
-            positionX = x;
-            positionY = y;
-            positionZ = z;
-            rotationX = qx;
-            rotationY = qy;
-            rotationZ = qz;
-            rotationW = qw;
+            Cell = LandblockId.Raw;
+            PositionX = x;
+            PositionY = y;
+            PositionZ = z;
+            RotationX = qx;
+            RotationY = qy;
+            RotationZ = qz;
+            RotationW = qw;
         }
 
         public Position(BinaryReader payload)
         {
             LandblockId = new LandblockId(payload.ReadUInt32());
-            cell = LandblockId.Raw;
+            Cell = LandblockId.Raw;
             // Offset  = new Vector3(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle());
-            positionX = payload.ReadSingle();
-            positionY = payload.ReadSingle();
-            positionZ = payload.ReadSingle();
+            PositionX = payload.ReadSingle();
+            PositionY = payload.ReadSingle();
+            PositionZ = payload.ReadSingle();
             // float qw = payload.ReadSingle();
-            rotationW = payload.ReadSingle();
+            RotationW = payload.ReadSingle();
             // Facing  = new Quaternion(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle(), qw);
-            rotationX = payload.ReadSingle();
-            rotationY = payload.ReadSingle();
-            rotationZ = payload.ReadSingle();
+            RotationX = payload.ReadSingle();
+            RotationY = payload.ReadSingle();
+            RotationZ = payload.ReadSingle();
             // packet stream isn't the same order as the quaternion constructor
         }
 
@@ -161,14 +160,14 @@
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
             // Offset 
-            positionX = xOffset;
-            positionY = yOffset;
-            positionZ = zOffset;
+            PositionX = xOffset;
+            PositionY = yOffset;
+            PositionZ = zOffset;
             // Facing 
-            rotationX = 0.0f;
-            rotationY = 0.0f;
-            rotationZ = 0.0f;
-            rotationW = 1.0f;
+            RotationX = 0.0f;
+            RotationY = 0.0f;
+            RotationZ = 0.0f;
+            RotationW = 1.0f;
         }
 
         public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
@@ -178,23 +177,23 @@
             if (writeLandblock)
                 payload.Write(LandblockId.Raw);
 
-            payload.Write(positionX);
-            payload.Write(positionY);
-            payload.Write(positionZ);
+            payload.Write(PositionX);
+            payload.Write(PositionY);
+            payload.Write(PositionZ);
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQw) != 0)
             {
-                payload.Write(rotationW);
+                payload.Write(RotationW);
             }
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQx) != 0)
             {
-                payload.Write(rotationX);                
+                payload.Write(RotationX);                
             }
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) != 0)
             {
-                payload.Write(rotationY);                
+                payload.Write(RotationY);                
             }
             
             if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
@@ -209,7 +208,7 @@
 
             if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) != 0)
             {
-                payload.Write(rotationZ);                
+                payload.Write(RotationZ);                
             }
             
             if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
@@ -219,7 +218,6 @@
                 payload.Write((float)0f);
                 payload.Write((float)0f);
             }
-
         }
 
         public void Serialize(BinaryWriter payload, bool writeQuaternion = true, bool writeLandblock = true)
@@ -227,21 +225,19 @@
             if (writeLandblock)
                 payload.Write(LandblockId.Raw);
 
-            payload.Write(positionX);
-            payload.Write(positionY);
-            payload.Write(positionZ);
+            payload.Write(PositionX);
+            payload.Write(PositionY);
+            payload.Write(PositionZ);
 
             if (writeQuaternion)
             {
-                payload.Write(rotationW);
-                payload.Write(rotationX);
-                payload.Write(rotationY);
-                payload.Write(rotationZ);
+                payload.Write(RotationW);
+                payload.Write(RotationX);
+                payload.Write(RotationY);
+                payload.Write(RotationZ);
             }
         }
-
-
-
+        
         private float GetZFromCellXY(uint cell, float xOffset, float yOffset)
         {
             // TODO: Load correct z from file
@@ -263,7 +259,7 @@
 
         public override string ToString()
         {
-            return $"{LandblockId.Landblock.ToString("X")}: {positionX} {positionY} {positionZ}";
+            return $"{LandblockId.Landblock.ToString("X")}: {PositionX} {PositionY} {PositionZ}";
         }
     }
 }

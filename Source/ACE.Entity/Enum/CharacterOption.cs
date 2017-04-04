@@ -12,13 +12,13 @@ namespace ACE.Entity.Enum
     public enum CharacterOption
     {
         [CharacterOptions1(CharacterOptions1.AutoRepeatAttacks)]
-        AutoRepeatAttacks                       =  0,
+        AutoRepeatAttacks                       = 0,
 
         [CharacterOptions1(CharacterOptions1.IgnoreAllegianceRequests)]
-        IgnoreAllegianceRequests                =  1,
+        IgnoreAllegianceRequests                = 1,
 
         [CharacterOptions1(CharacterOptions1.IgnoreFellowshipRequests)]
-        IgnoreFellowshipRequests                =  2,
+        IgnoreFellowshipRequests                = 2,
 
         [CharacterOptions1(CharacterOptions1.ShareFellowshipExpAndLuminance)]
         ShareFellowshipExpAndLuminance          = 15,
@@ -191,7 +191,7 @@ namespace ACE.Entity.Enum
         public static uint GetCharacterOptions1Flag(this Dictionary<CharacterOption, bool> options)
         {   
             uint flags = 0;
-            foreach(var option in options.Where(o => o.Key.GetCharacterOptions1Attribute() != null))
+            foreach (var option in options.Where(o => o.Key.GetCharacterOptions1Attribute() != null))
             {
                 if (option.Value)
                     flags |= (uint)option.Key.GetCharacterOptions1Attribute().Option;

@@ -50,7 +50,6 @@ namespace ACE.Entity.Enum
         /// </summary>
         TellHelp            = 0x000000400,
 
-
         /// <summary>
         /// @f - Tell Fellowship
         /// </summary>

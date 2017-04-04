@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Network.GameAction.Actions
+﻿namespace ACE.Network.GameAction.Actions
 {
     using global::ACE.Entity;
 

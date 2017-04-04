@@ -116,5 +116,4 @@ namespace ACE.Network
             return Hash32.Calculate(Bytes, Bytes.Length);
         }
     }
-
 }

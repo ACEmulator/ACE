@@ -1,5 +1,4 @@
-﻿
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 
 namespace ACE.Network.GameEvent.Events
 {
@@ -13,4 +12,3 @@ namespace ACE.Network.GameEvent.Events
         }
     }
 }
-
