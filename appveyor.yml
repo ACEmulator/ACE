@@ -11,7 +11,5 @@ before_build:
 build:
   project: source\ACE.sln
   verbosity: minimal
-test:
-  assemblies:
-    only:
-    - '**\ACE.Tests.dll'
+test_script:
+- cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64
