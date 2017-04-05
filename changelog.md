@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-04-05
+[Lidefeath]
+* Fixed the creature data in the Database scripts, so the Drudge can finally spawn
 
 ### 2017-04-04
 [Mogwai]
