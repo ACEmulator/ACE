@@ -4,6 +4,10 @@
 [Mogwai]
 * Added AppVeyor integration to build and run unit tests in ACE.Tests
 * Rebased all Database scripts
+* Updated readme to have FAQ section
+
+[Mag-nus]
+* Fixed the stuff Mogwai missed and/or broke.
 
 ### 2017-04-03
 [Lidefeath]

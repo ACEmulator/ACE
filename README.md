@@ -40,6 +40,12 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 - [Discord Channel](https://discord.gg/mVtGhSv) (best option)
 - [ACEmulator Forums](http://acemulator.org/forums)
 
+## FAQ
+
+#### 1. StyleCop.MSBuild.targets not found
+* _Problem_: When opening the solution, you get a "The imported project "{project path}\ACE\Source\packages\StyleCop.MSBuild.5.0.0-beta01\build\StyleCop.MSBuild.targets" was not found. Confirm that the path in the <Import> declaration is correct, and that the file exists on disk" error.
+* _Solution_: Right click "Solution 'ACE'" in the Solution Explorer and select "Restore Nuget Packages".  After it restores, right click "ACE (load failed)" and select "Reload Project."
+
 ## Other Resources
 * [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php)
 * [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)
