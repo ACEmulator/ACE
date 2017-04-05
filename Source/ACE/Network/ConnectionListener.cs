@@ -105,11 +105,6 @@ namespace ACE.Network
                     return;
                 }
             }
-            catch (Exception exception)
-            {
-                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
-                return;
-            }
             Listen();
         }
     }

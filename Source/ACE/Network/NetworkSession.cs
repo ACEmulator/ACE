@@ -258,12 +258,12 @@ namespace ACE.Network
                 if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
                 {
                     // Existing buffer, add this to it and check if we are finally complete.
-                    log.DebugFormat("[{0}] Adding fragment {1} to existing buffer. Buffer at {2} of {3}", session.Account, fragment.Header.Sequence, buffer.Count, buffer.TotalFragments);
                     buffer.AddFragment(fragment);
+                    log.DebugFormat("[{0}] Added fragment {1} to existing buffer. Buffer at {2} of {3}", session.Account, fragment.Header.Sequence, buffer.Count, buffer.TotalFragments);
                     if (buffer.Complete)
                     {
                         // The buffer is complete, so we can go ahead and handle
-                        log.DebugFormat("[{0}] Buffer {1} is complete", buffer.Sequence, session.Account);
+                        log.DebugFormat("[{0}] Buffer {1} is complete", session.Account, buffer.Sequence);
                         message = buffer.GetMessage();
                         MessageBuffer removed = null;
                         partialFragments.TryRemove(fragment.Header.Sequence, out removed);
@@ -275,6 +275,8 @@ namespace ACE.Network
                     log.DebugFormat("[{0}] Creating new buffer {1} for this split fragment", session.Account, fragment.Header.Sequence);
                     var newBuffer = new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count);
                     newBuffer.AddFragment(fragment);
+
+                    log.DebugFormat("[{0}] Added fragment {1} to the new buffer. Buffer at {2} of {3}", session.Account, fragment.Header.Sequence, newBuffer.Count, newBuffer.TotalFragments);
                     partialFragments.TryAdd(fragment.Header.Sequence, newBuffer);
                 }
             }
@@ -580,20 +582,21 @@ namespace ACE.Network
             {
                 lock (fragments)
                 {
-                    if (!Complete && !fragments.Any(x => x.Header.Id == fragment.Header.Id))
+                    if (!Complete && !fragments.Any(x => x.Header.Index == fragment.Header.Index))
                         fragments.Add(fragment);
                 }
             }
 
             public ClientMessage GetMessage()
             {
-                fragments.Sort(delegate(ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Id - (int)y.Header.Id; });
+                fragments.Sort(delegate(ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Index - (int)y.Header.Index; });
                 MemoryStream stream = new MemoryStream();
                 BinaryWriter writer = new BinaryWriter(stream);
                 foreach (ClientPacketFragment fragment in fragments)
                 {
                     writer.Write(fragment.Data);
                 }
+                stream.Seek(0, SeekOrigin.Begin);
                 return new ClientMessage(stream);
             }
         }
