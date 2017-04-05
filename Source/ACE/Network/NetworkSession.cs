@@ -273,7 +273,9 @@ namespace ACE.Network
                 {
                     // No existing buffer, so add a new one for this fragment sequence.
                     log.DebugFormat("[{0}] Creating new buffer {1} for this split fragment", session.Account, fragment.Header.Sequence);
-                    partialFragments.TryAdd(fragment.Header.Sequence, new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count));
+                    var newBuffer = new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count);
+                    newBuffer.AddFragment(fragment);
+                    partialFragments.TryAdd(fragment.Header.Sequence, newBuffer);
                 }
             }
             else
