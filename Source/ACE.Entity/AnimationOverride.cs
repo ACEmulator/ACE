@@ -9,8 +9,13 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
+    [DbTable("ace_object_animation_changes")]
+    [DbGetList("ace_object_animation_changes", 8, "baseAceObjectId")]
     public class AnimationOverride
     {
+        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        public uint AceObjectId { get; set; }
+
         [DbField("index", (int)MySqlDbType.UByte)]
         public byte Index { get; set; }
 
