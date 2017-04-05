@@ -28,6 +28,13 @@ CREATE TABLE `accesslevel` (
   UNIQUE KEY `level` (`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (0,'Player','');
+INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (1,'Advocate','');
+INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (2,'Sentinel','Sentinel');
+INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (3,'Envoy','Envoy');
+INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (4,'Developer','');
+INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (5,'Admin','Admin');
+
 /*Table structure for table `account` */
 
 DROP TABLE IF EXISTS `account`;
