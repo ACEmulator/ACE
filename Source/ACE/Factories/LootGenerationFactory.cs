@@ -14,12 +14,12 @@
             container.GameData.Burden += inventoryItem.GameData.Burden;
             container.AddToInventory(inventoryItem);
             // sending positon of the container so we know what landblock to register with.
-            inventoryItem.PhysicsData.Position = container.PhysicsData.Position;
+            // inventoryItem.PhysicsData.Position = container.PhysicsData.Position;
         }
 
         public static void Spawn(WorldObject inventoryItem, Position position)
         {
-            inventoryItem.PhysicsData.Position = position.InFrontOf(2.00f);
+            inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position |
                                                                inventoryItem.PhysicsData.PhysicsDescriptionFlag;
         }

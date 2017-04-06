@@ -4,7 +4,7 @@
     using System.IO;
     using Enum;
     using Common;
-    using MySql.Data.MySqlClient;
+    using MySql.Data.MySqlClient;    
 
     [DbTable("character_position")]
     [DbGetList("vw_character_positions", 23, "character_id")]

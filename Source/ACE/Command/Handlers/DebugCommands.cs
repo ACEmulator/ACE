@@ -314,7 +314,7 @@ namespace ACE.Command.Handlers
                         }
                     case "ground":
                         {
-                            LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(1.0f));
+                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
                             LandblockManager.AddObject(loot);
                             break;
                         }

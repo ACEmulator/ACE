@@ -129,15 +129,19 @@ namespace ACE.Entity
 
                 // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
                 obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
-                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
+                     UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.00f);
 
                 // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
                 obj.GameData.ContainerId = 0;
-                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
+                obj.GameData.Wielder = 0;
+                                
                 obj.PhysicsData.PhysicsState = PhysicsState.Gravity;
                 obj.GameData.RadarBehavior = RadarBehavior.ShowAlways;
                 obj.GameData.RadarColour = RadarColor.White;
+                
+                // This needs work, but if you call update position, you have to have a position.
+                PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
 
                 // Let the client know our response.
                 session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
@@ -158,7 +162,7 @@ namespace ACE.Entity
 
                 // Set Container id to 0 - you are free
                 session.Network.EnqueueSend(
-                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+                   new GameMessageUpdateInstanceId(objectGuid, targetContainer));
 
                 var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
                 session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
@@ -168,9 +172,9 @@ namespace ACE.Entity
                 // Make the thud sound
                 // Send the container update again.   I have no idea why, but that is what they did in live.
                 session.Network.EnqueueSend(
-                    new GameMessagePutObjectIn3D(session, session.Player, objectGuid),
-                    new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
-                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+                   new GameMessagePutObjectIn3D(session, session.Player, objectGuid),
+                   new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
+                   new GameMessageUpdateInstanceId(objectGuid, targetContainer));
             }
         }
 
@@ -248,6 +252,18 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             ModelData.Serialize(writer);
+
+            // If we are in a container or weilded - we don't send a position.
+
+            if ((GameData.ContainerId == 0) && (GameData.Wielder == 0))
+            {
+                PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+            }
+            else
+            {
+                PhysicsData.PhysicsDescriptionFlag &= PhysicsDescriptionFlag.Position;
+            }
+                
             PhysicsData.Serialize(writer);
 
             writer.Write((uint)WeenieFlags);
@@ -375,7 +391,9 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
+
             Location.Serialize(writer, PositionFlag);
+
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));

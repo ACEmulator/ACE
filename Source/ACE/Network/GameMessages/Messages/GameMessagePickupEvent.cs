@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Network.GameEvent;
+using ACE.Network.Sequence;
 
 namespace ACE.Network.GameMessages.Messages
 {
@@ -10,8 +11,8 @@ namespace ACE.Network.GameMessages.Messages
         {
             Writer.Write(targetItem.Guid.Full);
             Writer.Write(session.Player.Guid.Full);
-            Writer.Write((uint)targetItem.PhysicsData.InstanceSequence);
-            Writer.Write((uint)++targetItem.PhysicsData.PositionSequence);
+            Writer.Write(targetItem.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            Writer.Write(targetItem.Sequences.GetCurrentSequence(SequenceType.ObjectPosition));
         }
     }
 }
