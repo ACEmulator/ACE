@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Network.Sequence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +18,10 @@ namespace ACE.Network.GameMessages.Messages
                 Player p = worldObject as Player;
                 Writer.WriteGuid(p.Guid);
                 p.Location.Serialize(Writer, true, false);
-                Writer.Write((ushort)1); // instance_timestamp - always 1 in my pcaps
-                Writer.Write((ushort)0); // server_control_timestamp - always 0 in my pcaps
-                Writer.Write((ushort)0); // teleport_timestamp - always 0 in my pcaps
-                Writer.Write((ushort)0); // force_position_timestamp - always 0 in my pcaps
+                Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // instance_timestamp - always 1 in my pcaps
+                Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectServerControl)); // server_control_timestamp - always 0 in my pcaps
+                Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport)); // teleport_timestamp - always 0 in my pcaps
+                Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition)); // force_position_timestamp - always 0 in my pcaps
                 Writer.Write(1u); // contact - always "true" / 1 in my pcaps
             }
         }

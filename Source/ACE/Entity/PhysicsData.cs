@@ -1,6 +1,7 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
+using ACE.Network.Sequence;
 using System.Collections.Generic;
 using System.IO;
 
@@ -38,18 +39,11 @@ namespace ACE.Entity
         public uint DefaultScript;
         public float DefaultScriptIntensity;
 
-        // thanks Kaezin for help understanding this structure.
-        // Update this when the object moves
-        public ushort PositionSequence = (ushort)1;
-        public ushort InstanceSequence = (ushort)1; // unknown for now
-        public ushort PhysicsSequence = (ushort)1; // physics state change
-        public ushort JumpSequence = (ushort)1; // increments when you Jump.
-        public ushort PortalSequence = (ushort)1; // increments when you portal
-        public ushort ForcePositionSequence = (ushort)0;
-        public ushort SpawnSequence = (ushort)1; // increments with spawn player / critter / boss ?
+        private SequenceManager sequences;
 
-        public PhysicsData()
+        public PhysicsData(SequenceManager sequences)
         {
+            this.sequences = sequences;
         }
 
         public void AddEquipedItem(uint index, EquipMask equiperflag)
@@ -142,15 +136,15 @@ namespace ACE.Entity
                 writer.Write((float)DefaultScriptIntensity);
 
             // TODO: There are 9 of these - but we need to research the correct sequence.   I know that the last one is instance (totalLogins) Og II
-            writer.Write((ushort)PositionSequence);
-            writer.Write((ushort)(PhysicsSequence));
-            writer.Write((ushort)JumpSequence);
-            writer.Write((ushort)PortalSequence);
-            writer.Write((ushort)ForcePositionSequence);
-            writer.Write((ushort)0);
-            writer.Write((ushort)0);
-            writer.Write((ushort)(SpawnSequence));
-            writer.Write((ushort)InstanceSequence);
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectPosition));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectMovement));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectState));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectVector));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectServerControl));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectInstance));
 
             writer.Align();
         }

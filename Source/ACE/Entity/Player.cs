@@ -17,6 +17,7 @@ using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
 using log4net;
+using ACE.Network.Sequence;
 
 namespace ACE.Entity
 {
@@ -202,6 +203,15 @@ namespace ACE.Entity
         {
             Session = session;
 
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
@@ -251,7 +261,7 @@ namespace ACE.Entity
             IsOnline = true;
 
             this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
-            PhysicsData.InstanceSequence = (ushort)TotalLogins;
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
@@ -873,7 +883,7 @@ namespace ACE.Entity
 
             if (packet)
             {
-                Session.Network.EnqueueSend(new GameMessageSetState(Guid, state, TotalLogins, ++PortalIndex));
+                Session.Network.EnqueueSend(new GameMessageSetState(this, state));
                 // TODO: this should be broadcast
             }
         }
@@ -886,7 +896,7 @@ namespace ACE.Entity
             InWorld = false;
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(++TeleportIndex));
+            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
             lock (clientObjectMutex)
             {

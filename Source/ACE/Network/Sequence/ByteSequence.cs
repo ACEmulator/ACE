@@ -10,18 +10,28 @@ namespace ACE.Network.Sequence
     {
         private byte value;
 
-        public ByteSequence(byte startingValue = 0)
+        public ByteSequence(byte startingValue)
         {
             value = startingValue;
+        }
+
+        /// <summary>
+        /// Creates an instance without a starting value
+        /// </summary>
+        /// <param name="clientPrimed">Whether the value gets sent to client before first increment</param>
+        public ByteSequence(bool clientPrimed = true)
+        {
+            if (clientPrimed)
+                value = 0;
+            else
+                value = Byte.MaxValue;
         }
 
         public byte[] CurrentValue
         {
             get
             {
-                if (value == 0)
-                    return BitConverter.GetBytes(Byte.MaxValue);
-                return BitConverter.GetBytes(value - 1);
+                return new byte[] { value };
             }
         }
 
@@ -32,9 +42,9 @@ namespace ACE.Network.Sequence
                 if (value == Byte.MaxValue)
                 {
                     value = 0;
-                    return BitConverter.GetBytes(Byte.MaxValue);
+                    return new byte[] { value };
                 }
-                return BitConverter.GetBytes(value++);
+                return new byte[] { ++value };
             }
         }
     }

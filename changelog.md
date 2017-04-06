@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-04-06
+[Zegeger]
+* Got 9 CreateObject sequences in correct order and named according to client code.
+* Changed many sequences over to SequenceManager.
+
 ### 2017-04-05
 [fantoms]
 * Reworked Character `Positions`.
@@ -26,6 +31,9 @@
 
 [Mag-nus]
 * Fixed the stuff Mogwai missed and/or broke.
+
+[Zegeger]
+* Fixed inbound packet combining
 
 ### 2017-04-03
 [Lidefeath]

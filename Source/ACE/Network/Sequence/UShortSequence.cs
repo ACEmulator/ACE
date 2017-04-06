@@ -10,18 +10,28 @@ namespace ACE.Network.Sequence
     {
         private ushort value;
 
-        public UShortSequence(ushort startingValue = 0)
+        public UShortSequence(ushort startingValue)
         {
             value = startingValue;
+        }
+
+        /// <summary>
+        /// Creates an instance without a starting value
+        /// </summary>
+        /// <param name="clientPrimed">Whether the value gets sent to client before first increment</param>
+        public UShortSequence(bool clientPrimed = true)
+        {
+            if (clientPrimed)
+                value = 0;
+            else
+                value = UInt16.MaxValue;
         }
 
         public byte[] CurrentValue
         {
             get
             {
-                if (value == 0)
-                    return BitConverter.GetBytes(UInt16.MaxValue);
-                return BitConverter.GetBytes(value - 1);
+                return BitConverter.GetBytes(value);
             }
         }
 
@@ -32,9 +42,9 @@ namespace ACE.Network.Sequence
                 if (value == UInt16.MaxValue)
                 {
                     value = 0;
-                    return BitConverter.GetBytes(UInt16.MaxValue);
+                    return BitConverter.GetBytes(value);
                 }
-                return BitConverter.GetBytes(value++);
+                return BitConverter.GetBytes(++value);
             }
         }
     }

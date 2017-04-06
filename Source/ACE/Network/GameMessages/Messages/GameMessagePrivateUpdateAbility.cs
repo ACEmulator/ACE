@@ -36,7 +36,7 @@ namespace ACE.Network.GameMessages.Messages
                     throw new ArgumentException("invalid ability specified");
             }
 
-            Writer.Write(session.UpdateAttributeSequence++);
+            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute));
             Writer.Write((uint)networkAbility);
             Writer.Write(ranks);
             Writer.Write(baseValue);
