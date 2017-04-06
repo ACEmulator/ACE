@@ -54,6 +54,8 @@ namespace ACE.Network
 
         public byte UpdatePropertyDoubleSequence { get; set; }
 
+        public byte UpdatePhysicsSequence { get; set; }
+
         public NetworkSession Network { get; set; }
 
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
@@ -80,6 +82,7 @@ namespace ACE.Network
             UpdatePropertyStringSequence = 0;
             UpdatePropertyBoolSequence = 0;
             UpdatePropertyDoubleSequence = 0;
+            UpdatePhysicsSequence = 0;
         }
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)

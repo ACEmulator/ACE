@@ -178,7 +178,7 @@ namespace ACE.Entity
                 // Make the thud sound
                 // Send the container update again.   I have no idea why, but that is what they did in live.
                 session.Network.EnqueueSend(
-                    new GameMessagePutObjectIn3d(session, session.Player, objectGuid),
+                    new GameMessagePutObjectIn3D(session, session.Player, objectGuid),
                     new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
                     new GameMessageUpdateInstanceId(objectGuid, targetContainer));
             }
@@ -203,16 +203,39 @@ namespace ACE.Entity
                 this.GameData.Burden += obj.GameData.Burden;
 
                 // let's move to pick up the item
-                this.PositionFlag = UpdatePositionFlag.Contact |
-                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                this.Position.PositionX = obj.Position.PositionX;
-                this.Position.PositionY = obj.Position.PositionY;
-                this.Position.PositionZ = obj.Position.PositionZ;
-                this.Position.RotationW = obj.Position.RotationW;
-                this.Position.RotationZ = obj.Position.RotationZ;
+
+                obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
 
                 session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+
+                // Bend over and pick that puppy up.
+                var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
+                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+                session.Network.EnqueueSend(
+                    new GameMessageSound(session.Player.Guid, Sound.PickUpItem, (float)1.0));
+             
+                // Add to the inventory list.
+                this.inventory.Add(obj.Guid, obj);
+                obj.GameData.ContainerId = session.Player.Guid.Full;
+
+                session.Network.EnqueueSend(
+                   new GameMessagePrivateUpdatePropertyInt(session,
+                       PropertyInt.EncumbVal,
+                       (uint)session.Player.GameData.Burden));
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, obj.Guid));
+                
+                var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
+                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+
+                // Set Container id to the player - you belong to me
+                session.Network.EnqueueSend(
+                    new GameMessageUpdateInstanceId(obj.Guid, session.Player.Guid));
+
                 // TODO: Finish out pick up item
+                session.Network.EnqueueSend(new GameMessagePickupEvent(session, obj));
+                // Tell the landblock so it can tell everyone around that the item has been picked up.
+
+                // LandblockManager.AddObject(obj);
             }
         }
 
