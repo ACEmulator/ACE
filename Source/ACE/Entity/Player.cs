@@ -21,7 +21,7 @@ using ACE.Network.Sequence;
 
 namespace ACE.Entity
 {
-    public class Player : MutableWorldObject
+    public sealed class Player : MutableWorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -199,7 +199,7 @@ namespace ACE.Entity
             set { character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar, new Position(0, 0, 0, 0, 0, 0, 0, 0))
+        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar, CharacterPositionExtensions.StartingPosition(session.CharacterRequested.Guid.Low))
         {
             Session = session;
 
@@ -214,6 +214,7 @@ namespace ACE.Entity
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
+
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
             GameData.ItemCapacity = 102;
@@ -226,6 +227,7 @@ namespace ACE.Entity
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
+            // TODO: Load from database should be loading player data - including inventroy and positions
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -254,9 +256,8 @@ namespace ACE.Entity
                 //    character.IsAdvocate= true;
             }
 
-            Position = character.Positions[PositionType.Location];
-            // TODO: copy object to prevent dataloss here, resetting position inline; character_id and LandblockId may also be missing
-            Position.PositionType = PositionType.Location;
+            Location = character.Location;
+
             IsOnline = true;
 
             this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
@@ -789,7 +790,16 @@ namespace ACE.Entity
         public void SetPhysicalCharacterPosition()
         {
             // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            character.SetCharacterPositions(PositionType.Location, Session.Player.Position);
+            SetCharacterPosition(PositionType.Location, Session.Player.Location);
+        }
+
+        /// <summary>
+        /// Saves a CharacterPosition to the character position dictionary
+        /// </summary>
+        public void SetCharacterPosition(Position newPosition)
+        {
+            character.SetCharacterPosition(newPosition);
+            DatabaseManager.Character.SaveCharacterPosition(character, newPosition);
         }
 
         /// <summary>
@@ -797,7 +807,8 @@ namespace ACE.Entity
         /// </summary>
         public void SetCharacterPosition(PositionType type, Position newPosition)
         {
-            character.SetCharacterPositions(type, newPosition);
+            newPosition.PositionType = type;
+            SetCharacterPosition(newPosition);
         }
 
         /// <summary>
@@ -807,7 +818,7 @@ namespace ACE.Entity
         {
             if (character != null)
             {
-                // Save the current position to persistent storage
+                // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
                 DatabaseManager.Character.UpdateCharacter(character);
 #if DEBUG
@@ -890,6 +901,9 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
+
+                Session.Player.Location = newPosition;
+                character.SetCharacterPosition(newPosition);
             }
 
             DelayedUpdatePosition(newPosition);
@@ -897,7 +911,8 @@ namespace ACE.Entity
 
         public void UpdatePosition(Position newPosition)
         {
-            this.Position = newPosition;
+            this.Location = newPosition;
+            // character.SetCharacterPosition(newPosition);
             SendUpdatePosition();
         }
 
@@ -906,7 +921,8 @@ namespace ACE.Entity
             var t = new Thread(() =>
             {
                 Thread.Sleep(10);
-                this.Position = newPosition;
+                this.Location = newPosition;
+                // character.SetCharacterPosition(newPosition);
                 SendUpdatePosition();
             });
             t.Start();

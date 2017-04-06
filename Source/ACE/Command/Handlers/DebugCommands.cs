@@ -38,7 +38,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
-            var position = session.Player.Position;
+            var position = session.Player.Location;
             ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
         }
 
@@ -191,20 +191,20 @@ namespace ACE.Command.Handlers
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void SpaceJump(Session session, params string[] parameters)
         {
-            Position newPosition = new Position(session.Player.Position.LandblockId.Landblock, session.Player.Position.PositionX, session.Player.Position.PositionY, session.Player.Position.PositionZ + 8000f, session.Player.Position.RotationX, session.Player.Position.RotationY, session.Player.Position.RotationZ, session.Player.Position.RotationW);
+            Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
             session.Player.Teleport(newPosition);
         }
 
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Position.InFrontOf(3.0f), LifestoneType.Original));
+            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
         }
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Position.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace ACE.Command.Handlers
             }
 
             AceVector3 velocity = new AceVector3(x, y, z);
-            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Position.InFrontOf(2.0f), velocity, friction, electicity));
+            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
         [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
@@ -314,7 +314,7 @@ namespace ACE.Command.Handlers
                         }
                     case "ground":
                         {
-                            LootGenerationFactory.Spawn(loot, session.Player.Position.InFrontOf(2.0f));
+                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(2.0f));
                             LandblockManager.AddObject(loot);
                             break;
                         }

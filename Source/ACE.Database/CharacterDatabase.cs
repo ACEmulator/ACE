@@ -433,6 +433,17 @@ namespace ACE.Database
             return ExecuteConstructedGetListStatement<CharacterPreparedStatement, Position>(CharacterPreparedStatement.CharacterPositionList, criteria);
         }
 
+        public Position GetCharacterPosition(Character character, PositionType positionType)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("character_id", character.Id);
+            criteria.Add("positionType", positionType);
+            Position newPosition = CharacterPositionExtensions.InvalidPosition(character.Id, positionType);
+            if (ExecuteConstructedGetStatement(CharacterPreparedStatement.CharacterPositionSelect, typeof(Position), criteria, newPosition))
+                return newPosition;
+            return newPosition = CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.Undef);
+        }
+
         /// <summary>
         /// Attempts to load characters positions from the database. If no position is available, a new position will be created to allow the player to spawn.
         /// </summary>
@@ -459,10 +470,27 @@ namespace ACE.Database
             // This will load each available position from the database, into the object's positions
             foreach (Position item in dbPositionList)
             {
-                character.SetCharacterPositions(item.PositionType, item);
+                character.SetCharacterPosition(item);
             }
         }
-        
+
+        /// <summary>
+        /// Updates a position in the database. If no position is present, a new row will be created.
+        /// </summary>
+        public void SaveCharacterPosition(Character character, Position characterPosition)
+        {
+            var currentPosition = GetCharacterPosition(character, characterPosition.PositionType);
+
+            if (currentPosition.PositionType != PositionType.Undef)
+            {
+                ExecuteConstructedUpdateStatement(CharacterPreparedStatement.CharacterPositionUpdate, typeof(Position), characterPosition);
+            }
+            else
+            {
+                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), characterPosition);
+            }
+        }
+
         public void SaveCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
         {
             // known issue: properties that were removed from the bucket will not updated.  this is a problem if we

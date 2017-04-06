@@ -271,7 +271,7 @@ namespace ACE.Entity
             }
 
             // filter to applicable players
-            players = players.Where(p => p.Position?.IsInQuadrant(quadrant) ?? false).ToList();
+            players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
 
             switch (args.ActionType)
             {
@@ -296,39 +296,39 @@ namespace ACE.Entity
             }
 
             // short circuit when there's no functional adjacency
-            if (!propogate || wo?.Position?.LandblockId.MapScope != Enum.MapScope.Outdoors)
+            if (!propogate || wo?.Location?.LandblockId.MapScope != Enum.MapScope.Outdoors)
                 return;
 
             if (propogate)
             {
                 Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
 
-                if (wo.Position.PositionX < adjacencyLoadRange)
+                if (wo.Location.PositionX < adjacencyLoadRange)
                 {
                     WestAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.SouthEast);
 
-                    if (wo.Position.PositionY < adjacencyLoadRange)
+                    if (wo.Location.PositionY < adjacencyLoadRange)
                         SouthWestAdjacency?.Broadcast(args, false, Quadrant.NorthEast);
 
-                    if (wo.Position.PositionY > (maxXY - adjacencyLoadRange))
+                    if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
                         NorthWestAdjacency?.Broadcast(args, false, Quadrant.SouthEast);
                 }
 
-                if (wo.Position.PositionY < adjacencyLoadRange)
+                if (wo.Location.PositionY < adjacencyLoadRange)
                     SouthAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.NorthWest);
 
-                if (wo.Position.PositionX > (maxXY - adjacencyLoadRange))
+                if (wo.Location.PositionX > (maxXY - adjacencyLoadRange))
                 {
                     EastAdjacency?.Broadcast(args, false, Quadrant.NorthWest | Quadrant.SouthWest);
 
-                    if (wo.Position.PositionY < adjacencyLoadRange)
+                    if (wo.Location.PositionY < adjacencyLoadRange)
                         SouthEastAdjacency?.Broadcast(args, false, Quadrant.NorthWest);
 
-                    if (wo.Position.PositionY > (maxXY - adjacencyLoadRange))
+                    if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
                         NorthEastAdjacency?.Broadcast(args, false, Quadrant.SouthWest);
                 }
 
-                if (wo.Position.PositionY > (maxXY - adjacencyLoadRange))
+                if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
                     NorthAdjacency?.Broadcast(args, false, Quadrant.SouthEast | Quadrant.SouthWest);
             }
         }
@@ -358,7 +358,7 @@ namespace ACE.Entity
                 if (this.id.MapScope == Enum.MapScope.Outdoors)
                 {
                     // check to see if a player or other mutable object "roamed" to an adjacent landblock
-                    var objectsToRelocate = movedObjects.Where(m => m.Position.LandblockId.IsAdjacentTo(this.id) && m.Position.LandblockId != this.id).ToList();
+                    var objectsToRelocate = movedObjects.Where(m => m.Location.LandblockId.IsAdjacentTo(this.id) && m.Location.LandblockId != this.id).ToList();
 
                     // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
                     // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
@@ -377,7 +377,7 @@ namespace ACE.Entity
                 // broadcast
                 Parallel.ForEach(movedObjects, mo =>
                 {
-                    if (mo.Position.LandblockId == this.id)
+                    if (mo.Location.LandblockId == this.id)
                     {
                         // update if it's still here
                         Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);

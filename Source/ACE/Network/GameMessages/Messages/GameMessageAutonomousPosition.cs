@@ -17,7 +17,7 @@ namespace ACE.Network.GameMessages.Messages
             {
                 Player p = worldObject as Player;
                 Writer.WriteGuid(p.Guid);
-                p.Position.Serialize(Writer, true, false);
+                p.Location.Serialize(Writer, true, false);
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // instance_timestamp - always 1 in my pcaps
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectServerControl)); // server_control_timestamp - always 0 in my pcaps
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport)); // teleport_timestamp - always 0 in my pcaps

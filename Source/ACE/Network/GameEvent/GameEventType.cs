@@ -8,7 +8,7 @@
         FriendsListUpdate                   = 0x0021,
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
-
+         
         IdentifyObjectResponse              = 0x00C9,
 
         ChannelBroadcast                    = 0x0147,
@@ -18,6 +18,7 @@
 
         UpdateHealth                        = 0x01C0,
         QueryAgeResponse                    = 0x01C3,
+        UseDone                             = 0x01C7,
 
         Emote                               = 0x01E2,
         PingResponse                        = 0x01EA,
