@@ -12,6 +12,8 @@ namespace ACE.Database
 
         List<Position> GetCharacterPositions(Character character);
 
+        Position GetCharacterPosition(Character character, PositionType positionType);
+
         void DeleteOrRestore(ulong unixTime, uint id);
 
         Task<List<CachedCharacter>> GetByAccount(uint accountId);
@@ -23,6 +25,8 @@ namespace ACE.Database
         Task<bool> CreateCharacter(Character character);
 
         Task UpdateCharacter(Character character);
+
+        void SaveCharacterPosition(Character character, Position characterPosition);
 
         Task<Character> LoadCharacter(uint id);
 

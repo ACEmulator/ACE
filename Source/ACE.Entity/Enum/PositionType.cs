@@ -1,5 +1,14 @@
-﻿namespace ACE.Entity.Enum
+﻿// -------------------------------------------------------------------------------------------------------------------- 
+// <summary>
+//   Defines the Positions types that we need to track.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ACE.Entity.Enum
 {
+    /// <summary>
+    /// The enumerations for the different positions we want to track.  This code provided by Ripley via pastebin  
+    /// </summary>
     public enum PositionType
     {
         // S_CONSTANT: Type:             0x108E, Value: 11, CRASH_AND_TURN_POSITION
@@ -31,32 +40,139 @@
         // S_CONSTANT: Type:             0x108E, Value: 5, HOME_POSITION
         // S_CONSTANT: Type:             0x108E, Value: 8, LINKED_PORTAL_ONE_POSITION
 
+        /// <summary>
+        /// I got nothing for you.
+        /// </summary>
         Undef = 0,
-        Location = 1, // Current Position
+
+        /// <summary>
+        /// Current Position
+        /// </summary>
+        Location = 1,
+
+        /// <summary>
+        /// May be used to store where we are headed when we teleport (?)
+        /// </summary>
         Destination = 2,
+
+        /// <summary>
+        /// Where will we pop into the world (?)
+        /// </summary>
         Instantiation = 3,
-        Sanctuary = 4, // Last Lifestone Used? (@ls)? | @home | @save | @recall
+
+        /// <summary>
+        ///  Last Lifestone Used? (@ls)? | @home | @save | @recall
+        /// </summary>
+        Sanctuary = 4,
+
+        /// <summary>
+        /// Not sure - this could be your house?
+        /// </summary>
         Home = 5,
+
+        /// <summary>
+        /// The need to research
+        /// </summary>
         ActivationMove = 6,
+
+        /// <summary>
+        /// The the position of target.
+        /// </summary>
         Target = 7,
-        LinkedPortalOne = 8, // Primary Portal Recall | Summon Primary Portal | Primary Portal Tie
-        LastPortal = 9, // Portal Recall (Last Used Portal that can be recalled to)
+
+        /// <summary>
+        /// Primary Portal Recall | Summon Primary Portal | Primary Portal Tie
+        /// </summary>
+        LinkedPortalOne = 8,
+
+        /// <summary>
+        /// Portal Recall (Last Used Portal that can be recalled to)
+        /// </summary>
+        LastPortal = 9,
+
+        /// <summary>
+        /// The portal storm - need research - maybe where you were portaled from or to - to does not seem likely to me.
+        /// </summary>
         PortalStorm = 10,
+
+        /// <summary>
+        /// The crash and turn - I can't wait to find out.
+        /// </summary>
         CrashAndTurn = 11,
-        PortalSummonLOC = 12,
+
+        /// <summary>
+        /// We are tracking what the portal ties are - could this be the physical location of the portal you summoned?   More research needed.
+        /// </summary>
+        PortalSummonLoc = 12,
+
+        /// <summary>
+        /// That little spot you get sent to just outside the barrier when the slum lord evicts you (??)
+        /// </summary>
         HouseBoot = 13,
+
+        /// <summary>
+        /// The last outside death. --- boy would I love to extend this to cover deaths in dungeons as well.   
+        /// </summary>
         LastOutsideDeath = 14, // Location of Corpse
-        LinkedLifestone = 15, // Lifestone Recall | Lifestone Tie
-        LinkedPortalTwo = 16, // Secondary Portal Recall | Summon Secondary Portal | Secondary Portal Tie
+
+        /// <summary>
+        /// The linked lifestone - Lifestone Recall | Lifestone Tie
+        /// </summary>
+        LinkedLifestone = 15,
+
+        /// <summary>
+        /// Secondary Portal Recall | Summon Secondary Portal | Secondary Portal Tie
+        /// </summary>
+        LinkedPortalTwo = 16,
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save1 = 17, // @save 1 | @home 1 | @recall 1
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save2 = 18, // @save 2 | @home 2 | @recall 2
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save3 = 19, // @save 3 | @home 3 | @recall 3
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save4 = 20, // @save 4 | @home 4 | @recall 4
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save5 = 21, // @save 5 | @home 5 | @recall 5
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save6 = 22, // @save 6 | @home 6 | @recall 6
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save7 = 23, // @save 7 | @home 7 | @recall 7
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save8 = 24, // @save 8 | @home 8 | @recall 8
+
+        /// <summary>
+        /// Assuming these were setup for future use
+        /// </summary>
         Save9 = 25, // @save 9 | @home 9 | @recall 9
+
+        /// <summary>
+        /// needs research
+        /// </summary>
         RelativeDestination = 26,
         TeleportedCharacter = 27
     }
