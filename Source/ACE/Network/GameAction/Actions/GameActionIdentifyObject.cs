@@ -9,11 +9,9 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.IdentifyObject)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var objectID = message.Payload.ReadUInt32();
-            // TODO
-
-            var identifyObjectResponse = new GameEventIdentifyObjectResponse(session, objectID);
-            session.Network.EnqueueSend(identifyObjectResponse);
+            var id = message.Payload.ReadUInt32();
+            QueuedGameAction action = new QueuedGameAction(id, GameActionType.IdentifyObject);
+            session.Player.AddToExaminationQueue(action);
         }
     }
 }

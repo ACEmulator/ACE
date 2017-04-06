@@ -11,6 +11,9 @@ using log4net;
 using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network;
+using ACE.Network.GameAction;
+using ACE.Entity.Enum;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -197,12 +200,12 @@ namespace ACE.Entity
 
         public WorldObject GetWorldObject(ObjectGuid objectId)
         {
-           Log($"Getting WorldObject {objectId.Full:X}");
+            Log($"Getting WorldObject {objectId.Full:X}");
 
-           lock (objectCacheLocker)
-           {
-               return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
-           }
+            lock (objectCacheLocker)
+            {
+                return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
+            }
         }
 
         /// <summary>
@@ -344,10 +347,12 @@ namespace ACE.Entity
 
                 // for now, we'll move players around
                 List<MutableWorldObject> movedObjects = null;
+                List<Player> players = null;
 
                 lock (objectCacheLocker)
                 {
                     movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
+                    players = this.worldObjects.Values.OfType<Player>().ToList();
                 }
 
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
@@ -392,10 +397,64 @@ namespace ACE.Entity
 
                 // TODO: figure out if this landblock can be unloaded
 
+                // process player action queues
+                foreach (Player p in players)
+                {
+                    QueuedGameAction action = p.ActionQueuePop();
+
+                    if (action != null)
+                        HandleGameAction(action, p);
+                }
+
                 Thread.Sleep(1);
             }
 
             // TODO: release resources
+        }
+
+        private void HandleGameAction(QueuedGameAction action, Player player)
+        {
+            switch (action.ActionType)
+            {
+                case GameActionType.Use:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            WorldObject obj = worldObjects[g];
+
+                            switch (obj.Type)
+                            {
+                                case Enum.ObjectType.LifeStone:
+                                    {
+                                        string serverMessage = null;
+                                        // validate within use range
+                                        float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
+
+                                        if (player.Location.SquaredDistanceTo(obj.Location) <= radiusSquared)
+                                        {
+                                            serverMessage = "You wandered too far to attune with the lifestone!";
+                                        }
+                                        else
+                                        {
+                                            player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+
+                                            // create the outbound server message
+                                            serverMessage = "You have attuned your spirit to this lifestone. You will ressurect here after you die.";
+                                        }
+
+                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Broadcast);
+                                        // always send useDone event
+                                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                        player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
+
+                                        break;
+                                    }
+                            }
+                        }
+                        break;
+                    }
+            }
         }
 
         private void Log(string message)

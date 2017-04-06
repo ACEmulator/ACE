@@ -17,13 +17,12 @@ namespace ACE.Database
     public class Database
     {
         // This is a debug channel for the general debugging of the database.
-        public ILog log = LogManager.GetLogger("Database");
+        private ILog log = LogManager.GetLogger("Database");
 
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
 
         public class DatabaseTransaction
         {
-
             // This logging function will log specific db transactions - this class may be instantiated outside of the database namespace
             private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

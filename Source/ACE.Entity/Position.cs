@@ -257,6 +257,31 @@
             return (block << 16) | (cell + 1);
         }
 
+        /// <summary>
+        /// calculates the square of the distance to the referenced position
+        /// </summary>
+        public float SquaredDistanceTo(Position p)
+        {
+            if (p.LandblockId == this.LandblockId)
+            {
+                var dx = this.PositionX - p.PositionX;
+                var dy = this.PositionY - p.PositionY;
+                var dz = this.PositionZ - p.PositionZ;
+                return dx * dx + dy * dy + dz * dz;
+            }
+            else if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            {
+                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
+                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                var dz = this.PositionZ - p.PositionZ;
+                return dx * dx + dy * dy + dz * dz;
+            }
+            else
+            {
+                return float.NaN;
+            }
+        }
+
         public override string ToString()
         {
             return $"{LandblockId.Landblock.ToString("X")}: {PositionX} {PositionY} {PositionZ}";

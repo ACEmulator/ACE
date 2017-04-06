@@ -18,6 +18,9 @@ using ACE.Network.Enum;
 using ACE.Entity.Events;
 using log4net;
 using ACE.Network.Sequence;
+using System.Collections.Concurrent;
+using ACE.Network.GameAction.Actions;
+using ACE.Network.GameAction;
 
 namespace ACE.Entity
 {
@@ -50,7 +53,16 @@ namespace ACE.Entity
         private Character character;
 
         private object clientObjectMutex = new object();
+
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
+        
+        // queue of all the "actions" that come from the player that require processing
+        // aynchronous to or outside of the network thread
+        private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
+
+        // examination queue is really a subset of the actionQueue, but this existed on
+        // retail servers as it's own separate thing and was intentionally throttled.
+        private ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -274,6 +286,34 @@ namespace ACE.Entity
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+        }
+
+        public void AddToActionQueue(QueuedGameAction action)
+        {
+            this.actionQueue.Enqueue(action);
+        }
+
+        public void AddToExaminationQueue(QueuedGameAction action)
+        {
+            this.examinationQueue.Enqueue(action);
+        }
+
+        public QueuedGameAction ActionQueuePop()
+        {
+            QueuedGameAction action = null;
+            if (this.actionQueue.TryDequeue(out action))
+                return action;
+            else
+                return null;
+        }
+
+        public QueuedGameAction ExaminationQueuePop()
+        {
+            QueuedGameAction action = null;
+            if (this.examinationQueue.TryDequeue(out action))
+                return action;
+            else
+                return null;
         }
 
         /// <summary>
