@@ -11,7 +11,7 @@ namespace ACE.Network.GameMessages.Messages
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
             // TODO Why is baseValue being passed to this function even though it's not used?
 
-            Writer.Write(session.UpdateSkillSequence++);
+            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateSkill));
             Writer.Write((uint)skill);
             Writer.Write(Convert.ToUInt16(ranks));
             Writer.Write(Convert.ToUInt16(1)); // no clue, but this makes it work.

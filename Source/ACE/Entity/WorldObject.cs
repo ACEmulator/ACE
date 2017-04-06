@@ -52,24 +52,6 @@ namespace ACE.Entity
 
         public virtual void PlayScript(Session session) { }
 
-        public ushort MovementIndex
-        {
-            get { return PhysicsData.PositionSequence; }
-            set { PhysicsData.PositionSequence = value; }
-        }
-
-        public ushort TeleportIndex
-        {
-            get { return PhysicsData.PortalSequence; }
-            set { PhysicsData.PortalSequence = value; }
-        }
-
-        public ushort ForcePositionIndex
-        {
-            get { return PhysicsData.ForcePositionSequence; }
-            set { PhysicsData.ForcePositionSequence = value; }
-        }
-
         private bool IsContainer { get; set; } = false;
 
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
@@ -93,12 +75,20 @@ namespace ACE.Entity
 
             GameData = new GameData();
             ModelData = new ModelData();
-            PhysicsData = new PhysicsData();
 
             Sequences = new SequenceManager();
-            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
-            Sequences.AddSequence(SequenceType.MotionMessageAutonomous, new UShortSequence(2));
-            Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
+            Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectVector, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectTeleport, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectServerControl, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
+
+            PhysicsData = new PhysicsData(Sequences);
         }
 
         public void AddToInventory(WorldObject worldObject)
@@ -363,12 +353,10 @@ namespace ACE.Entity
         {
             writer.WriteGuid(Guid);
             Position.Serialize(writer, PositionFlag);
-
-            var player = Guid.IsPlayer() ? this as Player : null;
-            writer.Write((ushort)(player?.TotalLogins ?? 1)); // instance sequence
-            writer.Write((ushort)++MovementIndex);
-            writer.Write((ushort)TeleportIndex);
-            writer.Write((ushort)ForcePositionIndex);
+            writer.Write(PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            writer.Write(PhysicsData.Sequences.GetNextSequence(SequenceType.ObjectPosition));
+            writer.Write(PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
+            writer.Write(PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
     }
 }

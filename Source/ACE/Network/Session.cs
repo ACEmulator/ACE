@@ -40,20 +40,6 @@ namespace ACE.Network
 
         public uint GameEventSequence { get; set; }
 
-        public byte UpdateAttributeSequence { get; set; }
-        public byte UpdateAttribute2ndLevelSequence { get; set; }
-        public byte UpdateSkillSequence { get; set; }
-
-        public byte UpdatePropertyInt64Sequence { get; set; }
-
-        public byte UpdatePropertyIntSequence { get; set; }
-
-        public byte UpdatePropertyStringSequence { get; set; }
-
-        public byte UpdatePropertyBoolSequence { get; set; }
-
-        public byte UpdatePropertyDoubleSequence { get; set; }
-
         public NetworkSession Network { get; set; }
 
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
@@ -72,14 +58,6 @@ namespace ACE.Network
             lastSendAgeIntUpdateTime = DateTime.MinValue;
 
             GameEventSequence = 0;
-            UpdateAttributeSequence = 0;
-            UpdateAttribute2ndLevelSequence = 0;
-            UpdateSkillSequence = 0;
-            UpdatePropertyInt64Sequence = 0;
-            UpdatePropertyIntSequence = 0;
-            UpdatePropertyStringSequence = 0;
-            UpdatePropertyBoolSequence = 0;
-            UpdatePropertyDoubleSequence = 0;
         }
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)

@@ -10,11 +10,15 @@ namespace ACE.Network.Sequence
     {
         private Dictionary<SequenceType, ISequence> sequenceList = new Dictionary<SequenceType, ISequence>();
 
-        public void AddSequence(SequenceType type, ISequence sequence)
+        public void AddOrSetSequence(SequenceType type, ISequence sequence)
         {
             if (!sequenceList.ContainsKey(type))
             {
                 sequenceList.Add(type, sequence);
+            }
+            else
+            {
+                sequenceList[type] = sequence;
             }
         }
 
