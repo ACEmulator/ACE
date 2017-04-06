@@ -46,12 +46,12 @@ namespace ACE.Network.GameMessages.Messages
             MovementTypes type, MotionFlags flags, MotionStance stance)
         {
             Writer.WriteGuid(animationTarget.Guid); // Object_Id (uint)
-            Writer.Write(animationTarget.PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
-            Writer.Write(animationTarget.PhysicsData.Sequences.GetNextSequence(SequenceType.ObjectPosition)); // Movement_Timestamp
+            Writer.Write(animationTarget.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ObjectPosition)); // Movement_Timestamp
             if (autonomous == MotionAutonomous.False)
-                Writer.Write(animationTarget.PhysicsData.Sequences.GetNextSequence(SequenceType.ObjectServerControl)); // Server_Control_Timestamp
+                Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ObjectServerControl)); // Server_Control_Timestamp
             else
-                Writer.Write(animationTarget.PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectServerControl)); // Server_Control_Timestamp
+                Writer.Write(animationTarget.Sequences.GetCurrentSequence(SequenceType.ObjectServerControl)); // Server_Control_Timestamp
             Writer.Write((ushort)type); // movement_type
             Writer.Write((byte)autonomous); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
             Writer.Write((byte)flags); // these can be or and has sticky object | is long jump mode |

@@ -353,10 +353,10 @@ namespace ACE.Entity
         {
             writer.WriteGuid(Guid);
             Position.Serialize(writer, PositionFlag);
-            writer.Write(PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
-            writer.Write(PhysicsData.Sequences.GetNextSequence(SequenceType.ObjectPosition));
-            writer.Write(PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
-            writer.Write(PhysicsData.Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
     }
 }

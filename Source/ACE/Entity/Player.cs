@@ -260,7 +260,7 @@ namespace ACE.Entity
             IsOnline = true;
 
             this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
-            PhysicsData.Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();

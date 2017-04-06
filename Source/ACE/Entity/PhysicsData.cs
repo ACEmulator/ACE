@@ -39,11 +39,11 @@ namespace ACE.Entity
         public uint DefaultScript;
         public float DefaultScriptIntensity;
 
-        public SequenceManager Sequences;
+        private SequenceManager sequences;
 
         public PhysicsData(SequenceManager sequences)
         {
-            Sequences = sequences;
+            this.sequences = sequences;
         }
 
         public void AddEquipedItem(uint index, EquipMask equiperflag)
@@ -136,15 +136,15 @@ namespace ACE.Entity
                 writer.Write((float)DefaultScriptIntensity);
 
             // TODO: There are 9 of these - but we need to research the correct sequence.   I know that the last one is instance (totalLogins) Og II
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectMovement));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectState));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVector));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectServerControl));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectPosition));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectMovement));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectState));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectVector));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectServerControl));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectInstance));
 
             writer.Align();
         }
