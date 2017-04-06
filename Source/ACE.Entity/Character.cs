@@ -274,23 +274,18 @@ namespace ACE.Entity
             }
         }
 
-        public void SetCharacterPositions(PositionType positionType, Position setPosition)
+        public void SetCharacterPosition(Position setPosition)
         {
-            if (positionType == PositionType.Undef)
+            if (setPosition.PositionType == PositionType.Undef)
                 return;
 
             setPosition.CharacterId = Id;
-            setPosition.PositionType = positionType;
-
-            if (positions.ContainsKey(positionType))
+            
+            if (positions.ContainsKey(setPosition.PositionType))
             {
-                if (positions[positionType] != setPosition)
-                    positions[positionType] = setPosition;
-            }
-            else
-            {
-                positions.Add(positionType, setPosition);
-            }
+                positions[setPosition.PositionType] = setPosition;
+            } else
+                positions.Add(setPosition.PositionType, setPosition);
         }
 
         private void InitializeCharacterPositions()

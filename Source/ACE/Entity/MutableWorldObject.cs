@@ -27,7 +27,7 @@ namespace ACE.Entity
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;
             this.WeenieFlags = weenieFlag;
-            this.Position = position;
+            this.Location = position;
             this.WeenieClassid = weenieClassId;
         }
 
@@ -46,7 +46,7 @@ namespace ACE.Entity
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;
             this.WeenieFlags = weenieFlag;
-            this.Position = position;
+            this.Location = position;
             this.WeenieClassid = weenieClassId;
 
             this.GameData.Spell = spellId;
@@ -66,17 +66,17 @@ namespace ACE.Entity
         /// </summary>
         public double LastAnimatedTicks { get; set; }
 
-        public override Position Position
+        public override Position Location
         {
-            get { return base.Position; }
+            get { return base.Location; }
             protected set
             {
-                if (base.Position != null)
+                if (base.Location != null)
                     LastUpdatedTicks = WorldManager.PortalYearTicks;
 
-                log.Debug($"{Name} moved to {Position}");
+                log.Debug($"{Name} moved to {Location}");
 
-                base.Position = value;
+                base.Location = value;
             }
         }
 

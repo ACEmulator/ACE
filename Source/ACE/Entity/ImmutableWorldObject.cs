@@ -18,7 +18,7 @@ namespace ACE.Entity
         {
             this.Name = aceO.Name;
             this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
-            this.Position = aceO.Position;
+            this.Location = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
             this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
 
@@ -44,7 +44,7 @@ namespace ACE.Entity
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;
             this.WeenieFlags = weenieFlag;
-            this.Position = position;
+            this.Location = position;
             this.WeenieClassid = weenieClassId;
         }
     }

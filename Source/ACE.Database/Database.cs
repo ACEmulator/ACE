@@ -16,11 +16,17 @@ namespace ACE.Database
 {
     public class Database
     {
+        // This is a debug channel for the general debugging of the database.
+        public ILog log = LogManager.GetLogger("Database");
+
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public class DatabaseTransaction
         {
+
+            // This logging function will log specific db transactions - this class may be instantiated outside of the database namespace
+            private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
             private readonly Database database;
             private readonly List<Tuple<StoredPreparedStatement, object[]>> queries = new List<Tuple<StoredPreparedStatement, object[]>>();
 
@@ -64,7 +70,7 @@ namespace ACE.Database
 #if DBDEBUG
                                     foreach (MySqlParameter p in command.Parameters)
                                     {
-                                        log.Info(p.Value);
+                                        log.Debug(p.Value);
                                     }
 #endif
                                 }
@@ -78,8 +84,8 @@ namespace ACE.Database
                 }
                 catch (MySqlException transactionException)
                 {
-                    Console.WriteLine($"An exception occured while commiting a transaction of {queries.Count} queries, a rollback will be performed!");
-                    Console.WriteLine($"Exception: {transactionException.Message}");
+                    log.Error($"An exception occured while commiting a transaction of {queries.Count} queries, a rollback will be performed!");
+                    log.Error($"Exception: {transactionException.Message}");
 
                     try
                     {
@@ -88,8 +94,8 @@ namespace ACE.Database
                     }
                     catch (MySqlException rollbackException)
                     {
-                        Console.WriteLine("An exception occured while rolling back transaction!");
-                        Console.WriteLine($"Exception: {rollbackException.Message}");
+                        log.Error("An exception occured while rolling back transaction!");
+                        log.Error($"Exception: {rollbackException.Message}");
                         Debug.Assert(false, "Transaction was rolled back.");
                     }
 
@@ -133,13 +139,13 @@ namespace ACE.Database
                     using (var connection = new MySqlConnection(connectionString))
                         connection.Open();
 
-                    Console.WriteLine($"Successfully connected to {database} database on {host}:{port}.");
+                    log.Debug($"Successfully connected to {database} database on {host}:{port}.");
                     break;
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine($"Exception: {exception.Message}");
-                    Console.WriteLine($"Attempting to reconnect to {database} database on {host}:{port} in 5 seconds...");
+                    log.Error($"Exception: {exception.Message}");
+                    log.Error($"Attempting to reconnect to {database} database on {host}:{port} in 5 seconds...");
 
                     Thread.Sleep(5000);
                 }
@@ -176,8 +182,8 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while preparing statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while preparing statement {id}!");
+                log.Error($"Exception: {exception.Message}");
                 Debug.Assert(false, "Preparation of statement failed.");
             }
         }
@@ -306,7 +312,7 @@ namespace ACE.Database
             }
 #if DBDEBUG
             log.Debug("Id: " + Convert.ToUInt32(id) + "Query: " + query);
-            foreach(var name in types)
+            foreach (var name in types)
             {
                 log.Debug("Types: + " + name.ToString());
             }
@@ -356,8 +362,8 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
 
             return false;
@@ -408,8 +414,8 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
 
             return results;
@@ -443,8 +449,8 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
 
             return false;
@@ -482,8 +488,8 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
 
             return false;
@@ -547,8 +553,8 @@ namespace ACE.Database
             }
             catch (MySqlException exception)
             {
-                Console.WriteLine($"An exception occured while executing prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
         }
 
@@ -587,8 +593,8 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while selecting prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while selecting prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
 
             return null;
@@ -632,8 +638,8 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while selecting prepared statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while selecting prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
             }
 
             return null;
@@ -679,8 +685,8 @@ namespace ACE.Database
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"An exception occured while preparing statement {id}!");
-                Console.WriteLine($"Exception: {exception.Message}");
+                log.Error($"An exception occured while preparing statement {id}!");
+                log.Error($"Exception: {exception.Message}");
                 Debug.Assert(false, "Prepared Statement Exception: " + query);
             }
         }

@@ -12,7 +12,9 @@ namespace ACE.Entity
 
         public static Position InvalidPosition(uint characterId, PositionType type)
         {
-            var invalidPosition = new Position(characterId, type, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+            var invalidPosition = new Position();
+            invalidPosition.CharacterId = characterId;
+            invalidPosition.PositionType = type;
             return invalidPosition;
         }
     }

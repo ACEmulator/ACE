@@ -36,7 +36,7 @@ namespace ACE.Entity
         /// </summary>
         public double LastUpdatedTicks { get; set; }
 
-        public virtual Position Position
+        public virtual Position Location
         {
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
@@ -205,11 +205,12 @@ namespace ACE.Entity
                 // let's move to pick up the item
                 this.PositionFlag = UpdatePositionFlag.Contact |
                    UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                this.Position.PositionX = obj.Position.PositionX;
-                this.Position.PositionY = obj.Position.PositionY;
-                this.Position.PositionZ = obj.Position.PositionZ;
-                this.Position.RotationW = obj.Position.RotationW;
-                this.Position.RotationZ = obj.Position.RotationZ;
+
+                this.Location.PositionX = obj.Location.PositionX;
+                this.Location.PositionY = obj.Location.PositionY;
+                this.Location.PositionZ = obj.Location.PositionZ;
+                this.Location.RotationW = obj.Location.RotationW;
+                this.Location.RotationZ = obj.Location.RotationZ;
 
                 session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
                 // TODO: Finish out pick up item
@@ -362,7 +363,7 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            Position.Serialize(writer, PositionFlag);
+            Location.Serialize(writer, PositionFlag);
 
             var player = Guid.IsPlayer() ? this as Player : null;
             writer.Write((ushort)(player?.TotalLogins ?? 1)); // instance sequence
