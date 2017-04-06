@@ -237,6 +237,22 @@ namespace ACE.Entity
             ListeningRadius = 5f;
         }
 
+        public void Kill()
+        {
+            // create corpse at location
+            // TODO: Once the corpse/container factories have been built
+
+            // teleport to sanctuary or starting point
+            if (Positions.ContainsKey(PositionType.Sanctuary))
+                Teleport(Positions[PositionType.Sanctuary]);
+            else
+                Teleport(Positions[PositionType.Location]);
+
+            // create and send the death event
+            var yourDeathEvent = new GameEventYourDeath(Session);
+            Session.Network.EnqueueSend(yourDeathEvent);
+        }
+
         public async Task Load(Character preloadedCharacter = null)
         {
             character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
@@ -798,6 +814,15 @@ namespace ACE.Entity
         /// </summary>
         public void SetCharacterPosition(Position newPosition)
         {
+            // Some positions come from outside of the Player and Character classes
+            if (newPosition.CharacterId == 0) newPosition.CharacterId = Guid.Low;
+
+            // reset the landblock id
+            if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
+            {
+                newPosition.LandblockId = new LandblockId(newPosition.Cell);
+            }
+
             character.SetCharacterPosition(newPosition);
             DatabaseManager.Character.SaveCharacterPosition(character, newPosition);
         }
@@ -901,9 +926,9 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-
+                
                 Session.Player.Location = newPosition;
-                character.SetCharacterPosition(newPosition);
+                SetPhysicalCharacterPosition();
             }
 
             DelayedUpdatePosition(newPosition);

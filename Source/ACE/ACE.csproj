@@ -159,6 +159,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionDropItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToLifestone.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionDie.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionUseItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
@@ -203,6 +204,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventFriendsListUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventIdentifyObjectResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventYourDeath.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUseDone.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPlayerDescription.cs" />
