@@ -1,4 +1,27 @@
 # ACEmulator Change Log
+### 2017-04-06
+[Zegeger]
+* Got 9 CreateObject sequences in correct order and named according to client code.
+* Changed many sequences over to SequenceManager.
+
+### 2017-04-05
+[fantoms]
+* Reworked Character `Positions`.
+* `Player.Location`, `WorldObject/ImmutableWorldObject.Location`, and `Character.Location` are now the `Position` instances for the respected Objects.
+* Fixed `DBDEBUG` constant output in `Database`.
+* Simplified the `SetCharacterPosition` function.
+* Refactored `GetCharacterPositions` and added `GetCharacterPosition` (single get).
+* For function clarity, I updated the function name for `SaveCharacterPosition` in the Character Database Interface.
+* Fixed default a position issue by taking out values for an `InvalidPosition`.
+* Added a SIMPLE Lifestone `WeenieClassIds` enum, to check against when determining a lifetone object's capabilities. TODO: This should be changed when UseItem is built out further.
+* Updated comments on PostionTypes from @ogmage78's lifestonetie branch.
+* Added GameAction for `TeleToLifestone` and `UseItem`.
+* Added GameEvent for `UseDone` and `TeleToLifestone` allowing @ls or @lifestone commands to work.
+* Added lifestone binding capabilities. 
+* Added data to the Character position that comes from the client in `GameActionMoveToState` and set the `Location` position type.
+
+[Lidefeath]
+* Fixed the creature data in the Database scripts, so the Drudge can finally spawn
 
 ### 2017-04-04
 [Mogwai]
@@ -8,6 +31,9 @@
 
 [Mag-nus]
 * Fixed the stuff Mogwai missed and/or broke.
+
+[Zegeger]
+* Fixed inbound packet combining
 
 ### 2017-04-03
 [Lidefeath]

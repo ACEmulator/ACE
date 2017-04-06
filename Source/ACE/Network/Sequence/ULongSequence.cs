@@ -10,18 +10,28 @@ namespace ACE.Network.Sequence
     {
         private ulong value;
 
-        public ULongSequence(ulong startingValue = 0)
+        public ULongSequence(ulong startingValue)
         {
             value = startingValue;
+        }
+
+        /// <summary>
+        /// Creates an instance without a starting value
+        /// </summary>
+        /// <param name="clientPrimed">Whether the value gets sent to client before first increment</param>
+        public ULongSequence(bool clientPrimed = true)
+        {
+            if (clientPrimed)
+                value = 0;
+            else
+                value = UInt64.MaxValue;
         }
 
         public byte[] CurrentValue
         {
             get
             {
-                if (value == 0)
-                    return BitConverter.GetBytes(UInt64.MaxValue);
-                return BitConverter.GetBytes(value - 1);
+                return BitConverter.GetBytes(value);
             }
         }
 
@@ -32,9 +42,9 @@ namespace ACE.Network.Sequence
                 if (value == UInt64.MaxValue)
                 {
                     value = 0;
-                    return BitConverter.GetBytes(UInt64.MaxValue);
+                    return BitConverter.GetBytes(value);
                 }
-                return BitConverter.GetBytes(value++);
+                return BitConverter.GetBytes(++value);
             }
         }
     }

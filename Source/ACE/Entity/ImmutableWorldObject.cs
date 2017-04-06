@@ -18,7 +18,7 @@ namespace ACE.Entity
         {
             this.Name = aceO.Name;
             this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
-            this.Position = aceO.Position;
+            this.Location = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
             this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
 
@@ -37,6 +37,10 @@ namespace ACE.Entity
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
+
+            aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
         public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
@@ -44,7 +48,7 @@ namespace ACE.Entity
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;
             this.WeenieFlags = weenieFlag;
-            this.Position = position;
+            this.Location = position;
             this.WeenieClassid = weenieClassId;
         }
     }

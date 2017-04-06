@@ -36,7 +36,7 @@ namespace ACE.Entity
         /// </summary>
         public double LastUpdatedTicks { get; set; }
 
-        public virtual Position Position
+        public virtual Position Location
         {
             get { return PhysicsData.Position; }
             protected set { PhysicsData.Position = value; }
@@ -51,24 +51,6 @@ namespace ACE.Entity
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
 
         public virtual void PlayScript(Session session) { }
-
-        public ushort MovementIndex
-        {
-            get { return PhysicsData.PositionSequence; }
-            set { PhysicsData.PositionSequence = value; }
-        }
-
-        public ushort TeleportIndex
-        {
-            get { return PhysicsData.PortalSequence; }
-            set { PhysicsData.PortalSequence = value; }
-        }
-
-        public ushort ForcePositionIndex
-        {
-            get { return PhysicsData.ForcePositionSequence; }
-            set { PhysicsData.ForcePositionSequence = value; }
-        }
 
         private bool IsContainer { get; set; } = false;
 
@@ -93,12 +75,20 @@ namespace ACE.Entity
 
             GameData = new GameData();
             ModelData = new ModelData();
-            PhysicsData = new PhysicsData();
 
             Sequences = new SequenceManager();
-            Sequences.AddSequence(SequenceType.MotionMessage, new UShortSequence(2));
-            Sequences.AddSequence(SequenceType.MotionMessageAutonomous, new UShortSequence(2));
-            Sequences.AddSequence(SequenceType.Motion, new UShortSequence(1));
+            Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectVector, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectTeleport, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectServerControl, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
+
+            PhysicsData = new PhysicsData(Sequences);
         }
 
         public void AddToInventory(WorldObject worldObject)
@@ -326,7 +316,7 @@ namespace ACE.Entity
 
             if ((WeenieFlags & WeenieHeaderFlag.Priority) != 0)
                 writer.Write((uint)GameData.Priority);
-
+  
             if ((WeenieFlags & WeenieHeaderFlag.BlipColour) != 0)
                 writer.Write((byte)GameData.RadarColour);
 
@@ -385,13 +375,11 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            Position.Serialize(writer, PositionFlag);
-
-            var player = Guid.IsPlayer() ? this as Player : null;
-            writer.Write((ushort)(player?.TotalLogins ?? 1)); // instance sequence
-            writer.Write((ushort)++MovementIndex);
-            writer.Write((ushort)TeleportIndex);
-            writer.Write((ushort)ForcePositionIndex);
+            Location.Serialize(writer, PositionFlag);
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
     }
 }

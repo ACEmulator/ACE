@@ -7,7 +7,7 @@ namespace ACE.Network.GameMessages.Messages
     {
         public GameMessagePrivateUpdatePropertyBool(Session session, PropertyBool property, bool value) : base(GameMessageOpcode.PrivateUpdatePropertyBool, GameMessageGroup.Group09)
         {
-            Writer.Write(session.UpdatePropertyBoolSequence++);
+            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdatePropertyBool));
             Writer.Write((uint)property);
             Writer.Write(Convert.ToUInt32(value));
         }

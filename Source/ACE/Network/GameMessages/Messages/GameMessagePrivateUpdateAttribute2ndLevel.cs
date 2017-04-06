@@ -9,7 +9,7 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessagePrivateUpdateAttribute2ndLevel(Session session, Vital vital, uint value)
             : base(GameMessageOpcode.PrivateUpdateAttribute2ndLevel, GameMessageGroup.Group09)
         {
-            Writer.Write(session.UpdateAttribute2ndLevelSequence++);
+            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevel));
             Writer.Write((uint)vital);
             Writer.Write(value);
         }

@@ -16,6 +16,7 @@
         InventoryPutObjIn3D                 = 0x019A,
         UpdateHealth                        = 0x01C0,
         QueryAgeResponse                    = 0x01C3,
+        UseDone                             = 0x01C7,
         Emote                               = 0x01E2,
         PingResponse                        = 0x01EA,
         HouseStatus                         = 0x0226,

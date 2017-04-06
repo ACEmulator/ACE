@@ -34,13 +34,15 @@ namespace ACE.Managers
 
         public static void AddObject(WorldObject worldObject)
         {
-            Landblock block = GetLandblock(worldObject.Position.LandblockId, true);
+            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
         }
 
+        // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
+
         public static void RemoveObject(WorldObject worldObject)
         {
-            Landblock block = GetLandblock(worldObject.Position.LandblockId, true);
+            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
             block.RemoveWorldObject(worldObject.Guid, false);
         }
 
@@ -49,7 +51,7 @@ namespace ACE.Managers
         /// </summary>
         public static void RelocateObject(WorldObject worldObject)
         {
-            var block = GetLandblock(worldObject.Position.LandblockId, true);
+            var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
         }
 
@@ -58,7 +60,7 @@ namespace ACE.Managers
         /// </summary>
         public static void HandleQueryHealth(Session source, ObjectGuid targetId)
         {
-            var block = GetLandblock(source.Player.Position.LandblockId, true);
+            var block = GetLandblock(source.Player.Location.LandblockId, true);
             block.HandleQueryHealth(source, targetId);
         }
 
@@ -67,7 +69,7 @@ namespace ACE.Managers
         /// </summary>
         public static WorldObject GetWorldObject(Session source, ObjectGuid targetId)
         {
-            var block = GetLandblock(source.Player.Position.LandblockId, true);
+            var block = GetLandblock(source.Player.Location.LandblockId, true);
             return block.GetWorldObject(targetId);
         }
 

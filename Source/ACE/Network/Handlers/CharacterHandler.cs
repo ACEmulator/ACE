@@ -172,8 +172,8 @@ namespace ACE.Network.Handlers
 
         public static void CharacterCreateSetDefaultCharacterPositions(Character character)
         {
-            character.SetCharacterPositions(PositionType.Location, CharacterPositionExtensions.StartingPosition(character.Id));
-            character.SetCharacterPositions(PositionType.LastPortal, CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.LastPortal));
+            character.SetCharacterPosition(CharacterPositionExtensions.StartingPosition(character.Id));
+            character.SetCharacterPosition(CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.LastPortal));
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
