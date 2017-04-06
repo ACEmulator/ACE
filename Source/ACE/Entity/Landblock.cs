@@ -188,8 +188,8 @@ namespace ACE.Entity
             // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
             // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
             // close enough.
-            // if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
-            if (!adjacencyMove && wo != null)
+
+            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
             {
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
