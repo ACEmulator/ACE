@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 using ACE.Entity.Events;
 using ACE.Managers;
@@ -31,10 +32,8 @@ namespace ACE.Entity
 
         private LandblockId id;
 
-        private readonly object objectCacheLocker = new object();
-        private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
-
-        private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
+        private readonly ConcurrentDictionary<ObjectGuid, WorldObject> worldObjects = new ConcurrentDictionary<ObjectGuid, WorldObject>();
+        private readonly ConcurrentDictionary<Adjacency, Landblock> adjacencies = new ConcurrentDictionary<Adjacency, Landblock>();
 
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
         // private byte cellGridMaxY = 8; // todo: load from cell.dat
@@ -55,14 +54,14 @@ namespace ACE.Entity
             this.id = id;
 
             // initialize adjacency array
-            this.adjacencies.Add(Adjacency.North, null);
-            this.adjacencies.Add(Adjacency.NorthEast, null);
-            this.adjacencies.Add(Adjacency.East, null);
-            this.adjacencies.Add(Adjacency.SouthEast, null);
-            this.adjacencies.Add(Adjacency.South, null);
-            this.adjacencies.Add(Adjacency.SouthWest, null);
-            this.adjacencies.Add(Adjacency.West, null);
-            this.adjacencies.Add(Adjacency.NorthWest, null);
+            this.adjacencies.TryAdd(Adjacency.North, null);
+            this.adjacencies.TryAdd(Adjacency.NorthEast, null);
+            this.adjacencies.TryAdd(Adjacency.East, null);
+            this.adjacencies.TryAdd(Adjacency.SouthEast, null);
+            this.adjacencies.TryAdd(Adjacency.South, null);
+            this.adjacencies.TryAdd(Adjacency.SouthWest, null);
+            this.adjacencies.TryAdd(Adjacency.West, null);
+            this.adjacencies.TryAdd(Adjacency.NorthWest, null);
 
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
@@ -75,14 +74,14 @@ namespace ACE.Entity
             foreach (var o in objects)
             {
                 ImmutableWorldObject iwo = new ImmutableWorldObject(o);
-                worldObjects.Add(iwo.Guid, iwo);
+                worldObjects.TryAdd(iwo.Guid, iwo);
             }
 
             var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             foreach (var c in creatures)
             {
                 Creature cwo = new Creature(c);
-                worldObjects.Add(cwo.Guid, cwo);
+                worldObjects.TryAdd(cwo.Guid, cwo);
             }
         }
 
@@ -146,44 +145,44 @@ namespace ACE.Entity
             new Thread(UseTime).Start();
         }
 
-        public void AddWorldObject(WorldObject wo)
-        {
+        public void AddWorldObject(params WorldObject[] wolist)
+        {   
             List<WorldObject> allObjects;
 
-            Log($"adding {wo.Guid.Full.ToString("X")}");
-
-            lock (objectCacheLocker)
-            {
                 allObjects = this.worldObjects.Values.ToList();
-                this.worldObjects[wo.Guid] = wo;
-            }
+                foreach (WorldObject wo in wolist)
+                {
+                    Log($"adding {wo.Guid.Full.ToString("X")}");
+                    this.worldObjects[wo.Guid] = wo;
+                    var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
+                    Broadcast(args, true, Quadrant.All);
 
-            var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
-            Broadcast(args, true, Quadrant.All);
-
-            // if this is a player, tell them about everything else we have.
-            if (wo is Player)
-            {
-                // send them the initial burst of objects
-                Log($"blasting player \"{(wo as Player).Name}\" with {allObjects.Count} objects.");
-                Parallel.ForEach(allObjects, (o) => (wo as Player).TrackObject(o));
-            }
+                    // if this is a player, tell them about everything else we have.
+                    if (wo is Player)
+                    {
+                        // send them the initial burst of objects
+                        Log($"blasting player \"{(wo as Player).Name}\" with {allObjects.Count} objects.");
+                        Parallel.ForEach(allObjects, (o) => (wo as Player).TrackObject(o));
+                    }
+                }
         }
 
-        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
+        public void RemoveWorldObject(bool adjacencyMove, params ObjectGuid[] objectIdlist)
         {
             WorldObject wo = null;
 
-            Log($"removing {objectId.Full.ToString("X")}");
-
-            lock (objectCacheLocker)
-            {
-                if (this.worldObjects.ContainsKey(objectId))
+                foreach (ObjectGuid objectId in objectIdlist)
                 {
-                    wo = this.worldObjects[objectId];
-                    this.worldObjects.Remove(objectId);
+                    Log($"removing {objectId.Full.ToString("X")}");
+                    if (this.worldObjects.ContainsKey(objectId))
+                    {
+                        WorldObject rwo = null;
+                        wo = this.worldObjects[objectId];
+                        this.worldObjects.TryRemove(objectId, out rwo);
+                        if (rwo == null)
+                            Log($"failed to remove {objectId.Full.ToString("X")}");
+                    }
                 }
-            }
 
             // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
             // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
@@ -198,11 +197,7 @@ namespace ACE.Entity
         public WorldObject GetWorldObject(ObjectGuid objectId)
         {
            Log($"Getting WorldObject {objectId.Full:X}");
-
-           lock (objectCacheLocker)
-           {
                return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
-           }
         }
 
         /// <summary>
@@ -214,21 +209,15 @@ namespace ACE.Entity
             {
                 Player pl = null;
 
-                lock (objectCacheLocker)
-                {
                     if (this.worldObjects.ContainsKey(targetId))
                         pl = (Player)this.worldObjects[targetId];
-                }
                 if (pl == null)
                 {
                     // check adjacent landblocks for the targetId
                     foreach (var block in adjacencies)
                     {
-                        lock (block.Value.objectCacheLocker)
-                        {
                             if (block.Value.worldObjects.ContainsKey(targetId))
                                 pl = (Player)this.worldObjects[targetId];
-                        }
                     }
                 }
                 if (pl != null)
@@ -246,10 +235,7 @@ namespace ACE.Entity
             // only players receive this
             List<Player> players = null;
 
-            lock (objectCacheLocker)
-            {
                 players = this.worldObjects.Values.OfType<Player>().ToList();
-            }
 
             BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
             Broadcast(args, true, Quadrant.All);
@@ -265,10 +251,7 @@ namespace ACE.Entity
 
             Log($"broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType}");
 
-            lock (objectCacheLocker)
-            {
                 players = this.worldObjects.Values.OfType<Player>().ToList();
-            }
 
             // filter to applicable players
             players = players.Where(p => p.Position?.IsInQuadrant(quadrant) ?? false).ToList();
@@ -339,16 +322,21 @@ namespace ACE.Entity
         public void UseTime()
         {
             while (running)
-            {
+            {      
+                // Expire World Objects By Time.
+                List<WorldObject> worldObjects = null;
+                DateTime now = DateTime.Now;
+                worldObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
+                worldObjects = worldObjects.Where(p => !p.DieFlag & p.DieOn >= now).ToList();
+                if (worldObjects != null & worldObjects.Count > 0)
+                     worldObjects.ForEach(m => this.RemoveWorldObject(false, m.Guid));
+                
                 // here we'd move server objects in motion (subject to landscape) and do physics collision detection
 
                 // for now, we'll move players around
                 List<MutableWorldObject> movedObjects = null;
 
-                lock (objectCacheLocker)
-                {
-                    movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
-                }
+                movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
 
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
 
@@ -371,7 +359,7 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
 
                     // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
-                    objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
+                    objectsToRelocate.ForEach(o => RemoveWorldObject(true, o.Guid));
                 }
 
                 // broadcast
@@ -385,7 +373,7 @@ namespace ACE.Entity
                     else
                     {
                         // remove and readd if it's not
-                        this.RemoveWorldObject(mo.Guid, false);
+                        this.RemoveWorldObject(false, mo.Guid);
                         LandblockManager.AddObject(mo);
                     }
                 });

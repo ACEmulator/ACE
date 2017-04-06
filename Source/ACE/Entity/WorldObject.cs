@@ -18,7 +18,7 @@ namespace ACE.Entity
 
     public abstract class WorldObject
     {
-        public ObjectGuid Guid { get; }
+        public ObjectGuid Guid { get; private set; }
 
         public ObjectType Type { get; protected set; }
 
@@ -30,6 +30,13 @@ namespace ACE.Entity
         public ushort Icon { get; set; }
 
         public string Name { get; protected set; }
+
+        /// <summary>
+        /// Default False equal to Never Die.
+        /// </summary>
+        public bool DieFlag = false;
+        public DateTime CreatedOn { get; private set; }
+        public DateTime DieOn { get; private set; }
 
         /// <summary>
         /// tick-stamp for the last time this object changed in any way.
@@ -78,16 +85,34 @@ namespace ACE.Entity
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
-        public ModelData ModelData { get; }
+        public ModelData ModelData { get; private set; }
 
-        public PhysicsData PhysicsData { get; }
+        public PhysicsData PhysicsData { get; private set; }
 
-        public GameData GameData { get; }
+        public GameData GameData { get; private set; }
 
-        public SequenceManager Sequences { get; }
+        public SequenceManager Sequences { get; private set; }
+
+        protected WorldObject(ObjectType type, ObjectGuid guid, double secondstolive)
+        {
+            Initialize(type, guid);
+            // calculate what time the word obect will on expire.
+            if (secondstolive > 0)
+            {
+                DieOn = DateTime.Now.AddSeconds(secondstolive);
+                DieFlag = true;
+            }
+        }
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
+            Initialize(type, guid);
+        }
+
+        protected void Initialize(ObjectType type, ObjectGuid guid)
+        {
+            CreatedOn = DateTime.Now;
+
             Type = type;
             Guid = guid;
 

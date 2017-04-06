@@ -39,7 +39,7 @@ namespace ACE.Managers
         public static void RemoveObject(WorldObject worldObject)
         {
             Landblock block = GetLandblock(worldObject.Position.LandblockId, true);
-            block.RemoveWorldObject(worldObject.Guid, false);
+            block.RemoveWorldObject(false, worldObject.Guid);
         }
 
         /// <summary>

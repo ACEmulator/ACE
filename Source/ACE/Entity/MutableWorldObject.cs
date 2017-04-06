@@ -22,7 +22,7 @@ namespace ACE.Entity
 
         public PlayScript PlayerScript = Network.Enum.PlayScript.Invalid;
         
-        public MutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
+        public MutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position, double secondstolive) : base(type, guid, secondstolive)
         {
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;
@@ -41,7 +41,8 @@ namespace ACE.Entity
             Spell spellId,
             uint modelId,
             uint soundTableId,
-            uint physicsTableId) : base(type, guid)
+            uint physicsTableId,
+            double secondstolive) : base(type, guid, secondstolive)
         {
             this.Name = name;
             this.DescriptionFlags = descriptionFlag;

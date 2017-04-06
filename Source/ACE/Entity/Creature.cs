@@ -11,7 +11,7 @@ namespace ACE.Entity
     public class Creature : MutableWorldObject
     {
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.TypeId, new ObjectGuid(aceC.AceObjectId), aceC.Name, aceC.WeenieClassId, (ObjectDescriptionFlag)aceC.WdescBitField, (WeenieHeaderFlag)aceC.WeenieFlags, aceC.Position)
+            : base((ObjectType)aceC.TypeId, new ObjectGuid(aceC.AceObjectId), aceC.Name, aceC.WeenieClassId, (ObjectDescriptionFlag)aceC.WdescBitField, (WeenieHeaderFlag)aceC.WeenieFlags, aceC.Position, 0)
         {
             if (aceC.WeenieClassId < 0x8000u)
                 this.WeenieClassid = aceC.WeenieClassId;

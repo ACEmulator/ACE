@@ -62,7 +62,7 @@ namespace ACE.Factories
                     break;
             }
 
-            MutableWorldObject mobj = new MutableWorldObject(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
+            MutableWorldObject mobj = new MutableWorldObject(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId, 120);
 
             mobj.PhysicsData.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
             mobj.PhysicsData.DefaultScriptIntensity = (float)1;
