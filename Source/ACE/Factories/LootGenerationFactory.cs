@@ -13,13 +13,14 @@
             inventoryItem.GameData.ContainerId = container.Guid.Full;
             container.GameData.Burden += inventoryItem.GameData.Burden;
             container.AddToInventory(inventoryItem);
-            // sending positon of the container so we know what landblock to register with.
+
+            // TODO: I don't think this is needed - from live pcaps position is not set or sent for items either weilded or in a container. Og II
             inventoryItem.PhysicsData.Position = container.PhysicsData.Position;
         }
 
         public static void Spawn(WorldObject inventoryItem, Position position)
         {
-            inventoryItem.PhysicsData.Position = position.InFrontOf(2.00f);
+            inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position |
                                                                inventoryItem.PhysicsData.PhysicsDescriptionFlag;
         }

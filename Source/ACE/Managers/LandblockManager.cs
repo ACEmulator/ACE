@@ -8,6 +8,8 @@ using log4net;
 
 namespace ACE.Managers
 {
+    using System.Runtime.CompilerServices;
+
     public static class LandblockManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

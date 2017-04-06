@@ -70,7 +70,7 @@ namespace ACE.Network.GameMessages.Messages
             foreach (var item in items)
             {
                 Writer.Write((ushort)item.Motion);
-                Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
+                Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.Motion));
                 Writer.Write(item.Speed);
             }
         }

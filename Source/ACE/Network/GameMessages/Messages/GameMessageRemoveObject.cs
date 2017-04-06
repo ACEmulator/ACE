@@ -8,6 +8,7 @@ namespace ACE.Network.GameMessages.Messages
         {
             // TODO: Verify.  this was done without referencing the protocol spec
             Writer.WriteGuid(guid);
+            Writer.Write((uint)1); // TODO CFS Fix this
         }
     }
 }

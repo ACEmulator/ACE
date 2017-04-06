@@ -1,7 +1,4 @@
 ﻿using ACE.Entity;
-using ACE.Entity.Enum.Properties;
-using ACE.Network.Enum;
-using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.GameAction.Actions
 {

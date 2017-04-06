@@ -2,14 +2,14 @@
 
 namespace ACE.Network.GameMessages.Messages
 {
-    public class GameMessagePutObjectIn3d : GameMessage
+    public class GameMessagePutObjectIn3D : GameMessage
     {
-        public GameMessagePutObjectIn3d(Session session, WorldObject worldObject, ObjectGuid itemGuid)
+        public GameMessagePutObjectIn3D(Session session, WorldObject worldObject, ObjectGuid itemGuid)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
         {
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.DropTemp);
+            Writer.Write((uint)GameEvent.GameEventType.InventoryPutObjIn3D);
             Writer.Write(itemGuid.Full);
             Writer.Align();
         }
