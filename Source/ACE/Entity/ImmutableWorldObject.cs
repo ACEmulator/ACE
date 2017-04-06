@@ -37,6 +37,10 @@ namespace ACE.Entity
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
+
+            aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
         public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)

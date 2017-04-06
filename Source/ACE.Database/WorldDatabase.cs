@@ -14,7 +14,10 @@ namespace ACE.Database
             GetCreaturesByLandblock,
             GetWeeniePalettes,
             GetWeenieTextureMaps,
-            GetWeenieAnimations
+            GetWeenieAnimations,
+            GetPaletteOverridesByObject,
+            GetAnimationOverridesByObject,
+            GetTextureOverridesByObject
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -28,6 +31,9 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
         }
 
         public List<TeleportLocation> GetLocations()
@@ -52,7 +58,14 @@ namespace ACE.Database
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("landblock", landblock);
-            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            objects.ForEach(o =>
+            {
+                o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
+                o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
+                o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
+            });
+            return objects;
         }
 
         public List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock)
@@ -89,6 +102,29 @@ namespace ACE.Database
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("weenieClassId", weenieClassId);
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieAnimationOverride>(WorldPreparedStatement.GetWeenieAnimations, criteria);
+        }
+        private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("baseAceObjectId", aceObjectId);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetTextureOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("baseAceObjectId", aceObjectId);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, PaletteOverride>(WorldPreparedStatement.GetPaletteOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<AnimationOverride> GetAceObjectAnimations(uint aceObjectId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("baseAceObjectId", aceObjectId);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetAnimationOverridesByObject, criteria);
+            return objects;
         }
     }
 }

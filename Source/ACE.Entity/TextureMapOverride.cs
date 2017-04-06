@@ -9,8 +9,13 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
+    [DbTable("ace_object_texture_map_changes")]
+    [DbGetList("ace_object_texture_map_changes", 9, "baseAceObjectId")]
     public class TextureMapOverride
     {
+        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        public uint AceObjectId { get; set; }
+
         [DbField("index", (int)MySqlDbType.UByte)]
         public byte Index { get; set; }
 
