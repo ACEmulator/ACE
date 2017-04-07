@@ -17,7 +17,8 @@ namespace ACE.Database
             GetWeenieAnimations,
             GetPaletteOverridesByObject,
             GetAnimationOverridesByObject,
-            GetTextureOverridesByObject
+            GetTextureOverridesByObject,
+            GetCreatureDataByWeenie
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -34,6 +35,7 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
         }
 
         public List<TeleportLocation> GetLocations()
@@ -73,12 +75,7 @@ namespace ACE.Database
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("landblock", landblock);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach(o =>
-            {
-                o.WeeniePaletteOverrides = GetWeeniePalettes(o.WeenieClassId);
-                o.WeenieTextureMapOverrides = GetWeenieTextureMaps(o.WeenieClassId);
-                o.WeenieAnimationOverrides = GetWeenieAnimations(o.WeenieClassId);
-            });
+            objects.ForEach(o => o.CreatureData = GetCreatureDataByWeenie(o.WeenieClassId));
 
             return objects;
         }
@@ -125,6 +122,23 @@ namespace ACE.Database
             criteria.Add("baseAceObjectId", aceObjectId);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetAnimationOverridesByObject, criteria);
             return objects;
+        }
+
+        private AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId)
+        {
+            AceCreatureObject aco = new AceCreatureObject();
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("weenieClassId", weenieClassId);
+            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), criteria, aco))
+            {
+                aco.WeeniePaletteOverrides = GetWeeniePalettes(aco.WeenieClassId);
+                aco.WeenieTextureMapOverrides = GetWeenieTextureMaps(aco.WeenieClassId);
+                aco.WeenieAnimationOverrides = GetWeenieAnimations(aco.WeenieClassId);
+
+                return aco;
+            }
+            else
+                return null;
         }
     }
 }

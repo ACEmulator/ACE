@@ -86,6 +86,7 @@
   <ItemGroup>
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AceCreatureObject.cs" />
     <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
