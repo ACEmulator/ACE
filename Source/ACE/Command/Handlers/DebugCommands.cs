@@ -352,6 +352,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Couldn't find that creature in the database or save it's location.",
                     ChatMessageType.Broadcast);
             }
+        }
           
         // Kill a player - equivalent to legal virtual murder, by admin
         // TODO: Migrate this code into "smite" Admin command
