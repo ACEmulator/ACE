@@ -19,7 +19,7 @@
 
         public static void Spawn(WorldObject inventoryItem, Position position)
         {
-            inventoryItem.PhysicsData.Position = position.InFrontOf(2.00f);
+            inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position |
                                                                inventoryItem.PhysicsData.PhysicsDescriptionFlag;
         }

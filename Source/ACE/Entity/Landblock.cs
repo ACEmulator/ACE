@@ -157,8 +157,9 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                allObjects = this.worldObjects.Values.ToList();
-                this.worldObjects[wo.Guid] = wo;
+                allObjects = worldObjects.Values.ToList();
+                if (!worldObjects.ContainsKey(wo.Guid))                                
+                    worldObjects[wo.Guid] = wo;                
             }
 
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
