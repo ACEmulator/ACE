@@ -431,7 +431,7 @@ namespace ACE.Entity
                                         // validate within use range
                                         float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
 
-                                        if (player.Location.SquaredDistanceTo(obj.Location) <= radiusSquared)
+                                        if (player.Location.SquaredDistanceTo(obj.Location) >= radiusSquared)
                                         {
                                             serverMessage = "You wandered too far to attune with the lifestone!";
                                         }
@@ -443,7 +443,7 @@ namespace ACE.Entity
                                             serverMessage = "You have attuned your spirit to this lifestone. You will ressurect here after you die.";
                                         }
 
-                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Broadcast);
+                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Advancement);
                                         // always send useDone event
                                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                                         player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);

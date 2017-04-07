@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 ### 2017-04-06
+[fantoms]
+* Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones. 
+* Changed the Lifestone usage text to be `Light Blue`.
+
 [Zegeger]
 * Got 9 CreateObject sequences in correct order and named according to client code.
 * Changed many sequences over to SequenceManager.
