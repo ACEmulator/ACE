@@ -179,32 +179,51 @@ namespace ACE.Entity
         /// </summary>
         public void HandlePutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid,  Session session)
         {
-            lock (this.inventoryMutex)
+            // Find the item we want to pick up
+            var obj = LandblockManager.GetWorldObject(session, itemGuid);
+            if (obj == null)
             {
-                // Find the item we want to pick up
-                var obj = LandblockManager.GetWorldObject(session, itemGuid);
-                if (obj == null)
-                {
-                    return;
-                    // TODO: yea, this is probably not how you do this
-                }
-                // We are picking up the  the item - let's keep track of change in burden
-                // TODO: Add check for too encumbered and send "You are too encumbered to pick that up.  Also check pack capacity
-                this.GameData.Burden += obj.GameData.Burden;
-
-                // let's move to pick up the item
-                this.PositionFlag = UpdatePositionFlag.Contact |
-                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-
-                this.Location.PositionX = obj.Location.PositionX;
-                this.Location.PositionY = obj.Location.PositionY;
-                this.Location.PositionZ = obj.Location.PositionZ;
-                this.Location.RotationW = obj.Location.RotationW;
-                this.Location.RotationZ = obj.Location.RotationZ;
-
-                session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
-                // TODO: Finish out pick up item
+                return;
+                // TODO: yea, this is probably not how you do this
             }
+            // We are picking up the  the item - let's keep track of change in burden
+            // TODO: Add check for too encumbered and send "You are too encumbered to pick that up.  Also check pack capacity
+            this.GameData.Burden += obj.GameData.Burden;
+
+            // let's move to pick up the item
+
+            obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+
+            // Bend over and pick that puppy up.
+            var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+            session.Network.EnqueueSend(
+                new GameMessageSound(session.Player.Guid, Sound.PickUpItem, (float)1.0));
+
+            // Add to the inventory list.
+            this.inventory.Add(obj.Guid, obj);
+            obj.GameData.ContainerId = session.Player.Guid.Full;
+
+            session.Network.EnqueueSend(
+               new GameMessagePrivateUpdatePropertyInt(session,
+                   PropertyInt.EncumbVal,
+                   (uint)session.Player.GameData.Burden));
+            session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, obj.Guid));
+
+            var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
+            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+
+            // Set Container id to the player - you belong to me
+            session.Network.EnqueueSend(
+                new GameMessageUpdateInstanceId(obj.Guid, session.Player.Guid));
+
+            // TODO: Finish out pick up item
+            session.Network.EnqueueSend(new GameMessagePickupEvent(session, obj));
+            // Tell the landblock so it can tell everyone around that the item has been picked up.
+
+            LandblockManager.AddObject(obj);
         }
 
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)

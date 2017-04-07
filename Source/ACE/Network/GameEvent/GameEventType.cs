@@ -6,6 +6,7 @@
         PlayerDescription                   = 0x0013,
         AllegianceUpdate                    = 0x0020,
         FriendsListUpdate                   = 0x0021,
+        InventoryPutObjInContainer          = 0x0022,
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
          

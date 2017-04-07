@@ -218,7 +218,9 @@
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePickupEvent.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
     <Compile Include="Network\GameMessages\Messages\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
