@@ -326,5 +326,47 @@ namespace ACE.Command.Handlers
                     ChatMessageType.Broadcast);
             }
         }
+
+        // Kill a player - equivalent to legal virtual murder, by admin
+        // TODO: Migrate this code into "smite" Admin command
+        [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1)]
+        public static void HandleSendKill(Session session, params string[] parameters)
+        {
+            // lame checks on first parameter
+            if (parameters?.Length > 0)
+            {
+                string characterName = "";
+
+                // if parameters are greater then 1, we may have a space in a character name
+                if (parameters.Length > 1)
+                {
+                    foreach (string name in parameters)
+                    {
+                        // adds a space back inbetween each parameter
+                        if (characterName.Length > 0)
+                            characterName += " " + name;
+                        else
+                            characterName = name;
+                    }
+                }
+                // if there are now spaces, just set the characterName to the first paramter
+                else
+                    characterName = parameters[0];
+
+                // look up session
+                Session playerSession = WorldManager.FindByPlayerName(characterName, true);
+
+                // playerSession will be null when the character is not found
+                if (playerSession != null)
+                {
+                    // send session a usedone
+                    playerSession.Player.Kill();
+                    return;
+                }
+            }
+
+            // Did not find a player
+            Console.WriteLine($"Error locating the player.");
+        }
     }
 }
