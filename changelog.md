@@ -1,6 +1,8 @@
 # ACEmulator Change Log
 ### 2017-04-06
 [fantoms]
+* Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones. 
+* Changed the Lifestone usage text to be `Light Blue`.
 * Added `YourDeath` GameEvent.
 * Added `Die` GameAction.
 * Added `Player.Kill()` function, too initiate a player death.
