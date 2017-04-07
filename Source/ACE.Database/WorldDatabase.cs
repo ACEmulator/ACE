@@ -18,7 +18,8 @@ namespace ACE.Database
             GetPaletteOverridesByObject,
             GetAnimationOverridesByObject,
             GetTextureOverridesByObject,
-            GetCreatureDataByWeenie
+            GetCreatureDataByWeenie,
+            InsertCreatureStaticLocation
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -36,6 +37,7 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
         }
 
         public List<TeleportLocation> GetLocations()
@@ -124,7 +126,7 @@ namespace ACE.Database
             return objects;
         }
 
-        private AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId)
+        public AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId)
         {
             AceCreatureObject aco = new AceCreatureObject();
             Dictionary<string, object> criteria = new Dictionary<string, object>();
@@ -139,6 +141,11 @@ namespace ACE.Database
             }
             else
                 return null;
+        }
+
+        public bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl)
+        {
+            return ExecuteConstructedInsertStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), acsl);
         }
     }
 }

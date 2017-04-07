@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_creature_static_location")]
+    [DbTable("ace_creature_static_locations")]
     [DbGetList("ace_creature_static_locations", 3, "landblock")]
     public class AceCreatureStaticLocation
     {
