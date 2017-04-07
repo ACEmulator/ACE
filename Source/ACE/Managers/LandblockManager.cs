@@ -54,15 +54,6 @@ namespace ACE.Managers
         }
 
         /// <summary>
-        /// Handle the QueryHealth action between the source Object and its target
-        /// </summary>
-        public static void HandleQueryHealth(Session source, ObjectGuid targetId)
-        {
-            var block = GetLandblock(source.Player.Location.LandblockId, true);
-            block.HandleQueryHealth(source, targetId);
-        }
-
-        /// <summary>
         /// return wo in preparation to take it off the landblock and put it in a container.
         /// </summary>
         public static WorldObject GetWorldObject(Session source, ObjectGuid targetId)
