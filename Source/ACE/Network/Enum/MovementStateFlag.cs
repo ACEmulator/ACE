@@ -8,13 +8,13 @@
     [Flags]
     public enum MovementStateFlag : uint
     {
-        NoMotionState = 0x00000000,
-        CurrentStyle = 0x00000001,
-        ForwardCommand = 0x00000002,
-        ForwardSpeed = 0x00000004,
-        SideStepCommand = 0x00000008,
-        SideStepSpeed = 0x00000010,
-        TurnCommand = 0x00000020,
-        TurnSpeed = 0x00000040
+        NoMotionState = 0x0,
+        CurrentStyle = 0x1,
+        ForwardCommand = 0x2,
+        ForwardSpeed = 0x4,
+        SideStepCommand = 0x8,
+        SideStepSpeed = 0x10,
+        TurnCommand = 0x20,
+        TurnSpeed = 0x40
     }
 }

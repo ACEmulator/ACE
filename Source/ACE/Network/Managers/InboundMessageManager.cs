@@ -4,11 +4,13 @@ using System.Reflection;
 
 using ACE.Network.GameAction;
 using ACE.Network.GameMessages;
+using log4net;
 
 namespace ACE.Network.Managers
 {
     public static class InboundMessageManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private class MessageHandlerInfo
         {
             public MessageHandler Handler { get; set; }
@@ -84,7 +86,7 @@ namespace ACE.Network.Managers
             var opcode = (GameMessageOpcode)message.Opcode;
 
             if (!messageHandlers.ContainsKey(opcode))
-                Console.WriteLine($"Received unhandled fragment opcode: 0x{(uint)opcode:X4}");
+                log.WarnFormat("Received unhandled fragment opcode: 0x{0}", ((uint)opcode).ToString("X4"));
             else
             {
                 MessageHandlerInfo messageHandlerInfo;
@@ -99,7 +101,7 @@ namespace ACE.Network.Managers
         public static void HandleGameAction(GameActionType opcode, ClientMessage message, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))
-                Console.WriteLine($"Received unhandled GameActionType: 0x{(uint)opcode:X4}");
+                log.WarnFormat("Received unhandled GameActionType: 0x{0}", ((uint)opcode).ToString("X4"));
             else
             {
                 ActionHandlerInfo actionHandlerInfo;

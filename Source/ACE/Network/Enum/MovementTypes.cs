@@ -2,7 +2,7 @@
 {
     public enum MovementTypes
     {
-        Invalid                       = 0x0,
+        General                       = 0x0,
         RawCommand                    = 0x1,
         InterpretedCommand            = 0x2,
         StopRawCommand                = 0x3,

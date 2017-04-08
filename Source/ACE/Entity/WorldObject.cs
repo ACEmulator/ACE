@@ -15,9 +15,12 @@ namespace ACE.Entity
 
     using global::ACE.Entity.Enum.Properties;
     using global::ACE.Managers;
+    using Network.Motion;
+    using log4net;
 
     public abstract class WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public ObjectGuid Guid { get; }
 
         public ObjectType Type { get; protected set; }
@@ -49,6 +52,8 @@ namespace ACE.Entity
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
+
+        public CombatMode CombatMode { get; private set; }
 
         public virtual void PlayScript(Session session) { }
 
@@ -89,6 +94,32 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
 
             PhysicsData = new PhysicsData(Sequences);
+        }
+
+        public void SetCombatMode(CombatMode newCombatMode)
+        {
+            log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);
+            // TODO: any sort of validation
+            CombatMode = newCombatMode;
+            switch (CombatMode)
+            {
+                case CombatMode.Peace:
+                    SetMotionState(new GeneralMotion(MotionStance.Standing));
+                    break;
+                case CombatMode.Melee:
+                    var gm = new GeneralMotion(MotionStance.UANoShieldAttack);
+                    gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
+                    SetMotionState(gm);
+                    break;
+            }
+        }
+
+        public void SetMotionState(MotionState motionState)
+        {
+            Player p = (Player)this;
+            PhysicsData.CurrentMotionState = motionState;
+            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            p.Session.Network.EnqueueSend(updateMotion);
         }
 
         public void AddToInventory(WorldObject worldObject)
@@ -153,15 +184,16 @@ namespace ACE.Entity
                    new GameMessagePrivateUpdatePropertyInt(session,
                        PropertyInt.EncumbVal,
                        (uint)session.Player.GameData.Burden));
-                var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+                GeneralMotion movement1 = new GeneralMotion(MotionStance.Standing);
+                movement1.MovementData.ForwardCommand = 24;
+                session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement1));
 
                 // Set Container id to 0 - you are free
                 session.Network.EnqueueSend(
                     new GameMessageUpdateInstanceId(objectGuid, targetContainer));
 
-                var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
-                session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+                var movement2 = new GeneralMotion(MotionStance.Standing);
+                session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement2));
 
                 // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
                 // Put the darn thing in 3d space
@@ -226,7 +258,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             ModelData.Serialize(writer);
-            PhysicsData.Serialize(writer);
+            PhysicsData.Serialize(this, writer);
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
