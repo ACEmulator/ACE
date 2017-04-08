@@ -86,6 +86,7 @@
   <ItemGroup>
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AceCreatureObject.cs" />
     <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="CharacterAbility.cs" />
     <Compile Include="CharacterLevel.cs" />
     <Compile Include="CharacterSkill.cs" />
+    <Compile Include="CreatureAbility.cs" />
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
