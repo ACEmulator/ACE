@@ -281,7 +281,7 @@ namespace ACE.Entity
             {
                 case BroadcastAction.Delete:
                     {
-                        Parallel.ForEach(players, p => p.StopTrackingObject(wo.Guid));
+                        Parallel.ForEach(players, p => p.StopTrackingObject(wo));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:

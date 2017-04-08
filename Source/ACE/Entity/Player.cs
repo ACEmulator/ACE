@@ -1051,22 +1051,22 @@ namespace ACE.Entity
             }
         }
 
-        public void StopTrackingObject(ObjectGuid objectId)
+        public void StopTrackingObject(WorldObject worldObject)
         {
             bool sendUpdate = true;
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.ContainsKey(objectId);
+                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
                 if (!sendUpdate)
                 {
-                    clientObjectList.Remove(objectId);
+                    clientObjectList.Remove(worldObject.Guid);
                 }
             }
 
             if (sendUpdate)
             {
-                Session.Network.EnqueueSend(new GameMessageRemoveObject(objectId));
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
             }
         }
 
