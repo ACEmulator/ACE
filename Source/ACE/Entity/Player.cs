@@ -21,6 +21,7 @@ using ACE.Network.Sequence;
 using System.Collections.Concurrent;
 using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
+using ACE.Network.Motion;
 
 namespace ACE.Entity
 {
@@ -236,10 +237,11 @@ namespace ACE.Entity
             GameData.Usable = Usable.UsableObjectSelf;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
+            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
+            PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -1061,7 +1063,8 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.Logout1));
+                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Logout1));
+                Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 
