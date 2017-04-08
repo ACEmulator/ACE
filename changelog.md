@@ -1,4 +1,12 @@
 # ACEmulator Change Log
+### 2017-04-08
+[Zegeger]
+Added basic motion classes.
+Added current motion state to PhysicsData, which can now be sent in CreateObject messages.
+Updated GameEventUpdateMotion to use these new classes.
+Updated any areas that were affected.
+Basic Combat Stance changing.  Can go into UA.  For some reason, you can't get out right now.
+
 ### 2017-04-06
 [fantoms]
 * Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones. 
