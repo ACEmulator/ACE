@@ -18,11 +18,11 @@ namespace ACE.Network.GameMessages.Messages
         {
             Writer.WriteGuid(animationTarget.Guid); // Object_Id (uint)
             Writer.Write((ushort)session.Player.TotalLogins); // Instance_Timestamp
-            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.MotionMessage)); // Movement_Timestamp
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ObjectMovement)); // Movement_Timestamp
             if (!newState.IsAutonomous)
-                Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.MotionMessageAutonomous)); // Server_Control_Timestamp
+                Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
             else
-                Writer.Write(animationTarget.Sequences.GetCurrentSequence(Sequence.SequenceType.MotionMessageAutonomous)); // Server_Control_Timestamp
+                Writer.Write(animationTarget.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
 
             ushort autonomous = newState.IsAutonomous ? (ushort)1 : (ushort)0;
             Writer.Write(autonomous); // autonomous flag - 1 or 0.   I think this is set if you have are holding the run key or some other autonomous movement
