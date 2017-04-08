@@ -8,13 +8,15 @@
         FriendsListUpdate                   = 0x0021,
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
-         
+
         IdentifyObjectResponse              = 0x00C9,
 
         ChannelBroadcast                    = 0x0147,
         ChannelList                         = 0x0148,
         ChannelIndex                        = 0x0149,
         DropTemp                            = 0x019A, // I need to look at the client and pull this out.   This is a place holder. Og II
+
+        YourDeath                           = 0x01AC, // You have died, as a player.
 
         UpdateHealth                        = 0x01C0,
         QueryAgeResponse                    = 0x01C3,

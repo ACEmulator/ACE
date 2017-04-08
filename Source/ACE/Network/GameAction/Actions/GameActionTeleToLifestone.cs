@@ -19,6 +19,10 @@ namespace ACE.Network.GameAction.Actions
             if (session.Player.Positions.ContainsKey(PositionType.Sanctuary)) {
                 session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
             }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Your spirit has not been attuned to a sanctuary location.", ChatMessageType.Broadcast);
+            }
         }
     }
 }

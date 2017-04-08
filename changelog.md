@@ -1,5 +1,24 @@
 # ACEmulator Change Log
+### 2017-04-07
+[Lidefeath]
+* Added weenie_creature_data for a few drudges.
+* Deleted the old view vw_ace_creature_static and replaced it with vw_ace_creature_object, so creature object data and weenie data are in one view.
+* Updated WorldDatabase to first read the static creature spawn locations and then the creature data.
+* Added a debugcommand 'createstaticcreature <weenieClassId>' to spawn a creature, add it to the landblock and save it in ace_creature_static_locations.
+* Replace HandleQueryHealth in Landblock and LandblockManager with the new GameActionQueue mechanic.
+* Hint: you need to import database/updates/world/005_vw_ace_creature_object.sql to get this all working.
+
 ### 2017-04-06
+[fantoms]
+* Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones. 
+* Changed the Lifestone usage text to be `Light Blue`.
+* Added `YourDeath` GameEvent.
+* Added `Die` GameAction.
+* Added `Player.Kill()` function, too initiate a player death.
+* Added `kill` admin/debug command for killing a player on the server.
+* Updated `SetCharacterPosition`, too set the `characterId` and `LandblockId`, when possible.
+* Added a message to @ls/@lifestone informing you, why you can't travel when if a Sanctuary Location has not been saved in the database.
+
 [Zegeger]
 * Got 9 CreateObject sequences in correct order and named according to client code.
 * Changed many sequences over to SequenceManager.
