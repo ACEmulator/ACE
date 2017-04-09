@@ -112,6 +112,16 @@ namespace ACE.Network
                     Player.SendAgeInt();
                     lastSendAgeIntUpdateTime = DateTime.UtcNow;
                 }
+
+                if (Player.WaitingForDelayedTeleport && DateTime.UtcNow >= Player.DelayedTeleportTime)
+                {
+                    // TODO: Check for movement from position at which player started the delayed teleport
+                    //       if wandered to far, cancel teleport and send error msg to player.
+
+                    Player.WaitingForDelayedTeleport = false;
+                    Player.Teleport(Player.DelayedTeleportDestination);
+                    Player.ClearDelayedTeleport();
+                }
             }
         }
 
