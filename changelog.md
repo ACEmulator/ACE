@@ -1,11 +1,17 @@
 # ACEmulator Change Log
+### 2017-04-09
+[Ripley]
+* Added DelayedTeleport and converted MarketplaceRecall and LifestoneRecall to use it.
+* Using a lifestone recall command now uses mana as it did in retail.
+* Added animation to using a lifestone.
+
 ### 2017-04-08
 [Zegeger]
-Added basic motion classes.
-Added current motion state to PhysicsData, which can now be sent in CreateObject messages.
-Updated GameEventUpdateMotion to use these new classes.
-Updated any areas that were affected.
-Basic Combat Stance changing.  Can go into UA.  For some reason, you can't get out right now.
+* Added basic motion classes.
+* Added current motion state to PhysicsData, which can now be sent in CreateObject messages.
+* Updated GameEventUpdateMotion to use these new classes.
+* Updated any areas that were affected.
+* Basic Combat Stance changing.  Can go into UA.  For some reason, you can't get out right now.
 
 ### 2017-04-06
 [fantoms]

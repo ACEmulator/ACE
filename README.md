@@ -22,7 +22,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 * Load all incremental SQL updates in the Database\Updates sub directories. 
 * Copy `Config.json.example` to `Config.json` and modify database settings, such as your database password.
 * Build and run ACE.
-* Create an account at the prompt - `accountcreate testaccount testpassword`
+* Create your first an account as an admin at the prompt - `accountcreate testaccount testpassword 5`
 * Launch AC - `acclient.exe -a testaccount -h 127.0.0.1:9000 -glsticketdirect testpassword`
 
 ## Contributions
