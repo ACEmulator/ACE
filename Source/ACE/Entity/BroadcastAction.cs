@@ -6,6 +6,8 @@
 
         Delete,
 
-        LocalChat
+        LocalChat,
+
+        Sound
     }
 }

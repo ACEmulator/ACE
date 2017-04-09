@@ -105,12 +105,15 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
                     {
                         message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
-                        soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
+                        // add the sound to the player queue for everyone to hear
+                        // player action queue items will execute on the landblock
+                        // player.playsound will play a sound on only the client session that called the function
+                        session.Player.ActionApplySoundEffect(session.Player.Guid, sound);
                     }
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(soundEvent, sysChatMessage);
+                session.Network.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {

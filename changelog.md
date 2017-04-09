@@ -1,5 +1,12 @@
 # ACEmulator Change Log
+### 2017-04-09
+[fantoms]
+* Addded sound broadcasting to `Landblock` action queue processing.
+
 ### 2017-04-08
+[fantoms]
+* Addded sound broadcasting to `Landblocks`.
+
 [Zegeger]
 Added basic motion classes.
 Added current motion state to PhysicsData, which can now be sent in CreateObject messages.

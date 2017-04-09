@@ -651,6 +651,18 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
+        public void ActionApplySoundEffect(ObjectGuid objectId, Sound sound)
+        {
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
+            AddToActionQueue(action);
+        }
+
+        // Play a sound
+        public void PlaySound(Sound sound)
+        {
+            Session.Network.EnqueueSend(new GameMessageSound(this.Guid, sound, 1f));
+        }
+
         // plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(PlayScript effectId)
         {

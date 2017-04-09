@@ -1,4 +1,5 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Network.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,10 +33,22 @@ namespace ACE.Entity.Events
             };
         }
 
+        public static BroadcastEventArgs CreateSoundAction(WorldObject sender, Sound sound)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.Sound,
+                Sender = sender,
+                Sound = sound
+            };
+        }
+
         public BroadcastAction ActionType { get; private set; }
 
         public WorldObject Sender { get; private set; }
 
         public ChatMessageArgs ChatMessage { get; private set; }
+
+        public Sound Sound { get;  private set; }
     }
 }

@@ -14,6 +14,7 @@ using ACE.Network;
 using ACE.Network.GameAction;
 using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -244,6 +245,12 @@ namespace ACE.Entity
             }
         }
 
+        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -294,6 +301,11 @@ namespace ACE.Entity
                     {
                         // TODO: implement range dectection for chat events
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
+                        break;
+                    }
+                case BroadcastAction.Sound:
+                    {
+                        Parallel.ForEach(players, p => p.PlaySound(args.Sound));
                         break;
                     }
             }
@@ -416,6 +428,18 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.ApplySoundEffect:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var soundEffect = (Sound)action.SecondaryObjectId;
+                        HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
                 case GameActionType.Use:
                     {
                         var g = new ObjectGuid(action.ObjectId);

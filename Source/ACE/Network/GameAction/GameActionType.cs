@@ -158,6 +158,7 @@
         DoMovementCommand = 0xF61E,
         TurnTo = 0xF649,
         StopMovementCommand = 0xF661,
+        ApplySoundEffect = 0xF750,
         AutonomyLevel = 0xF752,
         AutonomousPosition = 0xF753,
         JumpNonAutonomous = 0xF7C9,
