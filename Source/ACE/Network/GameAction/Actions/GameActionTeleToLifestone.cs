@@ -37,7 +37,9 @@ namespace ACE.Network.GameAction.Actions
                 // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
                 // FIX: I think this is only broadcasting to client, not to any other connected players. Likely animationEvent and sysChatMessage need to be broadcast to
                 //      clients that are currently tracking this player and the chat message should be within local chat hearing range.
-                session.Network.EnqueueSend(updatePlayersMana, updateCombatMode, animationEvent, sysChatMessage);
+                // session.Network.EnqueueSend(updatePlayersMana, updateCombatMode, animationEvent, sysChatMessage);
+                session.Network.EnqueueSend(updatePlayersMana, updateCombatMode, sysChatMessage);
+                session.Player.ActionMovementEvent(motionLifestoneRecall, session.Player);
 
                 session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), session.Player.Positions[PositionType.Sanctuary]);
             }

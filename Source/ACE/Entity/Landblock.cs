@@ -259,6 +259,15 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        // public void HandleAnimationEvent(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
+        // public void HandleMovementEvent(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
+        public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
+            // BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion, stance, item, command);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -321,6 +330,13 @@ namespace ACE.Entity
                 case BroadcastAction.PlayParticleEffect:
                     {
                         Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
+                        break;
+                    }
+                case BroadcastAction.MovementEvent:
+                    {
+                        // Parallel.ForEach(players, p => p.PlayAnimation(args.Motion, args.MotionStance, args.MotionItem, args.MotionCommand, args.Sender));
+                        Parallel.ForEach(players, p => p.MovementEvent(args.Motion, args.MotionStance, args.MotionItem, args.MotionCommand, args.Sender));
+                        // Parallel.ForEach(players, p => p.MovementEvent(args.Motion, args.Sender));
                         break;
                     }
             }
@@ -467,6 +483,25 @@ namespace ACE.Entity
                         HandleSoundEvent(obj, soundEffect);
                         break;
                     }
+                case GameActionType.MovementEvent:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        // var g = new ObjectGuid(action.WorldObject.Guid.Full);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        // var obj = action.WorldObject;
+                        var motion = action.Motion;
+                        // var stance = action.MotionStance;
+                        // var item = action.MotionItem;
+                        // var command = action.MotionCommand;
+                        // HandleAnimationEvent(action.WorldObject, motion, stance, item, command);
+                        // HandleMovementEvent(obj, motion, stance, item, command);
+                        HandleMovementEvent(obj, motion);
+                        break;
+                    }
                 case GameActionType.QueryHealth:
                     {
                         object target = null;
@@ -539,7 +574,9 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
+                                            player.ActionMovementEvent(motionSanctuary, player);
+                                            player.Session.Network.EnqueueSend(soundEvent);
+                                            // player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
                                             // player.Session.Network.EnqueueSend(animationEvent);
                                         }
 

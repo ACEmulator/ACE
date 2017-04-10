@@ -1,5 +1,6 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,21 @@ namespace ACE.Entity.Events
             };
         }
 
+        // public static BroadcastEventArgs CreateAnimationAction(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
+        // public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
+        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.MovementEvent,
+                Sender = sender,
+                Motion = motion,
+                // MotionStance = stance,
+                // MotionItem = item,
+                // MotionCommand = command
+            };
+        }
+
         public BroadcastAction ActionType { get; private set; }
 
         public WorldObject Sender { get; private set; }
@@ -62,5 +78,13 @@ namespace ACE.Entity.Events
         public Sound Sound { get;  private set; }
 
         public PlayScript Effect { get; private set; }
+
+        public GeneralMotion Motion { get; private set; }
+
+        public MotionStance MotionStance { get; private set; }
+
+        public MotionItem MotionItem { get; private set; }
+
+        public MotionCommand MotionCommand { get; private set; }
     }
 }
