@@ -14,6 +14,7 @@ using ACE.Network;
 using ACE.Network.GameAction;
 using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -208,6 +209,54 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Handle the QueryHealth action between the source Object and its target
+        /// </summary>
+        public void HandleQueryHealth(Session source, ObjectGuid targetId)
+        {
+            if (targetId.IsPlayer())
+            {
+                Player pl = null;
+
+                lock (objectCacheLocker)
+                {
+                    if (this.worldObjects.ContainsKey(targetId))
+                        pl = (Player)this.worldObjects[targetId];
+                }
+                if (pl == null)
+                {
+                    // check adjacent landblocks for the targetId
+                    foreach (var block in adjacencies)
+                    {
+                        lock (block.Value.objectCacheLocker)
+                        {
+                            if (block.Value.worldObjects.ContainsKey(targetId))
+                                pl = (Player)this.worldObjects[targetId];
+                        }
+                    }
+                }
+                if (pl != null)
+                {
+                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
+
+                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
+                    source.Network.EnqueueSend(updateHealth);
+                }
+            }
+        }
+
+        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
+            Broadcast(args, true, Quadrant.All);
+        }
+
+        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -258,6 +307,16 @@ namespace ACE.Entity
                     {
                         // TODO: implement range dectection for chat events
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
+                        break;
+                    }
+                case BroadcastAction.PlaySound:
+                    {
+                        Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
+                        break;
+                    }
+                case BroadcastAction.PlayParticleEffect:
+                    {
+                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
                         break;
                     }
             }
@@ -380,6 +439,30 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.ApplyVisualEffect:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var particleEffect = (PlayScript)action.SecondaryObjectId;
+                        HandleParticleEffectEvent(obj, particleEffect);
+                        break;
+                    }
+                case GameActionType.ApplySoundEffect:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var soundEffect = (Sound)action.SecondaryObjectId;
+                        HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
                 case GameActionType.QueryHealth:
                     {
                         object target = null;
@@ -419,8 +502,7 @@ namespace ACE.Entity
                         }
 
                         break;
-                    };
-
+                    }
                 case GameActionType.Use:
                     {
                         var g = new ObjectGuid(action.ObjectId);
