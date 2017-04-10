@@ -208,42 +208,6 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary>
-        /// Handle the QueryHealth action between the source Object and its target
-        /// </summary>
-        public void HandleQueryHealth(Session source, ObjectGuid targetId)
-        {
-            if (targetId.IsPlayer())
-            {
-                Player pl = null;
-
-                lock (objectCacheLocker)
-                {
-                    if (this.worldObjects.ContainsKey(targetId))
-                        pl = (Player)this.worldObjects[targetId];
-                }
-                if (pl == null)
-                {
-                    // check adjacent landblocks for the targetId
-                    foreach (var block in adjacencies)
-                    {
-                        lock (block.Value.objectCacheLocker)
-                        {
-                            if (block.Value.worldObjects.ContainsKey(targetId))
-                                pl = (Player)this.worldObjects[targetId];
-                        }
-                    }
-                }
-                if (pl != null)
-                {
-                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
-
-                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
-                    source.Network.EnqueueSend(updateHealth);
-                }
-            }
-        }
-
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -416,6 +380,47 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.QueryHealth:
+                    {
+                        object target = null;
+                        var targetId = new ObjectGuid(action.ObjectId);
+
+                        if (targetId.IsPlayer() || targetId.IsCreature())
+                        {
+                            if (this.worldObjects.ContainsKey(targetId))
+                                target = this.worldObjects[targetId];
+
+                            if (target == null)
+                            {
+                                // check adjacent landblocks for the targetId
+                                foreach (var block in adjacencies)
+                                {
+                                    if (block.Value.worldObjects.ContainsKey(targetId))
+                                        target = this.worldObjects[targetId];                                    
+                                }
+                            }
+                            if (target != null)
+                            {
+                                float healthPercentage = 0;
+
+                                if (targetId.IsPlayer())
+                                {
+                                    Player tmpTarget = (Player)target;
+                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                                }
+                                if (targetId.IsCreature())
+                                {
+                                    Creature tmpTarget = (Creature)target;
+                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                                }
+                                var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
+                                player.Session.Network.EnqueueSend(updateHealth);
+                            }
+                        }
+
+                        break;
+                    };
+
                 case GameActionType.Use:
                     {
                         var g = new ObjectGuid(action.ObjectId);
