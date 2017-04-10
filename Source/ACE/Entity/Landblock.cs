@@ -281,6 +281,8 @@ namespace ACE.Entity
             {
                 case BroadcastAction.Delete:
                     {
+                        // Added filter to not include the container in this message Og II
+                        players = players.Where(p => p.Guid.Full != wo.GameData.ContainerId).ToList();
                         Parallel.ForEach(players, p => p.StopTrackingObject(wo));
                         break;
                     }

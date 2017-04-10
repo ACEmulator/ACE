@@ -159,17 +159,16 @@ namespace ACE.Entity
             // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
             obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
                 UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-            obj.PhysicsData.Position = PhysicsData.Position;
+            obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(0.50f);
 
             // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
             obj.GameData.ContainerId = 0;
             obj.GameData.Wielder = 0;
-            obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
-            obj.PhysicsData.PhysicsState = PhysicsState.Gravity;
-            obj.GameData.RadarBehavior = RadarBehavior.ShowAlways;
-            obj.GameData.RadarColour = RadarColor.White;
-
+       
             // Tell the landblock so it can tell everyone around what just hit the ground.
+            // This is the sequence magic - adds back into 3d space seem to be treated like teleports.   
+            obj.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            obj.Sequences.GetNextSequence(SequenceType.ObjectVector);
             LandblockManager.AddObject(obj);
 
             // Let the client know our response.
@@ -194,12 +193,13 @@ namespace ACE.Entity
 
             // let's move to pick up the item
 
-            obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+            obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;            
 
             session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
 
             // Bend over and pick that puppy up.
             var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
+            
             session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
             session.Network.EnqueueSend(
                 new GameMessageSound(session.Player.Guid, Sound.PickUpItem, (float)1.0));

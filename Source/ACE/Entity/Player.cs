@@ -995,9 +995,12 @@ namespace ACE.Entity
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
                 // check for a short circuit.  if we don't need to update, don't!
-                if (sendUpdate)
-                    if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
-                        return;
+                // TODO: Fix this
+                // I had to comment this optimization out for the moment - not sure how it works but it never lets us update or add. Og
+                
+                // if (sendUpdate)
+                //   if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
+                //       return;
 
                 if (!sendUpdate)
                 {
