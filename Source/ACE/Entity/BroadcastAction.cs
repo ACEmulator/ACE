@@ -6,6 +6,10 @@
 
         Delete,
 
-        LocalChat
+        LocalChat,
+
+        PlaySound,
+
+        PlayParticleEffect
     }
 }

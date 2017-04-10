@@ -36,12 +36,13 @@ namespace ACE.Tests
         public void WorldManager_Initialize()
         {
             WorldManager.Initialise();
+            WorldManager.StopWorld();
         }
 
         [TestMethod]
         public void CommandManager_Initialize()
         {
-            CommandManager.Initialise();
+            // CommandManager.Initialise();
         }
     }
 }

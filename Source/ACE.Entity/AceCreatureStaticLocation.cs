@@ -4,10 +4,13 @@ using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_creature_static_location")]
-    [DbGetList("vw_ace_creature_static", 3, "landblock")]
-    public class AceCreatureStaticLocation : BaseAceObject
+    [DbTable("ace_creature_static_locations")]
+    [DbGetList("ace_creature_static_locations", 3, "landblock")]
+    public class AceCreatureStaticLocation
     {
+        [DbField("id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        public uint Id { get; set; }
+
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
         public ushort WeenieClassId { get; set; }
 
@@ -43,10 +46,6 @@ namespace ACE.Entity
         [DbField("qZ", (int)MySqlDbType.Float)]
         public float QZ { get; set; }
 
-        public List<WeeniePaletteOverride> WeeniePaletteOverrides { get; set; } = new List<WeeniePaletteOverride>();
-
-        public List<WeenieTextureMapOverride> WeenieTextureMapOverrides { get; set; } = new List<WeenieTextureMapOverride>();
-
-        public List<WeenieAnimationOverride> WeenieAnimationOverrides { get; set; } = new List<WeenieAnimationOverride>();
+        public AceCreatureObject CreatureData = new AceCreatureObject();
     }
 }

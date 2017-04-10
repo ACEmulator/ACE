@@ -11,9 +11,9 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint fullId = message.Payload.ReadUInt32();
-            var objectId = new ObjectGuid(fullId);
 
-            LandblockManager.HandleQueryHealth(session, objectId);
+            QueuedGameAction action = new QueuedGameAction(fullId, GameActionType.QueryHealth);
+            session.Player.AddToActionQueue(action);
         }
     }
 }

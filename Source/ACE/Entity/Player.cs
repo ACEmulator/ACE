@@ -434,7 +434,7 @@ namespace ACE.Entity
                 // break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     break;
                 }
             }
@@ -459,7 +459,7 @@ namespace ACE.Entity
                 else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 // play level up effect
-                PlayParticleEffect(Network.Enum.PlayScript.LevelUp);
+                ActionApplyVisualEffect(Network.Enum.PlayScript.LevelUp, this.Guid);
             }
         }
 
@@ -487,7 +487,7 @@ namespace ACE.Entity
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -635,7 +635,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -651,10 +651,28 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
-        // plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(PlayScript effectId)
+        public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
         {
-            var effectEvent = new GameMessageScript(this.Guid, effectId);
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
+            AddToActionQueue(action);
+        }
+
+        public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
+        {
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect);
+            AddToActionQueue(action);
+        }
+
+        // Play a sound
+        public void PlaySound(Sound sound, ObjectGuid targetId)
+        {
+            Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
+        }
+
+        // plays particle effect like spell casting or bleed etc..
+        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
+        {
+            var effectEvent = new GameMessageScript(targetId, effectId);
             Session.Network.EnqueueSend(effectEvent);
         }
 
@@ -968,7 +986,7 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-                
+
                 Session.Player.Location = newPosition;
                 SetPhysicalCharacterPosition();
             }
@@ -1022,9 +1040,12 @@ namespace ACE.Entity
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
                 // check for a short circuit.  if we don't need to update, don't!
-                if (sendUpdate)
-                    if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
-                        return;
+                // TODO: Fix this
+                // I had to comment this optimization out for the moment - not sure how it works but it never lets us update or add. Og
+                
+                // if (sendUpdate)
+                //   if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
+                //       return;
 
                 if (!sendUpdate)
                 {
@@ -1063,7 +1084,7 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Logout1));
+                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
                 Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
@@ -1079,22 +1100,22 @@ namespace ACE.Entity
             }
         }
 
-        public void StopTrackingObject(ObjectGuid objectId)
+        public void StopTrackingObject(WorldObject worldObject)
         {
             bool sendUpdate = true;
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.ContainsKey(objectId);
+                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
                 if (!sendUpdate)
                 {
-                    clientObjectList.Remove(objectId);
+                    clientObjectList.Remove(worldObject.Guid);
                 }
             }
 
             if (sendUpdate)
             {
-                Session.Network.EnqueueSend(new GameMessageRemoveObject(objectId));
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
             }
         }
 
@@ -1107,6 +1128,24 @@ namespace ACE.Entity
         public void SendAutonomousPosition()
         {
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
+        }
+
+        public bool WaitingForDelayedTeleport { get; set; } = false;
+        public Position DelayedTeleportDestination { get; private set; } = null;
+        public DateTime DelayedTeleportTime { get; private set; } = DateTime.MinValue;
+
+        public void SetDelayedTeleport(TimeSpan delay, Position destination)
+        {
+            DelayedTeleportDestination = destination;
+            DelayedTeleportTime = DateTime.UtcNow + delay;
+            WaitingForDelayedTeleport = true;
+        }
+
+        public void ClearDelayedTeleport()
+        {
+            DelayedTeleportDestination = null;
+            DelayedTeleportTime = DateTime.MinValue;
+            WaitingForDelayedTeleport = false;
         }
     }
 }

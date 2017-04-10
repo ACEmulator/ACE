@@ -14,6 +14,8 @@ using ACE.Network;
 using ACE.Network.GameAction;
 using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -157,8 +159,9 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                allObjects = this.worldObjects.Values.ToList();
-                this.worldObjects[wo.Guid] = wo;
+                allObjects = worldObjects.Values.ToList();
+                if (!worldObjects.ContainsKey(wo.Guid))                                
+                    worldObjects[wo.Guid] = wo;                
             }
 
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
@@ -244,6 +247,18 @@ namespace ACE.Entity
             }
         }
 
+        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
+            Broadcast(args, true, Quadrant.All);
+        }
+
+        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -280,7 +295,9 @@ namespace ACE.Entity
             {
                 case BroadcastAction.Delete:
                     {
-                        Parallel.ForEach(players, p => p.StopTrackingObject(wo.Guid));
+                        // Added filter to not include the container in this message Og II
+                        players = players.Where(p => p.Guid.Full != wo.GameData.ContainerId).ToList();
+                        Parallel.ForEach(players, p => p.StopTrackingObject(wo));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:
@@ -294,6 +311,16 @@ namespace ACE.Entity
                     {
                         // TODO: implement range dectection for chat events
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
+                        break;
+                    }
+                case BroadcastAction.PlaySound:
+                    {
+                        Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
+                        break;
+                    }
+                case BroadcastAction.PlayParticleEffect:
+                    {
+                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
                         break;
                     }
             }
@@ -416,6 +443,70 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.ApplyVisualEffect:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var particleEffect = (PlayScript)action.SecondaryObjectId;
+                        HandleParticleEffectEvent(obj, particleEffect);
+                        break;
+                    }
+                case GameActionType.ApplySoundEffect:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var soundEffect = (Sound)action.SecondaryObjectId;
+                        HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
+                case GameActionType.QueryHealth:
+                    {
+                        object target = null;
+                        var targetId = new ObjectGuid(action.ObjectId);
+
+                        if (targetId.IsPlayer() || targetId.IsCreature())
+                        {
+                            if (this.worldObjects.ContainsKey(targetId))
+                                target = this.worldObjects[targetId];
+
+                            if (target == null)
+                            {
+                                // check adjacent landblocks for the targetId
+                                foreach (var block in adjacencies)
+                                {
+                                    if (block.Value.worldObjects.ContainsKey(targetId))
+                                        target = this.worldObjects[targetId];                                    
+                                }
+                            }
+                            if (target != null)
+                            {
+                                float healthPercentage = 0;
+
+                                if (targetId.IsPlayer())
+                                {
+                                    Player tmpTarget = (Player)target;
+                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                                }
+                                if (targetId.IsCreature())
+                                {
+                                    Creature tmpTarget = (Creature)target;
+                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                                }
+                                var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
+                                player.Session.Network.EnqueueSend(updateHealth);
+                            }
+                        }
+
+                        break;
+                    }
                 case GameActionType.Use:
                     {
                         var g = new ObjectGuid(action.ObjectId);
@@ -431,19 +522,28 @@ namespace ACE.Entity
                                         // validate within use range
                                         float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
 
+                                        var motionSanctuary = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+
+                                        var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
+
+                                        // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
+                                        var soundEvent = new GameMessageSound(obj.Guid, Sound.LifestoneOn, 1);
+
                                         if (player.Location.SquaredDistanceTo(obj.Location) >= radiusSquared)
                                         {
-                                            serverMessage = "You wandered too far to attune with the lifestone!";
+                                            serverMessage = "You wandered too far to attune with the Lifestone!";
                                         }
                                         else
                                         {
                                             player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
 
                                             // create the outbound server message
-                                            serverMessage = "You have attuned your spirit to this lifestone. You will ressurect here after you die.";
+                                            serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
+                                            player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
+                                            // player.Session.Network.EnqueueSend(animationEvent);
                                         }
 
-                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Advancement);
+                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
                                         // always send useDone event
                                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                                         player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);

@@ -105,12 +105,15 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
                     {
                         message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
-                        soundEvent = new GameMessageSound(session.Player.Guid, sound, volume);
+                        // add the sound to the player queue for everyone to hear
+                        // player action queue items will execute on the landblock
+                        // player.playsound will play a sound on only the client session that called the function
+                        session.Player.ActionApplySoundEffect(sound, session.Player.Guid);
                     }
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(soundEvent, sysChatMessage);
+                session.Network.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -140,12 +143,12 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
                         message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
-                        effectEvent = new GameMessageScript(session.Player.Guid, effect, scale);
+                        session.Player.ActionApplyVisualEffect(effect, session.Player.Guid);
                     }
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(effectEvent, sysChatMessage);
+                session.Network.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -317,7 +320,7 @@ namespace ACE.Command.Handlers
                         }
                     case "ground":
                         {
-                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(2.0f));
+                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
                             LandblockManager.AddObject(loot);
                             break;
                         }
@@ -370,6 +373,33 @@ namespace ACE.Command.Handlers
 
             // Did not find a player
             Console.WriteLine($"Error locating the player.");
+        }
+
+        /// <summary>
+        /// Debug command to spawn a creature in front of the player and save it as a static spawn.
+        /// </summary>
+        [CommandHandler("createstaticcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateStaticCreature(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @createstaticcreature weenieClassId",
+                   ChatMessageType.Broadcast);
+                return;
+            }
+            uint weenie = Convert.ToUInt32(parameters[0]);
+            Creature newC = MonsterFactory.SpawnStaticCreature(weenie, session.Player.Location.InFrontOf(2.0f));
+            if (newC != null)
+            {
+                ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}",
+                    ChatMessageType.Broadcast);
+                LandblockManager.AddObject(newC);
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Couldn't find that creature in the database or save it's location.",
+                    ChatMessageType.Broadcast);
+            }
         }
     }
 }
