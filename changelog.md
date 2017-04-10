@@ -2,11 +2,11 @@
 
 ### 2017-04-09
 [Ripley]
+* Changed Position.Serialize to fix rotation issue #222
 * Added DelayedTeleport and converted MarketplaceRecall and LifestoneRecall to use it.
 * Using a lifestone recall command now uses mana as it did in retail.
 * Added animation to using a lifestone.
 
-### 2017-04-09
 [fantoms]
 * Added visual effect and sound broadcasting in action queue processing.
 * Added visual effect broadcasting to `Landblocks`.

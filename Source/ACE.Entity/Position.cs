@@ -181,21 +181,26 @@
             payload.Write(PositionY);
             payload.Write(PositionZ);
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQw) != 0)
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQw) == 0)
             {
                 payload.Write(RotationW);
             }
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQx) != 0)
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQx) == 0)
             {
-                payload.Write(RotationX);                
+                payload.Write(RotationX);
             }
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) != 0)
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) == 0)
             {
-                payload.Write(RotationY);                
+                payload.Write(RotationY);
             }
-            
+
+            if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) == 0)
+            {
+                payload.Write(RotationZ);
+            }
+
             if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
             {
                 // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
@@ -206,11 +211,6 @@
                 payload.Write((uint)0);
             }
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) != 0)
-            {
-                payload.Write(RotationZ);                
-            }
-            
             if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
             {
                 // velocity would go here
