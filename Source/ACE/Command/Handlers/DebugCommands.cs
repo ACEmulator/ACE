@@ -108,7 +108,7 @@ namespace ACE.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.ActionApplySoundEffect(session.Player.Guid, sound);
+                        session.Player.ActionApplySoundEffect(sound, session.Player.Guid);
                     }
                 }
 
@@ -143,12 +143,12 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
                         message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
-                        effectEvent = new GameMessageScript(session.Player.Guid, effect, scale);
+                        session.Player.ActionApplyVisualEffect(effect, session.Player.Guid);
                     }
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(effectEvent, sysChatMessage);
+                session.Network.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {

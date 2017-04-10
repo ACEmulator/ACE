@@ -8,6 +8,8 @@
 
         LocalChat,
 
-        Sound
+        PlaySound,
+
+        PlayParticleEffect
     }
 }

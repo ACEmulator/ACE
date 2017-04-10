@@ -161,6 +161,7 @@
         ApplySoundEffect = 0xF750,
         AutonomyLevel = 0xF752,
         AutonomousPosition = 0xF753,
+        ApplyVisualEffect = 0xF755,
         JumpNonAutonomous = 0xF7C9,
 
         // Below are enums from the client that have not been introduced to ACE

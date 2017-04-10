@@ -251,6 +251,12 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -303,9 +309,14 @@ namespace ACE.Entity
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
                         break;
                     }
-                case BroadcastAction.Sound:
+                case BroadcastAction.PlaySound:
                     {
-                        Parallel.ForEach(players, p => p.PlaySound(args.Sound));
+                        Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
+                        break;
+                    }
+                case BroadcastAction.PlayParticleEffect:
+                    {
+                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
                         break;
                     }
             }
@@ -428,6 +439,18 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.ApplyVisualEffect:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var particleEffect = (PlayScript)action.SecondaryObjectId;
+                        HandleParticleEffectEvent(obj, particleEffect);
+                        break;
+                    }
                 case GameActionType.ApplySoundEffect:
                     {
                         var g = new ObjectGuid(action.ObjectId);

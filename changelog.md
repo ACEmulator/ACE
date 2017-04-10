@@ -1,7 +1,9 @@
 # ACEmulator Change Log
 ### 2017-04-09
 [fantoms]
-* Addded sound broadcasting to `Landblock` action queue processing.
+* Added visual effect and sound broadcasting in action queue processing.
+* Added visual effect broadcasting to `Landblocks`.
+* Added `GameActionType` for `ApplySoundEfect` and `ApplyVisualEffect`.
 
 ### 2017-04-08
 [fantoms]

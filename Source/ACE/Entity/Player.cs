@@ -434,7 +434,7 @@ namespace ACE.Entity
                 // break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     break;
                 }
             }
@@ -459,7 +459,7 @@ namespace ACE.Entity
                 else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 // play level up effect
-                PlayParticleEffect(Network.Enum.PlayScript.LevelUp);
+                ActionApplyVisualEffect(Network.Enum.PlayScript.LevelUp, this.Guid);
             }
         }
 
@@ -487,7 +487,7 @@ namespace ACE.Entity
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -635,7 +635,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -651,22 +651,28 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
-        public void ActionApplySoundEffect(ObjectGuid objectId, Sound sound)
+        public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
         {
             QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
             AddToActionQueue(action);
         }
 
-        // Play a sound
-        public void PlaySound(Sound sound)
+        public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
         {
-            Session.Network.EnqueueSend(new GameMessageSound(this.Guid, sound, 1f));
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect);
+            AddToActionQueue(action);
+        }
+
+        // Play a sound
+        public void PlaySound(Sound sound, ObjectGuid targetId)
+        {
+            Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
         }
 
         // plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(PlayScript effectId)
+        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
         {
-            var effectEvent = new GameMessageScript(this.Guid, effectId);
+            var effectEvent = new GameMessageScript(targetId, effectId);
             Session.Network.EnqueueSend(effectEvent);
         }
 

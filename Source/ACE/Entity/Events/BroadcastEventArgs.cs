@@ -37,9 +37,19 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.Sound,
+                ActionType = BroadcastAction.PlaySound,
                 Sender = sender,
                 Sound = sound
+            };
+        }
+
+        public static BroadcastEventArgs CreateEffectAction(WorldObject sender, PlayScript effect)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.PlayParticleEffect,
+                Sender = sender,
+                Effect = effect
             };
         }
 
@@ -50,5 +60,7 @@ namespace ACE.Entity.Events
         public ChatMessageArgs ChatMessage { get; private set; }
 
         public Sound Sound { get;  private set; }
+
+        public PlayScript Effect { get; private set; }
     }
 }
