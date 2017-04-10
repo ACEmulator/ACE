@@ -21,6 +21,7 @@ using ACE.Network.Sequence;
 using System.Collections.Concurrent;
 using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
+using ACE.Network.Motion;
 
 namespace ACE.Entity
 {
@@ -236,10 +237,11 @@ namespace ACE.Entity
             GameData.Usable = Usable.UsableObjectSelf;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position;
+            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
+            PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -247,6 +249,22 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+        }
+
+        public void Kill()
+        {
+            // create corpse at location
+            // TODO: Once the corpse/container factories have been built
+
+            // teleport to sanctuary or starting point
+            if (Positions.ContainsKey(PositionType.Sanctuary))
+                Teleport(Positions[PositionType.Sanctuary]);
+            else
+                Teleport(Positions[PositionType.Location]);
+
+            // create and send the death event
+            var yourDeathEvent = new GameEventYourDeath(Session);
+            Session.Network.EnqueueSend(yourDeathEvent);
         }
 
         public async Task Load(Character preloadedCharacter = null)
@@ -838,6 +856,15 @@ namespace ACE.Entity
         /// </summary>
         public void SetCharacterPosition(Position newPosition)
         {
+            // Some positions come from outside of the Player and Character classes
+            if (newPosition.CharacterId == 0) newPosition.CharacterId = Guid.Low;
+
+            // reset the landblock id
+            if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
+            {
+                newPosition.LandblockId = new LandblockId(newPosition.Cell);
+            }
+
             character.SetCharacterPosition(newPosition);
             DatabaseManager.Character.SaveCharacterPosition(character, newPosition);
         }
@@ -941,9 +968,9 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-
+                
                 Session.Player.Location = newPosition;
-                character.SetCharacterPosition(newPosition);
+                SetPhysicalCharacterPosition();
             }
 
             DelayedUpdatePosition(newPosition);
@@ -1039,7 +1066,8 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                Session.Network.EnqueueSend(new GameMessageMotion(this, Session, MotionCommand.Logout1));
+                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Logout1));
+                Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 

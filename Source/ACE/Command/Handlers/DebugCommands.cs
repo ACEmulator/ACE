@@ -10,6 +10,7 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
+using ACE.Network.Motion;
 
 namespace ACE.Command.Handlers
 {
@@ -174,18 +175,20 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, (MotionCommand)animationId, 1.0f));
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void Movement(Session session, params string[] parameters)
         {
-            var movement = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
-            movement.ForwardCommand = 0;
-            movement.MovementStateFlag = MovementStateFlag.NoMotionState;
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement));
+            var movement = new GeneralMotion(MotionStance.Standing);
+            movement.MovementData.ForwardCommand = 24;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            movement = new GeneralMotion(MotionStance.Standing);
+            movement.MovementData.ForwardCommand = 0;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
@@ -325,6 +328,48 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
                     ChatMessageType.Broadcast);
             }
+        }
+
+        // Kill a player - equivalent to legal virtual murder, by admin
+        // TODO: Migrate this code into "smite" Admin command
+        [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1)]
+        public static void HandleSendKill(Session session, params string[] parameters)
+        {
+            // lame checks on first parameter
+            if (parameters?.Length > 0)
+            {
+                string characterName = "";
+
+                // if parameters are greater then 1, we may have a space in a character name
+                if (parameters.Length > 1)
+                {
+                    foreach (string name in parameters)
+                    {
+                        // adds a space back inbetween each parameter
+                        if (characterName.Length > 0)
+                            characterName += " " + name;
+                        else
+                            characterName = name;
+                    }
+                }
+                // if there are now spaces, just set the characterName to the first paramter
+                else
+                    characterName = parameters[0];
+
+                // look up session
+                Session playerSession = WorldManager.FindByPlayerName(characterName, true);
+
+                // playerSession will be null when the character is not found
+                if (playerSession != null)
+                {
+                    // send session a usedone
+                    playerSession.Player.Kill();
+                    return;
+                }
+            }
+
+            // Did not find a player
+            Console.WriteLine($"Error locating the player.");
         }
     }
 }

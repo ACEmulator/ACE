@@ -1,5 +1,23 @@
 # ACEmulator Change Log
+### 2017-04-08
+[Zegeger]
+Added basic motion classes.
+Added current motion state to PhysicsData, which can now be sent in CreateObject messages.
+Updated GameEventUpdateMotion to use these new classes.
+Updated any areas that were affected.
+Basic Combat Stance changing.  Can go into UA.  For some reason, you can't get out right now.
+
 ### 2017-04-06
+[fantoms]
+* Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones. 
+* Changed the Lifestone usage text to be `Light Blue`.
+* Added `YourDeath` GameEvent.
+* Added `Die` GameAction.
+* Added `Player.Kill()` function, too initiate a player death.
+* Added `kill` admin/debug command for killing a player on the server.
+* Updated `SetCharacterPosition`, too set the `characterId` and `LandblockId`, when possible.
+* Added a message to @ls/@lifestone informing you, why you can't travel when if a Sanctuary Location has not been saved in the database.
+
 [Zegeger]
 * Got 9 CreateObject sequences in correct order and named according to client code.
 * Changed many sequences over to SequenceManager.

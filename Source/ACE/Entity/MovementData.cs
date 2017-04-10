@@ -6,19 +6,108 @@ namespace ACE.Entity
 {
     public class MovementData
     {
-        public ushort CurrentStyle = 0;
-        public ushort ForwardCommand = 0;
-        public ushort SideStepCommand = 0;
-        public ushort TurnCommand = 0;
-        public float TurnSpeed = 0.00f;
-        public float ForwardSpeed = 0.00f;
-        public float SideStepSpeed = 0.00f;
-        public MovementStateFlag MovementStateFlag = 0;
+        public MovementStateFlag MovementStateFlag { get; private set; } = 0;
+
+        private ushort currentStyle = 0;
+        public ushort CurrentStyle
+        {
+            get
+            {
+                return currentStyle;
+            }
+            set
+            {
+                currentStyle = value;
+                MovementStateFlag |= MovementStateFlag.CurrentStyle;
+            }
+        }
+
+        private ushort forwardCommand = 0;
+        public ushort ForwardCommand
+        {
+            get
+            {
+                return forwardCommand;
+            }
+            set
+            {
+                forwardCommand = value;
+                MovementStateFlag |= MovementStateFlag.ForwardCommand;
+            }
+        }
+
+        private ushort sideStepCommand = 0;
+        public ushort SideStepCommand
+        {
+            get
+            {
+                return sideStepCommand;
+            }
+            set
+            {
+                sideStepCommand = value;
+                MovementStateFlag |= MovementStateFlag.SideStepCommand;
+            }
+        }
+
+        private ushort turnCommand = 0;
+        public ushort TurnCommand
+        {
+            get
+            {
+                return turnCommand;
+            }
+            set
+            {
+                turnCommand = value;
+                MovementStateFlag |= MovementStateFlag.TurnCommand;
+            }
+        }
+
+        private float turnSpeed = 0f;
+        public float TurnSpeed
+        {
+            get
+            {
+                return turnSpeed;
+            }
+            set
+            {
+                turnSpeed = value;
+                MovementStateFlag |= MovementStateFlag.TurnSpeed;
+            }
+        }
+
+        private float forwardSpeed = 0f;
+        public float ForwardSpeed
+        {
+            get
+            {
+                return forwardSpeed;
+            }
+            set
+            {
+                forwardSpeed = value;
+                MovementStateFlag |= MovementStateFlag.ForwardSpeed;
+            }
+        }
+
+        private float sideStepSpeed = 0f;
+        public float SideStepSpeed
+        {
+            get
+            {
+                return sideStepSpeed;
+            }
+            set
+            {
+                sideStepSpeed = value;
+                MovementStateFlag |= MovementStateFlag.SideStepSpeed;
+            }
+        }
 
         public void Serialize(BinaryWriter writer)
         {
-            writer.Write((uint)this.MovementStateFlag);
-
             if ((this.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
                 writer.Write((uint)this.CurrentStyle);
 
@@ -39,7 +128,6 @@ namespace ACE.Entity
 
             if ((this.MovementStateFlag & MovementStateFlag.TurnSpeed) != 0)
                 writer.Write((float)this.TurnSpeed);
-            writer.Align();
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Network.Enum;
 
-namespace ACE.Network.GameMessages.Messages
+namespace ACE.Network.Motion
 {
     public struct MotionItem
     {

@@ -15,9 +15,12 @@ namespace ACE.Entity
 
     using global::ACE.Entity.Enum.Properties;
     using global::ACE.Managers;
+    using Network.Motion;
+    using log4net;
 
     public abstract class WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public ObjectGuid Guid { get; }
 
         public ObjectType Type { get; protected set; }
@@ -49,6 +52,8 @@ namespace ACE.Entity
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
         public UpdatePositionFlag PositionFlag { get; protected set; } = UpdatePositionFlag.Contact;
+
+        public CombatMode CombatMode { get; private set; }
 
         public virtual void PlayScript(Session session) { }
 
@@ -91,6 +96,32 @@ namespace ACE.Entity
             PhysicsData = new PhysicsData(Sequences);
         }
 
+        public void SetCombatMode(CombatMode newCombatMode)
+        {
+            log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);
+            // TODO: any sort of validation
+            CombatMode = newCombatMode;
+            switch (CombatMode)
+            {
+                case CombatMode.Peace:
+                    SetMotionState(new GeneralMotion(MotionStance.Standing));
+                    break;
+                case CombatMode.Melee:
+                    var gm = new GeneralMotion(MotionStance.UANoShieldAttack);
+                    gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
+                    SetMotionState(gm);
+                    break;
+            }
+        }
+
+        public void SetMotionState(MotionState motionState)
+        {
+            Player p = (Player)this;
+            PhysicsData.CurrentMotionState = motionState;
+            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            p.Session.Network.EnqueueSend(updateMotion);
+        }
+
         public void AddToInventory(WorldObject worldObject)
         {
             lock (this.inventoryMutex)
@@ -121,14 +152,14 @@ namespace ACE.Entity
             {
                 // Find the item in inventory
                 if (!this.inventory.ContainsKey(objectGuid)) return;
-                 obj = this.inventory[objectGuid];
+                obj = this.inventory[objectGuid];
 
                 // Remove from the inventory list.
                 this.inventory.Remove(objectGuid);
             }
 
             // We are droping the item - let's keep track of change in burden
-            this.GameData.Burden -= obj.GameData.Burden;             
+            this.GameData.Burden -= obj.GameData.Burden;
 
             // OK, now let's tell the world and our client what we have done.
             var targetContainer = new ObjectGuid(0);
@@ -136,15 +167,16 @@ namespace ACE.Entity
                 new GameMessagePrivateUpdatePropertyInt(session,
                     PropertyInt.EncumbVal,
                     (uint)session.Player.GameData.Burden));
-            var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)MovementTypes.General));
+            motion.MovementData.ForwardCommand = 24;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
 
             // Set Container id to 0 - you are free
             session.Network.EnqueueSend(
                 new GameMessageUpdateInstanceId(objectGuid, targetContainer));
-
-            var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+                        
+            motion.MovementData.ForwardCommand = 0;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
 
             // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
             // Put the darn thing in 3d space
@@ -164,7 +196,7 @@ namespace ACE.Entity
             // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
             obj.GameData.ContainerId = 0;
             obj.GameData.Wielder = 0;
-       
+
             // Tell the landblock so it can tell everyone around what just hit the ground.
             // This is the sequence magic - adds back into 3d space seem to be treated like teleports.   
             obj.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -172,7 +204,7 @@ namespace ACE.Entity
             LandblockManager.AddObject(obj);
 
             // Let the client know our response.
-            session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));                                           
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
         }
 
         /// <summary>
@@ -198,9 +230,10 @@ namespace ACE.Entity
             session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
 
             // Bend over and pick that puppy up.
-            var movement1 = new MovementData { ForwardCommand = 24, MovementStateFlag = MovementStateFlag.ForwardCommand };
-            
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement1));
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)MovementTypes.General));
+            motion.MovementData.ForwardCommand = 24;
+
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
             session.Network.EnqueueSend(
                 new GameMessageSound(session.Player.Guid, Sound.PickUpItem, (float)1.0));
 
@@ -217,9 +250,8 @@ namespace ACE.Entity
                    PropertyInt.EncumbVal,
                    (uint)session.Player.GameData.Burden));
             session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, obj.Guid));
-
-            var movement2 = new MovementData { ForwardCommand = 0, MovementStateFlag = MovementStateFlag.NoMotionState };
-            session.Network.EnqueueSend(new GameMessageMotion(session.Player, session, MotionAutonomous.False, MovementTypes.Invalid, MotionFlags.None, MotionStance.Standing, movement2));
+            
+            motion.MovementData.ForwardCommand = 0;
 
             // Set Container id to the player - you belong to me
             session.Network.EnqueueSend(
@@ -251,7 +283,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             ModelData.Serialize(writer);
-            PhysicsData.Serialize(writer);
+            PhysicsData.Serialize(this, writer);
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
