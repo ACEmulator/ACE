@@ -374,5 +374,32 @@ namespace ACE.Command.Handlers
             // Did not find a player
             Console.WriteLine($"Error locating the player.");
         }
+
+        /// <summary>
+        /// Debug command to spawn a creature in front of the player and save it as a static spawn.
+        /// </summary>
+        [CommandHandler("createstaticcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void CreateStaticCreature(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @createstaticcreature weenieClassId",
+                   ChatMessageType.Broadcast);
+                return;
+            }
+            uint weenie = Convert.ToUInt32(parameters[0]);
+            Creature newC = MonsterFactory.SpawnStaticCreature(weenie, session.Player.Location.InFrontOf(2.0f));
+            if (newC != null)
+            {
+                ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}",
+                    ChatMessageType.Broadcast);
+                LandblockManager.AddObject(newC);
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Couldn't find that creature in the database or save it's location.",
+                    ChatMessageType.Broadcast);
+            }
+        }
     }
 }

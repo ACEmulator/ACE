@@ -463,6 +463,46 @@ namespace ACE.Entity
                         HandleSoundEvent(obj, soundEffect);
                         break;
                     }
+                case GameActionType.QueryHealth:
+                    {
+                        object target = null;
+                        var targetId = new ObjectGuid(action.ObjectId);
+
+                        if (targetId.IsPlayer() || targetId.IsCreature())
+                        {
+                            if (this.worldObjects.ContainsKey(targetId))
+                                target = this.worldObjects[targetId];
+
+                            if (target == null)
+                            {
+                                // check adjacent landblocks for the targetId
+                                foreach (var block in adjacencies)
+                                {
+                                    if (block.Value.worldObjects.ContainsKey(targetId))
+                                        target = this.worldObjects[targetId];                                    
+                                }
+                            }
+                            if (target != null)
+                            {
+                                float healthPercentage = 0;
+
+                                if (targetId.IsPlayer())
+                                {
+                                    Player tmpTarget = (Player)target;
+                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                                }
+                                if (targetId.IsCreature())
+                                {
+                                    Creature tmpTarget = (Creature)target;
+                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                                }
+                                var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
+                                player.Session.Network.EnqueueSend(updateHealth);
+                            }
+                        }
+
+                        break;
+                    }
                 case GameActionType.Use:
                     {
                         var g = new ObjectGuid(action.ObjectId);

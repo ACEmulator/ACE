@@ -1,4 +1,5 @@
 # ACEmulator Change Log
+
 ### 2017-04-09
 [fantoms]
 * Added visual effect and sound broadcasting in action queue processing.
@@ -10,11 +11,20 @@
 * Addded sound broadcasting to `Landblocks`.
 
 [Zegeger]
-Added basic motion classes.
-Added current motion state to PhysicsData, which can now be sent in CreateObject messages.
-Updated GameEventUpdateMotion to use these new classes.
-Updated any areas that were affected.
-Basic Combat Stance changing.  Can go into UA.  For some reason, you can't get out right now.
+* Added basic motion classes.
+* Added current motion state to PhysicsData, which can now be sent in CreateObject messages.
+* Updated GameEventUpdateMotion to use these new classes.
+* Updated any areas that were affected.
+* Basic Combat Stance changing.  Can go into UA.  For some reason, you can't get out right now.
+
+### 2017-04-07
+[Lidefeath]
+* Added weenie_creature_data for a few drudges.
+* Deleted the old view vw_ace_creature_static and replaced it with vw_ace_creature_object, so creature object data and weenie data are in one view.
+* Updated WorldDatabase to first read the static creature spawn locations and then the creature data.
+* Added a debugcommand 'createstaticcreature <weenieClassId>' to spawn a creature, add it to the landblock and save it in ace_creature_static_locations.
+* Replace HandleQueryHealth in Landblock and LandblockManager with the new GameActionQueue mechanic.
+* Hint: you need to import database/updates/world/005_vw_ace_creature_object.sql to get this all working.
 
 ### 2017-04-06
 [fantoms]

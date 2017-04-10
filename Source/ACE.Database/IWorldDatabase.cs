@@ -11,5 +11,9 @@ namespace ACE.Database
         List<AceObject> GetObjectsByLandblock(ushort landblock);
 
         List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
+
+        AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId);
+
+        bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl);
     }
 }
