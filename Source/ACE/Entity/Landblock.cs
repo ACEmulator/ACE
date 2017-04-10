@@ -14,6 +14,7 @@ using ACE.Network;
 using ACE.Network.GameAction;
 using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
 using ACE.Network.Enum;
 
 namespace ACE.Entity
@@ -518,19 +519,28 @@ namespace ACE.Entity
                                         // validate within use range
                                         float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
 
+                                        var motionSanctuary = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+
+                                        var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
+
+                                        // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
+                                        var soundEvent = new GameMessageSound(obj.Guid, Sound.LifestoneOn, 1);
+
                                         if (player.Location.SquaredDistanceTo(obj.Location) >= radiusSquared)
                                         {
-                                            serverMessage = "You wandered too far to attune with the lifestone!";
+                                            serverMessage = "You wandered too far to attune with the Lifestone!";
                                         }
                                         else
                                         {
                                             player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
 
                                             // create the outbound server message
-                                            serverMessage = "You have attuned your spirit to this lifestone. You will ressurect here after you die.";
+                                            serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
+                                            player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
+                                            // player.Session.Network.EnqueueSend(animationEvent);
                                         }
 
-                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Advancement);
+                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
                                         // always send useDone event
                                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                                         player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);

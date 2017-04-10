@@ -986,7 +986,7 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-                
+
                 Session.Player.Location = newPosition;
                 SetPhysicalCharacterPosition();
             }
@@ -1081,7 +1081,7 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Logout1));
+                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
                 Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
@@ -1125,6 +1125,24 @@ namespace ACE.Entity
         public void SendAutonomousPosition()
         {
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
+        }
+
+        public bool WaitingForDelayedTeleport { get; set; } = false;
+        public Position DelayedTeleportDestination { get; private set; } = null;
+        public DateTime DelayedTeleportTime { get; private set; } = DateTime.MinValue;
+
+        public void SetDelayedTeleport(TimeSpan delay, Position destination)
+        {
+            DelayedTeleportDestination = destination;
+            DelayedTeleportTime = DateTime.UtcNow + delay;
+            WaitingForDelayedTeleport = true;
+        }
+
+        public void ClearDelayedTeleport()
+        {
+            DelayedTeleportDestination = null;
+            DelayedTeleportTime = DateTime.MinValue;
+            WaitingForDelayedTeleport = false;
         }
     }
 }
