@@ -437,6 +437,9 @@ namespace ACE.Entity
 
                                         var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
 
+                                        // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
+                                        var soundEvent = new GameMessageSound(obj.Guid, Sound.LifestoneOn, 1);
+
                                         if (player.Location.SquaredDistanceTo(obj.Location) >= radiusSquared)
                                         {
                                             serverMessage = "You wandered too far to attune with the Lifestone!";
@@ -447,6 +450,7 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
+                                            // player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
                                             player.Session.Network.EnqueueSend(animationEvent);
                                         }
 
