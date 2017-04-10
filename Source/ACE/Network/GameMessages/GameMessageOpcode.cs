@@ -3,9 +3,7 @@ namespace ACE.Network.GameMessages
     public enum GameMessageOpcode
     {
         None                            = 0x0000,
-
         EmoteText                       = 0x01E2,
-
         CreatureMessage                 = 0x02BB,
         PrivateUpdatePropertyInt        = 0x02CD,
         PublicUpdatePropertyInt         = 0x02CE,
@@ -27,6 +25,8 @@ namespace ACE.Network.GameMessages
         PrivateUpdateVital              = 0x02E7,
         PublicUpdateVital               = 0x02E8,
         PrivateUpdateAttribute2ndLevel  = 0x02E9,
+        PositionAndMovement             = 0xF619,
+        ObjDescEvent                    = 0xF625,
         CharacterCreateResponse         = 0xF643,
         CharacterRestoreResponse        = 0xF643, // This is a duplicate...
         CharacterLogOff                 = 0xF653,
@@ -39,11 +39,16 @@ namespace ACE.Network.GameMessages
         PlayerCreate                    = 0xF746,
         ObjectDelete                    = 0xF747,
         UpdatePosition                  = 0xF748,
+        ParentEvent                     = 0xF749,
+        PickupEvent                     = 0xF74A,
         SetState                        = 0xF74B,
+        MovementEvent                   = 0xF74C,
         Motion                          = 0xF74C,
+        VectorUpdate                    = 0xF74E,
         Sound                           = 0xF750,
         PlayerTeleport                  = 0xF751,
         AutonomousPosition              = 0xF753,
+        PlayScriptId                    = 0xF754,
         PlayEffect                      = 0xF755,
         GameEvent                       = 0xF7B0,
         GameAction                      = 0xF7B1,

@@ -159,8 +159,9 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                allObjects = this.worldObjects.Values.ToList();
-                this.worldObjects[wo.Guid] = wo;
+                allObjects = worldObjects.Values.ToList();
+                if (!worldObjects.ContainsKey(wo.Guid))                                
+                    worldObjects[wo.Guid] = wo;                
             }
 
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
@@ -294,7 +295,9 @@ namespace ACE.Entity
             {
                 case BroadcastAction.Delete:
                     {
-                        Parallel.ForEach(players, p => p.StopTrackingObject(wo.Guid));
+                        // Added filter to not include the container in this message Og II
+                        players = players.Where(p => p.Guid.Full != wo.GameData.ContainerId).ToList();
+                        Parallel.ForEach(players, p => p.StopTrackingObject(wo));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:

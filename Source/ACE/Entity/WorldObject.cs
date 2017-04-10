@@ -147,63 +147,64 @@ namespace ACE.Entity
         /// </summary>
         public void HandleDropItem(ObjectGuid objectGuid, Session session)
         {
+            WorldObject obj;
             lock (this.inventoryMutex)
             {
                 // Find the item in inventory
                 if (!this.inventory.ContainsKey(objectGuid)) return;
-                var obj = this.inventory[objectGuid];
+                obj = this.inventory[objectGuid];
 
-                // We are droping the item - let's keep track of change in burden
-                this.GameData.Burden -= obj.GameData.Burden;
-
-                // Set the flags and determine a position.
-
-                // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
-                obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
-                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.50f);
-
-                // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
-                obj.GameData.ContainerId = 0;
-                obj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position;
-                obj.PhysicsData.PhysicsState = PhysicsState.Gravity;
-                obj.GameData.RadarBehavior = RadarBehavior.ShowAlways;
-                obj.GameData.RadarColour = RadarColor.White;
-
-                // Let the client know our response.
-                session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
-
-                // Tell the landblock so it can tell everyone around what just hit the ground.
-                LandblockManager.AddObject(obj);
                 // Remove from the inventory list.
                 this.inventory.Remove(objectGuid);
-
-                // OK, now let's tell the world and our client what we have done.
-                var targetContainer = new ObjectGuid(0);
-                session.Network.EnqueueSend(
-                   new GameMessagePrivateUpdatePropertyInt(session,
-                       PropertyInt.EncumbVal,
-                       (uint)session.Player.GameData.Burden));
-                GeneralMotion movement1 = new GeneralMotion(MotionStance.Standing);
-                movement1.MovementData.ForwardCommand = 24;
-                session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement1));
-
-                // Set Container id to 0 - you are free
-                session.Network.EnqueueSend(
-                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
-
-                var movement2 = new GeneralMotion(MotionStance.Standing);
-                session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement2));
-
-                // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
-                // Put the darn thing in 3d space
-                // Make the thud sound
-                // Send the container update again.   I have no idea why, but that is what they did in live.
-                session.Network.EnqueueSend(
-                    new GameMessagePutObjectIn3d(session, session.Player, objectGuid),
-                    new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
-                    new GameMessageUpdateInstanceId(objectGuid, targetContainer));
             }
+
+            // We are droping the item - let's keep track of change in burden
+            this.GameData.Burden -= obj.GameData.Burden;
+
+            // OK, now let's tell the world and our client what we have done.
+            var targetContainer = new ObjectGuid(0);
+            session.Network.EnqueueSend(
+                new GameMessagePrivateUpdatePropertyInt(session,
+                    PropertyInt.EncumbVal,
+                    (uint)session.Player.GameData.Burden));
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)MovementTypes.General));
+            motion.MovementData.ForwardCommand = 24;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
+
+            // Set Container id to 0 - you are free
+            session.Network.EnqueueSend(
+                new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+                        
+            motion.MovementData.ForwardCommand = 0;
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
+
+            // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
+            // Put the darn thing in 3d space
+            // Make the thud sound
+            // Send the container update again.   I have no idea why, but that is what they did in live.
+            session.Network.EnqueueSend(
+                new GameMessagePutObjectIn3d(session, session.Player, objectGuid),
+                new GameMessageSound(session.Player.Guid, Sound.DropItem, (float)1.0),
+                new GameMessageUpdateInstanceId(objectGuid, targetContainer));
+            // Set the flags and determine a position.
+
+            // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
+            obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement |
+                UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+            obj.PhysicsData.Position = PhysicsData.Position.InFrontOf(0.50f);
+
+            // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
+            obj.GameData.ContainerId = 0;
+            obj.GameData.Wielder = 0;
+
+            // Tell the landblock so it can tell everyone around what just hit the ground.
+            // This is the sequence magic - adds back into 3d space seem to be treated like teleports.   
+            obj.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            obj.Sequences.GetNextSequence(SequenceType.ObjectVector);
+            LandblockManager.AddObject(obj);
+
+            // Let the client know our response.
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(obj));
         }
 
         /// <summary>
@@ -211,32 +212,56 @@ namespace ACE.Entity
         /// </summary>
         public void HandlePutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid,  Session session)
         {
+            // Find the item we want to pick up
+            var obj = LandblockManager.GetWorldObject(session, itemGuid);
+            if (obj == null)
+            {
+                return;
+                // TODO: yea, this is probably not how you do this
+            }
+            // We are picking up the  the item - let's keep track of change in burden
+            // TODO: Add check for too encumbered and send "You are too encumbered to pick that up.  Also check pack capacity
+            this.GameData.Burden += obj.GameData.Burden;
+
+            // let's move to pick up the item
+
+            obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;            
+
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+
+            // Bend over and pick that puppy up.
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)MovementTypes.General));
+            motion.MovementData.ForwardCommand = 24;
+
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
+            session.Network.EnqueueSend(
+                new GameMessageSound(session.Player.Guid, Sound.PickUpItem, (float)1.0));
+
+            // Add to the inventory list.
             lock (this.inventoryMutex)
             {
-                // Find the item we want to pick up
-                var obj = LandblockManager.GetWorldObject(session, itemGuid);
-                if (obj == null)
-                {
-                    return;
-                    // TODO: yea, this is probably not how you do this
-                }
-                // We are picking up the  the item - let's keep track of change in burden
-                // TODO: Add check for too encumbered and send "You are too encumbered to pick that up.  Also check pack capacity
-                this.GameData.Burden += obj.GameData.Burden;
-
-                // let's move to pick up the item
-                this.PositionFlag = UpdatePositionFlag.Contact |
-                   UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-
-                this.Location.PositionX = obj.Location.PositionX;
-                this.Location.PositionY = obj.Location.PositionY;
-                this.Location.PositionZ = obj.Location.PositionZ;
-                this.Location.RotationW = obj.Location.RotationW;
-                this.Location.RotationZ = obj.Location.RotationZ;
-
-                session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
-                // TODO: Finish out pick up item
+                if (!this.inventory.ContainsKey(obj.Guid)) 
+                    this.inventory.Add(obj.Guid, obj);
             }
+            obj.GameData.ContainerId = session.Player.Guid.Full;
+
+            session.Network.EnqueueSend(
+               new GameMessagePrivateUpdatePropertyInt(session,
+                   PropertyInt.EncumbVal,
+                   (uint)session.Player.GameData.Burden));
+            session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, obj.Guid));
+            
+            motion.MovementData.ForwardCommand = 0;
+
+            // Set Container id to the player - you belong to me
+            session.Network.EnqueueSend(
+                new GameMessageUpdateInstanceId(obj.Guid, session.Player.Guid));            
+            
+            // TODO: Finish out pick up item
+            session.Network.EnqueueSend(new GameMessagePickupEvent(session, obj));
+            // Tell the landblock so it can tell everyone around that the item has been picked up.
+
+            LandblockManager.AddObject(obj);
         }
 
         public void GetInventoryItem(ObjectGuid objectGuid, out WorldObject worldObject)
