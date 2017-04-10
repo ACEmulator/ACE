@@ -6,6 +6,7 @@ namespace ACE.Entity
     {
         None   = 0,
         Player = 0x50,
+        Creature = 0x80,
     }
 
     public struct ObjectGuid
@@ -22,6 +23,8 @@ namespace ACE.Entity
         }
 
         public bool IsPlayer() { return High == GuidType.Player; }
+
+        public bool IsCreature() { return High == GuidType.Creature; }
 
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
         {
