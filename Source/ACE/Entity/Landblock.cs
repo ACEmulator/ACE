@@ -450,8 +450,8 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            // player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
-                                            player.Session.Network.EnqueueSend(animationEvent);
+                                            player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
+                                            // player.Session.Network.EnqueueSend(animationEvent);
                                         }
 
                                         var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
