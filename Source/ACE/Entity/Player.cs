@@ -663,14 +663,13 @@ namespace ACE.Entity
             AddToActionQueue(action);
         }
 
-        public void ActionMovementEvent(GeneralMotion motion, ObjectGuid objectId)
+        public void EnqueueMovementEvent(GeneralMotion motion, ObjectGuid objectId)
         {
             QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
             AddToActionQueue(action);
         }
 
-        // public void MovementEvent(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, WorldObject sender)
-        public void MovementEvent(GeneralMotion motion, WorldObject sender)
+        public void SendMovementEvent(GeneralMotion motion, WorldObject sender)
         {
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }

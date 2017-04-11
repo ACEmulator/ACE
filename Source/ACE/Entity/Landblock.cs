@@ -331,7 +331,7 @@ namespace ACE.Entity
                     }
                 case BroadcastAction.MovementEvent:
                     {
-                        Parallel.ForEach(players, p => p.MovementEvent(args.Motion, args.Sender));
+                        Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
                     }
             }
@@ -562,7 +562,7 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.ActionMovementEvent(motionSanctuary, player.Guid);
+                                            player.EnqueueMovementEvent(motionSanctuary, player.Guid);
                                             player.Session.Network.EnqueueSend(soundEvent);
                                         }
 

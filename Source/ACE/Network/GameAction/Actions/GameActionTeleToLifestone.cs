@@ -37,7 +37,7 @@ namespace ACE.Network.GameAction.Actions
                 // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
                 // FIX: Recall text isn't being broadcast yet, need to address
                 session.Network.EnqueueSend(updatePlayersMana, updateCombatMode, sysChatMessage);
-                session.Player.ActionMovementEvent(motionLifestoneRecall, session.Player.Guid);
+                session.Player.EnqueueMovementEvent(motionLifestoneRecall, session.Player.Guid);
 
                 session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), session.Player.Positions[PositionType.Sanctuary]);
             }

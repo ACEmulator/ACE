@@ -30,7 +30,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
             // FIX: Recall text isn't being broadcast yet, need to address
             session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
-            session.Player.ActionMovementEvent(motionMarketplaceRecall, session.Player.Guid);
+            session.Player.EnqueueMovementEvent(motionMarketplaceRecall, session.Player.Guid);
 
             session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), marketplaceDrop);
         }
