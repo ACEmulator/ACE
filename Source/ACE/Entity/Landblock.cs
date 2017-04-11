@@ -486,19 +486,12 @@ namespace ACE.Entity
                 case GameActionType.MovementEvent:
                     {
                         var g = new ObjectGuid(action.ObjectId);
-                        // var g = new ObjectGuid(action.WorldObject.Guid.Full);
                         WorldObject obj = (WorldObject)player;
                         if (worldObjects.ContainsKey(g))
                         {
                             obj = worldObjects[g];
                         }
-                        // var obj = action.WorldObject;
                         var motion = action.Motion;
-                        // var stance = action.MotionStance;
-                        // var item = action.MotionItem;
-                        // var command = action.MotionCommand;
-                        // HandleAnimationEvent(action.WorldObject, motion, stance, item, command);
-                        // HandleMovementEvent(obj, motion, stance, item, command);
                         HandleMovementEvent(obj, motion);
                         break;
                     }
@@ -574,10 +567,8 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.ActionMovementEvent(motionSanctuary, player);
+                                            player.ActionMovementEvent(motionSanctuary, player.Guid);
                                             player.Session.Network.EnqueueSend(soundEvent);
-                                            // player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
-                                            // player.Session.Network.EnqueueSend(animationEvent);
                                         }
 
                                         var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);

@@ -663,20 +663,14 @@ namespace ACE.Entity
             AddToActionQueue(action);
         }
 
-        // public void ActionAnimationEffect(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, ObjectGuid objectId)
-        // public void ActionMovementEvent(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, WorldObject sender)
-        public void ActionMovementEvent(GeneralMotion motion, WorldObject sender)
+        public void ActionMovementEvent(GeneralMotion motion, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(sender, motion, GameActionType.MovementEvent);
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
             AddToActionQueue(action);
         }
 
-        // public void PlayAnimation(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, WorldObject sender)
         public void MovementEvent(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, WorldObject sender)
-        // public void MovementEvent(GeneralMotion motion, WorldObject sender)
         {
-            // Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
-            var animation = new GeneralMotion(stance, new MotionItem(command));
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }
 

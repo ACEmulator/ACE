@@ -54,8 +54,6 @@ namespace ACE.Entity.Events
             };
         }
 
-        // public static BroadcastEventArgs CreateAnimationAction(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
-        // public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
         public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion)
         {
             return new BroadcastEventArgs()
@@ -63,9 +61,6 @@ namespace ACE.Entity.Events
                 ActionType = BroadcastAction.MovementEvent,
                 Sender = sender,
                 Motion = motion,
-                // MotionStance = stance,
-                // MotionItem = item,
-                // MotionCommand = command
             };
         }
 

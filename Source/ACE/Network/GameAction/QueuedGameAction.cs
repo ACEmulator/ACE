@@ -24,18 +24,15 @@ namespace ACE.Network.GameAction
             this.ActionType = actionType;
         }
 
-        // public QueuedGameAction(uint objectId, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, GameActionType actionType)
-        public QueuedGameAction(WorldObject sender, GeneralMotion motion, GameActionType actionType)
+        public QueuedGameAction(uint objectId, GeneralMotion motion, GameActionType actionType)
         {
-            this.WorldObject = sender;
+            // this.WorldObject = sender;
+            this.ObjectId = objectId;
             this.Motion = motion;
-            // this.MotionStance = stance;
-            // this.MotionItem = item;
-            // this.MotionCommand = command;
             this.ActionType = actionType;
         }
 
-        public WorldObject WorldObject { get; private set; }
+        // public WorldObject WorldObject { get; private set; }
 
         public uint ObjectId { get; private set; }
 
@@ -44,11 +41,5 @@ namespace ACE.Network.GameAction
         public GameActionType ActionType { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
-
-        public MotionStance MotionStance { get; private set; }
-
-        public MotionItem MotionItem { get; private set; }
-
-        public MotionCommand MotionCommand { get; private set; }
     }
 }
