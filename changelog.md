@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-04-10
+[Ripley]
+* Changed GetNextSequence back to GetCurrentSequence for SequenceType.ObjectInstance
+* Animations work again!
+
 ### 2017-04-09
 [Ripley]
 * Changed Position.Serialize to fix rotation issue #222
