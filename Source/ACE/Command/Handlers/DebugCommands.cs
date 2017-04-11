@@ -189,8 +189,7 @@ namespace ACE.Command.Handlers
             var movement = new GeneralMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = 24;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
-            movement = new GeneralMotion(MotionStance.Standing);
-            movement.MovementData.ForwardCommand = 0;
+            movement = new GeneralMotion(MotionStance.Standing);            
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 

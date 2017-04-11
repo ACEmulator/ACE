@@ -19,6 +19,11 @@ using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
+    using global::ACE.Entity.Enum.Properties;
+    using global::ACE.Network.Sequence;
+
+    using static LandblockManager;
+
     /// <summary>
     /// the gist of a landblock is that, generally, everything on it publishes
     /// to and subscribes to everything else in the landblock.  x/y in an outdoor
@@ -400,7 +405,7 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => Log($"attempting to relocate object {o.Name} ({o.Guid.Full.ToString("X")})"));
 
                     // RelocateObject will put them in the right landblock
-                    objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
+                    objectsToRelocate.ForEach(o => RelocateObject(o));
 
                     // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
                     objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
@@ -418,7 +423,7 @@ namespace ACE.Entity
                     {
                         // remove and readd if it's not
                         this.RemoveWorldObject(mo.Guid, false);
-                        LandblockManager.AddObject(mo);
+                        AddObject(mo);
                     }
                 });
 
@@ -465,6 +470,90 @@ namespace ACE.Entity
                         }
                         var soundEffect = (Sound)action.SecondaryObjectId;
                         HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
+                case GameActionType.DropItem:                  
+
+                    {                        
+                        var g = new ObjectGuid(action.ObjectId);                        
+                        // ReSharper disable once InconsistentlySynchronizedField
+                        if (worldObjects.ContainsKey(g))
+                        {                         
+                            var playerId = new ObjectGuid(action.ObjectId);
+                            var inventoryId = new ObjectGuid(action.SecondaryObjectId);
+                            if (playerId.IsPlayer())
+                            {
+                                Player aPlayer = null;
+                                WorldObject inventoryItem = null;
+                                lock (objectCacheLocker)
+                                {
+                                    if (worldObjects.ContainsKey(playerId))
+                                    {
+                                        aPlayer = (Player)worldObjects[playerId];
+                                        inventoryItem = aPlayer.GetInventoryItem(inventoryId);
+                                        aPlayer.RemoveFromInventory(inventoryId);
+                                    }
+                                }
+                                
+                                // We are droping the item - let's keep track of change in burden
+
+                                if ((aPlayer != null) && (inventoryItem != null))
+                                { 
+                                    aPlayer.GameData.Burden -= inventoryItem.GameData.Burden;
+
+                                    // OK, now let's tell the world and our client what we have done.
+                                    var targetContainer = new ObjectGuid(0);
+                                    aPlayer.Session.Network.EnqueueSend(
+                                        new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
+                                            PropertyInt.EncumbVal,
+                                            (uint)aPlayer.Session.Player.GameData.Burden));
+                                    var motion = new GeneralMotion(MotionStance.Standing);
+                                    motion.MovementData.ForwardCommand = 24;
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion));
+
+                                    // Set Container id to 0 - you are free
+                                    aPlayer.Session.Network.EnqueueSend(
+                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
+
+                                    motion = new GeneralMotion(MotionStance.Standing);
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion));
+
+                                    // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
+                                    // Put the darn thing in 3d space
+                                    // Make the thud sound
+                                    // Send the container update again.   I have no idea why, but that is what they did in live.
+                                    aPlayer.Session.Network.EnqueueSend(
+                                        new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
+                                        new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
+                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
+                                    // Set the flags and determine a position.
+
+                                    // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
+                                    
+                                    inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                                                    | UpdatePositionFlag.Placement
+                                                                    | UpdatePositionFlag.ZeroQy
+                                                                    | UpdatePositionFlag.ZeroQx;
+                                    inventoryItem.PhysicsData.Position =
+                                        aPlayer.PhysicsData.Position.InFrontOf(0.50f);
+
+                                    // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
+                                    inventoryItem.GameData.ContainerId = 0;
+                                    inventoryItem.GameData.Wielder = 0;
+
+                                    // Tell the landblock so it can tell everyone around what just hit the ground.
+                                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.   
+                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
+                                    AddObject(inventoryItem);
+
+                                    // Let the client know our response.
+
+                                    aPlayer.Session.Network.EnqueueSend(
+                                        new GameMessageUpdatePosition(inventoryItem));                                    
+                                }
+                            }
+                        }
                         break;
                     }
                 case GameActionType.QueryHealth:
