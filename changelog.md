@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-04-10
+[Ripley]
+* Added MovementEvent Action Queue
+
 ### 2017-04-09
 [Ripley]
 * Changed Position.Serialize to fix rotation issue #222
