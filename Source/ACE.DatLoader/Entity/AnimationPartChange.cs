@@ -8,7 +8,7 @@ namespace ACE.DatLoader.Entity
 {
     public class AnimationPartChange
     {
-        public uint PartIndex { get; set; }
-        public uint PartID { get; set; }
+        public byte PartIndex { get; set; }
+        public ushort PartID { get; set; }
     }
 }

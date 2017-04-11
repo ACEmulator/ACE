@@ -65,21 +65,21 @@ namespace ACE.DatLoader
             return data;
         }
 
-        public uint ReadUInt16()
+        public ushort ReadUInt16()
         {
-            uint data = BitConverter.ToUInt16(buffer, Offset);
+            ushort data = BitConverter.ToUInt16(buffer, Offset);
             Offset += 2;
             return data;
         }
 
-        public int ReadInt16()
+        public short ReadInt16()
         {
-            int data = BitConverter.ToInt16(buffer, Offset);
+            short data = BitConverter.ToInt16(buffer, Offset);
             Offset += 2;
             return data;
         }
 
-        public int ReadByte()
+        public byte ReadByte()
         {
             byte data = buffer[Offset];
             Offset += 1;

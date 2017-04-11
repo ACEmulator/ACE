@@ -32,7 +32,7 @@ namespace ACE.DatLoader.Entity
             for (int k = 0; k < numTextureMapChanges; k++)
             {
                 TextureMapChange texturechange = new TextureMapChange();
-                texturechange.PartIndex = Convert.ToUInt16(datReader.ReadByte());
+                texturechange.PartIndex = datReader.ReadByte();
                 texturechange.OldTexture = datReader.ReadUInt16();
                 texturechange.NewTexture = datReader.ReadUInt16();
                 od.TextureChanges.Add(texturechange);
@@ -40,9 +40,9 @@ namespace ACE.DatLoader.Entity
             for (int k = 0; k < numAnimPartChanges; k++)
             {
                 AnimationPartChange apchange = new AnimationPartChange();
-                apchange.PartIndex = Convert.ToUInt16(datReader.ReadByte());
+                apchange.PartIndex = datReader.ReadByte();
                 apchange.PartID = datReader.ReadUInt16();
-                if(apchange.PartID == 0x8000) // To be honest, I'm not quite sure WHAT this is/means, but the math works out
+                if (apchange.PartID == 0x8000) // To be honest, I'm not quite sure WHAT this is/means, but the math works out
                     apchange.PartID = datReader.ReadUInt16();
                 od.AnimPartChanges.Add(apchange);
             }
