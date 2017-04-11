@@ -35,10 +35,10 @@ namespace ACE.Network.GameMessages.Messages
         {
             Writer.WriteGuid(animationTarget.Guid); // Object_Id (uint)
             Writer.Write(animationTarget.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
-             Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ObjectMovement)); // Movement_Timestamp
-             if (!newState.IsAutonomous)
+            Writer.Write(animationTarget.Sequences.GetNextSequence(SequenceType.ObjectMovement)); // Movement_Timestamp
+            if (!newState.IsAutonomous)
                 Writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
-             else
+            else
                 Writer.Write(animationTarget.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
 
             ushort autonomous = newState.IsAutonomous ? (ushort)1 : (ushort)0;
