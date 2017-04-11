@@ -15,16 +15,18 @@ namespace ACE.DatLoader
 
         public void ExtractCategorizedContents(string path)
         {
-            string thisFolder = null;
+            // string thisFolder = null;
 
             using (FileStream stream = new FileStream(this.FilePath, FileMode.Open))
             {
+                // TODO - Make this function with the Dictionary and DatReader
+                /*
                 foreach (var file in this.AllFiles)
                 {
                     if (file.GetFileType() != null)
                         thisFolder = Path.Combine(path, file.GetFileType().ToString());
                     else
-                        thisFolder = "UnknownType";
+                        thisFolder = Path.Combine(path, "UnknownType");
 
                     if (!Directory.Exists(thisFolder))
                     {
@@ -39,6 +41,7 @@ namespace ACE.DatLoader
                     string thisFile = Path.Combine(thisFolder, hex + ".bin");
                     File.WriteAllBytes(thisFile, buffer);
                 }
+                */
             }
         }
     }

@@ -19,6 +19,8 @@ namespace ACE.DatLoader
             {
                 foreach (var file in this.AllFiles)
                 {
+                    // TODO - Make this function with the Dictionary and DatReader
+                    /*
                     string thisFolder = Path.Combine(path, (file.ObjectId >> 16).ToString("X4"));
 
                     if (!Directory.Exists(thisFolder))
@@ -33,6 +35,7 @@ namespace ACE.DatLoader
                     string hex = file.ObjectId.ToString("X8");
                     string thisFile = Path.Combine(thisFolder, hex + ".bin");
                     File.WriteAllBytes(thisFile, buffer);
+                    */
                 }
             }
         }
