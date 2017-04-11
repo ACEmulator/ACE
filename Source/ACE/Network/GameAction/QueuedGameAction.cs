@@ -26,13 +26,10 @@ namespace ACE.Network.GameAction
 
         public QueuedGameAction(uint objectId, GeneralMotion motion, GameActionType actionType)
         {
-            // this.WorldObject = sender;
             this.ObjectId = objectId;
             this.Motion = motion;
             this.ActionType = actionType;
         }
-
-        // public WorldObject WorldObject { get; private set; }
 
         public uint ObjectId { get; private set; }
 

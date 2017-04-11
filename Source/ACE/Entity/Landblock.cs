@@ -259,12 +259,9 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        // public void HandleAnimationEvent(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
-        // public void HandleMovementEvent(WorldObject sender, GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command)
         public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
-            // BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion, stance, item, command);
             Broadcast(args, true, Quadrant.All);
         }
 
@@ -334,9 +331,7 @@ namespace ACE.Entity
                     }
                 case BroadcastAction.MovementEvent:
                     {
-                        // Parallel.ForEach(players, p => p.PlayAnimation(args.Motion, args.MotionStance, args.MotionItem, args.MotionCommand, args.Sender));
-                        Parallel.ForEach(players, p => p.MovementEvent(args.Motion, args.MotionStance, args.MotionItem, args.MotionCommand, args.Sender));
-                        // Parallel.ForEach(players, p => p.MovementEvent(args.Motion, args.Sender));
+                        Parallel.ForEach(players, p => p.MovementEvent(args.Motion, args.Sender));
                         break;
                     }
             }

@@ -75,11 +75,5 @@ namespace ACE.Entity.Events
         public PlayScript Effect { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
-
-        public MotionStance MotionStance { get; private set; }
-
-        public MotionItem MotionItem { get; private set; }
-
-        public MotionCommand MotionCommand { get; private set; }
     }
 }

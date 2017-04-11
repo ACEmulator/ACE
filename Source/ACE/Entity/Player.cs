@@ -669,7 +669,8 @@ namespace ACE.Entity
             AddToActionQueue(action);
         }
 
-        public void MovementEvent(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, WorldObject sender)
+        // public void MovementEvent(GeneralMotion motion, MotionStance stance, MotionItem item, MotionCommand command, WorldObject sender)
+        public void MovementEvent(GeneralMotion motion, WorldObject sender)
         {
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }
