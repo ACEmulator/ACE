@@ -16,14 +16,11 @@ using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Network.Sequence;
 
 namespace ACE.Entity
 {
-    using global::ACE.Entity.Enum.Properties;
-    using global::ACE.Network.Sequence;
-
-    using static LandblockManager;
-
     /// <summary>
     /// the gist of a landblock is that, generally, everything on it publishes
     /// to and subscribes to everything else in the landblock.  x/y in an outdoor
@@ -405,7 +402,7 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => Log($"attempting to relocate object {o.Name} ({o.Guid.Full.ToString("X")})"));
 
                     // RelocateObject will put them in the right landblock
-                    objectsToRelocate.ForEach(o => RelocateObject(o));
+                    objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
 
                     // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
                     objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
@@ -423,7 +420,7 @@ namespace ACE.Entity
                     {
                         // remove and readd if it's not
                         this.RemoveWorldObject(mo.Guid, false);
-                        AddObject(mo);
+                        LandblockManager.AddObject(mo);
                     }
                 });
 
@@ -485,14 +482,12 @@ namespace ACE.Entity
                             {
                                 Player aPlayer = null;
                                 WorldObject inventoryItem = null;
-                                lock (objectCacheLocker)
+
+                                if (worldObjects.ContainsKey(playerId))
                                 {
-                                    if (worldObjects.ContainsKey(playerId))
-                                    {
-                                        aPlayer = (Player)worldObjects[playerId];
-                                        inventoryItem = aPlayer.GetInventoryItem(inventoryId);
-                                        aPlayer.RemoveFromInventory(inventoryId);
-                                    }
+                                    aPlayer = (Player)worldObjects[playerId];
+                                    inventoryItem = aPlayer.GetInventoryItem(inventoryId);
+                                    aPlayer.RemoveFromInventory(inventoryId);
                                 }
                                 
                                 // We are droping the item - let's keep track of change in burden
@@ -545,7 +540,7 @@ namespace ACE.Entity
                                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.   
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-                                    AddObject(inventoryItem);
+                                    LandblockManager.AddObject(inventoryItem);
 
                                     // Let the client know our response.
 
