@@ -1,6 +1,7 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent;
+using ACE.Network.GameMessages;
 using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = actionType,
+                BroadcastType = actionType,
                 Sender = sender
             };
         }
@@ -29,7 +30,7 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.LocalChat,
+                BroadcastType = BroadcastAction.LocalChat,
                 Sender = sender,
                 ChatMessage = chatMessage
             };
@@ -39,7 +40,7 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.PlaySound,
+                BroadcastType = BroadcastAction.PlaySound,
                 Sender = sender,
                 Sound = sound
             };
@@ -49,7 +50,7 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.PlayParticleEffect,
+                BroadcastType = BroadcastAction.PlayParticleEffect,
                 Sender = sender,
                 Effect = effect
             };
@@ -59,7 +60,7 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.MovementEvent,
+                BroadcastType = BroadcastAction.MovementEvent,
                 Sender = sender,
                 Motion = motion,
             };
@@ -69,15 +70,15 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = outboundEvent.ActionType,
+                BroadcastType = outboundEvent.BroadcastType,
                 Sender = sender,
-                OutboundEventMessage = outboundEvent.EventMessage,
+                OutboundMessage = outboundEvent.Message,
             };
         }
 
-        public GameEventMessage OutboundEventMessage { get; private set; }
+        public GameMessage OutboundMessage { get; private set; }
 
-        public BroadcastAction ActionType { get; private set; }
+        public BroadcastAction BroadcastType { get; private set; }
 
         public WorldObject Sender { get; private set; }
 

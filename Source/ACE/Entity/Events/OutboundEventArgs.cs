@@ -1,12 +1,12 @@
-﻿using ACE.Network.GameEvent;
+﻿using ACE.Network.GameMessages;
 using System;
 
 namespace ACE.Entity.Events
 {
     public class OutboundEventArgs : EventArgs
     {
-        public GameEventMessage EventMessage { get; set; }
+        public GameMessage Message { get; set; }
 
-        public BroadcastAction ActionType { get; set; }
+        public BroadcastAction BroadcastType { get; set; }
     }
 }

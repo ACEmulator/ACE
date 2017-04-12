@@ -269,13 +269,18 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(yourDeathEvent);
 
             // Message for broadcast
-            GameEventPlayerKilled yourDeathBroadcast = new GameEventPlayerKilled(Session);
+            GameEventPlayerKilled yourDeathBroadcast = new GameEventPlayerKilled(Session, "Died..");
             QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, GameActionType.OutboundEventForOthers);
             // or  QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, false); // limit message to prevent sender with false
             AddToActionQueue(newDeathBroadcast); // handled generically as outbound message
         }
 
         public void SendOutboundEvent(GameEventMessage outboundMessage)
+        {
+            Session.Network.EnqueueSend(outboundMessage);
+        }
+
+        public void SendOutboundMessage(GameMessage outboundMessage)
         {
             Session.Network.EnqueueSend(outboundMessage);
         }
@@ -666,13 +671,15 @@ namespace ACE.Entity
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
+            GameMessageSound soundMsg = new GameMessageSound(objectId, sound, 1.0f);
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, soundMsg, GameActionType.OutboundEvent);
             AddToActionQueue(action);
         }
 
-        public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
+        public void ActionApplyVisualEffect(PlayScript effectId, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect);
+            GameMessageScript effect = new GameMessageScript(objectId, effectId, 1.0f);
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, effect, GameActionType.ApplyVisualEffect);
             AddToActionQueue(action);
         }
 

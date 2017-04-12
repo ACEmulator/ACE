@@ -258,7 +258,7 @@ namespace ACE.Entity
             WorldObject wo = args.Sender;
             List<Player> players = null;
 
-            Log($"broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType}");
+            Log($"broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.BroadcastType}");
 
             lock (objectCacheLocker)
             {
@@ -268,7 +268,7 @@ namespace ACE.Entity
             // filter to applicable players
             players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
 
-            switch (args.ActionType)
+            switch (args.BroadcastType)
             {
                 case BroadcastAction.Delete:
                     {
@@ -307,13 +307,13 @@ namespace ACE.Entity
                     }
                 case BroadcastAction.OutboundEvent:
                     {
-                        Parallel.ForEach(players, p => p.SendOutboundEvent(args.OutboundEventMessage));
+                        Parallel.ForEach(players, p => p.SendOutboundMessage(args.OutboundMessage));
                         break;
                     }
                 case BroadcastAction.OutboundEventForOthers:
                     {
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
-                        Parallel.ForEach(players, p => p.SendOutboundEvent(args.OutboundEventMessage));
+                        Parallel.ForEach(players, p => p.SendOutboundMessage(args.OutboundMessage));
                         break;
                     }
             }
@@ -324,7 +324,7 @@ namespace ACE.Entity
 
             if (propogate)
             {
-                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
+                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.BroadcastType} to adjacencies");
 
                 if (wo.Location.PositionX < adjacencyLoadRange)
                 {
@@ -448,8 +448,8 @@ namespace ACE.Entity
                         }
 
                         OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
-                        outboundEventArgs.EventMessage = action.ActionEvent;
-                        outboundEventArgs.ActionType = BroadcastAction.OutboundEvent;
+                        outboundEventArgs.Message = action.ActionEventMessage;
+                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEvent;
 
                         HandleOutboundEvent(obj, outboundEventArgs);
                         break;
@@ -466,8 +466,9 @@ namespace ACE.Entity
                         }
 
                         OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
-                        outboundEventArgs.EventMessage = action.ActionEvent;
-                        outboundEventArgs.ActionType = BroadcastAction.OutboundEventForOthers;
+                        outboundEventArgs.Message = action.ActionMessage;
+                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEventForOthers;
+
                         HandleOutboundEvent(obj, outboundEventArgs);
                         break;
                     }
@@ -479,8 +480,14 @@ namespace ACE.Entity
                         {
                             obj = worldObjects[g];
                         }
-                        var particleEffect = (PlayScript)action.SecondaryObjectId;
-                        HandleParticleEffectEvent(obj, particleEffect);
+                        // var particleEffect = (PlayScript)action.SecondaryObjectId;
+
+                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
+                        outboundEventArgs.Message = action.ActionMessage;
+                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEvent;
+
+                        HandleOutboundEvent(obj, outboundEventArgs);
+                        // HandleParticleEffectEvent(obj, particleEffect);
                         break;
                     }
                 case GameActionType.ApplySoundEffect:
@@ -491,8 +498,14 @@ namespace ACE.Entity
                         {
                             obj = worldObjects[g];
                         }
+
                         var soundEffect = (Sound)action.SecondaryObjectId;
-                        HandleSoundEvent(obj, soundEffect);
+                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
+                        outboundEventArgs.Message = action.ActionEventMessage;
+                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEvent;
+
+                        HandleOutboundEvent(obj, outboundEventArgs);
+                        // HandleSoundEvent(obj, soundEffect);
                         break;
                     }
                 case GameActionType.MovementEvent:
