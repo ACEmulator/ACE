@@ -39,13 +39,13 @@ namespace ACE.Entity.Events
             };
         }
 
-        public static BroadcastEventArgs ActionEventBroadcast(WorldObject sender, OutboundMessageArgs outboundEvent)
+        public static BroadcastEventArgs OutboundMessageBroadcast(WorldObject sender, OutboundMessageArgs outboundMessageArgs)
         {
             return new BroadcastEventArgs()
             {
-                BroadcastType = outboundEvent.BroadcastType,
+                BroadcastType = outboundMessageArgs.BroadcastType,
                 Sender = sender,
-                OutboundMessage = outboundEvent.Message,
+                OutboundMessage = outboundMessageArgs.Message,
             };
         }
 

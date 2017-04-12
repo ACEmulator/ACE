@@ -234,7 +234,7 @@ namespace ACE.Entity
 
         public void HandleOutboundEvent(WorldObject sender, OutboundMessageArgs outboundEventArgs)
         {
-                BroadcastEventArgs args = BroadcastEventArgs.ActionEventBroadcast(sender, outboundEventArgs);
+                BroadcastEventArgs args = BroadcastEventArgs.OutboundMessageBroadcast(sender, outboundEventArgs);
                 Broadcast(args, true, Quadrant.All);
         }
 
