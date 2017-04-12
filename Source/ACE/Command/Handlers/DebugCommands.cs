@@ -286,7 +286,7 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(PositionType), type))
                     {
                         message = $"Saving position {Enum.GetName(typeof(PositionType), type)}";
-                        session.Player.SetCharacterPosition(type, CharacterPositionExtensions.InvalidPosition(session.Id, type));
+                        session.Player.SetCharacterPosition(type, CharacterPositionExtensions.InvalidPosition(session.AccountId, type));
                     }
                 }
 

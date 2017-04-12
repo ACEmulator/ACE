@@ -9,18 +9,34 @@ using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
+using ACE.Network.Managers;
+using log4net;
 
 namespace ACE.Network
 {
     public class Session
     {
-        public uint Id { get; private set; }
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Account { get; private set; }
+        private DateTime logOffRequestTime;
+        private DateTime lastSaveTime;
+        private DateTime lastAgeIntUpdateTime;
+        private DateTime lastSendAgeIntUpdateTime;
 
+        public uint AccountId { get; private set; }
+        public string AccountName { get; private set; }
         public AccessLevel AccessLevel { get; private set; }
 
-        public SessionState State { get; set; }
+        private SessionState state = SessionState.Idle;
+        public SessionState State
+        {
+            get { return state; }
+            set
+            {
+                state = value;
+                StateChanged?.Invoke(this, new SessionStateChangedEventArgs(state));
+            }
+        }
 
         public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
 
@@ -28,24 +44,65 @@ namespace ACE.Network
 
         public Player Player { get; set; }
 
-        private DateTime logOffRequestTime;
-
-        private DateTime lastSaveTime;
-
-        private DateTime lastAgeIntUpdateTime;
-        private DateTime lastSendAgeIntUpdateTime;
-
-        // connection related
-        public IPEndPoint EndPoint { get; }
-
         public uint GameEventSequence { get; set; }
 
         public NetworkSession Network { get; set; }
 
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public event EventHandler<SessionStateChangedEventArgs> StateChanged;
+
+        public Session(NetworkSession networkSession)
         {
-            EndPoint = endPoint;
-            Network = new NetworkSession(this, clientId, serverId);
+            Network = networkSession;
+            Network.StateChanged += Network_StateChanged;
+            Network.ClientMessageReceived += Network_ClientMessageReceived;
+        }
+
+        private void Network_ClientMessageReceived(object sender, NetworkSession.ClientMessageReceivedEventArgs e)
+        {
+            InboundMessageManager.HandleClientMessage(e.Message, this);
+        }
+
+        private void Network_StateChanged(object sender, NetworkSession.NetworkSessionStateChangedEventArgs e)
+        {
+            log.DebugFormat("[{0}] Network State Changed to {1}", AccountName, e.NewState);
+            if (e.NewState == NetworkSessionState.Connecting)
+            {
+                State = SessionState.AuthConnecting;
+            }
+            else if (e.NewState == NetworkSessionState.Connected)
+            {
+                State = SessionState.AuthConnected;
+                NetworkConnected();
+            }
+            else if (e.NewState == NetworkSessionState.Disconnected)
+            {
+                NetworkDisconnected();
+                State = SessionState.Terminated;
+            }
+        }
+
+        private async void NetworkConnected()
+        {
+            log.DebugFormat("[{0}] Network Connected", AccountName);
+            var result = await DatabaseManager.Character.GetByAccount(AccountId);
+
+            UpdateCachedCharacters(result);
+
+            GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, AccountName);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
+
+            Network.EnqueueSend(characterListMessage, serverNameMessage, dddInterrogation);
+        }
+
+        private void NetworkDisconnected()
+        {
+            log.DebugFormat("[{0}] Network Disconnected", AccountName);
+            if (Player != null)
+            {
+                SaveSession();
+                Player.Logout(true);
+            }
         }
 
         public void InitSessionForWorldLogin()
@@ -62,8 +119,9 @@ namespace ACE.Network
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
         {
-            Id = accountId;
-            Account = account;
+            log.InfoFormat("Setting session account to {0} with name {1} and access {2}, network client id {3}", accountId, account, accountAccesslevel, Network.ClientId);
+            AccountId = accountId;
+            AccountName = account;
             AccessLevel = accountAccesslevel;
         }
 
@@ -134,62 +192,22 @@ namespace ACE.Network
             }
         }
 
-        public uint GetIssacValue(PacketDirection direction)
-        {
-            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
-        }
-
         public void SendCharacterError(CharacterError error)
         {
-            Network.EnqueueSend(new GameMessageCharacterError(error));
+            Network.SendCharacterError(error);
         }
 
-        private bool CheckState(ClientPacket packet)
+        public void Terminate(CharacterError error = CharacterError.Undefined)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == SessionState.AuthLoginRequest)
-                return false;
-
-            return true;
-        }
-
-        public void ProcessPacket(ClientPacket packet)
-        {
-            if (!CheckState(packet))
-            {
-                // server treats all packets sent during the first 30 seconds as invalid packets due to server crash, this will move clients to the disconnect screen
-                if (DateTime.UtcNow < WorldManager.WorldStartTime.AddSeconds(30d))
-                    SendCharacterError(CharacterError.ServerCrash);
-
-                return;
-            }
-
-            // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if (Network != null)
-                Network.ProcessPacket(packet);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse();
-        }
-
-        private void HandleDisconnectResponse()
-        {
-            if (Player != null)
-            {
-                SaveSession();
-                Player.Logout(true);
-            }
-
-            WorldManager.RemoveSession(this);
+            log.DebugFormat("[{0}] Terminating", AccountName);
+            State = SessionState.Terminating;
+            Network.Terminate(error);
+            State = SessionState.Terminated;
         }
 
         public void LogOffPlayer()
         {
+            log.DebugFormat("[{0}] Logging off", AccountName);
             SaveSession();
             Player.Logout();
             logOffRequestTime = DateTime.UtcNow;
@@ -199,9 +217,9 @@ namespace ACE.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            var result = await DatabaseManager.Character.GetByAccount(Id);
+            var result = await DatabaseManager.Character.GetByAccount(AccountId);
             UpdateCachedCharacters(result);
-            Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+            Network.EnqueueSend(new GameMessageCharacterList(result, AccountName));
 
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
             Network.EnqueueSend(serverNameMessage);
@@ -209,6 +227,16 @@ namespace ACE.Network
             State = SessionState.AuthConnected;
 
             Player = null;
+        }
+
+        public class SessionStateChangedEventArgs : EventArgs
+        {
+            public SessionState NewState { get; }
+
+            public SessionStateChangedEventArgs(SessionState newState)
+            {
+                NewState = newState;
+            }
         }
     }
 }

@@ -28,7 +28,7 @@ namespace ACE.Network.Handlers
             ObjectGuid guid = message.Payload.ReadGuid();
             string account = message.Payload.ReadString16L();
 
-            if (account != session.Account)
+            if (account != session.AccountName)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
@@ -62,7 +62,7 @@ namespace ACE.Network.Handlers
             string account = message.Payload.ReadString16L();
             uint characterSlot = message.Payload.ReadUInt32();
 
-            if (account != session.Account)
+            if (account != session.AccountName)
             {
                 session.SendCharacterError(CharacterError.Delete);
                 return;
@@ -81,9 +81,9 @@ namespace ACE.Network.Handlers
 
             DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
-            var result = await DatabaseManager.Character.GetByAccount(session.Id);
+            var result = await DatabaseManager.Character.GetByAccount(session.AccountId);
             session.UpdateCachedCharacters(result);
-            session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+            session.Network.EnqueueSend(new GameMessageCharacterList(result, session.AccountName));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
@@ -114,10 +114,10 @@ namespace ACE.Network.Handlers
             // 1. getting the "next" character id is not thread-safe
 
             string account = message.Payload.ReadString16L();
-            if (account != session.Account)
+            if (account != session.AccountName)
                 return;
 
-            Character character = Character.CreateFromClientFragment(message.Payload, session.Id);
+            Character character = Character.CreateFromClientFragment(message.Payload, session.AccountId);
 
             // TODO: profanity filter
             // sendCharacterCreateResponse(session, 4);
@@ -131,7 +131,7 @@ namespace ACE.Network.Handlers
 
             uint lowGuid = DatabaseManager.Character.GetMaxId();
             character.Id = lowGuid;
-            character.AccountId = session.Id;
+            character.AccountId = session.AccountId;
 
             if (!await DatabaseManager.Character.CreateCharacter(character))
             {

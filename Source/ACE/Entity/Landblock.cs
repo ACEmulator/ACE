@@ -86,8 +86,8 @@ namespace ACE.Entity
             var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             foreach (var c in creatures)
             {
-                Creature cwo = new Creature(c);
-                worldObjects.Add(cwo.Guid, cwo);
+                // Creature cwo = new Creature(c);
+                // worldObjects.Add(cwo.Guid, cwo);
             }
         }
 

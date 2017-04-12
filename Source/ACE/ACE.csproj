@@ -141,6 +141,7 @@
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\CombatMode.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
+    <Compile Include="Network\Enum\NetworkSessionState.cs" />
     <Compile Include="Network\Enum\PlayScript.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
@@ -270,14 +271,12 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageTurbineChat.cs" />
-    <Compile Include="Network\Handlers\AuthenticationHandler.cs" />
     <Compile Include="Network\Handlers\CharacterHandler.cs" />
     <Compile Include="Network\Handlers\DDDHandler.cs" />
     <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
     <Compile Include="Network\Handlers\TurbineChatHandler.cs" />
     <Compile Include="Network\Managers\InboundMessageManager.cs" />
     <Compile Include="Network\Extensions.cs" />
-    <Compile Include="Network\Managers\SocketManager.cs" />
     <Compile Include="Network\GameMessageGroup.cs" />
     <Compile Include="Network\Motion\GeneralMotion.cs" />
     <Compile Include="Network\Motion\MotionState.cs" />

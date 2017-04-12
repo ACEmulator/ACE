@@ -8,11 +8,14 @@ using log4net;
 
 namespace ACE.Network
 {
+    public delegate void PacketReceived(object sender, ClientPacket packet, IPEndPoint endpoint);
     public class ConnectionListener
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger("Packets");
         public Socket Socket { get; private set; }
+
+        public event PacketReceived PacketReceived;
 
         private IPEndPoint listenerEndpoint;
 
@@ -88,7 +91,7 @@ namespace ACE.Network
                 }
 
                 var packet = new ClientPacket(data);
-                WorldManager.ProcessPacket(packet, ipEndpoint);
+                PacketReceived?.Invoke(this, packet, ipEndpoint);
             }
             catch (SocketException socketException)
             {
