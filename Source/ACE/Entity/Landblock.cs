@@ -172,7 +172,18 @@ namespace ACE.Entity
             {
                 // send them the initial burst of objects
                 Log($"blasting player \"{(wo as Player).Name}\" with {allObjects.Count} objects.");
-                Parallel.ForEach(allObjects, (o) => (wo as Player).TrackObject(o));
+                Parallel.ForEach(allObjects, (o) =>
+                {
+                    if (o.Guid.IsCreature())
+                    {
+                        if ((o as Creature).IsAlive)
+                            (wo as Player).TrackObject(o);
+                    }
+                    else
+                    {
+                        (wo as Player).TrackObject(o);
+                    }
+                });
             }
         }
 
@@ -208,42 +219,6 @@ namespace ACE.Entity
             lock (objectCacheLocker)
             {
                 return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
-            }
-        }
-
-        /// <summary>
-        /// Handle the QueryHealth action between the source Object and its target
-        /// </summary>
-        public void HandleQueryHealth(Session source, ObjectGuid targetId)
-        {
-            if (targetId.IsPlayer())
-            {
-                Player pl = null;
-
-                lock (objectCacheLocker)
-                {
-                    if (this.worldObjects.ContainsKey(targetId))
-                        pl = (Player)this.worldObjects[targetId];
-                }
-                if (pl == null)
-                {
-                    // check adjacent landblocks for the targetId
-                    foreach (var block in adjacencies)
-                    {
-                        lock (block.Value.objectCacheLocker)
-                        {
-                            if (block.Value.worldObjects.ContainsKey(targetId))
-                                pl = (Player)this.worldObjects[targetId];
-                        }
-                    }
-                }
-                if (pl != null)
-                {
-                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
-
-                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
-                    source.Network.EnqueueSend(updateHealth);
-                }
             }
         }
 
@@ -469,9 +444,21 @@ namespace ACE.Entity
                     }
                 case GameActionType.QueryHealth:
                     {
+                        if (action.ObjectId == 0)
+                        {
+                            // Deselect the formerly selected Target
+                            player.SelectedTarget = 0;
+                            break;
+                        }
+
                         object target = null;
                         var targetId = new ObjectGuid(action.ObjectId);
 
+                        // Remember the selected Target
+                        player.SelectedTarget = action.ObjectId;
+
+                        // TODO: once items are implemented check if there are items that can trigger
+                        //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
                         if (targetId.IsPlayer() || targetId.IsCreature())
                         {
                             if (this.worldObjects.ContainsKey(targetId))
@@ -482,8 +469,9 @@ namespace ACE.Entity
                                 // check adjacent landblocks for the targetId
                                 foreach (var block in adjacencies)
                                 {
-                                    if (block.Value.worldObjects.ContainsKey(targetId))
-                                        target = this.worldObjects[targetId];                                    
+                                    if (block.Value != null)
+                                        if (block.Value.worldObjects.ContainsKey(targetId))
+                                            target = block.Value.worldObjects[targetId];
                                 }
                             }
                             if (target != null)

@@ -112,6 +112,7 @@
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
+    <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\LifestoneObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
@@ -200,6 +201,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelList.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventDeathNotice.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDisplayParameterizedStatusMessage.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitle.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDisplayStatusMessage.cs" />

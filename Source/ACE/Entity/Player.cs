@@ -42,6 +42,11 @@ namespace ACE.Entity
         public bool IsOnline { get; private set; }
 
         /// <summary>
+        /// ObjectId of the currently selected Target (only players and creatures)
+        /// </summary>
+        public uint SelectedTarget { get; set; }
+
+        /// <summary>
         /// Amount of times this character has left a portal this session
         /// </summary>
         public uint PortalIndex { get; set; } = 1u;

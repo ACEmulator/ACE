@@ -1,11 +1,17 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Factories;
+using ACE.Managers;
+using ACE.Network;
 using ACE.Network.Enum;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ACE.Entity
@@ -33,6 +39,11 @@ namespace ACE.Entity
         public CreatureAbility Stamina { get; set; }
 
         public CreatureAbility Mana { get; set; }
+
+        /// <summary>
+        /// This will be false when creature is dead and waits for respawn
+        /// </summary>
+        public bool IsAlive { get; set; }
 
         public Creature(AceCreatureStaticLocation aceC)
             : base((ObjectType)aceC.CreatureData.TypeId, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), aceC.CreatureData.Name, aceC.WeenieClassId,
@@ -115,6 +126,36 @@ namespace ACE.Entity
             abilities.Add(Enum.Ability.Mana, Mana);
 
             Abilities = new ReadOnlyDictionary<Enum.Ability, CreatureAbility>(abilities);
+
+            IsAlive = true;
+        }
+
+        public void Kill(Session session)
+        {
+            IsAlive = false;
+
+            // Send UpdateHealth Message with 0 Health - not sure if this is necessary according to live pcaps
+            var healthLossEvent = new GameEventUpdateHealth(session, Guid.Full, 0f);
+            session.Network.EnqueueSend(healthLossEvent);
+
+            // Create and send the death notice
+            string killMessage = $"{session.Player.Name} has killed {Name}.";
+            var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
+            session.Network.EnqueueSend(creatureDeathEvent);
+
+            // Death Animation
+            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(this, session, motion));
+
+            // TEST: Play Script depending on where the last hit was
+            var effectEvent = new GameMessageScript(Guid, Network.Enum.PlayScript.SplatterMidRightFront);
+            session.Network.EnqueueSend(effectEvent);
+
+            // TODO: Create Corpse and set text of killer
+            LandblockManager.AddObject(CorpseObjectFactory.CreateCorpse(this, this.Location));
+
+            // Remove Creature from Landblock this sends GameMessageRemoveObject
+            LandblockManager.RemoveObject(this);
         }
     }
 }
