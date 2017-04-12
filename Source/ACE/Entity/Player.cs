@@ -262,9 +262,15 @@ namespace ACE.Entity
             else
                 Teleport(Positions[PositionType.Location]);
 
-            // create and send the death event
+            // create and send the victim death event
             var yourDeathEvent = new GameEventYourDeath(Session);
+            
             Session.Network.EnqueueSend(yourDeathEvent);
+
+            // Message for broadcast
+            GameEventPlayerKilled yourDeathBroadcast = new GameEventPlayerKilled(Session);
+            QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, GameActionType.OutboundEventForOthers);
+            AddToActionQueue(newDeathBroadcast); // handled generically as outbound message
         }
 
         public async Task Load(Character preloadedCharacter = null)

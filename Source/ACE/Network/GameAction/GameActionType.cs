@@ -166,6 +166,11 @@
 
         MovementEvent = 0xF74C,
 
+        /// This is an internal ACE ONLY type to send an event out through the action queue: 
+
+        OutboundEvent = 0xF819, // TODO: possibly implement outbound event queue, also rename this to something more appropriate
+        OutboundEventForOthers = 0xF820, // TODO: This also needs to be renamed
+
         // Below are enums from the client that have not been introduced to ACE
         // TODO: Merge the names above with the names below, and add appropriate comments.
 

@@ -18,6 +18,7 @@
         DropTemp                            = 0x019A, // I need to look at the client and pull this out.   This is a place holder. Og II
 
         YourDeath                           = 0x01AC, // You have died, as a player.
+        PlayerKilled                         = 0x01AD, // Another Player has dead.
 
         UpdateHealth                        = 0x01C0,
         QueryAgeResponse                    = 0x01C3,
