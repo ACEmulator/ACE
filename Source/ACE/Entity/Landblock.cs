@@ -16,6 +16,7 @@ using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
+using ACE.Network.GameEvent;
 
 namespace ACE.Entity
 {
@@ -211,18 +212,6 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
-            Broadcast(args, true, Quadrant.All);
-        }
-
         public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
@@ -243,6 +232,12 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        public void HandleOutboundEvent(WorldObject sender, OutboundMessageArgs outboundEventArgs)
+        {
+                BroadcastEventArgs args = BroadcastEventArgs.OutboundMessageBroadcast(sender, outboundEventArgs);
+                Broadcast(args, true, Quadrant.All);
+        }
+
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
@@ -251,7 +246,7 @@ namespace ACE.Entity
             WorldObject wo = args.Sender;
             List<Player> players = null;
 
-            Log($"broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType}");
+            Log($"broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.BroadcastType}");
 
             lock (objectCacheLocker)
             {
@@ -261,7 +256,7 @@ namespace ACE.Entity
             // filter to applicable players
             players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
 
-            switch (args.ActionType)
+            switch (args.BroadcastType)
             {
                 case BroadcastAction.Delete:
                     {
@@ -283,19 +278,20 @@ namespace ACE.Entity
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
                         break;
                     }
-                case BroadcastAction.PlaySound:
-                    {
-                        Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
-                        break;
-                    }
-                case BroadcastAction.PlayParticleEffect:
-                    {
-                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
-                        break;
-                    }
                 case BroadcastAction.MovementEvent:
                     {
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
+                        break;
+                    }
+                case BroadcastAction.OutboundEvent:
+                    {
+                        Parallel.ForEach(players, p => p.SendOutboundMessage(args.OutboundMessage));
+                        break;
+                    }
+                case BroadcastAction.OutboundEventForOthersOnly:
+                    {
+                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
+                        Parallel.ForEach(players, p => p.SendOutboundMessage(args.OutboundMessage));
                         break;
                     }
             }
@@ -306,7 +302,7 @@ namespace ACE.Entity
 
             if (propogate)
             {
-                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
+                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.BroadcastType} to adjacencies");
 
                 if (wo.Location.PositionX < adjacencyLoadRange)
                 {
@@ -418,28 +414,32 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
-                case GameActionType.ApplyVisualEffect:
+                case GameActionType.OutboundEvent:
                     {
                         var g = new ObjectGuid(action.ObjectId);
+
                         WorldObject obj = (WorldObject)player;
+
                         if (worldObjects.ContainsKey(g))
                         {
                             obj = worldObjects[g];
                         }
-                        var particleEffect = (PlayScript)action.SecondaryObjectId;
-                        HandleParticleEffectEvent(obj, particleEffect);
+                        action.OutboundMessageArgs.BroadcastType = BroadcastAction.OutboundEvent;
+                        HandleOutboundEvent(obj, action.OutboundMessageArgs);
                         break;
                     }
-                case GameActionType.ApplySoundEffect:
+                case GameActionType.OutboundEventForOthers:
                     {
                         var g = new ObjectGuid(action.ObjectId);
+
                         WorldObject obj = (WorldObject)player;
+
                         if (worldObjects.ContainsKey(g))
                         {
                             obj = worldObjects[g];
                         }
-                        var soundEffect = (Sound)action.SecondaryObjectId;
-                        HandleSoundEvent(obj, soundEffect);
+                        action.OutboundMessageArgs.BroadcastType = BroadcastAction.OutboundEventForOthersOnly;
+                        HandleOutboundEvent(obj, action.OutboundMessageArgs);
                         break;
                     }
                 case GameActionType.MovementEvent:

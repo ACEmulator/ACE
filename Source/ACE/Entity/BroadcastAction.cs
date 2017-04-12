@@ -8,10 +8,10 @@
 
         LocalChat,
 
-        PlaySound,
+        MovementEvent,
 
-        PlayParticleEffect,
+        OutboundEvent,
 
-        MovementEvent
+        OutboundEventForOthersOnly
     }
 }

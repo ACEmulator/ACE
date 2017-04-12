@@ -1,11 +1,6 @@
-﻿using ACE.Entity.Enum;
-using ACE.Network.Enum;
+﻿using ACE.Network.Enum;
+using ACE.Network.GameMessages;
 using ACE.Network.Motion;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity.Events
 {
@@ -19,7 +14,7 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = actionType,
+                BroadcastType = actionType,
                 Sender = sender
             };
         }
@@ -28,29 +23,9 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.LocalChat,
+                BroadcastType = BroadcastAction.LocalChat,
                 Sender = sender,
                 ChatMessage = chatMessage
-            };
-        }
-
-        public static BroadcastEventArgs CreateSoundAction(WorldObject sender, Sound sound)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.PlaySound,
-                Sender = sender,
-                Sound = sound
-            };
-        }
-
-        public static BroadcastEventArgs CreateEffectAction(WorldObject sender, PlayScript effect)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.PlayParticleEffect,
-                Sender = sender,
-                Effect = effect
             };
         }
 
@@ -58,21 +33,29 @@ namespace ACE.Entity.Events
         {
             return new BroadcastEventArgs()
             {
-                ActionType = BroadcastAction.MovementEvent,
+                BroadcastType = BroadcastAction.MovementEvent,
                 Sender = sender,
                 Motion = motion,
             };
         }
 
-        public BroadcastAction ActionType { get; private set; }
+        public static BroadcastEventArgs OutboundMessageBroadcast(WorldObject sender, OutboundMessageArgs outboundMessageArgs)
+        {
+            return new BroadcastEventArgs()
+            {
+                BroadcastType = outboundMessageArgs.BroadcastType,
+                Sender = sender,
+                OutboundMessage = outboundMessageArgs.Message,
+            };
+        }
+
+        public GameMessage OutboundMessage { get; private set; }
+
+        public BroadcastAction BroadcastType { get; private set; }
 
         public WorldObject Sender { get; private set; }
 
         public ChatMessageArgs ChatMessage { get; private set; }
-
-        public Sound Sound { get;  private set; }
-
-        public PlayScript Effect { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
     }
