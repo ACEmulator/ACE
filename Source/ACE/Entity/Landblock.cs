@@ -488,64 +488,31 @@ namespace ACE.Entity
                                     aPlayer = (Player)worldObjects[playerId];
                                     inventoryItem = aPlayer.GetInventoryItem(inventoryId);
                                     aPlayer.RemoveFromInventory(inventoryId);
-                                }
-                                
-                                // We are droping the item - let's keep track of change in burden
+                                }                                
 
                                 if ((aPlayer != null) && (inventoryItem != null))
-                                { 
-                                    aPlayer.GameData.Burden -= inventoryItem.GameData.Burden;
-
-                                    // OK, now let's tell the world and our client what we have done.
+                                {                                  
                                     var targetContainer = new ObjectGuid(0);
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                             PropertyInt.EncumbVal,
                                             (uint)aPlayer.Session.Player.GameData.Burden));
+
                                     var motion = new GeneralMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = 24;
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion));
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion), new GameMessageUpdateInstanceId(inventoryId, targetContainer));
 
-                                    // Set Container id to 0 - you are free
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
-
-                                    motion = new GeneralMotion(MotionStance.Standing);
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion));
-
-                                    // Ok, we can do the last 3 steps together.   Not sure if it is better to break this stuff our for clarity
-                                    // Put the darn thing in 3d space
-                                    // Make the thud sound
-                                    // Send the container update again.   I have no idea why, but that is what they did in live.
-                                    aPlayer.Session.Network.EnqueueSend(
+                                    motion = new GeneralMotion(MotionStance.Standing);                                    
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
                                         new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
-                                    // Set the flags and determine a position.
-
-                                    // TODO: I need to look at the PCAPS to see the delta in position from the dropper and the item dropped.   Temp position.
+                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));                                                                    
                                     
-                                    inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                                                    | UpdatePositionFlag.Placement
-                                                                    | UpdatePositionFlag.ZeroQy
-                                                                    | UpdatePositionFlag.ZeroQx;
-                                    inventoryItem.PhysicsData.Position =
-                                        aPlayer.PhysicsData.Position.InFrontOf(0.50f);
-
-                                    // TODO: need to find out if these are needed or if there is a better way to do this. This probably should have been set at object creation Og II
-                                    inventoryItem.GameData.ContainerId = 0;
-                                    inventoryItem.GameData.Wielder = 0;
-
-                                    // Tell the landblock so it can tell everyone around what just hit the ground.
                                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.   
-                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);                                    
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-                                    LandblockManager.AddObject(inventoryItem);
-
-                                    // Let the client know our response.
-
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessageUpdatePosition(inventoryItem));                                    
+                                    LandblockManager.AddObject(inventoryItem);                                    
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));                                    
                                 }
                             }
                         }
@@ -637,7 +604,7 @@ namespace ACE.Entity
                             }
                         }
                         break;
-                    }
+                    }                    
             }
         }
 

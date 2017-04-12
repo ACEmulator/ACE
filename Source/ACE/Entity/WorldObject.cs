@@ -51,7 +51,7 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; set; } = UpdatePositionFlag.Contact;
+        public UpdatePositionFlag PositionFlag { get; protected set; } 
 
         public CombatMode CombatMode { get; private set; }
 
@@ -133,6 +133,16 @@ namespace ACE.Entity
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
+            var inventoryItem = GetInventoryItem(inventoryItemGuid);
+            GameData.Burden -= inventoryItem.GameData.Burden;
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                           | UpdatePositionFlag.Placement
+                                           | UpdatePositionFlag.ZeroQy
+                                           | UpdatePositionFlag.ZeroQx;
+            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(0.50f);
+            inventoryItem.GameData.ContainerId = 0;
+            inventoryItem.GameData.Wielder = 0;
+
             lock (inventoryMutex)
             {
                 if (!this.inventory.ContainsKey(inventoryItemGuid)) return;
