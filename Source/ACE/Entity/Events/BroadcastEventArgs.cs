@@ -1,13 +1,6 @@
-﻿using ACE.Entity.Enum;
-using ACE.Network.Enum;
-using ACE.Network.GameEvent;
+﻿using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.Motion;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity.Events
 {
@@ -36,26 +29,6 @@ namespace ACE.Entity.Events
             };
         }
 
-        public static BroadcastEventArgs CreateSoundAction(WorldObject sender, Sound sound)
-        {
-            return new BroadcastEventArgs()
-            {
-                BroadcastType = BroadcastAction.PlaySound,
-                Sender = sender,
-                Sound = sound
-            };
-        }
-
-        public static BroadcastEventArgs CreateEffectAction(WorldObject sender, PlayScript effect)
-        {
-            return new BroadcastEventArgs()
-            {
-                BroadcastType = BroadcastAction.PlayParticleEffect,
-                Sender = sender,
-                Effect = effect
-            };
-        }
-
         public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion)
         {
             return new BroadcastEventArgs()
@@ -66,7 +39,7 @@ namespace ACE.Entity.Events
             };
         }
 
-        public static BroadcastEventArgs ActionEventBroadcast(WorldObject sender, OutboundEventArgs outboundEvent)
+        public static BroadcastEventArgs ActionEventBroadcast(WorldObject sender, OutboundMessageArgs outboundEvent)
         {
             return new BroadcastEventArgs()
             {
@@ -83,10 +56,6 @@ namespace ACE.Entity.Events
         public WorldObject Sender { get; private set; }
 
         public ChatMessageArgs ChatMessage { get; private set; }
-
-        public Sound Sound { get;  private set; }
-
-        public PlayScript Effect { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
     }

@@ -265,7 +265,6 @@ namespace ACE.Entity
 
             // create and send the victim death event
             var yourDeathEvent = new GameEventYourDeath(Session);
-            
             Session.Network.EnqueueSend(yourDeathEvent);
 
             // Message for broadcast
@@ -273,11 +272,6 @@ namespace ACE.Entity
             QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, GameActionType.OutboundEventForOthers);
             // or  QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, false); // limit message to prevent sender with false
             AddToActionQueue(newDeathBroadcast); // handled generically as outbound message
-        }
-
-        public void SendOutboundEvent(GameEventMessage outboundMessage)
-        {
-            Session.Network.EnqueueSend(outboundMessage);
         }
 
         public void SendOutboundMessage(GameMessage outboundMessage)
@@ -679,7 +673,7 @@ namespace ACE.Entity
         public void ActionApplyVisualEffect(PlayScript effectId, ObjectGuid objectId)
         {
             GameMessageScript effect = new GameMessageScript(objectId, effectId, 1.0f);
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, effect, GameActionType.ApplyVisualEffect);
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, effect, GameActionType.OutboundEvent);
             AddToActionQueue(action);
         }
 

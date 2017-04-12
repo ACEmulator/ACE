@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Events;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent;
 using ACE.Network.GameMessages;
@@ -40,49 +41,18 @@ namespace ACE.Network.GameAction
         public QueuedGameAction(uint objectId, GameMessage message, GameActionType actionType)
         {
             this.ObjectId = objectId;
-            this.ActionMessage = message;
             this.ActionType = actionType;
+            this.OutboundMessageArgs = new OutboundMessageArgs();
+            this.OutboundMessageArgs.Message = message;
         }
 
-        /// <summary>
-        /// This is a proof of concept to show that we may need a seporate queue for outbound events, if we do not combind the event types,
-        /// Like I have done with the GameActionType of `OutboundEvent` and `OutboundEventForOthers`
-        /// </summary>
-        public QueuedGameAction(uint objectId, GameEventMessage message, GameActionType actionType)
-        {
-            this.ObjectId = objectId;
-            this.ActionEventMessage = message;
-            this.ActionType = actionType;
-        }
-
-        // /// <summary>
-        // /// Queued Game Message example
-        // /// </summary>
-        // /// <param name="sendToAll">false will limit broadcast to source sender, true will send the message to all</param>
-        // public QueuedGameAction(uint objectId, GameEventMessage message, bool sendToAll)
-        // {
-        //    this.ObjectId = objectId;
-        //    this.ActionEventMessage = message;
-        //    if (sendToAll)
-        //    {
-        //        this.ActionType = GameActionType.OutboundEvent;
-        //    } else
-        //    {
-        //        this.ActionType = GameActionType.OutboundEventForOthers;
-        //    }
-        // }
-
-        public GameEventMessage ActionEventMessage { get; set; }
-
-        public GameMessage ActionMessage { get; set; }
+        public OutboundMessageArgs OutboundMessageArgs { get; set; }
 
         public uint ObjectId { get; private set; }
 
         public uint SecondaryObjectId { get; private set; }
 
         public GameActionType ActionType { get; private set; }
-
-        public BroadcastAction BroadcastType { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
     }

@@ -25,8 +25,6 @@ namespace ACE.Network.Sequence
         PrivateUpdatePropertyString,
         PrivateUpdatePropertyBool,
         PrivateUpdatePropertyDouble,
-        Motion,
-        YourDeath,
-        DeathMessages
+        Motion
     }
 }

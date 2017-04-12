@@ -212,18 +212,6 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
-            Broadcast(args, true, Quadrant.All);
-        }
-
         public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
@@ -244,7 +232,7 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        public void HandleOutboundEvent(WorldObject sender, OutboundEventArgs outboundEventArgs)
+        public void HandleOutboundEvent(WorldObject sender, OutboundMessageArgs outboundEventArgs)
         {
                 BroadcastEventArgs args = BroadcastEventArgs.ActionEventBroadcast(sender, outboundEventArgs);
                 Broadcast(args, true, Quadrant.All);
@@ -290,16 +278,6 @@ namespace ACE.Entity
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
                         break;
                     }
-                case BroadcastAction.PlaySound:
-                    {
-                        Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
-                        break;
-                    }
-                case BroadcastAction.PlayParticleEffect:
-                    {
-                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
-                        break;
-                    }
                 case BroadcastAction.MovementEvent:
                     {
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
@@ -310,7 +288,7 @@ namespace ACE.Entity
                         Parallel.ForEach(players, p => p.SendOutboundMessage(args.OutboundMessage));
                         break;
                     }
-                case BroadcastAction.OutboundEventForOthers:
+                case BroadcastAction.OutboundEventForOthersOnly:
                     {
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
                         Parallel.ForEach(players, p => p.SendOutboundMessage(args.OutboundMessage));
@@ -446,12 +424,8 @@ namespace ACE.Entity
                         {
                             obj = worldObjects[g];
                         }
-
-                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
-                        outboundEventArgs.Message = action.ActionEventMessage;
-                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEvent;
-
-                        HandleOutboundEvent(obj, outboundEventArgs);
+                        action.OutboundMessageArgs.BroadcastType = BroadcastAction.OutboundEvent;
+                        HandleOutboundEvent(obj, action.OutboundMessageArgs);
                         break;
                     }
                 case GameActionType.OutboundEventForOthers:
@@ -464,48 +438,8 @@ namespace ACE.Entity
                         {
                             obj = worldObjects[g];
                         }
-
-                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
-                        outboundEventArgs.Message = action.ActionMessage;
-                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEventForOthers;
-
-                        HandleOutboundEvent(obj, outboundEventArgs);
-                        break;
-                    }
-                case GameActionType.ApplyVisualEffect:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        // var particleEffect = (PlayScript)action.SecondaryObjectId;
-
-                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
-                        outboundEventArgs.Message = action.ActionMessage;
-                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEvent;
-
-                        HandleOutboundEvent(obj, outboundEventArgs);
-                        // HandleParticleEffectEvent(obj, particleEffect);
-                        break;
-                    }
-                case GameActionType.ApplySoundEffect:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-
-                        var soundEffect = (Sound)action.SecondaryObjectId;
-                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
-                        outboundEventArgs.Message = action.ActionEventMessage;
-                        outboundEventArgs.BroadcastType = BroadcastAction.OutboundEvent;
-
-                        HandleOutboundEvent(obj, outboundEventArgs);
-                        // HandleSoundEvent(obj, soundEffect);
+                        action.OutboundMessageArgs.BroadcastType = BroadcastAction.OutboundEventForOthersOnly;
+                        HandleOutboundEvent(obj, action.OutboundMessageArgs);
                         break;
                     }
                 case GameActionType.MovementEvent:
