@@ -164,6 +164,8 @@
         ApplyVisualEffect = 0xF755,
         JumpNonAutonomous = 0xF7C9,
 
+        MovementEvent = 0xF74C,
+
         // Below are enums from the client that have not been introduced to ACE
         // TODO: Merge the names above with the names below, and add appropriate comments.
 

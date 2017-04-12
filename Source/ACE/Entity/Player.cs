@@ -746,6 +746,17 @@ namespace ACE.Entity
             AddToActionQueue(action);
         }
 
+        public void EnqueueMovementEvent(GeneralMotion motion, ObjectGuid objectId)
+        {
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
+            AddToActionQueue(action);
+        }
+
+        public void SendMovementEvent(GeneralMotion motion, WorldObject sender)
+        {
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
+        }
+
         // Play a sound
         public void PlaySound(Sound sound, ObjectGuid targetId)
         {
