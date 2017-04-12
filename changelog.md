@@ -2,6 +2,7 @@
 
 ### 2017-04-10
 [Ripley]
+* Added MovementEvent Action Queue
 * Changed GetNextSequence back to GetCurrentSequence for SequenceType.ObjectInstance
 * Animations work again!
 

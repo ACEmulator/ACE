@@ -10,6 +10,8 @@
 
         PlaySound,
 
-        PlayParticleEffect
+        PlayParticleEffect,
+
+        MovementEvent
     }
 }
