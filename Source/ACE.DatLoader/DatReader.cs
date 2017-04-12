@@ -6,7 +6,7 @@ namespace ACE.DatLoader
     public class DatReader
     {
         public int Offset { get; set; }
-        public byte[] buffer { get; private set; }
+        public byte[] Buffer { get; private set; }
 
         public DatReader(string datFilePath, uint offset, uint size, uint sectorSize)
         {
@@ -14,7 +14,7 @@ namespace ACE.DatLoader
             FileStream stream = new FileStream(datFilePath, FileMode.Open, FileAccess.Read);
             using (stream)
             {
-                this.buffer = new byte[size];
+                this.Buffer = new byte[size];
                 stream.Seek(offset, SeekOrigin.Begin);
                 // Dat "file" is broken up into sectors that are not neccessarily congruous. Next address is stored in first four bytes of each sector.
                 if (size > sectorSize)
@@ -25,12 +25,12 @@ namespace ACE.DatLoader
                 {
                     if (size < sectorSize)
                     {
-                        stream.Read(buffer, bufferOffset, Convert.ToInt32(size));
+                        stream.Read(Buffer, bufferOffset, Convert.ToInt32(size));
                         size = 0; // We know we've read the only/last sector, so just set this to zero to proceed.
                     }
                     else
                     {
-                        stream.Read(buffer, bufferOffset, Convert.ToInt32(sectorSize) - 4); // Read in our sector into the buffer[]
+                        stream.Read(Buffer, bufferOffset, Convert.ToInt32(sectorSize) - 4); // Read in our sector into the buffer[]
                         bufferOffset += Convert.ToInt32(sectorSize) - 4; // Adjust this so we know where in our buffer[] the next sector gets appended to
                         stream.Seek(nextAddress, SeekOrigin.Begin); // Move the file pointer to the start of the next sector we read above.
                         nextAddress = GetNextAddress(stream, 0); // Get the start location of the next sector.
@@ -53,42 +53,42 @@ namespace ACE.DatLoader
 
         public uint ReadUInt32()
         {
-            uint data = BitConverter.ToUInt32(buffer, Offset);
+            uint data = BitConverter.ToUInt32(Buffer, Offset);
             Offset += 4;
             return data;
         }
 
         public int ReadInt32()
         {
-            int data = BitConverter.ToInt32(buffer, Offset);
+            int data = BitConverter.ToInt32(Buffer, Offset);
             Offset += 4;
             return data;
         }
 
         public ushort ReadUInt16()
         {
-            ushort data = BitConverter.ToUInt16(buffer, Offset);
+            ushort data = BitConverter.ToUInt16(Buffer, Offset);
             Offset += 2;
             return data;
         }
 
         public short ReadInt16()
         {
-            short data = BitConverter.ToInt16(buffer, Offset);
+            short data = BitConverter.ToInt16(Buffer, Offset);
             Offset += 2;
             return data;
         }
 
         public byte ReadByte()
         {
-            byte data = buffer[Offset];
+            byte data = Buffer[Offset];
             Offset += 1;
             return data;
         }
 
         public float ReadSingle()
         {
-            float data = BitConverter.ToSingle(buffer, Offset);
+            float data = BitConverter.ToSingle(Buffer, Offset);
             Offset += 4;
             return data;
         }
@@ -98,7 +98,7 @@ namespace ACE.DatLoader
             // Returns a string as defined by the first byte's length.
             int stringlength = this.ReadByte();
             byte[] thestring = new byte[stringlength];
-            Array.Copy(buffer, Offset, thestring, 0, stringlength);
+            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
             return System.Text.Encoding.ASCII.GetString(thestring);
         }
@@ -106,7 +106,7 @@ namespace ACE.DatLoader
         public string ReadString(int stringlength)
         {
             byte[] thestring = new byte[stringlength];
-            Array.Copy(buffer, Offset, thestring, 0, stringlength);
+            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
             return System.Text.Encoding.ASCII.GetString(thestring);
         }

@@ -35,7 +35,7 @@ namespace ACE.DatLoader
                 // Use the DatReader to get the file data
                 DatReader dr = this.GetReaderForFile(entry.Value.ObjectId);
                    
-                File.WriteAllBytes(thisFile, dr.buffer);
+                File.WriteAllBytes(thisFile, dr.Buffer);
             }
         }
     }

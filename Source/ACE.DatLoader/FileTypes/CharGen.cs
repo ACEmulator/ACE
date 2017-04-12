@@ -24,7 +24,7 @@ namespace ACE.DatLoader.FileTypes
                 cg.Did = datReader.ReadInt32();
                 datReader.Offset = 8;
 
-                /* STARTER AREA */
+                /// STARTER AREAS. There are 5 dungeons per starting city, and one landscape span for Olthoi.
                 int numStarterAreas = datReader.ReadByte();
                 for (int i = 0; i < numStarterAreas; i++)
                 {
@@ -41,7 +41,7 @@ namespace ACE.DatLoader.FileTypes
                     cg.StarterAreas.Add(starterAreas);
                 }
 
-                /* HERITAGE GROUPS */
+                /// HERITAGE GROUPS -- 11 standard player races and 2 Olthoi.
                 datReader.Offset++; // Not sure what this byte 0x01 is indicating, but we'll skip it because we can.
                 int heritageGroupCount = datReader.ReadByte();
                 for (int i = 0; i < heritageGroupCount; i++)
