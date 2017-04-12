@@ -349,7 +349,7 @@ namespace ACE.Entity
                 // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
                 // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-                int hairPalIndex = Convert.ToInt32(Math.Floor((hairPalSet.PaletteList.Count - 1) * character.Appearance.HairHue)); // Index is 0-based.
+                int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
                 // Since the hue numbers are a little odd, make sure we're in the bounds.
                 if (hairPalIndex < 0)
                     hairPalIndex = 0;
@@ -360,15 +360,14 @@ namespace ACE.Entity
 
                 // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
-                int skinPalIndex = Convert.ToInt32(Math.Floor((skinPalSet.PaletteList.Count - 1) * character.Appearance.SkinHue)); // Index is 0-based.
+                int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
                 // Since the hue numbers are a little odd, make sure we're in the bounds.
                 if (skinPalIndex < 0)
                     skinPalIndex = 0;
                 if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
                     skinPalIndex = skinPalSet.PaletteList.Count - 1;
                 ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-
-                // Apply the skinPal to every model piece.
+                // Apply the skin palette...
                 ModelData.AddPalette(skinPal, 0x0, 0x18);
             }
 
