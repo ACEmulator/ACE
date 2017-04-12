@@ -12,6 +12,10 @@
 
         PlayParticleEffect,
 
-        MovementEvent
+        MovementEvent,
+
+        OutboundEvent,
+
+        OutboundEventForOthers
     }
 }

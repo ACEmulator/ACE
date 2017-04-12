@@ -1,5 +1,6 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.Network.GameEvent;
 using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
@@ -63,6 +64,18 @@ namespace ACE.Entity.Events
                 Motion = motion,
             };
         }
+
+        public static BroadcastEventArgs ActionEventBroadcast(WorldObject sender, OutboundEventArgs outboundEvent)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = outboundEvent.ActionType,
+                Sender = sender,
+                OutboundEventMessage = outboundEvent.EventMessage,
+            };
+        }
+
+        public GameEventMessage OutboundEventMessage { get; private set; }
 
         public BroadcastAction ActionType { get; private set; }
 

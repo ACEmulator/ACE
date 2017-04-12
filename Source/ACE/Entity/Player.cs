@@ -22,6 +22,7 @@ using System.Collections.Concurrent;
 using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
+using ACE.Network.GameEvent;
 
 namespace ACE.Entity
 {
@@ -270,7 +271,13 @@ namespace ACE.Entity
             // Message for broadcast
             GameEventPlayerKilled yourDeathBroadcast = new GameEventPlayerKilled(Session);
             QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, GameActionType.OutboundEventForOthers);
+            // or  QueuedGameAction newDeathBroadcast = new QueuedGameAction(Guid.Full, yourDeathBroadcast, false); // limit message to prevent sender with false
             AddToActionQueue(newDeathBroadcast); // handled generically as outbound message
+        }
+
+        public void SendOutboundEvent(GameEventMessage outboundMessage)
+        {
+            Session.Network.EnqueueSend(outboundMessage);
         }
 
         public async Task Load(Character preloadedCharacter = null)

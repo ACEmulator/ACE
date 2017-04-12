@@ -16,6 +16,7 @@ using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
+using ACE.Network.GameEvent;
 
 namespace ACE.Entity
 {
@@ -243,6 +244,12 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        public void HandleOutboundEvent(WorldObject sender, OutboundEventArgs outboundEventArgs)
+        {
+                BroadcastEventArgs args = BroadcastEventArgs.ActionEventBroadcast(sender, outboundEventArgs);
+                Broadcast(args, true, Quadrant.All);
+        }
+
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
@@ -296,6 +303,17 @@ namespace ACE.Entity
                 case BroadcastAction.MovementEvent:
                     {
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
+                        break;
+                    }
+                case BroadcastAction.OutboundEvent:
+                    {
+                        Parallel.ForEach(players, p => p.SendOutboundEvent(args.OutboundEventMessage));
+                        break;
+                    }
+                case BroadcastAction.OutboundEventForOthers:
+                    {
+                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
+                        Parallel.ForEach(players, p => p.SendOutboundEvent(args.OutboundEventMessage));
                         break;
                     }
             }
@@ -418,6 +436,41 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.OutboundEvent:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+
+                        WorldObject obj = (WorldObject)player;
+
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+
+                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
+                        outboundEventArgs.EventMessage = action.ActionEvent;
+                        outboundEventArgs.ActionType = BroadcastAction.OutboundEvent;
+
+                        HandleOutboundEvent(obj, outboundEventArgs);
+                        break;
+                    }
+                case GameActionType.OutboundEventForOthers:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+
+                        WorldObject obj = (WorldObject)player;
+
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+
+                        OutboundEventArgs outboundEventArgs = new OutboundEventArgs();
+                        outboundEventArgs.EventMessage = action.ActionEvent;
+                        outboundEventArgs.ActionType = BroadcastAction.OutboundEventForOthers;
+                        HandleOutboundEvent(obj, outboundEventArgs);
+                        break;
+                    }
                 case GameActionType.ApplyVisualEffect:
                     {
                         var g = new ObjectGuid(action.ObjectId);
