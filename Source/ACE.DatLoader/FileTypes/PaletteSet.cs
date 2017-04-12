@@ -3,16 +3,17 @@ using System.IO;
 using System.Collections.Generic;
 namespace ACE.DatLoader.Entity
 {
-    /* These are client_portal.dat files starting with 0x24------ */
+    /// <summary>
+    /// These are client_portal.dat files starting with 0x0F. 
+    /// They contain, as the name may imply, a set of palettes (0x04 files)
+    /// </summary>
     public class PaletteSet
     {
         public uint PaletteSetId { get; set; }
         public List<uint> PaletteList { get; set; } = new List<uint>();
 
-        public static PaletteSet ReadFromDat(string datFilePath, uint offset, uint size, uint sectorSize)
+        public static PaletteSet ReadFromDat(DatReader datReader)
         {
-            DatReader datReader = new DatReader(datFilePath, offset, size, sectorSize);
-
             PaletteSet p = new PaletteSet();
             p.PaletteSetId = datReader.ReadUInt32();
 

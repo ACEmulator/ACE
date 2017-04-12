@@ -6,7 +6,7 @@ namespace ACE.DatLoader
     public class DatReader
     {
         public int Offset { get; set; }
-        private byte[] buffer;
+        public byte[] buffer { get; private set; }
 
         public DatReader(string datFilePath, uint offset, uint size, uint sectorSize)
         {
@@ -16,7 +16,7 @@ namespace ACE.DatLoader
             {
                 this.buffer = new byte[size];
                 stream.Seek(offset, SeekOrigin.Begin);
-
+                // Dat "file" is broken up into sectors that are not neccessarily congruous. Next address is stored in first four bytes of each sector.
                 if (size > sectorSize)
                     nextAddress = this.GetNextAddress(stream, -4);
 
@@ -26,16 +26,15 @@ namespace ACE.DatLoader
                     if (size < sectorSize)
                     {
                         stream.Read(buffer, bufferOffset, Convert.ToInt32(size));
-                        size = 0;
+                        size = 0; // We know we've read the only/last sector, so just set this to zero to proceed.
                     }
                     else
                     {
-                        stream.Read(buffer, bufferOffset, Convert.ToInt32(sectorSize) - 4);
-                        bufferOffset += Convert.ToInt32(sectorSize) - 4;
-                        offset += sectorSize - 4;
-                        stream.Seek(nextAddress, SeekOrigin.Begin);
-                        nextAddress = GetNextAddress(stream, 0);
-                        size -= (sectorSize + 4);
+                        stream.Read(buffer, bufferOffset, Convert.ToInt32(sectorSize) - 4); // Read in our sector into the buffer[]
+                        bufferOffset += Convert.ToInt32(sectorSize) - 4; // Adjust this so we know where in our buffer[] the next sector gets appended to
+                        stream.Seek(nextAddress, SeekOrigin.Begin); // Move the file pointer to the start of the next sector we read above.
+                        nextAddress = GetNextAddress(stream, 0); // Get the start location of the next sector.
+                        size -= (sectorSize - 4); // Decrease this by the amount of data we just read into buffer[] so we know how much more to go
                     }
                 }
                 stream.Close();
@@ -44,6 +43,7 @@ namespace ACE.DatLoader
 
         private uint GetNextAddress(FileStream stream, int relOffset)
         {
+            // The location of the start of the next sector is the first four bytes of the current sector. This should be 0x00000000 if no next sector.
             byte[] nextAddressBytes = new byte[4];
             if (relOffset != 0)
                 stream.Seek(relOffset, SeekOrigin.Current); // To be used to back up 4 bytes from the origin at the start
@@ -95,6 +95,7 @@ namespace ACE.DatLoader
 
         public string ReadPString()
         {
+            // Returns a string as defined by the first byte's length.
             int stringlength = this.ReadByte();
             byte[] thestring = new byte[stringlength];
             Array.Copy(buffer, Offset, thestring, 0, stringlength);
@@ -112,6 +113,7 @@ namespace ACE.DatLoader
 
         public void AlignBoundary()
         {
+            // Aligns the DatReader to the next DWORD boundary.
             long alignDelta = Offset % 4;
             if (alignDelta != 0)
             {

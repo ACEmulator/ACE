@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using log4net;
 
 namespace ACE.DatLoader
 {
     public class DatDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public DatDirectory RootDirectory { get; private set; }
 
         public Dictionary<uint, DatFile> AllFiles { get; private set; }
@@ -43,6 +46,20 @@ namespace ACE.DatLoader
 
             AllFiles = new Dictionary<uint, DatFile>();
             RootDirectory.AddFilesToList(AllFiles);
+        }
+
+        public DatReader GetReaderForFile(uint object_id)
+        {
+            if (AllFiles.ContainsKey(object_id))
+            {
+                DatReader dr = new DatReader(FilePath, AllFiles[object_id].FileOffset, AllFiles[object_id].FileSize, SectorSize);
+                return dr;                    
+            }
+            else
+            {
+                log.InfoFormat("Unable to find object_id {0} in {1}", object_id.ToString(), Enum.GetName(typeof(DatDatabaseType), DatType));
+                return null;
+            }
         }
     }
 }

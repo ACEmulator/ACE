@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACE.DatLoader.Entity
 {
+    // TODO: refactor to use existing PaletteOverride object
     public class SubPalette
     {
         public uint SubID { get; set; }

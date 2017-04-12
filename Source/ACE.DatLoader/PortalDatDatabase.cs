@@ -15,33 +15,27 @@ namespace ACE.DatLoader
 
         public void ExtractCategorizedContents(string path)
         {
-            // string thisFolder = null;
+            string thisFolder = null;
 
-            using (FileStream stream = new FileStream(this.FilePath, FileMode.Open))
+            foreach (KeyValuePair<uint, DatFile> entry in this.AllFiles)
             {
-                // TODO - Make this function with the Dictionary and DatReader
-                /*
-                foreach (var file in this.AllFiles)
+                if (entry.Value.GetFileType() != null)
+                    thisFolder = Path.Combine(path, entry.Value.GetFileType().ToString());
+                else
+                    thisFolder = Path.Combine(path, "UnknownType");
+
+                if (!Directory.Exists(thisFolder))
                 {
-                    if (file.GetFileType() != null)
-                        thisFolder = Path.Combine(path, file.GetFileType().ToString());
-                    else
-                        thisFolder = Path.Combine(path, "UnknownType");
-
-                    if (!Directory.Exists(thisFolder))
-                    {
-                        Directory.CreateDirectory(thisFolder);
-                    }
-
-                    byte[] buffer = new byte[file.FileSize];
-                    stream.Seek(file.FileOffset, SeekOrigin.Begin);
-                    stream.Read(buffer, 0, buffer.Length);
-
-                    string hex = file.ObjectId.ToString("X8");
-                    string thisFile = Path.Combine(thisFolder, hex + ".bin");
-                    File.WriteAllBytes(thisFile, buffer);
+                    Directory.CreateDirectory(thisFolder);
                 }
-                */
+
+                string hex = entry.Value.ObjectId.ToString("X8");
+                string thisFile = Path.Combine(thisFolder, hex + ".bin");
+
+                // Use the DatReader to get the file data
+                DatReader dr = this.GetReaderForFile(entry.Value.ObjectId);
+                   
+                File.WriteAllBytes(thisFile, dr.buffer);
             }
         }
     }

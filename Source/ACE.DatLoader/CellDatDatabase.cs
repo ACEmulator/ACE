@@ -13,29 +13,27 @@ namespace ACE.DatLoader
         {
         }
 
+        // TODO: Figure out of these require the DatReader or not
         public void ExtractLandblockContents(string path)
         {
             using (FileStream stream = new FileStream(this.FilePath, FileMode.Open))
             {
-                foreach (var file in this.AllFiles)
+                foreach (KeyValuePair<uint, DatFile> entry in this.AllFiles)
                 {
-                    // TODO - Make this function with the Dictionary and DatReader
-                    /*
-                    string thisFolder = Path.Combine(path, (file.ObjectId >> 16).ToString("X4"));
+                    string thisFolder = Path.Combine(path, (entry.Value.ObjectId >> 16).ToString("X4"));
 
                     if (!Directory.Exists(thisFolder))
                     {
                         Directory.CreateDirectory(thisFolder);
                     }
 
-                    byte[] buffer = new byte[file.FileSize];
-                    stream.Seek(file.FileOffset, SeekOrigin.Begin);
+                    byte[] buffer = new byte[entry.Value.FileSize];
+                    stream.Seek(entry.Value.FileOffset, SeekOrigin.Begin);
                     stream.Read(buffer, 0, buffer.Length);
 
-                    string hex = file.ObjectId.ToString("X8");
+                    string hex = entry.Value.ObjectId.ToString("X8");
                     string thisFile = Path.Combine(thisFolder, hex + ".bin");
                     File.WriteAllBytes(thisFile, buffer);
-                    */
                 }
             }
         }

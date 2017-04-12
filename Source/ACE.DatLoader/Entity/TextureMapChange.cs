@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACE.DatLoader.Entity
 {
+    // TODO: refactor to merge with existing TextureMapOverride object
     public class TextureMapChange
     {
         public byte PartIndex { get; set; }

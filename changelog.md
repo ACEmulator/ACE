@@ -1,11 +1,12 @@
 # ACEmulator Change Log
 
-### 2017-04-10
+### 2017-04-11
 [OptimShi]
 * Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)
 * Added a DatReader class for reading from the a Dat file. Only confirmed for client_portal.dat.
 * Added some preliminary client_portal classes (CharGen, SetupModel, PaletteSet)
-* Loads correct player gender, setup, motion, physics and textures.
+* Loads correct player data from Character Creation.
+* Converted PortalDat.ExtractCategorizedContents to use DatReader for better export of raw files
 
 ### 2017-04-09
 [Ripley]

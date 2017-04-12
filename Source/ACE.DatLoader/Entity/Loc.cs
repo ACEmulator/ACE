@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACE.DatLoader.Entity
 {
+    // TODO: refactor to use existing Position object
     public class Loc
     {
         public int Cell;

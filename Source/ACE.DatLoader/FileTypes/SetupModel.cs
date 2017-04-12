@@ -6,7 +6,10 @@ using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    /* These are client_portal.dat files starting with 0x02------ */
+    /// <summary>
+    /// These are client_portal.dat files starting with 0x02. 
+    /// They are basically 3D model descriptions.
+    /// </summary>
     public class SetupModel
     {
         public uint ModelId { get; set; }
@@ -32,10 +35,8 @@ namespace ACE.DatLoader.Entity
         public uint DefaultSoundTable { get; set; }
         public uint DefaultScriptTable { get; set; }
 
-        public static SetupModel ReadFromDat(string datFilePath, uint offset, uint size, uint sectorSize)
+        public static SetupModel ReadFromDat(DatReader datReader)
         {
-            DatReader datReader = new DatReader(datFilePath, offset, size, sectorSize);
-
             SetupModel m = new SetupModel();
             m.ModelId = datReader.ReadUInt32();
 
