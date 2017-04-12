@@ -161,7 +161,7 @@ namespace ACE.Entity
             writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectServerControl));
             writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
             writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
-            writer.Write(sequences.GetNextSequence(SequenceType.ObjectInstance));
+            writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectInstance));
 
             writer.Align();
         }

@@ -8,6 +8,11 @@
 * Loads correct player data from Character Creation.
 * Converted PortalDat.ExtractCategorizedContents to use DatReader for better export of raw files
 
+### 2017-04-10
+[Ripley]
+* Changed GetNextSequence back to GetCurrentSequence for SequenceType.ObjectInstance
+* Animations work again!
+
 ### 2017-04-09
 [Ripley]
 * Changed Position.Serialize to fix rotation issue #222
@@ -180,4 +185,3 @@
 ### 2017-03-25
 [Mogwai]
 * weenies weenies everywhere. object structure pass 1
-
