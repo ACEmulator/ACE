@@ -5,6 +5,9 @@
 * Changed GetNextSequence back to GetCurrentSequence for SequenceType.ObjectInstance
 * Animations work again!
 
+[Lidefeath]
+* Fix GameActionType.QueryHealth to work across landblocks
+
 ### 2017-04-09
 [Ripley]
 * Changed Position.Serialize to fix rotation issue #222

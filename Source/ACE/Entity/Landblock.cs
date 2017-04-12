@@ -211,42 +211,6 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary>
-        /// Handle the QueryHealth action between the source Object and its target
-        /// </summary>
-        public void HandleQueryHealth(Session source, ObjectGuid targetId)
-        {
-            if (targetId.IsPlayer())
-            {
-                Player pl = null;
-
-                lock (objectCacheLocker)
-                {
-                    if (this.worldObjects.ContainsKey(targetId))
-                        pl = (Player)this.worldObjects[targetId];
-                }
-                if (pl == null)
-                {
-                    // check adjacent landblocks for the targetId
-                    foreach (var block in adjacencies)
-                    {
-                        lock (block.Value.objectCacheLocker)
-                        {
-                            if (block.Value.worldObjects.ContainsKey(targetId))
-                                pl = (Player)this.worldObjects[targetId];
-                        }
-                    }
-                }
-                if (pl != null)
-                {
-                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
-
-                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
-                    source.Network.EnqueueSend(updateHealth);
-                }
-            }
-        }
-
         public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
@@ -482,8 +446,9 @@ namespace ACE.Entity
                                 // check adjacent landblocks for the targetId
                                 foreach (var block in adjacencies)
                                 {
-                                    if (block.Value.worldObjects.ContainsKey(targetId))
-                                        target = this.worldObjects[targetId];                                    
+                                    if (block.Value != null)
+                                        if (block.Value.worldObjects.ContainsKey(targetId))
+                                            target = block.Value.worldObjects[targetId];
                                 }
                             }
                             if (target != null)
