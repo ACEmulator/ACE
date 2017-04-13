@@ -234,6 +234,12 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -296,6 +302,11 @@ namespace ACE.Entity
                 case BroadcastAction.PlayParticleEffect:
                     {
                         Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
+                        break;
+                    }
+                case BroadcastAction.MovementEvent:
+                    {
+                        Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
                     }
             }
@@ -442,6 +453,18 @@ namespace ACE.Entity
                         HandleSoundEvent(obj, soundEffect);
                         break;
                     }
+                case GameActionType.MovementEvent:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var motion = action.Motion;
+                        HandleMovementEvent(obj, motion);
+                        break;
+                    }
                 case GameActionType.QueryHealth:
                     {
                         if (action.ObjectId == 0)
@@ -527,8 +550,8 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
-                                            // player.Session.Network.EnqueueSend(animationEvent);
+                                            player.EnqueueMovementEvent(motionSanctuary, player.Guid);
+                                            player.Session.Network.EnqueueSend(soundEvent);
                                         }
 
                                         var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);

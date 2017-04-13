@@ -306,8 +306,8 @@ namespace ACE.Database
                     c.Appearance.EyeColor = result.Read<uint>(0, "eyeColor");
                     c.Appearance.HairColor = result.Read<uint>(0, "hairColor");
                     c.Appearance.HairStyle = result.Read<uint>(0, "hairStyle");
-                    c.Appearance.HairHue = result.Read<uint>(0, "hairHue");
-                    c.Appearance.SkinHue = result.Read<uint>(0, "skinHue");
+                    c.Appearance.HairHue = result.Read<double>(0, "hairHue");
+                    c.Appearance.SkinHue = result.Read<double>(0, "skinHue");
                 }
 
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterStatsSelect, id);

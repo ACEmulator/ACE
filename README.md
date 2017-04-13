@@ -51,4 +51,3 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 * [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)
 * [Miach's PCAP Repository](http://aka-steve.com/AC/AC-Files/AC1%20PCAPS/All%20PCAPS/)
 * [Mag-nus Logs Repository](http://aka-steve.com/AC/AC-Files/AC1%20PCAPS/All%20Mag-nus%20Logs/)
-* [AC Dungeon Viewer](https://github.com/floaterxk/DungeonViewerAC)
