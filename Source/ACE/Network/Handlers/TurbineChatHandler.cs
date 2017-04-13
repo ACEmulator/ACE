@@ -8,12 +8,12 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Managers;
 
-namespace ACE.Network.Handlers
+namespace ACE.Network
 {
-    public static class TurbineChatHandler
+    public partial class Session
     {
         [GameMessage(GameMessageOpcode.TurbineChat, SessionState.WorldConnected)]
-        public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
+        public void TurbineChatReceived(ClientMessage clientMessage)
         {
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
             var turbineChatType = (TurbineChatType)clientMessage.Payload.ReadUInt32();
@@ -43,12 +43,12 @@ namespace ACE.Network.Handlers
 
                 if (channelID == 7) // TODO this is hardcoded right now
                 {
-                    ChatPacket.SendServerMessage(session, "You do not belong to a society.", ChatMessageType.Broadcast); // I don't know if this is how it was done on the live servers
+                    ChatPacket.SendServerMessage(this, "You do not belong to a society.", ChatMessageType.Broadcast); // I don't know if this is how it was done on the live servers
                     return;
                 }
 
-                var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, session.Player.Name, message, senderID);
-
+                var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, Player.Name, message, senderID);
+            
                 // TODO This should check if the recipient is subscribed to the channel
                 foreach (var recipient in WorldManager.GetAll())
                     recipient.EnqueueSend(gameMessageTurbineChat);
