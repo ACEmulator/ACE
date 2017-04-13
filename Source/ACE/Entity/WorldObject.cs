@@ -127,7 +127,10 @@ namespace ACE.Entity
         {
             lock (inventoryMutex)
             {
-                if (!this.inventory.ContainsKey(inventoryItem.Guid)) this.inventory.Add(inventoryItem.Guid, inventoryItem);
+                if (!inventory.ContainsKey(inventoryItem.Guid)) inventory.Add(inventoryItem.Guid, inventoryItem);
+                GameData.Burden += inventoryItem.GameData.Burden;
+                inventoryItem.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
+                inventoryItem.GameData.ContainerId = Guid.Full;
             }
         }
 
@@ -157,61 +160,7 @@ namespace ACE.Entity
                 return this.inventory.ContainsKey(objectGuid) ? this.inventory[objectGuid] : null;
             }
         }
-
-        /// <summary>
-        /// This is used to do the housekeeping on the server side to take an object from inventory into 3D world then tell the world
-        /// </summary>
-        public void HandlePutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid,  Session session)
-        {
-            // Find the item we want to pick up
-            var obj = LandblockManager.GetWorldObject(session, itemGuid);
-            if (obj == null)
-            {
-                return;
-                // TODO: yea, this is probably not how you do this
-            }
-            // We are picking up the  the item - let's keep track of change in burden
-            // TODO: Add check for too encumbered and send "You are too encumbered to pick that up.  Also check pack capacity
-            this.GameData.Burden += obj.GameData.Burden;
-
-            // let's move to pick up the item
-
-            obj.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;            
-
-            session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
-
-            // Bend over and pick that puppy up.
-            var motion = new GeneralMotion(MotionStance.Standing);
-            motion.MovementData.ForwardCommand = 24;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
-            session.Network.EnqueueSend(
-                new GameMessageSound(session.Player.Guid, Sound.PickUpItem, (float)1.0));
-
-            // Add to the inventory list.
-            AddToInventory(obj);
-            
-            obj.GameData.ContainerId = session.Player.Guid.Full;
-
-            session.Network.EnqueueSend(
-               new GameMessagePrivateUpdatePropertyInt(session,
-                   PropertyInt.EncumbVal,
-                   (uint)session.Player.GameData.Burden));
-            session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, obj.Guid));
-
-            motion = new GeneralMotion(MotionStance.Standing);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
-
-            // Set Container id to the player - you belong to me
-            session.Network.EnqueueSend(
-                new GameMessageUpdateInstanceId(obj.Guid, session.Player.Guid));            
-            
-            // TODO: Finish out pick up item
-            session.Network.EnqueueSend(new GameMessagePickupEvent(session, obj));
-            // Tell the landblock so it can tell everyone around that the item has been picked up.
-
-            LandblockManager.AddObject(obj);            
-        }   
-
+ 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?

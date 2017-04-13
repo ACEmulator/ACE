@@ -444,13 +444,52 @@ namespace ACE.Entity
                         HandleSoundEvent(obj, soundEffect);
                         break;
                     }
-                case GameActionType.DropItem:                  
+                case GameActionType.PutItemInContainer:
+                    {
+                        var playerId = new ObjectGuid(action.ObjectId);
+                        var inventoryId = new ObjectGuid(action.SecondaryObjectId);
+                        if (playerId.IsPlayer())
+                        {
+                            Player aPlayer = null;
+                            WorldObject inventoryItem = null;
 
-                    {                        
-                        var g = new ObjectGuid(action.ObjectId);                        
+                            if (worldObjects.ContainsKey(playerId))
+                            {
+                                aPlayer = (Player)worldObjects[playerId];
+                                inventoryItem = worldObjects[inventoryId];                                
+                            }
+
+                            if ((aPlayer != null) && (inventoryItem != null))
+                            {                                
+                                var motion = new GeneralMotion(MotionStance.Standing);
+                                motion.MovementData.ForwardCommand = 24;                                
+                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer), 
+                                    new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
+                                    new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
+                                
+                                // Add to the inventory list.
+                                aPlayer.AddToInventory(inventoryItem);
+
+                                motion = new GeneralMotion(MotionStance.Standing);
+                                aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
+                                       PropertyInt.EncumbVal,
+                                       aPlayer.GameData.Burden), 
+                                       new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
+                                       new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
+                                       new GameMessageUpdateInstanceId(inventoryId, playerId),
+                                       new GameMessagePickupEvent(aPlayer.Session, inventoryItem));
+ 
+                                LandblockManager.AddObject(inventoryItem);
+                            }
+                        }
+                        break;
+                    }
+                case GameActionType.DropItem:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
                         // ReSharper disable once InconsistentlySynchronizedField
                         if (worldObjects.ContainsKey(g))
-                        {                         
+                        {
                             var playerId = new ObjectGuid(action.ObjectId);
                             var inventoryId = new ObjectGuid(action.SecondaryObjectId);
                             if (playerId.IsPlayer())
@@ -463,34 +502,40 @@ namespace ACE.Entity
                                     aPlayer = (Player)worldObjects[playerId];
                                     inventoryItem = aPlayer.GetInventoryItem(inventoryId);
                                     aPlayer.RemoveFromInventory(inventoryId);
-                                }                                
+                                }
 
                                 if ((aPlayer != null) && (inventoryItem != null))
-                                {                                  
+                                {
                                     var targetContainer = new ObjectGuid(0);
                                     aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
+                                        new GameMessagePrivateUpdatePropertyInt(
+                                            aPlayer.Session,
                                             PropertyInt.EncumbVal,
                                             (uint)aPlayer.Session.Player.GameData.Burden));
 
                                     var motion = new GeneralMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = 24;
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion), new GameMessageUpdateInstanceId(inventoryId, targetContainer));
+                                    aPlayer.Session.Network.EnqueueSend(
+                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
+                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
 
-                                    motion = new GeneralMotion(MotionStance.Standing);                                    
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
+                                    motion = new GeneralMotion(MotionStance.Standing);
+                                    aPlayer.Session.Network.EnqueueSend(
+                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
                                         new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));                                                                    
-                                    
+                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
+
                                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.   
-                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);                                    
+                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-                                    LandblockManager.AddObject(inventoryItem);                                    
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));                                    
+                                    LandblockManager.AddObject(inventoryItem);
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
                                 }
                             }
                         }
+                        break;
+                    }
                 case GameActionType.MovementEvent:
                     {
                         var g = new ObjectGuid(action.ObjectId);
