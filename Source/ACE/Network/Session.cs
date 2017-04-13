@@ -33,6 +33,10 @@ namespace ACE.Network
             : base(endpoint, clientId, serverId)
         {
             base.StateChanged += Session_StateChanged;
+            Network = networkSession;
+            Network.StateChanged += Network_StateChanged;
+            Network.ClientMessageReceived += Network_ClientMessageReceived;
+            DefineMessageHandlers();
         }
 
         public override void Update(double lastTick)
