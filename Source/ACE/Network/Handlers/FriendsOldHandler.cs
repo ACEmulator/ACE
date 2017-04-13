@@ -2,14 +2,14 @@
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 
-namespace ACE.Network.Handlers
+namespace ACE.Network
 {
-    public static class FriendsOldHandler
+    public partial class Session
     {
         [GameMessageAttribute(GameMessageOpcode.FriendsOld, SessionState.WorldConnected)]
-        public static void FriendsOld(ClientMessage message, Session session)
+        public void FriendsOld(ClientMessage message)
         {
-            ChatPacket.SendServerMessage(session, "That command is not used in the emulator.", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(this, "That command is not used in the emulator.", ChatMessageType.Broadcast);
         }
     }
 }

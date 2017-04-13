@@ -20,15 +20,5 @@ namespace ACE.Network.GameAction
         public virtual void Read() { }
 
         public abstract void Handle();
-
-        [GameMessageAttribute(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
-        public static void HandleGameAction(ClientMessage message, Session session)
-        {
-            // TODO: verify sequence
-            uint sequence = message.Payload.ReadUInt32();
-            uint opcode   = message.Payload.ReadUInt32();
-
-            InboundMessageManager.HandleGameAction((GameActionType)opcode, message, session);
-        }
     }
 }

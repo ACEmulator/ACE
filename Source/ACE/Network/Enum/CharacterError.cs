@@ -5,8 +5,8 @@
     {
         Undefined,
         Logon,                                  // Cannot have two accounts logged on at the same time.
-        LoggedOn,                               // Server could not access your account information. Please try again in a few minutes.
-        AccountLogon,
+        LoggedOn,                               
+        AccountLogon,                           // Server could not access your account information. Please try again in a few minutes.
         ServerCrash,                            // The server has disconnected. Please try again in a few minutes.
         Logoff,                                 // Server could not log off your character
         Delete,                                 // Server could not delete your character.

@@ -3,20 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
-using ACE.Common;
-using ACE.Network.GameMessages;
-using ACE.Network.Handlers;
-using ACE.Network.Managers;
-
 using log4net;
 using ACE.Network.Enum;
 using ACE.Network.Packets;
-using ACE.Database;
-using ACE.Entity;
-using ACE.Common.Cryptography;
+using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
 using System.Diagnostics;
@@ -153,7 +146,7 @@ namespace ACE.Network
             if (DateTime.Now > nextIdleOut)
             {
                 log.WarnFormat("Idle out NetworkSession with clientId {0} for connection {1}", ClientId, EndPoint);
-                Terminate(CharacterError.Logoff);
+                Terminate(CharacterError.ServerCrash);
             }
 
             NetworkBundle bundleToSend = null;
