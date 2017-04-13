@@ -59,30 +59,32 @@ namespace ACE.Entity
         }
 
         private void SetObjectData(AceCreatureObject aco)
-        { 
-            this.PhysicsData.MTableResourceId = aco.MotionTableId;
-            this.PhysicsData.Stable = aco.SoundTableId;
-            this.PhysicsData.CSetup = aco.ModelTableId;
-            this.PhysicsData.ObjScale = aco.ObjectScale;
+        {
+            PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
+            PhysicsData.MTableResourceId = aco.MotionTableId;
+            PhysicsData.Stable = aco.SoundTableId;
+            PhysicsData.CSetup = aco.ModelTableId;
+            PhysicsData.Petable = aco.PhysicsTableId;
+            PhysicsData.ObjScale = aco.ObjectScale;
             
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
-            this.PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
+            PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
-            this.Icon = (ushort)aco.IconId;
+            Icon = (ushort)aco.IconId;
 
-            this.GameData.Usable = (Usable)aco.Usability;
+            GameData.Usable = (Usable)aco.Usability;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            this.GameData.RadarColour = (RadarColor)aco.BlipColor;
-            this.GameData.RadarBehavior = (RadarBehavior)aco.Radar;
-            this.GameData.UseRadius = aco.UseRadius;
+            GameData.RadarColour = (RadarColor)aco.BlipColor;
+            GameData.RadarBehavior = (RadarBehavior)aco.Radar;
+            GameData.UseRadius = aco.UseRadius;
 
             aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)(ao.AnimationId - 0x01000000)));
             aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)(to.OldId - 0x05000000), (ushort)(to.NewId - 0x05000000)));
             aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette((ushort)(po.SubPaletteId - 0x04000000), (byte)po.Offset, (byte)(po.Length / 8)));
-            this.ModelData.PaletteGuid = aco.PaletteId - 0x04000000;
+            ModelData.PaletteGuid = aco.PaletteId - 0x04000000;
         }
 
         private void SetAbilities(AceCreatureObject aco)
@@ -134,28 +136,46 @@ namespace ACE.Entity
         {
             IsAlive = false;
 
-            // Send UpdateHealth Message with 0 Health - not sure if this is necessary according to live pcaps
-            var healthLossEvent = new GameEventUpdateHealth(session, Guid.Full, 0f);
-            session.Network.EnqueueSend(healthLossEvent);
+            // Send UpdateHealth Message with 0 Health - this is not necessary according to live pcaps
+            // var healthLossEvent = new GameEventUpdateHealth(session, Guid.Full, 0f);
+            // session.Network.EnqueueSend(healthLossEvent);
 
-            // Create and send the death notice
+            // 1. step in retail: Create and send the death notice
             string killMessage = $"{session.Player.Name} has killed {Name}.";
             var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
             session.Network.EnqueueSend(creatureDeathEvent);
 
-            // Death Animation
-            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(this, session, motion));
+            // 2. step in retail: SoundEvent: sound 48 (HitFlesh1), volume 0,5
+            session.Player.ActionApplySoundEffect(Sound.HitFlesh1, Guid);
 
-            // TEST: Play Script depending on where the last hit was
+            // 3. step in retail: SoundEvent: sound 14 (Wound3), volume 1
+            session.Player.ActionApplySoundEffect(Sound.Wound3, Guid);
+
+            // 4. step in retail: MovementEvent: (Hand-)Combat to Death
+            // TODO: this isn't really working yet, we need more work on the motion stuff
+            GeneralMotion motion1 = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(this, session, motion1));
+
+            // 5. step in retail: Play Script to show wound depending on where the last hit was
+            // TODO: this is not showing yet, guess we need to give all the sounds and scripts some time to actually play
             var effectEvent = new GameMessageScript(Guid, Network.Enum.PlayScript.SplatterMidRightFront);
             session.Network.EnqueueSend(effectEvent);
 
-            // TODO: Create Corpse and set text of killer
-            LandblockManager.AddObject(CorpseObjectFactory.CreateCorpse(this, this.Location));
+            // 6. step in retail: UpdatePosition: gotta verify this on more examples
+            // I guess it lowers the z axis, so the corpse isn't hovering in about the midth of a usual drudge
 
+            // 7. step in retail: DeleteObject Creature
             // Remove Creature from Landblock this sends GameMessageRemoveObject
             LandblockManager.RemoveObject(this);
+
+            // 8. step in retail: Create Corpse (dead for now - but guess is standing or in combat should be right)
+            // TODO: set text of killer in description
+            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+            LandblockManager.AddObject(corpse);
+
+            // 9. step in retail: Death Animation of corpse
+            GeneralMotion motion2 = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(corpse, session, motion2));            
         }
     }
 }
