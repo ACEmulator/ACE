@@ -14,7 +14,7 @@ namespace ACE.DatLoader
         private uint fileCount = 0;
 
         private int sectorSize;
-        
+
         public DatDirectory(uint rootSectorOffset, int sectorSize, FileStream stream, DatDatabaseType type)
         {
             this.rootSectorOffset = rootSectorOffset;
@@ -22,8 +22,8 @@ namespace ACE.DatLoader
             DatType = type;
             Read(stream);
         }
-        
-        public List<DatFile> Files { get; private set; } = new List<DatFile>();
+
+        public Dictionary<uint, DatFile> Files { get; private set; } = new Dictionary<uint, DatFile>();
 
         public List<DatDirectory> Directories { get; private set; } = new List<DatDirectory>();
 
@@ -44,14 +44,14 @@ namespace ACE.DatLoader
             int directories = 0;
             uint directory = BitConverter.ToUInt32(sectorHeader, sizeof(uint));
             List<uint> directoryList = new List<uint>();
-            
+
             while (directories < (fileCount + 1) && directory > 0)
             {
                 directoryList.Add(directory);
                 directories++;
                 directory = BitConverter.ToUInt32(sectorHeader, (1 + directories) * sizeof(uint));
             }
-            
+
             // directories done, on to files
 
             int totalSectors = 1;
@@ -90,7 +90,9 @@ namespace ACE.DatLoader
             // sector has all the daters
             for (int i = 0; i < fileCount; i++)
             {
-                Files.Add(DatFile.FromBuffer(sector, i * 6 * sizeof(uint), DatType));
+                DatFile datfile = DatFile.FromBuffer(sector, i * 6 * sizeof(uint), DatType);
+                if (!Files.ContainsKey(datfile.ObjectId))
+                    Files.Add(datfile.ObjectId, datfile);
             }
 
             // files done, go back and iterate directories
@@ -100,10 +102,14 @@ namespace ACE.DatLoader
             }
         }
 
-        public void AddFilesToList(List<DatFile> files)
+        public void AddFilesToList(Dictionary<uint, DatFile> dicFiles)
         {
-            files.AddRange(this.Files);
-            this.Directories.ForEach(d => d.AddFilesToList(files));
+            // files.Union(this.DictionaryFiles);
+            foreach (KeyValuePair<uint, DatFile> item in this.Files)
+            {
+                dicFiles[item.Key] = item.Value;
+            }
+            this.Directories.ForEach(d => d.AddFilesToList(dicFiles));
         }
     }
 }

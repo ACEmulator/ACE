@@ -269,7 +269,7 @@ namespace ACE.DatLoader
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("clo")]
-        [DatFileTypeIdRange(0x100000A0, 0x1000FFFF)]
+        [DatFileTypeIdRange(0x10000000, 0x1000FFFF)]
         Clothing                = 25, // DB_TYPE_CLOTHING
 
         [DatDatabaseType(DatDatabaseType.Portal)]
