@@ -2,19 +2,19 @@
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 
-namespace ACE.Network.Handlers
+namespace ACE.Network
 {
-    public static class DDDHandler
+    public partial class Session
     {
         [GameMessage(GameMessageOpcode.DDD_InterrogationResponse, SessionState.AuthConnected)]
-        public static void DDD_InterrogationResponse(ClientMessage message, Session session)
+        public void DDD_InterrogationResponse(ClientMessage message)
         {
             GameMessageDDDEndDDD patchStatusMessage = new GameMessageDDDEndDDD();
-            session.EnqueueSend(patchStatusMessage);
+            Network.EnqueueSend(patchStatusMessage);
         }
 
         [GameMessage(GameMessageOpcode.DDD_EndDDD, SessionState.AuthConnected)]
-        public static void DDD_EndDDD(ClientMessage message, Session session)
+        public void DDD_EndDDD(ClientMessage message)
         {
             // We don't need to reply to this message.
         }
