@@ -1,5 +1,6 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,16 @@ namespace ACE.Entity.Events
             };
         }
 
+        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.MovementEvent,
+                Sender = sender,
+                Motion = motion,
+            };
+        }
+
         public BroadcastAction ActionType { get; private set; }
 
         public WorldObject Sender { get; private set; }
@@ -62,5 +73,7 @@ namespace ACE.Entity.Events
         public Sound Sound { get;  private set; }
 
         public PlayScript Effect { get; private set; }
+
+        public GeneralMotion Motion { get; private set; }
     }
 }

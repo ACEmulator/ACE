@@ -213,42 +213,6 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary>
-        /// Handle the QueryHealth action between the source Object and its target
-        /// </summary>
-        public void HandleQueryHealth(Session source, ObjectGuid targetId)
-        {
-            if (targetId.IsPlayer())
-            {
-                Player pl = null;
-
-                lock (objectCacheLocker)
-                {
-                    if (this.worldObjects.ContainsKey(targetId))
-                        pl = (Player)this.worldObjects[targetId];
-                }
-                if (pl == null)
-                {
-                    // check adjacent landblocks for the targetId
-                    foreach (var block in adjacencies)
-                    {
-                        lock (block.Value.objectCacheLocker)
-                        {
-                            if (block.Value.worldObjects.ContainsKey(targetId))
-                                pl = (Player)this.worldObjects[targetId];
-                        }
-                    }
-                }
-                if (pl != null)
-                {
-                    float healthPercentage = (float)pl.Health.Current / (float)pl.Health.MaxValue;
-
-                    var updateHealth = new GameEventUpdateHealth(source, targetId.Full, healthPercentage);
-                    source.Network.EnqueueSend(updateHealth);
-                }
-            }
-        }
-
         public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
@@ -258,6 +222,12 @@ namespace ACE.Entity
         public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
+            Broadcast(args, true, Quadrant.All);
+        }
+
+        public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
             Broadcast(args, true, Quadrant.All);
         }
 
@@ -323,6 +293,11 @@ namespace ACE.Entity
                 case BroadcastAction.PlayParticleEffect:
                     {
                         Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
+                        break;
+                    }
+                case BroadcastAction.MovementEvent:
+                    {
+                        Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
                     }
             }
@@ -516,6 +491,16 @@ namespace ACE.Entity
                                 }
                             }
                         }
+                case GameActionType.MovementEvent:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var motion = action.Motion;
+                        HandleMovementEvent(obj, motion);
                         break;
                     }
                 case GameActionType.QueryHealth:
@@ -533,8 +518,9 @@ namespace ACE.Entity
                                 // check adjacent landblocks for the targetId
                                 foreach (var block in adjacencies)
                                 {
-                                    if (block.Value.worldObjects.ContainsKey(targetId))
-                                        target = this.worldObjects[targetId];                                    
+                                    if (block.Value != null)
+                                        if (block.Value.worldObjects.ContainsKey(targetId))
+                                            target = block.Value.worldObjects[targetId];
                                 }
                             }
                             if (target != null)
@@ -590,8 +576,8 @@ namespace ACE.Entity
 
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.Session.Network.EnqueueSend(animationEvent, soundEvent); // Slightly doubled sound, why did this get sent in retail?
-                                            // player.Session.Network.EnqueueSend(animationEvent);
+                                            player.EnqueueMovementEvent(motionSanctuary, player.Guid);
+                                            player.Session.Network.EnqueueSend(soundEvent);
                                         }
 
                                         var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);

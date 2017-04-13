@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ACE.Entity;
+using ACE.Network.Enum;
+using ACE.Network.Motion;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,10 +24,19 @@ namespace ACE.Network.GameAction
             this.ActionType = actionType;
         }
 
+        public QueuedGameAction(uint objectId, GeneralMotion motion, GameActionType actionType)
+        {
+            this.ObjectId = objectId;
+            this.Motion = motion;
+            this.ActionType = actionType;
+        }
+
         public uint ObjectId { get; private set; }
 
         public uint SecondaryObjectId { get; private set; }
 
         public GameActionType ActionType { get; private set; }
+
+        public GeneralMotion Motion { get; private set; }
     }
 }

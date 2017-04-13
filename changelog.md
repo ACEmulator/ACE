@@ -1,5 +1,22 @@
 # ACEmulator Change Log
 
+### 2017-04-12
+[OptimShi]
+* Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)
+* Added a DatReader class for reading from the a Dat file. Only confirmed for client_portal.dat.
+* Added some preliminary client_portal classes (CharGen, SetupModel, PaletteSet)
+* Loads correct player data from Character Creation.
+* Converted PortalDat.ExtractCategorizedContents to use DatReader for better export of raw files
+
+### 2017-04-10
+[Ripley]
+* Added MovementEvent Action Queue
+* Changed GetNextSequence back to GetCurrentSequence for SequenceType.ObjectInstance
+* Animations work again!
+
+[Lidefeath]
+* Fix GameActionType.QueryHealth to work across landblocks
+
 ### 2017-04-09
 [Ripley]
 * Changed Position.Serialize to fix rotation issue #222
@@ -172,4 +189,5 @@
 ### 2017-03-25
 [Mogwai]
 * weenies weenies everywhere. object structure pass 1
+
 

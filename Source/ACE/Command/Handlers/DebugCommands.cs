@@ -179,7 +179,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, motion));
+            session.Player.EnqueueMovementEvent(motion, session.Player.Guid);
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
