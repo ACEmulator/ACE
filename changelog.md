@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-04-14
+[Lidefeath]
+* Flesh out smite command - withouth the bunnysmite animation, sorry HellsWrath
+* Fix CreatureObject so it's parseable now by aclogview
+* Add GameEventDeathNotice to broadcast the killing of a creature
+* If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
+* TODO: fix the death animation and sounds to mimick retail
+
 ### 2017-04-12
 [OptimShi]
 * Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)
