@@ -57,7 +57,7 @@ namespace ACE.Network.GameAction.Actions
                 var targets = WorldManager.GetAll();
 
                 foreach (var target in targets)
-                    target.Network.EnqueueSend(new GameMessage[] { creatureMessage });
+                    target.EnqueueSend(new GameMessage[] { creatureMessage });
             }
         }
     }

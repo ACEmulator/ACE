@@ -652,7 +652,7 @@ namespace ACE.Entity
                                     healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
                                 }
                                 var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
-                                player.Session.Network.EnqueueSend(updateHealth);
+                                player.Session.EnqueueSend(updateHealth);
                             }
                         }
 
@@ -731,7 +731,7 @@ namespace ACE.Entity
                                         var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
                                         // always send useDone event
                                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                        player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
+                                        player.Session.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
 
                                         break;
                                     }

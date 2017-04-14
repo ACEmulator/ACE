@@ -16,7 +16,7 @@ namespace ACE.Network.GameAction.Actions
 
             var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB.ToString("G")}.", ChatMessageType.Broadcast);
 
-            session.Network.EnqueueSend(dobEvent);
+            session.EnqueueSend(dobEvent);
         }
     }
 }

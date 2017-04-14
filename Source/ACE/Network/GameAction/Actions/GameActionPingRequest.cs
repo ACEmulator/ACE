@@ -8,7 +8,7 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.PingRequest)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Network.EnqueueSend(new GameEventPingResponse(session));
+            session.EnqueueSend(new GameEventPingResponse(session));
         }
     }
 }
