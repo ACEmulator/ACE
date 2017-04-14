@@ -27,7 +27,7 @@ namespace ACE.Managers
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
         private static readonly List<ConnectionListener> Listeners = new List<ConnectionListener>();
-        private static readonly NetworkSession[] sessionMap = new NetworkSession[128]; // TODO Placeholder, should be config MaxSessions
+        private static readonly Session[] sessionMap = new Session[128]; // TODO Placeholder, should be config MaxSessions
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
@@ -83,7 +83,8 @@ namespace ACE.Managers
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 log.DebugFormat("Login Request from {0}", endPoint);
-                HandleLoginRequest(packet, endPoint);
+                var session = FindOrCreateSession(endPoint);
+                session.ProcessPacket(packet);
             }
             else if (sessionMap.Length > packet.Header.Id)
             {
@@ -102,57 +103,13 @@ namespace ACE.Managers
             }
         }
 
-        public static async void HandleLoginRequest(ClientPacket packet, IPEndPoint endPoint)
-        {
-            var session = FindOrCreateSession(endPoint);
-            PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
-            try
-            {
-                var result = await DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
-                AccountSelectCallback(result, session);
-            }
-            catch (IndexOutOfRangeException)
-            {
-                AccountSelectCallback(null, session);
-            }
-        }
-
-        private static void AccountSelectCallback(Account account, Session session)
-        {
-            if (session != null)
-            {
-                var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
-                session.Network.EnqueueSend(connectRequest);
-
-                if (account == null)
-                {
-                    session.Terminate(CharacterError.AccountDoesntExist);
-                    return;
-                }
-
-                if (WorldManager.Find(account.Name) != null)
-                {
-                    session.Terminate(CharacterError.AccountInUse);
-                    return;
-                }
-
-                /*if (glsTicket != digest)
-                {
-                }*/
-
-                // TODO: check for account bans
-
-                session.SetAccount(account.AccountId, account.Name, account.AccessLevel);
-            }
-        }
-
         private static Session FindOrCreateSession(IPEndPoint endPoint)
         {
             Session session = null;
             sessionLock.EnterWriteLock();
             try
             {
-                session = sessions.SingleOrDefault(s => endPoint.Equals(s.Network.EndPoint));
+                session = sessions.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
                 if (session == null)
                 {
                     for (ushort i = 0; i < sessionMap.Length; i++)
@@ -160,9 +117,8 @@ namespace ACE.Managers
                         if (sessionMap[i] == null)
                         {
                             log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
-                            NetworkSession networkSession = new NetworkSession(endPoint, i, ServerId);
-                            sessionMap[i] = networkSession;
-                            session = new Session(networkSession);
+                            session = new Session(endPoint, i, ServerId);
+                            sessionMap[i] = session;
                             session.StateChanged += Session_StateChanged;
                             sessions.Add(session);
                             break;
@@ -178,8 +134,7 @@ namespace ACE.Managers
             if (session == null)
             {
                 log.WarnFormat("Failed to create a new session for {0}", endPoint);
-                var errorNetworkSession = new NetworkSession(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
-                var errorSession = new Session(errorNetworkSession);
+                var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
                 errorSession.Terminate(Network.Enum.CharacterError.LogonServerFull);
             }
             return session;
@@ -199,11 +154,11 @@ namespace ACE.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                log.InfoFormat("Removing session for {0} with id {1}", session.Network.EndPoint, session.Network.ClientId);
+                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.ClientId);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
-                if (sessionMap[session.Network.ClientId] == session.Network)
-                    sessionMap[session.Network.ClientId] = null;
+                if (sessionMap[session.ClientId] == session)
+                    sessionMap[session.ClientId] = null;
             }
             finally
             {

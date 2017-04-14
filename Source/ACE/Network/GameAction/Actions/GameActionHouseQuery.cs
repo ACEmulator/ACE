@@ -8,7 +8,7 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.HouseQuery)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Network.EnqueueSend(new GameEventHouseStatus(session));
+            session.EnqueueSend(new GameEventHouseStatus(session));
         }
     }
 }
