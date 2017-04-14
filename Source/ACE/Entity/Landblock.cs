@@ -267,8 +267,6 @@ namespace ACE.Entity
             {
                 case BroadcastAction.Delete:
                     {
-                        // Added filter to not include the container in this message Og II
-                        players = players.Where(p => p.Guid.Full != wo.GameData.ContainerId).ToList();
                         Parallel.ForEach(players, p => p.StopTrackingObject(wo));
                         break;
                     }
@@ -462,13 +460,14 @@ namespace ACE.Entity
                             if ((aPlayer != null) && (inventoryItem != null))
                             {                                
                                 var motion = new GeneralMotion(MotionStance.Standing);
-                                motion.MovementData.ForwardCommand = 24;                                
+                                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;                                
                                 aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer), 
                                     new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                     new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
                                 
                                 // Add to the inventory list.
                                 aPlayer.AddToInventory(inventoryItem);
+                                LandblockManager.RemoveObject(inventoryItem);
 
                                 motion = new GeneralMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
@@ -478,8 +477,8 @@ namespace ACE.Entity
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),
                                        new GameMessagePickupEvent(aPlayer.Session, inventoryItem));
- 
-                                LandblockManager.AddObject(inventoryItem);
+
+                                aPlayer.TrackObject(inventoryItem);
                             }
                         }
                         break;
@@ -514,7 +513,7 @@ namespace ACE.Entity
                                             (uint)aPlayer.Session.Player.GameData.Burden));
 
                                     var motion = new GeneralMotion(MotionStance.Standing);
-                                    motion.MovementData.ForwardCommand = 24;
+                                    motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessageUpdateInstanceId(inventoryId, targetContainer));
