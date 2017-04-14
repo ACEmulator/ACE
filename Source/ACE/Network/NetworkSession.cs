@@ -21,6 +21,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
 using System.Diagnostics;
 using System.Net;
+using ACE.Entity.Enum;
 
 namespace ACE.Network
 {
@@ -49,21 +50,22 @@ namespace ACE.Network
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
 
-        private NetworkSessionState state = NetworkSessionState.Connecting;
-        public NetworkSessionState State
+        private SessionState state = SessionState.AuthConnecting;
+        public SessionState State
         {
             get { return state; }
             set
             {
                 state = value;
-                StateChanged?.Invoke(this, new NetworkSessionStateChangedEventArgs(value));
+                StateChanged?.Invoke(this, new SessionStateChangedEventArgs(value));
             }
         }
 
         public IPEndPoint EndPoint { get; }
-
-        public event EventHandler<NetworkSessionStateChangedEventArgs> StateChanged;
-        public event EventHandler<ClientMessageReceivedEventArgs> ClientMessageReceived;
+        public uint AccountId { get; private set; }
+        public string AccountName { get; private set; }
+        public AccessLevel AccessLevel { get; private set; }
+        public event EventHandler<SessionStateChangedEventArgs> StateChanged;
 
         /// <summary>
         /// This is referenced from many threads:<para />
@@ -84,12 +86,24 @@ namespace ACE.Network
         public ushort ClientId { get; }
         public ushort ServerId { get; }
 
-        public NetworkSession(IPEndPoint endpoint, ushort clientId, ushort serverId)
+        protected NetworkSession(IPEndPoint endpoint, ushort clientId, ushort serverId)
         {
             log.InfoFormat("NetworkSession created with clientId {0} for connection {1}", clientId, endpoint);
             EndPoint = endpoint;
             ClientId = clientId;
             ServerId = serverId;
+        }
+
+        protected virtual void ClientMessageReceived(ClientMessage message)
+        {
+        }
+
+        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
+        {
+            log.InfoFormat("Setting session account to {0} with name {1} and access {2}, network client id {3}", accountId, account, accountAccesslevel, ClientId);
+            AccountId = accountId;
+            AccountName = account;
+            AccessLevel = accountAccesslevel;
         }
 
         /// <summary>
@@ -129,11 +143,11 @@ namespace ACE.Network
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
         /// <param name="lastTick">Amount of time that has passed for the last cycle.</param>
-        public void Update(double lastTick)
+        public virtual void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
 
-            if (State == NetworkSessionState.Disconnected)
+            if (State == SessionState.Terminated)
                 return;
 
             if (DateTime.Now > nextIdleOut)
@@ -187,7 +201,7 @@ namespace ACE.Network
         {
             log.DebugFormat("[{0}] Processing packet {1}", ClientId, packet.Header.Sequence);
 
-            if (State == NetworkSessionState.Disconnected)
+            if (State == SessionState.Terminated)
                 return;
 
             nextIdleOut = DateTime.Now.AddSeconds(30);
@@ -223,10 +237,10 @@ namespace ACE.Network
 
         private bool CheckState(ClientPacket packet)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != NetworkSessionState.Connecting)
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnecting)
                 return false;
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == NetworkSessionState.Connecting)
+            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == SessionState.AuthConnecting)
                 return false;
 
             return true;
@@ -275,8 +289,8 @@ namespace ACE.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
             {
                 log.DebugFormat("[{0}] Disconnecting", ClientId);
-                State = NetworkSessionState.Disconnecting;
-                State = NetworkSessionState.Disconnected;
+                State = SessionState.Terminating;
+                State = SessionState.Terminated;
             }
 
             // This should be set on the first packet to the server indicating the client is logging in.
@@ -285,7 +299,7 @@ namespace ACE.Network
             // In our current implimenation we handle all roles in this one server.
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                log.Error("LoginRequest should have been handled in WorldManager");
+                HandleLoginRequest(packet);
                 return;
             }
 
@@ -309,16 +323,57 @@ namespace ACE.Network
 
         public void Terminate(CharacterError error = CharacterError.Undefined)
         {
-            State = NetworkSessionState.Disconnecting;
+            log.DebugFormat("[{0}] Terminating", AccountName);
+            State = SessionState.Terminating;
             if (error != CharacterError.Undefined)
                 SendCharacterError(error);
-            State = NetworkSessionState.Disconnected;
+            State = SessionState.Terminated;
+        }
+
+        public async void HandleLoginRequest(ClientPacket packet)
+        {
+            PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
+            try
+            {
+                var result = await DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
+                AccountSelectCallback(result);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                AccountSelectCallback(null);
+            }
+        }
+
+        private void AccountSelectCallback(Account account)
+        {
+            var connectRequest = new PacketOutboundConnectRequest(ConnectionData.ServerTime, 0, ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
+            EnqueueSend(connectRequest);
+
+            if (account == null)
+            {
+                Terminate(CharacterError.AccountDoesntExist);
+                return;
+            }
+
+            if (WorldManager.Find(account.Name) != null)
+            {
+                Terminate(CharacterError.AccountInUse);
+                return;
+            }
+
+            /*if (glsTicket != digest)
+            {
+            }*/
+
+            // TODO: check for account bans
+
+            SetAccount(account.AccountId, account.Name, account.AccessLevel);
         }
 
         private void HandleConnectResponse(ClientPacket packet)
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
-            State = NetworkSessionState.Connected;
+            State = SessionState.AuthConnected;
         }
 
         /// <summary>
@@ -375,7 +430,7 @@ namespace ACE.Network
                 if (fragment.Header.Sequence == lastReceivedFragmentSequence + 1)
                 {
                     log.DebugFormat("[{0}] Handling fragment {1}", ClientId, fragment.Header.Sequence);
-                    HandleFragment(message);
+                    HandleClientMessage(message);
                 }
                 else
                 {
@@ -386,12 +441,12 @@ namespace ACE.Network
         }
 
         /// <summary>
-        /// Handles a ClientMessage by calling using InboundMessageManager
+        /// Handles a ClientMessage
         /// </summary>
         /// <param name="message">ClientMessage to process</param>
-        private void HandleFragment(ClientMessage message)
+        private void HandleClientMessage(ClientMessage message)
         {
-            ClientMessageReceived?.Invoke(this, new ClientMessageReceivedEventArgs(message));
+            ClientMessageReceived(message);
             lastReceivedFragmentSequence++;
         }
 
@@ -418,7 +473,7 @@ namespace ACE.Network
             while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out message))
             {
                 log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", ClientId, lastReceivedFragmentSequence + 1);
-                HandleFragment(message);
+                HandleClientMessage(message);
             }
         }
 
@@ -694,6 +749,16 @@ namespace ACE.Network
             public NetworkSessionState NewState { get; }
 
             public NetworkSessionStateChangedEventArgs(NetworkSessionState newState)
+            {
+                NewState = newState;
+            }
+        }
+
+        public class SessionStateChangedEventArgs : EventArgs
+        {
+            public SessionState NewState { get; }
+
+            public SessionStateChangedEventArgs(SessionState newState)
             {
                 NewState = newState;
             }

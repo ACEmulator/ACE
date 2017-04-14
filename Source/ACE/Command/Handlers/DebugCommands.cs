@@ -127,7 +127,7 @@ namespace ACE.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -166,7 +166,7 @@ namespace ACE.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -293,7 +293,7 @@ namespace ACE.Command.Handlers
                 float scale = 1f;
                 var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.AttribDownRed, scale);
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(effectEvent, sysChatMessage);
+                session.EnqueueSend(effectEvent, sysChatMessage);
             }
             catch (Exception)
             {

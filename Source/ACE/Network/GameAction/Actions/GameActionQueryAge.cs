@@ -62,7 +62,7 @@ namespace ACE.Network.GameAction.Actions
 
             var ageEvent = new GameEvent.Events.GameEventQueryAgeResponse(session, "", age);
 
-            session.Network.EnqueueSend(ageEvent);
+            session.EnqueueSend(ageEvent);
         }
     }
 }
