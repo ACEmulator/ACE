@@ -451,7 +451,7 @@ namespace ACE.Entity
                             Player aPlayer = null;
                             WorldObject inventoryItem = null;
 
-                            if (worldObjects.ContainsKey(playerId))
+                            if (worldObjects.ContainsKey(playerId) && worldObjects.ContainsKey(inventoryId))
                             {
                                 aPlayer = (Player)worldObjects[playerId];
                                 inventoryItem = worldObjects[inventoryId];                                
