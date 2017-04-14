@@ -1,13 +1,11 @@
 # ACEmulator Change Log
 
-### 2017-04-12
+### 2017-04-13
 [Og II]
 * Completed conversion to Action Queue
 * Cleaned up a lot of sloppy code
-* To test  ctw me - drop the wand, pick it back up repeat.
-* Confirmed OptimShi - Change to load correct character models works.   It does.   
-* Still trying to understand F74C and the calculation of new positions from a origin Vector3 and a quaternion.   Either these things are unrelated 
-* -- or there is some magic number Turbine is using when someone is walking / running.    
+* To test ctw me - drop the wand, pick it back up repeat.
+
 ### 2017-04-12
 [OptimShi]
 * Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)
