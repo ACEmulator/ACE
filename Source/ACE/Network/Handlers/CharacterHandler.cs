@@ -20,7 +20,7 @@ namespace ACE.Network
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public void CharacterEnterWorldRequest(ClientMessage message)
         {
-            Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
+            EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
@@ -42,16 +42,14 @@ namespace ACE.Network
                 return;
             }
 
-            CharacterRequested = cachedCharacter;
-
-            InitSessionForWorldLogin();
+            InitSessionForWorldLogin(cachedCharacter);
 
             State = SessionState.WorldConnected;
 
             // check the value of the welcome message. Only display it if it is not empty
             if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
             {
-                Network.EnqueueSend(new GameEventPopupString(this, ConfigManager.Config.Server.Welcome));
+                EnqueueSend(new GameEventPopupString(this, ConfigManager.Config.Server.Welcome));
             }
 
             LandblockManager.PlayerEnterWorld(this);
@@ -78,13 +76,13 @@ namespace ACE.Network
 
             // TODO: check if character is already pending removal
 
-            Network.EnqueueSend(new GameMessageCharacterDelete());
+            EnqueueSend(new GameMessageCharacterDelete());
 
             DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
             var result = await DatabaseManager.Character.GetByAccount(AccountId);
             UpdateCachedCharacters(result);
-            Network.EnqueueSend(new GameMessageCharacterList(result, AccountName));
+            EnqueueSend(new GameMessageCharacterList(result, AccountName));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
@@ -105,7 +103,7 @@ namespace ACE.Network
 
             DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
 
-            Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
+            EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
@@ -178,16 +176,16 @@ namespace ACE.Network
 
         private void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
         {
-            Network.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
+            EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
         public void CharacterLogOff(ClientMessage message)
         {
-            // log.DebugFormat("[{0}] Logging off", AccountName);
-            // SaveSession();
-            // Player.Logout();
-            // logOffRequestTime = DateTime.UtcNow;
+            log.DebugFormat("[{0}] Logging off", AccountName);
+            SaveSession();
+            Player.Logout();
+            logOffRequestTime = DateTime.UtcNow;
         }
     }
 }
