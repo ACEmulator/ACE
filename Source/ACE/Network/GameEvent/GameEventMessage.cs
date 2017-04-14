@@ -14,7 +14,7 @@ namespace ACE.Network.GameEvent
             Session = session;
 
             Writer.WriteGuid(session.Player.Guid);
-            Writer.Write(session.GameEventSequence++);
+            Writer.Write(session.GameEventSequence.NextValue);
             Writer.Write((uint)EventType);
         }
     }

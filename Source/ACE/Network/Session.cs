@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-
+using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Managers;
-using ACE.Network.Managers;
-using log4net;
+using ACE.Network.Sequence;
 
 namespace ACE.Network
 {
-    public class Session : NetworkSession
+    public partial class Session : NetworkSession
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -23,19 +20,15 @@ namespace ACE.Network
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
 
-        public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
-        public CachedCharacter CharacterRequested { get; set; }
+        private List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
         public Player Player { get; set; }
 
-        public uint GameEventSequence { get; set; }
+        public UIntSequence GameEventSequence { get; private set; }
 
         public Session(IPEndPoint endpoint, ushort clientId, ushort serverId)
             : base(endpoint, clientId, serverId)
         {
             base.StateChanged += Session_StateChanged;
-            Network = networkSession;
-            Network.StateChanged += Network_StateChanged;
-            Network.ClientMessageReceived += Network_ClientMessageReceived;
             DefineMessageHandlers();
         }
 
@@ -99,46 +92,49 @@ namespace ACE.Network
 
         protected override void ClientMessageReceived(ClientMessage message)
         {
-            InboundMessageManager.HandleClientMessage(message, this);
+            HandleClientMessage(message);
         }
 
         private void Session_StateChanged(object sender, SessionStateChangedEventArgs e)
         {
             if (e.NewState == SessionState.AuthConnected)
             {
-                NetworkConnected();
+                LoginConnected();
             }
             else if (e.NewState == SessionState.Terminated)
             {
-                NetworkDisconnected();
+                Terminated();
             }
         }
 
-        private async void NetworkConnected()
+        private async void LoginConnected()
         {
-            log.DebugFormat("[{0}] Network Connected", AccountName);
+            log.DebugFormat("[{0}] Login Connected", AccountName);
+
+            Player = null;
+
             var result = await DatabaseManager.Character.GetByAccount(AccountId);
 
             UpdateCachedCharacters(result);
 
             GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, AccountName);
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-            EnqueueSend(characterListMessage, serverNameMessage, dddInterrogation);
+            EnqueueSend(characterListMessage, serverNameMessage);
         }
 
-        private void NetworkDisconnected()
+        private void Terminated()
         {
-            log.DebugFormat("[{0}] Network Disconnected", AccountName);
+            log.DebugFormat("[{0}] Session Terminated", AccountName);
             if (Player != null)
             {
                 SaveSession();
                 Player.Logout(true);
+                Player = null;
             }
         }
 
-        public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
+        private void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
             AccountCharacters.Clear();
             foreach (var character in characters)
@@ -147,32 +143,21 @@ namespace ACE.Network
             }
         }
 
-        public void InitSessionForWorldLogin()
+        private void InitSessionForWorldLogin(CachedCharacter character)
         {
-            Player = new Player(this);
-            CharacterRequested = null;
+            Player = new Player(this, character);
 
             lastSaveTime = DateTime.MinValue;
             lastAgeIntUpdateTime = DateTime.MinValue;
             lastSendAgeIntUpdateTime = DateTime.MinValue;
 
-            GameEventSequence = 0;
+            GameEventSequence = new UIntSequence(false);
         }
 
-        private async void SendFinalLogOffMessages()
+        private void SendFinalLogOffMessages()
         {
             EnqueueSend(new GameMessageCharacterLogOff());
-
-            var result = await DatabaseManager.Character.GetByAccount(AccountId);
-            UpdateCachedCharacters(result);
-            EnqueueSend(new GameMessageCharacterList(result, AccountName));
-
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            EnqueueSend(serverNameMessage);
-
             State = SessionState.AuthConnected;
-
-            Player = null;
         }
     }
 }
