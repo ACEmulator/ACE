@@ -12,13 +12,14 @@ using ACE.Network.Packets;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
-using System.Diagnostics;
-using System.Net;
+using ACE.Database;
+using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Common.Cryptography;
 
 namespace ACE.Network
 {
-    public class NetworkSession
+    public abstract class NetworkSession
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger("Packets");
@@ -91,14 +92,6 @@ namespace ACE.Network
         {
         }
 
-        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
-        {
-            log.InfoFormat("Setting session account to {0} with name {1} and access {2}, network client id {3}", accountId, account, accountAccesslevel, ClientId);
-            AccountId = accountId;
-            AccountName = account;
-            AccessLevel = accountAccesslevel;
-        }
-
         /// <summary>
         /// Enequeues a GameMessage for sending to this client.
         /// This may be called from many threads.
@@ -113,17 +106,6 @@ namespace ACE.Network
                 foreach (var message in messages)
                     currentBundle.Enqueue(message);
             }
-        }
-
-        /// <summary>
-        /// Enqueues a ServerPacket for sending to this client.
-        /// Currently this is only used publicly once during login.  If that changes it's thread safety should be re
-        /// </summary>
-        /// <param name="packets"></param>
-        public void EnqueueSend(params ServerPacket[] packets)
-        {
-            foreach (var packet in packets)
-                packetQueue.Enqueue(packet);
         }
 
         public void SendCharacterError(CharacterError error)
@@ -145,7 +127,7 @@ namespace ACE.Network
 
             if (DateTime.Now > nextIdleOut)
             {
-                log.WarnFormat("Idle out NetworkSession with clientId {0} for connection {1}", ClientId, EndPoint);
+                log.WarnFormat("Idle out NetworkSession with clientId {0} for connection {1}", AccountName, EndPoint);
                 Terminate(CharacterError.ServerCrash);
             }
 
@@ -192,7 +174,7 @@ namespace ACE.Network
         /// <param name="packet">The ClientPacket to process.</param>
         public void ProcessPacket(ClientPacket packet)
         {
-            log.DebugFormat("[{0}] Processing packet {1}", ClientId, packet.Header.Sequence);
+            log.DebugFormat("[{0}] Processing packet {1}", AccountName, packet.Header.Sequence);
 
             if (State == SessionState.Terminated)
                 return;
@@ -206,7 +188,7 @@ namespace ACE.Network
             if (packet.Header.Sequence <= lastReceivedPacketSequence && packet.Header.Sequence != 0 &&
                 !(packet.Header.Flags == PacketHeaderFlags.AckSequence && packet.Header.Sequence == lastReceivedPacketSequence))
             {
-                log.WarnFormat("[{0}] Packet {1} received again", ClientId, packet.Header.Sequence);
+                log.WarnFormat("[{0}] Packet {1} received again", AccountName, packet.Header.Sequence);
                 return;
             }
 
@@ -214,7 +196,7 @@ namespace ACE.Network
             // If true we must store it to replay once we have caught up.
             if (packet.Header.Sequence > lastReceivedPacketSequence + 1)
             {
-                log.WarnFormat("[{0}] Packet {1} received out of order", ClientId, packet.Header.Sequence);
+                log.WarnFormat("[{0}] Packet {1} received out of order", AccountName, packet.Header.Sequence);
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
                 return;
@@ -245,7 +227,7 @@ namespace ACE.Network
         /// <param name="packet">ClientPacket to handle</param>
         private void HandlePacket(ClientPacket packet)
         {
-            log.DebugFormat("[{0}] Handling packet {1}", ClientId, packet.Header.Sequence);
+            log.DebugFormat("[{0}] Handling packet {1}", AccountName, packet.Header.Sequence);
 
             if (!CheckState(packet))
                 return;
@@ -253,7 +235,7 @@ namespace ACE.Network
             uint issacXor = packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
             if (!packet.VerifyChecksum(issacXor))
             {
-                log.WarnFormat("[{0}] Packet {1} has invalid checksum", ClientId, packet.Header.Sequence);
+                log.WarnFormat("[{0}] Packet {1} has invalid checksum", AccountName, packet.Header.Sequence);
             }
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
@@ -323,7 +305,7 @@ namespace ACE.Network
             State = SessionState.Terminated;
         }
 
-        public async void HandleLoginRequest(ClientPacket packet)
+        private async void HandleLoginRequest(ClientPacket packet)
         {
             PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
             try
@@ -340,7 +322,7 @@ namespace ACE.Network
         private void AccountSelectCallback(Account account)
         {
             var connectRequest = new PacketOutboundConnectRequest(ConnectionData.ServerTime, 0, ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
-            EnqueueSend(connectRequest);
+            packetQueue.Enqueue(connectRequest);
 
             if (account == null)
             {
@@ -363,10 +345,20 @@ namespace ACE.Network
             SetAccount(account.AccountId, account.Name, account.AccessLevel);
         }
 
+        private void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
+        {
+            log.InfoFormat("Setting session account to {0} with name {1} and access {2}, network client id {3}", accountId, account, accountAccesslevel, ClientId);
+            AccountId = accountId;
+            AccountName = account;
+            AccessLevel = accountAccesslevel;
+        }
+
         private void HandleConnectResponse(ClientPacket packet)
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
             State = SessionState.AuthConnected;
+            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
+            EnqueueSend(dddInterrogation);
         }
 
         /// <summary>
@@ -375,24 +367,24 @@ namespace ACE.Network
         /// <param name="fragment">ClientPacketFragment to process</param>
         private void ProcessFragment(ClientPacketFragment fragment)
         {
-            log.DebugFormat("[{0}] Processing fragment {1}", ClientId, fragment.Header.Sequence);
+            log.DebugFormat("[{0}] Processing fragment {1}", AccountName, fragment.Header.Sequence);
             ClientMessage message = null;
             // Check if this fragment is split
             if (fragment.Header.Count != 1)
             {
                 // Packet is split
-                log.DebugFormat("[{0}] Fragment {1} is split, this index {2} of {3} fragments", ClientId, fragment.Header.Sequence, fragment.Header.Index, fragment.Header.Count);
+                log.DebugFormat("[{0}] Fragment {1} is split, this index {2} of {3} fragments", AccountName, fragment.Header.Sequence, fragment.Header.Index, fragment.Header.Count);
 
                 MessageBuffer buffer = null;
                 if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
                 {
                     // Existing buffer, add this to it and check if we are finally complete.
                     buffer.AddFragment(fragment);
-                    log.DebugFormat("[{0}] Added fragment {1} to existing buffer. Buffer at {2} of {3}", ClientId, fragment.Header.Sequence, buffer.Count, buffer.TotalFragments);
+                    log.DebugFormat("[{0}] Added fragment {1} to existing buffer. Buffer at {2} of {3}", AccountName, fragment.Header.Sequence, buffer.Count, buffer.TotalFragments);
                     if (buffer.Complete)
                     {
                         // The buffer is complete, so we can go ahead and handle
-                        log.DebugFormat("[{0}] Buffer {1} is complete", ClientId, buffer.Sequence);
+                        log.DebugFormat("[{0}] Buffer {1} is complete", AccountName, buffer.Sequence);
                         message = buffer.GetMessage();
                         MessageBuffer removed = null;
                         partialFragments.TryRemove(fragment.Header.Sequence, out removed);
@@ -401,18 +393,18 @@ namespace ACE.Network
                 else
                 {
                     // No existing buffer, so add a new one for this fragment sequence.
-                    log.DebugFormat("[{0}] Creating new buffer {1} for this split fragment", ClientId, fragment.Header.Sequence);
+                    log.DebugFormat("[{0}] Creating new buffer {1} for this split fragment", AccountName, fragment.Header.Sequence);
                     var newBuffer = new MessageBuffer(fragment.Header.Sequence, fragment.Header.Count);
                     newBuffer.AddFragment(fragment);
 
-                    log.DebugFormat("[{0}] Added fragment {1} to the new buffer. Buffer at {2} of {3}", ClientId, fragment.Header.Sequence, newBuffer.Count, newBuffer.TotalFragments);
+                    log.DebugFormat("[{0}] Added fragment {1} to the new buffer. Buffer at {2} of {3}", AccountName, fragment.Header.Sequence, newBuffer.Count, newBuffer.TotalFragments);
                     partialFragments.TryAdd(fragment.Header.Sequence, newBuffer);
                 }
             }
             else
             {
                 // Packet is not split, proceed with handling it.
-                log.DebugFormat("[{0}] Fragment {1} is not split", ClientId, fragment.Header.Sequence);
+                log.DebugFormat("[{0}] Fragment {1} is not split", AccountName, fragment.Header.Sequence);
                 message = new ClientMessage(fragment.Data);
             }
 
@@ -422,12 +414,12 @@ namespace ACE.Network
                 // First check if this message is the next sequence, if it is not, add it to our outOfOrderFragments
                 if (fragment.Header.Sequence == lastReceivedFragmentSequence + 1)
                 {
-                    log.DebugFormat("[{0}] Handling fragment {1}", ClientId, fragment.Header.Sequence);
+                    log.DebugFormat("[{0}] Handling fragment {1}", AccountName, fragment.Header.Sequence);
                     HandleClientMessage(message);
                 }
                 else
                 {
-                    log.DebugFormat("[{0}] Fragment {1} is early, lastReceivedFragmentSequence = {2}", ClientId, fragment.Header.Sequence, lastReceivedFragmentSequence);
+                    log.DebugFormat("[{0}] Fragment {1} is early, lastReceivedFragmentSequence = {2}", AccountName, fragment.Header.Sequence, lastReceivedFragmentSequence);
                     outOfOrderFragments.TryAdd(fragment.Header.Sequence, message);
                 }
             }
@@ -452,7 +444,7 @@ namespace ACE.Network
 
             while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out packet))
             {
-                log.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", ClientId, packet.Header.Sequence);
+                log.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", AccountName, packet.Header.Sequence);
                 HandlePacket(packet);
             }
         }
@@ -465,7 +457,7 @@ namespace ACE.Network
             ClientMessage message = null;
             while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out message))
             {
-                log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", ClientId, lastReceivedFragmentSequence + 1);
+                log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", AccountName, lastReceivedFragmentSequence + 1);
                 HandleClientMessage(message);
             }
         }
@@ -501,7 +493,7 @@ namespace ACE.Network
 
             if (cachedPackets.TryGetValue(sequence, out cachedPacket))
             {
-                log.DebugFormat("[{0}] Retransmit {1}", ClientId, sequence);
+                log.DebugFormat("[{0}] Retransmit {1}", AccountName, sequence);
 
                 if (!cachedPacket.Header.HasFlag(PacketHeaderFlags.Retransmission))
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;

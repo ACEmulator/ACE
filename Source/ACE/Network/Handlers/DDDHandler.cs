@@ -10,7 +10,7 @@ namespace ACE.Network
         public void DDD_InterrogationResponse(ClientMessage message)
         {
             GameMessageDDDEndDDD patchStatusMessage = new GameMessageDDDEndDDD();
-            Network.EnqueueSend(patchStatusMessage);
+            EnqueueSend(patchStatusMessage);
         }
 
         [GameMessage(GameMessageOpcode.DDD_EndDDD, SessionState.AuthConnected)]
