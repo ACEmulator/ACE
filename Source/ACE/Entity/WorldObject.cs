@@ -127,7 +127,8 @@ namespace ACE.Entity
         {
             lock (inventoryMutex)
             {
-                if (!inventory.ContainsKey(inventoryItem.Guid)) inventory.Add(inventoryItem.Guid, inventoryItem);
+                if (!inventory.ContainsKey(inventoryItem.Guid))
+                    inventory.Add(inventoryItem.Guid, inventoryItem);
                 GameData.Burden += inventoryItem.GameData.Burden;
                 inventoryItem.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
                 inventoryItem.GameData.ContainerId = Guid.Full;
@@ -148,8 +149,8 @@ namespace ACE.Entity
 
             lock (inventoryMutex)
             {
-                if (!this.inventory.ContainsKey(inventoryItemGuid)) return;
-                this.inventory.Remove(inventoryItemGuid);
+                if (this.inventory.ContainsKey(inventoryItemGuid))                    
+                    this.inventory.Remove(inventoryItemGuid);
             }
         }
 
@@ -157,7 +158,10 @@ namespace ACE.Entity
         {
             lock (inventoryMutex)
             {
-                return this.inventory.ContainsKey(objectGuid) ? this.inventory[objectGuid] : null;
+                if (this.inventory.ContainsKey(objectGuid))
+                    return this.inventory[objectGuid];
+                else
+                    return null;                
             }
         }
  
