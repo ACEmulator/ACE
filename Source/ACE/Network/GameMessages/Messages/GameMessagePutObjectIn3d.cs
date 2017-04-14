@@ -8,7 +8,7 @@ namespace ACE.Network.GameMessages.Messages
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
         {
             Writer.WriteGuid(worldObject.Guid);
-            Writer.Write(session.GameEventSequence++);
+            Writer.Write(session.GameEventSequence.NextValue);
             Writer.Write((uint)GameEvent.GameEventType.DropTemp);
             Writer.Write(itemGuid.Full);
             Writer.Align();
