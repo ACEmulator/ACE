@@ -3,6 +3,7 @@ using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
+using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
@@ -140,42 +141,27 @@ namespace ACE.Entity
             // var healthLossEvent = new GameEventUpdateHealth(session, Guid.Full, 0f);
             // session.Network.EnqueueSend(healthLossEvent);
 
-            // 1. step in retail: Create and send the death notice
+            // Create and send the death notice
             string killMessage = $"{session.Player.Name} has killed {Name}.";
             var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
             session.Network.EnqueueSend(creatureDeathEvent);
 
-            // 2. step in retail: SoundEvent: sound 48 (HitFlesh1), volume 0,5
-            session.Player.ActionApplySoundEffect(Sound.HitFlesh1, Guid);
+            // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
+            // TODO: This only works when we give the animation time to execute
+            GeneralMotion motionDeath = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            session.Player.EnqueueMovementEvent(motionDeath, this.Guid);
 
-            // 3. step in retail: SoundEvent: sound 14 (Wound3), volume 1
-            session.Player.ActionApplySoundEffect(Sound.Wound3, Guid);
+            Thread.Sleep(1000);
 
-            // 4. step in retail: MovementEvent: (Hand-)Combat to Death
-            // TODO: this isn't really working yet, we need more work on the motion stuff
-            GeneralMotion motion1 = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(this, session, motion1));
-
-            // 5. step in retail: Play Script to show wound depending on where the last hit was
-            // TODO: this is not showing yet, guess we need to give all the sounds and scripts some time to actually play
-            var effectEvent = new GameMessageScript(Guid, Network.Enum.PlayScript.SplatterMidRightFront);
-            session.Network.EnqueueSend(effectEvent);
-
-            // 6. step in retail: UpdatePosition: gotta verify this on more examples
-            // I guess it lowers the z axis, so the corpse isn't hovering in about the midth of a usual drudge
-
-            // 7. step in retail: DeleteObject Creature
-            // Remove Creature from Landblock this sends GameMessageRemoveObject
-            LandblockManager.RemoveObject(this);
-
-            // 8. step in retail: Create Corpse (dead for now - but guess is standing or in combat should be right)
+            // Create Corspe and set a location on the ground
             // TODO: set text of killer in description
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            LandblockManager.AddObject(corpse);
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
+            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
 
-            // 9. step in retail: Death Animation of corpse
-            GeneralMotion motion2 = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(corpse, session, motion2));            
+            // Remove Creature from Landblock this sends GameMessageRemoveObject and add Corpse
+            LandblockManager.RemoveObject(this);
+            LandblockManager.AddObject(corpse);
         }
     }
 }

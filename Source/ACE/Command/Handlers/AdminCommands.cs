@@ -401,8 +401,12 @@ namespace ACE.Command
             {
                 if (parameters[0] == "all")
                 {
-                    // TODO: Kill'em all
-                    ChatPacket.SendServerMessage(session, "Killing all creatures is not implemented yet.", ChatMessageType.Broadcast);
+                    var creatureIds = session.Player.GetKnownCreatures();
+                    foreach (var cId in creatureIds)
+                    {
+                        var wo = LandblockManager.GetWorldObject(session, cId);
+                        (wo as Creature).Kill(session);
+                    }
                 }
                 else
                     ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
