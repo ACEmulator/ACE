@@ -12,7 +12,7 @@ namespace ACE.Network
                 // TODO: broadcast
             }
             else
-                session.Network.EnqueueSend(new GameMessageSystemChat(message, chatMessageType));
+                session.EnqueueSend(new GameMessageSystemChat(message, chatMessageType));
         }
     }
 }

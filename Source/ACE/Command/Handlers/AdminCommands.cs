@@ -586,7 +586,7 @@ namespace ACE.Command.Handlers
             var chatSysMessagePY = new GameMessageSystemChat(messagePY, ChatMessageType.WorldBroadcast);
 
             if (session != null)
-                session.Network.EnqueueSend(chatSysMessageUTC, chatSysMessagePY);
+                session.EnqueueSend(chatSysMessageUTC, chatSysMessagePY);
             else
             {
                 Console.WriteLine(messageUTC);
@@ -863,7 +863,7 @@ namespace ACE.Command.Handlers
             var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.Current);
             var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Mana, session.Player.Mana.Current);
 
-            session.Network.EnqueueSend(updatePlayersHealth, updatePlayersStamina, updatePlayersMana);
+            session.EnqueueSend(updatePlayersHealth, updatePlayersStamina, updatePlayersMana);
         }
 
         // housekeep
@@ -972,7 +972,7 @@ namespace ACE.Command.Handlers
             else
             {
                 var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
-                session.Network.EnqueueSend(sysChatMsg);
+                session.EnqueueSend(sysChatMsg);
             }
         }
 

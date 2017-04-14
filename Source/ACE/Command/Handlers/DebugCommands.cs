@@ -127,7 +127,7 @@ namespace ACE.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -166,7 +166,7 @@ namespace ACE.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {

@@ -138,7 +138,7 @@ namespace ACE.Entity
             Player p = (Player)this;
             PhysicsData.CurrentMotionState = motionState;
             var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
-            p.Session.Network.EnqueueSend(updateMotion);
+            p.Session.EnqueueSend(updateMotion);
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
