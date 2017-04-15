@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-04-15
+[Ripley]
+* Updated CommandManager and CommandHandlerAttribute to support description and usage for help commands.
+* Added @acehelp and @acecommands (used @Thwargle PR #135 as a reference for listing commands) mimicing @help and @help commands
+* Added description and usage information to commands currently implemented.
+* Added sending chat messages to inform players upon logging in-game about the existence of ACE specific help.
+
 ### 2017-04-12
 [OptimShi]
 * Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)
