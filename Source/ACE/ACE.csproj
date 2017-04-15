@@ -205,8 +205,9 @@
     <Compile Include="Managers\WorldManager.cs" />
     <Compile Include="Network\Enum\CharacterError.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
-    <Compile Include="Network\GameAction\GameActionPacket.cs" />
+    <Compile Include="Network\GameAction\GameAction.cs" />
     <Compile Include="Network\GameAction\QueuedGameAction.cs" />
+    <Compile Include="Network\GameAction\TargetedGameAction.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
@@ -237,6 +238,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
+    <Compile Include="Network\Handlers\PlayerHandlers.cs" />
     <Compile Include="Network\Handlers\SessionHandlers.cs" />
     <Compile Include="Network\Motion\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
@@ -276,7 +278,6 @@
     <Compile Include="Network\Handlers\DDDHandler.cs" />
     <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
     <Compile Include="Network\Handlers\TurbineChatHandler.cs" />
-    <Compile Include="Network\Managers\InboundMessageManager.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\GameMessageGroup.cs" />
     <Compile Include="Network\Motion\GeneralMotion.cs" />
@@ -367,7 +368,9 @@
       <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Network\Managers\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>copy "$(ProjectDir)config.json" "$(TargetDir)config.json"</PreBuildEvent>

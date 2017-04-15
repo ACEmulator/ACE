@@ -17,13 +17,13 @@ namespace ACE.Network
 {
     public partial class Session
     {
-        [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
+        [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public void CharacterEnterWorldRequest(ClientMessage message)
         {
             EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
 
-        [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
+        [GameMessage(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
         public void CharacterEnterWorld(ClientMessage message)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
@@ -55,7 +55,7 @@ namespace ACE.Network
             LandblockManager.PlayerEnterWorld(this);
         }
 
-        [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
+        [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
         public async void CharacterDelete(ClientMessage message)
         {
             string account = message.Payload.ReadString16L();
@@ -85,7 +85,7 @@ namespace ACE.Network
             EnqueueSend(new GameMessageCharacterList(result, AccountName));
         }
 
-        [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
+        [GameMessage(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
         public void CharacterRestore(ClientMessage message)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
@@ -106,7 +106,7 @@ namespace ACE.Network
             EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
         }
 
-        [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
+        [GameMessage(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
         public async void CharacterCreate(ClientMessage message)
         {
             // known issues:
@@ -179,7 +179,7 @@ namespace ACE.Network
             EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
 
-        [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
+        [GameMessage(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
         public void CharacterLogOff(ClientMessage message)
         {
             log.DebugFormat("[{0}] Logging off", AccountName);

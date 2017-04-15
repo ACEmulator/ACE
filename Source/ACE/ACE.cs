@@ -4,7 +4,6 @@ using ACE.Command;
 using ACE.Common;
 using ACE.Database;
 using ACE.Managers;
-using ACE.Network.Managers;
 using ACE.DatLoader;
 using log4net;
 
@@ -21,9 +20,8 @@ namespace ACE
             ConfigManager.Initialise();
             DatabaseManager.Initialise();
             AssetManager.Initialise();
-            InboundMessageManager.Initialise();
-            WorldManager.Initialise();
             DatManager.Initialize();
+            WorldManager.Initialise();
             CommandManager.Initialise();
         }
     }
