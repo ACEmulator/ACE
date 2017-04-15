@@ -4,7 +4,6 @@ using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {

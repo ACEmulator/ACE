@@ -1,7 +1,6 @@
 ﻿using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameMessages;
-using ACE.Network.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,14 +84,14 @@ namespace ACE.Network
             }
         }
 
-        [GameMessageAttribute(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
+        [GameMessage(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
         public void HandleGameAction(ClientMessage message)
         {
             // TODO: verify sequence
             uint sequence = message.Payload.ReadUInt32();
             uint opcode = message.Payload.ReadUInt32();
 
-            InboundMessageManager.HandleGameAction((GameActionType)opcode, message, this);
+            Player.HandleGameAction((GameActionType)opcode, message);
         }
     }
 }

@@ -12,7 +12,6 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
@@ -156,6 +155,8 @@ namespace ACE.Entity
         public Player(Session session, CachedCharacter character) : base(ObjectType.Creature, character.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar, CharacterPositionExtensions.StartingPosition(character.Guid.Low))
         {
             Session = session;
+
+            DefineActionHandlers();
 
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
