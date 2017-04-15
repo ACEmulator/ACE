@@ -70,7 +70,6 @@ namespace ACE.Command.Handlers
         [CommandHandler("acecommands", AccessLevel.Player, CommandHandlerFlag.None, 0, "Lists all commands.")]
         public static void HandleACECommands(Session session, params string[] parameters)
         {
-
             List<String> commandList = new List<string>();
 
             if (session != null)
