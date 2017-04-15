@@ -6,6 +6,7 @@
 * Added @acehelp and @acecommands (used @Thwargle PR #135 as a reference for listing commands) mimicing @help and @help commands
 * Added description and usage information to commands currently implemented.
 * Added sending chat messages to inform players upon logging in-game about the existence of ACE specific help.
+* Updated GameActionTalk to return better information when a command is invalid or is missing parameters.
 
 ### 2017-04-12
 [OptimShi]
