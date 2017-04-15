@@ -17,7 +17,9 @@ namespace ACE.Command.Handlers
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
-        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 
+            "Send text back to yourself.", 
+            "\"text to send back to yourself\" [ChatMessageType]")]
         public static void HandleDebugEcho(Session session, params string[] parameters)
         {
             try
@@ -36,7 +38,8 @@ namespace ACE.Command.Handlers
         }
 
         // gps
-        [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Display location.")]
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Location;
@@ -44,7 +47,10 @@ namespace ACE.Command.Handlers
         }
 
         // telexyz cell x y z qx qy qz qw
-        [CommandHandler("telexyz", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 8)]
+        [CommandHandler("telexyz", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 8,
+            "Teleport to a location.",
+            "cell x y z qx qy qz qw\n" +
+            "all parameters must be specified and cell must be in decimal form")]
         public static void HandleDebugTeleportXYZ(Session session, params string[] parameters)
         {
             uint cell;
@@ -65,7 +71,8 @@ namespace ACE.Command.Handlers
         }
 
         // grantxp uint
-        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Give XP to yourself.")]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
@@ -84,7 +91,8 @@ namespace ACE.Command.Handlers
         }
 
         // playsound [Sound] (volumelevel)
-        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Plays a sound.")]
         public static void HandlePlaySound(Session session, params string[] parameters)
         {
             try
@@ -122,7 +130,8 @@ namespace ACE.Command.Handlers
         }
 
         // effect [Effect] (scale)
-        [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
+            "Plays an effect.")]
         public static void HandlePlayEffect(Session session, params string[] parameters)
         {
             try
@@ -156,7 +165,8 @@ namespace ACE.Command.Handlers
             }
         }
 
-        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Spews 1000 lines of text to you.")]
         public static void ChatDump(Session session, params string[] parameters)
         {
             for (int i = 0; i < 1000; i++)
@@ -165,7 +175,8 @@ namespace ACE.Command.Handlers
             }
         }
 
-        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Sends a MovementEvent to you.")]
         public static void Animation(Session session, params string[] parameters)
         {
             uint animationId;
@@ -183,7 +194,8 @@ namespace ACE.Command.Handlers
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
-        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Movement testing command, to be removed soon")]
         public static void Movement(Session session, params string[] parameters)
         {
             var movement = new GeneralMotion(MotionStance.Standing);
@@ -194,20 +206,23 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
-        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Teleports you to current position with PositionZ set to +8000.")]
         public static void SpaceJump(Session session, params string[] parameters)
         {
             Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
             session.Player.Teleport(newPosition);
         }
 
-        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Creates a lifestone in front of you.")]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
             LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
         }
 
-        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
         {
             LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
@@ -217,7 +232,8 @@ namespace ACE.Command.Handlers
         /// Debug command to saves the character from in-game.
         /// </summary>
         /// <remarks>Added a quick way to invoke the character save routine.</remarks>
-        [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Saves your session.")]
         public static void HandleSaveNow(Session session, params string[] parameters)
         {
             session.SaveSession();
@@ -227,7 +243,8 @@ namespace ACE.Command.Handlers
         /// Returns the Player's GUID
         /// </summary>
         /// <remarks>Added a quick way to access the player GUID.</remarks>
-        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Shows you your GUIDs.")]
         public static void HandleWhoAmI(Session session, params string[] parameters)
         {
             ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
@@ -236,7 +253,8 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.
         /// </summary>
-        [CommandHandler("reset-pos", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("reset-pos", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.")]
         public static void HandleResetPosition(Session session, params string[] parameters)
         {
             try
@@ -270,7 +288,9 @@ namespace ACE.Command.Handlers
             }
 
         // @testspell 0 10 10 10 10 20
-        [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
+            "Tests a spell projectile launch.",
+            "0 10 10 10 10 20")]
         public static void TestSpell(Session session, params string[] parameters)
         {
             uint templatid;
@@ -296,7 +316,11 @@ namespace ACE.Command.Handlers
             LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
-        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Creates a training wand on the ground or in your main pack.",
+            "[me or ground]" +
+            "@ctw me = Creates the wand in your main pack.\n" +
+            "@ctw ground = Creates the wand in front of you on the ground.")]
         public static void CreateTrainingWand(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))
@@ -335,7 +359,8 @@ namespace ACE.Command.Handlers
 
         // Kill a player - equivalent to legal virtual murder, by admin
         // TODO: Migrate this code into "smite" Admin command
-        [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1)]
+        [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "See @smite")]
         public static void HandleSendKill(Session session, params string[] parameters)
         {
             // lame checks on first parameter
@@ -378,7 +403,9 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Debug command to spawn a creature in front of the player and save it as a static spawn.
         /// </summary>
-        [CommandHandler("createstaticcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("createstaticcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Debug command to spawn a creature in front of the player and save it as a static spawn.",
+            "weenieClassId")]
         public static void CreateStaticCreature(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))

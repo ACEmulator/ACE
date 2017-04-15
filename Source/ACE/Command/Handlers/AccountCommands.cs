@@ -12,7 +12,9 @@ namespace ACE.Command.Handlers
     public static class AccountCommands
     {
         // accountcreate username password accesslevel
-        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2)]
+        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2, 
+            "Creates a new account.", 
+            "username password (accesslevel)")]
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
             uint accountId                  = DatabaseManager.Authentication.GetMaxId() + 1;
@@ -43,7 +45,11 @@ namespace ACE.Command.Handlers
         }
 
         // set-accountaccess accountname (accesslevel)
-        [CommandHandler("set-accountaccess", AccessLevel.Admin, CommandHandlerFlag.None, 1)]
+        [CommandHandler("set-accountaccess", AccessLevel.Admin, CommandHandlerFlag.None, 1, 
+            "Change the access level of an account.", 
+            "accountname (accesslevel)\n" +
+            "accesslevel can be a number or a name\n" +
+            "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin\n")]
         public static void HandleAccountUpdateAccessLevel(Session session, params string[] parameters)
         {
             uint accountId      = 0;
