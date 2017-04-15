@@ -1,17 +1,13 @@
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using ACE.Network.Sequence;
 using System.IO;
 
 namespace ACE.Entity
 {
-    using System;
     using System.Collections.Generic;
-    using System.Runtime.Remoting.Messaging;
 
     using global::ACE.Entity.Enum.Properties;
     using global::ACE.Managers;

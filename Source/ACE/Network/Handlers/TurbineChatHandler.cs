@@ -6,7 +6,6 @@ using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 
 namespace ACE.Network
 {

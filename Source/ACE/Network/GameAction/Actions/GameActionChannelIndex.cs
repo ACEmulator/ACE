@@ -1,8 +1,4 @@
-﻿using ACE.Common.Extensions;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
+﻿using ACE.Network.GameEvent.Events;
 
 namespace ACE.Network.GameAction.Actions
 {

@@ -1,6 +1,5 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Managers;
-using ACE.Network.Managers;
 using System.Collections.Generic;
 
 namespace ACE.Network.GameEvent.Events
