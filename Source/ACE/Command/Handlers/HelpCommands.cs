@@ -100,6 +100,8 @@ namespace ACE.Command.Handlers
                 }
             }
 
+            commandList.Sort();
+
             for (int i = 0; i < commandList.Count; i++)
             {
                 string message = commandList[i];
