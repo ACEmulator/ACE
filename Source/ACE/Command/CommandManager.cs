@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-
 using ACE.Network;
 
 namespace ACE.Command
@@ -13,6 +13,16 @@ namespace ACE.Command
     public static class CommandManager
     {
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
+
+        public static IEnumerable<CommandHandlerInfo> GetCommands()
+        {
+            return commandHandlers.Select(p => p.Value);
+        }
+
+        public static IEnumerable<CommandHandlerInfo> GetCommandByName(string commandname)
+        {
+            return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command == commandname);
+        }
 
         public static void Initialise()
         {
