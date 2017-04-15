@@ -405,7 +405,8 @@ namespace ACE.Command
                     foreach (var cId in creatureIds)
                     {
                         var wo = LandblockManager.GetWorldObject(session, cId);
-                        (wo as Creature).Kill(session);
+                        if (wo != null)
+                            (wo as Creature).Kill(session);
                     }
                 }
                 else
@@ -418,15 +419,15 @@ namespace ACE.Command
                     var target = new ObjectGuid(session.Player.SelectedTarget);
                     var wo = LandblockManager.GetWorldObject(session, target);
 
-                    // ChatPacket.SendServerMessage(session, $"Be gone, 0x{target.Full.ToString("X")}", ChatMessageType.Broadcast);
-
                     if (target.IsCreature())
                     {
-                        (wo as Creature).Kill(session);
+                        if (wo != null)
+                            (wo as Creature).Kill(session);
                     }
                     if (target.IsPlayer())
                     {
-                        (wo as Player).Kill();
+                        if (wo != null)
+                            (wo as Player).Kill();
                     }
                 }
                 else

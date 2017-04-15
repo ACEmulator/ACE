@@ -164,6 +164,8 @@
         ApplyVisualEffect = 0xF755,
         JumpNonAutonomous = 0xF7C9,
 
+        ObjectCreate = 0xF745,
+        ObjectDelete = 0xF747,
         MovementEvent = 0xF74C,
 
         // Below are enums from the client that have not been introduced to ACE

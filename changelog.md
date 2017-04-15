@@ -2,11 +2,13 @@
 
 ### 2017-04-14
 [Lidefeath]
-* Flesh out smite command - withouth the bunnysmite animation, sorry HellsWrath
+* Flesh out smite command - without the bunnysmite animation, sorry HellsWrath
 * Fix CreatureObject so it's parseable now by aclogview
 * Add GameEventDeathNotice to broadcast the killing of a creature
 * If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
-* TODO: fix the death animation and sounds to mimick retail
+* Enhance GameActionQueue to handle delayed actions, so animations have time to play
+* Define two GameActionTypes for CreateObject and DeleteObject so they can be used with the delayed GameActionQueue
+* Creature Guids now start with 0x90 instead of 0x80 to separate them from items 
 
 ### 2017-04-12
 [OptimShi]

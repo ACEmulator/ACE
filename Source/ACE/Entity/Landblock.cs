@@ -465,6 +465,16 @@ namespace ACE.Entity
                         HandleMovementEvent(obj, motion);
                         break;
                     }
+                case GameActionType.ObjectCreate:
+                    {
+                        this.AddWorldObject(action.WorldObject);
+                        break;
+                    }
+                case GameActionType.ObjectDelete:
+                    {
+                        this.RemoveWorldObject(action.WorldObject.Guid, false);
+                        break;
+                    }
                 case GameActionType.QueryHealth:
                     {
                         if (action.ObjectId == 0)

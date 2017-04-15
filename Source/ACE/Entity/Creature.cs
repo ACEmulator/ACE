@@ -137,31 +137,28 @@ namespace ACE.Entity
         {
             IsAlive = false;
 
-            // Send UpdateHealth Message with 0 Health - this is not necessary according to live pcaps
-            // var healthLossEvent = new GameEventUpdateHealth(session, Guid.Full, 0f);
-            // session.Network.EnqueueSend(healthLossEvent);
-
             // Create and send the death notice
             string killMessage = $"{session.Player.Name} has killed {Name}.";
             var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
             session.Network.EnqueueSend(creatureDeathEvent);
 
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
-            // TODO: This only works when we give the animation time to execute
+            // TODO: Check if the duration of the motion can somehow be computed
             GeneralMotion motionDeath = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            session.Player.EnqueueMovementEvent(motionDeath, this.Guid);
-
-            Thread.Sleep(1000);
-
+            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
+            session.Player.AddToActionQueue(actionDeath);
+            
             // Create Corspe and set a location on the ground
-            // TODO: set text of killer in description
+            // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
             corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
             corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
 
-            // Remove Creature from Landblock this sends GameMessageRemoveObject and add Corpse
-            LandblockManager.RemoveObject(this);
-            LandblockManager.AddObject(corpse);
+            // Remove Creature from Landblock and add Corpse in that location via the ActionQueue to honor the motion delays
+            QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            session.Player.AddToActionQueue(removeCreature);
+            session.Player.AddToActionQueue(addCorpse);
         }
     }
 }
