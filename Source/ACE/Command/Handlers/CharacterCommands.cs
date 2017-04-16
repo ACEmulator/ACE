@@ -11,12 +11,12 @@ namespace ACE.Command.Handlers
 {
     public static class CharacterCommands
     {
-        // set-characteraccess charactername accesslevel
+        // set-characteraccess charactername (accesslevel)
         [CommandHandler("set-characteraccess", AccessLevel.Admin, CommandHandlerFlag.None, 1,
             "Sets the access level for the character",
-            "charactername accesslevel\n" +
-            "accesslevel can be a number or a name\n" +
-            "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin\n")]
+            "charactername (accesslevel)\n" +
+            "accesslevel can be a number or enum name\n" +
+            "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
         public static void HandleCharacterTokenization(Session session, params string[] parameters)
         {
             uint characterId = 0;

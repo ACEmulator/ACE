@@ -19,7 +19,8 @@ namespace ACE.Command.Handlers
         // echo "text to send back to yourself" [ChatMessageType]
         [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 
             "Send text back to yourself.", 
-            "\"text to send back to yourself\" [ChatMessageType]")]
+            "\"text to send back to yourself\" [ChatMessageType]\n" +
+            "ChatMessageType can be a uint or enum name")]
         public static void HandleDebugEcho(Session session, params string[] parameters)
         {
             try
@@ -70,9 +71,11 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
-        // grantxp uint
+        // grantxp ulong
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Give XP to yourself.")]
+            "Give XP to yourself.",
+            "ulong\n" +
+            "@grantxp 191226310247 is max level 275")]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
@@ -92,7 +95,10 @@ namespace ACE.Command.Handlers
 
         // playsound [Sound] (volumelevel)
         [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Plays a sound.")]
+            "Plays a sound.",
+            "sound (float)\n" +
+            "Sound can be uint or enum name" +
+            "float is volume level")]
         public static void HandlePlaySound(Session session, params string[] parameters)
         {
             try
@@ -131,7 +137,10 @@ namespace ACE.Command.Handlers
 
         // effect [Effect] (scale)
         [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
-            "Plays an effect.")]
+            "Plays an effect.",
+            "effect (float)\n" +
+            "Effect can be uint or enum name" +
+            "float is scale level")]
         public static void HandlePlayEffect(Session session, params string[] parameters)
         {
             try
@@ -176,7 +185,8 @@ namespace ACE.Command.Handlers
         }
 
         [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Sends a MovementEvent to you.")]
+            "Sends a MovementEvent to you.",
+            "uint\n")]
         public static void Animation(Session session, params string[] parameters)
         {
             uint animationId;
@@ -254,7 +264,9 @@ namespace ACE.Command.Handlers
         /// Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.
         /// </summary>
         [CommandHandler("reset-pos", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.")]
+            "Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.",
+            "PositionType\n" +
+            "PositionType can be a uint or enum name")]
         public static void HandleResetPosition(Session session, params string[] parameters)
         {
             try
@@ -289,8 +301,9 @@ namespace ACE.Command.Handlers
 
         // @testspell 0 10 10 10 10 20
         [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
-            "Tests a spell projectile launch.",
-            "0 10 10 10 10 20")]
+            "Launch a spell projectile.",
+            "templateid x y z friction elasticity\n" +
+            "Example: @testspell 0 10 10 10 10 20")]
         public static void TestSpell(Session session, params string[] parameters)
         {
             uint templatid;

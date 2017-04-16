@@ -60,9 +60,8 @@ namespace ACE.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
             }
             else
-            {
                 Console.WriteLine($"Unknown command: {parameters[0]}");
-            }
+
             return;
         }
 
