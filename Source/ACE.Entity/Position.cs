@@ -10,7 +10,17 @@
     [DbGetList("vw_character_positions", 23, "character_id")]
     public class Position
     {
-        public LandblockId LandblockId { get; set; }
+        public LandblockId LandblockId
+        {
+            get
+            {
+                return new LandblockId(Cell);
+            }
+            set
+            {
+                Cell = value.Raw;
+            }
+        }
 
         [DbField("character_id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint CharacterId { get; set; }
@@ -97,8 +107,7 @@
 
         public Position(uint characterId, PositionType type, uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
-            LandblockId = new LandblockId(Cell);
-            
+            LandblockId = new LandblockId(newCell);
             CharacterId = characterId;
             PositionType = type;
             Cell = newCell;

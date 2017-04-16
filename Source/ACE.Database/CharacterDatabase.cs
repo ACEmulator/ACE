@@ -277,8 +277,28 @@ namespace ACE.Database
 
                 // Loads the positions into the player object and resets the landlock id
                 LoadCharacterPositions(c);
-                c.Location = c.Positions[PositionType.Location];
-                c.Location.LandblockId = new LandblockId(c.Location.Cell);
+
+                // Load the best location from the database
+                // This may be needed if a position is removed from the database, after a character has been created.
+                // But should now be totally un-neccssary.
+                var invalidPosition = CharacterPositionExtensions.InvalidPosition(c.Id, PositionType.Undef);
+
+                if (c.Positions.ContainsKey(PositionType.Location))
+                    c.Location = c.Positions[PositionType.Location];
+                else if (c.Positions.ContainsKey(PositionType.LastPortal))
+                    c.Location = c.Positions[PositionType.LastPortal];
+                else if (c.Positions.ContainsKey(PositionType.Sanctuary))
+                    c.Location = c.Positions[PositionType.Sanctuary];
+
+                // Check to see if the database position is valid
+                if (c.Location.PositionX == invalidPosition.PositionX && 
+                    c.Location.PositionY == invalidPosition.PositionY && 
+                    c.Location.PositionZ == invalidPosition.PositionZ)
+                {
+                    // If the cell is also invalid, we will set to initial character starting location.
+                    if (c.Location.LandblockId.Raw == 0x0 || c.Location.LandblockId.Raw == 0x255)
+                        c.Location = CharacterPositionExtensions.StartingPosition(c.Id);
+                }
 
                 uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
                 uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
@@ -452,19 +472,24 @@ namespace ACE.Database
             // get a list of positions from the vw_character_positions view
             var dbPositionList = GetCharacterPositions(character);
 
+            bool containsLocation = false;
+
+            if (dbPositionList.Count > 0)
+            {
+                foreach (Position checkPosition in dbPositionList)
+                {
+                    if (checkPosition.PositionType == PositionType.Location)
+                        containsLocation = true;
+                }
+            }
+
             // Check for positions and insert defaults if missing:
-            if (dbPositionList.Count == 0)
+            if (dbPositionList.Count == 0 || !containsLocation)
             {
                 // load the default position
                 Position newCharacterPosition = CharacterPositionExtensions.StartingPosition(character.Id);
-                Position newRecallPosition = CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.LastPortal);
                 dbPositionList.Add(newCharacterPosition);
-                dbPositionList.Add(newRecallPosition);
-
-                // Did not find a position in the database, so we will create one here.
-                // WE SHOULD NOT GET HERE ANYMORE?!
                 ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newCharacterPosition);
-                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newRecallPosition);
             }
 
             // This will load each available position from the database, into the object's positions
