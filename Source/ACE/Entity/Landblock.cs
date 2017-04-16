@@ -198,7 +198,8 @@ namespace ACE.Entity
                 if (this.worldObjects.ContainsKey(objectId))
                 {
                     wo = this.worldObjects[objectId];
-                    this.worldObjects.Remove(objectId);
+                    if (!objectId.IsCreature())
+                        this.worldObjects.Remove(objectId);
                 }
             }
 
@@ -359,14 +360,20 @@ namespace ACE.Entity
                 // for now, we'll move players around
                 List<WorldObject> movedObjects = null;
                 List<Player> players = null;
+                List<ImmutableWorldObject> despawnObjects = null;
+                List<Creature> deadCreatures = null;
 
                 lock (objectCacheLocker)
                 {
                     movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
                     players = this.worldObjects.Values.OfType<Player>().ToList();
+                    despawnObjects = this.worldObjects.Values.OfType<ImmutableWorldObject>().ToList();
+                    deadCreatures = this.worldObjects.Values.OfType<Creature>().ToList();
                 }
 
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
+                despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
+                deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
@@ -416,6 +423,26 @@ namespace ACE.Entity
                     if (action != null)
                         HandleGameAction(action, p);
                 }
+
+                // despawn objects
+                Parallel.ForEach(despawnObjects, deo => 
+                {
+                    if (deo.DespawnTime < WorldManager.PortalYearTicks)
+                    {
+                        this.RemoveWorldObject(deo.Guid, false);
+                    }
+                });
+
+                // respawn creatures
+                Parallel.ForEach(deadCreatures, dc => 
+                {
+                    if (dc.RespawnTime < WorldManager.PortalYearTicks)
+                    {
+                        dc.IsAlive = true;
+                        HandleParticleEffectEvent(dc, PlayScript.Create);
+                        this.AddWorldObject(dc);
+                    }
+                });
 
                 Thread.Sleep(1);
             }

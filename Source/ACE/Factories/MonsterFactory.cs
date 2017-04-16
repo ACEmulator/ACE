@@ -23,7 +23,11 @@ namespace ACE.Factories
             return null;
         }
 
-        public static Creature SpawnStaticCreature(uint weenieClassId, Position position)
+        /// <summary>
+        /// Create a new creature at the specified position
+        /// </summary>
+        /// <param name="saveAsStatic">If set to true, it saves the spawned creature in the DB as a static spawn</param>
+        public static Creature SpawnCreature(uint weenieClassId, bool saveAsStatic, Position position)
         {
             AceCreatureObject aco = DatabaseManager.World.GetCreatureDataByWeenie(weenieClassId);
             if (aco == null)
@@ -44,10 +48,12 @@ namespace ACE.Factories
 
             Creature newCreature = new Creature(acsl);
 
-            bool success = DatabaseManager.World.InsertStaticCreatureLocation(acsl);
-            if (!success)
-                return null;
-               
+            if (saveAsStatic) {
+                bool success = DatabaseManager.World.InsertStaticCreatureLocation(acsl);
+                if (!success)
+                    return null;
+            }
+
             return newCreature;
         }
     }
