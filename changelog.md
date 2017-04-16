@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-04-16
+[fantoms]
+* Fixed 2 bugs in landblock where the landblock was becoming invalid on load.
+* Added checks to prevent missing Positions in the database from crashing the server or preventing character load.
+* Removed Lastportal from Position creation, as it will be created on demand when portals are introduced.
 
 ### 2017-04-13
 [Og II]
