@@ -13,13 +13,15 @@ namespace ACE.Command.Handlers
         [CommandHandler("acehelp", AccessLevel.Player, CommandHandlerFlag.None, 0, "Displays help.", "(command)")]
         public static void HandleACEHelp(Session session, params string[] parameters)
         {         
-            if (parameters.Length <= 0)
+            if (parameters?.Length <= 0)
             {
                 if (session != null)
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat("Note: You may substitute a forward slash (/) for the at symbol (@).", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Use @help to get more information about commands supported by the client.", ChatMessageType.Broadcast));
                     session.Network.EnqueueSend(new GameMessageSystemChat("Available help:", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Use @acecommands to get a complete list of commands available for you to use.", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("@acehelp commands - Lists all commands.", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("You can also use @acecommands to get a complete list of the supported ACEmulator commands available to you.", ChatMessageType.Broadcast));
                     session.Network.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
                 }
                 else
@@ -29,6 +31,12 @@ namespace ACE.Command.Handlers
                 return;
             }
 
+            if (parameters?[0] == "commands") // Mimick @help commands command
+            {
+                HandleACECommands(session, parameters);
+                return;
+            }
+                
             foreach (var command in CommandManager.GetCommandByName(parameters[0]))
             {
                 if (session != null)
