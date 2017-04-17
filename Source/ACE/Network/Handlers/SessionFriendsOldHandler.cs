@@ -7,7 +7,7 @@ namespace ACE.Network
     public partial class Session
     {
         [GameMessageAttribute(GameMessageOpcode.FriendsOld, SessionState.WorldConnected)]
-        public void FriendsOld(ClientMessage message)
+        private void FriendsOld(ClientMessage message)
         {
             ChatPacket.SendServerMessage(this, "That command is not used in the emulator.", ChatMessageType.Broadcast);
         }
