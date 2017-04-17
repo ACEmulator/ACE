@@ -24,20 +24,17 @@ namespace ACE.Network
         {
             messageInfoHandlers = new Dictionary<GameMessageOpcode, MessageHandlerMethodInfo>();
 
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            foreach (var methodInfo in typeof(Session).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
             {
-                foreach (var methodInfo in typeof(Session).GetMethods())
+                foreach (var messageHandlerAttribute in methodInfo.GetCustomAttributes<GameMessageAttribute>())
                 {
-                    foreach (var messageHandlerAttribute in methodInfo.GetCustomAttributes<GameMessageAttribute>())
+                    var messageHandler = new MessageHandlerMethodInfo()
                     {
-                        var messageHandler = new MessageHandlerMethodInfo()
-                        {
-                            MethodInfo = methodInfo,
-                            Attribute = messageHandlerAttribute
-                        };
+                        MethodInfo = methodInfo,
+                        Attribute = messageHandlerAttribute
+                    };
 
-                        messageInfoHandlers[messageHandlerAttribute.Opcode] = messageHandler;
-                    }
+                    messageInfoHandlers[messageHandlerAttribute.Opcode] = messageHandler;
                 }
             }
         }
@@ -85,7 +82,7 @@ namespace ACE.Network
         }
 
         [GameMessage(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
-        public void HandleGameAction(ClientMessage message)
+        private void HandleGameAction(ClientMessage message)
         {
             // TODO: verify sequence
             uint sequence = message.Payload.ReadUInt32();
