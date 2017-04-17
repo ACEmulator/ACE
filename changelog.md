@@ -1,4 +1,11 @@
 # ACEmulator Change Log
+### 2017-04-17
+[fantoms]
+* Removed `@reset-pos` command and also removed another default that set last portal upon character creation.
+* Changed `GetPositions` to return a dictionary.
+* Changed `Position LandblockId` to have a private value that will create a new objected when needed.
+* Moved the position check logic into the CharacterDatabase.cs file, to simply things.
+
 ### 2017-04-16
 [fantoms]
 * Fixed 2 bugs in landblock where the landblock was becoming invalid on load.

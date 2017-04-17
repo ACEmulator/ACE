@@ -10,15 +10,21 @@
     [DbGetList("vw_character_positions", 23, "character_id")]
     public class Position
     {
+        private LandblockId landblockId;
+
         public LandblockId LandblockId
         {
             get
             {
-                return new LandblockId(Cell);
+                // When the landblockId is not set, we will instantiate it when needed.
+                if (landblockId.Raw == 0 && Cell != 0)
+                    landblockId = new LandblockId(Cell);
+                return landblockId;
             }
             set
             {
                 Cell = value.Raw;
+                landblockId = value;
             }
         }
 
