@@ -1,25 +1,29 @@
-﻿using ACE.Network.Enum;
+﻿using ACE.Common.Extensions;
+using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Network;
+using ACE.Network.Enum;
+using ACE.Network.GameAction;
+using ACE.Network.GameEvent.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ACE.Common.Extensions;
-using ACE.Entity.Enum;
 
-namespace ACE.Network.GameAction.Actions
+namespace ACE.Entity
 {
-    // NOTE: The client doesn't send this packet if the only options that were changed are normally called in the GameActionSetSingleCharacterOption packet.
-    // For example, if the user selects/unselects "Auto Repeat Attacks", the GameActionSetSingleCharacterOption packet is sent. Then if the user clicks on Apply
-    // this packet (GameActionSetCharacterOptions) will not be sent.
-    // On the other hand, if the user selects/unselects "Auto Repeat Attacks", then selects/unselects "Disable Most Weather Effects" (this won't trigger the SetSingleCharacterOption packet),
-    // then clicks Apply, this packet (GameActionSetCharacterOptions) WILL be sent.
-    // The options that trigger a GameActionSetSingleCharacterOption packet are denoted by having a value set (as in <enum_field> = <val>) in the CharacterOptions enum.
-
-    public static class GameActionSetCharacterOptions
+    public partial class Player
     {
+        // NOTE: The client doesn't send this packet if the only options that were changed are normally called in the GameActionSetSingleCharacterOption packet.
+        // For example, if the user selects/unselects "Auto Repeat Attacks", the GameActionSetSingleCharacterOption packet is sent. Then if the user clicks on Apply
+        // this packet (GameActionSetCharacterOptions) will not be sent.
+        // On the other hand, if the user selects/unselects "Auto Repeat Attacks", then selects/unselects "Disable Most Weather Effects" (this won't trigger the SetSingleCharacterOption packet),
+        // then clicks Apply, this packet (GameActionSetCharacterOptions) WILL be sent.
+        // The options that trigger a GameActionSetSingleCharacterOption packet are denoted by having a value set (as in <enum_field> = <val>) in the CharacterOptions enum.
+
         [GameAction(GameActionType.SetCharacterOptions)]
-        public static void Handle(ClientMessage message, Session session)
+        private void SetCharacterOptionsAction(ClientMessage message)
         {
             uint characterOptions1Flag = 0;
             uint characterOptions2Flag = 0;
@@ -128,10 +132,10 @@ namespace ACE.Network.GameAction.Actions
             // if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0) { }
 
             // if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0) { }
-            
+
             // Set the options on the player object
             Dictionary<CharacterOption, bool> optionValues = new Dictionary<CharacterOption, bool>(); // Have to use a list since I can't change the values of the actual list while enumerating over it.
-            foreach (var option in session.Player.CharacterOptions)
+            foreach (var option in CharacterOptions)
             {
                 if (option.Key.GetCharacterOptions1Attribute() != null)
                 {
@@ -150,14 +154,31 @@ namespace ACE.Network.GameAction.Actions
             }
 
             foreach (var option in optionValues)
-                session.Player.SetCharacterOption(option.Key, option.Value);
-            
+                SetCharacterOption(option.Key, option.Value);
+
             // TODO: Set other options from the packet
 
             // Save the options
-            session.Player.SaveOptions();
+            SaveOptions();
 
             return;
+        }
+
+        [GameAction(GameActionType.SetSingleCharacterOption)]
+        private void SetSingleCharacterOptionAction(ClientMessage message)
+        {
+            var option = (CharacterOption)message.Payload.ReadUInt32();
+            var optionValue = message.Payload.ReadUInt32() == 0 ? false : true;
+            switch (option)
+            {
+                case CharacterOption.AppearOffline:
+                    AppearOffline(optionValue);
+                    break;
+
+                default:
+                    SetCharacterOption(option, optionValue);
+                    break;
+            }
         }
     }
 }

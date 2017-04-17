@@ -17,14 +17,14 @@ namespace ACE.Network
 {
     public partial class Session
     {
-        [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
-        public void CharacterEnterWorldRequest(ClientMessage message)
+        [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
+        private void CharacterEnterWorldRequest(ClientMessage message)
         {
             EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
 
-        [GameMessage(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
-        public void CharacterEnterWorld(ClientMessage message)
+        [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
+        private void CharacterEnterWorld(ClientMessage message)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
             string account = message.Payload.ReadString16L();
@@ -55,7 +55,7 @@ namespace ACE.Network
             LandblockManager.PlayerEnterWorld(this);
         }
 
-        [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
+        [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
         public async void CharacterDelete(ClientMessage message)
         {
             string account = message.Payload.ReadString16L();
@@ -85,8 +85,8 @@ namespace ACE.Network
             EnqueueSend(new GameMessageCharacterList(result, AccountName));
         }
 
-        [GameMessage(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public void CharacterRestore(ClientMessage message)
+        [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
+        private void CharacterRestore(ClientMessage message)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -106,7 +106,7 @@ namespace ACE.Network
             EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
         }
 
-        [GameMessage(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
+        [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
         public async void CharacterCreate(ClientMessage message)
         {
             // known issues:
@@ -169,7 +169,7 @@ namespace ACE.Network
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
-        public void CharacterCreateSetDefaultCharacterPositions(Character character)
+        private void CharacterCreateSetDefaultCharacterPositions(Character character)
         {
             character.SetCharacterPosition(CharacterPositionExtensions.StartingPosition(character.Id));
         }
@@ -179,8 +179,8 @@ namespace ACE.Network
             EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
 
-        [GameMessage(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
-        public void CharacterLogOff(ClientMessage message)
+        [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
+        private void CharacterLogOff(ClientMessage message)
         {
             log.DebugFormat("[{0}] Logging off", AccountName);
             SaveSession();

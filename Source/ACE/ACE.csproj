@@ -162,41 +162,6 @@
     <Compile Include="Network\Enum\Useable.cs" />
     <Compile Include="Network\Enum\Vital.cs" />
     <Compile Include="Network\Enum\CombatUse.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionDropItem.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionTeleToLifestone.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionDie.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionUseItem.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionChangeCombatMode.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionQueryAge.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionQueryBirth.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionQueryHealth.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionPutItemInContainer.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionTrainSkill.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionRemoveAllFriends.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionRemoveChannel.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionSetCharacterOptions.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionSetSingleCharacterOption.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionAutonomousPosition.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionEmote.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionHouseQuery.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionLoginComplete.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionPingRequest.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionRaiseAbility.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionRaiseSkill.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionRaiseVital.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionRemoveFriend.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionSetTitle.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionTeleToMarketplace.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
@@ -205,7 +170,6 @@
     <Compile Include="Entity\WorldObject.cs" />
     <Compile Include="Managers\WorldManager.cs" />
     <Compile Include="Network\Enum\CharacterError.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameAction.cs" />
     <Compile Include="Network\GameAction\QueuedGameAction.cs" />
     <Compile Include="Network\GameAction\TargetedGameAction.cs" />
@@ -241,7 +205,19 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
+    <Compile Include="Network\Handlers\PlayerTeleport.cs" />
+    <Compile Include="Network\Handlers\PlayerOptions.cs" />
+    <Compile Include="Network\Handlers\PlayerStatistics.cs" />
+    <Compile Include="Network\Handlers\PlayerGeneral.cs" />
+    <Compile Include="Network\Handlers\PlayerChat.cs" />
+    <Compile Include="Network\Handlers\PlayerCombat.cs" />
+    <Compile Include="Network\Handlers\PlayerHousing.cs" />
+    <Compile Include="Network\Handlers\PlayerPhysics.cs" />
+    <Compile Include="Network\Handlers\PlayerAllegiance.cs" />
+    <Compile Include="Network\Handlers\PlayerFriends.cs" />
     <Compile Include="Network\Handlers\PlayerHandlers.cs" />
+    <Compile Include="Network\Handlers\PlayerAdmin.cs" />
+    <Compile Include="Network\Handlers\PlayerObjects.cs" />
     <Compile Include="Network\Handlers\SessionHandlers.cs" />
     <Compile Include="Network\Motion\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
@@ -277,10 +253,10 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSystemChat.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageTurbineChat.cs" />
-    <Compile Include="Network\Handlers\CharacterHandler.cs" />
-    <Compile Include="Network\Handlers\DDDHandler.cs" />
-    <Compile Include="Network\Handlers\FriendsOldHandler.cs" />
-    <Compile Include="Network\Handlers\TurbineChatHandler.cs" />
+    <Compile Include="Network\Handlers\SessionCharacterHandler.cs" />
+    <Compile Include="Network\Handlers\SessionDDDHandler.cs" />
+    <Compile Include="Network\Handlers\SessionFriendsOldHandler.cs" />
+    <Compile Include="Network\Handlers\SessionTurbineChatHandler.cs" />
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\GameMessageGroup.cs" />
     <Compile Include="Network\Motion\GeneralMotion.cs" />
@@ -372,6 +348,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Network\GameAction\Actions\" />
     <Folder Include="Network\Managers\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
