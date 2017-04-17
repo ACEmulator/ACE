@@ -1,26 +1,36 @@
-﻿using System;
-
+﻿using ACE.Common.Extensions;
 using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Network;
+using ACE.Network.Enum;
+using ACE.Network.GameAction;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ACE.Network.GameAction.Actions
+namespace ACE.Entity
 {
-    public static class GameActionMoveToState
+    public partial class Player
     {
-        [Flags]
-        private enum MotionStateFlag
+        [GameAction(GameActionType.LoginComplete)]
+        private void LoginCompleteAction(ClientMessage message)
         {
-            None            = 0x0000,
-            CurrentHoldKey  = 0x0001,
-            CurrentStyle    = 0x0002,
-            ForwardCommand  = 0x0004,
-            ForwardHoldKey  = 0x0008,
-            ForwardSpeed    = 0x0010,
-            SideStepCommand = 0x0020,
-            SideStepHoldKey = 0x0040,
-            SideStepSpeed   = 0x0080,
-            TurnCommand     = 0x0100,
-            TurnHoldKey     = 0x0200,
-            TurnSpeed       = 0x0400
+            InWorld = true;
+            SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
+        }
+
+        [GameAction(GameActionType.AutonomousPosition)]
+        private void AutonomousPositionAction(ClientMessage message)
+        {
+            var position = new Position(message.Payload);
+            var instanceTimestamp = message.Payload.ReadUInt16();
+            var serverControlTimestamp = message.Payload.ReadUInt16();
+            var teleportTimestamp = message.Payload.ReadUInt16();
+            var forcePositionTimestamp = message.Payload.ReadUInt16();
+            message.Payload.ReadByte();
+            UpdatePosition(position);
         }
 
         private class MotionStateDirection
@@ -31,7 +41,7 @@ namespace ACE.Network.GameAction.Actions
         }
 
         [GameAction(GameActionType.MoveToState)]
-        public static void Handle(ClientMessage message, Session session)
+        private void MoveToStateAction(ClientMessage message)
         {
             Position position;
             uint currentHoldkey;
@@ -82,7 +92,7 @@ namespace ACE.Network.GameAction.Actions
                 turn.Speed = message.Payload.ReadSingle();
 
             position = new Position(message.Payload);
-            position.CharacterId = session.Player.Guid.Low;
+            position.CharacterId = Guid.Low;
             position.PositionType = Entity.Enum.PositionType.Location;
             position.LandblockId = new LandblockId(position.Cell);
 
@@ -92,7 +102,14 @@ namespace ACE.Network.GameAction.Actions
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
 
-            session.Player.UpdatePosition(position);
+            UpdatePosition(position);
+        }
+
+        [GameAction(GameActionType.ChangeCombatMode)]
+        private void ChangeCombatModeAction(ClientMessage message)
+        {
+            var newCombatMode = message.Payload.ReadUInt32();
+            SetCombatMode((CombatMode)newCombatMode);
         }
     }
 }

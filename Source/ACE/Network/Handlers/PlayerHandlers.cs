@@ -27,20 +27,17 @@ namespace ACE.Entity
         {
             actionInfoHandlers = new Dictionary<GameActionType, ActionHandlerMethodInfo>();
 
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            foreach (var methodInfo in typeof(Player).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
             {
-                foreach (var methodInfo in typeof(Player).GetMethods())
+                foreach (var messageHandlerAttribute in methodInfo.GetCustomAttributes<GameActionAttribute>())
                 {
-                    foreach (var messageHandlerAttribute in methodInfo.GetCustomAttributes<GameActionAttribute>())
+                    var messageHandler = new ActionHandlerMethodInfo()
                     {
-                        var messageHandler = new ActionHandlerMethodInfo()
-                        {
-                            MethodInfo = methodInfo,
-                            Attribute = messageHandlerAttribute
-                        };
+                        MethodInfo = methodInfo,
+                        Attribute = messageHandlerAttribute
+                    };
 
-                        actionInfoHandlers[messageHandlerAttribute.Opcode] = messageHandler;
-                    }
+                    actionInfoHandlers[messageHandlerAttribute.Opcode] = messageHandler;
                 }
             }
         }
