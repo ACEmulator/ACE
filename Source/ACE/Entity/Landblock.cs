@@ -83,11 +83,23 @@ namespace ACE.Entity
             var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
 
+            // Load static creature spawns from DB
             var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             foreach (var c in creatures)
             {
                 Creature cwo = new Creature(c);
                 worldObjects.Add(cwo.Guid, cwo);
+            }
+
+            // Load generator creature spawns from DB
+            var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
+            foreach (var cg in creatureGenerators)
+            {
+                List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
+                foreach (var c in creatureList)
+                {
+                    worldObjects.Add(c.Guid, c);
+                }
             }
         }
 
