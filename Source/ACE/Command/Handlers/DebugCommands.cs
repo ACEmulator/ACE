@@ -443,5 +443,28 @@ namespace ACE.Command.Handlers
                     ChatMessageType.Broadcast);
             }
         }
+
+        /// <summary>
+        /// Debug command to kill a targeted creature so it drops a corpse.
+        /// </summary>
+        [CommandHandler("testcorpsedrop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void TestCorpse(Session session, params string[] parameters)
+        {
+            if (session.Player.SelectedTarget != 0)
+            {
+                var target = new ObjectGuid(session.Player.SelectedTarget);
+                var wo = LandblockManager.GetWorldObject(session, target);
+
+                if (target.IsCreature())
+                {
+                    if (wo != null)
+                        (wo as Creature).Kill(session);
+                }
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "No creature selected.", ChatMessageType.Broadcast);
+            }
+        }
     }
 }

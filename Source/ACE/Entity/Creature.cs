@@ -1,11 +1,18 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Factories;
+using ACE.Managers;
+using ACE.Network;
 using ACE.Network.Enum;
+using ACE.Network.GameAction;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ACE.Entity
@@ -34,6 +41,11 @@ namespace ACE.Entity
 
         public CreatureAbility Mana { get; set; }
 
+        /// <summary>
+        /// This will be false when creature is dead and waits for respawn
+        /// </summary>
+        public bool IsAlive { get; set; }
+
         public Creature(AceCreatureStaticLocation aceC)
             : base((ObjectType)aceC.CreatureData.TypeId, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), aceC.CreatureData.Name, aceC.WeenieClassId,
                   (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField, (WeenieHeaderFlag)aceC.CreatureData.WeenieFlags, aceC.Position)
@@ -48,30 +60,32 @@ namespace ACE.Entity
         }
 
         private void SetObjectData(AceCreatureObject aco)
-        { 
-            this.PhysicsData.MTableResourceId = aco.MotionTableId;
-            this.PhysicsData.Stable = aco.SoundTableId;
-            this.PhysicsData.CSetup = aco.ModelTableId;
-            this.PhysicsData.ObjScale = aco.ObjectScale;
+        {
+            PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
+            PhysicsData.MTableResourceId = aco.MotionTableId;
+            PhysicsData.Stable = aco.SoundTableId;
+            PhysicsData.CSetup = aco.ModelTableId;
+            PhysicsData.Petable = aco.PhysicsTableId;
+            PhysicsData.ObjScale = aco.ObjectScale;
             
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
-            this.PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
+            PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
-            this.Icon = (ushort)aco.IconId;
+            Icon = (ushort)aco.IconId;
 
-            this.GameData.Usable = (Usable)aco.Usability;
+            GameData.Usable = (Usable)aco.Usability;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            this.GameData.RadarColour = (RadarColor)aco.BlipColor;
-            this.GameData.RadarBehavior = (RadarBehavior)aco.Radar;
-            this.GameData.UseRadius = aco.UseRadius;
+            GameData.RadarColour = (RadarColor)aco.BlipColor;
+            GameData.RadarBehavior = (RadarBehavior)aco.Radar;
+            GameData.UseRadius = aco.UseRadius;
 
             aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)(ao.AnimationId - 0x01000000)));
             aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)(to.OldId - 0x05000000), (ushort)(to.NewId - 0x05000000)));
             aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette((ushort)(po.SubPaletteId - 0x04000000), (byte)po.Offset, (byte)(po.Length / 8)));
-            this.ModelData.PaletteGuid = aco.PaletteId - 0x04000000;
+            ModelData.PaletteGuid = aco.PaletteId - 0x04000000;
         }
 
         private void SetAbilities(AceCreatureObject aco)
@@ -115,6 +129,36 @@ namespace ACE.Entity
             abilities.Add(Enum.Ability.Mana, Mana);
 
             Abilities = new ReadOnlyDictionary<Enum.Ability, CreatureAbility>(abilities);
+
+            IsAlive = true;
+        }
+
+        public void Kill(Session session)
+        {
+            IsAlive = false;
+
+            // Create and send the death notice
+            string killMessage = $"{session.Player.Name} has killed {Name}.";
+            var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
+            session.Network.EnqueueSend(creatureDeathEvent);
+
+            // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
+            // TODO: Check if the duration of the motion can somehow be computed
+            GeneralMotion motionDeath = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
+            session.Player.AddToActionQueue(actionDeath);
+            
+            // Create Corspe and set a location on the ground
+            // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
+            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
+            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+
+            // Remove Creature from Landblock and add Corpse in that location via the ActionQueue to honor the motion delays
+            QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            session.Player.AddToActionQueue(removeCreature);
+            session.Player.AddToActionQueue(addCorpse);
         }
     }
 }

@@ -45,6 +45,11 @@ namespace ACE.Entity
         public bool IsOnline { get; private set; }
 
         /// <summary>
+        /// ObjectId of the currently selected Target (only players and creatures)
+        /// </summary>
+        public uint SelectedTarget { get; set; }
+
+        /// <summary>
         /// Amount of times this character has left a portal this session
         /// </summary>
         public uint PortalIndex { get; set; } = 1u;
@@ -67,6 +72,11 @@ namespace ACE.Entity
         // examination queue is really a subset of the actionQueue, but this existed on
         // retail servers as it's own separate thing and was intentionally throttled.
         private ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
+
+        private object delayedActionsMutex = new object();
+
+        // dictionary for delaying further actions for an objectID
+        private Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -403,7 +413,35 @@ namespace ACE.Entity
         {
             QueuedGameAction action = null;
             if (this.actionQueue.TryDequeue(out action))
+            {
+                lock (delayedActionsMutex)
+                {
+                    if (action.RespectDelay && delayedActions.ContainsKey(action.ObjectId))
+                    {
+                        double endTime = delayedActions[action.ObjectId];
+                        if (action.StartTime > endTime)
+                        {
+                            // the new action starts after the old one is complete, so remove the old one
+                            delayedActions.Remove(action.ObjectId);
+                        }
+                        else
+                        {
+                            // the new action should start before the old one is complete, so enqueue the new one again
+                            action.StartTime = WorldManager.PortalYearTicks;
+                            this.actionQueue.Enqueue(action);
+                            return null;
+                        }
+                    }
+                
+                    // This is an action e.g. animation that takes time to complete
+                    // Remember this object to delay further actions queued for the same object
+                    if (action.EndTime > WorldManager.PortalYearTicks)
+                    {
+                        delayedActions.Add(action.ObjectId, action.EndTime);
+                    }
+                }
                 return action;
+            }
             else
                 return null;
         }

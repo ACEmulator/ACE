@@ -397,7 +397,7 @@ namespace ACE.Command.Handlers
         {
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
 
-            // TODO: output
+            // TODO: output            
         }
 
         // tele [name] longitude latitude
