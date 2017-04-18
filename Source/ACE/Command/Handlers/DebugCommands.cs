@@ -225,10 +225,11 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(20.0f));
             LandblockManager.AddObject(loot);
-            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);
-            var movement = new GeneralMotion(MotionStance.Standing);
-            movement.MovementData.ForwardCommand = 11;            
-            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player), new GameMessageUpdateMotion(session.Player, loot,  newMotion, MovementTypes.MoveToObject, 1.63461542f), new GameMessageUpdatePosition(session.Player), new GameMessageUpdateMotion(session.Player, session, movement));                        
+            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);                        
+            session.Network.EnqueueSend(
+                new GameMessageUpdatePosition(session.Player),
+                new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject), 
+                new GameMessageUpdatePosition(session.Player));                        
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,

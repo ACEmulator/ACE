@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace ACE.Network.GameMessages.Messages
 {
+    using System;
     using System.Diagnostics.Eventing.Reader;
     using System.Runtime.Remoting.Messaging;
 
@@ -61,7 +62,7 @@ namespace ACE.Network.GameMessages.Messages
         /// <param name="newState"></param>
         /// <param name="movementType"></param>
         /// <param name="runRate"></param>
-        public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, MotionState newState, MovementTypes movementType, float runRate = 1.0f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
+        public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, ServerControlMotion newState, MovementTypes movementType, float runRate = 1.0f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
         {           
             Writer.WriteGuid(player.Guid); // Object_Id (uint)
             Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
@@ -79,9 +80,10 @@ namespace ACE.Network.GameMessages.Messages
             if (newState.IsAutonomous)
                 autonomous = 1;
             else
-                autonomous = 1;
-            Writer.Write(autonomous); 
-            var movementData = newState.GetPayload(moveToTarget);
+                autonomous = 0;
+            Writer.Write(autonomous);
+            var distanceToObject = (float)Math.Sqrt(player.PhysicsData.Position.SquaredDistanceTo(moveToTarget.PhysicsData.Position));
+            var movementData = newState.GetPayload(moveToTarget, distanceToObject);
             Writer.Write(movementData);
             Writer.Align();
         }
