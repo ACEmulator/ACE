@@ -1,5 +1,9 @@
 # ACEmulator Change Log
+
 ### 2017-04-18
+[Ripley]
+* Added a collidable Misc object
+
 [Jyrus]
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
 * Add an ActionQueue switch case to implement Portal travel
