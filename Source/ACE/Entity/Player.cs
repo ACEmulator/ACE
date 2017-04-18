@@ -59,7 +59,9 @@ namespace ACE.Entity
         private object clientObjectMutex = new object();
 
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-        
+        private List<ObjectGuid> trackedGuid = new List<ObjectGuid>();
+        public double LastStreamingObjectChange { get; set; }
+
         // queue of all the "actions" that come from the player that require processing
         // aynchronous to or outside of the network thread
         private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
@@ -1080,6 +1082,7 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
+                trackedGuid.Clear();
 
                 Session.Player.Location = newPosition;
                 SetPhysicalCharacterPosition();
@@ -1143,6 +1146,7 @@ namespace ACE.Entity
 
                 if (!sendUpdate)
                 {
+                    trackedGuid.Add(worldObject.Guid);
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
                     worldObject.PlayScript(this.Session);
                 }
@@ -1157,6 +1161,14 @@ namespace ACE.Entity
                 Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
             else
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+        }
+
+        /// <summary>
+        /// Returns list of tracked objects.
+        /// </summary>
+        public List<ObjectGuid> GetTrackedObjects()
+        {
+            return trackedGuid;
         }
 
         /// <summary>
@@ -1204,6 +1216,7 @@ namespace ACE.Entity
                 if (!sendUpdate)
                 {
                     clientObjectList.Remove(worldObject.Guid);
+                    trackedGuid.Remove(worldObject.Guid);
                 }
             }
 
