@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+
+### 2017-04-18
+[Ripley]
+* Added a collidable Misc object
+
 ### 2017-04-17
 [fantoms]
 * Removed `@reset-pos` command and also removed another default that set last portal upon character creation.
