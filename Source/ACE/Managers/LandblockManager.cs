@@ -2,7 +2,9 @@
 
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Network;
+using ACE.Network.GameMessages.Messages;
 
 using log4net;
 
@@ -28,6 +30,11 @@ namespace ACE.Managers
 
             Landblock block = GetLandblock(c.Location.LandblockId, true);
             block.AddWorldObject(session.Player);
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat("  powered by ACEmulator  ", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat("For more information on commands supported by this server, type @acehelp", ChatMessageType.Broadcast));
         }
 
         public static void AddObject(WorldObject worldObject)

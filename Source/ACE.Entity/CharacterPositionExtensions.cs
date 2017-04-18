@@ -15,6 +15,7 @@ namespace ACE.Entity
             var invalidPosition = new Position();
             invalidPosition.CharacterId = characterId;
             invalidPosition.PositionType = type;
+            invalidPosition.LandblockId = new LandblockId();
             return invalidPosition;
         }
     }

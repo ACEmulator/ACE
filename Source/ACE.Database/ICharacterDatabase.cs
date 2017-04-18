@@ -10,7 +10,7 @@ namespace ACE.Database
     {
         Position GetLocation(uint id);
 
-        List<Position> GetCharacterPositions(Character character);
+        Dictionary<PositionType, Position> GetCharacterPositions(Character character);
 
         Position GetCharacterPosition(Character character, PositionType positionType);
 

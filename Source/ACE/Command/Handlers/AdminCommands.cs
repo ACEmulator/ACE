@@ -9,7 +9,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
 
-namespace ACE.Command
+namespace ACE.Command.Handlers
 {
     public static class AdminCommands
     {
@@ -401,7 +401,10 @@ namespace ACE.Command
         }
 
         // tele [name] longitude latitude
-        [CommandHandler("tele", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("tele", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2,
+            "This command teleports yourself (or the specified character) to the given longitude and latitude.",
+            "longitude latitude\n" +
+            "No commas accepted between coordinates, for example: @tele 0.0N 0.0E")]
         public static void HandleTele(Session session, params string[] parameters)
         {
             // Used PhatAC source to implement most of this.  Thanks Pea!
@@ -472,7 +475,10 @@ namespace ACE.Command
         }
 
         // telepoi location
-        [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Teleport yourself to a named Point of Interest",
+            "[POI]\n" +
+            "@telepoi Arwic")]
         public static void HandleTeleportPOI(Session session, params string[] parameters)
         {
             var poi = String.Join(" ", parameters);
@@ -484,7 +490,13 @@ namespace ACE.Command
         }
 
         // teleloc cell x y z [qx qy qz qw]
-        [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 4)]
+        [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 4,
+            "Teleport yourself to the specified location.",
+            "cell [x y z] (qw qx qy qz)\n" +
+            "@teleloc follows the same number order as displayed from @loc output\n" +
+            "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806\n" +
+            "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806\n" +
+            "Example: @teleloc 7F0401AD 12.319900 - 28.482000 0.005000")]
         public static void HandleTeleportLOC(Session session, params string[] parameters)
         {
             try
@@ -523,7 +535,8 @@ namespace ACE.Command
         }
 
         // time
-        [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.None, 0)]
+        [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.None, 0,
+            "Displays the server's current game time.")]
         public static void HandleTime(Session session, params string[] parameters)
         {
             // @time - Displays the server's current game time.
@@ -792,7 +805,9 @@ namespace ACE.Command
         }
 
         // heal
-        [CommandHandler("heal", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("heal", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+            "Heals yourself(or the selected creature)",
+            "\n" + "This command fully restores your(or the selected creature's) health, mana, and stamina")]
         public static void HandleHeal(Session session, params string[] parameters)
         {
             // usage: @heal
@@ -887,7 +902,9 @@ namespace ACE.Command
         }
 
         // rename <Current Name> <New Name>
-        [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.None, 2)]
+        [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.None, 2,
+            "Rename a character. (Do NOT include +'s for admin names)",
+            "< Current Name > < New Name >")]
         public static void HandleRename(Session session, params string[] parameters)
         {
             // @rename <Current Name>, <New Name> - Rename a character. (Do NOT include +'s for admin names)
