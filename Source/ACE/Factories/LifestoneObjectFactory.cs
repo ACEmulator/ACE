@@ -12,10 +12,10 @@ namespace ACE.Factories
         /// <summary>
         /// creates a lifestone directly in fron of the player's position provided
         /// </summary>
-        public static ImmutableWorldObject CreateLifestone(ushort weenieClassId, Position newPosition, LifestoneType lifestoneType)
+        public static Lifestone CreateLifestone(ushort weenieClassId, Position newPosition, LifestoneType lifestoneType)
         {
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
-            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
+            Lifestone wo = new Lifestone(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
             // model id 0x000026 is one of several lifestone IDs
             wo.PhysicsData.MTableResourceId = 0x09000026u;

@@ -10,7 +10,7 @@ namespace ACE.Entity
 {
     [DbTable("vw_ace_creature_object")]
     [DbGetList("vw_ace_creature_object", 10, "weenieClassId")]
-    public class AceCreatureObject : BaseAceObject
+    public class AceCreatureObject : BaseAceObject, ICreatureStats
     {
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
         public ushort WeenieClassId { get; set; }

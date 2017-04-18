@@ -8,12 +8,24 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    /// <summary>
-    /// temporary portals (b/c they can disappear), corpses, items on the ground, etc.
-    /// </summary>
-    public class ImmutableWorldObject : WorldObject
+    public abstract class CollidableObject : WorldObject
     {
-        public ImmutableWorldObject(AceObject aceO)
+        public CollidableObject(ObjectType type, ObjectGuid guid)
+            : base(type, guid)
+        {
+        }
+
+        public CollidableObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+            : base(type, guid)
+        {
+            this.Name = name;
+            this.DescriptionFlags = descriptionFlag;
+            this.WeenieFlags = weenieFlag;
+            this.Location = position;
+            this.WeenieClassid = weenieClassId;
+        }
+
+        public CollidableObject(AceObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
@@ -43,13 +55,6 @@ namespace ACE.Entity
             aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
-        public ImmutableWorldObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position) : base(type, guid)
-        {
-            this.Name = name;
-            this.DescriptionFlags = descriptionFlag;
-            this.WeenieFlags = weenieFlag;
-            this.Location = position;
-            this.WeenieClassid = weenieClassId;
-        }
+        public abstract void OnCollide(Player player);
     }
 }

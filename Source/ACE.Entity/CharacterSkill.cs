@@ -40,12 +40,12 @@ namespace ACE.Entity
                         uint foc = (uint)((abilities & Ability.Focus) > 0 ? 1 : 0);
                         uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
 
-                        abilityTotal += str * this.character.Strength.UnbuffedValue;
-                        abilityTotal += end * this.character.Endurance.UnbuffedValue;
-                        abilityTotal += coo * this.character.Coordination.UnbuffedValue;
-                        abilityTotal += qui * this.character.Quickness.UnbuffedValue;
-                        abilityTotal += foc * this.character.Focus.UnbuffedValue;
-                        abilityTotal += wil * this.character.Self.UnbuffedValue;
+                        abilityTotal += str * this.character.StrengthAbility.UnbuffedValue;
+                        abilityTotal += end * this.character.EnduranceAbility.UnbuffedValue;
+                        abilityTotal += coo * this.character.CoordinationAbility.UnbuffedValue;
+                        abilityTotal += qui * this.character.QuicknessAbility.UnbuffedValue;
+                        abilityTotal += foc * this.character.FocusAbility.UnbuffedValue;
+                        abilityTotal += wil * this.character.SelfAbility.UnbuffedValue;
 
                         abilityTotal *= formula.AbilityMultiplier;
                     }

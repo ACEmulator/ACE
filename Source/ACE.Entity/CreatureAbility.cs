@@ -6,7 +6,7 @@ namespace ACE.Entity
     {
         // because health/stam/mana values are determined from stats, we need a reference to the WeenieCreatureData
         // so we can calculate.  this could be refactored into a better pattern, but it will do for now.
-        private AceCreatureObject creature;
+        private ICreatureStats creature;
 
         public Ability Ability { get; private set; }
 
@@ -65,7 +65,7 @@ namespace ACE.Entity
 
         public uint ExperienceSpent { get; set; }
 
-        public CreatureAbility(AceCreatureObject creature, Ability ability)
+        public CreatureAbility(ICreatureStats creature, Ability ability)
         {
             this.creature = creature;
             Ability = ability;

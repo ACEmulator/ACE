@@ -96,7 +96,6 @@
     <Compile Include="CharacterOptions2Attribute.cs" />
     <Compile Include="CachedCharacter.cs" />
     <Compile Include="Character.cs" />
-    <Compile Include="CharacterAbility.cs" />
     <Compile Include="CharacterLevel.cs" />
     <Compile Include="CharacterSkill.cs" />
     <Compile Include="CreatureAbility.cs" />
@@ -130,6 +129,7 @@
     <Compile Include="Enum\UpdatePositionFlag.cs" />
     <Compile Include="ExperienceExpenditure.cs" />
     <Compile Include="Friend.cs" />
+    <Compile Include="ICreatureStats.cs" />
     <Compile Include="LandblockId.cs" />
     <Compile Include="LevelingChart.cs" />
     <Compile Include="ObjectGuid.cs" />

@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    public class Creature : MutableWorldObject
+    public class Creature : Container
     {
         protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
 
@@ -46,9 +46,19 @@ namespace ACE.Entity
         /// </summary>
         public bool IsAlive { get; set; }
 
+        public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
+        {
+        }
+
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.TypeId, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), aceC.CreatureData.Name, aceC.WeenieClassId,
-                  (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField, (WeenieHeaderFlag)aceC.CreatureData.WeenieFlags, aceC.Position)
+            : base((ObjectType)aceC.CreatureData.TypeId, 
+                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), 
+                  aceC.CreatureData.Name,
+                  aceC.WeenieClassId,
+                  (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField,
+                  (WeenieHeaderFlag)aceC.CreatureData.WeenieFlags,
+                  aceC.Position)
         {
             if (aceC.WeenieClassId < 0x8000u)
                 this.WeenieClassid = aceC.WeenieClassId;

@@ -21,6 +21,7 @@ namespace ACE.Entity
     public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public ObjectGuid Guid { get; }
 
         public ObjectType Type { get; protected set; }
@@ -42,8 +43,27 @@ namespace ACE.Entity
         public virtual Position Location
         {
             get { return PhysicsData.Position; }
-            protected set { PhysicsData.Position = value; }
+            protected set
+            {
+                if (PhysicsData.Position != null)
+                    LastUpdatedTicks = WorldManager.PortalYearTicks;
+
+                log.Debug($"{Name} moved to {PhysicsData.Position}");
+
+                PhysicsData.Position = value;
+            }
         }
+        
+        /// <summary>
+        /// tick-stamp for the last time a movement update was sent
+        /// </summary>
+        public double LastMovementBroadcastTicks { get; set; }
+
+        /// <summary>
+        /// tick-stamp for the server time of the last time the player moved.
+        /// TODO: implement
+        /// </summary>
+        public double LastAnimatedTicks { get; set; }
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
 
@@ -51,17 +71,11 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; protected set; } 
+        public UpdatePositionFlag PositionFlag { get; set; } 
 
         public CombatMode CombatMode { get; private set; }
 
         public virtual void PlayScript(Session session) { }
-
-        private bool IsContainer { get; set; } = false;
-
-        private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
-
-        private readonly object inventoryMutex = new object();
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
@@ -122,53 +136,6 @@ namespace ACE.Entity
             p.Session.Network.EnqueueSend(updateMotion);
         }
 
-        // Inventory Management Functions
-        public virtual void AddToInventory(WorldObject inventoryItem)
-        {
-            lock (inventoryMutex)
-            {
-                if (!inventory.ContainsKey(inventoryItem.Guid))
-                    inventory.Add(inventoryItem.Guid, inventoryItem);
-                GameData.Burden += inventoryItem.GameData.Burden;
-                inventoryItem.PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
-                inventoryItem.GameData.ContainerId = Guid.Full;
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= PhysicsDescriptionFlag.Position;
-            }
-        }
-
-        public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
-        {
-            var inventoryItem = GetInventoryItem(inventoryItemGuid);
-            GameData.Burden -= inventoryItem.GameData.Burden;
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable
-                                                                | PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.AnimationFrame
-                                                                | PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                           | UpdatePositionFlag.Placement
-                                           | UpdatePositionFlag.ZeroQy
-                                           | UpdatePositionFlag.ZeroQx;
-            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(0.50f);
-            inventoryItem.GameData.ContainerId = 0;
-            inventoryItem.GameData.Wielder = 0;
-
-            lock (inventoryMutex)
-            {
-                if (this.inventory.ContainsKey(inventoryItemGuid))                    
-                    this.inventory.Remove(inventoryItemGuid);
-            }
-        }
-
-        public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
-        {
-            lock (inventoryMutex)
-            {
-                if (this.inventory.ContainsKey(objectGuid))
-                    return this.inventory[objectGuid];
-                else
-                    return null;                
-            }
-        }
- 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?

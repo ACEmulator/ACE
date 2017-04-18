@@ -28,7 +28,7 @@ using ACE.DatLoader;
 
 namespace ACE.Entity
 {
-    public sealed class Player : MutableWorldObject
+    public sealed class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -146,79 +146,7 @@ namespace ACE.Entity
         {
             get { return new ReadOnlyDictionary<Skill, CharacterSkill>(character.Skills); }
         }
-
-        /// <summary>
-        /// Accessor for strength.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Strength
-        {
-            get { return character.Strength; }
-        }
-
-        /// <summary>
-        /// Accessor for Endurance.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Endurance
-        {
-            get { return character.Endurance; }
-        }
-
-        /// <summary>
-        /// Accessor for Coordination.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Coordination
-        {
-            get { return character.Coordination; }
-        }
-
-        /// <summary>
-        /// Accessor for Quickness.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Quickness
-        {
-            get { return character.Quickness; }
-        }
-
-        /// <summary>
-        /// Accessor for Focus.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Focus
-        {
-            get { return character.Focus; }
-        }
-
-        /// <summary>
-        /// Accessor for Self.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Self
-        {
-            get { return character.Self; }
-        }
-
-        /// <summary>
-        /// Accessor for Health.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Health
-        {
-            get { return character.Health; }
-        }
-
-        /// <summary>
-        /// Accessor for Stamina.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Stamina
-        {
-            get { return character.Stamina; }
-        }
-
-        /// <summary>
-        /// Accessor for Mana.  Should be made into a readonly version if possible
-        /// </summary>
-        public CharacterAbility Mana
-        {
-            get { return character.Mana; }
-        }
-
+        
         public uint TotalLogins
         {
             get { return character.TotalLogins; }
@@ -283,6 +211,16 @@ namespace ACE.Entity
         public async Task Load(Character preloadedCharacter = null)
         {
             character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
+
+            Strength = character.StrengthAbility;
+            Endurance = character.EnduranceAbility;
+            Coordination = character.CoordinationAbility;
+            Quickness = character.QuicknessAbility;
+            Focus = character.FocusAbility;
+            Self = character.SelfAbility;
+            Health = character.Health;
+            Stamina = character.Stamina;
+            Mana = character.Mana;
 
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -630,7 +568,7 @@ namespace ACE.Entity
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendAbilityXp(CharacterAbility ability, uint amount)
+        private uint SpendAbilityXp(CreatureAbility ability, uint amount)
         {
             uint result = 0;
             bool addToCurrentValue = false;
@@ -1049,14 +987,8 @@ namespace ACE.Entity
 
         public void UpdateAge()
         {
-            try
-            {
+            if (character != null)
                 character.Age++;
-            }
-            catch (NullReferenceException)
-            {
-                // Do Nothing since player data hasn't loaded in
-            }
         }
 
         public void SendAgeInt()
