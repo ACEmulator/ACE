@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-04-18
+[Jyrus]
+* Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
+* Add an ActionQueue switch case to implement Portal travel
+
 ### 2017-04-17
 [fantoms]
 * Removed `@reset-pos` command and also removed another default that set last portal upon character creation.
