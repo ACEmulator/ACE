@@ -172,7 +172,8 @@
 
         public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
         {
-            payload.Write((uint)updatePositionFlags);
+            if (updatePositionFlags != UpdatePositionFlag.None)
+                payload.Write((uint)updatePositionFlags);
 
             if (writeLandblock)
                 payload.Write(LandblockId.Raw);

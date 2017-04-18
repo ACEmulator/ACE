@@ -194,6 +194,19 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
+        // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
+        [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void MoveTo(Session session, params string[] parameters)
+        {
+            var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(20.0f));
+            LandblockManager.AddObject(loot);
+            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);
+            var movement = new GeneralMotion(MotionStance.Standing);
+            movement.MovementData.ForwardCommand = 11;            
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player), new GameMessageUpdateMotion(session.Player, loot,  newMotion, MovementTypes.MoveToObject, 1.63461542f), new GameMessageUpdatePosition(session.Player), new GameMessageUpdateMotion(session.Player, session, movement));                        
+        }
+
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void SpaceJump(Session session, params string[] parameters)
         {
