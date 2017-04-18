@@ -37,10 +37,12 @@ namespace ACE.Network.GameAction.Actions
                     switch (response)
                     {
                         case CommandHandlerResponse.InvalidCommand:
-                            ChatPacket.SendServerMessage(session, $"Invalid command {command}!", ChatMessageType.Broadcast);
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown command: {command}", ChatMessageType.Help));
                             break;
                         case CommandHandlerResponse.InvalidParameterCount:
-                            ChatPacket.SendServerMessage(session, $"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Broadcast);
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Help));
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"@{commandHandler.Attribute.Command} - {commandHandler.Attribute.Description}", ChatMessageType.Broadcast));
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"Usage: @{commandHandler.Attribute.Command} {commandHandler.Attribute.Usage}", ChatMessageType.Broadcast));
                             break;
                         default:
                             break;

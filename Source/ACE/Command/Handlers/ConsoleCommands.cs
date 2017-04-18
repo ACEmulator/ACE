@@ -6,19 +6,11 @@ using ACE.Managers;
 using ACE.Network;
 using ACE.DatLoader;
 
-namespace ACE.Command
+namespace ACE.Command.Handlers
 {
     public static class ConsoleCommands
     {
-        // acehelp
-        [CommandHandler("acehelp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0)]
-        public static void HandleACEHelp(Session session, params string[] parameters)
-        {
-            // TODO: ACEHELP output
-            Console.WriteLine("TODO: Sorry, still need to implement this command");
-        }
-
-        [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1)]
+        [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of CELL DAT file.", "<export-directory-without-spaces>")]
         public static void ExportCellDatContents(Session session, params string[] parameters)
         {
             if (parameters?.Length != 1)
@@ -31,7 +23,7 @@ namespace ACE.Command
             Console.WriteLine($"Export of cell.dat to {exportDir} complete.");
         }
 
-        [CommandHandler("portal-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1)]
+        [CommandHandler("portal-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of PORTAL DAT file.", "<export-directory-without-spaces>")]
         public static void ExportPortalDatContents(Session session, params string[] parameters)
         {
             if (parameters?.Length != 1)
