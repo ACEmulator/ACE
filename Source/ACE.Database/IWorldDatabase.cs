@@ -7,6 +7,8 @@ namespace ACE.Database
     public interface IWorldDatabase
     {
         List<TeleportLocation> GetLocations();
+		
+        PortalDestination GetPortalDestination(uint weenieClassId);
 
         List<AceObject> GetObjectsByLandblock(ushort landblock);
 

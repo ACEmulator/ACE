@@ -628,6 +628,40 @@ namespace ACE.Entity
 
                             switch (obj.Type)
                             {
+                                case Enum.ObjectType.Portal:
+                                    {
+                                        // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
+                                        float rangeCheck = 5.0f;
+
+                                        if (player.Location.SquaredDistanceTo(obj.Location) < rangeCheck)
+                                        {
+                                            PortalDestination portalDestination = DatabaseManager.World.GetPortalDestination(obj.WeenieClassid);
+
+                                            if (portalDestination != null)
+                                            {
+                                                player.Session.Player.Teleport(portalDestination.Position);
+                                                // always send useDone event
+                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                            }
+                                            else
+                                            {
+                                                string serverMessage = "Portal destination for portal ID " + obj.WeenieClassid + " not yet implemented!";
+                                                var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                                                // always send useDone event
+                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                                player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // always send useDone event
+                                            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                        }
+
+                                        break;
+                                    }
                                 case Enum.ObjectType.LifeStone:
                                     {
                                         string serverMessage = null;
