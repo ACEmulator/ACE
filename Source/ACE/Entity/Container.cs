@@ -14,6 +14,11 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
+        // <summary>
+        /// Time when this object will despawn, -1 is never.
+        /// </summary>
+        public double DespawnTime { get; set; } = -1;
+
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {

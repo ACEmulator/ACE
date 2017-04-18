@@ -372,14 +372,14 @@ namespace ACE.Entity
                 // for now, we'll move players around
                 List<WorldObject> movedObjects = null;
                 List<Player> players = null;
-                List<ImmutableWorldObject> despawnObjects = null;
+                List<Container> despawnObjects = null;
                 List<Creature> deadCreatures = null;
 
                 lock (objectCacheLocker)
                 {
                     movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
                     players = this.worldObjects.Values.OfType<Player>().ToList();
-                    despawnObjects = this.worldObjects.Values.OfType<ImmutableWorldObject>().ToList();
+                    despawnObjects = this.worldObjects.Values.OfType<Container>().ToList();
                     deadCreatures = this.worldObjects.Values.OfType<Creature>().ToList();
                 }
 
