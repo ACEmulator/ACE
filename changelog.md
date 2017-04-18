@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 ### 2017-04-18
+[Lidefeath]
+* Remove the corpse of a creature from the landblock after a calculated time (or a fixed time for testing purposes)
+* Respawn the creature in the same spot after the respawn timer has ended
+* Spawn randomly generated creatures from DB using the generator tables - these need to be more fleshed out still
+* Improved MonsterFactory to create Creatures without saving it as static spawn, to reuse the creation code for generators
+* Edit the database table ace_creature_generator_locations to add or change spawn locations with random spawns
+
 [Jyrus]
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
 * Add an ActionQueue switch case to implement Portal travel
@@ -37,16 +44,6 @@
 ### 2017-04-14
 [Lidefeath]
 * Added /testcorpsedrop as debugcommand to kill a creature so it spawns its corpse
-* Fix CreatureObject so it's parseable now by aclogview
-* Add GameEventDeathNotice to broadcast the killing of a creature
-* If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
-* Enhance GameActionQueue to handle delayed actions, so animations have time to play
-* Define two GameActionTypes for CreateObject and DeleteObject so they can be used with the delayed GameActionQueue
-* Creature Guids now start with 0x90 instead of 0x80 to separate them from items 
-
-### 2017-04-14
-[Lidefeath]
-* Flesh out smite command - without the bunnysmite animation, sorry HellsWrath
 * Fix CreatureObject so it's parseable now by aclogview
 * Add GameEventDeathNotice to broadcast the killing of a creature
 * If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
