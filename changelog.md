@@ -1,4 +1,12 @@
 # ACEmulator Change Log
+### 2017-04-18
+[Jyrus]
+* Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
+* Add an ActionQueue switch case to implement Portal travel
+
+[Mogwai]
+* Overhaul of the Object structure.  Removed Mutable and Immutable, added a bunch of new ones: Lifestone, Portal, SummonedPortal, UsableObject, CollidableObject, Container, Creature, and Door and refactored a bunch of stuff to support them all.
+
 ### 2017-04-17
 [fantoms]
 * Removed `@reset-pos` command and also removed another default that set last portal upon character creation.

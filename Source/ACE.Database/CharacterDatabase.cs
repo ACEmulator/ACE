@@ -222,12 +222,12 @@ namespace ACE.Database
 
             transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterStatsInsert,
                 character.Id,
-                character.Strength.Base,
-                character.Endurance.Base,
-                character.Coordination.Base,
-                character.Quickness.Base,
-                character.Focus.Base,
-                character.Self.Base,
+                character.StrengthAbility.Base,
+                character.EnduranceAbility.Base,
+                character.CoordinationAbility.Base,
+                character.QuicknessAbility.Base,
+                character.FocusAbility.Base,
+                character.SelfAbility.Base,
                 character.Health.Current,
                 character.Stamina.Current,
                 character.Mana.Current);
@@ -315,24 +315,24 @@ namespace ACE.Database
 
                 if (result?.Count > 0)
                 {
-                    c.Strength.Base = result.Read<uint>(0, "strength");
-                    c.Strength.ExperienceSpent = result.Read<uint>(0, "strengthXpSpent");
-                    c.Strength.Ranks = result.Read<uint>(0, "strengthRanks");
-                    c.Endurance.Base = result.Read<uint>(0, "endurance");
-                    c.Endurance.ExperienceSpent = result.Read<uint>(0, "enduranceXpSpent");
-                    c.Endurance.Ranks = result.Read<uint>(0, "enduranceRanks");
-                    c.Coordination.Base = result.Read<uint>(0, "coordination");
-                    c.Coordination.ExperienceSpent = result.Read<uint>(0, "coordinationXpSpent");
-                    c.Coordination.Ranks = result.Read<uint>(0, "coordinationRanks");
-                    c.Quickness.Base = result.Read<uint>(0, "quickness");
-                    c.Quickness.ExperienceSpent = result.Read<uint>(0, "quicknessXpSpent");
-                    c.Quickness.Ranks = result.Read<uint>(0, "quicknessRanks");
-                    c.Focus.Base = result.Read<uint>(0, "focus");
-                    c.Focus.ExperienceSpent = result.Read<uint>(0, "focusXpSpent");
-                    c.Focus.Ranks = result.Read<uint>(0, "focusRanks");
-                    c.Self.Base = result.Read<uint>(0, "self");
-                    c.Self.ExperienceSpent = result.Read<uint>(0, "selfXpSpent");
-                    c.Self.Ranks = result.Read<uint>(0, "selfRanks");
+                    c.StrengthAbility.Base = result.Read<uint>(0, "strength");
+                    c.StrengthAbility.ExperienceSpent = result.Read<uint>(0, "strengthXpSpent");
+                    c.StrengthAbility.Ranks = result.Read<uint>(0, "strengthRanks");
+                    c.EnduranceAbility.Base = result.Read<uint>(0, "endurance");
+                    c.EnduranceAbility.ExperienceSpent = result.Read<uint>(0, "enduranceXpSpent");
+                    c.EnduranceAbility.Ranks = result.Read<uint>(0, "enduranceRanks");
+                    c.CoordinationAbility.Base = result.Read<uint>(0, "coordination");
+                    c.CoordinationAbility.ExperienceSpent = result.Read<uint>(0, "coordinationXpSpent");
+                    c.CoordinationAbility.Ranks = result.Read<uint>(0, "coordinationRanks");
+                    c.QuicknessAbility.Base = result.Read<uint>(0, "quickness");
+                    c.QuicknessAbility.ExperienceSpent = result.Read<uint>(0, "quicknessXpSpent");
+                    c.QuicknessAbility.Ranks = result.Read<uint>(0, "quicknessRanks");
+                    c.FocusAbility.Base = result.Read<uint>(0, "focus");
+                    c.FocusAbility.ExperienceSpent = result.Read<uint>(0, "focusXpSpent");
+                    c.FocusAbility.Ranks = result.Read<uint>(0, "focusRanks");
+                    c.SelfAbility.Base = result.Read<uint>(0, "self");
+                    c.SelfAbility.ExperienceSpent = result.Read<uint>(0, "selfXpSpent");
+                    c.SelfAbility.Ranks = result.Read<uint>(0, "selfRanks");
                     
                     c.Health.Ranks = result.Read<uint>(0, "healthRanks");
                     c.Health.ExperienceSpent = result.Read<uint>(0, "healthXpSpent");
@@ -487,7 +487,7 @@ namespace ACE.Database
                 else
                 {
                     // No suitable database position is available
-                    swapToWorkingLocation = CharacterPositionExtensions.StartingPosition(character.Id); //Use default position
+                    swapToWorkingLocation = CharacterPositionExtensions.StartingPosition(character.Id); // Use default position
                 }
 
                 // force the position type to location
@@ -562,12 +562,12 @@ namespace ACE.Database
         public void UpdateCharacterStats(Character character, DatabaseTransaction transaction)
         {
             transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterStatsUpdate,
-                    character.Strength.ExperienceSpent, character.Strength.Ranks,
-                    character.Endurance.ExperienceSpent, character.Endurance.Ranks,
-                    character.Coordination.ExperienceSpent, character.Coordination.Ranks,
-                    character.Quickness.ExperienceSpent, character.Quickness.Ranks,
-                    character.Focus.ExperienceSpent, character.Focus.Ranks,
-                    character.Self.ExperienceSpent, character.Self.Ranks,
+                    character.StrengthAbility.ExperienceSpent, character.StrengthAbility.Ranks,
+                    character.EnduranceAbility.ExperienceSpent, character.EnduranceAbility.Ranks,
+                    character.CoordinationAbility.ExperienceSpent, character.CoordinationAbility.Ranks,
+                    character.QuicknessAbility.ExperienceSpent, character.QuicknessAbility.Ranks,
+                    character.FocusAbility.ExperienceSpent, character.FocusAbility.Ranks,
+                    character.SelfAbility.ExperienceSpent, character.SelfAbility.Ranks,
                     character.Health.Current, character.Health.ExperienceSpent, character.Health.Ranks,
                     character.Stamina.Current, character.Stamina.ExperienceSpent, character.Stamina.Ranks,
                     character.Mana.Current, character.Mana.ExperienceSpent, character.Mana.Ranks,

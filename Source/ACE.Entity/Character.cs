@@ -9,9 +9,9 @@ using System.Linq;
 
 namespace ACE.Entity
 {
-    public class Character : DbObject
+    public class Character : DbObject, ICreatureStats
     {
-        protected Dictionary<Enum.Ability, CharacterAbility> abilities = new Dictionary<Enum.Ability, CharacterAbility>();
+        protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
 
         private List<Friend> friends;
 
@@ -70,23 +70,23 @@ namespace ACE.Entity
 
         public uint TotalLogins { get; set; } = 1u;  // total amount of times the player has logged into this character
 
-        public CharacterAbility Strength { get; set; }
+        public CreatureAbility StrengthAbility { get; set; }
 
-        public CharacterAbility Endurance { get; set; }
+        public CreatureAbility EnduranceAbility { get; set; }
 
-        public CharacterAbility Coordination { get; set; }
+        public CreatureAbility CoordinationAbility { get; set; }
 
-        public CharacterAbility Quickness { get; set; }
+        public CreatureAbility QuicknessAbility { get; set; }
 
-        public CharacterAbility Focus { get; set; }
+        public CreatureAbility FocusAbility { get; set; }
 
-        public CharacterAbility Self { get; set; }
+        public CreatureAbility SelfAbility { get; set; }
 
-        public CharacterAbility Health { get; set; }
+        public CreatureAbility Health { get; set; }
 
-        public CharacterAbility Stamina { get; set; }
+        public CreatureAbility Stamina { get; set; }
 
-        public CharacterAbility Mana { get; set; }
+        public CreatureAbility Mana { get; set; }
 
         public Appearance Appearance { get; set; } = new Appearance();
 
@@ -141,33 +141,51 @@ namespace ACE.Entity
             set { propertiesInt[PropertyInt.TotalSkillCredits] = value; }
         }
 
-        public ReadOnlyDictionary<Enum.Ability, CharacterAbility> Abilities;
+        public uint Strength
+        { get { return StrengthAbility.Current; } }
+
+        public uint Endurance
+        { get { return EnduranceAbility.Current; } }
+
+        public uint Coordination
+        { get { return CoordinationAbility.Current; } }
+
+        public uint Quickness
+        { get { return QuicknessAbility.Current; } }
+
+        public uint Focus
+        { get { return FocusAbility.Current; } }
+
+        public uint Self
+        { get { return SelfAbility.Current; } }
+
+        public ReadOnlyDictionary<Enum.Ability, CreatureAbility> Abilities;
 
         private Character()
         {
-            Strength = new CharacterAbility(this, Enum.Ability.Strength);
-            Endurance = new CharacterAbility(this, Enum.Ability.Endurance);
-            Coordination = new CharacterAbility(this, Enum.Ability.Coordination);
-            Quickness = new CharacterAbility(this, Enum.Ability.Quickness);
-            Focus = new CharacterAbility(this, Enum.Ability.Focus);
-            Self = new CharacterAbility(this, Enum.Ability.Self);
+            StrengthAbility = new CreatureAbility(this, Enum.Ability.Strength);
+            EnduranceAbility = new CreatureAbility(this, Enum.Ability.Endurance);
+            CoordinationAbility = new CreatureAbility(this, Enum.Ability.Coordination);
+            QuicknessAbility = new CreatureAbility(this, Enum.Ability.Quickness);
+            FocusAbility = new CreatureAbility(this, Enum.Ability.Focus);
+            SelfAbility = new CreatureAbility(this, Enum.Ability.Self);
 
-            Health = new CharacterAbility(this, Enum.Ability.Health);
-            Stamina = new CharacterAbility(this, Enum.Ability.Stamina);
-            Mana = new CharacterAbility(this, Enum.Ability.Mana);
+            Health = new CreatureAbility(this, Enum.Ability.Health);
+            Stamina = new CreatureAbility(this, Enum.Ability.Stamina);
+            Mana = new CreatureAbility(this, Enum.Ability.Mana);
 
-            abilities.Add(Enum.Ability.Strength, Strength);
-            abilities.Add(Enum.Ability.Endurance, Endurance);
-            abilities.Add(Enum.Ability.Coordination, Coordination);
-            abilities.Add(Enum.Ability.Quickness, Quickness);
-            abilities.Add(Enum.Ability.Focus, Focus);
-            abilities.Add(Enum.Ability.Self, Self);
+            abilities.Add(Enum.Ability.Strength, StrengthAbility);
+            abilities.Add(Enum.Ability.Endurance, EnduranceAbility);
+            abilities.Add(Enum.Ability.Coordination, CoordinationAbility);
+            abilities.Add(Enum.Ability.Quickness, QuicknessAbility);
+            abilities.Add(Enum.Ability.Focus, FocusAbility);
+            abilities.Add(Enum.Ability.Self, SelfAbility);
 
             abilities.Add(Enum.Ability.Health, Health);
             abilities.Add(Enum.Ability.Stamina, Stamina);
             abilities.Add(Enum.Ability.Mana, Mana);
 
-            Abilities = new ReadOnlyDictionary<Enum.Ability, CharacterAbility>(abilities);
+            Abilities = new ReadOnlyDictionary<Enum.Ability, CreatureAbility>(abilities);
 
             // initialize properties collections to reasonable defaults
             InitializeProperties(typeof(Character));
@@ -306,12 +324,12 @@ namespace ACE.Entity
             character.Gender = reader.ReadUInt32();
             character.Appearance = Appearance.FromNetowrk(reader);
             character.TemplateOption = reader.ReadUInt32();
-            character.Strength.Base = reader.ReadUInt32();
-            character.Endurance.Base = reader.ReadUInt32();
-            character.Coordination.Base = reader.ReadUInt32();
-            character.Quickness.Base = reader.ReadUInt32();
-            character.Focus.Base = reader.ReadUInt32();
-            character.Self.Base = reader.ReadUInt32();
+            character.StrengthAbility.Base = reader.ReadUInt32();
+            character.EnduranceAbility.Base = reader.ReadUInt32();
+            character.CoordinationAbility.Base = reader.ReadUInt32();
+            character.QuicknessAbility.Base = reader.ReadUInt32();
+            character.FocusAbility.Base = reader.ReadUInt32();
+            character.SelfAbility.Base = reader.ReadUInt32();
             character.Slot = reader.ReadUInt32();
             character.ClassId = reader.ReadUInt32();
 

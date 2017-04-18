@@ -18,6 +18,7 @@ using ACE.Network.Motion;
 using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -79,11 +80,8 @@ namespace ACE.Entity
 
             // TODO: load objects from world database such as lifestones, doors, player corpses, NPCs, Vendors
             var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
-            foreach (var o in objects)
-            {
-                ImmutableWorldObject iwo = new ImmutableWorldObject(o);
-                worldObjects.Add(iwo.Guid, iwo);
-            }
+            var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
+            factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
 
             var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             foreach (var c in creatures)
@@ -359,12 +357,12 @@ namespace ACE.Entity
                 // here we'd move server objects in motion (subject to landscape) and do physics collision detection
 
                 // for now, we'll move players around
-                List<MutableWorldObject> movedObjects = null;
+                List<WorldObject> movedObjects = null;
                 List<Player> players = null;
 
                 lock (objectCacheLocker)
                 {
-                    movedObjects = this.worldObjects.Values.OfType<MutableWorldObject>().ToList();
+                    movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
                     players = this.worldObjects.Values.OfType<Player>().ToList();
                 }
 
@@ -630,6 +628,40 @@ namespace ACE.Entity
 
                             switch (obj.Type)
                             {
+                                case Enum.ObjectType.Portal:
+                                    {
+                                        // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
+                                        float rangeCheck = 5.0f;
+
+                                        if (player.Location.SquaredDistanceTo(obj.Location) < rangeCheck)
+                                        {
+                                            PortalDestination portalDestination = DatabaseManager.World.GetPortalDestination(obj.WeenieClassid);
+
+                                            if (portalDestination != null)
+                                            {
+                                                player.Session.Player.Teleport(portalDestination.Position);
+                                                // always send useDone event
+                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                            }
+                                            else
+                                            {
+                                                string serverMessage = "Portal destination for portal ID " + obj.WeenieClassid + " not yet implemented!";
+                                                var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                                                // always send useDone event
+                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                                player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // always send useDone event
+                                            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                        }
+
+                                        break;
+                                    }
                                 case Enum.ObjectType.LifeStone:
                                     {
                                         string serverMessage = null;

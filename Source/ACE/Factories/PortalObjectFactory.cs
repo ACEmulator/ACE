@@ -12,10 +12,10 @@ namespace ACE.Factories
         /// <summary>
         /// creates a portal at the position provided
         /// </summary>
-        public static ImmutableWorldObject CreatePortal(ushort weenieClassId, Position newPosition, string portalTitle, PortalType portalType)
+        public static Portal CreatePortal(ushort weenieClassId, Position newPosition, string portalTitle, PortalType portalType)
         {
             var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
-            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.Portal, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), portalTitle, weenieClassId, ObjectDescriptionFlag.Portal, weenie, newPosition);
+            Portal wo = new Portal(ObjectType.Portal, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), portalTitle, weenieClassId, ObjectDescriptionFlag.Portal, weenie, newPosition);
 
             wo.PhysicsData.MTableResourceId = 0x09000003u;
             wo.PhysicsData.CSetup = (uint)portalType;

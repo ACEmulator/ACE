@@ -12,13 +12,13 @@ namespace ACE.Factories
 {
     public class CorpseObjectFactory
     {
-        public static ImmutableWorldObject CreateCorpse(WorldObject template, Position newPosition)
+        public static Container CreateCorpse(WorldObject template, Position newPosition)
         {
             ushort wcidCorpse = 21;
             var weenie = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.UseRadius | WeenieHeaderFlag.Burden;
             var objDesc = ObjectDescriptionFlag.CanOpen | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Corpse; // = bitfield 8213
             var name = $"Corpse of {template.Name}";
-            ImmutableWorldObject wo = new ImmutableWorldObject(ObjectType.Container, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), name, wcidCorpse, objDesc, weenie, newPosition);
+            Container wo = new Container(ObjectType.Container, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), name, wcidCorpse, objDesc, weenie, newPosition);
 
             // TODO: Find the correct motionstate to create a corpse with. For now only the dead motionstate works 
             // wo.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);

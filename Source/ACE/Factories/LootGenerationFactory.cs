@@ -9,7 +9,7 @@
     {
         // This is throw away code to understand the world object creation process.
 
-        public static void AddToContainer(WorldObject inventoryItem, WorldObject container)
+        public static void AddToContainer(WorldObject inventoryItem, Container container)
         {
             inventoryItem.GameData.ContainerId = container.Guid.Full;
             container.GameData.Burden += inventoryItem.GameData.Burden;
@@ -36,7 +36,7 @@
 
             const ushort WandTraining = 12748;
 
-            var wo = new ImmutableWorldObject(ObjectType.Caster,
+            var wo = new UsableObject(ObjectType.Caster,
                 new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Training Wand", WandTraining,
                 ObjectDescriptionFlag.Inscribable, weenie, null);
 
