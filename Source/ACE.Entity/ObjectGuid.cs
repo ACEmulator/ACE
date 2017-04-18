@@ -6,7 +6,7 @@ namespace ACE.Entity
     {
         None   = 0,
         Player = 0x50,
-        Creature = 0x80,
+        Creature = 0x90,
     }
 
     public struct ObjectGuid

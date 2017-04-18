@@ -26,6 +26,16 @@
 * Added sending chat messages to inform players upon logging in-game about the existence of ACE specific help.
 * Updated GameActionTalk to return better information when a command is invalid or is missing parameters.
 
+### 2017-04-14
+[Lidefeath]
+* Added /testcorpsedrop as debugcommand to kill a creature so it spawns its corpse
+* Fix CreatureObject so it's parseable now by aclogview
+* Add GameEventDeathNotice to broadcast the killing of a creature
+* If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
+* Enhance GameActionQueue to handle delayed actions, so animations have time to play
+* Define two GameActionTypes for CreateObject and DeleteObject so they can be used with the delayed GameActionQueue
+* Creature Guids now start with 0x90 instead of 0x80 to separate them from items 
+
 ### 2017-04-12
 [OptimShi]
 * Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)

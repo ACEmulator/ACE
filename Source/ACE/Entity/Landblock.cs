@@ -174,7 +174,18 @@ namespace ACE.Entity
             {
                 // send them the initial burst of objects
                 Log($"blasting player \"{(wo as Player).Name}\" with {allObjects.Count} objects.");
-                Parallel.ForEach(allObjects, (o) => (wo as Player).TrackObject(o));
+                Parallel.ForEach(allObjects, (o) =>
+                {
+                    if (o.Guid.IsCreature())
+                    {
+                        if ((o as Creature).IsAlive)
+                            (wo as Player).TrackObject(o);
+                    }
+                    else
+                    {
+                        (wo as Player).TrackObject(o);
+                    }
+                });
             }
         }
 
@@ -547,11 +558,33 @@ namespace ACE.Entity
                         HandleMovementEvent(obj, motion);
                         break;
                     }
+                case GameActionType.ObjectCreate:
+                    {
+                        this.AddWorldObject(action.WorldObject);
+                        break;
+                    }
+                case GameActionType.ObjectDelete:
+                    {
+                        this.RemoveWorldObject(action.WorldObject.Guid, false);
+                        break;
+                    }
                 case GameActionType.QueryHealth:
                     {
+                        if (action.ObjectId == 0)
+                        {
+                            // Deselect the formerly selected Target
+                            player.SelectedTarget = 0;
+                            break;
+                        }
+
                         object target = null;
                         var targetId = new ObjectGuid(action.ObjectId);
 
+                        // Remember the selected Target
+                        player.SelectedTarget = action.ObjectId;
+
+                        // TODO: once items are implemented check if there are items that can trigger
+                        //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
                         if (targetId.IsPlayer() || targetId.IsCreature())
                         {
                             if (this.worldObjects.ContainsKey(targetId))
