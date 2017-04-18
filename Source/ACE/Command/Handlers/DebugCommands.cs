@@ -223,13 +223,17 @@ namespace ACE.Command.Handlers
         public static void MoveTo(Session session, params string[] parameters)
         {
             var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(20.0f));
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(10.0f));
             LandblockManager.AddObject(loot);
-            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);                        
-            session.Network.EnqueueSend(
-                new GameMessageUpdatePosition(session.Player),
-                new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject), 
-                new GameMessageUpdatePosition(session.Player));                        
+            System.Threading.Thread.Sleep(500);
+            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);
+            session.Player.PositionFlag &= ~UpdatePositionFlag.Placement;                    
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
+            System.Threading.Thread.Sleep(500);
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
+            System.Threading.Thread.Sleep(1000);
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
+            System.Threading.Thread.Sleep(500);
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
