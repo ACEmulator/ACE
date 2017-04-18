@@ -3,6 +3,7 @@
 [Jyrus]
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
 * Add an ActionQueue switch case to implement Portal travel
+
 [Mogwai]
 * Overhaul of the Object structure.  Removed Mutable and Immutable, added a bunch of new ones: Lifestone, Portal, SummonedPortal, UsableObject, CollidableObject, Container, Creature, and Door and refactored a bunch of stuff to support them all.
 
