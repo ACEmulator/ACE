@@ -22,7 +22,7 @@ namespace ACE.Network.Motion
             Position = moveToTarget.PhysicsData.Position;
         }
 
-       public override byte[] GetPayload(WorldObject moveToTarget)
+       public byte[] GetPayload(WorldObject moveToTarget, float distanceToObject)
        {
             const uint Flag = 0x0041EE4F;
             MemoryStream stream = new MemoryStream();
@@ -39,8 +39,8 @@ namespace ACE.Network.Motion
             writer.Write(moveToTarget.Guid.Full);
             Position.Serialize(writer, false);
             // TODO: Og Fix to real numbers 
-            writer.Write(Flag);
-            writer.Write((float)20);
+            writer.Write(Flag);            
+            writer.Write(distanceToObject);
             writer.Write((float)0);
             writer.Write(float.MaxValue);
             writer.Write((float)1);
