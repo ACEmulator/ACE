@@ -632,7 +632,7 @@ namespace ACE.Entity
                             {
                                 case Enum.ObjectType.Portal:
                                     {
-                                        // validate within use range
+                                        // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
                                         float rangeCheck = 5.0f;
 
                                         if (player.Location.SquaredDistanceTo(obj.Location) < rangeCheck)
