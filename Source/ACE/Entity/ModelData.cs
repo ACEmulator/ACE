@@ -2,6 +2,7 @@
 using ACE.Network.Enum;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -17,6 +18,21 @@ namespace ACE.Entity
         private List<ModelTexture> modelTextures = new List<ModelTexture>();
 
         private List<Model> models = new List<Model>();
+
+        public List<ModelPalette> GetPalettes
+        {
+            get { return modelPalettes.ToList(); }
+        }
+
+        public List<ModelTexture> GetTextures
+        {
+            get { return modelTextures.ToList(); }
+        }
+
+        public List<Model> GetModels
+        {
+            get { return models.ToList(); }
+        }
 
         public void AddPalette(uint paletteID, ushort offset, ushort length)
         {
