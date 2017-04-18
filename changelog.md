@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-04-13
+[Og II]
+* Completed conversion to Action Queue
+* Cleaned up a lot of sloppy code
+* To test ctw me - drop the wand, pick it back up repeat.
+
 ### 2017-04-12
 [OptimShi]
 * Changed DatDatabase.AllFiles to a Dictionary<uint objectid, DatFile> (was simply a list List<DatFile> previously)
