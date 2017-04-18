@@ -1,4 +1,20 @@
 # ACEmulator Change Log
+
+### 2017-04-18
+[StackOverflow]
+* ReOrganized World Objects - Added Entity Folders to make developing easier to maintain.
+
+### 2017-04-18
+[Jyrus]
+* Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
+* Add an ActionQueue switch case to implement Portal travel
+
+### 2017-04-18
+[Jyrus]
+* Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
+* Add an ActionQueue switch case to implement Portal travel
+
+# ACEmulator Change Log
 ### 2017-04-18
 [Jyrus]
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
