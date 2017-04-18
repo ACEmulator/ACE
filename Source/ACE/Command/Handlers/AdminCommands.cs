@@ -397,44 +397,7 @@ namespace ACE.Command
         {
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
 
-            if (parameters?.Length > 0)
-            {
-                if (parameters[0] == "all")
-                {
-                    var creatureIds = session.Player.GetKnownCreatures();
-                    foreach (var cId in creatureIds)
-                    {
-                        var wo = LandblockManager.GetWorldObject(session, cId);
-                        if (wo != null)
-                            (wo as Creature).Kill(session);
-                    }
-                }
-                else
-                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
-            }
-            else
-            {
-                if (session.Player.SelectedTarget != 0)
-                {
-                    var target = new ObjectGuid(session.Player.SelectedTarget);
-                    var wo = LandblockManager.GetWorldObject(session, target);
-
-                    if (target.IsCreature())
-                    {
-                        if (wo != null)
-                            (wo as Creature).Kill(session);
-                    }
-                    if (target.IsPlayer())
-                    {
-                        if (wo != null)
-                            (wo as Player).Kill();
-                    }
-                }
-                else
-                {
-                    ChatPacket.SendServerMessage(session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
-                }
-            }
+            // TODO: output            
         }
 
         // tele [name] longitude latitude

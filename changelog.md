@@ -2,7 +2,7 @@
 
 ### 2017-04-14
 [Lidefeath]
-* Flesh out smite command - without the bunnysmite animation, sorry HellsWrath
+* Added /testcorpsedrop as debugcommand to kill a creature so it spawns its corpse
 * Fix CreatureObject so it's parseable now by aclogview
 * Add GameEventDeathNotice to broadcast the killing of a creature
 * If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
