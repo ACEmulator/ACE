@@ -25,6 +25,9 @@ namespace ACE.Factories
                     case ObjectType.Portal:
                         results.Add(new Portal(aceO));
                         break;
+                    case ObjectType.Misc:
+                        results.Add(new Misc(aceO));
+                        break;
                 }
             }
 
