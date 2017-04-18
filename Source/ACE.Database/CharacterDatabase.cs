@@ -277,8 +277,9 @@ namespace ACE.Database
 
                 // Loads the positions into the player object and resets the landlock id
                 LoadCharacterPositions(c);
+
+                // Load the best location from the database
                 c.Location = c.Positions[PositionType.Location];
-                c.Location.LandblockId = new LandblockId(c.Location.Cell);
 
                 uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
                 uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
@@ -426,13 +427,27 @@ namespace ACE.Database
                 dbObject.SetPropertyString(results.Read<PropertyString>(i, "propertyId"), results.Read<string>(i, "propertyValue"));
         }
 
-        public List<Position> GetCharacterPositions(Character character)
+        /// <summary>
+        /// Returns all positions from the database in a dictionary. Positions for each character should always be unique.
+        /// </summary>
+        public Dictionary<PositionType, Position> GetCharacterPositions(Character character)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("character_id", character.Id);
-            return ExecuteConstructedGetListStatement<CharacterPreparedStatement, Position>(CharacterPreparedStatement.CharacterPositionList, criteria);
+            List<Position> availablePositions = ExecuteConstructedGetListStatement<CharacterPreparedStatement, Position>(CharacterPreparedStatement.CharacterPositionList, criteria);
+            Dictionary<PositionType, Position> characterPositions = new Dictionary<PositionType, Position>();
+            foreach (Position position in availablePositions)
+            {
+                characterPositions.Add(position.PositionType, position);
+            }
+
+            return characterPositions;
         }
 
+        /// <summary>
+        /// Returns an available character positions from the database that match the PositionType.
+        /// If no position is found, an invalid position is returned.
+        /// </summary>
         public Position GetCharacterPosition(Character character, PositionType positionType)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
@@ -447,30 +462,44 @@ namespace ACE.Database
         /// <summary>
         /// Attempts to load characters positions from the database. If no position is available, a new position will be created to allow the player to spawn.
         /// </summary>
+        /// <remarks>
+        /// TODO:
+        ///     1. Confirm the order/position usage when restoring a position from database. Should this always be the lifestone if "Location" is unavailable?
+        /// </remarks>
         public void LoadCharacterPositions(Character character)
         {
             // get a list of positions from the vw_character_positions view
-            var dbPositionList = GetCharacterPositions(character);
+            var dbPositions = GetCharacterPositions(character);
 
-            // Check for positions and insert defaults if missing:
-            if (dbPositionList.Count == 0)
+            // Check for positions and insert position for the Position type Locaiont, if missing:
+            if (dbPositions.Count == 0 || !dbPositions.ContainsKey(PositionType.Location))
             {
-                // load the default position
-                Position newCharacterPosition = CharacterPositionExtensions.StartingPosition(character.Id);
-                Position newRecallPosition = CharacterPositionExtensions.InvalidPosition(character.Id, PositionType.LastPortal);
-                dbPositionList.Add(newCharacterPosition);
-                dbPositionList.Add(newRecallPosition);
+                Position swapToWorkingLocation = new Position();
 
-                // Did not find a position in the database, so we will create one here.
-                // WE SHOULD NOT GET HERE ANYMORE?!
-                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newCharacterPosition);
-                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), newRecallPosition);
+                // This checks for the best location available from the database
+                // When the first suitable position is found, it will be set as the current location.
+                if (dbPositions.ContainsKey(PositionType.LastPortal)) 
+                    // Use the lastportal position
+                    swapToWorkingLocation = dbPositions[PositionType.LastPortal]; 
+                else if (dbPositions.ContainsKey(PositionType.Sanctuary)) 
+                    // Use lifestone recall position
+                    swapToWorkingLocation = dbPositions[PositionType.Sanctuary]; 
+                else
+                {
+                    // No suitable database position is available
+                    swapToWorkingLocation = CharacterPositionExtensions.StartingPosition(character.Id); //Use default position
+                }
+
+                // force the position type to location
+                swapToWorkingLocation.PositionType = PositionType.Location;
+                dbPositions.Add(swapToWorkingLocation.PositionType, swapToWorkingLocation);
+                ExecuteConstructedInsertStatement(CharacterPreparedStatement.CharacterPositionInsert, typeof(Position), swapToWorkingLocation);
             }
 
             // This will load each available position from the database, into the object's positions
-            foreach (Position item in dbPositionList)
+            foreach (KeyValuePair<PositionType, Position> position in dbPositions)
             {
-                character.SetCharacterPosition(item);
+                character.SetCharacterPosition(position.Value);
             }
         }
 

@@ -208,11 +208,13 @@ namespace ACE.Command.Handlers
             "Movement testing command, to be removed soon")]
         public static void Movement(Session session, params string[] parameters)
         {
+            ushort forwardCommand = 24;
+            if ((parameters?.Length > 0))
+                forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new GeneralMotion(MotionStance.Standing);
-            movement.MovementData.ForwardCommand = 24;
+            movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
-            movement = new GeneralMotion(MotionStance.Standing);
-            movement.MovementData.ForwardCommand = 0;
+            movement = new GeneralMotion(MotionStance.Standing);            
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
@@ -296,8 +298,8 @@ namespace ACE.Command.Handlers
             catch (Exception)
             {
                 // Do Nothing
-        }
             }
+        }
 
         // @testspell 0 10 10 10 10 20
         [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
