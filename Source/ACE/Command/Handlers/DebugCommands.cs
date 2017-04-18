@@ -235,42 +235,6 @@ namespace ACE.Command.Handlers
             ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
         }
 
-        /// <summary>
-        /// Debug command to set an invalid character position for a position type. Used to test the logic and saving data to the database.
-        /// </summary>
-        [CommandHandler("reset-pos", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleResetPosition(Session session, params string[] parameters)
-        {
-            try
-            {
-                // if (parameters.Length > 1)
-                //    if (parameters[1] != "")
-                //        scale = float.Parse(parameters[1]);
-
-                string message = "Error saving position.";
-
-                PositionType type = new PositionType();
-
-                if (Enum.TryParse(parameters[0], true, out type))
-                {
-                    if (Enum.IsDefined(typeof(PositionType), type))
-                    {
-                        message = $"Saving position {Enum.GetName(typeof(PositionType), type)}";
-                        session.Player.SetCharacterPosition(type, CharacterPositionExtensions.InvalidPosition(session.Id, type));
-                    }
-                }
-
-                float scale = 1f;
-                var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.AttribDownRed, scale);
-                var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(effectEvent, sysChatMessage);
-            }
-            catch (Exception)
-            {
-                // Do Nothing
-        }
-            }
-
         // @testspell 0 10 10 10 10 20
         [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
         public static void TestSpell(Session session, params string[] parameters)
