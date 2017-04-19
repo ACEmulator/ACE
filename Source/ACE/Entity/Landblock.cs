@@ -372,14 +372,14 @@ namespace ACE.Entity
                 // for now, we'll move players around
                 List<WorldObject> movedObjects = null;
                 List<Player> players = null;
-                List<Container> despawnObjects = null;
+                List<WorldObject> despawnObjects = null;
                 List<Creature> deadCreatures = null;
 
                 lock (objectCacheLocker)
                 {
                     movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
                     players = this.worldObjects.Values.OfType<Player>().ToList();
-                    despawnObjects = this.worldObjects.Values.OfType<Container>().ToList();
+                    despawnObjects = this.worldObjects.Values.ToList();
                     deadCreatures = this.worldObjects.Values.OfType<Creature>().ToList();
                 }
 
@@ -437,7 +437,7 @@ namespace ACE.Entity
                 }
 
                 // despawn objects
-                Parallel.ForEach(despawnObjects, deo => 
+                despawnObjects.ForEach(deo => 
                 {
                     if (deo.DespawnTime < WorldManager.PortalYearTicks)
                     {
@@ -446,7 +446,7 @@ namespace ACE.Entity
                 });
 
                 // respawn creatures
-                Parallel.ForEach(deadCreatures, dc => 
+                deadCreatures.ForEach(dc => 
                 {
                     if (dc.RespawnTime < WorldManager.PortalYearTicks)
                     {
