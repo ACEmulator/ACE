@@ -46,6 +46,11 @@ namespace ACE.Entity
         /// </summary>
         public bool IsAlive { get; set; }
 
+        /// <summary>
+        /// Time after Creature dies until it respawns
+        /// </summary>
+        public double RespawnTime { get; set; }
+
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
@@ -146,6 +151,8 @@ namespace ACE.Entity
         public void Kill(Session session)
         {
             IsAlive = false;
+            // TODO: Implement some proper respawn timers, check the generators for that
+            RespawnTime = WorldManager.PortalYearTicks + 10;
 
             // Create and send the death notice
             string killMessage = $"{session.Player.Name} has killed {Name}.";
@@ -163,6 +170,10 @@ namespace ACE.Entity
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
             corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
             corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+
+            // Corpses stay on the ground for 5 * player level but minimum 1 hour
+            // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+            corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
             // Remove Creature from Landblock and add Corpse in that location via the ActionQueue to honor the motion delays
             QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);

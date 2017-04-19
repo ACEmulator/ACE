@@ -20,6 +20,8 @@ namespace ACE.Database
             GetTextureOverridesByObject,
             GetCreatureDataByWeenie,
             InsertCreatureStaticLocation,
+            GetCreatureGeneratorByLandblock,
+            GetCreatureGeneratorData,
             GetPortalDestination
         }
 
@@ -40,6 +42,8 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
+            ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
         }
 
         public List<TeleportLocation> GetLocations()
@@ -97,6 +101,23 @@ namespace ACE.Database
             objects.ForEach(o => o.CreatureData = GetCreatureDataByWeenie(o.WeenieClassId));
 
             return objects;
+        }
+
+        public List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("landblock", landblock);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorLocation>(WorldPreparedStatement.GetCreatureGeneratorByLandblock, criteria);
+            objects.ForEach(o => o.CreatureGeneratorData = GetCreatureGeneratorData(o.GeneratorId));
+
+            return objects;
+        }
+
+        private List<AceCreatureGeneratorData> GetCreatureGeneratorData(uint generatorId)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("generatorId", generatorId);
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorData>(WorldPreparedStatement.GetCreatureGeneratorData, criteria);
         }
 
         private List<WeeniePaletteOverride> GetWeeniePalettes(uint weenieClassId)
