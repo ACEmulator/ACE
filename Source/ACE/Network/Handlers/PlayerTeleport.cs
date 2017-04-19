@@ -35,9 +35,9 @@ namespace ACE.Entity
             var animationEvent = new GameMessageUpdateMotion(this, Session, motionMarketplaceRecall);
 
             // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-            // FIX: I think this is only broadcasting to client, not to any other connected players. Likely animationEvent and sysChatMessage need to be broadcast to
-            //      clients that are currently tracking this player and the chat message should be within local chat hearing range.
-            Session.EnqueueSend(updateCombatMode, animationEvent, sysChatMessage);
+            // FIX: Recall text isn't being broadcast yet, need to address
+            Session.EnqueueSend(updateCombatMode, sysChatMessage);
+            EnqueueMovementEvent(motionMarketplaceRecall, Session.Player.Guid);
 
             SetDelayedTeleport(TimeSpan.FromSeconds(14), marketplaceDrop);
         }
@@ -47,8 +47,8 @@ namespace ACE.Entity
         {
             if (Positions.ContainsKey(PositionType.Sanctuary))
             {
-                // session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
-                string msg = $"{Name} is recalling to the lifestone.";
+                // Session.Player.Teleport(Session.Player.Positions[PositionType.Sanctuary]);
+                string msg = $"{Session.Player.Name} is recalling to the lifestone.";
 
                 var sysChatMessage = new GameMessageSystemChat(msg, ChatMessageType.Recall);
 
@@ -62,11 +62,11 @@ namespace ACE.Entity
                 var animationEvent = new GameMessageUpdateMotion(this, Session, motionLifestoneRecall);
 
                 // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-                // FIX: I think this is only broadcasting to client, not to any other connected players. Likely animationEvent and sysChatMessage need to be broadcast to
-                //      clients that are currently tracking this player and the chat message should be within local chat hearing range.
-                Session.EnqueueSend(updatePlayersMana, updateCombatMode, animationEvent, sysChatMessage);
+                // FIX: Recall text isn't being broadcast yet, need to address
+                Session.EnqueueSend(updatePlayersMana, updateCombatMode, sysChatMessage);
+                EnqueueMovementEvent(motionLifestoneRecall, Session.Player.Guid);
 
-                SetDelayedTeleport(TimeSpan.FromSeconds(14), Positions[PositionType.Sanctuary]);
+                SetDelayedTeleport(TimeSpan.FromSeconds(14), Session.Player.Positions[PositionType.Sanctuary]);
             }
             else
             {
