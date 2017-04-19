@@ -89,7 +89,8 @@ namespace ACE.Entity
                     var movementData = currentMotionState.GetPayload(wo);
                     writer.Write(movementData.Length);
                     writer.Write(movementData);
-                    writer.Write((ushort)0);
+                    uint autonomous = currentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    writer.Write(autonomous);
                 }
             }
 
