@@ -15,7 +15,8 @@ namespace ACE.Entity
         private void DropItemAction(ClientMessage message)
         {
             var objectGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            HandleDropItem(objectGuid, Session);
+            QueuedGameAction action = new QueuedGameAction(Guid.Full, objectGuid.Full, GameActionType.DropItem);
+            AddToActionQueue(action);
         }
 
         [GameAction(GameActionType.IdentifyObject)]
@@ -31,7 +32,8 @@ namespace ACE.Entity
         {
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            HandlePutItemInContainer(itemGuid, containerGuid, Session);
+            QueuedGameAction action = new QueuedGameAction(containerGuid.Full, itemGuid.Full, GameActionType.PutItemInContainer);
+            AddToActionQueue(action);
         }
 
         [GameAction(GameActionType.Use)]
