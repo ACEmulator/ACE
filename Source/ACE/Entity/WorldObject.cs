@@ -151,8 +151,8 @@ namespace ACE.Entity
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.Write((ushort)WeenieClassid);
-            writer.Write((ushort)Icon);
+            writer.WritePackedDword((ushort)WeenieClassid);
+            writer.WritePackedDword((ushort)Icon);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
 
@@ -251,7 +251,7 @@ namespace ACE.Entity
                 writer.Write(GameData.HookType);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
-                writer.Write(GameData.IconOverlay);
+                writer.WritePackedDword(GameData.IconOverlay);
 
             /*if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
                 writer.Write((ushort)0);*/

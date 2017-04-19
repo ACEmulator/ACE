@@ -18,6 +18,20 @@ namespace ACE.Network
             writer.Pad(CalculatePadMultiple(sizeof(ushort) + (uint)data.Length, 4u));
         }
 
+        public static void WritePackedDword(this BinaryWriter writer, uint rawValue)
+        {
+            if (rawValue <= 32767)
+            {
+                ushort networkValue = Convert.ToUInt16(rawValue);
+                writer.Write(BitConverter.GetBytes(networkValue));
+            }
+            else
+            {
+                uint packedValue = (0x8000000 | ((rawValue << 16) & 0x7FFF0000)) | (rawValue >> 15);
+                writer.Write(BitConverter.GetBytes(packedValue));
+            }
+        }
+
         public static void WriteUInt16BE(this BinaryWriter writer, ushort value)
         {
             ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
