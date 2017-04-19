@@ -168,6 +168,14 @@ namespace ACE.Entity
             });
         }
 
+        private void RemovePlayerTracking(List<WorldObject> wolist, Player player)
+        {
+            Parallel.ForEach(wolist, (o) =>
+            {
+                    player.StopTrackingObject(o);
+            });
+        }
+
         public void AddWorldObject(WorldObject wo)
         {
             List<WorldObject> allObjects;
@@ -428,7 +436,6 @@ namespace ACE.Entity
                 {
                     if (mo.Guid.IsPlayer())
                     {
-                        // Player is moving on this landblock..
                         List<WorldObject> woproxr = new List<WorldObject>();
                         woproxr.AddRange(GetWorldObjectsInRange(mo, maxobjectRange, true));
                         // exclude already tracked objects.
