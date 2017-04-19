@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+
+### 2017-04-18
+[Ripley]
+* Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.
+
 ### 2017-04-18
 [Jyrus]
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
