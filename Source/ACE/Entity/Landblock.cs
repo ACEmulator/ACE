@@ -412,25 +412,23 @@ namespace ACE.Entity
                 List<WorldObject> allworldobj = null;
                 List<Player> allplayers = null;
                 List<Player> movedObjects = null;
-                // for now, we'll move players around
-                List<WorldObject> movedObjects = null;
-                List<Player> players = null;
                 List<WorldObject> despawnObjects = null;
                 List<Creature> deadCreatures = null;
 
                 lock (objectCacheLocker)
                 {
-                    movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
-                    players = this.worldObjects.Values.OfType<Player>().ToList();
-                    despawnObjects = this.worldObjects.Values.ToList();
-                    deadCreatures = this.worldObjects.Values.OfType<Creature>().ToList();
                     allworldobj = this.worldObjects.Values.OfType<WorldObject>().ToList();
-                    allplayers = this.worldObjects.Values.OfType<Player>().ToList();
                 }
 
-                movedObjects = allworldobj.OfType<Player>().ToList();
+                allplayers = allworldobj.OfType<Player>().ToList();
+
+                movedObjects = allplayers.ToList();
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
+
+                despawnObjects = allworldobj.ToList();
                 despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
+
+                deadCreatures = allworldobj.OfType<Creature>().ToList();
                 deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
