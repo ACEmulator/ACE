@@ -83,9 +83,14 @@ namespace ACE.Entity
                     uint autonomous = currentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
                     writer.Write(autonomous);
                 }
-                else
+                else // create a new current motion state and send it.
                 {
-                    writer.Write(0u); // number of bytes in movement object
+                    currentMotionState = new GeneralMotion(MotionStance.Standing);
+                    var movementData = currentMotionState.GetPayload(wo);
+                    writer.Write(movementData.Length);
+                    writer.Write(movementData);
+                    uint autonomous = currentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    writer.Write(autonomous);
                 }
             }
 
