@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     [DbTable("portal_destination")]
-    [DbGetList("portal_destination", 12, "weenieClassId")]
+    [DbGetList("portal_destination", 14, "weenieClassId")]
     public class PortalDestination
     {
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]

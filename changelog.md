@@ -5,6 +5,13 @@
 * Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.
 
 ### 2017-04-18
+[Lidefeath]
+* Remove the corpse of a creature from the landblock after a calculated time (or a fixed time for testing purposes)
+* Respawn the creature in the same spot after the respawn timer has ended
+* Spawn randomly generated creatures from DB using the generator tables - these need to be more fleshed out still
+* Improved MonsterFactory to create Creatures without saving it as static spawn, to reuse the creation code for generators
+* Edit the database table ace_creature_generator_locations to add or change spawn locations with random spawns
+
 [Jyrus]
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
 * Add an ActionQueue switch case to implement Portal travel

@@ -416,24 +416,44 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to spawn a creature in front of the player and save it as a static spawn.
+        /// Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.
         /// </summary>
-        [CommandHandler("createstaticcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Debug command to spawn a creature in front of the player and save it as a static spawn.",
+        [CommandHandler("createcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.",
             "weenieClassId")]
         public static void CreateStaticCreature(Session session, params string[] parameters)
         {
+            Creature newC = null;
+
             if (!(parameters?.Length > 0))
             {
-                ChatPacket.SendServerMessage(session, "Usage: @createstaticcreature weenieClassId",
+                ChatPacket.SendServerMessage(session, "Usage: @createcreature [static] weenieClassId",
                    ChatMessageType.Broadcast);
                 return;
             }
-            uint weenie = Convert.ToUInt32(parameters[0]);
-            Creature newC = MonsterFactory.SpawnStaticCreature(weenie, session.Player.Location.InFrontOf(2.0f));
+            if (parameters?[0] == "static")
+            {
+                if (parameters?.Length > 1)
+                {
+                    uint weenie = Convert.ToUInt32(parameters[1]);
+                    newC = MonsterFactory.SpawnCreature(weenie, true, session.Player.Location.InFrontOf(2.0f));
+                }
+                else
+                {
+                    ChatPacket.SendServerMessage(session, "Specify a valid weenieClassId after the static option.", 
+                        ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            else
+            {
+                uint weenie = Convert.ToUInt32(parameters[0]);
+                newC = MonsterFactory.SpawnCreature(weenie, false, session.Player.Location.InFrontOf(2.0f));
+            }
+            
             if (newC != null)
             {
-                ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}",
+                ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}.",
                     ChatMessageType.Broadcast);
                 LandblockManager.AddObject(newC);
             }
