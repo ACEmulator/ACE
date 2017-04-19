@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-04-18
+### 2017-04-19
 [Ripley]
 * Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.
 
