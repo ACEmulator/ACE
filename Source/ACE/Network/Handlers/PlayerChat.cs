@@ -45,10 +45,12 @@ namespace ACE.Entity
                     switch (response)
                     {
                         case CommandHandlerResponse.InvalidCommand:
-                            ChatPacket.SendServerMessage(Session, $"Invalid command {command}!", ChatMessageType.Broadcast);
+                            Session.EnqueueSend(new GameMessageSystemChat($"Unknown command: {command}", ChatMessageType.Help));
                             break;
                         case CommandHandlerResponse.InvalidParameterCount:
-                            ChatPacket.SendServerMessage(Session, $"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Broadcast);
+                            Session.EnqueueSend(new GameMessageSystemChat($"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Help));
+                            Session.EnqueueSend(new GameMessageSystemChat($"@{commandHandler.Attribute.Command} - {commandHandler.Attribute.Description}", ChatMessageType.Broadcast));
+                            Session.EnqueueSend(new GameMessageSystemChat($"Usage: @{commandHandler.Attribute.Command} {commandHandler.Attribute.Usage}", ChatMessageType.Broadcast));
                             break;
                         default:
                             break;
@@ -63,7 +65,7 @@ namespace ACE.Entity
                 var targets = WorldManager.GetAll();
 
                 foreach (var target in targets)
-                    target.EnqueueSend(creatureMessage);
+                    target.EnqueueSend(new GameMessage[] { creatureMessage });
             }
         }
 

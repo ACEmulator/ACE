@@ -1,4 +1,8 @@
-﻿namespace ACE.Network.GameAction
+﻿using ACE.Entity;
+using ACE.Managers;
+using ACE.Network.Motion;
+
+namespace ACE.Network.GameAction
 {
     public class QueuedGameAction
     {
