@@ -210,9 +210,9 @@ namespace ACE.Command.Handlers
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new GeneralMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
             movement = new GeneralMotion(MotionStance.Standing);            
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,

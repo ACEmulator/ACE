@@ -27,7 +27,7 @@ using ACE.Factories;
 
 namespace ACE.Entity
 {
-    public sealed class Player : Creature
+    public sealed partial class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -843,7 +843,7 @@ namespace ACE.Entity
 
         public void SendMovementEvent(GeneralMotion motion, WorldObject sender)
         {
-            Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
+            Session.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }
 
         // Play a sound

@@ -167,7 +167,7 @@ namespace ACE.Entity
                 // Create and send the death notice
                 string killMessage = $"{session.Player.Name} has killed {Name}.";
                 var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
-                session.Network.EnqueueSend(creatureDeathEvent);
+                session.EnqueueSend(creatureDeathEvent);
             }
 
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death

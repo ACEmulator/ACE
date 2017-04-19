@@ -548,7 +548,7 @@ namespace ACE.Entity
                             {                                
                                 var motion = new GeneralMotion(MotionStance.Standing);
                                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;                                
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer), 
+                                aPlayer.Session.EnqueueSend(new GameMessageUpdatePosition(aPlayer), 
                                     new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                     new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
                                 
@@ -557,7 +557,7 @@ namespace ACE.Entity
                                 LandblockManager.RemoveObject(inventoryItem);
 
                                 motion = new GeneralMotion(MotionStance.Standing);
-                                aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
+                                aPlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbVal,
                                        aPlayer.GameData.Burden), 
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
@@ -593,7 +593,7 @@ namespace ACE.Entity
                                 if ((aPlayer != null) && (inventoryItem != null))
                                 {
                                     var targetContainer = new ObjectGuid(0);
-                                    aPlayer.Session.Network.EnqueueSend(
+                                    aPlayer.Session.EnqueueSend(
                                         new GameMessagePrivateUpdatePropertyInt(
                                             aPlayer.Session,
                                             PropertyInt.EncumbVal,
@@ -601,12 +601,12 @@ namespace ACE.Entity
 
                                     var motion = new GeneralMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                                    aPlayer.Session.Network.EnqueueSend(
+                                    aPlayer.Session.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessageUpdateInstanceId(inventoryId, targetContainer));
 
                                     motion = new GeneralMotion(MotionStance.Standing);
-                                    aPlayer.Session.Network.EnqueueSend(
+                                    aPlayer.Session.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
                                         new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
@@ -616,7 +616,7 @@ namespace ACE.Entity
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
                                     LandblockManager.AddObject(inventoryItem);
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
+                                    aPlayer.Session.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
                                 }
                             }
                         }
@@ -720,7 +720,7 @@ namespace ACE.Entity
                                                 player.Session.Player.Teleport(portalDestination.Position);
                                                 // always send useDone event
                                                 var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                                player.Session.EnqueueSend(sendUseDoneEvent);
                                             }
                                             else
                                             {
@@ -728,14 +728,14 @@ namespace ACE.Entity
                                                 var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                                                 // always send useDone event
                                                 var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                                player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
+                                                player.Session.EnqueueSend(usePortalMessage, sendUseDoneEvent);
                                             }
                                         }
                                         else
                                         {
                                             // always send useDone event
                                             var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                            player.Session.EnqueueSend(sendUseDoneEvent);
                                         }
 
                                         break;
@@ -764,7 +764,7 @@ namespace ACE.Entity
                                             // create the outbound server message
                                             serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
                                             player.EnqueueMovementEvent(motionSanctuary, player.Guid);
-                                            player.Session.Network.EnqueueSend(soundEvent);
+                                            player.Session.EnqueueSend(soundEvent);
                                         }
 
                                         var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
