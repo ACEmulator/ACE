@@ -82,9 +82,8 @@ namespace ACE.Network.GameMessages.Messages
             else
                 autonomous = 0;
             Writer.Write(autonomous);
-            
-            var distanceToObject = (float)Math.Sqrt(player.PhysicsData.Position.SquaredDistanceTo(newState.Position));
-            var movementData = newState.GetPayload(moveToTarget, distanceToObject);
+                                   
+            var movementData = newState.GetPayload(moveToTarget, 2.0f);   
             Writer.Write(movementData);
             Writer.Align();
         }

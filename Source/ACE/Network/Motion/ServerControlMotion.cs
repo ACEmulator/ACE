@@ -24,7 +24,7 @@ namespace ACE.Network.Motion
 
        public byte[] GetPayload(WorldObject moveToTarget, float distanceToObject)
        {
-            const uint Flag = 0x0041EE4F;
+            const uint Flag = 0x0041EFF0; 
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
             writer.Write((byte)MovementTypes.MoveToObject); // movement_type
@@ -46,7 +46,7 @@ namespace ACE.Network.Motion
             writer.Write((float)1);
             writer.Write((float)15);
             writer.Write((float)0);
-            writer.Write((float)1.63461542);
+            writer.Write((float)1.0f);
             return stream.ToArray();
         }
     }
