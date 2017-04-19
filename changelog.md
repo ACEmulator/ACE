@@ -4,6 +4,14 @@
 * Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
 * Add an ActionQueue switch case to implement Portal travel
 
+[Zegeger]
+* Phase 1 of refactor
+* Merged SocketManager into WorldManager
+* Made Session inherit from NetworkSession, flattening the model
+* Moved GameMessage handlers into Session class, partial classes
+* Moved GameAction handlers into Player class, partial classes
+* This move makes functionality encapsulated into these classes, allowing a move to fewer public members.
+
 [Mogwai]
 * Overhaul of the Object structure.  Removed Mutable and Immutable, added a bunch of new ones: Lifestone, Portal, SummonedPortal, UsableObject, CollidableObject, Container, Creature, and Door and refactored a bunch of stuff to support them all.
 
