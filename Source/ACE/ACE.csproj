@@ -345,10 +345,7 @@
       <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Network\GameAction\Actions\" />
-    <Folder Include="Network\Managers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>copy "$(ProjectDir)config.json" "$(TargetDir)config.json"</PreBuildEvent>
