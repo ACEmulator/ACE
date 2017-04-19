@@ -782,7 +782,7 @@ namespace ACE.Entity
         /// <param name="victimId"></param>
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
-            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameEventType.DeathNotice);
+            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect);
             AddToActionQueue(action);
         }
 
@@ -820,13 +820,17 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }
 
-        // Play a sound
+        /// <summary>
+        /// Play a sound for the client
+        /// </summary>
         public void PlaySound(Sound sound, ObjectGuid targetId)
         {
             Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
         }
 
-        // plays particle effect like spell casting or bleed etc..
+        /// <summary>
+        /// Play a particle effect like spell casting or bleed etc..
+        /// </summary>
         public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
         {
             var effectEvent = new GameMessageScript(targetId, effectId);

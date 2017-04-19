@@ -168,9 +168,6 @@
         ObjectDelete = 0xF747,
         MovementEvent = 0xF74C,
 
-        // ACE ONLY GameActionEvent to send Events over the "Action" queue:
-        GameActionEvent = 0xF819, // Only used when checking the action queue for an event.
-
         // Below are enums from the client that have not been introduced to ACE
         // TODO: Merge the names above with the names below, and add appropriate comments.
 

@@ -1,7 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Network.GameEvent;
 using ACE.Network.Motion;
 using System;
 using System.Collections.Generic;
@@ -70,40 +69,29 @@ namespace ACE.Network.GameAction
             this.EndTime = this.StartTime;
         }
 
+        /// <summary>
+        /// Sends a player to a location
+        /// </summary>
+        /// <param name="objectId"></param>
+        /// <param name="newQueuedPosition">Teleport location</param>
         public QueuedGameAction(uint objectId, Position newQueuedPosition, GameActionType actionType)
         {
             this.ObjectId = objectId;
-            this.QueuedPosition = newQueuedPosition;
+            this.ActionLocation = newQueuedPosition;
             this.ActionType = actionType;
         }
 
-        /* 
-         * // MELDED EVENTS THAT RESIDE IN THE ACTION QUEUE: 
-         * // This is the birth of one concurrent queue, for all player messages 
-         */
-        
         /// <summary>
-        /// Send a death message event
+        /// Send a player killed event
         /// </summary>
-        /// <param name="objectId">Typically this is the Players Guid</param>
+        /// <param name="objectId">Victim's Object Guid</param>
+        /// <param name="secondaryObjectId">Killer's Object Guid</param>
         /// <param name="broadcastMessage">Text string for chat output, usually containing the death message</param>
-        /// <param name="actionType">This is default to GameActionType of GameActionEvent</param>
-        public QueuedGameAction(string broadcastMessage, uint objectId, GameEventType eventType,
-            GameActionType actionType = GameActionType.GameActionEvent)
-        {
-            this.ObjectId = objectId;
-            this.TextMessage = broadcastMessage;
-            this.EventType = eventType;
-            this.ActionType = actionType;
-        }
-
-        public QueuedGameAction(string broadcastMessage, uint objectId, uint secondaryObjectId, GameEventType eventType, 
-            GameActionType actionType = GameActionType.GameActionEvent)
+        public QueuedGameAction(string broadcastMessage, uint objectId, uint secondaryObjectId, GameActionType actionType)
         {
             this.ObjectId = objectId;
             this.SecondaryObjectId = secondaryObjectId;
-            this.TextMessage = broadcastMessage;
-            this.EventType = eventType;
+            this.ActionBroadcastMessage = broadcastMessage;
             this.ActionType = actionType;
         }
 
@@ -113,13 +101,11 @@ namespace ACE.Network.GameAction
 
         public WorldObject WorldObject { get; private set; }
 
-        public string TextMessage { get; private set; }
+        public string ActionBroadcastMessage { get; private set; }
 
         public GameActionType ActionType { get; private set; }
 
-        public GameEventType EventType { get; private set; }
-
-        public Position QueuedPosition { get; private set; }
+        public Position ActionLocation { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
 

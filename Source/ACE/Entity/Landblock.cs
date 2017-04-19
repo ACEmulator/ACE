@@ -481,26 +481,16 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
-                case GameActionType.GameActionEvent:
+                case GameActionType.TalkDirect:
                     {
-                        if (action.EventType.ToString().Length > 0) { 
-                            switch (action.EventType)
-                            {
-                                case GameEventType.DeathNotice:
-                                    {
-                                        var g = new ObjectGuid(action.ObjectId);
-                                        WorldObject obj = (WorldObject)player;
-                                        if (worldObjects.ContainsKey(g))
-                                        {
-                                            obj = worldObjects[g];
-                                        }
-                                        DeathMessageArgs d = new DeathMessageArgs(action.TextMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
-                                        HandleDeathMessage(obj, d);
-                                        break;
-                                    }
-                                // Only one use case at the moment
-                            }
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
                         }
+                        DeathMessageArgs d = new DeathMessageArgs(action.ActionBroadcastMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
+                        HandleDeathMessage(obj, d);
                         break;
                     }
                 case GameActionType.TeleToHouse:
@@ -510,7 +500,7 @@ namespace ACE.Entity
                 case GameActionType.TeleToPkArena:
                 case GameActionType.TeleToPklArena:
                     {
-                        player.Teleport(action.QueuedPosition);
+                        player.Teleport(action.ActionLocation);
                         break;
                     }
                 case GameActionType.ApplyVisualEffect:
