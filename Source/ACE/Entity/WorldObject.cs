@@ -40,6 +40,11 @@ namespace ACE.Entity
         /// </summary>
         public double LastUpdatedTicks { get; set; }
 
+        // <summary>
+        /// Time when this object will despawn, -1 is never.
+        /// </summary>
+        public double DespawnTime { get; set; } = -1;
+
         public virtual Position Location
         {
             get { return PhysicsData.Position; }

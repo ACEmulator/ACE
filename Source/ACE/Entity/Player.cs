@@ -1105,6 +1105,17 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// returns a list of the ObjectGuids of all known creatures
+        /// </summary>
+        public List<ObjectGuid> GetKnownCreatures()
+        {
+            lock (clientObjectMutex)
+            {
+                return (List<ObjectGuid>)clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
+            }
+        }
+
+        /// <summary>
         /// forces either an update or a create object to be sent to the client
         /// </summary>
         public void TrackObject(WorldObject worldObject)

@@ -84,11 +84,23 @@ namespace ACE.Entity
             var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
 
+            // Load static creature spawns from DB
             var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             foreach (var c in creatures)
             {
                 Creature cwo = new Creature(c);
                 worldObjects.Add(cwo.Guid, cwo);
+            }
+
+            // Load generator creature spawns from DB
+            var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
+            foreach (var cg in creatureGenerators)
+            {
+                List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
+                foreach (var c in creatureList)
+                {
+                    worldObjects.Add(c.Guid, c);
+                }
             }
         }
 
@@ -212,7 +224,8 @@ namespace ACE.Entity
                 if (this.worldObjects.ContainsKey(objectId))
                 {
                     wo = this.worldObjects[objectId];
-                    this.worldObjects.Remove(objectId);
+                    if (!objectId.IsCreature())
+                        this.worldObjects.Remove(objectId);
                 }
             }
 
@@ -399,15 +412,26 @@ namespace ACE.Entity
                 List<WorldObject> allworldobj = null;
                 List<Player> allplayers = null;
                 List<Player> movedObjects = null;
+                // for now, we'll move players around
+                List<WorldObject> movedObjects = null;
+                List<Player> players = null;
+                List<WorldObject> despawnObjects = null;
+                List<Creature> deadCreatures = null;
 
                 lock (objectCacheLocker)
                 {
+                    movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
+                    players = this.worldObjects.Values.OfType<Player>().ToList();
+                    despawnObjects = this.worldObjects.Values.ToList();
+                    deadCreatures = this.worldObjects.Values.OfType<Creature>().ToList();
                     allworldobj = this.worldObjects.Values.OfType<WorldObject>().ToList();
                     allplayers = this.worldObjects.Values.OfType<Player>().ToList();
                 }
 
                 movedObjects = allworldobj.OfType<Player>().ToList();
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
+                despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
+                deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
@@ -472,6 +496,26 @@ namespace ACE.Entity
                     if (action != null)
                         HandleGameAction(action, p);
                 }
+
+                // despawn objects
+                despawnObjects.ForEach(deo => 
+                {
+                    if (deo.DespawnTime < WorldManager.PortalYearTicks)
+                    {
+                        this.RemoveWorldObject(deo.Guid, false);
+                    }
+                });
+
+                // respawn creatures
+                deadCreatures.ForEach(dc => 
+                {
+                    if (dc.RespawnTime < WorldManager.PortalYearTicks)
+                    {
+                        dc.IsAlive = true;
+                        HandleParticleEffectEvent(dc, PlayScript.Create);
+                        this.AddWorldObject(dc);
+                    }
+                });
 
                 Thread.Sleep(1);
             }

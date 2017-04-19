@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Network.Motion;
 using System;
@@ -45,6 +46,9 @@ namespace ACE.Factories
             template.ModelData.GetModels.ForEach(mo => wo.ModelData.AddModel(mo.Index, mo.ModelID));
             template.ModelData.GetTextures.ForEach(mt => wo.ModelData.AddTexture(mt.Index, mt.OldTexture, mt.NewTexture));
             template.ModelData.GetPalettes.ForEach(mp => wo.ModelData.AddPalette(mp.PaletteId, mp.Offset, mp.Length));
+
+            // Calculation of the TTL: 5 real time minutes * player level with a minimum of 1 hour, so we set the minimum here
+            wo.DespawnTime = 360 + WorldManager.PortalYearTicks;
 
             return wo;
         }

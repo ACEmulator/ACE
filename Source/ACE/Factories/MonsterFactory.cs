@@ -11,19 +11,11 @@ namespace ACE.Factories
 {
     public class MonsterFactory
     {
-        public static WorldObject CreateMonster(uint templateId, Position position)
-        {
-            // TODO: Implement
-
-            // read template from the database, create an object
-            // do whatever else it takes to make a monster
-
-            // assign it the position
-
-            return null;
-        }
-
-        public static Creature SpawnStaticCreature(uint weenieClassId, Position position)
+        /// <summary>
+        /// Create a new creature at the specified position
+        /// </summary>
+        /// <param name="saveAsStatic">If set to true, it saves the spawned creature in the DB as a static spawn</param>
+        public static Creature SpawnCreature(uint weenieClassId, bool saveAsStatic, Position position)
         {
             AceCreatureObject aco = DatabaseManager.World.GetCreatureDataByWeenie(weenieClassId);
             if (aco == null)
@@ -44,11 +36,47 @@ namespace ACE.Factories
 
             Creature newCreature = new Creature(acsl);
 
-            bool success = DatabaseManager.World.InsertStaticCreatureLocation(acsl);
-            if (!success)
-                return null;
-               
+            if (saveAsStatic) {
+                bool success = DatabaseManager.World.InsertStaticCreatureLocation(acsl);
+                if (!success)
+                    return null;
+            }
+
             return newCreature;
+        }
+
+        /// <summary>
+        /// Create a number of new creatures at the specified position as defined by the generator
+        /// </summary>
+        public static List<Creature> SpawnCreaturesFromGenerator(AceCreatureGeneratorLocation acgl)
+        {
+            List<Creature> creatureList = new List<Creature>();
+            Random rnd = new Random();
+
+            // Try to spawn #quantity amount of cratures
+            for (var count = 0; count < acgl.Quantity; count++)
+            {
+                int roll = rnd.Next(1, 100);
+                ushort wcid = 0;
+
+                // Check the probability of a given weenie in this generator and accept the fact there might be no weenie rolled
+                foreach (var weenieData in acgl.CreatureGeneratorData.OrderBy(d => d.Probability))
+                {
+                    if (roll < weenieData.Probability)
+                    {
+                        wcid = weenieData.WeenieClassId;
+                        break;
+                    }
+                }
+
+                if (wcid != 0)
+                {
+                    Creature c = SpawnCreature(wcid, false, acgl.Position);
+                    if (c != null)
+                        creatureList.Add(c);
+                }                    
+            }
+            return creatureList;
         }
     }
 }
