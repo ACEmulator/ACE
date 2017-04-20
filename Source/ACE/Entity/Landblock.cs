@@ -190,7 +190,7 @@ namespace ACE.Entity
                 foundwo = GetWorldObjectsByGuid(o, true);
                 Parallel.ForEach(foundwo, (f) =>
                 {
-                    player.StopTrackingObjectNoRemove(f);
+                    player.StopTrackingObject(f, true);
                 });
             });
         }
@@ -361,7 +361,7 @@ namespace ACE.Entity
                 case BroadcastAction.Delete:
                     {
                         players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
-                        Parallel.ForEach(players, p => p.StopTrackingObject(wo));
+                        Parallel.ForEach(players, p => p.StopTrackingObject(wo, true));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:
@@ -376,31 +376,36 @@ namespace ACE.Entity
                     }
                 case BroadcastAction.LocalChat:
                     {
-                        // TODO: implement range dectection for chat events
-                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
                         break;
                     }
                 case BroadcastAction.PlaySound:
                     {
-                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
                         break;
                     }
                 case BroadcastAction.PlayParticleEffect:
                     {
-                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
                         break;
                     }
                 case BroadcastAction.MovementEvent:
                     {
-                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
                     }
             }
 
+            /* - Stack Overflow  - Removing this because I think it may be useless now.. with streaming above..
+             
             // short circuit when there's no functional adjacency
             if (!propogate || wo?.Location?.LandblockId.MapScope != Enum.MapScope.Outdoors)
                 return;
@@ -437,6 +442,7 @@ namespace ACE.Entity
                 if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
                     NorthAdjacency?.Broadcast(args, false, Quadrant.SouthEast | Quadrant.SouthWest);
             }
+            */
         }
 
         /// <summary>
@@ -472,6 +478,7 @@ namespace ACE.Entity
                 deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
+                // this is only for moving objects across landblocks..
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
                 if (this.id.MapScope == Enum.MapScope.Outdoors)
@@ -514,7 +521,10 @@ namespace ACE.Entity
                     outofrange = outofrange.Where(g => !idsinrange.ToList().Contains(g)).ToList();
 
                     // removes player tracking from all landblocks adjanct too!
-                    RemovePlayerTracking(outofrange, (player as Player));
+                    if (outofrange.Count > 0)
+                    {
+                        RemovePlayerTracking(outofrange, (player as Player));
+                    }
 
                     // exclude already tracked objects.
                     woproxr = woproxr.Where(o => !(player as Player).GetTrackedObjectGuids().ToList().Contains(o.Guid)).ToList();
@@ -525,7 +535,6 @@ namespace ACE.Entity
                         Log($"landblock is streaming player \"{(player as Player).Name}\" with {woproxr.Count} objects.");
                         AddPlayerTracking(woproxr, (player as Player));
                     }
-                    // todo: Remove Old objects out or range.
                 });
 
                 // broadcast moving players to the world..
