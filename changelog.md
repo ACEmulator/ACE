@@ -5,6 +5,7 @@
 * Fixed PackedDWORD logic
 
 [Ripley]
+* Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
 ### 2017-04-19
