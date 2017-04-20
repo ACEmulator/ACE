@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public class Lifestone : UsableObject
     {

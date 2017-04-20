@@ -24,7 +24,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public sealed partial class Player : Creature
     {

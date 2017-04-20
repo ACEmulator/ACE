@@ -4,20 +4,21 @@ using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameAction;
+using ACE.Network.GameEvent.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public partial class Player
     {
-        [GameAction(GameActionType.Suicide)]
-        private void CharacterSuicide(ClientMessage message)
+        [GameAction(GameActionType.HouseQuery)]
+        private void HouseQueryAction(ClientMessage message)
         {
-           Kill();
+            Session.EnqueueSend(new GameEventHouseStatus(Session));
         }
     }
 }

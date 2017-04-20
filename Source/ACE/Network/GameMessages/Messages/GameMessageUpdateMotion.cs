@@ -1,5 +1,6 @@
 ﻿using log4net;
 using ACE.Network.Enum;
+using ACE.Entity.Objects;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
 using System.Collections.Generic;

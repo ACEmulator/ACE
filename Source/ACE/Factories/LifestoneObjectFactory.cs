@@ -1,6 +1,7 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.Entity.Objects;
 
 namespace ACE.Factories
 {

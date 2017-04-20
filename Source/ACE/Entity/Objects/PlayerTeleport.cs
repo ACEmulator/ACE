@@ -1,5 +1,6 @@
 ﻿using ACE.Common.Extensions;
 using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network;
@@ -14,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public partial class Player
     {
