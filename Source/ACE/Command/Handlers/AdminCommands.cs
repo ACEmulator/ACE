@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
+using ACE.Entity.Objects;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
