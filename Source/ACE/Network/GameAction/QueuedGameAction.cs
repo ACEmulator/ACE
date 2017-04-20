@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Managers;
+using ACE.Entity.Objects;
 using ACE.Network.Motion;
 
 namespace ACE.Network.GameAction

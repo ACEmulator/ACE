@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public partial class Player
     {

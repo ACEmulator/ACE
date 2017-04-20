@@ -1,10 +1,11 @@
-﻿namespace ACE.Factories
-{
-    using global::ACE.Entity;
-    using global::ACE.Entity.Enum;
-    using global::ACE.Network.Enum;
-    using global::ACE.Network.Sequence;
+﻿using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Network.Enum;
+using ACE.Network.Sequence;
+using ACE.Entity.Objects;
 
+namespace ACE.Factories
+{
     public class LootGenerationFactory
     {
         // This is throw away code to understand the world object creation process.

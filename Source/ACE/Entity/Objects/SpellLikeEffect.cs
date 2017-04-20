@@ -9,7 +9,7 @@ using log4net;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public class SpellLikeEffect : WorldObject
     {

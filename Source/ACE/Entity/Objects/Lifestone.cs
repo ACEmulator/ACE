@@ -1,16 +1,21 @@
-﻿using ACE.Entity.Enum;
-using ACE.Network.Enum;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ACE.Entity.Enum;
+using ACE.Network.Enum;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
-    public class Door : UsableObject
+    public class Lifestone : UsableObject
     {
-        public Door(AceObject aceO)
+        public Lifestone(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
+        {
+        }
+
+        public Lifestone(AceObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
@@ -42,7 +47,7 @@ namespace ACE.Entity
 
         public override void OnUse(Player player)
         {
-            // TODO: implement
+            // TODO: Implement
         }
     }
 }

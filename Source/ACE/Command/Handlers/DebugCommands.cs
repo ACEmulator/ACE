@@ -1,5 +1,6 @@
 ﻿using System;
 using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;

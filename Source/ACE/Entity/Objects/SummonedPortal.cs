@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Entity.Enum;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public class SummonedPortal : UsableObject
     {

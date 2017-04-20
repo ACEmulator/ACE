@@ -2,6 +2,7 @@
 
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;

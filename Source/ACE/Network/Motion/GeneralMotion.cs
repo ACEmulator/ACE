@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Network.Enum;
 using ACE.Entity;
+using ACE.Entity.Objects;
 
 namespace ACE.Network.Motion
 {

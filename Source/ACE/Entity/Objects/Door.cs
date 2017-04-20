@@ -6,26 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
-    public abstract class CollidableObject : WorldObject
+    public class Door : UsableObject
     {
-        public CollidableObject(ObjectType type, ObjectGuid guid)
-            : base(type, guid)
-        {
-        }
-
-        public CollidableObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid)
-        {
-            this.Name = name;
-            this.DescriptionFlags = descriptionFlag;
-            this.WeenieFlags = weenieFlag;
-            this.Location = position;
-            this.WeenieClassid = weenieClassId;
-        }
-
-        public CollidableObject(AceObject aceO)
+        public Door(AceObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
@@ -55,6 +40,9 @@ namespace ACE.Entity
             aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
-        public abstract void OnCollide(Player player);
+        public override void OnUse(Player player)
+        {
+            // TODO: implement
+        }
     }
 }

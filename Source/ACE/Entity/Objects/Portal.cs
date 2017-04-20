@@ -1,21 +1,21 @@
-﻿using System;
+﻿using ACE.Entity.Enum;
+using ACE.Network.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ACE.Entity.Enum;
-using ACE.Network.Enum;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
-    public class Lifestone : UsableObject
+    public class Portal : CollidableObject
     {
-        public Lifestone(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+        public Portal(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
         }
 
-        public Lifestone(AceObject aceO)
+        public Portal(AceObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
@@ -32,8 +32,10 @@ namespace ACE.Entity
             this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
             this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
+            this.PhysicsData.ObjScale = aceO.ObjectScale;
+
             // game data min required flags;
-            this.Icon = aceO.IconId;
+            this.Icon = (ushort)aceO.IconId;
 
             this.GameData.Usable = (Usable)aceO.Usability;
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
@@ -45,7 +47,7 @@ namespace ACE.Entity
             aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
-        public override void OnUse(Player player)
+        public override void OnCollide(Player player)
         {
             // TODO: Implement
         }

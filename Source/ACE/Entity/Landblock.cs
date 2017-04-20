@@ -3,24 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using ACE.Entity.Events;
-using ACE.Managers;
-
-using log4net;
 using ACE.Database;
-using ACE.Network.GameEvent.Events;
-using ACE.Network;
-using ACE.Network.GameAction;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Events;
+using ACE.Entity.Objects;
+using ACE.Factories;
+using ACE.Managers;
+using ACE.Network.Enum;
+using ACE.Network.GameAction;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Network.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
-using ACE.Factories;
-using ACE.Network.GameEvent;
-using System.Diagnostics;
+using log4net;
 
 namespace ACE.Entity
 {

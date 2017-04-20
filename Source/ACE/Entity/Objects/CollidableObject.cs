@@ -6,16 +6,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
-    public class Portal : CollidableObject
+    public abstract class CollidableObject : WorldObject
     {
-        public Portal(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
+        public CollidableObject(ObjectType type, ObjectGuid guid)
+            : base(type, guid)
         {
         }
 
-        public Portal(AceObject aceO)
+        public CollidableObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+            : base(type, guid)
+        {
+            this.Name = name;
+            this.DescriptionFlags = descriptionFlag;
+            this.WeenieFlags = weenieFlag;
+            this.Location = position;
+            this.WeenieClassid = weenieClassId;
+        }
+
+        public CollidableObject(AceObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
@@ -32,10 +42,8 @@ namespace ACE.Entity
             this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
             this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
-            this.PhysicsData.ObjScale = aceO.ObjectScale;
-
             // game data min required flags;
-            this.Icon = (ushort)aceO.IconId;
+            this.Icon = aceO.IconId;
 
             this.GameData.Usable = (Usable)aceO.Usability;
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
@@ -47,9 +55,6 @@ namespace ACE.Entity
             aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
-        public override void OnCollide(Player player)
-        {
-            // TODO: Implement
-        }
+        public abstract void OnCollide(Player player);
     }
 }

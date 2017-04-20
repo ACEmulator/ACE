@@ -5,6 +5,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
