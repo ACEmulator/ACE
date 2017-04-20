@@ -87,6 +87,7 @@ namespace ACE.Entity
             {
                 // Creature cwo = new Creature(c);
                 // worldObjects.Add(cwo.Guid, cwo);
+<<<<<<< HEAD
             }
 
             // Load generator creature spawns from DB
@@ -98,6 +99,8 @@ namespace ACE.Entity
                 {
                     worldObjects.Add(c.Guid, c);
                 }
+=======
+>>>>>>> 05f415d4f7c1002c7c1ce2d7f9905863f43f0733
             }
         }
 
