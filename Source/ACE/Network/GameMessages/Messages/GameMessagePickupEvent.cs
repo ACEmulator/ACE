@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Network.GameEvent;
 using ACE.Network.Sequence;
 

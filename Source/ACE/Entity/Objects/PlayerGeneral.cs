@@ -2,7 +2,6 @@
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network;
-using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
 using System;
@@ -11,14 +10,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity
+namespace ACE.Entity.Objects
 {
     public partial class Player
     {
-        [GameAction(GameActionType.HouseQuery)]
-        private void HouseQueryAction(ClientMessage message)
+        [GameAction(GameActionType.PingRequest)]
+        private void PingRequestAction(ClientMessage message)
         {
-            Session.EnqueueSend(new GameEventHouseStatus(Session));
+            Session.EnqueueSend(new GameEventPingResponse(Session));
         }
     }
 }

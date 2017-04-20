@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ACE.Entity.Objects;
 
 namespace ACE.Network.Motion
 {

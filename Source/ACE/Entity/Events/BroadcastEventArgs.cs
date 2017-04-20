@@ -1,6 +1,7 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.Motion;
+using ACE.Entity.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;

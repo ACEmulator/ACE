@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Objects;
 
 namespace ACE.Network.GameMessages.Messages
 {
