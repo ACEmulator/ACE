@@ -4,6 +4,9 @@
 [Mogwai-AC]
 * Fixed PackedDWORD logic
 
+[Ripley]
+* Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
+
 ### 2017-04-19
 [Ripley]
 * Changed WeenieClassid and Icon to use PackedDWORD in WorldObject.SerializeCreateObject
