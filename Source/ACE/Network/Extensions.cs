@@ -32,6 +32,14 @@ namespace ACE.Network
             }
         }
 
+        public static void WritePackedDwordOfKnownType(this BinaryWriter writer, uint value, uint type)
+        {
+            if ((value & type) > 0)
+                value -= type;
+
+            writer.WritePackedDword(value);
+        }
+
         public static void WriteUInt16BE(this BinaryWriter writer, ushort value)
         {
             ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));

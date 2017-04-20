@@ -157,9 +157,10 @@ namespace ACE.Entity
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassid);
-            writer.WritePackedDword(Icon);
+            writer.WritePackedDwordOfKnownType(Icon, 0x6000000);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
+            writer.Align();
 
             if ((DescriptionFlags & ObjectDescriptionFlag.AdditionFlags) != 0)
                 writer.Write((uint)WeenieFlags2);
