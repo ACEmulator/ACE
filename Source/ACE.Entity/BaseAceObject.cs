@@ -78,8 +78,8 @@ namespace ACE.Entity
         [DbField("hookItemTypes", (int)MySqlDbType.UInt32)]
         public uint HookItemTypes { get; set; }
 
-        [DbField("itemsCapacity", (int)MySqlDbType.UInt32)]
-        public uint ItemsCapacity { get; set; }
+        [DbField("itemsCapacity", (int)MySqlDbType.UByte)]
+        public byte ItemsCapacity { get; set; }
 
         /// <summary>
         /// TODO: convert to enum

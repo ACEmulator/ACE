@@ -1,24 +1,18 @@
 # ACEmulator Change Log
 
-### 2017-04-18
-[StackOverflow]
-* ReOrganized World Objects - Added Entity Folders to make developing easier to maintain.
+### 2017-04-20
+[Lidefeath]
+* Removed the manual conversion for Model, Texture and PaletteData in Creature.cs
+* Fixed BaseAceObject.cs to use byte for ItemCapacity as in the DB
 
-### 2017-04-18
-[Jyrus]
-* Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
-* Add an ActionQueue switch case to implement Portal travel
+[Mogwai-AC]
+* Fixed PackedDWORD logic
 
-### 2017-04-18
-[Jyrus]
-* Create a new table adding Portal destinations that reference the WeenieClassID of the portal object
-* Add an ActionQueue switch case to implement Portal travel
-
-# ACEmulator Change Log
+[Ripley]
+* Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
+* Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
 ### 2017-04-19
-[Mogwai-AC]
-* Added PackedDWORD
 [Ripley]
 * Changed WeenieClassid and Icon to use PackedDWORD in WorldObject.SerializeCreateObject
 * Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.

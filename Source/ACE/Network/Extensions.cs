@@ -18,18 +18,26 @@ namespace ACE.Network
             writer.Pad(CalculatePadMultiple(sizeof(ushort) + (uint)data.Length, 4u));
         }
 
-        public static void WritePackedDword(this BinaryWriter writer, uint rawValue)
+        public static void WritePackedDword(this BinaryWriter writer, uint value)
         {
-            if (rawValue <= 32767)
+            if (value <= 32767)
             {
-                ushort networkValue = Convert.ToUInt16(rawValue);
+                ushort networkValue = Convert.ToUInt16(value);
                 writer.Write(BitConverter.GetBytes(networkValue));
             }
             else
             {
-                uint packedValue = (0x8000000 | ((rawValue << 16) & 0x7FFF0000)) | (rawValue >> 15);
+                uint packedValue = (value << 16) | ((value >> 16) | 0x8000);
                 writer.Write(BitConverter.GetBytes(packedValue));
             }
+        }
+
+        public static void WritePackedDwordOfKnownType(this BinaryWriter writer, uint value, uint type)
+        {
+            if ((value & type) > 0)
+                value -= type;
+
+            writer.WritePackedDword(value);
         }
 
         public static void WriteUInt16BE(this BinaryWriter writer, ushort value)
@@ -37,21 +45,7 @@ namespace ACE.Network
             ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
             writer.Write(beValue);
         }
-
-        public static void WritePackedDWORD(this BinaryWriter writer, uint rawValue)
-        {
-            if (rawValue <= 32767)
-            {
-                ushort networkValue = Convert.ToUInt16(rawValue);
-                writer.Write(BitConverter.GetBytes(networkValue));
-            }
-            else
-            {
-                uint packedValue = (0x8000000 | ((rawValue << 16) & 0x7FFF0000)) | (rawValue >> 15);
-                writer.Write(BitConverter.GetBytes(packedValue));
-            }
-        }
-
+        
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }
 
         public static void Align(this BinaryWriter writer)

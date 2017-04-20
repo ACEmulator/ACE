@@ -34,7 +34,7 @@ namespace ACE.Factories
             wo.PhysicsData.PhysicsState = PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.Gravity; // 1044 - according to pcap
 
             uint tmpIcon = 100667504;
-            wo.Icon = (ushort)tmpIcon; // TODO: according to PCAP Icon is a uint and not a ushort
+            wo.Icon = tmpIcon;
 
             wo.GameData.ItemCapacity = 120; // constant value according to pcap
             wo.GameData.ContainerCapacity = 10; // constant value according to pcap

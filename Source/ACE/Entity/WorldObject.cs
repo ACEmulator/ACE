@@ -31,7 +31,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort WeenieClassid { get; protected set; }
 
-        public ushort Icon { get; set; }
+        public uint Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -156,10 +156,11 @@ namespace ACE.Entity
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.WritePackedDWORD(WeenieClassid);
-            writer.WritePackedDWORD(Icon);
+            writer.WritePackedDword(WeenieClassid);
+            writer.WritePackedDwordOfKnownType(Icon, 0x6000000);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
+            writer.Align();
 
             if ((DescriptionFlags & ObjectDescriptionFlag.AdditionFlags) != 0)
                 writer.Write((uint)WeenieFlags2);
@@ -256,10 +257,10 @@ namespace ACE.Entity
                 writer.Write(GameData.HookType);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
-                writer.Write(GameData.IconOverlay);
+                writer.WritePackedDwordOfKnownType(GameData.IconOverlay, 0x6000000);
 
-            /*if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
-                writer.Write((ushort)0);*/
+            if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
+                writer.WritePackedDwordOfKnownType(GameData.IconUnderlay, 0x6000000);
 
             if ((WeenieFlags & WeenieHeaderFlag.Material) != 0)
                 writer.Write((uint)GameData.Material);

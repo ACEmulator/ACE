@@ -18,11 +18,11 @@ namespace ACE.Entity
         public byte Index { get; }
 
         /// <summary>
-        /// Model portal.dat entry minus 0x01000000
+        /// Model portal.dat entry
         /// </summary>
-        public ushort ModelID { get; }
+        public uint ModelID { get; }
 
-        public Model(byte index, ushort modelID)
+        public Model(byte index, uint modelID)
         {
             Index = index;
             ModelID = modelID;
