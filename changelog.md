@@ -17,7 +17,10 @@
 # ACEmulator Change Log
 
 ### 2017-04-19
+[Mogwai-AC]
+* Added PackedDWORD
 [Ripley]
+* Changed WeenieClassid and Icon to use PackedDWORD in WorldObject.SerializeCreateObject
 * Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.
 
 ### 2017-04-18
