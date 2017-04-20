@@ -40,13 +40,13 @@ namespace ACE.Entity
             modelPalettes.Add(newpalette);
         }
 
-        public void AddTexture(byte index, ushort oldtexture, ushort newtexture)
+        public void AddTexture(byte index, uint oldtexture, uint newtexture)
         {
             ModelTexture nextTexture = new ModelTexture(index, oldtexture, newtexture);
             modelTextures.Add(nextTexture);
         }
 
-        public void AddModel(byte index, ushort modelresourceid)
+        public void AddModel(byte index, uint modelresourceid)
         {
             Model newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);

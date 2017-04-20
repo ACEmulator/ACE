@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-04-20
+[Lidefeath]
+* Removed the manual conversion for Model, Texture and PaletteData in Creature.cs
+* Fixed BaseAceObject.cs to use byte for ItemCapacity as in the DB
+
 [Mogwai-AC]
 * Fixed PackedDWORD logic
 
