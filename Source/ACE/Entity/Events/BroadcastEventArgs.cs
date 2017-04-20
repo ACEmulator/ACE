@@ -60,7 +60,17 @@ namespace ACE.Entity.Events
             {
                 ActionType = BroadcastAction.MovementEvent,
                 Sender = sender,
-                Motion = motion,
+                Motion = motion
+            };
+        }
+
+        public static BroadcastEventArgs CreateDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.BroadcastDeath,
+                Sender = sender,
+                DeathMessage = deathMessageArgs
             };
         }
 
@@ -75,5 +85,7 @@ namespace ACE.Entity.Events
         public PlayScript Effect { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
+
+        public DeathMessageArgs DeathMessage { get; private set; }
     }
 }

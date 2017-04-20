@@ -12,19 +12,18 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
 using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
-using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
+using ACE.Network.GameEvent;
 
 namespace ACE.Entity
 {
@@ -192,22 +191,6 @@ namespace ACE.Entity
             ListeningRadius = 5f;
         }
 
-        public void Kill()
-        {
-            // create corpse at location
-            // TODO: Once the corpse/container factories have been built
-
-            // teleport to sanctuary or starting point
-            if (Positions.ContainsKey(PositionType.Sanctuary))
-                Teleport(Positions[PositionType.Sanctuary]);
-            else
-                Teleport(Positions[PositionType.Location]);
-
-            // create and send the death event
-            var yourDeathEvent = new GameEventYourDeath(Session);
-            Session.Network.EnqueueSend(yourDeathEvent);
-        }
-
         public async Task Load(Character preloadedCharacter = null)
         {
             character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
@@ -240,83 +223,91 @@ namespace ACE.Entity
             Location = character.Location;
 
             // TODO: Move this all into Character Creation and store directly in the database.
-            if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
+            try
             {
-                CharGen cg = CharGen.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E000002));
-
-                int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
-                int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
-                SexCG sex = cg.HeritageGroups[h].SexList[s];
-                // Set the character basics
-                PhysicsData.MTableResourceId = sex.MotionTable;
-                PhysicsData.Stable = sex.SoundTable;
-                PhysicsData.Petable = sex.PhysicsTable;
-                PhysicsData.CSetup = sex.SetupID;
-                ModelData.PaletteGuid = sex.BasePalette;
-
-                // Check the character scale
-                if (sex.Scale != 100u)
+                if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
                 {
-                    // Set the PhysicaData flag to let it know we're changing the scale
-                    PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
-                    PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
+                    CharGen cg = CharGen.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E000002));
+
+                    int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
+                    int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
+                    SexCG sex = cg.HeritageGroups[h].SexList[s];
+                    // Set the character basics
+                    PhysicsData.MTableResourceId = sex.MotionTable;
+                    PhysicsData.Stable = sex.SoundTable;
+                    PhysicsData.Petable = sex.PhysicsTable;
+                    PhysicsData.CSetup = sex.SetupID;
+                    ModelData.PaletteGuid = sex.BasePalette;
+
+                    // Check the character scale
+                    if (sex.Scale != 100u)
+                    {
+                        // Set the PhysicaData flag to let it know we're changing the scale
+                        PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
+                        PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
+                    }
+
+                    // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+                    HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
+                    bool isBald = hairstyle.Bald;
+
+                    // Apply the hair models & texture changes
+                    for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
+                        ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
+                    for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
+                        ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
+
+                    // Eyes only have Texture Changes - eye color is set seperately
+                    ObjDesc eyes;
+                    if (hairstyle.Bald)
+                        eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDescBald;
+                    else
+                        eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
+                    for (int i = 0; i < eyes.TextureChanges.Count; i++)
+                        ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
+
+                    // Eye color palette
+                    ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
+
+                    // Nose only has Texture Changes
+                    ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
+                    for (int i = 0; i < nose.TextureChanges.Count; i++)
+                        ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
+
+                    // Mouth, suprise, only Texture Changes
+                    ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
+                    for (int i = 0; i < mouth.TextureChanges.Count; i++)
+                        ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
+
+                    // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+                    PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
+                    // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
+                    int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
+                                                                                                                                                  // Since the hue numbers are a little odd, make sure we're in the bounds.
+                    if (hairPalIndex < 0)
+                        hairPalIndex = 0;
+                    if (hairPalIndex > hairPalSet.PaletteList.Count - 1)
+                        hairPalIndex = hairPalSet.PaletteList.Count - 1;
+                    ushort hairPal = (ushort)(hairPalSet.PaletteList[hairPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
+                    ModelData.AddPalette(hairPal, 0x18, 0x8);
+
+                    // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+                    PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
+                    int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
+                                                                                                                                  // Since the hue numbers are a little odd, make sure we're in the bounds.
+                    if (skinPalIndex < 0)
+                        skinPalIndex = 0;
+                    if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
+                        skinPalIndex = skinPalSet.PaletteList.Count - 1;
+                    ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
+                                                                                              // Apply the skin palette...
+                    ModelData.AddPalette(skinPal, 0x0, 0x18);
                 }
-
-                // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-                HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
-                bool isBald = hairstyle.Bald;
-
-                // Apply the hair models & texture changes
-                for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
-                    ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
-                for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
-                    ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
-
-                // Eyes only have Texture Changes - eye color is set seperately
-                ObjDesc eyes;
-                if (hairstyle.Bald)
-                    eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDescBald;
-                else
-                    eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
-                for (int i = 0; i < eyes.TextureChanges.Count; i++)
-                    ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
-                
-                // Eye color palette
-                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
-
-                // Nose only has Texture Changes
-                ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
-                for (int i = 0; i < nose.TextureChanges.Count; i++)
-                    ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
-
-                // Mouth, suprise, only Texture Changes
-                ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
-                for (int i = 0; i < mouth.TextureChanges.Count; i++)
-                    ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
-
-                // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
-                // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-                int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                // Since the hue numbers are a little odd, make sure we're in the bounds.
-                if (hairPalIndex < 0)
-                    hairPalIndex = 0;
-                if (hairPalIndex > hairPalSet.PaletteList.Count - 1)
-                    hairPalIndex = hairPalSet.PaletteList.Count - 1;
-                ushort hairPal = (ushort)(hairPalSet.PaletteList[hairPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-                ModelData.AddPalette(hairPal, 0x18, 0x8);
-
-                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
-                int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                // Since the hue numbers are a little odd, make sure we're in the bounds.
-                if (skinPalIndex < 0)
-                    skinPalIndex = 0;
-                if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
-                    skinPalIndex = skinPalSet.PaletteList.Count - 1;
-                ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-                // Apply the skin palette...
-                ModelData.AddPalette(skinPal, 0x0, 0x18);
+            } 
+            catch (Exception e)
+            {
+                // error
+                Console.WriteLine(e.ToString());
             }
 
             IsOnline = true;
@@ -708,6 +699,102 @@ namespace ACE.Entity
             }
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
+        }
+
+        public void Kill(ObjectGuid killerId)
+        {
+            Health.Current = 0; // Set the health to zero
+            character.NumDeaths++; // Increase the NumDeaths counter
+            character.DeathLevel++; // Increase the DeathLevel
+            // TODO: Find correct vitae formula/value 
+            character.VitaeCpPool = 0; // Set vitae
+            // TODO: Generate a death message based on the damage type to pass in to each death message:
+            string currentDeathMessage = "died to the big fan in the sky.";
+
+            // Send Vicitim Notification, or "Your Death" event to the client:
+            // create and send the client death event, GameEventYourDeath
+            var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, character.NumDeaths);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, character.DeathLevel);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
+            var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
+            // TODO: find and add per character death noises
+
+            // Send first death message group
+            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+
+            // Broadcast the 019E: Player Killed GameMessage
+            ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
+
+            // create corpse at location
+            // TODO: Once the corpse/container factories have been built
+
+            // Save character's last death position - for the time being, we will use any position
+            // TODO: Either limit dungeons or extend to display the name of the dungeon you last died in.
+            SetCharacterPosition(PositionType.LastOutsideDeath, Location);
+
+            Position newPositon = new Position();
+
+            // teleport to sanctuary or starting point
+            if (Positions.ContainsKey(PositionType.Sanctuary))
+                newPositon = Positions[PositionType.Sanctuary];
+            else
+                newPositon = Positions[PositionType.Location];
+
+            ActionQueuedTeleport(newPositon, this.Guid, GameActionType.TeleToLifestone);
+
+            // TODO: Determine if we need to Send Queued Action for Lifestone Materialize ?
+
+            // If the player is outside of the landblock we just died in, then reboadcast the death for
+            // the players at the lifestone.
+            if (Positions[PositionType.LastOutsideDeath].LandblockId.Raw != newPositon.LandblockId.Raw)
+                ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
+
+            // Regenerate/ressurect?
+            // TODO: Find the formula and Set the correct health ratio based on total health
+            Health.Current = 1;
+            msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            Session.Network.EnqueueSend(msgHealthUpdate);
+        }
+
+        /// <summary>
+        /// Used to ensure that teleport happens in a sequential order, on the queue
+        /// </summary>
+        /// <param name="teleportPosition"></param>
+        /// <param name="objectId"></param>
+        /// <param name="teleportType">Must be a teleportation range action type</param>
+        public void ActionQueuedTeleport(Position teleportPosition, ObjectGuid objectId, GameActionType teleportType)
+        {
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, teleportPosition, teleportType);
+            AddToActionQueue(action);
+        }
+
+        /// <summary>
+        /// Sends a death message broadcast all players on the landblock? that a killer has a victim
+        /// </summary>
+        /// <remarks>
+        /// TODO: 
+        ///     1. Figure out who all receieves death messages, on what landblock and at what order -
+        ///         Example: Does the players around the vicitm receive the message or do the players at the lifestone receieve the message, or both?
+        /// </remarks>
+        /// <param name="deathMessage"></param>
+        /// <param name="victimId"></param>
+        public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
+        {
+            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameEventType.DeathNotice);
+            AddToActionQueue(action);
+        }
+
+        /// <summary>
+        /// Receieves a message from the action queue about other player deaths and Sends the message to the player,
+        /// while maintaining the proper sequences. This will never be sent to the player, unless the player commits suicide.
+        /// </summary>
+        /// <param name="deathMessage">This message can be any text string</param>
+        public void BroadcastPlayerDeath(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
+        {
+            var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
+            Session.Network.EnqueueSend(deathBroadcast);
         }
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)

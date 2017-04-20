@@ -19,6 +19,8 @@ using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
+using ACE.Network.GameEvent;
+using System.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -267,6 +269,12 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        public void HandleDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(sender, deathMessageArgs);
+            Broadcast(args, true, Quadrant.All);
+        }
+
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
@@ -318,6 +326,13 @@ namespace ACE.Entity
                 case BroadcastAction.MovementEvent:
                     {
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
+                        break;
+                    }
+                case BroadcastAction.BroadcastDeath:
+                    {
+                        // players never need an update of themselves
+                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
+                        Parallel.ForEach(players, p => p.BroadcastPlayerDeath(args.DeathMessage.Message, args.DeathMessage.Victim, args.DeathMessage.Killer));
                         break;
                     }
             }
@@ -466,6 +481,38 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.GameActionEvent:
+                    {
+                        if (action.EventType.ToString().Length > 0) { 
+                            switch (action.EventType)
+                            {
+                                case GameEventType.DeathNotice:
+                                    {
+                                        var g = new ObjectGuid(action.ObjectId);
+                                        WorldObject obj = (WorldObject)player;
+                                        if (worldObjects.ContainsKey(g))
+                                        {
+                                            obj = worldObjects[g];
+                                        }
+                                        DeathMessageArgs d = new DeathMessageArgs(action.TextMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
+                                        HandleDeathMessage(obj, d);
+                                        break;
+                                    }
+                                // Only one use case at the moment
+                            }
+                        }
+                        break;
+                    }
+                case GameActionType.TeleToHouse:
+                case GameActionType.TeleToLifestone:
+                case GameActionType.TeleToMansion:
+                case GameActionType.TeleToMarketPlace:
+                case GameActionType.TeleToPkArena:
+                case GameActionType.TeleToPklArena:
+                    {
+                        player.Teleport(action.QueuedPosition);
+                        break;
+                    }
                 case GameActionType.ApplyVisualEffect:
                     {
                         var g = new ObjectGuid(action.ObjectId);

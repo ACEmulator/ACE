@@ -406,7 +406,7 @@ namespace ACE.Command.Handlers
                 if (playerSession != null)
                 {
                     // send session a usedone
-                    playerSession.Player.Kill();
+                    playerSession.Player.Kill(playerSession.Player.Guid);
                     return;
                 }
             }

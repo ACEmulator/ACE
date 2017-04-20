@@ -13,6 +13,9 @@
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
 ### 2017-04-19
+[Mogwai-AC]
+* Added PackedDWORD
+
 [Ripley]
 * Changed WeenieClassid and Icon to use PackedDWORD in WorldObject.SerializeCreateObject
 * Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.
@@ -58,6 +61,18 @@
 * Added description and usage information to commands currently implemented.
 * Added sending chat messages to inform players upon logging in-game about the existence of ACE specific help.
 * Updated GameActionTalk to return better information when a command is invalid or is missing parameters.
+
+[fantoms]
+* Added `Queued` Teleporting.
+* Added landblock death message broadcasting.
+* Added lame static player death messages.
+* Now saves last death position in character positions.
+* Added Psuedo Event Action for internal ACE `GameActionEvent = 0xF819`.
+* Updated `GameEventYourDeath`.
+* Added `PlayerKilled` GameMessage type and handling.
+* Added `NumDeaths`, `DeathLevel`, and `VitaeCpPool` to character properties.
+* Added `PurgeAllEnchantments` GameEvent.
+* Updated `Player.Kill()` to update properties.
 
 ### 2017-04-14
 [Lidefeath]
