@@ -29,6 +29,7 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_cell_1.dat");
+                log.Info($"Opening {datFile} file...");
                 cellDat = new CellDatDatabase(datFile);
                 count = cellDat.AllFiles.Count();
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
@@ -42,6 +43,7 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_portal.dat");
+                log.Info($"Opening {datFile} file...");
                 portalDat = new PortalDatDatabase(datFile);
                 count = portalDat.AllFiles.Count();
                 log.Info($"Successfully opened {datFile} file, containing {count} records");

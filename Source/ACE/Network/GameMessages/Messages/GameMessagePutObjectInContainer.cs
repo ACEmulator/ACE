@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Objects;
 
 namespace ACE.Network.GameMessages.Messages
 {
@@ -8,7 +9,7 @@ namespace ACE.Network.GameMessages.Messages
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
         {
             Writer.WriteGuid(worldObject.Guid);
-            Writer.Write(session.GameEventSequence++);
+            Writer.Write(session.GameEventSequence.NextValue);
             Writer.Write((uint)GameEvent.GameEventType.InventoryPutObjInContainer);
             Writer.Write(itemGuid.Full);
             Writer.Write(session.Player.Guid.Full); // TODO: They could be draging to a pack would need the guid of the pack

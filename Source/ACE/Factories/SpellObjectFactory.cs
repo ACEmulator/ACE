@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Objects;
 using ACE.Network.Enum;
 using System;
 using System.Collections.Generic;

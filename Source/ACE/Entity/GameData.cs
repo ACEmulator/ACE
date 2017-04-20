@@ -3,7 +3,6 @@ using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using System.IO;
 
 namespace ACE.Entity

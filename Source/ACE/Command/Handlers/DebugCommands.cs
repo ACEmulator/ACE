@@ -1,13 +1,11 @@
 ﻿using System;
 using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
 using ACE.Network.Motion;
@@ -127,7 +125,7 @@ namespace ACE.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -166,7 +164,7 @@ namespace ACE.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -213,9 +211,9 @@ namespace ACE.Command.Handlers
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new GeneralMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
             movement = new GeneralMotion(MotionStance.Standing);            
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
@@ -286,14 +284,14 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(PositionType), type))
                     {
                         message = $"Saving position {Enum.GetName(typeof(PositionType), type)}";
-                        session.Player.SetCharacterPosition(type, CharacterPositionExtensions.InvalidPosition(session.Id, type));
+                        session.Player.SetCharacterPosition(type, CharacterPositionExtensions.InvalidPosition(session.AccountId, type));
                     }
                 }
 
                 float scale = 1f;
                 var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.AttribDownRed, scale);
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(effectEvent, sysChatMessage);
+                session.EnqueueSend(effectEvent, sysChatMessage);
             }
             catch (Exception)
             {

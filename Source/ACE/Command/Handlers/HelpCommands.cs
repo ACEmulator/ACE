@@ -17,12 +17,12 @@ namespace ACE.Command.Handlers
             {
                 if (session != null)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Note: You may substitute a forward slash (/) for the at symbol (@).", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Use @help to get more information about commands supported by the client.", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Available help:", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat("@acehelp commands - Lists all commands.", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat("You can also use @acecommands to get a complete list of the supported ACEmulator commands available to you.", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("Note: You may substitute a forward slash (/) for the at symbol (@).", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("Use @help to get more information about commands supported by the client.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("Available help:", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("@acehelp commands - Lists all commands.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("You can also use @acecommands to get a complete list of the supported ACEmulator commands available to you.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
                 }
                 else
                 {
@@ -45,8 +45,8 @@ namespace ACE.Command.Handlers
                         continue;
                     if (session.AccessLevel < command.Attribute.Access)
                         continue;
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"@{command.Attribute.Command} - {command.Attribute.Description}", ChatMessageType.Broadcast));
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Usage: @{command.Attribute.Command} {command.Attribute.Usage}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"@{command.Attribute.Command} - {command.Attribute.Description}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"Usage: @{command.Attribute.Command} {command.Attribute.Usage}", ChatMessageType.Broadcast));
 
                     return;
                 }
@@ -63,9 +63,9 @@ namespace ACE.Command.Handlers
 
             if (session != null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown command: {parameters[0]}", ChatMessageType.Help));
-                session.Network.EnqueueSend(new GameMessageSystemChat("Use @acecommands to get a complete list of commands available for you to use.", ChatMessageType.Broadcast));
-                session.Network.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Unknown command: {parameters[0]}", ChatMessageType.Help));
+                session.EnqueueSend(new GameMessageSystemChat("Use @acecommands to get a complete list of commands available for you to use.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
             }
             else
                 Console.WriteLine($"Unknown command: {parameters[0]}");
@@ -81,8 +81,8 @@ namespace ACE.Command.Handlers
 
             if (session != null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat("Note: You may substitute a forward slash (/) for the at symbol (@).", ChatMessageType.Broadcast));
-                session.Network.EnqueueSend(new GameMessageSystemChat("For more information, type @acehelp < command >.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat("Note: You may substitute a forward slash (/) for the at symbol (@).", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat("For more information, type @acehelp < command >.", ChatMessageType.Broadcast));
             }
             else
                 Console.WriteLine("For more information, type acehelp < command >.");
@@ -113,7 +113,7 @@ namespace ACE.Command.Handlers
             {
                 string message = commandList[i];
                 if (session != null)
-                    session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                 else
                     Console.WriteLine(message);
             }
