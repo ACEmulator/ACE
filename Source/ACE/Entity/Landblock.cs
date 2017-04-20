@@ -422,7 +422,7 @@ namespace ACE.Entity
 
                 lock (objectCacheLocker)
                 {
-                    allworldobj = this.worldObjects.Values.OfType<WorldObject>().ToList();
+                    allworldobj = this.worldObjects.Values.ToList();    
                 }
 
                 // all players on this land block
