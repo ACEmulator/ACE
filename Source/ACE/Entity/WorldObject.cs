@@ -257,10 +257,10 @@ namespace ACE.Entity
                 writer.Write(GameData.HookType);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
-                writer.Write(GameData.IconOverlay);
+                writer.WritePackedDwordOfKnownType(GameData.IconOverlay, 0x6000000);
 
-            /*if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
-                writer.Write((ushort)0);*/
+            if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
+                writer.WritePackedDwordOfKnownType(GameData.IconUnderlay, 0x6000000);
 
             if ((WeenieFlags & WeenieHeaderFlag.Material) != 0)
                 writer.Write((uint)GameData.Material);
