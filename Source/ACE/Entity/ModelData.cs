@@ -61,10 +61,10 @@ namespace ACE.Entity
             writer.Write((byte)models.Count);
 
             if (modelPalettes.Count > 0)
-                writer.Write((ushort)PaletteGuid);
+                writer.WritePackedDwordOfKnownType(PaletteGuid, 0x4000000);
             foreach (ModelPalette palette in modelPalettes)
             {
-                writer.Write((ushort)palette.PaletteId);
+                writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);
                 writer.Write((byte)palette.Offset);
                 writer.Write((byte)palette.Length);
             }
@@ -72,14 +72,14 @@ namespace ACE.Entity
             foreach (ModelTexture texture in modelTextures)
             {
                 writer.Write((byte)texture.Index);
-                writer.Write((ushort)texture.OldTexture);
-                writer.Write((ushort)texture.NewTexture);
+                writer.WritePackedDwordOfKnownType(texture.OldTexture, 0x5000000);
+                writer.WritePackedDwordOfKnownType(texture.NewTexture, 0x5000000);
             }
 
             foreach (Model model in models)
             {
                 writer.Write((byte)model.Index);
-                writer.Write((ushort)model.ModelID);
+                writer.WritePackedDwordOfKnownType(model.ModelID, 0x1000000);
             }
 
             writer.Align();
