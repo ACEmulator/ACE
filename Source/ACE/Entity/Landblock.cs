@@ -403,46 +403,6 @@ namespace ACE.Entity
                         break;
                     }
             }
-
-            /* - Stack Overflow  - Removing this because I think it may be useless now.. with streaming above..
-             
-            // short circuit when there's no functional adjacency
-            if (!propogate || wo?.Location?.LandblockId.MapScope != Enum.MapScope.Outdoors)
-                return;
-
-            if (propogate)
-            {
-                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
-
-                if (wo.Location.PositionX < adjacencyLoadRange)
-                {
-                    WestAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.SouthEast);
-
-                    if (wo.Location.PositionY < adjacencyLoadRange)
-                        SouthWestAdjacency?.Broadcast(args, false, Quadrant.NorthEast);
-
-                    if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
-                        NorthWestAdjacency?.Broadcast(args, false, Quadrant.SouthEast);
-                }
-
-                if (wo.Location.PositionY < adjacencyLoadRange)
-                    SouthAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.NorthWest);
-
-                if (wo.Location.PositionX > (maxXY - adjacencyLoadRange))
-                {
-                    EastAdjacency?.Broadcast(args, false, Quadrant.NorthWest | Quadrant.SouthWest);
-
-                    if (wo.Location.PositionY < adjacencyLoadRange)
-                        SouthEastAdjacency?.Broadcast(args, false, Quadrant.NorthWest);
-
-                    if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
-                        NorthEastAdjacency?.Broadcast(args, false, Quadrant.SouthWest);
-                }
-
-                if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
-                    NorthAdjacency?.Broadcast(args, false, Quadrant.SouthEast | Quadrant.SouthWest);
-            }
-            */
         }
 
         /// <summary>
