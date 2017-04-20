@@ -28,7 +28,7 @@ namespace ACE.Entity
             this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
             // game data min required flags;
-            this.Icon = (ushort)aceO.IconId;
+            this.Icon = aceO.IconId;
 
             this.GameData.Usable = (Usable)aceO.Usability;
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;

@@ -31,7 +31,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort WeenieClassid { get; protected set; }
 
-        public ushort Icon { get; set; }
+        public uint Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -156,8 +156,8 @@ namespace ACE.Entity
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.WritePackedDWORD(WeenieClassid);
-            writer.WritePackedDWORD(Icon);
+            writer.WritePackedDword(WeenieClassid);
+            writer.WritePackedDword(Icon);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
 

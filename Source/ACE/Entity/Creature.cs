@@ -88,7 +88,7 @@ namespace ACE.Entity
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
-            Icon = (ushort)aco.IconId;
+            Icon = aco.IconId;
 
             GameData.Usable = (Usable)aco.Usability;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor

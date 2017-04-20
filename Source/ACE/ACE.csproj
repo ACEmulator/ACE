@@ -281,7 +281,6 @@
     <Compile Include="Network\GameMessageGroup.cs" />
     <Compile Include="Network\Motion\GeneralMotion.cs" />
     <Compile Include="Network\Motion\MotionState.cs" />
-    <Compile Include="Network\PackedDWORD.cs" />
     <Compile Include="Network\Packets\PacketOutboundReferral.cs" />
     <Compile Include="Network\Packets\PacketOutboundServerSwitch.cs" />
     <Compile Include="Network\Packets\PacketOutboundConnectRequest.cs" />
