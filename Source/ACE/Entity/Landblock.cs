@@ -36,7 +36,7 @@ namespace ACE.Entity
         private const float outDoorChatRange = 75f;
         private const float indoorChatRange = 25f;
         private const float maxXY = 192f;
-        private const float maxobjectRange = 1500f;
+        private const float maxobjectRange = 15625;
 
         private LandblockId id;
 
@@ -164,7 +164,7 @@ namespace ACE.Entity
             new Thread(UseTime).Start();
         }
 
-        private void SetPlayerTracking(List<WorldObject> wolist, Player player)
+        private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
             Parallel.ForEach(wolist, (o) =>
             {
@@ -180,11 +180,18 @@ namespace ACE.Entity
             });
         }
 
-        private void RemovePlayerTracking(List<WorldObject> wolist, Player player)
+        private void RemovePlayerTracking(List<ObjectGuid> wolist, Player player)
         {
             Parallel.ForEach(wolist, (o) =>
             {
-                    player.StopTrackingObject(o);
+                // Find What Landblock Controls this object because we have to ref it
+                // to find its sequance id..
+                List<WorldObject> foundwo = new List<WorldObject>();
+                foundwo = GetWorldObjectsByGuid(o, true);
+                Parallel.ForEach(foundwo, (f) =>
+                {
+                    player.StopTrackingObjectNoRemove(f);
+                });
             });
         }
 
@@ -209,7 +216,7 @@ namespace ACE.Entity
             {
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, maxobjectRange, true);
-                SetPlayerTracking(wolist, (wo as Player));
+                AddPlayerTracking(wolist, (wo as Player));
             }
         }
 
@@ -257,6 +264,34 @@ namespace ACE.Entity
                     {
                         List<WorldObject> wol = null;
                         wol = block.Value.GetWorldObjectsInRange(wo, maxrange, false);
+                        allworldobj.AddRange(wol);
+                    }
+                }
+            }
+            return allworldobj;
+        }
+
+        public List<WorldObject> GetWorldObjectsByGuid(ObjectGuid objectguid, bool neighbors)
+        {
+            List<WorldObject> allworldobj = new List<WorldObject>();
+            lock (objectCacheLocker)
+            {
+                allworldobj = this.worldObjects.Values.ToList();
+            }
+            allworldobj = allworldobj.Where(o => o.Guid == objectguid).ToList();
+
+            // todo: verify if a object can only exsist on one landblock at a time..
+            // if so then we can stop right here, we found it, for now we will resume and assume the worst.
+            // a object can be on any landblock around you.
+
+            if (neighbors)
+            {
+                foreach (var block in adjacencies)
+                {
+                    if (block.Value != null)
+                    {
+                        List<WorldObject> wol = null;
+                        wol = block.Value.GetWorldObjectsByGuid(objectguid, false);
                         allworldobj.AddRange(wol);
                     }
                 }
@@ -321,41 +356,46 @@ namespace ACE.Entity
                 players = this.worldObjects.Values.OfType<Player>().ToList();
             }
 
-            // filter to applicable players
-            players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
-
             switch (args.ActionType)
             {
                 case BroadcastAction.Delete:
                     {
+                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
                         Parallel.ForEach(players, p => p.StopTrackingObject(wo));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:
                     {
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         // players never need an update of themselves
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
+
                         Parallel.ForEach(players, p => p.TrackObject(wo));
                         break;
                     }
                 case BroadcastAction.LocalChat:
                     {
                         // TODO: implement range dectection for chat events
+                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
                         break;
                     }
                 case BroadcastAction.PlaySound:
                     {
+                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
                         Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
                         break;
                     }
                 case BroadcastAction.PlayParticleEffect:
                     {
+                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
                         Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
                         break;
                     }
                 case BroadcastAction.MovementEvent:
                     {
+                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
                     }
@@ -408,7 +448,6 @@ namespace ACE.Entity
             {
                 // here we'd move server objects in motion (subject to landscape) and do physics collision detection
 
-                // for now, we'll move players around, and stream static objects
                 List<WorldObject> allworldobj = null;
                 List<Player> allplayers = null;
                 List<Player> movedObjects = null;
@@ -420,6 +459,7 @@ namespace ACE.Entity
                     allworldobj = this.worldObjects.Values.OfType<WorldObject>().ToList();
                 }
 
+                // all players on this land block
                 allplayers = allworldobj.OfType<Player>().ToList();
 
                 movedObjects = allplayers.ToList();
@@ -453,24 +493,44 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
                 }
 
+                // for all players on landblock.
+                Parallel.ForEach(allplayers, player =>
+                {
+                    // Process Action Que for player.
+                    QueuedGameAction action = player.ActionQueuePop();
+                    if (action != null)
+                        HandleGameAction(action, player);
+
+                    // detect all players in range of moving objects.
+                    // sets the streaming list on the player class, broadcast then uses that list to know where to send data.
+                    List<WorldObject> woproxr = new List<WorldObject>();
+                    woproxr.AddRange(GetWorldObjectsInRange(player, maxobjectRange, true));
+
+                    // exclude objects out or range.
+                    List<ObjectGuid> outofrange = new List<ObjectGuid>();
+                    List<ObjectGuid> idsinrange = new List<ObjectGuid>();
+                    outofrange.AddRange((player as Player).GetTrackedObjectGuids());
+                    idsinrange.AddRange(woproxr.Select(x => x.Guid).ToList());
+                    outofrange = outofrange.Where(g => !idsinrange.ToList().Contains(g)).ToList();
+
+                    // removes player tracking from all landblocks adjanct too!
+                    RemovePlayerTracking(outofrange, (player as Player));
+
+                    // exclude already tracked objects.
+                    woproxr = woproxr.Where(o => !(player as Player).GetTrackedObjectGuids().ToList().Contains(o.Guid)).ToList();
+
+                    // if there new objects come into range then inform player class to start tracking new object in range.
+                    if (woproxr.Count > 0)
+                    {
+                        Log($"landblock is streaming player \"{(player as Player).Name}\" with {woproxr.Count} objects.");
+                        AddPlayerTracking(woproxr, (player as Player));
+                    }
+                    // todo: Remove Old objects out or range.
+                });
+
                 // broadcast moving players to the world..
                 Parallel.ForEach(movedObjects, mo =>
                 {
-                    if (mo.Guid.IsPlayer())
-                    {
-                        List<WorldObject> woproxr = new List<WorldObject>();
-                        woproxr.AddRange(GetWorldObjectsInRange(mo, maxobjectRange, true));
-                        // exclude already tracked objects.
-                        woproxr = woproxr.Where(o => !(mo as Player).GetTrackedObjectGuids().ToList().Contains(o.Guid)).ToList();
-
-                        // if there new objects come into range then inform player class to track.
-                        if (woproxr.Count > 0)
-                        {
-                            Log($"landblock is streaming player \"{(mo as Player).Name}\" with {woproxr.Count} objects.");
-                            SetPlayerTracking(woproxr, (mo as Player));
-                        }
-                    }
-
                     if (mo.Location.LandblockId == this.id)
                     {
                         // update if it's still here
@@ -483,17 +543,6 @@ namespace ACE.Entity
                         LandblockManager.AddObject(mo);
                     }
                 });
-
-                // TODO: figure out if this landblock can be unloaded
-
-                // process player action queues
-                foreach (Player p in allplayers)
-                {
-                    QueuedGameAction action = p.ActionQueuePop();
-
-                    if (action != null)
-                        HandleGameAction(action, p);
-                }
 
                 // despawn objects
                 despawnObjects.ForEach(deo => 

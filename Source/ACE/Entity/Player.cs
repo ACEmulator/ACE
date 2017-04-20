@@ -69,7 +69,6 @@ namespace ACE.Entity
         private object clientObjectMutex = new object();
 
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-        private List<ObjectGuid> streamingObjectList = new List<ObjectGuid>();
 
         // queue of all the "actions" that come from the player that require processing
         // aynchronous to or outside of the network thread
@@ -203,7 +202,10 @@ namespace ACE.Entity
         /// </summary>
         public List<ObjectGuid> GetTrackedObjectGuids()
         {
-            return streamingObjectList;
+            lock (clientObjectMutex)
+            {
+                return clientObjectList.Select(x => x.Key).ToList();
+            }
         }
 
         public void Kill()
@@ -1064,8 +1066,6 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-                streamingObjectList.Clear();
-
                 Session.Player.Location = newPosition;
                 SetPhysicalCharacterPosition();
             }
@@ -1140,8 +1140,6 @@ namespace ACE.Entity
                 if (!sendUpdate)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
-                    streamingObjectList.Add(worldObject.Guid);
-                    
                     worldObject.PlayScript(this.Session);
                 }
 
@@ -1192,6 +1190,19 @@ namespace ACE.Entity
             }
         }
 
+        public void StopTrackingObjectNoRemove(WorldObject worldObject)
+        {
+            bool sendUpdate = true;
+            lock (clientObjectMutex)
+            {
+                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
+                if (!sendUpdate)
+                {
+                    clientObjectList.Remove(worldObject.Guid);
+                }
+            }
+        }
+
         public void StopTrackingObject(WorldObject worldObject)
         {
             bool sendUpdate = true;
@@ -1202,7 +1213,6 @@ namespace ACE.Entity
                 if (!sendUpdate)
                 {
                     clientObjectList.Remove(worldObject.Guid);
-                    streamingObjectList.Remove(worldObject.Guid);
                 }
             }
 
