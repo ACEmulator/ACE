@@ -427,7 +427,7 @@ namespace ACE.Command.Handlers
                     if (target.IsPlayer())
                     {
                         if (wo != null)
-                            (wo as Player).Kill();
+                            (wo as Player).Kill(wo.Guid);
                     }
                 }
                 else
