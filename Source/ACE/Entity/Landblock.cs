@@ -272,7 +272,7 @@ namespace ACE.Entity
         public void HandleDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(sender, deathMessageArgs);
-            Broadcast(args, true, Quadrant.All);
+            Broadcast(args, false, Quadrant.All);
         }
 
         /// <summary>

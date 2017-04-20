@@ -24,6 +24,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
 using ACE.Network.GameEvent;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -701,13 +702,26 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
+        /// <summary>
+        /// Player Death/Kill, use this to kill a session's player
+        /// </summary>
+        /// <remarks>
+        ///     TODO:
+        ///         1. Find the best vitae formula and add vitae
+        ///         2. Generate the correct death message, or have it passed in as a parameter.
+        ///         3. Find the correct player death noise based on the player model and play on death.
+        ///         4. Determine if we need to Send Queued Action for Lifestone Materialize, after Action Location.
+        ///         5. Find the health after death formula and Set the correct health
+        /// </remarks>
         public void Kill(ObjectGuid killerId)
         {
             Health.Current = 0; // Set the health to zero
             character.NumDeaths++; // Increase the NumDeaths counter
             character.DeathLevel++; // Increase the DeathLevel
+
             // TODO: Find correct vitae formula/value 
             character.VitaeCpPool = 0; // Set vitae
+
             // TODO: Generate a death message based on the damage type to pass in to each death message:
             string currentDeathMessage = "died to the big fan in the sky.";
 
@@ -719,7 +733,7 @@ namespace ACE.Entity
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, character.DeathLevel);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
-            // TODO: find and add per character death noises
+            // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
             // Send first death message group
             Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
@@ -728,32 +742,42 @@ namespace ACE.Entity
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
 
             // create corpse at location
-            // TODO: Once the corpse/container factories have been built
+            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
+            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+
+            // Corpses stay on the ground for 5 * player level but minimum 1 hour
+            // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+            corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
             // Save character's last death position - for the time being, we will use any position
-            // TODO: Either limit dungeons or extend to display the name of the dungeon you last died in.
             SetCharacterPosition(PositionType.LastOutsideDeath, Location);
 
+            // teleport to sanctuary or best location
             Position newPositon = new Position();
 
-            // teleport to sanctuary or starting point
             if (Positions.ContainsKey(PositionType.Sanctuary))
                 newPositon = Positions[PositionType.Sanctuary];
+            else if (Positions.ContainsKey(PositionType.LastPortal))
+                newPositon = Positions[PositionType.LastPortal];
             else
                 newPositon = Positions[PositionType.Location];
 
-            ActionQueuedTeleport(newPositon, this.Guid, GameActionType.TeleToLifestone);
-
-            // TODO: Determine if we need to Send Queued Action for Lifestone Materialize ?
+            // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
+            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            AddToActionQueue(addCorpse);
 
             // If the player is outside of the landblock we just died in, then reboadcast the death for
             // the players at the lifestone.
-            if (Positions[PositionType.LastOutsideDeath].LandblockId.Raw != newPositon.LandblockId.Raw)
+            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell) { 
                 ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
+            }
+
+            // Queue the teleport to lifestone
+            ActionQueuedTeleport(newPositon, this.Guid, GameActionType.TeleToLifestone);
 
             // Regenerate/ressurect?
-            // TODO: Find the formula and Set the correct health ratio based on total health
-            Health.Current = 1;
+            Health.Current = 5;
             msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
             Session.Network.EnqueueSend(msgHealthUpdate);
         }
