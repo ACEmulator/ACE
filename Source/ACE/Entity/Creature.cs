@@ -90,6 +90,8 @@ namespace ACE.Entity
             // game data min required flags;
             Icon = aco.IconId;
 
+            GameData.ContainerCapacity = aco.ContainersCapacity;
+            GameData.ItemCapacity = aco.ItemsCapacity;
             GameData.Usable = (Usable)aco.Usability;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
@@ -97,10 +99,10 @@ namespace ACE.Entity
             GameData.RadarBehavior = (RadarBehavior)aco.Radar;
             GameData.UseRadius = aco.UseRadius;
 
-            aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)(ao.AnimationId - 0x01000000)));
-            aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)(to.OldId - 0x05000000), (ushort)(to.NewId - 0x05000000)));
-            aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette((ushort)(po.SubPaletteId - 0x04000000), (byte)po.Offset, (byte)(po.Length / 8)));
-            ModelData.PaletteGuid = aco.PaletteId - 0x04000000;
+            aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
+            aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            ModelData.PaletteGuid = aco.PaletteId;
         }
 
         private void SetAbilities(AceCreatureObject aco)
