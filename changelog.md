@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-04-20
+[StackOverflow]
+* Streaming World Objects - Object now stay in sync for tracking.
+* they remove when out of range, readd when come back into range
 
 ### 2017-04-20
 [Lidefeath]
