@@ -496,19 +496,19 @@ namespace ACE.Entity
                     // for all objects in rang of this moving object or in ghost range of moving object update them.
                     Parallel.ForEach(woproxghost, wo =>
                     {
-                        // if world object is in active zone then.
-                        if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
+                        if (mo.Guid.IsPlayer())
                         {
-                            if (mo.Guid.IsPlayer())
+                            // if world object is in active zone then.
+                            if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
                             {
                                 // if world object is in active zone.
-                                if (!(mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
-                                    (mo as Player).TrackObject(mo);
+                                if (!(mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                                    (mo as Player).TrackObject(wo);
                             }
                             // if world object is in ghost zone and outside of active zone
                             else
-                                if ((mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
-                                (mo as Player).StopTrackingObject(mo, true);
+                                if ((mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                                (mo as Player).StopTrackingObject(wo, true);
                         }
                     });
 
