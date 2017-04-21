@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-04-21
+[Ripley]
+* Kill `Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));` until we get proper movement implemented.
+
 ### 2017-04-20
 [Lidefeath]
 * Removed the manual conversion for Model, Texture and PaletteData in Creature.cs
