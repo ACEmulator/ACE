@@ -12,18 +12,19 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
+using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
 using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
+using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
-using ACE.Network.GameEvent;
 using ACE.Factories;
 
 namespace ACE.Entity
@@ -64,7 +65,7 @@ namespace ACE.Entity
         private object clientObjectMutex = new object();
 
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-        
+
         // queue of all the "actions" that come from the player that require processing
         // aynchronous to or outside of the network thread
         private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
@@ -146,7 +147,7 @@ namespace ACE.Entity
         {
             get { return new ReadOnlyDictionary<Skill, CharacterSkill>(character.Skills); }
         }
-        
+
         public uint TotalLogins
         {
             get { return character.TotalLogins; }
@@ -224,91 +225,83 @@ namespace ACE.Entity
             Location = character.Location;
 
             // TODO: Move this all into Character Creation and store directly in the database.
-            try
+            if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
             {
-                if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
+                CharGen cg = CharGen.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E000002));
+
+                int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
+                int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
+                SexCG sex = cg.HeritageGroups[h].SexList[s];
+                // Set the character basics
+                PhysicsData.MTableResourceId = sex.MotionTable;
+                PhysicsData.Stable = sex.SoundTable;
+                PhysicsData.Petable = sex.PhysicsTable;
+                PhysicsData.CSetup = sex.SetupID;
+                ModelData.PaletteGuid = sex.BasePalette;
+
+                // Check the character scale
+                if (sex.Scale != 100u)
                 {
-                    CharGen cg = CharGen.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E000002));
-
-                    int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
-                    int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
-                    SexCG sex = cg.HeritageGroups[h].SexList[s];
-                    // Set the character basics
-                    PhysicsData.MTableResourceId = sex.MotionTable;
-                    PhysicsData.Stable = sex.SoundTable;
-                    PhysicsData.Petable = sex.PhysicsTable;
-                    PhysicsData.CSetup = sex.SetupID;
-                    ModelData.PaletteGuid = sex.BasePalette;
-
-                    // Check the character scale
-                    if (sex.Scale != 100u)
-                    {
-                        // Set the PhysicaData flag to let it know we're changing the scale
-                        PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
-                        PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
-                    }
-
-                    // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-                    HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
-                    bool isBald = hairstyle.Bald;
-
-                    // Apply the hair models & texture changes
-                    for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
-                        ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
-                    for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
-                        ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
-
-                    // Eyes only have Texture Changes - eye color is set seperately
-                    ObjDesc eyes;
-                    if (hairstyle.Bald)
-                        eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDescBald;
-                    else
-                        eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
-                    for (int i = 0; i < eyes.TextureChanges.Count; i++)
-                        ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
-
-                    // Eye color palette
-                    ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
-
-                    // Nose only has Texture Changes
-                    ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
-                    for (int i = 0; i < nose.TextureChanges.Count; i++)
-                        ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
-
-                    // Mouth, suprise, only Texture Changes
-                    ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
-                    for (int i = 0; i < mouth.TextureChanges.Count; i++)
-                        ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
-
-                    // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                    PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
-                    // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-                    int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                                                                                                                                                  // Since the hue numbers are a little odd, make sure we're in the bounds.
-                    if (hairPalIndex < 0)
-                        hairPalIndex = 0;
-                    if (hairPalIndex > hairPalSet.PaletteList.Count - 1)
-                        hairPalIndex = hairPalSet.PaletteList.Count - 1;
-                    ushort hairPal = (ushort)(hairPalSet.PaletteList[hairPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-                    ModelData.AddPalette(hairPal, 0x18, 0x8);
-
-                    // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                    PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
-                    int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                                                                                                                                  // Since the hue numbers are a little odd, make sure we're in the bounds.
-                    if (skinPalIndex < 0)
-                        skinPalIndex = 0;
-                    if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
-                        skinPalIndex = skinPalSet.PaletteList.Count - 1;
-                    ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-                                                                                              // Apply the skin palette...
-                    ModelData.AddPalette(skinPal, 0x0, 0x18);
+                    // Set the PhysicaData flag to let it know we're changing the scale
+                    PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
+                    PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
                 }
-            } 
-            catch (Exception e)
-            {
-                // error
-                Console.WriteLine(e.ToString());
+
+                // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+                HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
+                bool isBald = hairstyle.Bald;
+
+                // Apply the hair models & texture changes
+                for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
+                    ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
+                for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
+                    ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
+
+                // Eyes only have Texture Changes - eye color is set seperately
+                ObjDesc eyes;
+                if (hairstyle.Bald)
+                    eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDescBald;
+                else
+                    eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
+                for (int i = 0; i < eyes.TextureChanges.Count; i++)
+                    ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
+
+                // Eye color palette
+                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
+
+                // Nose only has Texture Changes
+                ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
+                for (int i = 0; i < nose.TextureChanges.Count; i++)
+                    ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
+
+                // Mouth, suprise, only Texture Changes
+                ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
+                for (int i = 0; i < mouth.TextureChanges.Count; i++)
+                    ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
+
+                // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+                PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
+                // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
+                int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
+                // Since the hue numbers are a little odd, make sure we're in the bounds.
+                if (hairPalIndex < 0)
+                    hairPalIndex = 0;
+                if (hairPalIndex > hairPalSet.PaletteList.Count - 1)
+                    hairPalIndex = hairPalSet.PaletteList.Count - 1;
+                ushort hairPal = (ushort)(hairPalSet.PaletteList[hairPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
+                ModelData.AddPalette(hairPal, 0x18, 0x8);
+
+                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
+                int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
+                // Since the hue numbers are a little odd, make sure we're in the bounds.
+                if (skinPalIndex < 0)
+                    skinPalIndex = 0;
+                if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
+                    skinPalIndex = skinPalSet.PaletteList.Count - 1;
+                ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
+                // Apply the skin palette...
+                ModelData.AddPalette(skinPal, 0x0, 0x18);
             }
 
             IsOnline = true;
@@ -362,7 +355,7 @@ namespace ACE.Entity
                             return null;
                         }
                     }
-                
+
                     // This is an action e.g. animation that takes time to complete
                     // Remember this object to delay further actions queued for the same object
                     if (action.EndTime > WorldManager.PortalYearTicks)
@@ -769,7 +762,8 @@ namespace ACE.Entity
 
             // If the player is outside of the landblock we just died in, then reboadcast the death for
             // the players at the lifestone.
-            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell) { 
+            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell)
+            {
                 ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
             }
 
@@ -844,17 +838,13 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }
 
-        /// <summary>
-        /// Play a sound for the client
-        /// </summary>
+        // Play a sound
         public void PlaySound(Sound sound, ObjectGuid targetId)
         {
             Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
         }
 
-        /// <summary>
-        /// Play a particle effect like spell casting or bleed etc..
-        /// </summary>
+        // plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
         {
             var effectEvent = new GameMessageScript(targetId, effectId);
@@ -1232,7 +1222,7 @@ namespace ACE.Entity
                 // check for a short circuit.  if we don't need to update, don't!
                 // TODO: Fix this
                 // I had to comment this optimization out for the moment - not sure how it works but it never lets us update or add. Og
-                
+
                 // if (sendUpdate)
                 //   if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
                 //       return;
