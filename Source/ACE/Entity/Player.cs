@@ -807,6 +807,7 @@ namespace ACE.Entity
         /// <param name="victimId"></param>
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
+            // TODO: remove TalkDirect hack and implement a proper mechanism for this.  perhaps a server action queue
             QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect);
             AddToActionQueue(action);
         }
