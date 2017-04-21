@@ -36,7 +36,7 @@ namespace ACE.Entity
         private const float outDoorChatRange = 75f;
         private const float indoorChatRange = 25f;
         private const float maxXY = 192f;
-        private const float maxobjectRange = 15625;
+        private const float maxobjectRange = 20000;
 
         private LandblockId id;
 
