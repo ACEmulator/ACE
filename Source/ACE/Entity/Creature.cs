@@ -155,10 +155,7 @@ namespace ACE.Entity
         {
             IsAlive = false;
             // This will determine if the derived type is a player
-            var isDerivedPlayer = typeof(Player).GetMember("OnKill",
-                   BindingFlags.NonPublic
-                 | BindingFlags.Instance
-                 | BindingFlags.DeclaredOnly).Length == 0;
+            var isDerivedPlayer = Guid.IsPlayer();
             // TODO: Implement some proper respawn timers, check the generators for that
             RespawnTime = WorldManager.PortalYearTicks + 10;
 
