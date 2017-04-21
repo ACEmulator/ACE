@@ -12,6 +12,8 @@
 
         PlayParticleEffect,
 
-        MovementEvent
+        MovementEvent,
+
+        BroadcastDeath
     }
 }

@@ -2,10 +2,11 @@
 {
     public class GameEventYourDeath : GameEventMessage
     {
-        public GameEventYourDeath(Session session)
+        public GameEventYourDeath(Session session, string deathMessage)
             : base(GameEventType.YourDeath, GameMessageGroup.Group09, session)
         {
-            // Do nothing yet.
+            // Spell out your death in text:
+            Writer.WriteString16L(deathMessage);
         }
     }
 }

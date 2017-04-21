@@ -6,7 +6,7 @@
         [GameAction(GameActionType.EvtCharacterSuicide)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Player.Kill();
+            session.Player.OnKill(session);
         }
     }
 }
