@@ -25,6 +25,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -64,7 +65,7 @@ namespace ACE.Entity
         private object clientObjectMutex = new object();
 
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-        
+
         // queue of all the "actions" that come from the player that require processing
         // aynchronous to or outside of the network thread
         private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
@@ -146,7 +147,7 @@ namespace ACE.Entity
         {
             get { return new ReadOnlyDictionary<Skill, CharacterSkill>(character.Skills); }
         }
-        
+
         public uint TotalLogins
         {
             get { return character.TotalLogins; }
@@ -190,22 +191,6 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
-        }
-
-        public void Kill()
-        {
-            // create corpse at location
-            // TODO: Once the corpse/container factories have been built
-
-            // teleport to sanctuary or starting point
-            if (Positions.ContainsKey(PositionType.Sanctuary))
-                Teleport(Positions[PositionType.Sanctuary]);
-            else
-                Teleport(Positions[PositionType.Location]);
-
-            // create and send the death event
-            var yourDeathEvent = new GameEventYourDeath(Session);
-            Session.Network.EnqueueSend(yourDeathEvent);
         }
 
         public async Task Load(Character preloadedCharacter = null)
@@ -280,7 +265,7 @@ namespace ACE.Entity
                     eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
                 for (int i = 0; i < eyes.TextureChanges.Count; i++)
                     ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
-                
+
                 // Eye color palette
                 ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
 
@@ -370,7 +355,7 @@ namespace ACE.Entity
                             return null;
                         }
                     }
-                
+
                     // This is an action e.g. animation that takes time to complete
                     // Remember this object to delay further actions queued for the same object
                     if (action.EndTime > WorldManager.PortalYearTicks)
@@ -708,6 +693,134 @@ namespace ACE.Entity
             }
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
+        }
+
+        /// <summary>
+        /// Player Death/Kill, use this to kill a session's player
+        /// </summary>
+        /// <remarks>
+        ///     TODO:
+        ///         1. Find the best vitae formula and add vitae
+        ///         2. Generate the correct death message, or have it passed in as a parameter.
+        ///         3. Find the correct player death noise based on the player model and play on death.
+        ///         4. Determine if we need to Send Queued Action for Lifestone Materialize, after Action Location.
+        ///         5. Find the health after death formula and Set the correct health
+        /// </remarks>
+        public override void OnKill(Session killerSession)
+        {
+            base.OnKill(killerSession);
+
+            ObjectGuid killerId = killerSession.Player.Guid;
+
+            IsAlive = false;
+            Health.Current = 0; // Set the health to zero
+            character.NumDeaths++; // Increase the NumDeaths counter
+            character.DeathLevel++; // Increase the DeathLevel
+
+            // TODO: Find correct vitae formula/value 
+            character.VitaeCpPool = 0; // Set vitae
+
+            // TODO: Generate a death message based on the damage type to pass in to each death message:
+            string currentDeathMessage = $"died to {killerSession.Player.Name}.";
+
+            // Send Vicitim Notification, or "Your Death" event to the client:
+            // create and send the client death event, GameEventYourDeath
+            var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, character.NumDeaths);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, character.DeathLevel);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
+            var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
+            // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
+
+            // Send first death message group
+            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+
+            // Broadcast the 019E: Player Killed GameMessage
+            ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
+
+            // create corpse at location
+            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
+            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+
+            // Corpses stay on the ground for 5 * player level but minimum 1 hour
+            // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+            corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+
+            // Save character's last death position - for the time being, we will use any position
+            SetCharacterPosition(PositionType.LastOutsideDeath, Location);
+
+            // teleport to sanctuary or best location
+            Position newPositon = new Position();
+
+            if (Positions.ContainsKey(PositionType.Sanctuary))
+                newPositon = Positions[PositionType.Sanctuary];
+            else if (Positions.ContainsKey(PositionType.LastPortal))
+                newPositon = Positions[PositionType.LastPortal];
+            else
+                newPositon = Positions[PositionType.Location];
+
+            // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
+            // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            // AddToActionQueue(addCorpse);
+            // If the player is outside of the landblock we just died in, then reboadcast the death for
+            // the players at the lifestone.
+            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell)
+            {
+                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
+            }
+
+            // Queue the teleport to lifestone
+            ActionQueuedTeleport(newPositon, this.Guid, GameActionType.TeleToLifestone);
+
+            // Regenerate/ressurect?
+            Health.Current = 5;
+            msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            Session.Network.EnqueueSend(msgHealthUpdate);
+
+            // Stand back up
+            EnqueueMovementEvent(new GeneralMotion(MotionStance.Standing), Guid);
+        }
+
+        /// <summary>
+        /// Used to ensure that teleport happens in a sequential order, on the queue
+        /// </summary>
+        /// <param name="teleportPosition"></param>
+        /// <param name="objectId"></param>
+        /// <param name="teleportType">Must be a teleportation range action type</param>
+        public void ActionQueuedTeleport(Position teleportPosition, ObjectGuid objectId, GameActionType teleportType)
+        {
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, teleportPosition, teleportType);
+            AddToActionQueue(action);
+        }
+
+        /// <summary>
+        /// Sends a death message broadcast all players on the landblock? that a killer has a victim
+        /// </summary>
+        /// <remarks>
+        /// TODO: 
+        ///     1. Figure out who all receieves death messages, on what landblock and at what order -
+        ///         Example: Does the players around the vicitm receive the message or do the players at the lifestone receieve the message, or both?
+        /// </remarks>
+        /// <param name="deathMessage"></param>
+        /// <param name="victimId"></param>
+        public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
+        {
+            // TODO: remove TalkDirect hack and implement a proper mechanism for this.  perhaps a server action queue
+            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect);
+            AddToActionQueue(action);
+        }
+
+        /// <summary>
+        /// Receieves a message from the action queue about other player deaths and Sends the message to the player,
+        /// while maintaining the proper sequences. This will never be sent to the player, unless the player commits suicide.
+        /// </summary>
+        /// <param name="deathMessage">This message can be any text string</param>
+        public void BroadcastPlayerDeath(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
+        {
+            var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
+            Session.Network.EnqueueSend(deathBroadcast);
         }
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
@@ -1117,7 +1230,7 @@ namespace ACE.Entity
                 // check for a short circuit.  if we don't need to update, don't!
                 // TODO: Fix this
                 // I had to comment this optimization out for the moment - not sure how it works but it never lets us update or add. Og
-                
+
                 // if (sendUpdate)
                 //   if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
                 //       return;

@@ -69,13 +69,43 @@ namespace ACE.Network.GameAction
             this.EndTime = this.StartTime;
         }
 
+        /// <summary>
+        /// Sends a player to a location
+        /// </summary>
+        /// <param name="objectId"></param>
+        /// <param name="newQueuedPosition">Teleport location</param>
+        public QueuedGameAction(uint objectId, Position newQueuedPosition, GameActionType actionType)
+        {
+            this.ObjectId = objectId;
+            this.ActionLocation = newQueuedPosition;
+            this.ActionType = actionType;
+        }
+
+        /// <summary>
+        /// Send a player killed event
+        /// </summary>
+        /// <param name="objectId">Victim's Object Guid</param>
+        /// <param name="secondaryObjectId">Killer's Object Guid</param>
+        /// <param name="broadcastMessage">Text string for chat output, usually containing the death message</param>
+        public QueuedGameAction(string broadcastMessage, uint objectId, uint secondaryObjectId, GameActionType actionType)
+        {
+            this.ObjectId = objectId;
+            this.SecondaryObjectId = secondaryObjectId;
+            this.ActionBroadcastMessage = broadcastMessage;
+            this.ActionType = actionType;
+        }
+
         public uint ObjectId { get; private set; }
 
         public uint SecondaryObjectId { get; private set; }
 
         public WorldObject WorldObject { get; private set; }
 
+        public string ActionBroadcastMessage { get; private set; }
+
         public GameActionType ActionType { get; private set; }
+
+        public Position ActionLocation { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
 

@@ -51,6 +51,7 @@
         CombatCollisions,
         [PersistedProperty(true, typeof(Character), 0u)]
         NumDeaths,
+        [PersistedProperty(true, typeof(Character), 0u)]
         Damage,
         DamageType,
         DefaultCombatStyle,
@@ -148,6 +149,7 @@
         ScorePageNum,
         ScoreConfigNum,
         ScoreNumScores,
+        [PersistedProperty(true, typeof(Character), 0u)]
         DeathLevel,
         AiOptions,
         OpenToEveryone,

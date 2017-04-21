@@ -406,7 +406,7 @@ namespace ACE.Command.Handlers
                     {
                         var wo = LandblockManager.GetWorldObject(session, cId);
                         if (wo != null)
-                            (wo as Creature).Kill(session);
+                            (wo as Creature).OnKill(session);
                     }
                 }
                 else
@@ -422,12 +422,12 @@ namespace ACE.Command.Handlers
                     if (target.IsCreature())
                     {
                         if (wo != null)
-                            (wo as Creature).Kill(session);
+                            (wo as Creature).OnKill(session);
                     }
                     if (target.IsPlayer())
                     {
                         if (wo != null)
-                            (wo as Player).Kill();
+                            (wo as Player).OnKill(session);
                     }
                 }
                 else

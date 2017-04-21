@@ -161,6 +161,24 @@ namespace ACE.Entity
 
         public ReadOnlyDictionary<Enum.Ability, CreatureAbility> Abilities;
 
+        public uint NumDeaths
+        {
+            get { return propertiesInt[PropertyInt.NumDeaths]; }
+            set { propertiesInt[PropertyInt.NumDeaths] = value; }
+        }
+
+        public uint DeathLevel
+        {
+            get { return propertiesInt[PropertyInt.DeathLevel]; }
+            set { propertiesInt[PropertyInt.DeathLevel] = value; }
+        }
+
+        public uint VitaeCpPool
+        {
+            get { return propertiesInt[PropertyInt.VitaeCpPool]; }
+            set { propertiesInt[PropertyInt.VitaeCpPool] = value; }
+        }
+
         private Character()
         {
             StrengthAbility = new CreatureAbility(this, Enum.Ability.Strength);
