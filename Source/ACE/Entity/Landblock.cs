@@ -331,6 +331,7 @@ namespace ACE.Entity
                 case BroadcastAction.BroadcastDeath:
                     {
                         // players never need an update of themselves
+                        // TODO: Filter to players in range and include adjacencies
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
                         Parallel.ForEach(players, p => p.BroadcastPlayerDeath(args.DeathMessage.Message, args.DeathMessage.Victim, args.DeathMessage.Killer));
                         break;
