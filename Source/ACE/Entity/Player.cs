@@ -209,22 +209,6 @@ namespace ACE.Entity
             }
         }
 
-        public void Kill()
-        {
-            // create corpse at location
-            // TODO: Once the corpse/container factories have been built
-
-            // teleport to sanctuary or starting point
-            if (Positions.ContainsKey(PositionType.Sanctuary))
-                Teleport(Positions[PositionType.Sanctuary]);
-            else
-                Teleport(Positions[PositionType.Location]);
-
-            // create and send the death event
-            var yourDeathEvent = new GameEventYourDeath(Session);
-            Session.Network.EnqueueSend(yourDeathEvent);
-        }
-
         public async Task Load(Character preloadedCharacter = null)
         {
             character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
