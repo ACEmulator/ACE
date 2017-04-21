@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-04-21
+[fantoms]
+* Removed `@reset-pos` after it was incorrectly re-added in another members commit.
 
 ### 2017-04-20
 [Lidefeath]
