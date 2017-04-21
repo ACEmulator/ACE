@@ -504,11 +504,11 @@ namespace ACE.Entity
                                 // if world object is in active zone.
                                 if (!(mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
                                     (mo as Player).TrackObject(mo);
-                                // if world object is in ghost zone and outside of active zone
-                                else
-                                if ((mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
-                                    (mo as Player).StopTrackingObject(mo, true);
                             }
+                            // if world object is in ghost zone and outside of active zone
+                            else
+                                if ((mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
+                                (mo as Player).StopTrackingObject(mo, true);
                         }
                     });
 
