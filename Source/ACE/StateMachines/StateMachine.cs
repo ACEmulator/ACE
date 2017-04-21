@@ -17,18 +17,16 @@ namespace ACE.StateMachines
             validrules = states;
         }
 
-        public bool ChangeState(int from, int too)
+        public bool ChangeState(int too)
         {
             bool valid = false;
 
             if (validrules.Count == 0)
                 throw new ApplicationException("StateMachine must be Initialised before it can used");
 
-            if (from == CurrentState)
-            {
                 // Look up current state machine state and locate its allowed states.
                 List<Rule> currule = new List<Rule>();
-                currule = validrules.Where(r => r.FromState == from).ToList();
+                currule = validrules.Where(r => r.FromState == CurrentState).ToList();
 
                 if (currule.Count != 1)
                     throw new ApplicationException("StateMachine is in a invalid state");
@@ -39,7 +37,6 @@ namespace ACE.StateMachines
                     CurrentState = too;
                     valid = true;
                 }
-            }
 
             return valid;
         }

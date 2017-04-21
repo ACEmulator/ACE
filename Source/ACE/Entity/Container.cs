@@ -15,7 +15,7 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
-        protected StateMachine statemachine = new StateMachine();
+        protected StateMachine Statemachine = new StateMachine();
 
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
@@ -27,7 +27,7 @@ namespace ACE.Entity
             this.WeenieClassid = weenieClassId;
 
             // init state machine
-            statemachine.Initialise(ContainerRules.GetRules(), ContainerRules.GetInitState());
+            Statemachine.Initialise(ContainerRules.GetRules(), ContainerRules.GetInitState());
         }
 
         // Inventory Management Functions
