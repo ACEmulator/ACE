@@ -37,6 +37,7 @@ namespace ACE.Entity
         private const float indoorChatRange = 25f;
         private const float maxXY = 192f;
         private const float maxobjectRange = 20000;
+        private const float maxobjectGhostRange = 40000;
 
         private LandblockId id;
 
@@ -416,7 +417,7 @@ namespace ACE.Entity
 
                 List<WorldObject> allworldobj = null;
                 List<Player> allplayers = null;
-                List<Player> movedObjects = null;
+                List<WorldObject> movedObjects = null;
                 List<WorldObject> despawnObjects = null;
                 List<Creature> deadCreatures = null;
 
@@ -428,9 +429,6 @@ namespace ACE.Entity
                 // all players on this land block
                 allplayers = allworldobj.OfType<Player>().ToList();
 
-                movedObjects = allplayers.ToList();
-                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
-
                 despawnObjects = allworldobj.ToList();
                 despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
 
@@ -438,7 +436,9 @@ namespace ACE.Entity
                 deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
-                // this is only for moving objects across landblocks..
+                // this is only for moving objects across landblocks.
+                movedObjects = allworldobj.ToList();
+                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
                 if (this.id.MapScope == Enum.MapScope.Outdoors)
@@ -467,39 +467,35 @@ namespace ACE.Entity
                     QueuedGameAction action = player.ActionQueuePop();
                     if (action != null)
                         HandleGameAction(action, player);
-
-                    // detect all players in range of moving objects.
-                    // sets the streaming list on the player class, broadcast then uses that list to know where to send data.
-                    List<WorldObject> woproxr = new List<WorldObject>();
-                    woproxr.AddRange(GetWorldObjectsInRange(player, maxobjectRange, true));
-
-                    // exclude objects out or range.
-                    List<ObjectGuid> outofrange = new List<ObjectGuid>();
-                    List<ObjectGuid> idsinrange = new List<ObjectGuid>();
-                    outofrange.AddRange((player as Player).GetTrackedObjectGuids());
-                    idsinrange.AddRange(woproxr.Select(x => x.Guid).ToList());
-                    outofrange = outofrange.Where(g => !idsinrange.ToList().Contains(g)).ToList();
-
-                    // removes player tracking from all landblocks adjanct too!
-                    if (outofrange.Count > 0)
-                    {
-                        RemovePlayerTracking(outofrange, (player as Player));
-                    }
-
-                    // exclude already tracked objects.
-                    woproxr = woproxr.Where(o => !(player as Player).GetTrackedObjectGuids().ToList().Contains(o.Guid)).ToList();
-
-                    // if there new objects come into range then inform player class to start tracking new object in range.
-                    if (woproxr.Count > 0)
-                    {
-                        Log($"landblock is streaming player \"{(player as Player).Name}\" with {woproxr.Count} objects.");
-                        AddPlayerTracking(woproxr, (player as Player));
-                    }
                 });
 
-                // broadcast moving players to the world..
+                // broadcast moving objects to the world..
+                // players and creatures can move.
                 Parallel.ForEach(movedObjects, mo =>
                 {
+                    // detect all world objects in ghost range 
+                    List<WorldObject> woproxghost = new List<WorldObject>();
+                    woproxghost.AddRange(GetWorldObjectsInRange(mo, maxobjectGhostRange, true));
+
+                    // for all objects in rang of this moving object or in ghost range of moving object update them.
+                    Parallel.ForEach(woproxghost, wo =>
+                    {
+                        // if world object is in active zone then.
+                        if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
+                        {
+                            if (mo.Guid.IsPlayer())
+                            {
+                                // if world object is in active zone.
+                                if (!(mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
+                                    (mo as Player).TrackObject(mo);
+                                // if world object is in ghost zone and outside of active zone
+                                else
+                                if ((mo as Player).GetTrackedObjectGuids().Contains(mo.Guid))
+                                    (mo as Player).StopTrackingObject(mo, true);
+                            }
+                        }
+                    });
+
                     if (mo.Location.LandblockId == this.id)
                     {
                         // update if it's still here
