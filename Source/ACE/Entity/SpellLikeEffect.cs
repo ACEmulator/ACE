@@ -46,7 +46,7 @@ namespace ACE.Entity
             if (PlayerScript != Network.Enum.PlayScript.Invalid)
             {
                 var scriptEvent = new GameMessageScript(this.Guid, PlayerScript, 1f);
-                session.Network.EnqueueSend(scriptEvent);
+                session.EnqueueSend(scriptEvent);
             }
         }
     }

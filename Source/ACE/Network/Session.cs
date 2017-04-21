@@ -1,84 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-
+using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Managers;
+using ACE.Network.Sequence;
 
 namespace ACE.Network
 {
-    public class Session
+    public partial class Session : NetworkSession
     {
-        public uint Id { get; private set; }
-
-        public string Account { get; private set; }
-
-        public AccessLevel AccessLevel { get; private set; }
-
-        public SessionState State { get; set; }
-
-        public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
-
-        public CachedCharacter CharacterRequested { get; set; }
-
-        public Player Player { get; set; }
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private DateTime logOffRequestTime;
-
         private DateTime lastSaveTime;
-
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
 
-        // connection related
-        public IPEndPoint EndPoint { get; }
+        private List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
+        public Player Player { get; set; }
 
-        public uint GameEventSequence { get; set; }
+        public UIntSequence GameEventSequence { get; private set; }
 
-        public NetworkSession Network { get; set; }
-
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(IPEndPoint endpoint, ushort clientId, ushort serverId)
+            : base(endpoint, clientId, serverId)
         {
-            EndPoint = endPoint;
-            Network = new NetworkSession(this, clientId, serverId);
+            base.StateChanged += Session_StateChanged;
+            DefineMessageHandlers();
         }
 
-        public void InitSessionForWorldLogin()
+        public override void Update(double lastTick)
         {
-            Player = new Player(this);
-            CharacterRequested = null;
-
-            lastSaveTime = DateTime.MinValue;
-            lastAgeIntUpdateTime = DateTime.MinValue;
-            lastSendAgeIntUpdateTime = DateTime.MinValue;
-
-            GameEventSequence = 0;
-        }
-
-        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
-        {
-            Id = accountId;
-            Account = account;
-            AccessLevel = accountAccesslevel;
-        }
-
-        public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
-        {
-            AccountCharacters.Clear();
-            foreach (var character in characters)
-            {
-                AccountCharacters.Add(character);
-            }
-        }
-
-        public void Update(double lastTick)
-        {
-            Network.Update(lastTick);
+            base.Update(lastTick);
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
@@ -134,81 +90,74 @@ namespace ACE.Network
             }
         }
 
-        public uint GetIssacValue(PacketDirection direction)
+        protected override void ClientMessageReceived(ClientMessage message)
         {
-            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
+            HandleClientMessage(message);
         }
 
-        public void SendCharacterError(CharacterError error)
+        private void Session_StateChanged(object sender, SessionStateChangedEventArgs e)
         {
-            Network.EnqueueSend(new GameMessageCharacterError(error));
-        }
-
-        private bool CheckState(ClientPacket packet)
-        {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSynch | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == SessionState.AuthLoginRequest)
-                return false;
-
-            return true;
-        }
-
-        public void ProcessPacket(ClientPacket packet)
-        {
-            if (!CheckState(packet))
+            if (e.NewState == SessionState.AuthConnected)
             {
-                // server treats all packets sent during the first 30 seconds as invalid packets due to server crash, this will move clients to the disconnect screen
-                if (DateTime.UtcNow < WorldManager.WorldStartTime.AddSeconds(30d))
-                    SendCharacterError(CharacterError.ServerCrash);
-
-                return;
+                LoginConnected();
             }
-
-            // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if (Network != null)
-                Network.ProcessPacket(packet);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse();
+            else if (e.NewState == SessionState.Terminated)
+            {
+                Terminated();
+            }
         }
 
-        private void HandleDisconnectResponse()
+        private async void LoginConnected()
         {
+            log.DebugFormat("[{0}] Login Connected", AccountName);
+
+            Player = null;
+
+            var result = await DatabaseManager.Character.GetByAccount(AccountId);
+
+            UpdateCachedCharacters(result);
+
+            GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, AccountName);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+
+            EnqueueSend(characterListMessage, serverNameMessage);
+        }
+
+        private void Terminated()
+        {
+            log.DebugFormat("[{0}] Session Terminated", AccountName);
             if (Player != null)
             {
                 SaveSession();
                 Player.Logout(true);
+                Player = null;
             }
-
-            WorldManager.RemoveSession(this);
         }
 
-        public void LogOffPlayer()
+        private void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
-            SaveSession();
-            Player.Logout();
-            logOffRequestTime = DateTime.UtcNow;
+            AccountCharacters.Clear();
+            foreach (var character in characters)
+            {
+                AccountCharacters.Add(character);
+            }
         }
 
-        private async void SendFinalLogOffMessages()
+        private void InitSessionForWorldLogin(CachedCharacter character)
         {
-            Network.EnqueueSend(new GameMessageCharacterLogOff());
+            Player = new Player(this, character);
 
-            var result = await DatabaseManager.Character.GetByAccount(Id);
-            UpdateCachedCharacters(result);
-            Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+            lastSaveTime = DateTime.MinValue;
+            lastAgeIntUpdateTime = DateTime.MinValue;
+            lastSendAgeIntUpdateTime = DateTime.MinValue;
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            Network.EnqueueSend(serverNameMessage);
+            GameEventSequence = new UIntSequence(false);
+        }
 
+        private void SendFinalLogOffMessages()
+        {
+            EnqueueSend(new GameMessageCharacterLogOff());
             State = SessionState.AuthConnected;
-
-            Player = null;
         }
     }
 }

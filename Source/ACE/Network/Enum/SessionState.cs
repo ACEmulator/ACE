@@ -2,10 +2,12 @@
 {
     public enum SessionState
     {
-        AuthLoginRequest,
-        AuthConnectResponse,
+        Idle,
+        AuthConnecting,
         AuthConnected,
-
-        WorldConnected
+        WorldConnecting,
+        WorldConnected,
+        Terminating,
+        Terminated
     }
 }
