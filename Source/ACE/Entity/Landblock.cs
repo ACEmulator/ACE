@@ -484,6 +484,7 @@ namespace ACE.Entity
             {
                 case GameActionType.TalkDirect:
                     {
+                        // TODO: remove this hack (using TalkDirect) ASAP
                         var g = new ObjectGuid(action.ObjectId);
                         WorldObject obj = (WorldObject)player;
                         if (worldObjects.ContainsKey(g))
