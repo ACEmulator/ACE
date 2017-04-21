@@ -30,16 +30,16 @@ namespace ACE.StateMachines
         {
             // if locked then we can unlock. . etc etc
             rulesstates.Add(new Rule(
-                (int)ContainerStates.Locked,
-                (int)ContainerStates.Unlocked));
+                (int)ContainerStates.Locked,        // from
+                (int)ContainerStates.Unlocked));    // allowedto
             rulesstates.Add(new Rule(
-                (int)ContainerStates.Unlocked,
-                (int)ContainerStates.Locked,
-                (int)ContainerStates.InUse));
+                (int)ContainerStates.Unlocked,      // from
+                (int)ContainerStates.Locked,        // allowedto
+                (int)ContainerStates.InUse));       // allowedto
             rulesstates.Add(new Rule(
-                (int)ContainerStates.InUse,
-                (int)ContainerStates.Locked,
-                (int)ContainerStates.Unlocked));
+                (int)ContainerStates.InUse,         // from
+                (int)ContainerStates.Locked,        // allowedto
+                (int)ContainerStates.Unlocked));    // allowedto
             init = true;
         }
     }

@@ -15,7 +15,7 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
-        protected StateMachine Statemachine = new StateMachine();
+        public StateMachine Statemachine = new StateMachine();
 
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
