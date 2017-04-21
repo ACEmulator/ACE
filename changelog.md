@@ -9,6 +9,7 @@
 * Fixed PackedDWORD logic
 
 [Ripley]
+* Filled out Portal object and included ObjScale.
 * Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
