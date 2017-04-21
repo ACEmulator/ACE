@@ -1,8 +1,12 @@
+# ACEmulator Change Log
+
 ### 2017-04-21
+[StackOverflow]
+* Added StateMachines, no use yet, needs tested.
 [StackOverflow]
 * Streaming World Objects - Object now stay in sync for tracking.
 * they remove when out of range, readd when come back into range
-# ACEmulator Change Log
+
 ### 2017-04-21
 [fantoms]
 * Removed `@reset-pos` after it was incorrectly re-added in another members commit.
