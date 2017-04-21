@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-04-21
+[Ripley]
+* Kill `Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));` until we get proper movement implemented.
+
 ### 2017-04-20
 [Lidefeath]
 * Removed the manual conversion for Model, Texture and PaletteData in Creature.cs
@@ -9,6 +13,7 @@
 * Fixed PackedDWORD logic
 
 [Ripley]
+* Filled out Portal object and included ObjScale.
 * Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
