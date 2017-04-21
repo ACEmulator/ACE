@@ -406,7 +406,7 @@ namespace ACE.Command.Handlers
                 if (playerSession != null)
                 {
                     // send session a usedone
-                    playerSession.Player.Kill(playerSession.Player.Guid);
+                    playerSession.Player.OnKill(playerSession);
                     return;
                 }
             }
@@ -478,7 +478,7 @@ namespace ACE.Command.Handlers
                 if (target.IsCreature())
                 {
                     if (wo != null)
-                        (wo as Creature).Kill(session);
+                        (wo as Creature).OnKill(session);
                 }
             }
             else

@@ -706,8 +706,11 @@ namespace ACE.Entity
         ///         4. Determine if we need to Send Queued Action for Lifestone Materialize, after Action Location.
         ///         5. Find the health after death formula and Set the correct health
         /// </remarks>
-        public void Kill(ObjectGuid killerId)
+        public override void OnKill(Session session)
         {
+            base.OnKill(session);
+
+            IsAlive = false;
             Health.Current = 0; // Set the health to zero
             character.NumDeaths++; // Increase the NumDeaths counter
             character.DeathLevel++; // Increase the DeathLevel
@@ -720,19 +723,19 @@ namespace ACE.Entity
 
             // Send Vicitim Notification, or "Your Death" event to the client:
             // create and send the client death event, GameEventYourDeath
-            var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
-            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, character.NumDeaths);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, character.DeathLevel);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
-            var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
+            var msgYourDeath = new GameEventYourDeath(session, $"You have {currentDeathMessage}");
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, Health.Current);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.NumDeaths, character.NumDeaths);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.DeathLevel, character.DeathLevel);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
+            var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
             // Send first death message group
-            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+            session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
 
             // Broadcast the 019E: Player Killed GameMessage
-            ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
+            ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, session.Player.Guid);
 
             // create corpse at location
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
@@ -757,14 +760,13 @@ namespace ACE.Entity
                 newPositon = Positions[PositionType.Location];
 
             // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-            AddToActionQueue(addCorpse);
-
+            // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            // AddToActionQueue(addCorpse);
             // If the player is outside of the landblock we just died in, then reboadcast the death for
             // the players at the lifestone.
             if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell)
             {
-                ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, killerId);
+                ActionBroadcastKill($"{Name} has {currentDeathMessage}", this.Guid, session.Player.Guid);
             }
 
             // Queue the teleport to lifestone
@@ -772,8 +774,11 @@ namespace ACE.Entity
 
             // Regenerate/ressurect?
             Health.Current = 5;
-            msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            Session.Network.EnqueueSend(msgHealthUpdate);
+            msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, Health.Current);
+            session.Network.EnqueueSend(msgHealthUpdate);
+
+            // Stand back up
+            EnqueueMovementEvent(new GeneralMotion(MotionStance.Standing), Guid);
         }
 
         /// <summary>

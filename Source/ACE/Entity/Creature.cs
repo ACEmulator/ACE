@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,16 +151,24 @@ namespace ACE.Entity
             IsAlive = true;
         }
 
-        public void Kill(Session session)
+        public virtual void OnKill(Session session)
         {
             IsAlive = false;
+            // This will determine if the derived type is a player
+            var isDerivedPlayer = typeof(Player).GetMember("OnKill",
+                   BindingFlags.NonPublic
+                 | BindingFlags.Instance
+                 | BindingFlags.DeclaredOnly).Length == 0;
             // TODO: Implement some proper respawn timers, check the generators for that
             RespawnTime = WorldManager.PortalYearTicks + 10;
 
-            // Create and send the death notice
-            string killMessage = $"{session.Player.Name} has killed {Name}.";
-            var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
-            session.Network.EnqueueSend(creatureDeathEvent);
+            if (!isDerivedPlayer)
+            {
+                // Create and send the death notice
+                string killMessage = $"{session.Player.Name} has killed {Name}.";
+                var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
+                session.Network.EnqueueSend(creatureDeathEvent);
+            }
 
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
@@ -177,10 +186,15 @@ namespace ACE.Entity
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
             corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
-            // Remove Creature from Landblock and add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+            // If the object is a creature, Remove it from from Landblock 
+            if (!isDerivedPlayer)
+            {
+                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+                session.Player.AddToActionQueue(removeCreature);
+            }
+
+            // Add Corpse in that location via the ActionQueue to honor the motion delays
             QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-            session.Player.AddToActionQueue(removeCreature);
             session.Player.AddToActionQueue(addCorpse);
         }
     }
