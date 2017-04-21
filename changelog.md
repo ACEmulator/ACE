@@ -1,9 +1,8 @@
-### 2017-04-21
-[StackOverflow]
-* Streaming World Objects - Object now stay in sync for tracking.
-* they remove when out of range, readd when come back into range
 # ACEmulator Change Log
 ### 2017-04-21
+[StackOverFlow]
+* Added Landblock Streaming Objects.
+
 [fantoms]
 * Removed `@reset-pos` after it was incorrectly re-added in another members commit.
 
