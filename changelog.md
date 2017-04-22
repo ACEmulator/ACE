@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 ### 2017-04-21
+[Jyrus]
+* Fixed QX, QY, QZ, and QW mappings to the correct fields in the database to allow facing to work correctly
+* Add 88 more working portal destinations, including most of the Town Network
+
 [fantoms]
 * Removed `@reset-pos` after it was incorrectly re-added in another members commit.
 
