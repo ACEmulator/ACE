@@ -16,8 +16,7 @@ namespace ACE.Entity.Objects
     {
         [GameAction(GameActionType.Suicide)]
         private void CharacterSuicide(ClientMessage message)
-        {
-           Kill();
+        {   
         }
     }
 }

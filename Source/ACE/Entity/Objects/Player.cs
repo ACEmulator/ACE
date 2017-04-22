@@ -734,7 +734,7 @@ namespace ACE.Entity.Objects
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
             // Send first death message group
-            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+            Session.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
 
             // Broadcast the 019E: Player Killed GameMessage
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
@@ -777,7 +777,7 @@ namespace ACE.Entity.Objects
             // Regenerate/ressurect?
             Health.Current = 5;
             msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            Session.Network.EnqueueSend(msgHealthUpdate);
+            Session.EnqueueSend(msgHealthUpdate);
 
             // Stand back up
             EnqueueMovementEvent(new GeneralMotion(MotionStance.Standing), Guid);
@@ -820,7 +820,7 @@ namespace ACE.Entity.Objects
         public void BroadcastPlayerDeath(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            Session.Network.EnqueueSend(deathBroadcast);
+            Session.EnqueueSend(deathBroadcast);
         }
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
