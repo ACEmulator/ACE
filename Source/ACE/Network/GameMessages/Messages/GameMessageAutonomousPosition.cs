@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Objects;
 using ACE.Network.Sequence;
 using System;
 using System.Collections.Generic;

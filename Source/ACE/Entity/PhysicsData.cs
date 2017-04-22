@@ -1,4 +1,5 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Entity.Objects;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.Sequence;

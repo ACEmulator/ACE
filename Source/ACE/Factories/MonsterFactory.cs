@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACE.Network;
+using ACE.Entity.Objects;
 
 namespace ACE.Factories
 {
