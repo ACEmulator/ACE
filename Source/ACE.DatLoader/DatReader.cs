@@ -93,12 +93,33 @@ namespace ACE.DatLoader
             return data;
         }
 
+        /// <summary>
+        /// Returns a string as defined by the first byte's length
+        /// </summary>
         public string ReadPString()
         {
-            // Returns a string as defined by the first byte's length.
             int stringlength = this.ReadByte();
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
+            Offset += stringlength;
+            return System.Text.Encoding.ASCII.GetString(thestring);
+        }
+
+        /// <summary>
+        /// Returns a string as defined by the first byte's length and removes the obfuscation
+        /// </summary>
+        public string ReadOString()
+        {
+            int stringlength = this.ReadByte();
+            Offset += 1; // unknown, seems to be mostly 00
+            byte[] thestring = new byte[stringlength];
+            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
+            for (var i = 0; i < stringlength; i++)
+            {
+                // flip the bytes in the string to undo the obfuscation: i.e. 0xAB => 0xBA
+                thestring[i] = (byte)((thestring[i] >> 4) | ((thestring[i] << 4) & 0x00FF));
+            }
+            
             Offset += stringlength;
             return System.Text.Encoding.ASCII.GetString(thestring);
         }

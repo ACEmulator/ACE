@@ -89,6 +89,7 @@
     <Compile Include="Entity\EyeStripCG.cs" />
     <Compile Include="Entity\FaceStripCG.cs" />
     <Compile Include="Entity\GearCG.cs" />
+    <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\HairStyleCG.cs" />
     <Compile Include="Entity\HeritageGroupCG.cs" />
     <Compile Include="Entity\Loc.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="Entity\TemplateCG.cs" />
     <Compile Include="Entity\TextureMapChange.cs" />
     <Compile Include="FileTypes\CharGen.cs" />
+    <Compile Include="FileTypes\GeneratorTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="PortalDatDatabase.cs" />

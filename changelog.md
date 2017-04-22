@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-04-22
+[Lidefeath]
+* Add a DatLoader for the Generators in portal.dat file 0x0E00000D
+* Add a method to DatReader to handle obfuscated strings by fliping the low and highbytes
+* Add a debugcommand to read the whole file and access one of the generators as an example
+
 ### 2017-04-20
 [Lidefeath]
 * Removed the manual conversion for Model, Texture and PaletteData in Creature.cs
