@@ -193,7 +193,7 @@ namespace ACE.Entity
                 foundwo = GetWorldObjectsByGuid(o, true);
                 Parallel.ForEach(foundwo, (f) =>
                 {
-                    player.StopTrackingObject(f, true);
+                    player.StopTrackingObject(f, false);
                 });
             });
         }
