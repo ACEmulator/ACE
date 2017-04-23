@@ -22,9 +22,9 @@ namespace ACE
             DatabaseManager.Initialise();
             AssetManager.Initialise();
             InboundMessageManager.Initialise();
+            DatManager.Initialize();
             SocketManager.Initialise();
             WorldManager.Initialise();
-            DatManager.Initialize();
             CommandManager.Initialise();
         }
     }
