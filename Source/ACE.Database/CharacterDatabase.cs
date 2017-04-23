@@ -63,6 +63,8 @@ namespace ACE.Database
 
             CharacterStatsUpdate,
             CharacterSkillsUpdate,
+
+            CharacterStartupGearSelect,
         }
 
         protected override Type PreparedStatementType => typeof(CharacterPreparedStatement);
@@ -118,6 +120,8 @@ namespace ACE.Database
 
             AddPreparedStatement(CharacterPreparedStatement.CharacterStatsUpdate, "UPDATE `character_stats` SET `strengthXpSpent` = ?, `strengthRanks` = ?, `enduranceXpSpent` = ?, `enduranceRanks` = ?, `coordinationXpSpent` = ?, `coordinationRanks` = ?, `quicknessXpSpent` = ?, `quicknessRanks` = ?, `focusXpSpent` = ?, `focusRanks` = ?, `selfXpSpent` = ?, `selfRanks` = ?, `healthCurrent`= ?, `healthXpSpent` = ?, `healthRanks` = ?, `staminaCurrent` = ?, `staminaXpSpent` = ?, `staminaRanks` = ?, `manaCurrent` = ?, `manaXpSpent` = ?, `manaRanks` = ? WHERE `id` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, "UPDATE `character_skills` SET `skillStatus` = ?, `skillPoints` = ?, `skillXpSpent` = ? WHERE `id` = ? AND `skillId` = ?;", MySqlDbType.UByte, MySqlDbType.UInt16, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte);
+
+            AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearSelect, "SELECT `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue` FROM `character_startup_gear` WHERE `id` = ?;", MySqlDbType.UInt32);
         }
 
         public uint GetMaxId()
@@ -309,6 +313,25 @@ namespace ACE.Database
                     c.Appearance.HairStyle = result.Read<uint>(0, "hairStyle");
                     c.Appearance.HairHue = result.Read<double>(0, "hairHue");
                     c.Appearance.SkinHue = result.Read<double>(0, "skinHue");
+                }
+
+                // Get the character's startup gear.
+                // TODO: This is a temporary solution. Ultimately, this table should be removed entirely and Startup gear should be created/saved in that system once available.
+                result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterStartupGearSelect, id);
+                if (result?.Count > 0)
+                {
+                    c.Appearance.HeadgearStyle = result.Read<uint>(0, "headgearStyle");
+                    c.Appearance.HeadgearColor = result.Read<uint>(0, "headgearColor");
+                    c.Appearance.HeadgearHue = result.Read<float>(0, "headgearHue");
+                    c.Appearance.ShirtStyle = result.Read<uint>(0, "shirtStyle");
+                    c.Appearance.ShirtColor = result.Read<uint>(0, "shirtColor");
+                    c.Appearance.ShirtHue = result.Read<float>(0, "shirtHue");
+                    c.Appearance.PantsStyle = result.Read<uint>(0, "pantsStyle");
+                    c.Appearance.PantsColor = result.Read<uint>(0, "pantsColor");
+                    c.Appearance.PantsHue = result.Read<float>(0, "pantsHue");
+                    c.Appearance.FootwearStyle = result.Read<uint>(0, "footwearStyle");
+                    c.Appearance.FootwearColor = result.Read<uint>(0, "footwearColor");
+                    c.Appearance.FootwearHue = result.Read<float>(0, "footwearHue");
                 }
 
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterStatsSelect, id);

@@ -25,6 +25,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -59,12 +60,17 @@ namespace ACE.Entity
         /// </summary>
         public double LastStateChangeTicks { get; set; }
 
+        /// <summary>
+        /// Last Streaming Object change tick
+        /// </summary>
+        public double LastStreamingObjectChange { get; set; }
+
         private Character character;
 
         private object clientObjectMutex = new object();
 
         private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-        
+
         // queue of all the "actions" that come from the player that require processing
         // aynchronous to or outside of the network thread
         private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
@@ -146,7 +152,7 @@ namespace ACE.Entity
         {
             get { return new ReadOnlyDictionary<Skill, CharacterSkill>(character.Skills); }
         }
-        
+
         public uint TotalLogins
         {
             get { return character.TotalLogins; }
@@ -192,20 +198,15 @@ namespace ACE.Entity
             ListeningRadius = 5f;
         }
 
-        public void Kill()
+        /// <summary>
+        ///  Gets a list of Tracked Objects.
+        /// </summary>
+        public List<ObjectGuid> GetTrackedObjectGuids()
         {
-            // create corpse at location
-            // TODO: Once the corpse/container factories have been built
-
-            // teleport to sanctuary or starting point
-            if (Positions.ContainsKey(PositionType.Sanctuary))
-                Teleport(Positions[PositionType.Sanctuary]);
-            else
-                Teleport(Positions[PositionType.Location]);
-
-            // create and send the death event
-            var yourDeathEvent = new GameEventYourDeath(Session);
-            Session.Network.EnqueueSend(yourDeathEvent);
+            lock (clientObjectMutex)
+            {
+                return clientObjectList.Select(x => x.Key).ToList();
+            }
         }
 
         public async Task Load(Character preloadedCharacter = null)
@@ -266,6 +267,10 @@ namespace ACE.Entity
                 HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
                 bool isBald = hairstyle.Bald;
 
+                // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+                if (hairstyle.AlternateSetup > 0)
+                    PhysicsData.CSetup = hairstyle.AlternateSetup;
+
                 // Apply the hair models & texture changes
                 for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
                     ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
@@ -280,9 +285,6 @@ namespace ACE.Entity
                     eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
                 for (int i = 0; i < eyes.TextureChanges.Count; i++)
                     ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
-                
-                // Eye color palette
-                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
 
                 // Nose only has Texture Changes
                 ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
@@ -293,30 +295,156 @@ namespace ACE.Entity
                 ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
                 for (int i = 0; i < mouth.TextureChanges.Count; i++)
                     ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
+                
+                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
+                ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
+                // Apply the skin palette...
+                ModelData.AddPalette(skinPal, 0x0, 0x18);
 
                 // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
-                // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-                int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                // Since the hue numbers are a little odd, make sure we're in the bounds.
-                if (hairPalIndex < 0)
-                    hairPalIndex = 0;
-                if (hairPalIndex > hairPalSet.PaletteList.Count - 1)
-                    hairPalIndex = hairPalSet.PaletteList.Count - 1;
-                ushort hairPal = (ushort)(hairPalSet.PaletteList[hairPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
+                ushort hairPal = (ushort)hairPalSet.GetPaletteID(character.Appearance.HairHue);
                 ModelData.AddPalette(hairPal, 0x18, 0x8);
 
-                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
-                int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                // Since the hue numbers are a little odd, make sure we're in the bounds.
-                if (skinPalIndex < 0)
-                    skinPalIndex = 0;
-                if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
-                    skinPalIndex = skinPalSet.PaletteList.Count - 1;
-                ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-                // Apply the skin palette...
-                ModelData.AddPalette(skinPal, 0x0, 0x18);
+                // Eye color palette
+                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
+
+                // Get the character's startup gear.
+                // TODO: Load the proper inventory/equipment options once that system is created.
+                if (character.Appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
+                {
+                    uint headgearTableID = sex.HeadgearList[Convert.ToInt32(character.Appearance.HeadgearStyle)].ClothingTable;
+                    ClothingTable headCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(headgearTableID));
+                    if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                    {
+                        // Add the model and texture(s)
+                        ClothingBaseEffect headCBE = headCT.ClothingBaseEffects[sex.SetupID];
+                        for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
+                        {
+                            byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
+                            ModelData.AddModel((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].ModelId);
+
+                            for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                                ModelData.AddTexture((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                        }
+
+                        // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                        CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[character.Appearance.HeadgearColor];
+                        for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
+                        {
+                            PaletteSet headgearPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(headSubPal.CloSubPalettes[i].PaletteSet));
+                            ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(character.Appearance.HeadgearHue);
+
+                            for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                            {
+                                uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                ModelData.AddPalette(headgearPal, (ushort)palOffset, (ushort)numColors);
+                            }
+                        }
+                    }
+                }
+
+                // Get the character's initial pants
+                uint pantsTableID = sex.PantsList[Convert.ToInt32(character.Appearance.PantsStyle)].ClothingTable;
+                ClothingTable pantsCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(pantsTableID));
+                if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                {
+                    ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
+                    for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
+                    {
+                        byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
+                        ModelData.AddModel((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].ModelId);
+
+                        for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                            ModelData.AddTexture((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                    }
+
+                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                    CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[character.Appearance.PantsColor];
+                    for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet pantsPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(pantsSubPal.CloSubPalettes[i].PaletteSet));
+                        ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(character.Appearance.PantsHue);
+
+                        for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ModelData.AddPalette(pantsPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                } // end pants
+
+                // Get the character's initial shirt
+                uint shirtTableID = sex.ShirtList[Convert.ToInt32(character.Appearance.ShirtStyle)].ClothingTable;
+                ClothingTable shirtCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(shirtTableID));
+                if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                {
+                    ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
+                    for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
+                    {
+                        byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
+                        ModelData.AddModel((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].ModelId);
+
+                        for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                            ModelData.AddTexture((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                    }
+
+                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+
+                    if (shirtCT.ClothingSubPalEffects.ContainsKey(character.Appearance.ShirtColor))
+                    {
+                        CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[character.Appearance.ShirtColor];
+                        for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
+                        {
+                            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(shirtSubPal.CloSubPalettes[i].PaletteSet));
+                            ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(character.Appearance.ShirtHue);
+
+                            if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
+                            {
+                                for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                {
+                                    uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                    uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                    ModelData.AddPalette(shirtPal, (ushort)palOffset, (ushort)numColors);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Get the character's initial footwear
+                uint footwearTableID = sex.FootwearList[Convert.ToInt32(character.Appearance.FootwearStyle)].ClothingTable;
+                ClothingTable footwearCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(footwearTableID));
+                if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                {
+                    ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
+                    for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
+                    {
+                        byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
+                        ModelData.AddModel((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].ModelId);
+
+                        for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                            ModelData.AddTexture((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                    }
+
+                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                    CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[character.Appearance.FootwearColor];
+                    for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet footwearPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(footwearSubPal.CloSubPalettes[i].PaletteSet));
+                        ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(character.Appearance.FootwearHue);
+
+                        for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                } // end footwear
             }
 
             IsOnline = true;
@@ -370,7 +498,7 @@ namespace ACE.Entity
                             return null;
                         }
                     }
-                
+
                     // This is an action e.g. animation that takes time to complete
                     // Remember this object to delay further actions queued for the same object
                     if (action.EndTime > WorldManager.PortalYearTicks)
@@ -708,6 +836,134 @@ namespace ACE.Entity
             }
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
+        }
+
+        /// <summary>
+        /// Player Death/Kill, use this to kill a session's player
+        /// </summary>
+        /// <remarks>
+        ///     TODO:
+        ///         1. Find the best vitae formula and add vitae
+        ///         2. Generate the correct death message, or have it passed in as a parameter.
+        ///         3. Find the correct player death noise based on the player model and play on death.
+        ///         4. Determine if we need to Send Queued Action for Lifestone Materialize, after Action Location.
+        ///         5. Find the health after death formula and Set the correct health
+        /// </remarks>
+        public override void OnKill(Session killerSession)
+        {
+            base.OnKill(killerSession);
+
+            ObjectGuid killerId = killerSession.Player.Guid;
+
+            IsAlive = false;
+            Health.Current = 0; // Set the health to zero
+            character.NumDeaths++; // Increase the NumDeaths counter
+            character.DeathLevel++; // Increase the DeathLevel
+
+            // TODO: Find correct vitae formula/value 
+            character.VitaeCpPool = 0; // Set vitae
+
+            // TODO: Generate a death message based on the damage type to pass in to each death message:
+            string currentDeathMessage = $"died to {killerSession.Player.Name}.";
+
+            // Send Vicitim Notification, or "Your Death" event to the client:
+            // create and send the client death event, GameEventYourDeath
+            var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, character.NumDeaths);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, character.DeathLevel);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
+            var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
+            // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
+
+            // Send first death message group
+            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+
+            // Broadcast the 019E: Player Killed GameMessage
+            ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
+
+            // create corpse at location
+            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
+            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+
+            // Corpses stay on the ground for 5 * player level but minimum 1 hour
+            // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+            corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+
+            // Save character's last death position - for the time being, we will use any position
+            SetCharacterPosition(PositionType.LastOutsideDeath, Location);
+
+            // teleport to sanctuary or best location
+            Position newPositon = new Position();
+
+            if (Positions.ContainsKey(PositionType.Sanctuary))
+                newPositon = Positions[PositionType.Sanctuary];
+            else if (Positions.ContainsKey(PositionType.LastPortal))
+                newPositon = Positions[PositionType.LastPortal];
+            else
+                newPositon = Positions[PositionType.Location];
+
+            // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
+            // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            // AddToActionQueue(addCorpse);
+            // If the player is outside of the landblock we just died in, then reboadcast the death for
+            // the players at the lifestone.
+            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell)
+            {
+                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
+            }
+
+            // Queue the teleport to lifestone
+            ActionQueuedTeleport(newPositon, this.Guid, GameActionType.TeleToLifestone);
+
+            // Regenerate/ressurect?
+            Health.Current = 5;
+            msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            Session.Network.EnqueueSend(msgHealthUpdate);
+
+            // Stand back up
+            EnqueueMovementEvent(new GeneralMotion(MotionStance.Standing), Guid);
+        }
+
+        /// <summary>
+        /// Used to ensure that teleport happens in a sequential order, on the queue
+        /// </summary>
+        /// <param name="teleportPosition"></param>
+        /// <param name="objectId"></param>
+        /// <param name="teleportType">Must be a teleportation range action type</param>
+        public void ActionQueuedTeleport(Position teleportPosition, ObjectGuid objectId, GameActionType teleportType)
+        {
+            QueuedGameAction action = new QueuedGameAction(objectId.Full, teleportPosition, teleportType);
+            AddToActionQueue(action);
+        }
+
+        /// <summary>
+        /// Sends a death message broadcast all players on the landblock? that a killer has a victim
+        /// </summary>
+        /// <remarks>
+        /// TODO: 
+        ///     1. Figure out who all receieves death messages, on what landblock and at what order -
+        ///         Example: Does the players around the vicitm receive the message or do the players at the lifestone receieve the message, or both?
+        /// </remarks>
+        /// <param name="deathMessage"></param>
+        /// <param name="victimId"></param>
+        public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
+        {
+            // TODO: remove TalkDirect hack and implement a proper mechanism for this.  perhaps a server action queue
+            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect);
+            AddToActionQueue(action);
+        }
+
+        /// <summary>
+        /// Receieves a message from the action queue about other player deaths and Sends the message to the player,
+        /// while maintaining the proper sequences. This will never be sent to the player, unless the player commits suicide.
+        /// </summary>
+        /// <param name="deathMessage">This message can be any text string</param>
+        public void BroadcastPlayerDeath(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
+        {
+            var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
+            Session.Network.EnqueueSend(deathBroadcast);
         }
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
@@ -1050,7 +1306,6 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-
                 Session.Player.Location = newPosition;
                 SetPhysicalCharacterPosition();
             }
@@ -1114,20 +1369,11 @@ namespace ACE.Entity
             {
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
-                // check for a short circuit.  if we don't need to update, don't!
-                // TODO: Fix this
-                // I had to comment this optimization out for the moment - not sure how it works but it never lets us update or add. Og
-                
-                // if (sendUpdate)
-                //   if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
-                //       return;
-
                 if (!sendUpdate)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
                     worldObject.PlayScript(this.Session);
                 }
-
                 else
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
@@ -1135,7 +1381,11 @@ namespace ACE.Entity
             log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
 
             if (sendUpdate)
-                Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
+            {
+                // Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
+                // TODO: Better handling of sending updates to client. The above line is causing much more problems then it is solving until we get proper movement.
+                // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
+            }
             else
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
         }
@@ -1175,20 +1425,19 @@ namespace ACE.Entity
             }
         }
 
-        public void StopTrackingObject(WorldObject worldObject)
+        public void StopTrackingObject(WorldObject worldObject, bool remove)
         {
             bool sendUpdate = true;
             lock (clientObjectMutex)
             {
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
-
-                if (!sendUpdate)
+                if (sendUpdate)
                 {
                     clientObjectList.Remove(worldObject.Guid);
                 }
             }
 
-            if (sendUpdate)
+            if (sendUpdate & remove)
             {
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
             }

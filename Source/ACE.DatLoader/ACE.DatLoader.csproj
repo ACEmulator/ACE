@@ -84,6 +84,12 @@
     <Compile Include="DatManager.cs" />
     <Compile Include="DatReader.cs" />
     <Compile Include="Entity\AnimationPartChange.cs" />
+    <Compile Include="Entity\CloObjectEffect.cs" />
+    <Compile Include="Entity\CloSubPalEffect.cs" />
+    <Compile Include="Entity\CloSubPalette.cs" />
+    <Compile Include="Entity\CloSubPalleteRange.cs" />
+    <Compile Include="Entity\CloTextureEffect.cs" />
+    <Compile Include="Entity\ClothingBaseEffect.cs" />
     <Compile Include="Entity\CSphere.cs" />
     <Compile Include="Entity\CylSphere.cs" />
     <Compile Include="Entity\EyeStripCG.cs" />
@@ -101,6 +107,7 @@
     <Compile Include="Entity\TextureMapChange.cs" />
     <Compile Include="FileTypes\CharGen.cs" />
     <Compile Include="FileTypes\GeneratorTable.cs" />
+    <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="PortalDatDatabase.cs" />

@@ -6,7 +6,7 @@ namespace ACE.Entity
     {
         public static Position StartingPosition(uint characterId)
         {
-            var startingPosition = new Position(characterId, PositionType.Location, 2130969005, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
+            var startingPosition = new Position(characterId, PositionType.Location, 2130903469, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
             return startingPosition;
         }
 

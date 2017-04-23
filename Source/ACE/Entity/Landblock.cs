@@ -19,6 +19,8 @@ using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
+using ACE.Network.GameEvent;
+using System.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -36,6 +38,8 @@ namespace ACE.Entity
         private const float outDoorChatRange = 75f;
         private const float indoorChatRange = 25f;
         private const float maxXY = 192f;
+        private const float maxobjectRange = 20000;
+        private const float maxobjectGhostRange = 40000;
 
         private LandblockId id;
 
@@ -163,6 +167,37 @@ namespace ACE.Entity
             new Thread(UseTime).Start();
         }
 
+        private void AddPlayerTracking(List<WorldObject> wolist, Player player)
+        {
+            Parallel.ForEach(wolist, (o) =>
+            {
+                if (o.Guid.IsCreature())
+                {
+                    if ((o as Creature).IsAlive)
+                        player.TrackObject(o);
+                }
+                else
+                {
+                    player.TrackObject(o);
+                }
+            });
+        }
+
+        private void RemovePlayerTracking(List<ObjectGuid> wolist, Player player)
+        {
+            Parallel.ForEach(wolist, (o) =>
+            {
+                // Find What Landblock Controls this object because we have to ref it
+                // to find its sequance id..
+                List<WorldObject> foundwo = new List<WorldObject>();
+                foundwo = GetWorldObjectsByGuid(o, true);
+                Parallel.ForEach(foundwo, (f) =>
+                {
+                    player.StopTrackingObject(f, false);
+                });
+            });
+        }
+
         public void AddWorldObject(WorldObject wo)
         {
             List<WorldObject> allObjects;
@@ -179,23 +214,12 @@ namespace ACE.Entity
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
             Broadcast(args, true, Quadrant.All);
 
-            // if this is a player, tell them about everything else we have.
+            // if this is a player, tell them about everything else we have in range of them.
             if (wo is Player)
             {
-                // send them the initial burst of objects
-                Log($"blasting player \"{(wo as Player).Name}\" with {allObjects.Count} objects.");
-                Parallel.ForEach(allObjects, (o) =>
-                {
-                    if (o.Guid.IsCreature())
-                    {
-                        if ((o as Creature).IsAlive)
-                            (wo as Player).TrackObject(o);
-                    }
-                    else
-                    {
-                        (wo as Player).TrackObject(o);
-                    }
-                });
+                List<WorldObject> wolist = null;
+                wolist = GetWorldObjectsInRange(wo, maxobjectRange, true);
+                AddPlayerTracking(wolist, (wo as Player));
             }
         }
 
@@ -223,6 +247,59 @@ namespace ACE.Entity
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
             }
+        }
+
+        public List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float maxrange, bool neighbors)
+        {
+            List<WorldObject> allworldobj = new List<WorldObject>();
+
+            lock (objectCacheLocker)
+            {
+                allworldobj = this.worldObjects.Values.ToList();
+            }
+            allworldobj = allworldobj.Where(o => o.Location.SquaredDistanceTo(wo.Location) < maxrange).ToList();
+
+            if (neighbors)
+            {
+                foreach (var block in adjacencies)
+                {
+                    if (block.Value != null)
+                    {
+                        List<WorldObject> wol = null;
+                        wol = block.Value.GetWorldObjectsInRange(wo, maxrange, false);
+                        allworldobj.AddRange(wol);
+                    }
+                }
+            }
+            return allworldobj;
+        }
+
+        public List<WorldObject> GetWorldObjectsByGuid(ObjectGuid objectguid, bool neighbors)
+        {
+            List<WorldObject> allworldobj = new List<WorldObject>();
+            lock (objectCacheLocker)
+            {
+                allworldobj = this.worldObjects.Values.ToList();
+            }
+            allworldobj = allworldobj.Where(o => o.Guid == objectguid).ToList();
+
+            // todo: verify if a object can only exsist on one landblock at a time..
+            // if so then we can stop right here, we found it, for now we will resume and assume the worst.
+            // a object can be on any landblock around you.
+
+            if (neighbors)
+            {
+                foreach (var block in adjacencies)
+                {
+                    if (block.Value != null)
+                    {
+                        List<WorldObject> wol = null;
+                        wol = block.Value.GetWorldObjectsByGuid(objectguid, false);
+                        allworldobj.AddRange(wol);
+                    }
+                }
+            }
+            return allworldobj;
         }
 
         public WorldObject GetWorldObject(ObjectGuid objectId)
@@ -267,6 +344,12 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
+        public void HandleDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
+        {
+            BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(sender, deathMessageArgs);
+            Broadcast(args, false, Quadrant.All);
+        }
+
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
@@ -282,81 +365,60 @@ namespace ACE.Entity
                 players = this.worldObjects.Values.OfType<Player>().ToList();
             }
 
-            // filter to applicable players
-            players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
-
             switch (args.ActionType)
             {
                 case BroadcastAction.Delete:
                     {
-                        Parallel.ForEach(players, p => p.StopTrackingObject(wo));
+                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+                        Parallel.ForEach(players, p => p.StopTrackingObject(wo, true));
                         break;
                     }
                 case BroadcastAction.AddOrUpdate:
                     {
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         // players never need an update of themselves
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
+
                         Parallel.ForEach(players, p => p.TrackObject(wo));
                         break;
                     }
                 case BroadcastAction.LocalChat:
                     {
-                        // TODO: implement range dectection for chat events
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
                         break;
                     }
                 case BroadcastAction.PlaySound:
                     {
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
                         break;
                     }
                 case BroadcastAction.PlayParticleEffect:
                     {
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
                         break;
                     }
                 case BroadcastAction.MovementEvent:
                     {
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
                     }
-            }
-
-            // short circuit when there's no functional adjacency
-            if (!propogate || wo?.Location?.LandblockId.MapScope != Enum.MapScope.Outdoors)
-                return;
-
-            if (propogate)
-            {
-                Log($"propogating broadcasting object {args.Sender.Guid.Full.ToString("X")} - {args.ActionType} to adjacencies");
-
-                if (wo.Location.PositionX < adjacencyLoadRange)
-                {
-                    WestAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.SouthEast);
-
-                    if (wo.Location.PositionY < adjacencyLoadRange)
-                        SouthWestAdjacency?.Broadcast(args, false, Quadrant.NorthEast);
-
-                    if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
-                        NorthWestAdjacency?.Broadcast(args, false, Quadrant.SouthEast);
-                }
-
-                if (wo.Location.PositionY < adjacencyLoadRange)
-                    SouthAdjacency?.Broadcast(args, false, Quadrant.NorthEast | Quadrant.NorthWest);
-
-                if (wo.Location.PositionX > (maxXY - adjacencyLoadRange))
-                {
-                    EastAdjacency?.Broadcast(args, false, Quadrant.NorthWest | Quadrant.SouthWest);
-
-                    if (wo.Location.PositionY < adjacencyLoadRange)
-                        SouthEastAdjacency?.Broadcast(args, false, Quadrant.NorthWest);
-
-                    if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
-                        NorthEastAdjacency?.Broadcast(args, false, Quadrant.SouthWest);
-                }
-
-                if (wo.Location.PositionY > (maxXY - adjacencyLoadRange))
-                    NorthAdjacency?.Broadcast(args, false, Quadrant.SouthEast | Quadrant.SouthWest);
+                case BroadcastAction.BroadcastDeath:
+                    {
+                        // players never need an update of themselves
+                        // TODO: Filter to players in range and include adjacencies
+                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
+                        Parallel.ForEach(players, p => p.BroadcastPlayerDeath(args.DeathMessage.Message, args.DeathMessage.Victim, args.DeathMessage.Killer));
+                        break;
+                    }
             }
         }
 
@@ -369,25 +431,30 @@ namespace ACE.Entity
             {
                 // here we'd move server objects in motion (subject to landscape) and do physics collision detection
 
-                // for now, we'll move players around
+                List<WorldObject> allworldobj = null;
+                List<Player> allplayers = null;
                 List<WorldObject> movedObjects = null;
-                List<Player> players = null;
                 List<WorldObject> despawnObjects = null;
                 List<Creature> deadCreatures = null;
 
                 lock (objectCacheLocker)
                 {
-                    movedObjects = this.worldObjects.Values.OfType<WorldObject>().ToList();
-                    players = this.worldObjects.Values.OfType<Player>().ToList();
-                    despawnObjects = this.worldObjects.Values.ToList();
-                    deadCreatures = this.worldObjects.Values.OfType<Creature>().ToList();
+                    allworldobj = this.worldObjects.Values.ToList();    
                 }
 
-                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
+                // all players on this land block
+                allplayers = allworldobj.OfType<Player>().ToList();
+
+                despawnObjects = allworldobj.ToList();
                 despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
+
+                deadCreatures = allworldobj.OfType<Creature>().ToList();
                 deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
+                // this is only for moving objects across landblocks.
+                movedObjects = allworldobj.ToList();
+                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
                 if (this.id.MapScope == Enum.MapScope.Outdoors)
@@ -409,9 +476,42 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
                 }
 
-                // broadcast
+                // for all players on landblock.
+                Parallel.ForEach(allplayers, player =>
+                {
+                    // Process Action Que for player.
+                    QueuedGameAction action = player.ActionQueuePop();
+                    if (action != null)
+                        HandleGameAction(action, player);
+                });
+
+                // broadcast moving objects to the world..
+                // players and creatures can move.
                 Parallel.ForEach(movedObjects, mo =>
                 {
+                    // detect all world objects in ghost range 
+                    List<WorldObject> woproxghost = new List<WorldObject>();
+                    woproxghost.AddRange(GetWorldObjectsInRange(mo, maxobjectGhostRange, true));
+
+                    // for all objects in rang of this moving object or in ghost range of moving object update them.
+                    Parallel.ForEach(woproxghost, wo =>
+                    {
+                        if (mo.Guid.IsPlayer())
+                        {
+                            // if world object is in active zone then.
+                            if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
+                            {
+                                // if world object is in active zone.
+                                if (!(mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                                    (mo as Player).TrackObject(wo);
+                            }
+                            // if world object is in ghost zone and outside of active zone
+                            else
+                                if ((mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                                (mo as Player).StopTrackingObject(wo, true);
+                        }
+                    });
+
                     if (mo.Location.LandblockId == this.id)
                     {
                         // update if it's still here
@@ -424,17 +524,6 @@ namespace ACE.Entity
                         LandblockManager.AddObject(mo);
                     }
                 });
-
-                // TODO: figure out if this landblock can be unloaded
-
-                // process player action queues
-                foreach (Player p in players)
-                {
-                    QueuedGameAction action = p.ActionQueuePop();
-
-                    if (action != null)
-                        HandleGameAction(action, p);
-                }
 
                 // despawn objects
                 despawnObjects.ForEach(deo => 
@@ -466,6 +555,29 @@ namespace ACE.Entity
         {
             switch (action.ActionType)
             {
+                case GameActionType.TalkDirect:
+                    {
+                        // TODO: remove this hack (using TalkDirect) ASAP
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        DeathMessageArgs d = new DeathMessageArgs(action.ActionBroadcastMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
+                        HandleDeathMessage(obj, d);
+                        break;
+                    }
+                case GameActionType.TeleToHouse:
+                case GameActionType.TeleToLifestone:
+                case GameActionType.TeleToMansion:
+                case GameActionType.TeleToMarketPlace:
+                case GameActionType.TeleToPkArena:
+                case GameActionType.TeleToPklArena:
+                    {
+                        player.Teleport(action.ActionLocation);
+                        break;
+                    }
                 case GameActionType.ApplyVisualEffect:
                     {
                         var g = new ObjectGuid(action.ObjectId);

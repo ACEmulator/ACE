@@ -31,6 +31,8 @@
         DisplayStatusMessage                = 0x028A,
         DisplayParameterizedStatusMessage   = 0x028B,
         SetTurbineChatChannels              = 0x0295,
-        Tell                                = 0x02BD
+        Tell                                = 0x02BD,
+
+        PurgeAllEnchantments                = 0x02C6 // Silent upon death
     }
 }

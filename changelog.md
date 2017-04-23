@@ -1,4 +1,29 @@
 # ACEmulator Change Log
+### 2017-04-22
+[OptimShi]
+* Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
+* Added GetPaletteId() function to PaletteSet. Helps clean up some of the redundancy in the player loading code.
+* Added ClothingTable class to the DatLoader system (0x10 items in the portal.dat) and several related sub-classes.
+* Added a PreparedStatement to CharacterDatabase to load the character_starup_gear
+* Dressed character in the chosen startup gear. This is currently only cosmetic and unremovable.
+* Fixed a bug where certain types of Tumeroks and Undead did not have the right body style (CSetup) applied.
+
+### 2017-04-21
+[Jyrus]
+* Fixed QX, QY, QZ, and QW mappings to the correct fields in the database to allow facing to work correctly
+* Add 88 more working portal destinations, including most of the Town Network
+
+[fantoms]
+* Removed `@reset-pos` after it was incorrectly re-added in another members commit.\
+
+[StackOverFlow]
+* Added Landblock Streaming Objects.
+
+[Ripley]
+* Kill `Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));` until we get proper movement implemented.
+
+[fantoms]
+* Removed `@reset-pos` after it was incorrectly re-added in another members commit.
 
 ### 2017-04-22
 [Lidefeath]
@@ -15,10 +40,14 @@
 * Fixed PackedDWORD logic
 
 [Ripley]
+* Filled out Portal object and included ObjScale.
 * Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
 ### 2017-04-19
+[Mogwai-AC]
+* Added PackedDWORD
+
 [Ripley]
 * Changed WeenieClassid and Icon to use PackedDWORD in WorldObject.SerializeCreateObject
 * Updated PhysicsData to create and send a new currentMotionState when encountering a null one when flag PhysicsDescriptionFlag.Movement is set.
@@ -51,12 +80,6 @@
 * Added checks to prevent missing Positions in the database from crashing the server or preventing character load.
 * Removed Lastportal from Position creation, as it will be created on demand when portals are introduced.
 
-### 2017-04-13
-[Og II]
-* Completed conversion to Action Queue
-* Cleaned up a lot of sloppy code
-* To test ctw me - drop the wand, pick it back up repeat.
-
 ### 2017-04-15
 [Ripley]
 * Updated CommandManager and CommandHandlerAttribute to support description and usage for help commands.
@@ -64,6 +87,18 @@
 * Added description and usage information to commands currently implemented.
 * Added sending chat messages to inform players upon logging in-game about the existence of ACE specific help.
 * Updated GameActionTalk to return better information when a command is invalid or is missing parameters.
+
+[fantoms]
+* Added `Queued` Teleporting.
+* Added landblock death message broadcasting.
+* Added lame static player death messages.
+* Now saves last death position in character positions.
+* Added Psuedo Event Action for internal ACE `GameActionEvent = 0xF819`.
+* Updated `GameEventYourDeath`.
+* Added `PlayerKilled` GameMessage type and handling.
+* Added `NumDeaths`, `DeathLevel`, and `VitaeCpPool` to character properties.
+* Added `PurgeAllEnchantments` GameEvent.
+* Updated `Player.Kill()` to update properties.
 
 ### 2017-04-14
 [Lidefeath]
@@ -74,6 +109,12 @@
 * Enhance GameActionQueue to handle delayed actions, so animations have time to play
 * Define two GameActionTypes for CreateObject and DeleteObject so they can be used with the delayed GameActionQueue
 * Creature Guids now start with 0x90 instead of 0x80 to separate them from items 
+
+### 2017-04-13
+[Og II]
+* Completed conversion to Action Queue
+* Cleaned up a lot of sloppy code
+* To test ctw me - drop the wand, pick it back up repeat.
 
 ### 2017-04-12
 [OptimShi]
