@@ -60,6 +60,11 @@ namespace ACE.Entity
         /// </summary>
         public double LastStateChangeTicks { get; set; }
 
+        /// <summary>
+        /// Last Streaming Object change tick
+        /// </summary>
+        public double LastStreamingObjectChange { get; set; }
+
         private Character character;
 
         private object clientObjectMutex = new object();
@@ -191,6 +196,17 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+        }
+
+        /// <summary>
+        ///  Gets a list of Tracked Objects.
+        /// </summary>
+        public List<ObjectGuid> GetTrackedObjectGuids()
+        {
+            lock (clientObjectMutex)
+            {
+                return clientObjectList.Select(x => x.Key).ToList();
+            }
         }
 
         public async Task Load(Character preloadedCharacter = null)
@@ -1163,7 +1179,6 @@ namespace ACE.Entity
             lock (clientObjectMutex)
             {
                 clientObjectList.Clear();
-
                 Session.Player.Location = newPosition;
                 SetPhysicalCharacterPosition();
             }
@@ -1227,20 +1242,11 @@ namespace ACE.Entity
             {
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
-                // check for a short circuit.  if we don't need to update, don't!
-                // TODO: Fix this
-                // I had to comment this optimization out for the moment - not sure how it works but it never lets us update or add. Og
-
-                // if (sendUpdate)
-                //   if (worldObject.LastUpdatedTicks < clientObjectList[worldObject.Guid])
-                //       return;
-
                 if (!sendUpdate)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
                     worldObject.PlayScript(this.Session);
                 }
-
                 else
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
@@ -1292,20 +1298,19 @@ namespace ACE.Entity
             }
         }
 
-        public void StopTrackingObject(WorldObject worldObject)
+        public void StopTrackingObject(WorldObject worldObject, bool remove)
         {
             bool sendUpdate = true;
             lock (clientObjectMutex)
             {
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
-
-                if (!sendUpdate)
+                if (sendUpdate)
                 {
                     clientObjectList.Remove(worldObject.Guid);
                 }
             }
 
-            if (sendUpdate)
+            if (sendUpdate & remove)
             {
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
             }
