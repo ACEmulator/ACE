@@ -26,7 +26,7 @@ namespace ACE.DatLoader.Entity
 
         public Generator GetNextGenerator(DatReader datReader)
         {
-            Name = datReader.ReadOString();
+            Name = datReader.ReadObfuscatedString();
             datReader.AlignBoundary();
             Id = datReader.ReadInt32();
             Count = datReader.ReadInt32();

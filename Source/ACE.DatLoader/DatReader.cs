@@ -108,7 +108,7 @@ namespace ACE.DatLoader
         /// <summary>
         /// Returns a string as defined by the first byte's length and removes the obfuscation
         /// </summary>
-        public string ReadOString()
+        public string ReadObfuscatedString()
         {
             int stringlength = this.ReadByte();
             Offset += 1; // unknown, seems to be mostly 00

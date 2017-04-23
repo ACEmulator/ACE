@@ -19,6 +19,7 @@ namespace ACE.DatLoader.FileTypes
             Generator gen = new Generator();
 
             gen.Id = datReader.ReadInt32();
+            gen.Name = "0E00000D";
             gen.Count = 2;
             datReader.Offset = 16;
 
