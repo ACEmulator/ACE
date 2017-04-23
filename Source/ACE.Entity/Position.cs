@@ -174,11 +174,11 @@
             float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
-            // Offset 
+            // Offset
             PositionX = xOffset;
             PositionY = yOffset;
             PositionZ = zOffset;
-            // Facing 
+            // Facing
             RotationX = 0.0f;
             RotationY = 0.0f;
             RotationZ = 0.0f;
@@ -252,7 +252,7 @@
                 payload.Write(RotationZ);
             }
         }
-        
+
         private float GetZFromCellXY(uint cell, float xOffset, float yOffset)
         {
             // TODO: Load correct z from file

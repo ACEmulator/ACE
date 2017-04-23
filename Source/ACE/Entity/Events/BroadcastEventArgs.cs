@@ -64,6 +64,16 @@ namespace ACE.Entity.Events
             };
         }
 
+        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, ServerControlMotion motion)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.MovementEvent,
+                Sender = sender,
+                ServerControlMotion = motion
+            };
+        }
+
         public static BroadcastEventArgs CreateDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
         {
             return new BroadcastEventArgs()
@@ -85,6 +95,7 @@ namespace ACE.Entity.Events
         public PlayScript Effect { get; private set; }
 
         public GeneralMotion Motion { get; private set; }
+        public ServerControlMotion ServerControlMotion { get; private set; }
 
         public DeathMessageArgs DeathMessage { get; private set; }
     }
