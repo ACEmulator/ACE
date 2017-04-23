@@ -33,16 +33,16 @@ namespace ACE.Entity
         public float PosZ { get; set; }
 
         [DbField("qx", (int)MySqlDbType.Float)]
-        public float QW { get; set; }
-
-        [DbField("qy", (int)MySqlDbType.Float)]
         public float QX { get; set; }
 
-        [DbField("qz", (int)MySqlDbType.Float)]
+        [DbField("qy", (int)MySqlDbType.Float)]
         public float QY { get; set; }
 
-        [DbField("qw", (int)MySqlDbType.Float)]
+        [DbField("qz", (int)MySqlDbType.Float)]
         public float QZ { get; set; }
+
+        [DbField("qw", (int)MySqlDbType.Float)]
+        public float QW { get; set; }
 
         [DbField("min_lvl", (int)MySqlDbType.UInt32)]
         public uint MinLvl { get; set; }
