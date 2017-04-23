@@ -803,17 +803,17 @@ namespace ACE.Entity
                                                                 uint playerLandblockId = player.Location.LandblockId.Raw;
                                                                 switch (playerLandblockId)
                                                                 {
-                                                                    case 0x7f0301ad:    // Shoushi
+                                                                    case 0x7f030273:    // Shoushi
                                                                         {
                                                                             portalDest.LandblockId = new LandblockId(0x7f03021e);
                                                                             break;
                                                                         }
-                                                                    case 0x8c0401ad:    // Yaraq
+                                                                    case 0x8c040273:    // Yaraq
                                                                         {
                                                                             portalDest.LandblockId = new LandblockId(0x8c04021e);
                                                                             break;
                                                                         }
-                                                                    case 0x720301ad:    // Sanamar
+                                                                    case 0x72030273:    // Sanamar
                                                                         {
                                                                             portalDest.LandblockId = new LandblockId(0x7203021e);
                                                                             break;
@@ -842,24 +842,24 @@ namespace ACE.Entity
                                                                 uint playerLandblockId = player.Location.LandblockId.Raw;
                                                                 switch (playerLandblockId)
                                                                 {
-                                                                    case 0x7f0301ad:    // Shoushi
+                                                                    case 0x7f030331:    // Shoushi
                                                                         {
-                                                                            portalDest.LandblockId = new LandblockId(0x7f03021e);
+                                                                            portalDest.LandblockId = new LandblockId(0x7f0302c3);
                                                                             break;
                                                                         }
-                                                                    case 0x8c0401ad:    // Yaraq
+                                                                    case 0x8c040331:    // Yaraq
                                                                         {
-                                                                            portalDest.LandblockId = new LandblockId(0x8c04021e);
+                                                                            portalDest.LandblockId = new LandblockId(0x8c0402c3);
                                                                             break;
                                                                         }
-                                                                    case 0x720301ad:    // Sanamar
+                                                                    case 0x72030331:    // Sanamar
                                                                         {
-                                                                            portalDest.LandblockId = new LandblockId(0x7203021e);
+                                                                            portalDest.LandblockId = new LandblockId(0x720302c3);
                                                                             break;
                                                                         }
                                                                     default:            // Holtburg
                                                                         {
-                                                                            portalDest.LandblockId = new LandblockId(0x8603021e);
+                                                                            portalDest.LandblockId = new LandblockId(0x860302c3);
                                                                             break;
                                                                         }
                                                                 }
