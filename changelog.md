@@ -5,11 +5,16 @@
 * Add 88 more working portal destinations, including most of the Town Network
 
 [fantoms]
-* Removed `@reset-pos` after it was incorrectly re-added in another members commit.
+* Removed `@reset-pos` after it was incorrectly re-added in another members commit.\
 
-### 2017-04-21
+[StackOverFlow]
+* Added Landblock Streaming Objects.
+
 [Ripley]
 * Kill `Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));` until we get proper movement implemented.
+
+[fantoms]
+* Removed `@reset-pos` after it was incorrectly re-added in another members commit.
 
 ### 2017-04-20
 [Lidefeath]
@@ -60,12 +65,6 @@
 * Added checks to prevent missing Positions in the database from crashing the server or preventing character load.
 * Removed Lastportal from Position creation, as it will be created on demand when portals are introduced.
 
-### 2017-04-13
-[Og II]
-* Completed conversion to Action Queue
-* Cleaned up a lot of sloppy code
-* To test ctw me - drop the wand, pick it back up repeat.
-
 ### 2017-04-15
 [Ripley]
 * Updated CommandManager and CommandHandlerAttribute to support description and usage for help commands.
@@ -95,6 +94,12 @@
 * Enhance GameActionQueue to handle delayed actions, so animations have time to play
 * Define two GameActionTypes for CreateObject and DeleteObject so they can be used with the delayed GameActionQueue
 * Creature Guids now start with 0x90 instead of 0x80 to separate them from items 
+
+### 2017-04-13
+[Og II]
+* Completed conversion to Action Queue
+* Cleaned up a lot of sloppy code
+* To test ctw me - drop the wand, pick it back up repeat.
 
 ### 2017-04-12
 [OptimShi]
