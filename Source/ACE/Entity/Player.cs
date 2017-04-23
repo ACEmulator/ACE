@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -684,7 +684,18 @@ namespace ACE.Entity
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
-                Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);
+
+                // This seems to be needed to keep health up to date properly.
+                // Needed when increasing health and endurance.
+                if (ability == Enum.Ability.Endurance)
+                {
+                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Enum.Ability.Health, Health.Ranks, Health.Base, Health.ExperienceSpent, Health.Current);
+                    Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, healthUpdate);
+                }
+                else
+                {
+                    Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);
+                }
             }
             else
             {

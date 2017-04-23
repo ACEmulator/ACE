@@ -142,22 +142,22 @@ namespace ACE.Entity
         }
 
         public uint Strength
-        { get { return StrengthAbility.Current; } }
+        { get { return StrengthAbility.UnbuffedValue; } }
 
         public uint Endurance
-        { get { return EnduranceAbility.Current; } }
+        { get { return EnduranceAbility.UnbuffedValue; } }
 
         public uint Coordination
-        { get { return CoordinationAbility.Current; } }
+        { get { return CoordinationAbility.UnbuffedValue; } }
 
         public uint Quickness
-        { get { return QuicknessAbility.Current; } }
+        { get { return QuicknessAbility.UnbuffedValue; } }
 
         public uint Focus
-        { get { return FocusAbility.Current; } }
+        { get { return FocusAbility.UnbuffedValue; } }
 
         public uint Self
-        { get { return SelfAbility.Current; } }
+        { get { return SelfAbility.UnbuffedValue; } }
 
         public ReadOnlyDictionary<Enum.Ability, CreatureAbility> Abilities;
 

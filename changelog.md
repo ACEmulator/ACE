@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+### 2017-04-23
+[fantoms]
+* Changed the `Character` Stats from the `Current` `ICreatureStats` interface member, too `UnbuffedValue` in attempt at fixing the Player Vitals.
+* Added a Health Update game message after the abilities skill spend, too synchronize Player health/stam after spending experience points on `Endurance`.
+* `@heal` should now work.
+
 ### 2017-04-22
 [OptimShi]
 * Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
