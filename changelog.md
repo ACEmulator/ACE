@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-04-23
+[Jyrus]
+* Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal
+* Change UseItem for portals to route the portals correctly in the four Training Academy dungeon versions and implement level requirements for portals
+
 ### 2017-04-22
 [OptimShi]
 * Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
