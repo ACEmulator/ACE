@@ -23,5 +23,26 @@ namespace ACE.DatLoader.Entity
 
             return p;
         }
+
+        /// <summary>
+        /// Returns the palette ID (uint, 0x04 file) from the Palette list based on the corresponding hue
+        /// Hue is mostly (only?) used in Character Creation data.
+        /// "Hue" referred to as "shade" in acclient.c
+        /// </summary>
+        public uint GetPaletteID(double hue)
+        {
+            // Make sure the PaletteList has valid data and the hue is within valid ranges
+            if (this.PaletteList.Count == 0 || hue < 0 || hue > 1)
+                return 0;
+
+            // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
+            int palIndex = Convert.ToInt32(Convert.ToDouble(this.PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
+                                                                                                       // Since the hue numbers are a little odd, make sure we're in the bounds.
+            if (palIndex < 0)
+                palIndex = 0;
+            if (palIndex > this.PaletteList.Count - 1)
+                palIndex = this.PaletteList.Count - 1;
+            return this.PaletteList[palIndex];
+        }
     }
 }

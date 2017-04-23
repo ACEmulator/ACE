@@ -1,4 +1,13 @@
 # ACEmulator Change Log
+### 2017-04-22
+[OptimShi]
+* Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
+* Added GetPaletteId() function to PaletteSet. Helps clean up some of the redundancy in the player loading code.
+* Added ClothingTable class to the DatLoader system (0x10 items in the portal.dat) and several related sub-classes.
+* Added a PreparedStatement to CharacterDatabase to load the character_starup_gear
+* Dressed character in the chosen startup gear. This is currently only cosmetic and unremovable.
+* Fixed a bug where certain types of Tumeroks and Undead did not have the right body style (CSetup) applied.
+
 ### 2017-04-21
 [Jyrus]
 * Fixed QX, QY, QZ, and QW mappings to the correct fields in the database to allow facing to work correctly

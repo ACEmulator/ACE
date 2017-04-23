@@ -10,6 +10,9 @@ namespace ACE.DatLoader.Entity
     /// These are client_portal.dat files starting with 0x02. 
     /// They are basically 3D model descriptions.
     /// </summary>
+    /// <remarks>
+    /// A big huge thank you to "Pea" for his trailblazing work on decoding this structure. Without his work on this, we might still be decoding models on cave walls.
+    /// </remarks>
     public class SetupModel
     {
         public uint ModelId { get; set; }

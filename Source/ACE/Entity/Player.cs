@@ -267,6 +267,10 @@ namespace ACE.Entity
                 HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
                 bool isBald = hairstyle.Bald;
 
+                // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+                if (hairstyle.AlternateSetup > 0)
+                    PhysicsData.CSetup = hairstyle.AlternateSetup;
+
                 // Apply the hair models & texture changes
                 for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
                     ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
@@ -282,9 +286,6 @@ namespace ACE.Entity
                 for (int i = 0; i < eyes.TextureChanges.Count; i++)
                     ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
 
-                // Eye color palette
-                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
-
                 // Nose only has Texture Changes
                 ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
                 for (int i = 0; i < nose.TextureChanges.Count; i++)
@@ -294,30 +295,156 @@ namespace ACE.Entity
                 ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
                 for (int i = 0; i < mouth.TextureChanges.Count; i++)
                     ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
+                
+                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
+                ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
+                // Apply the skin palette...
+                ModelData.AddPalette(skinPal, 0x0, 0x18);
 
                 // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
-                // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-                int hairPalIndex = Convert.ToInt32(Convert.ToDouble(hairPalSet.PaletteList.Count - 0.000001) * character.Appearance.HairHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                // Since the hue numbers are a little odd, make sure we're in the bounds.
-                if (hairPalIndex < 0)
-                    hairPalIndex = 0;
-                if (hairPalIndex > hairPalSet.PaletteList.Count - 1)
-                    hairPalIndex = hairPalSet.PaletteList.Count - 1;
-                ushort hairPal = (ushort)(hairPalSet.PaletteList[hairPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
+                ushort hairPal = (ushort)hairPalSet.GetPaletteID(character.Appearance.HairHue);
                 ModelData.AddPalette(hairPal, 0x18, 0x8);
 
-                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
-                int skinPalIndex = Convert.ToInt32((skinPalSet.PaletteList.Count - 0.000001) * character.Appearance.SkinHue); // Taken from acclient.c (PalSet::GetPaletteID)
-                // Since the hue numbers are a little odd, make sure we're in the bounds.
-                if (skinPalIndex < 0)
-                    skinPalIndex = 0;
-                if (skinPalIndex > skinPalSet.PaletteList.Count - 1)
-                    skinPalIndex = skinPalSet.PaletteList.Count - 1;
-                ushort skinPal = (ushort)(skinPalSet.PaletteList[skinPalIndex] & 0xFFFF); // Convert from 0x04001234 to just 0x1234
-                // Apply the skin palette...
-                ModelData.AddPalette(skinPal, 0x0, 0x18);
+                // Eye color palette
+                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
+
+                // Get the character's startup gear.
+                // TODO: Load the proper inventory/equipment options once that system is created.
+                if (character.Appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
+                {
+                    uint headgearTableID = sex.HeadgearList[Convert.ToInt32(character.Appearance.HeadgearStyle)].ClothingTable;
+                    ClothingTable headCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(headgearTableID));
+                    if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                    {
+                        // Add the model and texture(s)
+                        ClothingBaseEffect headCBE = headCT.ClothingBaseEffects[sex.SetupID];
+                        for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
+                        {
+                            byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
+                            ModelData.AddModel((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].ModelId);
+
+                            for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                                ModelData.AddTexture((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                        }
+
+                        // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                        CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[character.Appearance.HeadgearColor];
+                        for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
+                        {
+                            PaletteSet headgearPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(headSubPal.CloSubPalettes[i].PaletteSet));
+                            ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(character.Appearance.HeadgearHue);
+
+                            for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                            {
+                                uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                ModelData.AddPalette(headgearPal, (ushort)palOffset, (ushort)numColors);
+                            }
+                        }
+                    }
+                }
+
+                // Get the character's initial pants
+                uint pantsTableID = sex.PantsList[Convert.ToInt32(character.Appearance.PantsStyle)].ClothingTable;
+                ClothingTable pantsCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(pantsTableID));
+                if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                {
+                    ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
+                    for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
+                    {
+                        byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
+                        ModelData.AddModel((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].ModelId);
+
+                        for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                            ModelData.AddTexture((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                    }
+
+                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                    CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[character.Appearance.PantsColor];
+                    for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet pantsPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(pantsSubPal.CloSubPalettes[i].PaletteSet));
+                        ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(character.Appearance.PantsHue);
+
+                        for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ModelData.AddPalette(pantsPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                } // end pants
+
+                // Get the character's initial shirt
+                uint shirtTableID = sex.ShirtList[Convert.ToInt32(character.Appearance.ShirtStyle)].ClothingTable;
+                ClothingTable shirtCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(shirtTableID));
+                if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                {
+                    ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
+                    for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
+                    {
+                        byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
+                        ModelData.AddModel((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].ModelId);
+
+                        for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                            ModelData.AddTexture((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                    }
+
+                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+
+                    if (shirtCT.ClothingSubPalEffects.ContainsKey(character.Appearance.ShirtColor))
+                    {
+                        CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[character.Appearance.ShirtColor];
+                        for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
+                        {
+                            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(shirtSubPal.CloSubPalettes[i].PaletteSet));
+                            ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(character.Appearance.ShirtHue);
+
+                            if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
+                            {
+                                for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                {
+                                    uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                    uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                    ModelData.AddPalette(shirtPal, (ushort)palOffset, (ushort)numColors);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Get the character's initial footwear
+                uint footwearTableID = sex.FootwearList[Convert.ToInt32(character.Appearance.FootwearStyle)].ClothingTable;
+                ClothingTable footwearCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(footwearTableID));
+                if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                {
+                    ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
+                    for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
+                    {
+                        byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
+                        ModelData.AddModel((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].ModelId);
+
+                        for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                            ModelData.AddTexture((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                    }
+
+                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                    CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[character.Appearance.FootwearColor];
+                    for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet footwearPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(footwearSubPal.CloSubPalettes[i].PaletteSet));
+                        ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(character.Appearance.FootwearHue);
+
+                        for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                } // end footwear
             }
 
             IsOnline = true;
