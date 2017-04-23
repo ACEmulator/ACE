@@ -17,8 +17,8 @@ namespace ACE.Command.Handlers
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
-        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 
-            "Send text back to yourself.", 
+        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Send text back to yourself.",
             "\"text to send back to yourself\" [ChatMessageType]\n" +
             "ChatMessageType can be a uint or enum name")]
         public static void HandleDebugEcho(Session session, params string[] parameters)
@@ -214,14 +214,14 @@ namespace ACE.Command.Handlers
             var movement = new GeneralMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
-            movement = new GeneralMotion(MotionStance.Standing);            
+            movement = new GeneralMotion(MotionStance.Standing);
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
              "Used to test the MoveToObject message.   It will spawn a training wand in front of you and then move to that object.",
-            "moveto\n" + 
+            "moveto\n" +
             "optional parameter distance if omitted 10f")]
         public static void MoveTo(Session session, params string[] parameters)
         {
@@ -231,12 +231,13 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
-            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);                          
+            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));                    
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
         }
 
-        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Teleports you to current position with PositionZ set to +8000.")]
         public static void SpaceJump(Session session, params string[] parameters)
         {
             Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
@@ -330,12 +331,12 @@ namespace ACE.Command.Handlers
                 {
                     case "me":
                         {
-                            LootGenerationFactory.AddToContainer(loot, session.Player);                                                
+                            LootGenerationFactory.AddToContainer(loot, session.Player);
                             break;
                         }
                     case "ground":
                         {
-                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));                                                        
+                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
                             break;
                         }
                 }
@@ -416,7 +417,7 @@ namespace ACE.Command.Handlers
                 }
                 else
                 {
-                    ChatPacket.SendServerMessage(session, "Specify a valid weenieClassId after the static option.", 
+                    ChatPacket.SendServerMessage(session, "Specify a valid weenieClassId after the static option.",
                         ChatMessageType.Broadcast);
                     return;
                 }
@@ -426,7 +427,7 @@ namespace ACE.Command.Handlers
                 uint weenie = Convert.ToUInt32(parameters[0]);
                 newC = MonsterFactory.SpawnCreature(weenie, false, session.Player.Location.InFrontOf(2.0f));
             }
-            
+
             if (newC != null)
             {
                 ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}.",
