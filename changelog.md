@@ -1,7 +1,13 @@
 # ACEmulator Change Log
 ### 2017-04-23
+[fantoms]
+* Changed the `Character` Stats from the `Current` `ICreatureStats` interface member, too `UnbuffedValue` in attempt at fixing the Player Vitals.
+* Added a Health Update game message after the abilities skill spend, too synchronize Player health/stam after spending experience points on `Endurance`.
+* `@heal` should now work.
+
 [MiachofTD]
 * Added 64 ports in the destination_portal for Gharu towns. 
+
 
 ### 2017-04-22
 [OptimShi]
