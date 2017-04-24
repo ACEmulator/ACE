@@ -10,7 +10,8 @@ namespace ACE.Network.Motion
 {
     public abstract class MotionState
     {
-        public bool IsAutonomous { get; }
+        public bool IsAutonomous { get; set; }
+
         public virtual byte[] GetPayload(WorldObject animationTarget)
         {
             return null;

@@ -218,8 +218,23 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
-        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Teleports you to current position with PositionZ set to +8000.")]
+        // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
+        [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void MoveTo(Session session, params string[] parameters)
+        {
+            var distance = 10.0f;
+            if ((parameters?.Length > 0))
+                distance = Convert.ToInt16(parameters[0]);
+            var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
+            session.Player.TrackObject(loot);
+            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);
+            session.Player.PositionFlag &= ~UpdatePositionFlag.Placement;                    
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));                    
+        }
+
+        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void SpaceJump(Session session, params string[] parameters)
         {
             Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
@@ -308,23 +323,21 @@ namespace ACE.Command.Handlers
             string location = parameters[0];
             if (location == "me" | location == "ground")
             {
-                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
                 switch (location)
                 {
                     case "me":
                         {
-                            LootGenerationFactory.AddToContainer(loot, session.Player);
-                            session.Player.TrackObject(loot);
-                            // TODO: Have to send game message CFS
+                            LootGenerationFactory.AddToContainer(loot, session.Player);                                                
                             break;
                         }
                     case "ground":
                         {
-                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-                            LandblockManager.AddObject(loot);
+                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));                            
                             break;
                         }
                 }
+                session.Player.TrackObject(loot);
             }
             else
             {
