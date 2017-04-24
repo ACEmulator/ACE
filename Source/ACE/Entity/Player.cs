@@ -65,6 +65,14 @@ namespace ACE.Entity
         /// </summary>
         public double LastStreamingObjectChange { get; set; }
 
+        /// <summary>
+        /// Level of the player
+        /// </summary>
+        public uint Level
+        {
+            get { return character.Level; }
+        }
+
         private Character character;
 
         private object clientObjectMutex = new object();
