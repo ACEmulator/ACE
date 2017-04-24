@@ -1,8 +1,4 @@
 # ACEmulator Change Log
-### 2017-04-23
-[MiachofTD]
-* Added 64 ports in the destination_portal for Gharu towns.
-
 ### 2017-04-22
 [OptimShi]
 * Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
