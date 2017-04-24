@@ -62,7 +62,7 @@ namespace ACE.Network.GameMessages.Messages
         /// <param name="newState"></param>
         /// <param name="movementType"></param>
         /// <param name="runRate"></param>
-        public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, ServerControlMotion newState, MovementTypes movementType, float runRate = 1.0f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
+        public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, UniversalMotion newState, MovementTypes movementType, float runRate = 1.0f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
         {           
             Writer.WriteGuid(player.Guid); // Object_Id (uint)
             Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp

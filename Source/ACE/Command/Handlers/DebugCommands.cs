@@ -199,7 +199,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
+            UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
             session.Player.EnqueueMovementEvent(motion, session.Player.Guid);
         }
 
@@ -211,10 +211,10 @@ namespace ACE.Command.Handlers
             ushort forwardCommand = 24;
             if ((parameters?.Length > 0))
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
-            var movement = new GeneralMotion(MotionStance.Standing);
+            var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
-            movement = new GeneralMotion(MotionStance.Standing);
+            movement = new UniversalMotion(MotionStance.Standing);
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
         }
 
@@ -231,7 +231,7 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
-            var newMotion = new ServerControlMotion(MotionStance.Standing, loot);
+            var newMotion = new UniversalMotion(MotionStance.Standing, loot);
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
         }

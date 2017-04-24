@@ -54,23 +54,13 @@ namespace ACE.Entity.Events
             };
         }
 
-        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, GeneralMotion motion)
+        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, UniversalMotion motion)
         {
             return new BroadcastEventArgs()
             {
                 ActionType = BroadcastAction.MovementEvent,
                 Sender = sender,
                 Motion = motion
-            };
-        }
-
-        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, ServerControlMotion motion)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.MovementEvent,
-                Sender = sender,
-                ServerControlMotion = motion
             };
         }
 
@@ -94,9 +84,8 @@ namespace ACE.Entity.Events
 
         public PlayScript Effect { get; private set; }
 
-        public GeneralMotion Motion { get; private set; }
-        public ServerControlMotion ServerControlMotion { get; private set; }
-
+        public UniversalMotion Motion { get; private set; }
+        
         public DeathMessageArgs DeathMessage { get; private set; }
     }
 }

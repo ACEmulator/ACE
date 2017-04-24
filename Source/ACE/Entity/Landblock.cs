@@ -319,12 +319,7 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
-            Broadcast(args, true, Quadrant.All);
-        }
-        public void HandleMovementEvent(WorldObject sender, ServerControlMotion motion)
+        public void HandleMovementEvent(WorldObject sender, UniversalMotion motion)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
             Broadcast(args, true, Quadrant.All);
@@ -625,7 +620,7 @@ namespace ACE.Entity
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
                                 }
-                                var motion = new GeneralMotion(MotionStance.Standing);
+                                var motion = new UniversalMotion(MotionStance.Standing);
                                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
                                 aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer),
                                     new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
@@ -635,7 +630,7 @@ namespace ACE.Entity
                                 aPlayer.AddToInventory(inventoryItem);
                                 LandblockManager.RemoveObject(inventoryItem);
 
-                                motion = new GeneralMotion(MotionStance.Standing);
+                                motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbVal,
                                        aPlayer.GameData.Burden),
@@ -681,13 +676,13 @@ namespace ACE.Entity
                                             PropertyInt.EncumbVal,
                                             (uint)aPlayer.Session.Player.GameData.Burden));
 
-                                    var motion = new GeneralMotion(MotionStance.Standing);
+                                    var motion = new UniversalMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessageUpdateInstanceId(inventoryId, targetContainer));
 
-                                    motion = new GeneralMotion(MotionStance.Standing);
+                                    motion = new UniversalMotion(MotionStance.Standing);
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
@@ -833,7 +828,7 @@ namespace ACE.Entity
                                         // validate within use range
                                         float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
 
-                                        var motionSanctuary = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+                                        var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
                                         var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
 
