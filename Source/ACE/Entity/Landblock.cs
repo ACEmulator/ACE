@@ -21,6 +21,7 @@ using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Network.GameEvent;
 using System.Diagnostics;
+using ACE.Common;
 
 namespace ACE.Entity
 {
@@ -42,6 +43,7 @@ namespace ACE.Entity
         private const float maxobjectGhostRange = 40000;
 
         private LandblockId id;
+        private int playercount;
 
         private readonly object objectCacheLocker = new object();
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
@@ -55,6 +57,10 @@ namespace ACE.Entity
         // inherent functionality that needs to be modelled in an object.
         // private Landcell[,] cellGrid; // todo: load from cell.dat
 
+        private int row;
+        private int col;
+
+        public LandBlockStatusFlag LandBlockStatusKey = new LandBlockStatusFlag();
         private bool running = false;
 
         public LandblockId Id
@@ -62,9 +68,13 @@ namespace ACE.Entity
             get { return id; }
         }
 
-        public Landblock(LandblockId id)
+        public Landblock(LandblockId id, int r, int c)
         {
             this.id = id;
+            this.row = r;
+            this.col = c;
+
+            LandBlockStatusKey = LandBlockStatusFlag.IdleUnloaded;
 
             // initialize adjacency array
             this.adjacencies.Add(Adjacency.North, null);
@@ -75,6 +85,11 @@ namespace ACE.Entity
             this.adjacencies.Add(Adjacency.SouthWest, null);
             this.adjacencies.Add(Adjacency.West, null);
             this.adjacencies.Add(Adjacency.NorthWest, null);
+        }
+
+        public async void Load()
+        {
+            UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
@@ -105,6 +120,8 @@ namespace ACE.Entity
                     worldObjects.Add(c.Guid, c);
                 }
             }
+
+            UpdateStatus(LandBlockStatusFlag.IdleLoaded);
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -477,13 +494,16 @@ namespace ACE.Entity
                 }
 
                 // for all players on landblock.
+                int curplayer = 0;
                 Parallel.ForEach(allplayers, player =>
                 {
                     // Process Action Que for player.
                     QueuedGameAction action = player.ActionQueuePop();
                     if (action != null)
                         HandleGameAction(action, player);
+                    curplayer++;
                 });
+                UpdateStatus(curplayer);
 
                 // broadcast moving objects to the world..
                 // players and creatures can move.
@@ -851,6 +871,30 @@ namespace ACE.Entity
                         }
                         break;
                     }                    
+            }
+        }
+
+        private void UpdateStatus(LandBlockStatusFlag flag)
+        {
+            if (playercount > 0)
+            {
+                LandBlockStatusKey = flag;
+                Common.Diagnostics.SetLandBlockKey(row, col, LandBlockStatusFlag.InUseLow);
+            }
+        }
+
+        private void UpdateStatus(int pcount)
+        {
+            playercount = pcount;
+            if (playercount > 0)
+            {
+                LandBlockStatusKey = LandBlockStatusFlag.InUseLow;
+                Common.Diagnostics.SetLandBlockKey(row, col, LandBlockStatusKey);
+            }
+            else
+            {
+                LandBlockStatusKey = LandBlockStatusFlag.IdleLoaded;
+                Common.Diagnostics.SetLandBlockKey(row, col, LandBlockStatusKey);
             }
         }
 

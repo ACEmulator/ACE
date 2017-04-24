@@ -1,12 +1,11 @@
 ﻿using System;
-
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
-
 using log4net;
+using ACE.Common;
 
 namespace ACE.Managers
 {
@@ -86,7 +85,9 @@ namespace ACE.Managers
                     if (landblocks[x, y] == null)
                     {
                         // load up this landblock
-                        Landblock block = new Landblock(landblockId);
+                        Landblock block = new Landblock(landblockId, x, y);
+                        block.Load();
+
                         landblocks[x, y] = block;
                         bool autoLoad = propogate && landblockId.MapScope == Entity.Enum.MapScope.Outdoors;
 
@@ -157,6 +158,27 @@ namespace ACE.Managers
                 int inverse = (((int)adjacency) + 4) % 8; // go halfway around the horn (+4) and mod 8 to wrap around
                 Adjacency inverseAdjacency = (Adjacency)Enum.ToObject(typeof(Adjacency), inverse);
                 lb2.SetAdjacency(inverseAdjacency, lb1);
+            }
+        }
+
+        /// <summary>
+        /// Only to used with first loading the LandBlock Diagnostics tool.
+        /// </summary>
+        /// <returns>All LandBlockKeys Status Keys</returns>
+        public static void UpdateAllDiagnostics()
+        {
+            LandBlockStatusFlag[,] blocks = new LandBlockStatusFlag[256, 256];
+            for (int row = 0; row < 256; row++)
+            {
+                for (int col = 0; col < 256; col++)
+                {
+                    if (landblocks[col, row] != null)
+                    {
+                        LandBlockStatusFlag flag = new LandBlockStatusFlag();
+                        flag = landblocks[row, col].LandBlockStatusKey;
+                        Common.Diagnostics.SetLandBlockKey(col, row, flag);
+                    }
+                }
             }
         }
     }
