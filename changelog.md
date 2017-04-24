@@ -14,6 +14,11 @@
 * Removed PlayScript.Create from landblock respawn section. Players should not have that effect applied to them.
 
 ### 2017-04-23
+[Jyrus]
+* Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
+	Must use MySQL, SQLyog, or possibly HeidiSQL
+* Change UseItem for portals to route the portals correctly in the four Training Academy dungeon versions and implement level requirements for portals
+
 [fantoms]
 * Changed the `Character` Stats from the `Current` `ICreatureStats` interface member, too `UnbuffedValue` in attempt at fixing the Player Vitals.
 * Added a Health Update game message after the abilities skill spend, too synchronize Player health/stam after spending experience points on `Endurance`.
