@@ -171,7 +171,8 @@
 
             float xOffset = ((baseX & 7) * 24.0f) + 12;
             float yOffset = ((baseY & 7) * 24.0f) + 12;
-            float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
+            // float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
+            float zOffset = 0.0f;
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
             // Offset 

@@ -25,6 +25,12 @@ namespace ACE.Factories
                     case ObjectType.Portal:
                         results.Add(new Portal(aceO));
                         break;
+#if DEBUG
+                    default:
+                        // Use the DebugObject to assist in building proper objects for weenies
+                        results.Add(new DebugObject(aceO));
+                        break;
+#endif
                 }
             }
 
