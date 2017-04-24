@@ -101,6 +101,7 @@
     <Compile Include="Entity\CollidableObject.cs" />
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\Creature.cs" />
+    <Compile Include="Entity\DebugObject.cs" />
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\BroadcastEventArgs.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />

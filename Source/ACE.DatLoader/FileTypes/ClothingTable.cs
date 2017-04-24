@@ -23,19 +23,19 @@ namespace ACE.DatLoader.Entity
 
             uint numClothingEffects = datReader.ReadUInt16();
             datReader.Offset += 2;
-            for (uint i = 0; i<numClothingEffects; i++)
+            for (uint i = 0; i < numClothingEffects; i++)
             {
                 ClothingBaseEffect cb = new ClothingBaseEffect();
                 cb.SetupModel = datReader.ReadUInt32();
                 int numObjectEffects = datReader.ReadInt32();
-                for (int j = 0; j<numObjectEffects; j++)
+                for (int j = 0; j < numObjectEffects; j++)
                 {
                     CloObjectEffect cloObjEffect = new CloObjectEffect();
                     cloObjEffect.Index = datReader.ReadUInt32();
                     cloObjEffect.ModelId = datReader.ReadUInt32();
                     uint numTextureEffects = datReader.ReadUInt32();
 
-                    for( uint k = 0; k < numTextureEffects; k++)
+                    for (uint k = 0; k < numTextureEffects; k++)
                     {
                         CloTextureEffect cloTexEffect = new CloTextureEffect();
                         cloTexEffect.OldTexture = datReader.ReadUInt32();

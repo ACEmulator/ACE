@@ -560,7 +560,7 @@ namespace ACE.Entity
                     if (dc.RespawnTime < WorldManager.PortalYearTicks)
                     {
                         dc.IsAlive = true;
-                        HandleParticleEffectEvent(dc, PlayScript.Create);
+                        // HandleParticleEffectEvent(dc, PlayScript.Create);
                         this.AddWorldObject(dc);
                     }
                 });
