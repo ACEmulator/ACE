@@ -5,6 +5,10 @@
 * Added a Health Update game message after the abilities skill spend, too synchronize Player health/stam after spending experience points on `Endurance`.
 * `@heal` should now work.
 
+[MiachofTD]
+* Added 64 ports in the destination_portal for Gharu towns. 
+
+
 ### 2017-04-22
 [OptimShi]
 * Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
