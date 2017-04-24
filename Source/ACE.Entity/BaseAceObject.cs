@@ -183,6 +183,9 @@ namespace ACE.Entity
         [DbField("translucency", (int)MySqlDbType.Float)]
         public float Translucency { get; set; }
 
+        [DbField("currentMotionState", (int)MySqlDbType.Text)]
+        public string CurrentMotionState { get; set; }
+
         public List<PaletteOverride> PaletteOverrides { get; set; } = new List<PaletteOverride>();
 
         public List<TextureMapOverride> TextureOverrides { get; set; } = new List<TextureMapOverride>();
