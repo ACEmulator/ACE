@@ -38,8 +38,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
         public static void Diag(Session session, params string[] parameters)
         {
-            Common.Diagnostics.Init();
-            Managers.LandblockManager.UpdateAllDiagnostics();
+            Common.Diagnostics.LandBlockDiag = true;
             Diagnostics.Common.Monitor.ShowDialog();
         }
     }

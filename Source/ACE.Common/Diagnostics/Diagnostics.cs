@@ -3,13 +3,8 @@
     public static class Diagnostics
     {
         private static readonly object landBlockMutex = new object();
-        private static LandBlockStatusFlag[,] landBlockKeys;
+        private static LandBlockStatusFlag[,] landBlockKeys = new LandBlockStatusFlag[256, 256];
         public static bool LandBlockDiag = false;
-
-        public static void Init()
-        {
-            landBlockKeys = new LandBlockStatusFlag[256, 256];
-        }
 
         public static void SetLandBlockKeys(LandBlockStatusFlag[,] keys)
         {

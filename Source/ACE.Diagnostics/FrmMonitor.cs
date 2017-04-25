@@ -15,8 +15,7 @@ namespace ACE.Diagnostics
     {
         public FrmMonitor()
         {
-            InitializeComponent();
-            ACE.Common.Diagnostics.LandBlockDiag = true;           
+            InitializeComponent(); 
         }
 
         BackgroundWorker bwUpdateLandblockGrid = new BackgroundWorker();
@@ -41,7 +40,16 @@ namespace ACE.Diagnostics
         private void bwUpdateLandblockGrid_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            UpdateLandBlockDiag();
+
+            if (!ACE.Common.Diagnostics.LandBlockDiag)
+            {
+                worker.CancelAsync();
+            }
+
+            if (worker.CancellationPending == true)
+                e.Cancel = true;
+            else
+                UpdateLandBlockDiag();
         }
 
         private void UpdateLandBlockDiag()
@@ -57,6 +65,9 @@ namespace ACE.Diagnostics
                 {
                     for (int col = 0; col < 256; col++)
                     {
+                        if (!ACE.Common.Diagnostics.LandBlockDiag)
+                            return;
+
                         LandBlockStatusFlag key = new LandBlockStatusFlag();
                         key = ACE.Common.Diagnostics.GetLandBlockKey(row, col);
 
@@ -102,11 +113,9 @@ namespace ACE.Diagnostics
 
         private void timersimulate_Tick(object sender, EventArgs e)
         {
-
-            if (!bwUpdateLandblockGrid.IsBusy)
-            {
-                bwUpdateLandblockGrid.RunWorkerAsync();
-            }
+            if (ACE.Common.Diagnostics.LandBlockDiag)
+                if (!bwUpdateLandblockGrid.IsBusy)
+                    bwUpdateLandblockGrid.RunWorkerAsync();
         }
     }
 }
