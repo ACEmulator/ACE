@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
 
@@ -47,7 +45,35 @@ namespace ACE.Entity
 
         public override void OnUse(Player player)
         {
-            // TODO: Implement
+            string serverMessage = null;
+            // validate within use range
+            float radiusSquared = this.GameData.UseRadius * this.GameData.UseRadius;
+
+            var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+
+            var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
+
+            // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
+            var soundEvent = new GameMessageSound(this.Guid, Sound.LifestoneOn, 1);
+
+            if (player.Location.SquaredDistanceTo(this.Location) >= radiusSquared)
+            {
+                serverMessage = "You wandered too far to attune with the Lifestone!";
+            }
+            else
+            {
+                player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+
+                // create the outbound server message
+                serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
+                player.EnqueueMovementEvent(motionSanctuary, player.Guid);
+                player.Session.Network.EnqueueSend(soundEvent);
+            }
+
+            var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
+            // always send useDone event
+            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+            player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
         }
     }
 }

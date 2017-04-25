@@ -284,7 +284,7 @@
     <Compile Include="Network\Extensions.cs" />
     <Compile Include="Network\Managers\SocketManager.cs" />
     <Compile Include="Network\GameMessageGroup.cs" />
-    <Compile Include="Network\Motion\GeneralMotion.cs" />
+    <Compile Include="Network\Motion\UniversalMotion.cs" />
     <Compile Include="Network\Motion\MotionState.cs" />
     <Compile Include="Network\Packets\PacketOutboundReferral.cs" />
     <Compile Include="Network\Packets\PacketOutboundServerSwitch.cs" />

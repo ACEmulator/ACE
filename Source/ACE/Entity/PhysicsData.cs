@@ -85,7 +85,7 @@ namespace ACE.Entity
                 }
                 else // create a new current motion state and send it.
                 {
-                    currentMotionState = new GeneralMotion(MotionStance.Standing);
+                    currentMotionState = new UniversalMotion(MotionStance.Standing);
                     var movementData = currentMotionState.GetPayload(wo);
                     writer.Write(movementData.Length);
                     writer.Write(movementData);

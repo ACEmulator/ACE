@@ -23,7 +23,7 @@ namespace ACE.Network.GameAction.Actions
 
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.CombatMode, 1);
 
-            var motionMarketplaceRecall = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
+            var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
 
             var animationEvent = new GameMessageUpdateMotion(session.Player, session, motionMarketplaceRecall);
 

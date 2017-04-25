@@ -1,9 +1,10 @@
 ﻿namespace ACE.Factories
 {
-    using global::ACE.Entity;
-    using global::ACE.Entity.Enum;
-    using global::ACE.Network.Enum;
-    using global::ACE.Network.Sequence;
+    using Entity;
+    using Entity.Enum;
+    using Managers;
+    using Network.Enum;
+    using Network.Sequence;
 
     public class LootGenerationFactory
     {
@@ -25,6 +26,7 @@
             inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.Position |
                                                                inventoryItem.PhysicsData.PhysicsDescriptionFlag;
+            LandblockManager.AddObject(inventoryItem);
         }
 
         public static WorldObject CreateTrainingWand(Player player)
