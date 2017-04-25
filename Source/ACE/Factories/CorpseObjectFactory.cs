@@ -23,7 +23,7 @@ namespace ACE.Factories
 
             // TODO: Find the correct motionstate to create a corpse with. For now only the dead motionstate works 
             // wo.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
-            wo.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            wo.PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
             wo.PhysicsData.MTableResourceId = template.PhysicsData.MTableResourceId; // MotionTableId in db
             wo.PhysicsData.Stable = 536871106; // SoundTableId in DB - constant value according to pcap
             wo.PhysicsData.CSetup = template.PhysicsData.CSetup; // ModelTableId in DB
