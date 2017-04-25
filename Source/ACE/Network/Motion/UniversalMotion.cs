@@ -1,43 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ACE.Network.Enum;
 using ACE.Entity;
 
 namespace ACE.Network.Motion
 {
-    public class GeneralMotion : MotionState
+    public class UniversalMotion : MotionState
     {
+        public uint Flag { get; set; } = 0x0041EE0F;
+
+        public MovementTypes MovementTypes { get; set; } = MovementTypes.General;
+
         public bool HasTarget { get; set; } = false;
+
         public bool Jumping { get; set; } = false;
+
+        /// <summary>
+        /// Called Command in the client
+        /// </summary>
+        public MotionStance Stance { get; }
 
         public MovementData MovementData { get; }
 
-        public MotionStance Stance { get; }
-
         public List<MotionItem> Commands { get; } = new List<MotionItem>();
 
-        public GeneralMotion(MotionStance stance)
+        public Position Position { get; }
+
+        public UniversalMotion(MotionStance stance)
         {
             Stance = stance;
             MovementData = new MovementData();
         }
 
-        public GeneralMotion(MotionStance stance, MotionItem motionItem)
+        public UniversalMotion(MotionStance stance, WorldObject moveToObject)
+        {
+            Stance = stance;
+            Position = moveToObject.PhysicsData.Position;
+            MovementTypes = MovementTypes.MoveToObject;
+        }
+        public UniversalMotion(MotionStance stance, MotionItem motionItem)
         {
             Stance = stance;
             MovementData = new MovementData();
             Commands.Add(motionItem);
         }
 
-        public override byte[] GetPayload(WorldObject animationTarget)
+        public override byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f)
         {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
-            writer.Write((byte)MovementTypes.General); // movement_type
+            writer.Write((byte)MovementTypes);
             MotionFlags flags = MotionFlags.None;
             if (HasTarget)
                 flags |= MotionFlags.HasTarget;
@@ -46,23 +58,65 @@ namespace ACE.Network.Motion
 
             writer.Write((byte)flags); // these can be or and has sticky object | is long jump mode |
             writer.Write((ushort)Stance); // called command in the client
-            MovementStateFlag generalFlags = MovementData.MovementStateFlag;
-
-            generalFlags += (uint)Commands.Count << 7;
-            writer.Write((uint)generalFlags);
-
-            MovementData.Serialize(writer);
-
-            foreach (var item in Commands)
+            switch (MovementTypes)
             {
-                writer.Write((ushort)item.Motion);
-                writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
-                writer.Write(item.Speed);
+                case MovementTypes.General:
+                    {
+                        MovementStateFlag generalFlags = MovementData.MovementStateFlag;
+
+                        generalFlags += (uint)Commands.Count << 7;
+                        writer.Write((uint)generalFlags);
+
+                        MovementData.Serialize(writer);
+
+                        foreach (var item in Commands)
+                        {
+                            writer.Write((ushort)item.Motion);
+                            writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
+                            writer.Write(item.Speed);
+                        }
+                        break;
+                    }
+                case MovementTypes.MoveToObject:
+                    {
+                        // 4320783 = EE0F
+                        // 4320847 = EE4F
+                        // 4321264 = EFF0
+                        // 4321136 = EF70
+                        // 4319823 = EA4F
+                        // EE9F -? fail distance 100
+                        writer.Write(animationTarget.Guid.Full);
+                        Position.Serialize(writer, false);
+                        // TODO: Og Fix to real numbers
+                        writer.Write(Flag);
+                        writer.Write(distanceFromObject);
+                        writer.Write((float)0);
+                        writer.Write(float.MaxValue);
+                        writer.Write((float)1);
+                        writer.Write((float)15);
+                        writer.Write((float)0);
+                        writer.Write(1.0f);
+                        break;
+                    }
+                case MovementTypes.MoveToPosition:
+                    {
+                        Position.Serialize(writer, false);
+                        // TODO: Og Fix to real numbers
+                        writer.Write(Flag);
+                        writer.Write(distanceFromObject);
+                        writer.Write((float)0);
+                        writer.Write(float.MaxValue);
+                        writer.Write((float)1);
+                        writer.Write((float)15);
+                        writer.Write((float)0);
+                        writer.Write(1.0f);
+                        break;
+                    }
             }
+
             return stream.ToArray();
         }
-
-        public GeneralMotion(byte[] currentMotionState)
+        public UniversalMotion(byte[] currentMotionState)
         {
             MemoryStream stream = new MemoryStream(currentMotionState);
             BinaryReader reader = new BinaryReader(stream);
@@ -96,7 +150,7 @@ namespace ACE.Network.Motion
 
             if ((generalFlags & MovementStateFlag.ForwardCommand) != 0)
                 MovementData.ForwardCommand = (ushort)reader.ReadUInt32();
-                
+
             if ((generalFlags & MovementStateFlag.ForwardSpeed) != 0)
                 MovementData.ForwardSpeed = (float)reader.ReadSingle();
 
