@@ -2,6 +2,8 @@
 ### 2017-04-24
 [Jyard1]
 * Added 16 portals in destination_portal for area around Shoushi.
+
+
 ### 2017-04-23
 [fantoms]
 * Changed the `Character` Stats from the `Current` `ICreatureStats` interface member, too `UnbuffedValue` in attempt at fixing the Player Vitals.
