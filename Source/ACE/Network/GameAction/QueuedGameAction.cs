@@ -1,12 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Managers;
-using ACE.Network.Enum;
 using ACE.Network.Motion;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Network.GameAction
 {
@@ -29,7 +23,7 @@ namespace ACE.Network.GameAction
             this.EndTime = this.StartTime;
         }
 
-        public QueuedGameAction(uint objectId, GeneralMotion motion, GameActionType actionType)
+        public QueuedGameAction(uint objectId, UniversalMotion motion, GameActionType actionType)
         {
             this.ObjectId = objectId;
             this.Motion = motion;
@@ -38,7 +32,7 @@ namespace ACE.Network.GameAction
             this.EndTime = this.StartTime;
         }
 
-        public QueuedGameAction(uint objectId, GeneralMotion motion, double duration, bool respectDelay, GameActionType actionType)
+        public QueuedGameAction(uint objectId, UniversalMotion motion, double duration, bool respectDelay, GameActionType actionType)
         {
             this.ObjectId = objectId;
             this.Motion = motion;
@@ -107,7 +101,7 @@ namespace ACE.Network.GameAction
 
         public Position ActionLocation { get; private set; }
 
-        public GeneralMotion Motion { get; private set; }
+        public UniversalMotion Motion { get; private set; }
 
         public bool OnlyRemove { get; private set; }
 

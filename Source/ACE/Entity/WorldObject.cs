@@ -123,10 +123,10 @@ namespace ACE.Entity
             switch (CombatMode)
             {
                 case CombatMode.Peace:
-                    SetMotionState(new GeneralMotion(MotionStance.Standing));
+                    SetMotionState(new UniversalMotion(MotionStance.Standing));
                     break;
                 case CombatMode.Melee:
-                    var gm = new GeneralMotion(MotionStance.UANoShieldAttack);
+                    var gm = new UniversalMotion(MotionStance.UANoShieldAttack);
                     gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
                     SetMotionState(gm);
                     break;
