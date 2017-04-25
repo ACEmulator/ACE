@@ -7,6 +7,13 @@
 
 
 ### 2017-04-24
+[Jyrus]
+* Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
+	Must use MySQL, SQLyog, or possibly HeidiSQL
+* Move Portal logic to Portal class
+* Change OnCollide for portals to route the portals correctly in the four Training Academy dungeon versions and implement level requirements for portals
+* Move Lifestone logic from landblock class into Lifestone class OnUse
+
 [Ripley]
 * Added currentMotionState to base_ace_object in ace_world database.
 * Changed location in base_ace_object to an INT(10) in ace_world database.

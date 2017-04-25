@@ -9,7 +9,6 @@ using log4net;
 using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameAction;
-using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
@@ -790,70 +789,15 @@ namespace ACE.Entity
                             {
                                 case Enum.ObjectType.Portal:
                                     {
-                                        // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
-                                        float rangeCheck = 5.0f;
+                                        // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
 
-                                        if (player.Location.SquaredDistanceTo(obj.Location) < rangeCheck)
-                                        {
-                                            PortalDestination portalDestination = DatabaseManager.World.GetPortalDestination(obj.WeenieClassid);
-
-                                            if (portalDestination != null)
-                                            {
-                                                player.Session.Player.Teleport(portalDestination.Position);
-                                                // always send useDone event
-                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                            }
-                                            else
-                                            {
-                                                string serverMessage = "Portal destination for portal ID " + obj.WeenieClassid + " not yet implemented!";
-                                                var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                                                // always send useDone event
-                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                                player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // always send useDone event
-                                            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                        }
+                                        (obj as Portal).OnCollide(player);
 
                                         break;
                                     }
                                 case Enum.ObjectType.LifeStone:
                                     {
-                                        string serverMessage = null;
-                                        // validate within use range
-                                        float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
-
-                                        var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
-
-                                        var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
-
-                                        // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-                                        var soundEvent = new GameMessageSound(obj.Guid, Sound.LifestoneOn, 1);
-
-                                        if (player.Location.SquaredDistanceTo(obj.Location) >= radiusSquared)
-                                        {
-                                            serverMessage = "You wandered too far to attune with the Lifestone!";
-                                        }
-                                        else
-                                        {
-                                            player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
-
-                                            // create the outbound server message
-                                            serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.EnqueueMovementEvent(motionSanctuary, player.Guid);
-                                            player.Session.Network.EnqueueSend(soundEvent);
-                                        }
-
-                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
-                                        // always send useDone event
-                                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                        player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
-
+                                        (obj as Lifestone).OnUse(player);
                                         break;
                                     }
                             }
