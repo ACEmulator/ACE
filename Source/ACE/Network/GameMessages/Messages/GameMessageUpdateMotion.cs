@@ -63,7 +63,7 @@ namespace ACE.Network.GameMessages.Messages
         /// <param name="movementType"></param>
         /// <param name="runRate"></param>
         public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, UniversalMotion newState, MovementTypes movementType, float runRate = 1.0f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
-        {           
+        {
             Writer.WriteGuid(player.Guid); // Object_Id (uint)
             Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
             Writer.Write(player.Sequences.GetNextSequence(SequenceType.ObjectMovement)); // Movement_Timestamp
@@ -82,8 +82,8 @@ namespace ACE.Network.GameMessages.Messages
             else
                 autonomous = 0;
             Writer.Write(autonomous);
-                                   
-            var movementData = newState.GetPayload(moveToTarget, 0.6f);   
+
+            var movementData = newState.GetPayload(moveToTarget, 0.6f);
             Writer.Write(movementData);
             Writer.Align();
         }

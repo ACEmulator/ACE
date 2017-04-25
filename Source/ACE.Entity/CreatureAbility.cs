@@ -10,8 +10,14 @@ namespace ACE.Entity
 
         public Ability Ability { get; private set; }
 
+        /// <summary>
+        /// Returns the Base Value for a Creature's Ability, for Players this is set durring Character Creation 
+        /// </summary>
         public uint Base { get; set; }
 
+        /// <summary>
+        /// Returns the Current Rank for a Creature's Ability
+        /// </summary>
         public uint Ranks { get; set; }
 
         /// <summary>
@@ -19,6 +25,10 @@ namespace ACE.Entity
         /// </summary>
         public uint Current { get; set; }
 
+        /// <summary>
+        /// For Primary Abilities, Returns the Base Value Plus the Ranked Value
+        /// For Secondary Abilities, Returns the adjusted Value depending on the current Abiliy formula
+        /// </summary>
         public uint UnbuffedValue
         {
             get
@@ -42,7 +52,6 @@ namespace ACE.Entity
                     derivationTotal += wil * this.creature.Self;
 
                     derivationTotal *= formula.AbilityMultiplier;
-
                     abilityTotal = derivationTotal / formula.Divisor;
                 }
 
@@ -52,6 +61,9 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Returns the MaxValue of an ability, UnbuffedValue + Additional
+        /// </summary>
         public uint MaxValue
         {
             get
@@ -63,6 +75,9 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Total Experience Spent on an ability
+        /// </summary>
         public uint ExperienceSpent { get; set; }
 
         public CreatureAbility(ICreatureStats creature, Ability ability)
