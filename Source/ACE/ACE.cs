@@ -34,7 +34,7 @@ namespace ACE
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            Common.Diagnostics.LandBlockDiag = false;
+            Diagnostics.Diagnostics.LandBlockDiag = false;
         }
     }
 }

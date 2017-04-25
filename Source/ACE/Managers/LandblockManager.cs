@@ -160,26 +160,5 @@ namespace ACE.Managers
                 lb2.SetAdjacency(inverseAdjacency, lb1);
             }
         }
-
-        /// <summary>
-        /// Only to used with first loading the LandBlock Diagnostics tool.
-        /// </summary>
-        /// <returns>All LandBlockKeys Status Keys</returns>
-        public static void UpdateAllDiagnostics()
-        {
-            LandBlockStatusFlag[,] blocks = new LandBlockStatusFlag[256, 256];
-            for (int row = 0; row < 256; row++)
-            {
-                for (int col = 0; col < 256; col++)
-                {
-                    if (landblocks[col, row] != null)
-                    {
-                        LandBlockStatusFlag flag = new LandBlockStatusFlag();
-                        flag = landblocks[row, col].LandBlockStatusKey;
-                        Common.Diagnostics.SetLandBlockKey(col, row, flag);
-                    }
-                }
-            }
-        }
     }
 }

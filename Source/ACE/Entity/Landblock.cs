@@ -19,9 +19,6 @@ using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
-using ACE.Network.GameEvent;
-using System.Diagnostics;
-using ACE.Common;
 
 namespace ACE.Entity
 {
@@ -43,11 +40,9 @@ namespace ACE.Entity
         private const float maxobjectGhostRange = 40000;
 
         private LandblockId id;
-        private int playercount;
 
         private readonly object objectCacheLocker = new object();
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
-
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
@@ -60,7 +55,7 @@ namespace ACE.Entity
         private int row;
         private int col;
 
-        public LandBlockStatusFlag LandBlockStatusKey = new LandBlockStatusFlag();
+        public LandBlockStatus Status = new LandBlockStatus();
         private bool running = false;
 
         public LandblockId Id
@@ -71,10 +66,10 @@ namespace ACE.Entity
         public Landblock(LandblockId id, int r, int c)
         {
             this.id = id;
-            this.row = r;
-            this.col = c;
+            row = r;
+            col = c;
 
-            LandBlockStatusKey = LandBlockStatusFlag.IdleUnloaded;
+            UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
             // initialize adjacency array
             this.adjacencies.Add(Adjacency.North, null);
@@ -876,25 +871,22 @@ namespace ACE.Entity
 
         private void UpdateStatus(LandBlockStatusFlag flag)
         {
-            if (playercount > 0)
-            {
-                LandBlockStatusKey = flag;
-                Common.Diagnostics.SetLandBlockKey(row, col, LandBlockStatusFlag.InUseLow);
-            }
+            Status.LandBlockStatusFlag = flag;
+            Diagnostics.Diagnostics.SetLandBlockKey(row, col, Status);
         }
 
         private void UpdateStatus(int pcount)
         {
-            playercount = pcount;
-            if (playercount > 0)
+            Status.Playercount = pcount;
+            if (pcount > 0)
             {
-                LandBlockStatusKey = LandBlockStatusFlag.InUseLow;
-                Common.Diagnostics.SetLandBlockKey(row, col, LandBlockStatusKey);
+                Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
+                Diagnostics.Diagnostics.SetLandBlockKey(row, col, Status);
             }
             else
             {
-                LandBlockStatusKey = LandBlockStatusFlag.IdleLoaded;
-                Common.Diagnostics.SetLandBlockKey(row, col, LandBlockStatusKey);
+                Status.LandBlockStatusFlag = LandBlockStatusFlag.IdleLoaded;
+                UpdateStatus(Status.LandBlockStatusFlag);
             }
         }
 
