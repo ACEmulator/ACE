@@ -1,5 +1,8 @@
 # ACEmulator Change Log
 
+[MiachofTD]
+* Added 30 portals in the destination_portal for Gharu towns.
+
 ### 2017-04-24
 [Ripley]
 * Added currentMotionState to base_ace_object in ace_world database.
