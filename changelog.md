@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-04-26
+[Og II]
+* Added Turn to Object and Turn To Heading messages.   
+* Cleaned up eairler work 
 ### 2017-04-25
 [Jyard1]
 * Added 16 portals around the Shoushi area.

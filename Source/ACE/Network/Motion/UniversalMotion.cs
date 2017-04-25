@@ -9,6 +9,18 @@ namespace ACE.Network.Motion
     {
         public uint Flag { get; set; } = 0x0041EE0F;
 
+        public float MinimumDistance { get; set; } = 0.00f;
+
+        public float FailDistance { get; set; } = float.MaxValue;
+
+        public float Speed { get; set; } = 1.0f;
+
+        public float WalkRunThreshold { get; set; } = 15.0f;
+        /// <summary>
+        /// I believe this to be calculated based on a factor of your quickness, run, enchanments, less burden factor Og II
+        /// </summary>
+        public float RunRate { get; set; } = 1.0f;
+
         public MovementTypes MovementTypes { get; set; } = MovementTypes.General;
 
         public bool HasTarget { get; set; } = false;
@@ -45,7 +57,7 @@ namespace ACE.Network.Motion
             Commands.Add(motionItem);
         }
 
-        public override byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f)
+        public override byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f, float heading = 0.00f)
         {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
@@ -78,38 +90,36 @@ namespace ACE.Network.Motion
                         break;
                     }
                 case MovementTypes.MoveToObject:
-                    {
-                        // 4320783 = EE0F
-                        // 4320847 = EE4F
-                        // 4321264 = EFF0
-                        // 4321136 = EF70
-                        // 4319823 = EA4F
-                        // EE9F -? fail distance 100
-                        writer.Write(animationTarget.Guid.Full);
-                        Position.Serialize(writer, false);
-                        // TODO: Og Fix to real numbers
-                        writer.Write(Flag);
-                        writer.Write(distanceFromObject);
-                        writer.Write((float)0);
-                        writer.Write(float.MaxValue);
-                        writer.Write((float)1);
-                        writer.Write((float)15);
-                        writer.Write((float)0);
-                        writer.Write(1.0f);
-                        break;
-                    }
                 case MovementTypes.MoveToPosition:
                     {
+                        if (MovementTypes == MovementTypes.MoveToObject)
+                            writer.Write(animationTarget.Guid.Full);
                         Position.Serialize(writer, false);
-                        // TODO: Og Fix to real numbers
                         writer.Write(Flag);
                         writer.Write(distanceFromObject);
-                        writer.Write((float)0);
-                        writer.Write(float.MaxValue);
-                        writer.Write((float)1);
-                        writer.Write((float)15);
-                        writer.Write((float)0);
-                        writer.Write(1.0f);
+                        writer.Write(MinimumDistance);
+                        writer.Write(FailDistance);
+                        writer.Write(Speed);
+                        writer.Write(WalkRunThreshold);
+                        writer.Write(heading);
+                        writer.Write(RunRate);
+                        // TODO: This needs to be calculated and the flag needs to be deciphered Og II
+                        break;
+                    }
+                case MovementTypes.TurnToObject:
+                    {
+                        writer.Write(animationTarget.Guid.Full);
+                        writer.Write(heading);
+                        writer.Write(Flag);
+                        writer.Write(Speed);
+                        writer.Write(heading);
+                        break;
+                    }
+                case MovementTypes.TurnToHeading:
+                    {
+                        writer.Write(Flag);
+                        writer.Write(Speed);
+                        writer.Write(heading);
                         break;
                     }
             }
@@ -122,12 +132,6 @@ namespace ACE.Network.Motion
             BinaryReader reader = new BinaryReader(stream);
             MovementTypes movementType = (MovementTypes)reader.ReadByte(); // movement_type
 
-            // MotionFlags flags = MotionFlags.None;
-            // if (HasTarget)
-            //    flags |= MotionFlags.HasTarget;
-            // if (Jumping)
-            //    flags |= MotionFlags.Jumping;
-
             MotionFlags flags = (MotionFlags)reader.ReadByte(); // these can be or and has sticky object | is long jump mode |
 
             if ((flags & MotionFlags.HasTarget) != 0)
@@ -136,13 +140,8 @@ namespace ACE.Network.Motion
                 Jumping = true;
 
             Stance = (MotionStance)reader.ReadUInt16(); // called command in the client
-            // MovementStateFlag generalFlags = MovementData.MovementStateFlag;
 
-            // generalFlags += (uint)Commands.Count << 7;
             MovementStateFlag generalFlags = (MovementStateFlag)reader.ReadUInt32();
-
-            // MovementData.Serialize(writer);
-
             MovementData = new MovementData();
 
             if ((generalFlags & MovementStateFlag.CurrentStyle) != 0)
@@ -165,37 +164,6 @@ namespace ACE.Network.Motion
 
             if ((generalFlags & MovementStateFlag.TurnSpeed) != 0)
                 MovementData.TurnSpeed = (float)reader.ReadSingle();
-
-            // foreach (var item in Commands)
-            // {
-            //    writer.Write((ushort)item.Motion);
-            //    writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
-            //    writer.Write(item.Speed);
-            // }
-
-            // if ((generalFlags & MovementStateFlag.ForwardCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-            // if ((generalFlags & MovementStateFlag.SideStepCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-            // if ((generalFlags & MovementStateFlag.TurnCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-
-            // return stream.ToArray();
         }
     }
 }

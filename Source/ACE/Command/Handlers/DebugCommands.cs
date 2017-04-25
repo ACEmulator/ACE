@@ -235,6 +235,8 @@ namespace ACE.Command.Handlers
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
             var newMotion = new UniversalMotion(MotionStance.Standing, loot);
+            if ((parameters?.Length > 1))
+                newMotion.Flag = (uint)Convert.ToInt32(parameters[1]);
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
         }
@@ -468,7 +470,7 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat. 
+        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat.
         /// </summary>
         [CommandHandler("readgenerators", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
             "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
@@ -482,7 +484,7 @@ namespace ACE.Command.Handlers
                 if (gen.Count > 0)
                 {
                     for (var i = 0; i < gen.Count; i++)
-                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}"); 
+                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}");
                 }
             });
         }
