@@ -40,7 +40,7 @@ namespace ACE.Entity
             if (aceO.CurrentMotionState == "0")
                 this.PhysicsData.CurrentMotionState = null;
             else
-                this.PhysicsData.CurrentMotionState = new GeneralMotion(Convert.FromBase64String(aceO.CurrentMotionState));
+                this.PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceO.CurrentMotionState));
 
             // this.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
             // this.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));

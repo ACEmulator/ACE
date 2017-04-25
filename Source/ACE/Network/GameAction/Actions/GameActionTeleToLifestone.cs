@@ -30,7 +30,7 @@ namespace ACE.Network.GameAction.Actions
 
                 var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.CombatMode, 1);
 
-                var motionLifestoneRecall = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
+                var motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
 
                 var animationEvent = new GameMessageUpdateMotion(session.Player, session, motionLifestoneRecall);
 
