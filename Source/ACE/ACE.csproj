@@ -75,6 +75,7 @@
     <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -365,6 +366,10 @@
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
       <Project>{21d1aa6d-7bec-4ee5-b503-41e6e6f3480a}</Project>
       <Name>ACE.DatLoader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Diagnostics\ACE.Diagnostics.csproj">
+      <Project>{a4625c11-22be-4d82-9a6c-63dcb5caffb6}</Project>
+      <Name>ACE.Diagnostics</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
       <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>

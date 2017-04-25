@@ -7,6 +7,10 @@
 
 
 ### 2017-04-24
+[StackOverFlow]
+* Added Landblock Diag tools
+* Type @diag from console to enable it.
+
 [Ripley]
 * Added currentMotionState to base_ace_object in ace_world database.
 * Changed location in base_ace_object to an INT(10) in ace_world database.

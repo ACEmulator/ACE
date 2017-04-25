@@ -1,5 +1,4 @@
 ﻿using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -34,6 +33,13 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Exporting portal.dat contents to {exportDir}.  This will take a while.");
             DatManager.PortalDat.ExtractCategorizedContents(exportDir);
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
+        }
+
+        [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
+        public static void Diag(Session session, params string[] parameters)
+        {
+            Common.Diagnostics.LandBlockDiag = true;
+            Diagnostics.Common.Monitor.ShowDialog();
         }
     }
 }

@@ -84,6 +84,8 @@
     <Compile Include="DbTableAttribute.cs" />
     <Compile Include="DbGetListAttribute.cs" />
     <Compile Include="DerethDateTime.cs" />
+    <Compile Include="Diagnostics\Diagnostics.cs" />
+    <Compile Include="Enum\LandBlockStatusFlag.cs" />
     <Compile Include="Extensions\BinaryReaderExtensions.cs" />
     <Compile Include="DbFieldAttribute.cs" />
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
