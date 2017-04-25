@@ -49,7 +49,7 @@ namespace ACE.Entity
             // validate within use range
             float radiusSquared = this.GameData.UseRadius * this.GameData.UseRadius;
 
-            var motionSanctuary = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+            var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
             var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
 
