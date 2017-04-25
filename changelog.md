@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-04-25
+[Og II]
+* Added MoveToObject GameMessageUpdateMotion (F74C 0x006)   This is part of a total of 5 variants on the F74C message.
+* Can be tested with the new debug command MoveTo <40>  - the parameter is optional.   The default is 30 if you do not put a parameter.   You can test the walk run
+* by setting any distance for the wand to spawn under 15.  If you use moveto 10 - your character will walk to the wand.    If you type moveto 90 - he will run a long way.
 
 ### 2017-04-24
 [OptimShi]
@@ -8,6 +13,13 @@
 * Removed ACE.Database.ChartDatabase (classes that loaded the JSON XP charts)
 * Removed DatReader parameter from DatLoader.FileTypes classes CharGen and GeneratorTable. It's always going to be the same file, so no need to specify it.
 * Changed parameters of other DatLoader.FileTypes to be more straight-forward. They will auto-create the DatReader and the parameter is the fileId to read.
+
+[Jyrus]
+* Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
+	Must use MySQL, SQLyog, or possibly HeidiSQL
+* Move Portal logic to Portal class
+* Change OnCollide for portals to route the portals correctly in the four Training Academy dungeon versions and implement level requirements for portals
+* Move Lifestone logic from landblock class into Lifestone class OnUse
 
 [Ripley]
 * Added currentMotionState to base_ace_object in ace_world database.

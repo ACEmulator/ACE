@@ -77,7 +77,7 @@ namespace ACE.Entity
 
         private void SetObjectData(AceCreatureObject aco)
         {
-            PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
+            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = aco.MotionTableId;
             PhysicsData.Stable = aco.SoundTableId;
             PhysicsData.CSetup = aco.ModelTableId;
@@ -169,7 +169,7 @@ namespace ACE.Entity
 
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
-            GeneralMotion motionDeath = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
             QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
             session.Player.AddToActionQueue(actionDeath);
             

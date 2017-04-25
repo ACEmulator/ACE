@@ -65,6 +65,14 @@ namespace ACE.Entity
         /// </summary>
         public double LastStreamingObjectChange { get; set; }
 
+        /// <summary>
+        /// Level of the player
+        /// </summary>
+        public uint Level
+        {
+            get { return character.Level; }
+        }
+
         private Character character;
 
         private object clientObjectMutex = new object();
@@ -188,7 +196,7 @@ namespace ACE.Entity
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
-            PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
+            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -938,7 +946,7 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msgHealthUpdate);
 
             // Stand back up
-            EnqueueMovementEvent(new GeneralMotion(MotionStance.Standing), Guid);
+            EnqueueMovementEvent(new UniversalMotion(MotionStance.Standing), Guid);
         }
 
         /// <summary>
@@ -993,13 +1001,13 @@ namespace ACE.Entity
             AddToActionQueue(action);
         }
 
-        public void EnqueueMovementEvent(GeneralMotion motion, ObjectGuid objectId)
+        public void EnqueueMovementEvent(UniversalMotion motion, ObjectGuid objectId)
         {
             QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
             AddToActionQueue(action);
         }
 
-        public void SendMovementEvent(GeneralMotion motion, WorldObject sender)
+        public void SendMovementEvent(UniversalMotion motion, WorldObject sender)
         {
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender, motion));
         }
@@ -1425,7 +1433,7 @@ namespace ACE.Entity
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
+                var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
                 Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
