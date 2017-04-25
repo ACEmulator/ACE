@@ -2,7 +2,9 @@
 
 ### 2017-04-25
 [MiachofTD]
-* Changed 0010_2017_04_25_portal_destination.sql to 010_2017_04_25_portal_destination.sql and updated MySqlInstall.bat.
+* Changed 010_2017_04_24_Gharu_town_Part_2_portal_destination.sql to 011_2017_04_24_Gharu_town_Part_2_portal_destination.sql.
+* Changed 0010_2017_04_25_portal_destination.sql to 012_2017_04_25_portal_destination.sql and updated MySqlInstall.bat.
+* Added 010_2017_04_24_portal_destination_Academy.sql to MySqlInstall.bat.
 
 ### 2017-04-25
 [Jyard1]
