@@ -11,6 +11,9 @@ using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
 using ACE.Network.Motion;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
+using System.Linq;
 
 namespace ACE.Command.Handlers
 {
@@ -446,6 +449,26 @@ namespace ACE.Command.Handlers
             {
                 ChatPacket.SendServerMessage(session, "No creature selected.", ChatMessageType.Broadcast);
             }
+        }
+
+        /// <summary>
+        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat. 
+        /// </summary>
+        [CommandHandler("readgenerators", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
+            "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
+        public static void Treadgenerators(Session session, params string[] parameters)
+        {
+            var generators = GeneratorTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E00000D));
+
+            // Example for accessing the tree with nodes of type Generator
+            generators.ReadItems().Where(node => node.Name == "Drudges").ToList().ForEach(gen => {
+                Console.WriteLine($"{gen.Id:X8} {gen.Count:X8} {gen.Name}");
+                if (gen.Count > 0)
+                {
+                    for (var i = 0; i < gen.Count; i++)
+                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}"); 
+                }
+            });
         }
     }
 }

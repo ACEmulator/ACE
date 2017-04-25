@@ -6,7 +6,7 @@ namespace ACE.DatLoader.Entity
 {
     public class ClothingBaseEffect
     {
-        public uint SetupModel{ get; set; }
+        public uint SetupModel { get; set; }
         public List<CloObjectEffect> CloObjectEffects { get; set; } = new List<CloObjectEffect>();
 
         public ClothingBaseEffect()

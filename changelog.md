@@ -1,4 +1,27 @@
 # ACEmulator Change Log
+
+### 2017-04-24
+[Ripley]
+* Added currentMotionState to base_ace_object in ace_world database.
+* Changed location in base_ace_object to an INT(10) in ace_world database.
+* Changed vw_ace_creature_object and vw_ace_object to include currentMotionState.
+* Added CurrentMotionState to BaseAceObject and linked it to currentMotionState.
+* Added a method to GeneralMotion to convert from a byte array to GeneralMotion object.
+* Added DebugObject to assist with building and testing out real objects for world.
+* Changed GenericObjectFactory to spawn DebugObjects as a default if running server in DEBUG.
+* Fixed Code Style issues within ClothingTable.cs and ClothingBaseEffect.cs in ACE.DatLoader.
+* Changed Position to set Z to 0 to fix @tele command.
+* Removed PlayScript.Create from landblock respawn section. Players should not have that effect applied to them.
+
+### 2017-04-23
+[fantoms]
+* Changed the `Character` Stats from the `Current` `ICreatureStats` interface member, too `UnbuffedValue` in attempt at fixing the Player Vitals.
+* Added a Health Update game message after the abilities skill spend, too synchronize Player health/stam after spending experience points on `Endurance`.
+* `@heal` should now work.
+
+[MiachofTD]
+* Added 64 ports in the destination_portal for Gharu towns. 
+
 ### 2017-04-22
 [OptimShi]
 * Changed Manager initalize order in ACE.cs to ensure that the DatLoader is fully loaded before clients can connect since it is required.
@@ -14,7 +37,7 @@
 * Add 88 more working portal destinations, including most of the Town Network
 
 [fantoms]
-* Removed `@reset-pos` after it was incorrectly re-added in another members commit.\
+* Removed `@reset-pos` after it was incorrectly re-added in another members commit.
 
 [StackOverFlow]
 * Added Landblock Streaming Objects.
@@ -24,6 +47,12 @@
 
 [fantoms]
 * Removed `@reset-pos` after it was incorrectly re-added in another members commit.
+
+### 2017-04-22
+[Lidefeath]
+* Add a DatLoader for the Generators in portal.dat file 0x0E00000D
+* Add a method to DatReader to handle obfuscated strings by fliping the low and highbytes
+* Add a debugcommand to read the whole file and access one of the generators as an example
 
 ### 2017-04-20
 [Lidefeath]
