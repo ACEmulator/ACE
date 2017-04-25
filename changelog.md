@@ -1,5 +1,5 @@
 # ACEmulator Change Log
-### SUBMIT DATE 2017-04-23
+### 2017-04-25
 [Og II]
 * Added MoveToObject GameMessageUpdateMotion (F74C 0x006)   This is part of a total of 5 variants on the F74C message.
 * Can be tested with the new debug command MoveTo <40>  - the parameter is optional.   The default is 30 if you do not put a parameter.   You can test the walk run
@@ -27,7 +27,6 @@
 
 [MiachofTD]
 * Added 64 ports in the destination_portal for Gharu towns. 
->>>>>>> 5d7b64265d16ea046e11f59d6e074ab7a8834761
 
 ### 2017-04-22
 [OptimShi]
