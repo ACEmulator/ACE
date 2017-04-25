@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+
+### 2017-04-25
+[MiachofTD]
+* Changed 0010_2017_04_25_portal_destination.sql to 010_2017_04_25_portal_destination.sql and updated MySqlInstall.bat.
+
 ### 2017-04-25
 [Jyard1]
 * Added 16 portals around the Shoushi area.
