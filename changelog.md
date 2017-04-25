@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-04-25
+[Jyard1]
+* Added 16 portals around the Shoushi area.
 
 ### 2017-04-24
 [Ripley]
