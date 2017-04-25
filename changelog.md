@@ -1,6 +1,4 @@
 # ACEmulator Change Log
-### 2017-4-24
-[Jyard1]
 * Added 16 portals in destination_portal for area around Shoushi.
 ### 2017-04-23
 [fantoms]
