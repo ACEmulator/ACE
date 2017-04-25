@@ -8,6 +8,9 @@
 * Can be tested with the new debug command MoveTo <40>  - the parameter is optional.   The default is 30 if you do not put a parameter.   You can test the walk run
 * by setting any distance for the wand to spawn under 15.  If you use moveto 10 - your character will walk to the wand.    If you type moveto 90 - he will run a long way.
 
+[MiachofTD]
+* Added 30 portals in the destination_portal for Gharu towns.
+
 ### 2017-04-24
 [Jyrus]
 * Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
