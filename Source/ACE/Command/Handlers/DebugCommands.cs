@@ -20,8 +20,8 @@ namespace ACE.Command.Handlers
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
-        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 
-            "Send text back to yourself.", 
+        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Send text back to yourself.",
             "\"text to send back to yourself\" [ChatMessageType]\n" +
             "ChatMessageType can be a uint or enum name")]
         public static void HandleDebugEcho(Session session, params string[] parameters)
@@ -202,7 +202,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
-            GeneralMotion motion = new GeneralMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
+            UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
             session.Player.EnqueueMovementEvent(motion, session.Player.Guid);
         }
 
@@ -214,11 +214,29 @@ namespace ACE.Command.Handlers
             ushort forwardCommand = 24;
             if ((parameters?.Length > 0))
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
-            var movement = new GeneralMotion(MotionStance.Standing);
+            var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
-            movement = new GeneralMotion(MotionStance.Standing);            
+            movement = new UniversalMotion(MotionStance.Standing);
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+        }
+
+        // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
+        [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+             "Used to test the MoveToObject message.   It will spawn a training wand in front of you and then move to that object.",
+            "moveto\n" +
+            "optional parameter distance if omitted 10f")]
+        public static void MoveTo(Session session, params string[] parameters)
+        {
+            var distance = 10.0f;
+            if ((parameters?.Length > 0))
+                distance = Convert.ToInt16(parameters[0]);
+            var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
+            session.Player.TrackObject(loot);
+            var newMotion = new UniversalMotion(MotionStance.Standing, loot);
+            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
@@ -311,23 +329,21 @@ namespace ACE.Command.Handlers
             string location = parameters[0];
             if (location == "me" | location == "ground")
             {
-                WorldObject loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
                 switch (location)
                 {
                     case "me":
                         {
                             LootGenerationFactory.AddToContainer(loot, session.Player);
-                            session.Player.TrackObject(loot);
-                            // TODO: Have to send game message CFS
                             break;
                         }
                     case "ground":
                         {
                             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-                            LandblockManager.AddObject(loot);
                             break;
                         }
                 }
+                session.Player.TrackObject(loot);
             }
             else
             {
@@ -404,7 +420,7 @@ namespace ACE.Command.Handlers
                 }
                 else
                 {
-                    ChatPacket.SendServerMessage(session, "Specify a valid weenieClassId after the static option.", 
+                    ChatPacket.SendServerMessage(session, "Specify a valid weenieClassId after the static option.",
                         ChatMessageType.Broadcast);
                     return;
                 }
@@ -414,7 +430,7 @@ namespace ACE.Command.Handlers
                 uint weenie = Convert.ToUInt32(parameters[0]);
                 newC = MonsterFactory.SpawnCreature(weenie, false, session.Player.Location.InFrontOf(2.0f));
             }
-            
+
             if (newC != null)
             {
                 ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}.",

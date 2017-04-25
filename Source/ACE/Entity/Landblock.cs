@@ -3,24 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using ACE.Entity.Events;
 using ACE.Managers;
-
 using log4net;
 using ACE.Database;
 using ACE.Network.GameEvent.Events;
-using ACE.Network;
 using ACE.Network.GameAction;
-using ACE.Entity.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
-using ACE.Network.GameEvent;
-using System.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -207,8 +201,8 @@ namespace ACE.Entity
             lock (objectCacheLocker)
             {
                 allObjects = worldObjects.Values.ToList();
-                if (!worldObjects.ContainsKey(wo.Guid))                                
-                    worldObjects[wo.Guid] = wo;                
+                if (!worldObjects.ContainsKey(wo.Guid))
+                    worldObjects[wo.Guid] = wo;
             }
 
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
@@ -324,7 +318,7 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        public void HandleMovementEvent(WorldObject sender, GeneralMotion motion)
+        public void HandleMovementEvent(WorldObject sender, UniversalMotion motion)
         {
             BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
             Broadcast(args, true, Quadrant.All);
@@ -406,7 +400,7 @@ namespace ACE.Entity
                     }
                 case BroadcastAction.MovementEvent:
                     {
-                        // supresss updating if player is out of range of world object.= being updated or created
+                        // suppress updating if player is out of range of world object.= being updated or created
                         players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
                         Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
                         break;
@@ -439,7 +433,7 @@ namespace ACE.Entity
 
                 lock (objectCacheLocker)
                 {
-                    allworldobj = this.worldObjects.Values.ToList();    
+                    allworldobj = this.worldObjects.Values.ToList();
                 }
 
                 // all players on this land block
@@ -489,7 +483,7 @@ namespace ACE.Entity
                 // players and creatures can move.
                 Parallel.ForEach(movedObjects, mo =>
                 {
-                    // detect all world objects in ghost range 
+                    // detect all world objects in ghost range
                     List<WorldObject> woproxghost = new List<WorldObject>();
                     woproxghost.AddRange(GetWorldObjectsInRange(mo, maxobjectGhostRange, true));
 
@@ -526,7 +520,7 @@ namespace ACE.Entity
                 });
 
                 // despawn objects
-                despawnObjects.ForEach(deo => 
+                despawnObjects.ForEach(deo =>
                 {
                     if (deo.DespawnTime < WorldManager.PortalYearTicks)
                     {
@@ -535,7 +529,7 @@ namespace ACE.Entity
                 });
 
                 // respawn creatures
-                deadCreatures.ForEach(dc => 
+                deadCreatures.ForEach(dc =>
                 {
                     if (dc.RespawnTime < WorldManager.PortalYearTicks)
                     {
@@ -614,31 +608,40 @@ namespace ACE.Entity
                             if (worldObjects.ContainsKey(playerId) && worldObjects.ContainsKey(inventoryId))
                             {
                                 aPlayer = (Player)worldObjects[playerId];
-                                inventoryItem = worldObjects[inventoryId];                                
+                                inventoryItem = worldObjects[inventoryId];
                             }
 
                             if ((aPlayer != null) && (inventoryItem != null))
-                            {                                
-                                var motion = new GeneralMotion(MotionStance.Standing);
-                                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;                                
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer), 
+                            {
+                                if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
+                                    > Math.Pow(inventoryItem.GameData.UseRadius, 2))
+                                {
+                                    // This is where I need to hook in the move to object code.
+                                    // TODO: Og II work on this soon.
+                                }
+                                var motion = new UniversalMotion(MotionStance.Standing);
+                                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
+                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer),
                                     new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                     new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
-                                
+
                                 // Add to the inventory list.
                                 aPlayer.AddToInventory(inventoryItem);
                                 LandblockManager.RemoveObject(inventoryItem);
 
-                                motion = new GeneralMotion(MotionStance.Standing);
+                                motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbVal,
-                                       aPlayer.GameData.Burden), 
+                                       aPlayer.GameData.Burden),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),
                                        new GameMessagePickupEvent(aPlayer.Session, inventoryItem));
 
                                 aPlayer.TrackObject(inventoryItem);
+                                // This may not be needed when we fix landblock update object -
+                                // TODO: Og II - check this later to see if it is still required.
+                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                             }
                         }
                         break;
@@ -672,23 +675,28 @@ namespace ACE.Entity
                                             PropertyInt.EncumbVal,
                                             (uint)aPlayer.Session.Player.GameData.Burden));
 
-                                    var motion = new GeneralMotion(MotionStance.Standing);
+                                    var motion = new UniversalMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessageUpdateInstanceId(inventoryId, targetContainer));
 
-                                    motion = new GeneralMotion(MotionStance.Standing);
+                                    motion = new UniversalMotion(MotionStance.Standing);
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                         new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
                                         new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
                                         new GameMessageUpdateInstanceId(inventoryId, targetContainer));
 
-                                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.   
+                                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
                                     LandblockManager.AddObject(inventoryItem);
+
+                                    // This may not be needed when we fix landblock update object -
+                                    // TODO: Og II - check this later to see if it is still required.
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
+
                                     aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
                                 }
                             }
@@ -781,76 +789,21 @@ namespace ACE.Entity
                             {
                                 case Enum.ObjectType.Portal:
                                     {
-                                        // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
-                                        float rangeCheck = 5.0f;
+                                        // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
 
-                                        if (player.Location.SquaredDistanceTo(obj.Location) < rangeCheck)
-                                        {
-                                            PortalDestination portalDestination = DatabaseManager.World.GetPortalDestination(obj.WeenieClassid);
-
-                                            if (portalDestination != null)
-                                            {
-                                                player.Session.Player.Teleport(portalDestination.Position);
-                                                // always send useDone event
-                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                            }
-                                            else
-                                            {
-                                                string serverMessage = "Portal destination for portal ID " + obj.WeenieClassid + " not yet implemented!";
-                                                var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                                                // always send useDone event
-                                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                                player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // always send useDone event
-                                            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                        }
+                                        (obj as Portal).OnCollide(player);
 
                                         break;
                                     }
                                 case Enum.ObjectType.LifeStone:
                                     {
-                                        string serverMessage = null;
-                                        // validate within use range
-                                        float radiusSquared = obj.GameData.UseRadius * obj.GameData.UseRadius;
-
-                                        var motionSanctuary = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
-
-                                        var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
-
-                                        // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-                                        var soundEvent = new GameMessageSound(obj.Guid, Sound.LifestoneOn, 1);
-
-                                        if (player.Location.SquaredDistanceTo(obj.Location) >= radiusSquared)
-                                        {
-                                            serverMessage = "You wandered too far to attune with the Lifestone!";
-                                        }
-                                        else
-                                        {
-                                            player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
-
-                                            // create the outbound server message
-                                            serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                                            player.EnqueueMovementEvent(motionSanctuary, player.Guid);
-                                            player.Session.Network.EnqueueSend(soundEvent);
-                                        }
-
-                                        var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
-                                        // always send useDone event
-                                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                                        player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
-
+                                        (obj as Lifestone).OnUse(player);
                                         break;
                                     }
                             }
                         }
                         break;
-                    }                    
+                    }
             }
         }
 
