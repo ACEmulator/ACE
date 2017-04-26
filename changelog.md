@@ -1,4 +1,12 @@
 # ACEmulator Change Log
+
+### 2017-04-26
+[Ripley]
+* Rebased SQL scripts.
+* It is recommended if you have an already existing database you wipe it and start fresh from the new base scripts.
+* Download the latest release of the ACE-World database to populate your world.
+* Added some exception catching to UniversalMotion.
+
 ### 2017-04-25
 [Jyard1]
 * Added 16 portals around the Shoushi area.
