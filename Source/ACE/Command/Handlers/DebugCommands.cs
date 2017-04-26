@@ -476,7 +476,7 @@ namespace ACE.Command.Handlers
             "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
         public static void Treadgenerators(Session session, params string[] parameters)
         {
-            var generators = GeneratorTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E00000D));
+            var generators = GeneratorTable.ReadFromDat();
 
             // Example for accessing the tree with nodes of type Generator
             generators.ReadItems().Where(node => node.Name == "Drudges").ToList().ForEach(gen => {

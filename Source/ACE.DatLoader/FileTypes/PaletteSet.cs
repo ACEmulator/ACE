@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-namespace ACE.DatLoader.Entity
+
+namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x0F. 
@@ -12,8 +13,9 @@ namespace ACE.DatLoader.Entity
         public uint PaletteSetId { get; set; }
         public List<uint> PaletteList { get; set; } = new List<uint>();
 
-        public static PaletteSet ReadFromDat(DatReader datReader)
+        public static PaletteSet ReadFromDat(uint fileId)
         {
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
             PaletteSet p = new PaletteSet();
             p.PaletteSetId = datReader.ReadUInt32();
 
