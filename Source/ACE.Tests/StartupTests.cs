@@ -42,7 +42,7 @@ namespace ACE.Tests
         [TestMethod]
         public void CommandManager_Initialize()
         {
-            // CommandManager.Initialise();
+            // CommandManager.Initialize();
         }
     }
 }

@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
+    using global::ACE.StateMachines;
+    using global::ACE.StateMachines.Rules;
+
     public class Creature : Container
     {
         protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
@@ -57,6 +60,7 @@ namespace ACE.Entity
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
+            Statemachine.Initialize(MovementRules.GetRules(), MovementRules.GetInitState());
         }
 
         public Creature(AceCreatureStaticLocation aceC)

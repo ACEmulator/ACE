@@ -1,18 +1,19 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ACE.StateMachines;
 
 namespace ACE.Entity
 {
+    using global::ACE.StateMachines.Rules;
+
     public class Container : WorldObject
     {
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
         private readonly object inventoryMutex = new object();
+
+        public StateMachine Statemachine = new StateMachine();
 
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
@@ -22,6 +23,7 @@ namespace ACE.Entity
             this.WeenieFlags = weenieFlag;
             this.Location = position;
             this.WeenieClassid = weenieClassId;
+            Statemachine.Initialize(ContainerRules.GetRules(), ContainerRules.GetInitState());
         }
 
         // Inventory Management Functions
