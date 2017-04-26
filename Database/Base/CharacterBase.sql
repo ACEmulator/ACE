@@ -17,7 +17,7 @@
 
 CREATE DATABASE /*!32312 IF NOT EXISTS*/`ace_character` /*!40100 DEFAULT CHARACTER SET utf8 */;
 
-USE `ace_auth`;
+USE `ace_character`;
 
 --
 -- Table structure for table `character`

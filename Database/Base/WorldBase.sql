@@ -17,7 +17,7 @@
 
 CREATE DATABASE /*!32312 IF NOT EXISTS*/`ace_world` /*!40100 DEFAULT CHARACTER SET utf8 */;
 
-USE `ace_auth`;
+USE `ace_world`;
 
 --
 -- Table structure for table `ace_creature_generator_data`
