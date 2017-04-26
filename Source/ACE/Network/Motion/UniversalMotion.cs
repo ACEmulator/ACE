@@ -109,8 +109,7 @@ namespace ACE.Network.Motion
                     }
                 case MovementTypes.TurnToObject:
                     {
-<<<<<<< HEAD
-                        writer.Write(animationTarget.Guid.Full);
+         writer.Write(animationTarget.Guid.Full);
                         writer.Write(heading);
                         writer.Write(Flag);
                         writer.Write(Speed);
@@ -122,7 +121,6 @@ namespace ACE.Network.Motion
                         writer.Write(Flag);
                         writer.Write(Speed);
                         writer.Write(heading);
-=======
                         try
                         {
                             Position.Serialize(writer, false);
@@ -142,7 +140,6 @@ namespace ACE.Network.Motion
 
                             // TODO: This prevents a crash in Kryst and possibly other locations, Please investigate and fix if possible.
                         }
->>>>>>> 573bd5d212be7a44ba67bccc2de6fd2a5a57c06d
                         break;
                     }
             }
@@ -153,11 +150,7 @@ namespace ACE.Network.Motion
         {
             MemoryStream stream = new MemoryStream(currentMotionState);
             BinaryReader reader = new BinaryReader(stream);
-<<<<<<< HEAD
-            MovementTypes movementType = (MovementTypes)reader.ReadByte(); // movement_type
-=======
             MovementTypes = (MovementTypes)reader.ReadByte(); // movement_type
->>>>>>> 573bd5d212be7a44ba67bccc2de6fd2a5a57c06d
 
             MotionFlags flags = (MotionFlags)reader.ReadByte(); // these can be or and has sticky object | is long jump mode |
 
@@ -169,10 +162,6 @@ namespace ACE.Network.Motion
             Stance = (MotionStance)reader.ReadUInt16(); // called command in the client
 
             MovementStateFlag generalFlags = (MovementStateFlag)reader.ReadUInt32();
-<<<<<<< HEAD
-=======
-
->>>>>>> 573bd5d212be7a44ba67bccc2de6fd2a5a57c06d
             MovementData = new MovementData();
 
             if ((generalFlags & MovementStateFlag.CurrentStyle) != 0)
@@ -248,9 +237,6 @@ namespace ACE.Network.Motion
             }
 
             if ((generalFlags & MovementStateFlag.TurnSpeed) != 0)
-<<<<<<< HEAD
-                MovementData.TurnSpeed = (float)reader.ReadSingle();
-=======
             {
                 try
                 {
@@ -261,38 +247,6 @@ namespace ACE.Network.Motion
                     MovementData.TurnSpeed = 0;
                 }
             }
-
-            // foreach (var item in Commands)
-            // {
-            //    writer.Write((ushort)item.Motion);
-            //    writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
-            //    writer.Write(item.Speed);
-            // }
-
-            // if ((generalFlags & MovementStateFlag.ForwardCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-            // if ((generalFlags & MovementStateFlag.SideStepCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-            // if ((generalFlags & MovementStateFlag.TurnCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-
-            // return stream.ToArray();
->>>>>>> 573bd5d212be7a44ba67bccc2de6fd2a5a57c06d
         }
     }
 }
