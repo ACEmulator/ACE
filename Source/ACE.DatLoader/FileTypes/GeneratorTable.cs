@@ -14,9 +14,12 @@ namespace ACE.DatLoader.FileTypes
     /// </summary>
     public static class GeneratorTable
     {
-        public static Generator ReadFromDat(DatReader datReader)
+        public static Generator ReadFromDat()
         {
             Generator gen = new Generator();
+
+            // Create the datReader for the proper file
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
 
             gen.Id = datReader.ReadInt32();
             gen.Name = "0E00000D";

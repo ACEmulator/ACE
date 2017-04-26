@@ -12,6 +12,14 @@
 * Added 30 portals in the destination_portal for Gharu towns.
 
 ### 2017-04-24
+[OptimShi]
+* Added XpTable class to the ACE.DatLoader.FileTypes. This loads the XP tables from the client_portal.dat
+* Modified Player.cs to use the new XpTable class.
+* Removed JSON based XP charts.
+* Removed ACE.Database.ChartDatabase (classes that loaded the JSON XP charts)
+* Removed DatReader parameter from DatLoader.FileTypes classes CharGen and GeneratorTable. It's always going to be the same file, so no need to specify it.
+* Changed parameters of other DatLoader.FileTypes to be more straight-forward. They will auto-create the DatReader and the parameter is the fileId to read.
+
 [Jyrus]
 * Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
 	Must use MySQL, SQLyog, or possibly HeidiSQL
