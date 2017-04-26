@@ -1,12 +1,18 @@
 # ACEmulator Change Log
 
+### 2017-04-26
+[Ripley]
+* Rebased SQL scripts.
+* It is recommended if you have an already existing database you wipe it and start fresh from the new base scripts.
+* Download the latest release of the ACE-World database to populate your world.
+* Added some exception catching to UniversalMotion.
+
 ### 2017-04-25
 [MiachofTD]
 * Changed 010_2017_04_24_Gharu_town_Part_2_portal_destination.sql to 011_2017_04_24_Gharu_town_Part_2_portal_destination.sql.
 * Changed 0010_2017_04_25_portal_destination.sql to 012_2017_04_25_portal_destination.sql and updated MySqlInstall.bat.
 * Added 010_2017_04_24_portal_destination_Academy.sql to MySqlInstall.bat.
 
-### 2017-04-25
 [Jyard1]
 * Added 16 portals around the Shoushi area.
 
