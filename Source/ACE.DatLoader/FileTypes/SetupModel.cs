@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ACE.DatLoader.Entity
+namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x02. 

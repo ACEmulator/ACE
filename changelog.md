@@ -8,6 +8,11 @@
 * Added some exception catching to UniversalMotion.
 
 ### 2017-04-25
+[MiachofTD]
+* Changed 010_2017_04_24_Gharu_town_Part_2_portal_destination.sql to 011_2017_04_24_Gharu_town_Part_2_portal_destination.sql.
+* Changed 0010_2017_04_25_portal_destination.sql to 012_2017_04_25_portal_destination.sql and updated MySqlInstall.bat.
+* Added 010_2017_04_24_portal_destination_Academy.sql to MySqlInstall.bat.
+
 [Jyard1]
 * Added 16 portals around the Shoushi area.
 
@@ -20,6 +25,14 @@
 * Added 30 portals in the destination_portal for Gharu towns.
 
 ### 2017-04-24
+[OptimShi]
+* Added XpTable class to the ACE.DatLoader.FileTypes. This loads the XP tables from the client_portal.dat
+* Modified Player.cs to use the new XpTable class.
+* Removed JSON based XP charts.
+* Removed ACE.Database.ChartDatabase (classes that loaded the JSON XP charts)
+* Removed DatReader parameter from DatLoader.FileTypes classes CharGen and GeneratorTable. It's always going to be the same file, so no need to specify it.
+* Changed parameters of other DatLoader.FileTypes to be more straight-forward. They will auto-create the DatReader and the parameter is the fileId to read.
+
 [Jyrus]
 * Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
 	Must use MySQL, SQLyog, or possibly HeidiSQL

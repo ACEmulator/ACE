@@ -10,8 +10,6 @@ namespace ACE.Database
 
         public static IWorldDatabase World { get; set; }
 
-        public static IChartDatabase Charts { get; set; }
-
         public static void Initialise()
         {
             var config = ConfigManager.Config.MySql;
@@ -27,8 +25,6 @@ namespace ACE.Database
             var worldDb = new WorldDatabase();
             worldDb.Initialise(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database);
             World = worldDb;
-
-            Charts = new ChartDatabase();
         }
     }
 }

@@ -86,13 +86,11 @@
   <ItemGroup>
     <Compile Include="AuthenticationDatabase.cs" />
     <Compile Include="CharacterDatabase.cs" />
-    <Compile Include="ChartDatabase.cs" />
     <Compile Include="ConstructedStatementType.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="IAuthenticationDatabase.cs" />
     <Compile Include="ICharacterDatabase.cs" />
-    <Compile Include="IChartDatabase.cs" />
     <Compile Include="IWorldDatabase.cs" />
     <Compile Include="MySqlResult.cs">
       <SubType>Component</SubType>

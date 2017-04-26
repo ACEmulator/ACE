@@ -15,10 +15,12 @@ namespace ACE.DatLoader.FileTypes
         public List<List<Loc>> StarterAreas { get; set; } = new List<List<Loc>>();
         public Dictionary<int, HeritageGroupCG> HeritageGroups { get; set; } = new Dictionary<int, HeritageGroupCG>();
 
-        public static CharGen ReadFromDat(DatReader datReader)
+        public static CharGen ReadFromDat()
         {
             if (instance == null) // We'll store the CG data into the instance the first time it's loaded. No need to read it multiple times.
             {
+                // Create the datReader for the proper file
+                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000002);
                 CharGen cg = new CharGen();
 
                 cg.Did = datReader.ReadInt32();
