@@ -618,6 +618,7 @@ namespace ACE.Entity
                                 {
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
+                                    aPlayer.BlockedGameAction = action;
                                 }
                                 var motion = new UniversalMotion(MotionStance.Standing);
                                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
