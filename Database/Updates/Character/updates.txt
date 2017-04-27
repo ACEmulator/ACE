@@ -36,3 +36,4 @@
 4/26/2017
 ---------
 - Renamed column character.birth to character.lastUpdate to better reflect its use.
+- Added view for ace character

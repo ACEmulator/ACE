@@ -1,10 +1,14 @@
 # ACEmulator Change Log
-<<<<<<< HEAD
+
 ### 2017-04-26
 [Og II]
 * Added Turn to Object and Turn To Heading messages.   
-* Cleaned up eairler work 
-=======
+* Cleaned up earlier work 
+* You can now test move to object and put item in container.   
+* ctw ground.   select wand.   move away from the area with the item still selected.   Press the use key - you will walk or run to the wand depending on your distance, then stop and pick it up.
+* this also implements the first use of StackOverflows state machine
+* contains view for character - to start implementing orm for character
+*  NOTE: There is a known bug if you create the training wand in your backpack and drop it, the move to does not work correctly yet.   I think it is related to the landblock not doing updates atm.
 
 ### 2017-04-26
 [OptimShi]
@@ -20,7 +24,6 @@
 * Download the latest release of the ACE-World database to populate your world.
 * Added some exception catching to UniversalMotion.
 
->>>>>>> 573bd5d212be7a44ba67bccc2de6fd2a5a57c06d
 ### 2017-04-25
 [MiachofTD]
 * Changed 010_2017_04_24_Gharu_town_Part_2_portal_destination.sql to 011_2017_04_24_Gharu_town_Part_2_portal_destination.sql.
