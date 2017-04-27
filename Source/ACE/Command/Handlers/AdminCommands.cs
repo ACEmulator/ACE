@@ -92,6 +92,9 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Boots the Player or Account holder from the server and displays the CoC Violation Warning
         /// </summary>
+        /// <remarks>
+        ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
+        /// </remarks>
         [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2, 
             "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
             "{ account | char | iid } who")]
@@ -170,6 +173,7 @@ namespace ACE.Command.Handlers
                         bootText = "Player: " + session.Player.Name + " has booted " + bootText;
                         if (session != playerSession)
                             session.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
+                        // TODO: Send out a message on the Audit Group Chat Channel, to alert other admins of the boot
                     }
                     else
                     {
