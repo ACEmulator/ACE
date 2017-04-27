@@ -117,23 +117,18 @@ namespace ACE.Command.Handlers
                 if (parameters[0].ToLower()[0] == bootType.ToLower()[0])
                 {
                     // If found, selectorType will hold the correct AccoutLookupType
+                    // If this returns true, that means we were successful and can stop looping
                     if (Enum.TryParse(bootType, out selectorType))
-                    {
-                        // reaching this scope means we were successful, so we can stop looping:
                         break;
-                    }
                 }
             }
 
             // Peform logic
             if (selectorType != AccountLookupType.Undef)
             {
-                // Extract the name from the parameters
+                // Extract the name from the parameters and get the name from the first parameter
                 if (selectorType == AccountLookupType.Account || selectorType == AccountLookupType.Character)
-                {
-                    // Get the first name
                     bootName = Common.Extensions.CharacterNameExtensions.StringArrayToCharacterName(parameters, 1);
-                }
 
                 switch (selectorType)
                 {
@@ -194,12 +189,9 @@ namespace ACE.Command.Handlers
             string errorText = $"Error locating the player or account to boot.";
             // Send the error to a player or the console
             if (session != null)
-            {
                 session.Network.EnqueueSend(new GameMessageSystemChat(errorText, ChatMessageType.Broadcast));
-            } else
-            {
+            else
                 Console.WriteLine(errorText);
-            }
         }
 
         // cloak < on / off / player / creature >
