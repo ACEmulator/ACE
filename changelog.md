@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-04-26
+[fantoms]
+* Built out the admin `@teleto` command. Use a player's name as the parameter.
+
 [Ripley]
 * Rebased SQL scripts.
 * It is recommended if you have an already existing database you wipe it and start fresh from the new base scripts.
