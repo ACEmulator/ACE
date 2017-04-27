@@ -26,19 +26,18 @@ namespace ACE.StateMachines.Rules
         private static void GenerateRules()
         {
             Rulesstates.Add(new Rule(
-                (int)MovementStates.Idle,        // from
-                (int)MovementStates.Moving));    // allowedto
+                (int)MovementStates.Idle,         // from
+                (int)MovementStates.Moving));     // allowedto
             Rulesstates.Add(new Rule(
-                (int)MovementStates.Idle,       // from
-                (int)MovementStates.Moving,     // allowedto
-                (int)MovementStates.Arrived));  // allowedto
+                (int)MovementStates.Moving,       // from
+                (int)MovementStates.Arrived,      // allowedto
+                (int)MovementStates.Abandoned));  // allowedto
             Rulesstates.Add(new Rule(
-               (int)MovementStates.Moving,       // from
-               (int)MovementStates.Arrived,      // allowedto
-               (int)MovementStates.Abandoned));  // allowedto
+               (int)MovementStates.Arrived,       // from
+               (int)MovementStates.Idle));        // allowedto
             Rulesstates.Add(new Rule(
-               (int)MovementStates.Abandoned,    // from
-               (int)MovementStates.Idle));      // allowedto
+               (int)MovementStates.Abandoned,     // from
+               (int)MovementStates.Idle));        // allowedto
             init = true;
         }
     }

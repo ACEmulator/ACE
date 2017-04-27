@@ -18,8 +18,7 @@ namespace ACE.Network.GameAction
             var forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
             session.Player.UpdatePosition(position);
-            if (session.Player.Statemachine.CurrentState == (int)MovementStates.Moving
-               || session.Player.Statemachine.CurrentState == (int)MovementStates.Arrived)
+            if (session.Player.Statemachine.CurrentState == (int)MovementStates.Moving)
             {
                 if (
                     session.Player.MoveToPosition.SquaredDistanceTo(

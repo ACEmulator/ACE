@@ -616,15 +616,13 @@ namespace ACE.Entity
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow(inventoryItem.GameData.UseRadius, 2))
+                                    > (Math.Pow(inventoryItem.GameData.UseRadius, 2) + 1)) // fudge factor
                                 {
-                                    // This is where I need to hook in the move to object code.
-                                    // TODO: Og II work on this soon.
                                     aPlayer.BlockedGameAction = action;
                                     aPlayer.MoveToPosition = inventoryItem.PhysicsData.Position;
                                     var newMotion = new UniversalMotion(MotionStance.Standing, inventoryItem);
                                     aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer));
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject));
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject, 1.0f, inventoryItem.GameData.UseRadius));
                                     aPlayer.Statemachine.ChangeState((int)MovementStates.Moving);
                                     break;
                                 }
@@ -700,6 +698,7 @@ namespace ACE.Entity
                                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
+                                    inventoryItem.PhysicsData.Position = aPlayer.PhysicsData.Position.InFrontOf(0.2f);
                                     LandblockManager.AddObject(inventoryItem);
 
                                     // This may not be needed when we fix landblock update object -

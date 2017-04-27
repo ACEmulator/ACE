@@ -2,11 +2,10 @@
 using ACE.Network.Enum;
 using System.Collections.Generic;
 using ACE.StateMachines;
+using ACE.StateMachines.Rules;
 
 namespace ACE.Entity
 {
-    using global::ACE.StateMachines.Rules;
-
     public class Container : WorldObject
     {
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
