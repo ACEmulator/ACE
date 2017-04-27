@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-04-26
+[OptimShi]
+* Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
+* Changed sort order of character list to use character.lastUpdate instead of alphabetical. Your last used character will now be selected upon a new client instance.
+
 [Ripley]
 * Rebased SQL scripts.
 * It is recommended if you have an already existing database you wipe it and start fresh from the new base scripts.
