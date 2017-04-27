@@ -506,7 +506,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("teleto", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a player",
             "[Player's Name]\n" +
-            "@teleport Playername")]
+            "@teleto Playername")]
         public static void HandleTeleto(Session session, params string[] parameters)
         {
             // @teleto - Teleports you to the specified character.
@@ -515,12 +515,9 @@ namespace ACE.Command.Handlers
             Session playerSession = WorldManager.FindByPlayerName(playerName);
             // If the player is found, teleport the admin to the Player's location
             if (playerSession != null)
-            {
                 session.Player.Teleport(playerSession.Player.Location);
-            } else
-            {
+            else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
-            }
         }
 
         // telepoi location
