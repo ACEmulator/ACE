@@ -7,7 +7,7 @@ namespace ACE.StateMachines.Rules
     {
         private static bool init;
 
-        private static MovementStates initstate = MovementStates.Moving;
+        private static MovementStates initstate = MovementStates.Idle;
 
         private static readonly List<Rule> Rulesstates = new List<Rule>();
 
@@ -26,7 +26,7 @@ namespace ACE.StateMachines.Rules
         private static void GenerateRules()
         {
             Rulesstates.Add(new Rule(
-                (int)MovementStates.Idle,       // from
+                (int)MovementStates.Idle,        // from
                 (int)MovementStates.Moving));    // allowedto
             Rulesstates.Add(new Rule(
                 (int)MovementStates.Idle,       // from

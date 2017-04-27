@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ACE.StateMachines.Enum;
 
 namespace ACE.StateMachines
 {
@@ -28,8 +27,8 @@ namespace ACE.StateMachines
                 List<Rule> currule = new List<Rule>();
                 currule = validrules.Where(r => r.FromState == CurrentState).ToList();
 
-                if (currule.Count != 1)
-                    throw new ApplicationException("StateMachine is in a invalid state");
+                // if (currule.Count != 1)
+                //    throw new ApplicationException("StateMachine is in a invalid state");
 
                 // found current state, check if we can move from this state to the next.
                 if ((currule[0] as Rule).ToStates.Contains(too))

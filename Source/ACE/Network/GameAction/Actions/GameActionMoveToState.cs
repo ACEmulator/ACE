@@ -4,6 +4,9 @@ using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
 {
+    using global::ACE.StateMachines;
+    using global::ACE.StateMachines.Enum;
+
     public static class GameActionMoveToState
     {
         [Flags]
@@ -91,7 +94,12 @@ namespace ACE.Network.GameAction.Actions
             teleportTimestamp = message.Payload.ReadUInt16();
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
-
+            if (session.Player.Statemachine.CurrentState == (int)MovementStates.Moving)
+            {
+                session.Player.Statemachine.ChangeState((int)MovementStates.Abandoned);
+                session.Player.BlockedGameAction = null;
+                session.Player.Statemachine.ChangeState((int)MovementStates.Idle);
+            }
             session.Player.UpdatePosition(position);
         }
     }

@@ -18,6 +18,8 @@ using ACE.Factories;
 
 namespace ACE.Entity
 {
+    using global::ACE.StateMachines.Enum;
+
     /// <summary>
     /// the gist of a landblock is that, generally, everything on it publishes
     /// to and subscribes to everything else in the landblock.  x/y in an outdoor
@@ -619,6 +621,12 @@ namespace ACE.Entity
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
                                     aPlayer.BlockedGameAction = action;
+                                    aPlayer.MoveToPosition = inventoryItem.PhysicsData.Position;
+                                    var newMotion = new UniversalMotion(MotionStance.Standing, inventoryItem);
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer));
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject));
+                                    aPlayer.Statemachine.ChangeState((int)MovementStates.Moving);
+                                    break;
                                 }
                                 var motion = new UniversalMotion(MotionStance.Standing);
                                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;

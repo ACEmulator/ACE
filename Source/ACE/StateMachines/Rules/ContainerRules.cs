@@ -7,13 +7,13 @@ namespace ACE.StateMachines.Rules
     {
         private static bool init = false;
 
-        private static ContainerStates initstate = ContainerStates.Unlocked;
+        private static int initstate = (int)ContainerStates.Unlocked;
 
         private static readonly List<Rule> Rulesstates = new List<Rule>();
 
         public static int GetInitState()
         {
-            return (int)initstate;
+            return initstate;
         }
 
         public static List<Rule> GetRules()

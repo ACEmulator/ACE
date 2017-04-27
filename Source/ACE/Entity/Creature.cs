@@ -47,6 +47,8 @@ namespace ACE.Entity
 
         public QueuedGameAction BlockedGameAction { get; set; }
 
+        public Position MoveToPosition { get; set; }
+
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>

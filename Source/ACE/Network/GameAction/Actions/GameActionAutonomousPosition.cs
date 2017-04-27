@@ -2,6 +2,10 @@
 
 namespace ACE.Network.GameAction
 {
+    using System;
+
+    using global::ACE.StateMachines.Enum;
+
     public static class GameActionAutonomousPosition
     {
         [GameAction(GameActionType.AutonomousPosition)]
@@ -14,6 +18,19 @@ namespace ACE.Network.GameAction
             var forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
             session.Player.UpdatePosition(position);
+            if (session.Player.Statemachine.CurrentState == (int)MovementStates.Moving
+               || session.Player.Statemachine.CurrentState == (int)MovementStates.Arrived)
+            {
+                if (
+                    session.Player.MoveToPosition.SquaredDistanceTo(
+                        session.Player.PhysicsData.Position)
+                    <= 1.0f)
+                {
+                    session.Player.Statemachine.ChangeState((int)MovementStates.Arrived);
+                    session.Player.AddToActionQueue(session.Player.BlockedGameAction);
+                    session.Player.Statemachine.ChangeState((int)MovementStates.Idle);
+                }
+            }
         }
     }
 }
