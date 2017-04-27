@@ -32,3 +32,7 @@
 - In the in character_stats table the following changes have been made:
 -- Changed column coordinationXpSpent to an unsigned int(10) to match other columns and prevent crash.
 -- Changed columns healthCurrent, staminaCurrent, manaCurrent to unsigned smallint(2) to prevent crash at higher values.
+
+4/26/2017
+---------
+- Renamed column character.birth to character.lastUpdate to better reflect its use.
