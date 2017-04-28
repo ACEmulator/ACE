@@ -477,6 +477,13 @@ namespace ACE.Entity
                     QueuedGameAction action = player.ActionQueuePop();
                     if (action != null)
                         HandleGameAction(action, player);
+                    else
+                    {
+                        // Process the Examination Queue
+                        action = player.ExaminationQueuePop();
+                        if (action != null)
+                            HandleGameAction(action, player);
+                    }
                 });
 
                 // broadcast moving objects to the world..
@@ -594,6 +601,19 @@ namespace ACE.Entity
                         }
                         var soundEffect = (Sound)action.SecondaryObjectId;
                         HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
+                case GameActionType.IdentifyObject:
+                    {
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var targetId = action.ObjectId;
+                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, targetId);
+                        player.Session.Network.EnqueueSend(identifyResponse);
                         break;
                     }
                 case GameActionType.PutItemInContainer:
