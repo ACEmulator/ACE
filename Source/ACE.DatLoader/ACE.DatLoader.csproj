@@ -110,6 +110,7 @@
     <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
+    <Compile Include="FileTypes\XpTable.cs" />
     <Compile Include="PortalDatDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
