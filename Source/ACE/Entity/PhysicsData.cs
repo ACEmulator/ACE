@@ -130,7 +130,7 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
                 writer.Write(Friction);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elastcity) != 0)
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
                 writer.Write(Elastcity);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)

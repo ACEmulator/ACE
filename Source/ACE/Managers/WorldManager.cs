@@ -32,7 +32,7 @@ namespace ACE.Managers
 
         public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
 
-        public static void Initialise()
+        public static void Initialize()
         {
             var thread = new Thread(UpdateWorld);
             thread.Start();

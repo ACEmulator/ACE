@@ -14,35 +14,35 @@ namespace ACE.Tests
         [ClassInitialize]
         public static void TestSetup(TestContext context)
         {
-            // copy config.json and intialize configuration
+            // copy config.json and initialize configuration
             File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
-            ConfigManager.Initialise();
+            ConfigManager.Initialize();
         }
-        
+
         [TestMethod]
         public void DatabaseManager_Initialize()
         {
             // this triggers all the prepared statement validation
-            DatabaseManager.Initialise();
+            DatabaseManager.Initialize();
         }
 
         [TestMethod]
         public void AssetManager_Initialize()
         {
-            AssetManager.Initialise();
+            AssetManager.Initialize();
         }
 
         [TestMethod]
         public void WorldManager_Initialize()
         {
-            WorldManager.Initialise();
+            WorldManager.Initialize();
             WorldManager.StopWorld();
         }
 
         [TestMethod]
         public void CommandManager_Initialize()
         {
-            // CommandManager.Initialise();
+            // CommandManager.Initialize();
         }
     }
 }

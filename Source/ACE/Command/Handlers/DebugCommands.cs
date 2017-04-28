@@ -17,6 +17,8 @@ using System.Linq;
 
 namespace ACE.Command.Handlers
 {
+    using global::ACE.Database;
+
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
@@ -214,6 +216,7 @@ namespace ACE.Command.Handlers
             ushort forwardCommand = 24;
             if ((parameters?.Length > 0))
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
+            var aCharacter = DatabaseManager.Character.GetAceCharacter(1);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
@@ -231,7 +234,7 @@ namespace ACE.Command.Handlers
             var distance = 10.0f;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
             var newMotion = new UniversalMotion(MotionStance.Standing, loot);
@@ -313,23 +316,41 @@ namespace ACE.Command.Handlers
             LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
-        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Creates a training wand on the ground or in your main pack.",
-            "[me or ground]" +
-            "@ctw me = Creates the wand in your main pack.\n" +
-            "@ctw ground = Creates the wand in front of you on the ground.")]
-        public static void CreateTrainingWand(Session session, params string[] parameters)
+        [CommandHandler("cwo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Test code to create a world object on the ground or (if it can be contained )in your main pack.",
+            "[me or ground optional <weenieId> if no weenieId is specified a training wand is created]" +
+            "@cwo me <weenieId> = Creates the item in your main pack.\n" +
+            "@ctw ground <weenieId> = Creates the item in front of you on the ground.")]
+        public static void CreateTestWorldObject(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))
             {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                   ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Usage: @ctw me <weenieId> or @ctw ground <weenieId>", ChatMessageType.Broadcast);
                 return;
             }
             string location = parameters[0];
+            WorldObject loot;
             if (location == "me" | location == "ground")
             {
-                var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+                if (parameters.Length == 2)
+                {
+                    ushort weenieId;
+                    try
+                    {
+                        weenieId = Convert.ToUInt16(parameters[1]);
+                    }
+                    catch (Exception)
+                    {
+                        ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                        return;
+                    }
+                    loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                }
+                else
+                {
+                    loot = LootGenerationFactory.CreateTestWorldObject(session.Player);
+                }
+
                 switch (location)
                 {
                     case "me":
@@ -347,8 +368,7 @@ namespace ACE.Command.Handlers
             }
             else
             {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                    ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Usage: @ctw me <weenieId> or @ctw ground <weenieId>", ChatMessageType.Broadcast);
             }
         }
 
@@ -468,7 +488,7 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat. 
+        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat.
         /// </summary>
         [CommandHandler("readgenerators", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
             "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
@@ -482,7 +502,7 @@ namespace ACE.Command.Handlers
                 if (gen.Count > 0)
                 {
                     for (var i = 0; i < gen.Count; i++)
-                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}"); 
+                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}");
                 }
             });
         }

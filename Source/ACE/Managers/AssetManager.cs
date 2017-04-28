@@ -11,7 +11,7 @@ namespace ACE.Managers
     {
         private static Dictionary<string, Position> teleportLocations = new Dictionary<string, Position>();
 
-        public static void Initialise()
+        public static void Initialize()
         {
             var locations = DatabaseManager.World.GetLocations();
             foreach (var loc in locations)
