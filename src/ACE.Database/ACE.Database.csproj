@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="MySql.Data" Version="7.0.7-m61" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj" />
+  </ItemGroup>
+
+</Project>
