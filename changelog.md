@@ -2,6 +2,12 @@
 
 ### 2017-04-26
 [OptimShi]
+* Hooked up the "ExaminationQueuePop" in Player.cs to fire.
+* Added IdentifyResponseFlags, for when we start to send actual data.
+* Added a basic debug string to any ID. It simply returns the objects GUID.
+
+### 2017-04-26
+[OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
 * Changed sort order of character list to use character.lastUpdate instead of alphabetical. Your last used character will now be selected upon a new client instance.
 
