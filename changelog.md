@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-04-26
+### 2017-04-28
 [OptimShi]
 * Hooked up the "ExaminationQueuePop" in Player.cs to fire.
 * Added IdentifyResponseFlags, for when we start to send actual data.
