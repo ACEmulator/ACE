@@ -79,7 +79,17 @@ namespace ACE.Command.Handlers
             "Recalls the last portal used.")]
         public static void HandleDebugPortalRecall(Session session, params string[] parameters)
         {
-            session.Player.Teleport(session.Player.Positions[PositionType.LastPortal]);
+            Position lastPortalUsed = null;
+            if (session.Player.Positions.TryGetValue(PositionType.LastPortal, out lastPortalUsed))
+            {
+                session.Player.Teleport(lastPortalUsed);
+            }
+            else
+            {
+                // You are too powerful to interact with that portal!
+                var portalRecallMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.Enum_04A3);
+                session.Network.EnqueueSend(portalRecallMessage);
+            }
         }
 
         // grantxp ulong
