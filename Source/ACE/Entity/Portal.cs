@@ -235,6 +235,8 @@ namespace ACE.Entity
                         }
 
                         player.Session.Player.Teleport(portalDest);
+                        if (portalData.IsRecallable == true)
+                            player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent);

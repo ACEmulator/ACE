@@ -74,6 +74,14 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
+        // telexyz cell x y z qx qy qz qw
+        [CommandHandler("portalrecall", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Recalls the last portal used.")]
+        public static void HandleDebugPortalRecall(Session session, params string[] parameters)
+        {
+            session.Player.Teleport(session.Player.Positions[PositionType.LastPortal]);
+        }
+
         // grantxp ulong
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Give XP to yourself.",
