@@ -138,13 +138,13 @@ namespace ACE.Entity
 
             if (player.Location.SquaredDistanceTo(this.Location) < rangeCheck)
             {
-                PortalDestination portalDestination = DatabaseManager.World.GetPortalDestination(this.WeenieClassid);
+                AcePortalObject portalData = DatabaseManager.World.GetPortalDataByWeenie(this.WeenieClassid);
 
-                if (portalDestination != null)
+                if (portalData != null)
                 {
-                    if ((player.Level >= portalDestination.MinLvl) && ((player.Level <= portalDestination.MaxLvl) || (portalDestination.MaxLvl == 0)))
+                    if ((player.Level >= portalData.MinLvl) && ((player.Level <= portalData.MaxLvl) || (portalData.MaxLvl == 0)))
                     {
-                        Position portalDest = portalDestination.Position;
+                        Position portalDest = portalData.DestPosition;
                         switch (this.WeenieClassid)
                         {
                             /// <summary>
@@ -177,13 +177,13 @@ namespace ACE.Entity
                                             }
                                     }
 
-                                    portalDest.PositionX = portalDestination.PosX;
-                                    portalDest.PositionY = portalDestination.PosY;
-                                    portalDest.PositionZ = portalDestination.PosZ;
-                                    portalDest.RotationX = portalDestination.QX;
-                                    portalDest.RotationY = portalDestination.QY;
-                                    portalDest.RotationZ = portalDestination.QZ;
-                                    portalDest.RotationW = portalDestination.QW;
+                                    portalDest.PositionX = portalData.DestPosX;
+                                    portalDest.PositionY = portalData.DestPosY;
+                                    portalDest.PositionZ = portalData.DestPosZ;
+                                    portalDest.RotationX = portalData.DestQX;
+                                    portalDest.RotationY = portalData.DestQY;
+                                    portalDest.RotationZ = portalData.DestQZ;
+                                    portalDest.RotationW = portalData.DestQW;
                                     break;
                                 }
                             /// <summary>
@@ -216,13 +216,13 @@ namespace ACE.Entity
                                             }
                                     }
 
-                                    portalDest.PositionX = portalDestination.PosX;
-                                    portalDest.PositionY = portalDestination.PosY;
-                                    portalDest.PositionZ = portalDestination.PosZ;
-                                    portalDest.RotationX = portalDestination.QX;
-                                    portalDest.RotationY = portalDestination.QY;
-                                    portalDest.RotationZ = portalDestination.QZ;
-                                    portalDest.RotationW = portalDestination.QW;
+                                    portalDest.PositionX = portalData.DestPosX;
+                                    portalDest.PositionY = portalData.DestPosY;
+                                    portalDest.PositionZ = portalData.DestPosZ;
+                                    portalDest.RotationX = portalData.DestQX;
+                                    portalDest.RotationY = portalData.DestQY;
+                                    portalDest.RotationZ = portalData.DestQZ;
+                                    portalDest.RotationW = portalData.DestQW;
                                     break;
                                 }
                             /// <summary>
@@ -239,7 +239,7 @@ namespace ACE.Entity
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent);
                     }
-                    else if ((player.Level > portalDestination.MaxLvl) && (portalDestination.MaxLvl != 0))
+                    else if ((player.Level > portalData.MaxLvl) && (portalData.MaxLvl != 0))
                     {
                         // You are too powerful to interact with that portal!
                         var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);

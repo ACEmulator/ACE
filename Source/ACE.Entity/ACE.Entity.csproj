@@ -92,6 +92,7 @@
     <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
+	<Compile Include="AcePortalObject.cs" />
     <Compile Include="AnimationOverride.cs" />
     <Compile Include="Appearance.cs" />
     <Compile Include="CharacterOptions1Attribute.cs" />
@@ -118,7 +119,6 @@
     <Compile Include="Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
-    <Compile Include="PortalDestination.cs" />
     <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
     <Compile Include="Enum\Properties\PropertyDouble.cs" />

@@ -22,7 +22,7 @@ namespace ACE.Database
             InsertCreatureStaticLocation,
             GetCreatureGeneratorByLandblock,
             GetCreatureGeneratorData,
-            GetPortalDestination
+            GetPortalDataByWeenie
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -31,7 +31,7 @@ namespace ACE.Database
         {
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
             // ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetPortalDestination, typeof(PortalDestination), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetPortalDataByWeenie, typeof(AcePortalObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
@@ -64,14 +64,14 @@ namespace ACE.Database
             return locations;
         }
 
-        public PortalDestination GetPortalDestination(uint weenieClassId)
+        public AcePortalObject GetPortalDataByWeenie(uint weenieClassId)
         {
-            PortalDestination portalDestination = new PortalDestination();
+            AcePortalObject portalData = new AcePortalObject();
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             criteria.Add("weenieClassId", weenieClassId);
-            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalDestination, typeof(PortalDestination), criteria, portalDestination))
+            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalDataByWeenie, typeof(AcePortalObject), criteria, portalData))
             {
-                return portalDestination;
+                return portalData;
             }
             else
             {
