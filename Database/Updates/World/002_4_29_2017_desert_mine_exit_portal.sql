@@ -1,3 +1,5 @@
+USE `ace_world`;
+
 insert into `base_ace_object`(`baseAceObjectId`,`name`,`typeId`,`paletteId`,`ammoType`,`blipColor`,`bitField`,`burden`,`combatUse`,`cooldownDuration`,`cooldownId`,`effects`,`containersCapacity`,`header`,`hookTypeId`,`iconId`,`iconOverlayId`,`iconUnderlayId`,`hookItemTypes`,`itemsCapacity`,`location`,`materialType`,`maxStackSize`,`maxStructure`,`radar`,`pscript`,`spellId`,`stackSize`,`structure`,`targetTypeId`,`usability`,`useRadius`,`validLocations`,`value`,`workmanship`,`animationFrameId`,`defaultScript`,`defaultScriptIntensity`,`elasticity`,`friction`,`locationId`,`modelTableId`,`motionTableId`,`objectScale`,`physicsBitField`,`physicsState`,`physicsTableId`,`soundTableId`,`translucency`) values
  (1880629316,'Surface Portal',65536,0,0,0,262164,0,0,0,0,0,0,8388656,0,100667499,0,0,0,0,0,0,0,0,4,0,0,0,0,0,32,-0.1,0,0,0,0,0,0,0,0,0,33554867,150994947,0,98307,3084,0,0,0);
 

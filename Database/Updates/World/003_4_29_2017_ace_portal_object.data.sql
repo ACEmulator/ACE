@@ -1,3 +1,5 @@
+USE `ace_world`;
+
 --
 -- Dumping data for table `ace_portal_object`
 --
