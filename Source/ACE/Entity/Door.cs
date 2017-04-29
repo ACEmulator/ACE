@@ -82,14 +82,14 @@ namespace ACE.Entity
         private void Open(Player player)
         {
             player.EnqueueMovementEvent(motionOpen, this.Guid);
-            this.PhysicsData.CurrentMotionState = motionOpen;
+            this.PhysicsData.CurrentMotionState = motionStateOpen;
             this.PhysicsData.PhysicsState |= PhysicsState.Ethereal;
         }
 
         private void Close(Player player)
         {
             player.EnqueueMovementEvent(motionClosed, this.Guid);
-            this.PhysicsData.CurrentMotionState = motionClosed;
+            this.PhysicsData.CurrentMotionState = motionStateClosed;
             this.PhysicsData.PhysicsState ^= PhysicsState.Ethereal;
         }
     }
