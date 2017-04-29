@@ -1,10 +1,10 @@
 # ACEmulator Change Log
 
-### 2017-04-28
+### 2017-04-29
 [OptimShi]
 * Hooked up the "ExaminationQueuePop" in Player.cs to fire.
 * Added IdentifyResponseFlags, for when we start to send actual data.
-* Added a basic debug string to any ID. It simply returns the objects GUID.
+* Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
 
 ### 2017-04-26
 [OptimShi]

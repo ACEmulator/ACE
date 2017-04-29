@@ -611,8 +611,7 @@ namespace ACE.Entity
                         {
                             obj = worldObjects[g];
                         }
-                        var targetId = action.ObjectId;
-                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, targetId);
+                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
                         player.Session.Network.EnqueueSend(identifyResponse);
                         break;
                     }
