@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj" />
+    <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />
+    <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj" />
+    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj" />
+  </ItemGroup>
+
+</Project>
