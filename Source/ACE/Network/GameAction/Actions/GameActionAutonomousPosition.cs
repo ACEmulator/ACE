@@ -21,9 +21,9 @@ namespace ACE.Network.GameAction
             if (session.Player.Statemachine.CurrentState == (int)MovementStates.Moving)
             {
                 if (
-                    session.Player.MoveToPosition.SquaredDistanceTo(
-                        session.Player.PhysicsData.Position)
-                    <= 1.0f)
+                    Math.Abs(session.Player.MoveToPosition.SquaredDistanceTo(
+                        session.Player.PhysicsData.Position))
+                    <= 2.0f)
                 {
                     session.Player.Statemachine.ChangeState((int)MovementStates.Arrived);
                     session.Player.AddToActionQueue(session.Player.BlockedGameAction);

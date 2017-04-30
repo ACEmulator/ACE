@@ -615,7 +615,7 @@ namespace ACE.Entity
 
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
-                                if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
+                                if (Math.Abs(aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position))
                                     > (Math.Pow(inventoryItem.GameData.UseRadius, 2) + 1)) // fudge factor
                                 {
                                     aPlayer.BlockedGameAction = action;
