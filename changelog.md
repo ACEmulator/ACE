@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-04-30
+[OptimShi]
+* Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
+* Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
+
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
