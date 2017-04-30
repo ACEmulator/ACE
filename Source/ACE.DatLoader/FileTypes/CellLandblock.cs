@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
+/// <summary>
+/// Very special thanks to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
+/// </summary>
 namespace ACE.DatLoader.FileTypes
 {
     public class CellLandblock
