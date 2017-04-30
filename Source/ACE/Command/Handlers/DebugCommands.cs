@@ -482,7 +482,7 @@ namespace ACE.Command.Handlers
                 if (gen.Count > 0)
                 {
                     for (var i = 0; i < gen.Count; i++)
-                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}"); 
+                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}");
                 }
             });
         }

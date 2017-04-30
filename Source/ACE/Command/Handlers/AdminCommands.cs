@@ -8,6 +8,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Command.Handlers
 {
@@ -488,6 +489,8 @@ namespace ACE.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
+                var cellLandblock = CellLandblock.ReadFromDat(position.Cell);
+                position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)
             {
