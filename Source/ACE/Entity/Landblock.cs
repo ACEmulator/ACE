@@ -473,17 +473,15 @@ namespace ACE.Entity
                 // for all players on landblock.
                 Parallel.ForEach(allplayers, player =>
                 {
-                    // Process Action Que for player.
+                    // Process Action Queue for player.
                     QueuedGameAction action = player.ActionQueuePop();
                     if (action != null)
                         HandleGameAction(action, player);
-                    else
-                    {
-                        // Process the Examination Queue
-                        action = player.ExaminationQueuePop();
-                        if (action != null)
-                            HandleGameAction(action, player);
-                    }
+
+                    // Process Examination Queue for player
+                    QueuedGameAction examination = player.ExaminationQueuePop();
+                    if (examination != null)
+                        HandleGameAction(examination, player);
                 });
 
                 // broadcast moving objects to the world..
@@ -605,6 +603,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.IdentifyObject:
                     {
+                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
                         var g = new ObjectGuid(action.ObjectId);
                         WorldObject obj = (WorldObject)player;
                         if (worldObjects.ContainsKey(g))
