@@ -42,7 +42,7 @@ CREATE TABLE `ace_portal_object` (
   `destQW` float NOT NULL DEFAULT '0',
   `min_lvl` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `max_lvl` int(11) UNSIGNED NOT NULL DEFAULT '0',
-  `societyId` tinyint(1) UNSIGNED NOT NULL DEFAULT '0',
+  `societyId` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `isTieable` tinyint(1) UNSIGNED NOT NULL DEFAULT '1',
   `isRecallable` tinyint(1) UNSIGNED NOT NULL DEFAULT '1',
   `isSummonable` tinyint(1) UNSIGNED NOT NULL DEFAULT '1'

@@ -1,4 +1,6 @@
-﻿using ACE.Database;
+﻿using System;
+
+using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum;
@@ -235,7 +237,7 @@ namespace ACE.Entity
                         }
 
                         player.Session.Player.Teleport(portalDest);
-                        if (portalData.IsRecallable == true)
+                        if (Convert.ToBoolean(portalData.IsRecallable) == true)
                             player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);

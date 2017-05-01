@@ -51,13 +51,13 @@ namespace ACE.Entity
         [DbField("societyId", (int)MySqlDbType.UByte)]
         public byte SocietyId { get; set; }
 
-        [DbField("isTieable", (int)MySqlDbType.Bit)]
-        public bool IsTieable { get; set; }
+        [DbField("isTieable", (int)MySqlDbType.UByte)]
+        public byte IsTieable { get; set; }
 
-        [DbField("isRecallable", (int)MySqlDbType.Bit)]
-        public bool IsRecallable { get; set; }
+        [DbField("isRecallable", (int)MySqlDbType.UByte)]
+        public byte IsRecallable { get; set; }
 
-        [DbField("isSummonable", (int)MySqlDbType.Bit)]
-        public bool IsSummonable { get; set; }
+        [DbField("isSummonable", (int)MySqlDbType.UByte)]
+        public byte IsSummonable { get; set; }
     }
 }
