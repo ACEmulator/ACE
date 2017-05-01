@@ -34,6 +34,7 @@ namespace ACE.Network
 
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
+        private bool bootSession = false;
 
         // connection related
         public IPEndPoint EndPoint { get; }
@@ -86,6 +87,12 @@ namespace ACE.Network
             {
                 logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
+            }
+
+            // Check if the player has been booted
+            if (bootSession != false)
+            {
+                SendFinalBoot();
             }
 
             if (Player != null)
@@ -195,6 +202,11 @@ namespace ACE.Network
             logOffRequestTime = DateTime.UtcNow;
         }
 
+        public void BootPlayer()
+        {
+            bootSession = true;
+        }
+
         private async void SendFinalLogOffMessages()
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
@@ -209,6 +221,14 @@ namespace ACE.Network
             State = SessionState.AuthConnected;
 
             Player = null;
+        }
+
+        private void SendFinalBoot()
+        {
+            // Note that: Currently, if a player is able to block this specific message
+            // then they will not be booted from the server, this was noticed in practice and test.
+            // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
+            Network.EnqueueSend(new GameMessageBootAccount(this));
         }
     }
 }

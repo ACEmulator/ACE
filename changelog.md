@@ -14,6 +14,13 @@
 [fantoms]
 * Built out the admin `@teleto` command. Use a player's name as the parameter.
 
+[fantoms]
+* Added admin `@boot` command logic for Player, Account, and Guid - too kick a player from the server and display a CoC Violation warning message.
+* Added Booting capabilites in the `Sesssion` object.
+* Added the `GameMessageBootAccount` game message.
+* Added an enum for `AccountLookupType`.
+* Added `CharacterNameExtension.cs` and included the string helper function `stringArrayToCharacterName`, for converting a string array containing spaces to a player name string.
+
 [Ripley]
 * Rebased SQL scripts.
 * It is recommended if you have an already existing database you wipe it and start fresh from the new base scripts.
