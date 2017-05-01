@@ -6,7 +6,7 @@
 * !!! Please note that the ACE-World tables must be filled before importing the ace_portal_object's table / the Desert Mine sql
 	file contains an entry that is currently missing from the ACE-World DB release that also needs to be imported before the
 	ace_portal_object table is loaded.
-* Implemented a portal recall debug command - An apparent bug was revealed that causes players on login to start at the last saved portal recall position
+* Implemented a portal recall debug command
 
 ### 2017-04-26
 [OptimShi]
