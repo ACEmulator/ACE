@@ -316,62 +316,6 @@ namespace ACE.Command.Handlers
             LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
-        [CommandHandler("cwo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Test code to create a world object on the ground or (if it can be contained )in your main pack.",
-            "[me or ground optional <weenieId> if no weenieId is specified a training wand is created]" +
-            "@cwo me <weenieId> = Creates the item in your main pack.\n" +
-            "@ctw ground <weenieId> = Creates the item in front of you on the ground.")]
-        public static void CreateTestWorldObject(Session session, params string[] parameters)
-        {
-            if (!(parameters?.Length > 0))
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me <weenieId> or @ctw ground <weenieId>", ChatMessageType.Broadcast);
-                return;
-            }
-            string location = parameters[0];
-            WorldObject loot;
-            if (location == "me" | location == "ground")
-            {
-                if (parameters.Length == 2)
-                {
-                    ushort weenieId;
-                    try
-                    {
-                        weenieId = Convert.ToUInt16(parameters[1]);
-                    }
-                    catch (Exception)
-                    {
-                        ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
-                        return;
-                    }
-                    loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-                }
-                else
-                {
-                    loot = LootGenerationFactory.CreateTestWorldObject(session.Player);
-                }
-
-                switch (location)
-                {
-                    case "me":
-                        {
-                            LootGenerationFactory.AddToContainer(loot, session.Player);
-                            break;
-                        }
-                    case "ground":
-                        {
-                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-                            break;
-                        }
-                }
-                session.Player.TrackObject(loot);
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me <weenieId> or @ctw ground <weenieId>", ChatMessageType.Broadcast);
-            }
-        }
-
         // Kill a player - equivalent to legal virtual murder, by admin
         // TODO: Migrate this code into "smite" Admin command
         [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1,
