@@ -38,8 +38,9 @@ namespace ACE.DatLoader.FileTypes
         public uint DefaultSoundTable { get; set; }
         public uint DefaultScriptTable { get; set; }
 
-        public static SetupModel ReadFromDat(DatReader datReader)
+        public static SetupModel ReadFromDat(uint fileId)
         {
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
             SetupModel m = new SetupModel();
             m.ModelId = datReader.ReadUInt32();
 

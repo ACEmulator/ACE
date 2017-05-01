@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-30
+[OptimShi]
+* Modified DatLoader.SetupModel to be easier to initiate (got missed when other items had the same changes applied). Also added working example to the Lifestone.cs OnUse function to take model radius into account.
+
 ### 2017-04-30
 [OptimShi]
 * Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
