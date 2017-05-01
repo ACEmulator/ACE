@@ -33,6 +33,12 @@ namespace ACE.Network.Motion
             MovementData = new MovementData();
         }
 
+        public UniversalMotion(MotionStance stance, MovementData movementData)
+        {
+            Stance = stance;
+            MovementData = movementData;
+        }
+
         public UniversalMotion(MotionStance stance, WorldObject moveToObject)
         {
             Stance = stance;

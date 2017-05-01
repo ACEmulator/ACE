@@ -5,6 +5,12 @@
 * Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
 * Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
 
+### 2017-04-29
+[Ripley]
+* Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.
+* Added Translucency to DebugObject. This fixes ghostly npcs.
+* Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
+
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
@@ -12,6 +18,13 @@
 
 [fantoms]
 * Built out the admin `@teleto` command. Use a player's name as the parameter.
+
+[fantoms]
+* Added admin `@boot` command logic for Player, Account, and Guid - too kick a player from the server and display a CoC Violation warning message.
+* Added Booting capabilites in the `Sesssion` object.
+* Added the `GameMessageBootAccount` game message.
+* Added an enum for `AccountLookupType`.
+* Added `CharacterNameExtension.cs` and included the string helper function `stringArrayToCharacterName`, for converting a string array containing spaces to a player name string.
 
 [Ripley]
 * Rebased SQL scripts.
