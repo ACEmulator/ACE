@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-04-30
+[Og II]
+* Refactored ctw to cwo takes a new optional parameter of a weenieId.   You can spawn anything in the database.   @ctw me 21376 - will spawn Martine's Robe If no weenieId
+* is given, it gives you the old faithful training wand.   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
+ 
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql

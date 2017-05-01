@@ -11,6 +11,8 @@ using ACE.Network.Enum;
 
 namespace ACE.Command.Handlers
 {
+    using global::ACE.Factories;
+
     public static class AdminCommands
     {
         // // commandname parameters
@@ -690,25 +692,43 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // create wclassid (string or number)
+        // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            // Creates the given object in the world, external to the admin
-            // @create - Creates an object in the world.
-            // usage: @create wclassid (string or number)
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
 
-            // TODO: output
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            session.Player.TrackObject(loot);
         }
 
-        // ci wclassid (string or number)
+        // ci wclassid (number)
         [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleCI(Session session, params string[] parameters)
         {
-            // Creates the given object in the admin's inventory
-            // @ci - Creates an object in your inventory.
-
-            // TODO: output
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            LootGenerationFactory.AddToContainer(loot, session.Player);
+            session.Player.TrackObject(loot);
         }
 
         // cm <material type> <quantity> <ave. workmanship>

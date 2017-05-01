@@ -65,7 +65,7 @@ namespace ACE.Common
     {
         public static Config Config { get; private set; }
 
-        public static void Initialise()
+        public static void Initialize()
         {
             try
             {

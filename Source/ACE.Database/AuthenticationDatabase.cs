@@ -21,7 +21,7 @@ namespace ACE.Database
 
         protected override Type PreparedStatementType => typeof(AuthenticationPreparedStatement);
 
-        protected override void InitialisePreparedStatements()
+        protected override void InitializePreparedStatements()
         {
             AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `accesslevel`, `password`, `salt`) VALUES (?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString);
             AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");

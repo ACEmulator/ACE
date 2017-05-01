@@ -1,15 +1,11 @@
 ﻿using ACE.Common;
 using MySql.Data.MySqlClient;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
     [DbTable("vw_ace_creature_object")]
-    [DbGetList("vw_ace_creature_object", 10, "weenieClassId")]
+    [DbGetList("vw_ace_creature_object", 42, "weenieClassId")]
     public class AceCreatureObject : BaseAceObject, ICreatureStats
     {
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]

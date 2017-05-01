@@ -17,6 +17,8 @@ using System.Linq;
 
 namespace ACE.Command.Handlers
 {
+    using global::ACE.Database;
+
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
@@ -214,6 +216,7 @@ namespace ACE.Command.Handlers
             ushort forwardCommand = 24;
             if ((parameters?.Length > 0))
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
+            var aCharacter = DatabaseManager.Character.GetAceCharacter(1);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
@@ -231,7 +234,7 @@ namespace ACE.Command.Handlers
             var distance = 10.0f;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
             var newMotion = new UniversalMotion(MotionStance.Standing, loot);
@@ -311,45 +314,6 @@ namespace ACE.Command.Handlers
 
             AceVector3 velocity = new AceVector3(x, y, z);
             LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
-        }
-
-        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Creates a training wand on the ground or in your main pack.",
-            "[me or ground]" +
-            "@ctw me = Creates the wand in your main pack.\n" +
-            "@ctw ground = Creates the wand in front of you on the ground.")]
-        public static void CreateTrainingWand(Session session, params string[] parameters)
-        {
-            if (!(parameters?.Length > 0))
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                   ChatMessageType.Broadcast);
-                return;
-            }
-            string location = parameters[0];
-            if (location == "me" | location == "ground")
-            {
-                var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
-                switch (location)
-                {
-                    case "me":
-                        {
-                            LootGenerationFactory.AddToContainer(loot, session.Player);
-                            break;
-                        }
-                    case "ground":
-                        {
-                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-                            break;
-                        }
-                }
-                session.Player.TrackObject(loot);
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                    ChatMessageType.Broadcast);
-            }
         }
 
         // Kill a player - equivalent to legal virtual murder, by admin
@@ -468,7 +432,7 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat. 
+        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat.
         /// </summary>
         [CommandHandler("readgenerators", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
             "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
@@ -482,7 +446,7 @@ namespace ACE.Command.Handlers
                 if (gen.Count > 0)
                 {
                     for (var i = 0; i < gen.Count; i++)
-                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}"); 
+                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}");
                 }
             });
         }

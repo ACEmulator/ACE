@@ -24,7 +24,7 @@ namespace ACE.Command
             return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command == commandname);
         }
 
-        public static void Initialise()
+        public static void Initialize()
         {
             commandHandlers = new Dictionary<string, CommandHandlerInfo>(StringComparer.OrdinalIgnoreCase);
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
