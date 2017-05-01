@@ -693,7 +693,8 @@ namespace ACE.Command.Handlers
         }
 
         // create wclassid (number)
-        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in the world.", "wclassid(string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
             ushort weenieId;
@@ -713,7 +714,8 @@ namespace ACE.Command.Handlers
         }
 
         // ci wclassid (number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
             ushort weenieId;
