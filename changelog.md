@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-04-30
+[OptimShi]
+* Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
+* Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
+
 ### 2017-04-29
 [Ripley]
 * Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.

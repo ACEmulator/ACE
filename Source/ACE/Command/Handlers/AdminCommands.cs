@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -8,7 +9,8 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
-using System.Collections.Generic;
+using ACE.DatLoader.FileTypes;
+
 using log4net;
 
 namespace ACE.Command.Handlers
@@ -622,6 +624,8 @@ namespace ACE.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
+                var cellLandblock = CellLandblock.ReadFromDat(position.Cell);
+                position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)
             {
