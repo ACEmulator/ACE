@@ -1,4 +1,11 @@
 # ACEmulator Change Log
+
+### 2017-04-29
+[Ripley]
+* Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.
+* Added Translucency to DebugObject. This fixes ghostly npcs.
+* Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
+
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
