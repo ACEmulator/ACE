@@ -74,6 +74,24 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
+        // telexyz cell x y z qx qy qz qw
+        [CommandHandler("portalrecall", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Recalls the last portal used.")]
+        public static void HandleDebugPortalRecall(Session session, params string[] parameters)
+        {
+            Position lastPortalUsed = null;
+            if (session.Player.Positions.TryGetValue(PositionType.LastPortal, out lastPortalUsed))
+            {
+                session.Player.Teleport(lastPortalUsed);
+            }
+            else
+            {
+                // You are too powerful to interact with that portal!
+                var portalRecallMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.Enum_04A3);
+                session.Network.EnqueueSend(portalRecallMessage);
+            }
+        }
+
         // grantxp ulong
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Give XP to yourself.",

@@ -1,10 +1,10 @@
-4/4/2017
+4/29/2017
 ===========================================
 Rebased all database scripts.
 
 The scripts in this folder are DATA ONLY in case you need to recover data.  The Base script, which is a SQL Dump, should generally contain this data, though it is not always up to date.
 
-000 Teleport Locations.sql
-001 Lifestone_weenies.sql
-002 Lifestone_objects.sql
-003 2017_04_03_portals.sql
+001_4_28_2017_ace_portal_object.sql
+<Load World DB objects from ACE-World>
+002_4_29_2017_desert_mine_exit_portal.sql
+003_4_29_2017_ace_portal_object.data.sql

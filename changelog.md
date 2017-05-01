@@ -1,4 +1,12 @@
 # ACEmulator Change Log
+
+### 2017-04-29
+[Jyrus]
+* Changed the structure of the table that contains the Portal Destinations to include other portal properties
+* Renamed table from portal_destination to ace_portal_object and added a foreign key constraint to the weenieClassId field
+* !!! Please note that the ACE-World tables must be filled before importing the ace_portal_object's table
+* Implemented a portal recall debug command
+
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
