@@ -88,6 +88,7 @@
     <Compile Include="DbFieldAttribute.cs" />
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Extensions\CharacterNameExtensions.cs" />
     <Compile Include="Time.cs" />
   </ItemGroup>
   <ItemGroup>
