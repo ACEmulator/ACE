@@ -1,10 +1,21 @@
 # ACEmulator Change Log
 
-### 2017-04-29
+### 2017-05-01
 [OptimShi]
 * Hooked up the "ExaminationQueuePop" in Player.cs to fire.
 * Added IdentifyResponseFlags, for when we start to send actual data.
 * Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
+
+### 2017-04-30
+[OptimShi]
+* Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
+* Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
+
+### 2017-04-29
+[Ripley]
+* Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.
+* Added Translucency to DebugObject. This fixes ghostly npcs.
+* Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
 
 ### 2017-04-26
 [OptimShi]
@@ -13,6 +24,13 @@
 
 [fantoms]
 * Built out the admin `@teleto` command. Use a player's name as the parameter.
+
+[fantoms]
+* Added admin `@boot` command logic for Player, Account, and Guid - too kick a player from the server and display a CoC Violation warning message.
+* Added Booting capabilites in the `Sesssion` object.
+* Added the `GameMessageBootAccount` game message.
+* Added an enum for `AccountLookupType`.
+* Added `CharacterNameExtension.cs` and included the string helper function `stringArrayToCharacterName`, for converting a string array containing spaces to a player name string.
 
 [Ripley]
 * Rebased SQL scripts.
