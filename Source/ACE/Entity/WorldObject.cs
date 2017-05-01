@@ -58,7 +58,7 @@ namespace ACE.Entity
                 PhysicsData.Position = value;
             }
         }
-        
+
         /// <summary>
         /// tick-stamp for the last time a movement update was sent
         /// </summary>
@@ -76,7 +76,7 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; set; } 
+        public UpdatePositionFlag PositionFlag { get; set; }
 
         public CombatMode CombatMode { get; private set; }
 
@@ -113,7 +113,7 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
 
             PhysicsData = new PhysicsData(Sequences);
-        }       
+        }
 
         public void SetCombatMode(CombatMode newCombatMode)
         {
@@ -221,7 +221,7 @@ namespace ACE.Entity
 
             if ((WeenieFlags & WeenieHeaderFlag.Priority) != 0)
                 writer.Write((uint)GameData.Priority);
-  
+
             if ((WeenieFlags & WeenieHeaderFlag.BlipColour) != 0)
                 writer.Write((byte)GameData.RadarColour);
 

@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
+    using global::ACE.StateMachines;
+    using global::ACE.StateMachines.Rules;
+
     public class Creature : Container
     {
         protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
@@ -42,6 +45,10 @@ namespace ACE.Entity
 
         public CreatureAbility Mana { get; set; }
 
+        public QueuedGameAction BlockedGameAction { get; set; }
+
+        public Position MoveToPosition { get; set; }
+
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
@@ -55,11 +62,12 @@ namespace ACE.Entity
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
+            Statemachine.Initialize(MovementRules.GetRules(), MovementRules.GetInitState());
         }
 
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.TypeId, 
-                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), 
+            : base((ObjectType)aceC.CreatureData.TypeId,
+                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
                   aceC.CreatureData.Name,
                   aceC.WeenieClassId,
                   (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField,
@@ -83,7 +91,7 @@ namespace ACE.Entity
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.ObjectScale;
-            
+
             // this should probably be determined based on the presence of data.
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
@@ -172,7 +180,7 @@ namespace ACE.Entity
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
             QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
             session.Player.AddToActionQueue(actionDeath);
-            
+
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
@@ -183,7 +191,7 @@ namespace ACE.Entity
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
             corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
-            // If the object is a creature, Remove it from from Landblock 
+            // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
                 QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);

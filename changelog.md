@@ -12,6 +12,16 @@
 * Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
 
 ### 2017-04-26
+[Og II]
+* Added Turn to Object and Turn To Heading messages.   
+* Cleaned up earlier work 
+* You can now test move to object and put item in container.   
+* ctw ground.   select wand.   move away from the area with the item still selected.   Press the use key - you will walk or run to the wand depending on your distance, then stop and pick it up.
+* this also implements the first use of StackOverflows state machine
+* contains view for character - to start implementing orm for character
+*  NOTE: There is a known bug if you create the training wand in your backpack and drop it, the move to does not work correctly yet.   I think it is related to the landblock not doing updates atm.
+
+### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
 * Changed sort order of character list to use character.lastUpdate instead of alphabetical. Your last used character will now be selected upon a new client instance.
