@@ -1,6 +1,4 @@
 ﻿﻿using System;
-using System.Collections.Generic;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -10,6 +8,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
+using ACE.Factories;
 
 using log4net;
 
@@ -97,7 +96,7 @@ namespace ACE.Command.Handlers
         /// <remarks>
         ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
         /// </remarks>
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2, 
+        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
             "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
             "{ account | char | iid } who")]
         public static void HandleBoot(Session session, params string[] parameters)
@@ -189,7 +188,7 @@ namespace ACE.Command.Handlers
                     // finish execution of command logic
                     return;
                 }
-            } 
+            }
 
             // Did not find a player
             string errorText = $"Error locating the player or account to boot.";
@@ -225,7 +224,7 @@ namespace ACE.Command.Handlers
 
             switch (parameters?[0].ToLower())
             {
-                case "on":                    
+                case "on":
                     newPhysicsState |= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
                     newPhysicsState ^= PhysicsState.ReportCollision;
                     session.Player.SetPhysicsState(newPhysicsState, true);
