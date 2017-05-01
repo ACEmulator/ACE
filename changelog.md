@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-05-30
+### 2017-05-01
 [OptimShi]
 * Modified DatLoader.SetupModel to be easier to initiate (got missed when other items had the same changes applied). Also added working example to the Lifestone.cs OnUse function to take model radius into account.
 
