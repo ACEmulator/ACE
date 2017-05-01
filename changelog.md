@@ -1,5 +1,4 @@
 # ACEmulator Change Log
-
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
@@ -7,6 +6,13 @@
 
 [fantoms]
 * Built out the admin `@teleto` command. Use a player's name as the parameter.
+
+[fantoms]
+* Added admin `@boot` command logic for Player, Account, and Guid - too kick a player from the server and display a CoC Violation warning message.
+* Added Booting capabilites in the `Sesssion` object.
+* Added the `GameMessageBootAccount` game message.
+* Added an enum for `AccountLookupType`.
+* Added `CharacterNameExtension.cs` and included the string helper function `stringArrayToCharacterName`, for converting a string array containing spaces to a player name string.
 
 [Ripley]
 * Rebased SQL scripts.

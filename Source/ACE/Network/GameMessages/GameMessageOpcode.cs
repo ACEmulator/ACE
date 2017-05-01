@@ -56,6 +56,7 @@ namespace ACE.Network.GameMessages
         CharacterEnterWorldRequest      = 0xF7C8,
         FriendsOld                      = 0xF7CD,
         CharacterRestore                = 0xF7D9,
+        AccountBoot                     = 0xF7DC,
         UpdateObject                    = 0xF7DB,
         TurbineChat                     = 0xF7DE,
         CharacterEnterWorldServerReady  = 0xF7DF,
