@@ -108,6 +108,7 @@
     <Compile Include="Enum\CharacterOption.cs" />
     <Compile Include="Enum\CharacterOptions1.cs" />
     <Compile Include="Enum\CharacterOptions2.cs" />
+    <Compile Include="Enum\IdLookupType.cs" />
     <Compile Include="Enum\PositionType.cs" />
     <Compile Include="Enum\ChatDisplayMask.cs" />
     <Compile Include="Enum\ChatFilterMask.cs" />
