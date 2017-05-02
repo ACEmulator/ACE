@@ -16,6 +16,67 @@ namespace ACE.Entity
         {
         }
 
+        public DebugObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, BaseAceObject baseAceObject)
+            : base((ObjectType)baseAceObject.TypeId, guid)
+        {
+            this.Name = baseAceObject.Name;
+            if (this.Name == null)
+                this.Name = "NULL";
+
+            this.DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.WdescBitField;
+            // this.Location = aceO.Position;
+            // this.WeenieClassid = baseAceObject.WeenieClassId;
+            this.WeenieClassid = baseAceObject.AceObjectId;
+            this.WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieFlags;
+
+            this.PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
+            this.PhysicsData.Stable = baseAceObject.SoundTableId;
+            this.PhysicsData.CSetup = baseAceObject.ModelTableId;
+            this.PhysicsData.Petable = baseAceObject.PhysicsTableId;
+
+            // this should probably be determined based on the presence of data.
+            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsBitField;
+            this.PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
+
+            if (baseAceObject.CurrentMotionState == "0")
+                this.PhysicsData.CurrentMotionState = null;
+            else
+                this.PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
+
+            // this.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
+            // this.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+
+            this.PhysicsData.ObjScale = baseAceObject.ObjectScale;
+            this.PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
+            this.PhysicsData.Translucency = baseAceObject.Translucency;
+
+            // game data min required flags;
+            this.Icon = baseAceObject.IconId;
+
+            if (this.GameData.NamePlural == null)
+                this.GameData.NamePlural = "NULLs";
+
+            // this.GameData.Type = baseAceObject.WeenieClassId;
+            this.GameData.Type = (ushort)baseAceObject.AceObjectId;
+
+            this.GameData.Usable = (Usable)baseAceObject.Usability;
+            this.GameData.RadarColour = (RadarColor)baseAceObject.BlipColor;
+            this.GameData.RadarBehavior = (RadarBehavior)baseAceObject.Radar;
+            this.GameData.UseRadius = baseAceObject.UseRadius;
+
+            this.GameData.HookType = (ushort)baseAceObject.HookTypeId;
+            this.GameData.HookItemTypes = baseAceObject.HookItemTypes;
+            this.GameData.Burden = (ushort)baseAceObject.Burden;
+            this.GameData.Value = baseAceObject.Value;
+            this.GameData.ItemCapacity = baseAceObject.ItemsCapacity;
+
+            baseAceObject.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
+            baseAceObject.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            baseAceObject.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            // aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, (byte)(po.Offset / 8), (byte)(po.Length / 8)));
+            this.ModelData.PaletteGuid = baseAceObject.PaletteId;
+        }
+
         public DebugObject(AceObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
