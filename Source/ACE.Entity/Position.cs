@@ -45,7 +45,9 @@
             }
             set
             {
-                // Limit the database from receiving invalid positions
+                // If the value is greater then the max enum, then we will finally save the value as an Undefined position type.
+                // This may cause bugs if you rely on the PortalType.Undef in the futre.
+                // The Undef Type is only intended work with the default database value and is only a type within the ACE server.
                 if ((uint)value >= System.Enum.GetValues(typeof(PositionType)).Length)
                     DbPositionType = 0;
                 else
