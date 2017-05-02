@@ -347,8 +347,84 @@ namespace ACE.Command.Handlers
             // NOTE: Calling @home without a number recalls your sanctuary position, calling it with recalls to the saved numbered spot.
             // @home has the alias @recall
             // @home[recall number] -Teleports you to your sanctuary position.
+            string parsePositionString = "0";
 
-            // TODO: output
+            // Limit the incoming parameter to 1 character
+            if (parameters?.Length >= 1)
+                parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
+
+            uint parsedPositionInt = 0;
+            // Attempt to parse the integer
+            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            {
+                // parsedPositionInt value should be limited too a value from, 0-9
+                // Create a new position from the current player location
+                PositionType positionType = new PositionType();
+                // Transform too the correct PositionType, based on the "Saved Positions" subset:
+                switch (parsedPositionInt)
+                {
+                    case 0:
+                        {
+                            positionType = PositionType.Sanctuary;
+                            break;
+                        }
+                    case 1:
+                        {
+                            positionType = PositionType.Save1;
+                            break;
+                        }
+                    case 2:
+                        {
+                            positionType = PositionType.Save2;
+                            break;
+                        }
+                    case 3:
+                        {
+                            positionType = PositionType.Save3;
+                            break;
+                        }
+                    case 4:
+                        {
+                            positionType = PositionType.Save4;
+                            break;
+                        }
+                    case 5:
+                        {
+                            positionType = PositionType.Save5;
+                            break;
+                        }
+                    case 6:
+                        {
+                            positionType = PositionType.Save6;
+                            break;
+                        }
+                    case 7:
+                        {
+                            positionType = PositionType.Save7;
+                            break;
+                        }
+                    case 8:
+                        {
+                            positionType = PositionType.Save8;
+                            break;
+                        }
+                    case 9:
+                        {
+                            positionType = PositionType.Save9;
+                            break;
+                        }
+                }
+                // If we have the position, teleport the player
+                if (session.Player.Positions.ContainsKey(positionType)) {
+                    session.Player.Teleport(session.Player.Positions[positionType]);
+                    var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(positionMessage);
+                    return;
+                }
+            }
+            // Invalid character was receieved in the input (it was not 0-9)
+            var homeErrorMessage = new GameMessageSystemChat($"Could not find a valid recall position.", ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(homeErrorMessage);
         }
 
         // mrt
