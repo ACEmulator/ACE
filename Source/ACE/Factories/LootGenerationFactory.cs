@@ -30,7 +30,7 @@
             LandblockManager.AddObject(inventoryItem);
         }
 
-        public static WorldObject CreateTestWorldObject(Player player, ushort weenieId = 12748)
+        public static WorldObject CreateTestWorldObject(Player player, ushort weenieId)
         {
             var aceObject = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieId);
 

@@ -30,8 +30,6 @@ namespace ACE.Database
 
         Task<Character> LoadCharacter(uint id);
 
-        AceCharacter GetAceCharacter(uint id);
-
         /// <summary>
         /// Loads a character by name.  Only the fields from the character table are loaded.
         /// </summary>

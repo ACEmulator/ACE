@@ -216,7 +216,6 @@ namespace ACE.Command.Handlers
             ushort forwardCommand = 24;
             if ((parameters?.Length > 0))
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
-            var aCharacter = DatabaseManager.Character.GetAceCharacter(1);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
@@ -232,9 +231,10 @@ namespace ACE.Command.Handlers
         public static void MoveTo(Session session, params string[] parameters)
         {
             var distance = 10.0f;
+            ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player);
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
             var newMotion = new UniversalMotion(MotionStance.Standing, loot);
