@@ -67,7 +67,7 @@ namespace ACE.Factories
             mobj.PhysicsData.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
             mobj.PhysicsData.DefaultScriptIntensity = (float)1;
 
-            mobj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elastcity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
+            mobj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elasticity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
             mobj.PhysicsData.Velocity = velocity;
             mobj.PhysicsData.Friction = (float)friction;
             mobj.PhysicsData.Elastcity = (float)electicity;

@@ -51,6 +51,20 @@ namespace ACE.DatLoader
             return BitConverter.ToUInt32(nextAddressBytes, 0);
         }
 
+        public ulong ReadUInt64()
+        {
+            ulong data = BitConverter.ToUInt64(Buffer, Offset);
+            Offset += 8;
+            return data;
+        }
+
+        public long ReadInt64()
+        {
+            long data = BitConverter.ToInt64(Buffer, Offset);
+            Offset += 8;
+            return data;
+        }
+
         public uint ReadUInt32()
         {
             uint data = BitConverter.ToUInt32(Buffer, Offset);

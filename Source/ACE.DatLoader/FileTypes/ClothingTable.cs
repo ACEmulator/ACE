@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-namespace ACE.DatLoader.Entity
+using ACE.DatLoader.Entity;
+namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x10. 
@@ -16,9 +17,11 @@ namespace ACE.DatLoader.Entity
         public Dictionary<uint, ClothingBaseEffect> ClothingBaseEffects { get; set; } = new Dictionary<uint, ClothingBaseEffect>(); // uint is the setup model id
         public Dictionary<uint, CloSubPalEffect> ClothingSubPalEffects { get; set; } = new Dictionary<uint, CloSubPalEffect>(); // uint is a non-zero index
 
-        public static ClothingTable ReadFromDat(DatReader datReader)
+        public static ClothingTable ReadFromDat(uint fileId)
         {
             ClothingTable ct = new ClothingTable();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
             ct.Id = datReader.ReadUInt32();
 
             uint numClothingEffects = datReader.ReadUInt16();

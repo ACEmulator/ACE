@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿﻿using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -8,6 +7,10 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
+using ACE.DatLoader.FileTypes;
+using ACE.Factories;
+
+using log4net;
 
 namespace ACE.Command.Handlers
 {
@@ -87,19 +90,124 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // boot { account | char | iid } who
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
+        /// <summary>
+        /// Boots the Player or Account holder from the server and displays the CoC Violation Warning
+        /// </summary>
+        /// <remarks>
+        ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
+        /// </remarks>
+        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
+            "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
+            "{ account | char | iid } who")]
         public static void HandleBoot(Session session, params string[] parameters)
         {
-            // usage: @boot { account,char, iid} who
+            // usage: @boot { account, char, iid} who
             // This command boots the specified character out of the game.You can specify who to boot by account, character name, or player instance id.  'who' is the account / character / instance id to actually boot.
             // @boot - Boots the character out of the game.
+            // The first parameter may be only text
+            // The second paramater and proceeding parameters may also be a number or text, but the logic depends on the text from the first parameter.
+            AccountLookupType selectorType = AccountLookupType.Undef;
+            string bootName = "";
+            uint bootId = 0;
+            Session playerSession = null;
 
-            // TODO: output
+            // Loop through the AccountLookupEnum to attempt at matching the first parameter with a lookup type
+            foreach (string bootType in System.Enum.GetNames(typeof(AccountLookupType)))
+            {
+                // Check the FIRST character of the first parameter against the Enum dictionary
+                // If the first character matches (a,c,i) then the selector will be returned.
+                // This allows for users to type @boot char <name>, since char is a keyword in c#
+                // Switch case to Lower when matching
+                if (parameters[0].ToLower()[0] == bootType.ToLower()[0])
+                {
+                    // If found, selectorType will hold the correct AccoutLookupType
+                    // If this returns true, that means we were successful and can stop looping
+                    if (Enum.TryParse(bootType, out selectorType))
+                        break;
+                }
+            }
+
+            // Peform logic
+            if (selectorType != AccountLookupType.Undef)
+            {
+                // Extract the name from the parameters and get the name from the first parameter
+                if (selectorType == AccountLookupType.Account || selectorType == AccountLookupType.Character)
+                    bootName = Common.Extensions.CharacterNameExtensions.StringArrayToCharacterName(parameters, 1);
+
+                switch (selectorType)
+                {
+                    case AccountLookupType.Account:
+                        {
+                            playerSession = WorldManager.Find(bootName);
+                            if (playerSession != null)
+                                bootId = playerSession.Player.Guid.Low;
+                            break;
+                        }
+                    case AccountLookupType.Character:
+                        {
+                            playerSession = WorldManager.FindByPlayerName(bootName);
+                            if (playerSession != null)
+                                bootId = playerSession.Player.Guid.Low;
+                            break;
+                        }
+                    case AccountLookupType.Iid:
+                        {
+                            // Extract the Id from the parameters
+                            uint.TryParse(parameters[1], out bootId);
+                            playerSession = WorldManager.Find(new ObjectGuid(bootId));
+                            if (playerSession != null)
+                                bootName = playerSession.Player.Name;
+                            break;
+                        }
+                }
+
+                if (playerSession != null)
+                {
+                    string bootText = $"account or player: {bootName} id: {bootId}";
+                    // Boot the player
+                    playerSession.BootPlayer();
+
+                    // Send an update to the admin, but prevent sending too if the admin was the player being booted
+                    if (session != null)
+                    {
+                        // Log the player who initiated the boot
+                        bootText = "Player: " + session.Player.Name + " has booted " + bootText;
+                        if (session != playerSession)
+                            session.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
+                        // TODO: Send out a message on the Audit Group Chat Channel, to alert other admins of the boot
+                    }
+                    else
+                    {
+                        bootText = "Console booted " + bootText;
+                    }
+
+                    // log the boot to file
+                    ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+                    log.Info(bootText);
+
+                    // finish execution of command logic
+                    return;
+                }
+            }
+
+            // Did not find a player
+            string errorText = $"Error locating the player or account to boot.";
+            // Send the error to a player or the console
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat(errorText, ChatMessageType.Broadcast));
+            else
+                Console.WriteLine(errorText);
         }
 
         // cloak < on / off / player / creature >
-        [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Sets your cloaking state.",
+            "< on / off / player / creature >\n" +
+            "This command sets your current cloaking state\n" +
+            "< on > You will be completely invisible to players.\n" +
+            "< off > You will show up as a normal.\n" +
+            "< player > You will appear as a player. (No + and a white radar dot.)\n" +
+            "< creature > You will appear as a creature. (No + and an orange radar dot.)")]
         public static void HandleCloak(Session session, params string[] parameters)
         {
             // Please specify if you want cloaking on or off.usage: @cloak < on / off / player / creature >
@@ -110,7 +218,34 @@ namespace ACE.Command.Handlers
             // < creature > You will appear as a creature. (No + and an orange radar dot.)
             // @cloak - Sets your cloaking state.
 
-            // TODO: output
+            // TODO: Fix cloaking state resetting after teleport, investigate translucensy/visbility of other cloaked admins.
+
+            var newPhysicsState = session.Player.PhysicsData.PhysicsState;
+
+            switch (parameters?[0].ToLower())
+            {
+                case "on":
+                    newPhysicsState |= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
+                    newPhysicsState ^= PhysicsState.ReportCollision;
+                    session.Player.SetPhysicsState(newPhysicsState, true);
+                    // var test = session.Player.PhysicsData.PhysicsDescriptionFlag;
+                    // test |= PhysicsDescriptionFlag.Translucency;
+                    // session.Player.PhysicsData.PhysicsDescriptionFlag = test;
+                    // session.Player.PhysicsData.Translucency = 0.5f;
+                    break;
+                case "off":
+                    newPhysicsState ^= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
+                    newPhysicsState |= PhysicsState.ReportCollision;
+                    session.Player.SetPhysicsState(newPhysicsState, true);
+                    break;
+                case "player":
+                case "creature":
+                    session.Network.EnqueueSend(new GameMessageSystemChat("This cloaking option not implemented yet.", ChatMessageType.Broadcast));
+                    break;
+                default:
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please specify if you want cloaking on or off.", ChatMessageType.Broadcast));
+                    break;
+            }
         }
 
         // deaf < on / off >
@@ -488,6 +623,8 @@ namespace ACE.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
+                var cellLandblock = CellLandblock.ReadFromDat(position.Cell);
+                position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)
             {
@@ -503,12 +640,21 @@ namespace ACE.Command.Handlers
         }
 
         // teleto [char]
-        [CommandHandler("teleto", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("teleto", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Teleport yourself to a player",
+            "[Player's Name]\n" +
+            "@teleto Playername")]
         public static void HandleTeleto(Session session, params string[] parameters)
         {
             // @teleto - Teleports you to the specified character.
-
-            // TODO: output
+            var playerName = String.Join(" ", parameters);
+            // Lookup the player in the world
+            Session playerSession = WorldManager.FindByPlayerName(playerName);
+            // If the player is found, teleport the admin to the Player's location
+            if (playerSession != null)
+                session.Player.Teleport(playerSession.Player.Location);
+            else
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
 
         // telepoi location
@@ -681,25 +827,45 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // create wclassid (string or number)
-        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        // create wclassid (number)
+        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in the world.", "wclassid(string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            // Creates the given object in the world, external to the admin
-            // @create - Creates an object in the world.
-            // usage: @create wclassid (string or number)
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
 
-            // TODO: output
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            session.Player.TrackObject(loot);
         }
 
-        // ci wclassid (string or number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        // ci wclassid (number)
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
-            // Creates the given object in the admin's inventory
-            // @ci - Creates an object in your inventory.
-
-            // TODO: output
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            LootGenerationFactory.AddToContainer(loot, session.Player);
+            session.Player.TrackObject(loot);
         }
 
         // cm <material type> <quantity> <ave. workmanship>

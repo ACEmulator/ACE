@@ -75,22 +75,22 @@ namespace ACE.Entity
 
         private Character character;
 
-        private object clientObjectMutex = new object();
+        private readonly object clientObjectMutex = new object();
 
-        private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
+        private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
         // queue of all the "actions" that come from the player that require processing
-        // aynchronous to or outside of the network thread
-        private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
+        // asynchronous to or outside of the network thread
+        private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
 
         // examination queue is really a subset of the actionQueue, but this existed on
         // retail servers as it's own separate thing and was intentionally throttled.
-        private ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
+        private readonly ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
 
-        private object delayedActionsMutex = new object();
+        private readonly object delayedActionsMutex = new object();
 
         // dictionary for delaying further actions for an objectID
-        private Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
+        private readonly Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -251,7 +251,7 @@ namespace ACE.Entity
             // TODO: Move this all into Character Creation and store directly in the database.
             if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
             {
-                CharGen cg = CharGen.ReadFromDat(DatManager.PortalDat.GetReaderForFile(0x0E000002));
+                CharGen cg = CharGen.ReadFromDat();
 
                 int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
                 int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
@@ -266,7 +266,7 @@ namespace ACE.Entity
                 // Check the character scale
                 if (sex.Scale != 100u)
                 {
-                    // Set the PhysicaData flag to let it know we're changing the scale
+                    // Set the PhysicsData flag to let it know we're changing the scale
                     PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
                     PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
                 }
@@ -303,15 +303,15 @@ namespace ACE.Entity
                 ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
                 for (int i = 0; i < mouth.TextureChanges.Count; i++)
                     ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
-                
+
                 // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet skinPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.SkinPalSet));
+                PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
                 ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
                 // Apply the skin palette...
                 ModelData.AddPalette(skinPal, 0x0, 0x18);
 
                 // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet hairPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]));
+                PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]);
                 ushort hairPal = (ushort)hairPalSet.GetPaletteID(character.Appearance.HairHue);
                 ModelData.AddPalette(hairPal, 0x18, 0x8);
 
@@ -323,7 +323,7 @@ namespace ACE.Entity
                 if (character.Appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
                 {
                     uint headgearTableID = sex.HeadgearList[Convert.ToInt32(character.Appearance.HeadgearStyle)].ClothingTable;
-                    ClothingTable headCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(headgearTableID));
+                    ClothingTable headCT = ClothingTable.ReadFromDat(headgearTableID);
                     if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
                     {
                         // Add the model and texture(s)
@@ -341,7 +341,7 @@ namespace ACE.Entity
                         CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[character.Appearance.HeadgearColor];
                         for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
                         {
-                            PaletteSet headgearPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(headSubPal.CloSubPalettes[i].PaletteSet));
+                            PaletteSet headgearPalSet = PaletteSet.ReadFromDat(headSubPal.CloSubPalettes[i].PaletteSet);
                             ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(character.Appearance.HeadgearHue);
 
                             for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
@@ -356,7 +356,7 @@ namespace ACE.Entity
 
                 // Get the character's initial pants
                 uint pantsTableID = sex.PantsList[Convert.ToInt32(character.Appearance.PantsStyle)].ClothingTable;
-                ClothingTable pantsCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(pantsTableID));
+                ClothingTable pantsCT = ClothingTable.ReadFromDat(pantsTableID);
                 if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
                 {
                     ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
@@ -373,7 +373,7 @@ namespace ACE.Entity
                     CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[character.Appearance.PantsColor];
                     for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
                     {
-                        PaletteSet pantsPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(pantsSubPal.CloSubPalettes[i].PaletteSet));
+                        PaletteSet pantsPalSet = PaletteSet.ReadFromDat(pantsSubPal.CloSubPalettes[i].PaletteSet);
                         ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(character.Appearance.PantsHue);
 
                         for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
@@ -387,7 +387,7 @@ namespace ACE.Entity
 
                 // Get the character's initial shirt
                 uint shirtTableID = sex.ShirtList[Convert.ToInt32(character.Appearance.ShirtStyle)].ClothingTable;
-                ClothingTable shirtCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(shirtTableID));
+                ClothingTable shirtCT = ClothingTable.ReadFromDat(shirtTableID);
                 if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
                 {
                     ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
@@ -407,7 +407,7 @@ namespace ACE.Entity
                         CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[character.Appearance.ShirtColor];
                         for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
                         {
-                            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(shirtSubPal.CloSubPalettes[i].PaletteSet));
+                            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
                             ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(character.Appearance.ShirtHue);
 
                             if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
@@ -425,7 +425,7 @@ namespace ACE.Entity
 
                 // Get the character's initial footwear
                 uint footwearTableID = sex.FootwearList[Convert.ToInt32(character.Appearance.FootwearStyle)].ClothingTable;
-                ClothingTable footwearCT = ClothingTable.ReadFromDat(DatManager.PortalDat.GetReaderForFile(footwearTableID));
+                ClothingTable footwearCT = ClothingTable.ReadFromDat(footwearTableID);
                 if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
                 {
                     ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
@@ -442,7 +442,7 @@ namespace ACE.Entity
                     CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[character.Appearance.FootwearColor];
                     for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
                     {
-                        PaletteSet footwearPalSet = PaletteSet.ReadFromDat(DatManager.PortalDat.GetReaderForFile(footwearSubPal.CloSubPalettes[i].PaletteSet));
+                        PaletteSet footwearPalSet = PaletteSet.ReadFromDat(footwearSubPal.CloSubPalettes[i].PaletteSet);
                         ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(character.Appearance.FootwearHue);
 
                         for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
@@ -536,7 +536,8 @@ namespace ACE.Entity
         public void GrantXp(ulong amount)
         {
             // until we are max level we must make sure that we send
-            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            XpTable xpTable = XpTable.ReadFromDat();
+            var chart = xpTable.LevelingXpChart;
             CharacterLevel maxLevel = chart.Levels.Last();
             if (character.Level != maxLevel.Level)
             {
@@ -609,7 +610,8 @@ namespace ACE.Entity
             //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
             //           XP Updates?
             var startingLevel = character.Level;
-            var chart = DatabaseManager.Charts.GetLevelingXpChart();
+            XpTable xpTable = XpTable.ReadFromDat();
+            var chart = xpTable.LevelingXpChart;
             CharacterLevel maxLevel = chart.Levels.Last();
             bool creditEarned = false;
             if (character.Level == maxLevel.Level) return;
@@ -720,17 +722,17 @@ namespace ACE.Entity
             uint result = 0;
             bool addToCurrentValue = false;
             ExperienceExpenditureChart chart;
-
+            XpTable xpTable = XpTable.ReadFromDat();
             switch (ability.Ability)
             {
                 case Enum.Ability.Health:
                 case Enum.Ability.Stamina:
                 case Enum.Ability.Mana:
-                    chart = DatabaseManager.Charts.GetVitalXpChart();
+                    chart = xpTable.VitalXpChart;
                     addToCurrentValue = true;
                     break;
                 default:
-                    chart = DatabaseManager.Charts.GetAbilityXpChart();
+                    chart = xpTable.AbilityXpChart;
                     break;
             }
 
@@ -787,11 +789,12 @@ namespace ACE.Entity
         private bool IsAbilityMaxRank(uint rank, bool isAbilityVitals)
         {
             ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+            XpTable xpTable = XpTable.ReadFromDat();
 
             if (isAbilityVitals)
-                xpChart = DatabaseManager.Charts.GetVitalXpChart();
+                xpChart = xpTable.VitalXpChart;
             else
-                xpChart = DatabaseManager.Charts.GetAbilityXpChart();
+                xpChart = xpTable.AbilityXpChart;
 
             if (rank == (xpChart.Ranks.Count - 1))
                 return true;
@@ -806,11 +809,12 @@ namespace ACE.Entity
         private bool IsSkillMaxRank(uint rank, SkillStatus status)
         {
             ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+            XpTable xpTable = XpTable.ReadFromDat();
 
             if (status == SkillStatus.Trained)
-                xpChart = DatabaseManager.Charts.GetTrainedSkillXpChart();
+                xpChart = xpTable.TrainedSkillXpChart;
             else if (status == SkillStatus.Specialized)
-                xpChart = DatabaseManager.Charts.GetSpecializedSkillXpChart();
+                xpChart = xpTable.SpecializedSkillXpChart;
 
             if (rank == (xpChart.Ranks.Count - 1))
                 return true;
@@ -879,7 +883,7 @@ namespace ACE.Entity
             character.NumDeaths++; // Increase the NumDeaths counter
             character.DeathLevel++; // Increase the DeathLevel
 
-            // TODO: Find correct vitae formula/value 
+            // TODO: Find correct vitae formula/value
             character.VitaeCpPool = 0; // Set vitae
 
             // TODO: Generate a death message based on the damage type to pass in to each death message:
@@ -961,7 +965,7 @@ namespace ACE.Entity
         /// Sends a death message broadcast all players on the landblock? that a killer has a victim
         /// </summary>
         /// <remarks>
-        /// TODO: 
+        /// TODO:
         ///     1. Figure out who all receieves death messages, on what landblock and at what order -
         ///         Example: Does the players around the vicitm receive the message or do the players at the lifestone receieve the message, or both?
         /// </remarks>
@@ -1033,11 +1037,12 @@ namespace ACE.Entity
         {
             uint result = 0u;
             ExperienceExpenditureChart chart;
+            XpTable xpTable = XpTable.ReadFromDat();
 
             if (skill.Status == SkillStatus.Trained)
-                chart = DatabaseManager.Charts.GetTrainedSkillXpChart();
+                chart = xpTable.TrainedSkillXpChart;
             else if (skill.Status == SkillStatus.Specialized)
-                chart = DatabaseManager.Charts.GetSpecializedSkillXpChart();
+                chart = xpTable.SpecializedSkillXpChart;
             else
                 return result;
 

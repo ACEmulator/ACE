@@ -144,6 +144,7 @@
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\CombatMode.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
+    <Compile Include="Network\Enum\IdentifyResponseFlags.cs" />
     <Compile Include="Network\Enum\PlayScript.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
@@ -236,6 +237,7 @@
     <Compile Include="Network\GameMessages\GameMessage.cs" />
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageBootAccount.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePickupEvent.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerKilled.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
@@ -316,30 +318,15 @@
     <Compile Include="Entity\GameData.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="abilityXp.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Config.json.example" />
-    <None Include="levels.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <Content Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config">
       <SubType>Designer</SubType>
-    </None>
-    <None Include="skillXp-Specialized.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="skillXp-Trained.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="vitalXp.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

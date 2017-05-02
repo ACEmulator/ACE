@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-
 using MySql.Data.MySqlClient;
-using System.Collections.ObjectModel;
 
 namespace ACE.Database
 {
+    using System.Runtime.CompilerServices;
+
     public class CharacterDatabase : Database, ICharacterDatabase
     {
         private enum CharacterPreparedStatement
@@ -27,7 +26,7 @@ namespace ACE.Database
             CharacterStartupGearInsert,
             CharacterListSelect,
             CharacterMaxIndex,
-            
+
             CharacterUniqueNameSelect,
             CharacterSkillsSelect,
             CharacterStatsSelect,
@@ -65,11 +64,12 @@ namespace ACE.Database
             CharacterSkillsUpdate,
 
             CharacterStartupGearSelect,
+            GetAceCharacter
         }
 
         protected override Type PreparedStatementType => typeof(CharacterPreparedStatement);
 
-        protected override void InitialisePreparedStatements()
+        protected override void InitializePreparedStatements()
         {
             AddPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex, "SELECT MAX(`guid`) FROM `character`;");
             AddPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, "SELECT COUNT(`name`) as cnt FROM `character` WHERE NOT `deleted` = 1 AND `deleteTime` = 0 AND BINARY `name` = ?;", MySqlDbType.VarString);
@@ -79,13 +79,14 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert, "INSERT INTO `character_skills` (`id`, `skillId`, `skillStatus`, `skillPoints`) VALUES (?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.UInt16);
             AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearInsert, "INSERT INTO `character_startup_gear` (`id`, `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double, MySqlDbType.UByte, MySqlDbType.UByte, MySqlDbType.Double);
             AddPreparedStatement(CharacterPreparedStatement.CharacterDeleteOrRestore, "UPDATE `character` SET `deleteTime` = ?, `deleted` = 0 WHERE `guid` = ?;", MySqlDbType.UInt64, MySqlDbType.UInt32);
-            AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `accountId` = ? AND `deleted` = 0 ORDER BY `name` ASC;", MySqlDbType.UInt32);
+            AddPreparedStatement(CharacterPreparedStatement.CharacterListSelect, "SELECT `guid`, `name`, `deleteTime` FROM `character` WHERE `accountId` = ? AND `deleted` = 0 ORDER BY `lastUpdate` DESC;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendInsert, "INSERT INTO `character_friends` (`id`, `friendId`) VALUES (?, ?);", MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendDelete, "DELETE FROM  `character_friends` WHERE `id` = ? AND `friendId` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterFriendsRemoveAll, "DELETE FROM  `character_friends` WHERE `id` = ?;", MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterSelectByName, "SELECT `guid`, `accountId`, `name`, `templateOption`, `startArea` FROM `character` WHERE `deleted` = 0 AND `deleteTime` = 0 AND `name` = ?;", MySqlDbType.VarString);
             AddPreparedStatement(CharacterPreparedStatement.CharacterOptionsUpdate, "UPDATE `character` SET `totalLogins` = ?, `characterOptions1` = ?, `characterOptions2` = ? WHERE guid = ?", MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32, MySqlDbType.UInt32);
             AddPreparedStatement(CharacterPreparedStatement.CharacterRename, "UPDATE `character` SET `name` = ? WHERE `guid` = ?;", MySqlDbType.VarString, MySqlDbType.UInt32);
+            ConstructStatement(CharacterPreparedStatement.GetAceCharacter, typeof(AceCharacter), ConstructedStatementType.Get);
 
             // world entry
 
@@ -124,9 +125,21 @@ namespace ACE.Database
             AddPreparedStatement(CharacterPreparedStatement.CharacterStartupGearSelect, "SELECT `headgearStyle`, `headgearColor`, `headgearHue`, `shirtStyle`, `shirtColor`, `shirtHue`, `pantsStyle`, `pantsColor`, `pantsHue`, `footwearStyle`, `footwearColor`, `footwearHue` FROM `character_startup_gear` WHERE `id` = ?;", MySqlDbType.UInt32);
         }
 
+        public AceCharacter GetAceCharacter(uint guid)
+        {
+            Dictionary<string, object> criteria = new Dictionary<string, object> { { "guid", guid } };
+            AceCharacter aceCharacter = new AceCharacter();
+
+            if (ExecuteConstructedGetStatement(CharacterPreparedStatement.GetAceCharacter, typeof(AceCharacter), criteria, aceCharacter))
+            {
+                return aceCharacter;
+            }
+            return null;
+        }
+
         public uint GetMaxId()
         {
-            var result = SelectPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex);
+            MySqlResult result = SelectPreparedStatement(CharacterPreparedStatement.CharacterMaxIndex);
             Debug.Assert(result != null, "Invalid prepared statement value.");
             return result.Read<uint>(0, "MAX(`guid`)") + 1;
         }
@@ -136,9 +149,11 @@ namespace ACE.Database
         /// </summary>
         public Position GetLocation(uint id)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("character_id", id);
-            criteria.Add("positionType", PositionType.Location);
+            Dictionary<string, object> criteria = new Dictionary<string, object>
+                                                      {
+                                                          { "character_id", id },
+                                                          { "positionType", PositionType.Location }
+                                                      };
 
             Position newCharacterPosition = CharacterPositionExtensions.StartingPosition(id);
 
@@ -155,7 +170,7 @@ namespace ACE.Database
 
         public async Task<List<CachedCharacter>> GetByAccount(uint accountId)
         {
-            var result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, accountId);
+            MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterListSelect, accountId);
             List<CachedCharacter> characters = new List<CachedCharacter>();
 
             for (byte i = 0; i < result.Count; i++)
@@ -177,7 +192,7 @@ namespace ACE.Database
 
         public bool IsNameAvailable(string name)
         {
-            var result = SelectPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, name);
+            MySqlResult result = SelectPreparedStatement(CharacterPreparedStatement.CharacterUniqueNameSelect, name);
             Debug.Assert(result != null, "Invalid prepared statement value.");
 
             uint charsWithName = result.Read<uint>(0, "cnt");
@@ -188,12 +203,12 @@ namespace ACE.Database
         {
             // Save all of the player positions
             // TODO: Remove this after allowing positions to be saved on demand
-            foreach (var pos in character.Positions)
+            foreach (KeyValuePair<PositionType, Position> pos in character.Positions)
             {
                 ExecuteConstructedUpdateStatement(CharacterPreparedStatement.CharacterPositionUpdate, typeof(Position), pos.Value);
             }
 
-            var transaction = BeginTransaction();
+            DatabaseTransaction transaction = BeginTransaction();
             UpdateCharacterProperties(character, transaction);
 
             UpdateCharacterStats(character, transaction);
@@ -205,7 +220,7 @@ namespace ACE.Database
 
         public async Task<bool> CreateCharacter(Character character)
         {
-            var transaction = BeginTransaction();
+            DatabaseTransaction transaction = BeginTransaction();
             transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterInsert,
                 character.Id,
                 character.AccountId,
@@ -236,7 +251,7 @@ namespace ACE.Database
                 character.Stamina.Current,
                 character.Mana.Current);
 
-            foreach (var skill in character.Skills.Values)
+            foreach (CharacterSkill skill in character.Skills.Values)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert,
                     character.Id,
                     (uint)skill.Skill,
@@ -262,7 +277,7 @@ namespace ACE.Database
 
             return await transaction.Commit();
         }
-        
+
         public async Task<Character> LoadCharacter(uint id)
         {
             MySqlResult result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelect, id);
@@ -288,7 +303,7 @@ namespace ACE.Database
                 uint characterOptions1Flag = result.Read<uint>(0, "characterOptions1");
                 uint characterOptions2Flag = result.Read<uint>(0, "characterOptions2");
                 LoadCharacterOptions(characterOptions1Flag, characterOptions2Flag, c);
-                
+
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSkillsSelect, id);
 
                 for (uint i = 0; i < result?.Count; i++)
@@ -356,7 +371,7 @@ namespace ACE.Database
                     c.SelfAbility.Base = result.Read<uint>(0, "self");
                     c.SelfAbility.ExperienceSpent = result.Read<uint>(0, "selfXpSpent");
                     c.SelfAbility.Ranks = result.Read<uint>(0, "selfRanks");
-                    
+
                     c.Health.Ranks = result.Read<uint>(0, "healthRanks");
                     c.Health.ExperienceSpent = result.Read<uint>(0, "healthXpSpent");
                     c.Health.Current = result.Read<uint>(0, "healthCurrent");
@@ -382,7 +397,7 @@ namespace ACE.Database
                     c.AddFriend(f);
                 }
 
-                await LoadCharacterProperties(c);                
+                await LoadCharacterProperties(c);
             }
 
             return c;
@@ -391,7 +406,7 @@ namespace ACE.Database
         private void LoadCharacterOptions(uint characterOptions1Flag, uint characterOptions2Flag, Character character)
         {
             List<CharacterOption> optionsToSetToTrue = new List<CharacterOption>(); // Need to use this since I can't change the collection while I enumerate over it.
-            foreach (var option in character.CharacterOptions)
+            foreach (KeyValuePair<CharacterOption, bool> option in character.CharacterOptions)
             {
                 if (option.Key.GetCharacterOptions1Attribute() != null)
                 {
@@ -405,7 +420,7 @@ namespace ACE.Database
                 }
             }
 
-            foreach (var option in optionsToSetToTrue)
+            foreach (CharacterOption option in optionsToSetToTrue)
             {
                 character.SetCharacterOption(option, true);
             }
@@ -429,7 +444,7 @@ namespace ACE.Database
 
         public async Task LoadCharacterProperties(DbObject dbObject)
         {
-            var results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolSelect, dbObject.Id);
+            MySqlResult results = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterPropertiesBoolSelect, dbObject.Id);
             for (uint i = 0; i < results.Count; i++)
                 dbObject.SetPropertyBool(results.Read<PropertyBool>(i, "propertyId"), results.Read<bool>(i, "propertyValue"));
 
@@ -492,7 +507,7 @@ namespace ACE.Database
         public void LoadCharacterPositions(Character character)
         {
             // get a list of positions from the vw_character_positions view
-            var dbPositions = GetCharacterPositions(character);
+            Dictionary<PositionType, Position> dbPositions = GetCharacterPositions(character);
 
             // Check for positions and insert position for the Position type Locaiont, if missing:
             if (dbPositions.Count == 0 || !dbPositions.ContainsKey(PositionType.Location))
@@ -501,16 +516,20 @@ namespace ACE.Database
 
                 // This checks for the best location available from the database
                 // When the first suitable position is found, it will be set as the current location.
-                if (dbPositions.ContainsKey(PositionType.LastPortal)) 
+                if (dbPositions.ContainsKey(PositionType.LastPortal))
+
                     // Use the lastportal position
-                    swapToWorkingLocation = dbPositions[PositionType.LastPortal]; 
-                else if (dbPositions.ContainsKey(PositionType.Sanctuary)) 
+                    swapToWorkingLocation = dbPositions[PositionType.LastPortal];
+                else if (dbPositions.ContainsKey(PositionType.Sanctuary))
+
                     // Use lifestone recall position
-                    swapToWorkingLocation = dbPositions[PositionType.Sanctuary]; 
+                    swapToWorkingLocation = dbPositions[PositionType.Sanctuary];
                 else
                 {
                     // No suitable database position is available
-                    swapToWorkingLocation = CharacterPositionExtensions.StartingPosition(character.Id); // Use default position
+                    swapToWorkingLocation = CharacterPositionExtensions.StartingPosition(character.Id);
+
+                        // Use default position
                 }
 
                 // force the position type to location
@@ -531,7 +550,7 @@ namespace ACE.Database
         /// </summary>
         public void SaveCharacterPosition(Character character, Position characterPosition)
         {
-            var currentPosition = GetCharacterPosition(character, characterPosition.PositionType);
+            Position currentPosition = GetCharacterPosition(character, characterPosition.PositionType);
 
             if (currentPosition.PositionType != PositionType.Undef)
             {
@@ -548,37 +567,37 @@ namespace ACE.Database
             // known issue: properties that were removed from the bucket will not updated.  this is a problem if we
             // ever need to straight up "delete" a property.
 
-            foreach (var prop in dbObject.PropertiesBool)
+            foreach (KeyValuePair<PropertyBool, bool> prop in dbObject.PropertiesBool)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
-            foreach (var prop in dbObject.PropertiesInt)
+            foreach (KeyValuePair<PropertyInt, uint> prop in dbObject.PropertiesInt)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
-            foreach (var prop in dbObject.PropertiesInt64)
+            foreach (KeyValuePair<PropertyInt64, ulong> prop in dbObject.PropertiesInt64)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
-            foreach (var prop in dbObject.PropertiesDouble)
+            foreach (KeyValuePair<PropertyDouble, double> prop in dbObject.PropertiesDouble)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
 
-            foreach (var prop in dbObject.PropertiesString)
+            foreach (KeyValuePair<PropertyString, string> prop in dbObject.PropertiesString)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringInsert, dbObject.Id, (ushort)prop.Key, prop.Value);
         }
 
         public void UpdateCharacterProperties(DbObject dbObject, DatabaseTransaction transaction)
         {
-            foreach (var prop in dbObject.PropertiesBool)
+            foreach (KeyValuePair<PropertyBool, bool> prop in dbObject.PropertiesBool)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBoolUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
 
-            foreach (var prop in dbObject.PropertiesInt)
+            foreach (KeyValuePair<PropertyInt, uint> prop in dbObject.PropertiesInt)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
 
-            foreach (var prop in dbObject.PropertiesInt64)
+            foreach (KeyValuePair<PropertyInt64, ulong> prop in dbObject.PropertiesInt64)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesBigIntUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
 
-            foreach (var prop in dbObject.PropertiesDouble)
+            foreach (KeyValuePair<PropertyDouble, double> prop in dbObject.PropertiesDouble)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesDoubleUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
 
-            foreach (var prop in dbObject.PropertiesString)
+            foreach (KeyValuePair<PropertyString, string> prop in dbObject.PropertiesString)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterPropertiesStringUpdate, prop.Value, (ushort)prop.Key, dbObject.Id);
         }
 
@@ -599,7 +618,7 @@ namespace ACE.Database
 
         public void UpdateCharacterSkills(Character character, DatabaseTransaction transaction)
         {
-            foreach (var skill in character.Skills)
+            foreach (KeyValuePair<Skill, CharacterSkill> skill in character.Skills)
             {
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, (uint)skill.Value.Status, (ushort)skill.Value.Ranks, skill.Value.ExperienceSpent, character.Id, (uint)skill.Value.Skill);
             }
@@ -618,7 +637,7 @@ namespace ACE.Database
                 c = new Character(guid, accountId);
                 c.Name = result.Read<string>(0, "name");
                 c.TemplateOption = result.Read<uint>(0, "templateOption");
-                c.StartArea = result.Read<uint>(0, "startArea");                
+                c.StartArea = result.Read<uint>(0, "startArea");
             }
 
             return c;
@@ -641,7 +660,7 @@ namespace ACE.Database
 
         public uint SetCharacterAccessLevelByName(string characterName, AccessLevel accessLevel)
         {
-            var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, characterName);
+            Task<MySqlResult> result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, characterName);
             Debug.Assert(result != null, "Invalid prepared statement value.");
 
             uint boolId;
@@ -700,7 +719,7 @@ namespace ACE.Database
 
         public uint RenameCharacter(string oldName, string newName)
         {
-            var result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, newName);
+            Task<MySqlResult> result = SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterSelectByName, newName);
             Debug.Assert(result != null, "Invalid prepared statement value.");
 
             if (IsNameAvailable(newName))

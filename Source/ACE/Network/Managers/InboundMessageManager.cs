@@ -31,7 +31,7 @@ namespace ACE.Network.Managers
 
         private static Dictionary<GameActionType, ActionHandlerInfo> actionHandlers;
 
-        public static void Initialise()
+        public static void Initialize()
         {
             DefineMessageHandlers();
             DefineActionHandlers();

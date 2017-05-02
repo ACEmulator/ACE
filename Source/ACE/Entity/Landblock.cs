@@ -484,10 +484,15 @@ namespace ACE.Entity
                 int curplayer = 0;
                 Parallel.ForEach(allplayers, player =>
                 {
-                    // Process Action Que for player.
+                    // Process Action Queue for player.
                     QueuedGameAction action = player.ActionQueuePop();
                     if (action != null)
                         HandleGameAction(action, player);
+
+                    // Process Examination Queue for player
+                    QueuedGameAction examination = player.ExaminationQueuePop();
+                    if (examination != null)
+                        HandleGameAction(examination, player);
                     curplayer++;
                 });
                 UpdateStatus(curplayer);
@@ -607,6 +612,19 @@ namespace ACE.Entity
                         }
                         var soundEffect = (Sound)action.SecondaryObjectId;
                         HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
+                case GameActionType.IdentifyObject:
+                    {
+                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
+                        player.Session.Network.EnqueueSend(identifyResponse);
                         break;
                     }
                 case GameActionType.PutItemInContainer:
@@ -798,22 +816,30 @@ namespace ACE.Entity
                         {
                             WorldObject obj = worldObjects[g];
 
-                            switch (obj.Type)
-                            {
-                                case Enum.ObjectType.Portal:
-                                    {
-                                        // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
+                            if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
+                                (obj as Lifestone).OnUse(player);
+                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
+                                // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
+                                (obj as Portal).OnCollide(player);
+                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
+                                (obj as Door).OnUse(player);
 
-                                        (obj as Portal).OnCollide(player);
-
-                                        break;
-                                    }
-                                case Enum.ObjectType.LifeStone:
-                                    {
-                                        (obj as Lifestone).OnUse(player);
-                                        break;
-                                    }
-                            }
+                            // switch (obj.Type)
+                            // {
+                            //    case Enum.ObjectType.Portal:
+                            //        {
+                            //            // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
+                            //
+                            //            (obj as Portal).OnCollide(player);
+                            //
+                            //            break;
+                            //        }
+                            //    case Enum.ObjectType.LifeStone:
+                            //        {
+                            //            (obj as Lifestone).OnUse(player);
+                            //            break;
+                            //        }
+                            // }
                         }
                         break;
                     }

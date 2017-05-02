@@ -105,11 +105,13 @@
     <Compile Include="Entity\SubPalette.cs" />
     <Compile Include="Entity\TemplateCG.cs" />
     <Compile Include="Entity\TextureMapChange.cs" />
+    <Compile Include="FileTypes\CellLandblock.cs" />
     <Compile Include="FileTypes\CharGen.cs" />
     <Compile Include="FileTypes\GeneratorTable.cs" />
     <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
+    <Compile Include="FileTypes\XpTable.cs" />
     <Compile Include="PortalDatDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

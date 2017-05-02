@@ -47,6 +47,7 @@ namespace ACE.Entity
 
             this.PhysicsData.ObjScale = aceO.ObjectScale;
             this.PhysicsData.AnimationFrame = aceO.AnimationFrameId;
+            this.PhysicsData.Translucency = aceO.Translucency;
 
             // game data min required flags;
             this.Icon = aceO.IconId;

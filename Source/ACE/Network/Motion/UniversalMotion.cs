@@ -2,6 +2,7 @@
 using System.IO;
 using ACE.Network.Enum;
 using ACE.Entity;
+using System;
 
 namespace ACE.Network.Motion
 {
@@ -30,6 +31,12 @@ namespace ACE.Network.Motion
         {
             Stance = stance;
             MovementData = new MovementData();
+        }
+
+        public UniversalMotion(MotionStance stance, MovementData movementData)
+        {
+            Stance = stance;
+            MovementData = movementData;
         }
 
         public UniversalMotion(MotionStance stance, WorldObject moveToObject)
@@ -100,16 +107,25 @@ namespace ACE.Network.Motion
                     }
                 case MovementTypes.MoveToPosition:
                     {
-                        Position.Serialize(writer, false);
-                        // TODO: Og Fix to real numbers
-                        writer.Write(Flag);
-                        writer.Write(distanceFromObject);
-                        writer.Write((float)0);
-                        writer.Write(float.MaxValue);
-                        writer.Write((float)1);
-                        writer.Write((float)15);
-                        writer.Write((float)0);
-                        writer.Write(1.0f);
+                        try
+                        {
+                            Position.Serialize(writer, false);
+                            // TODO: Og Fix to real numbers
+                            writer.Write(Flag);
+                            writer.Write(distanceFromObject);
+                            writer.Write((float)0);
+                            writer.Write(float.MaxValue);
+                            writer.Write((float)1);
+                            writer.Write((float)15);
+                            writer.Write((float)0);
+                            writer.Write(1.0f);
+                        }
+                        catch (Exception)
+                        {
+                            // Do nothing
+
+                            // TODO: This prevents a crash in Kryst and possibly other locations, Please investigate and fix if possible.
+                        }
                         break;
                     }
             }
@@ -120,13 +136,7 @@ namespace ACE.Network.Motion
         {
             MemoryStream stream = new MemoryStream(currentMotionState);
             BinaryReader reader = new BinaryReader(stream);
-            MovementTypes movementType = (MovementTypes)reader.ReadByte(); // movement_type
-
-            // MotionFlags flags = MotionFlags.None;
-            // if (HasTarget)
-            //    flags |= MotionFlags.HasTarget;
-            // if (Jumping)
-            //    flags |= MotionFlags.Jumping;
+            MovementTypes = (MovementTypes)reader.ReadByte(); // movement_type
 
             MotionFlags flags = (MotionFlags)reader.ReadByte(); // these can be or and has sticky object | is long jump mode |
 
@@ -136,35 +146,94 @@ namespace ACE.Network.Motion
                 Jumping = true;
 
             Stance = (MotionStance)reader.ReadUInt16(); // called command in the client
-            // MovementStateFlag generalFlags = MovementData.MovementStateFlag;
 
-            // generalFlags += (uint)Commands.Count << 7;
             MovementStateFlag generalFlags = (MovementStateFlag)reader.ReadUInt32();
-
-            // MovementData.Serialize(writer);
 
             MovementData = new MovementData();
 
             if ((generalFlags & MovementStateFlag.CurrentStyle) != 0)
-                MovementData.CurrentStyle = (ushort)reader.ReadUInt32();
+            {
+                try
+                {
+                    MovementData.CurrentStyle = (ushort)reader.ReadUInt32();
+                }
+                catch (Exception)
+                {
+                    MovementData.CurrentStyle = 0;
+                }
+            }
 
             if ((generalFlags & MovementStateFlag.ForwardCommand) != 0)
-                MovementData.ForwardCommand = (ushort)reader.ReadUInt32();
+            {
+                try
+                {
+                    MovementData.ForwardCommand = (ushort)reader.ReadUInt32();
+                }
+                catch (Exception)
+                {
+                    MovementData.ForwardCommand = 0;
+                }
+            }
 
             if ((generalFlags & MovementStateFlag.ForwardSpeed) != 0)
-                MovementData.ForwardSpeed = (float)reader.ReadSingle();
+            {
+                try
+                {
+                    MovementData.ForwardSpeed = (ushort)reader.ReadSingle();
+                }
+                catch (Exception)
+                {
+                    MovementData.ForwardSpeed = 0;
+                }
+            }
 
             if ((generalFlags & MovementStateFlag.SideStepCommand) != 0)
-                MovementData.SideStepCommand = (ushort)reader.ReadUInt32();
+            {
+                try
+                {
+                    MovementData.SideStepCommand = (ushort)reader.ReadUInt32();
+                }
+                catch (Exception)
+                {
+                    MovementData.SideStepCommand = 0;
+                }
+            }
 
             if ((generalFlags & MovementStateFlag.SideStepSpeed) != 0)
-                MovementData.SideStepSpeed = (float)reader.ReadSingle();
+            {
+                try
+                {
+                    MovementData.SideStepSpeed = (ushort)reader.ReadSingle();
+                }
+                catch (Exception)
+                {
+                    MovementData.SideStepSpeed = 0;
+                }
+            }
 
             if ((generalFlags & MovementStateFlag.TurnCommand) != 0)
-                MovementData.TurnCommand = (ushort)reader.ReadUInt32();
+            {
+                try
+                {
+                    MovementData.TurnCommand = (ushort)reader.ReadUInt32();
+                }
+                catch (Exception)
+                {
+                    MovementData.TurnCommand = 0;
+                }
+            }
 
             if ((generalFlags & MovementStateFlag.TurnSpeed) != 0)
-                MovementData.TurnSpeed = (float)reader.ReadSingle();
+            {
+                try
+                {
+                    MovementData.TurnSpeed = (ushort)reader.ReadSingle();
+                }
+                catch (Exception)
+                {
+                    MovementData.TurnSpeed = 0;
+                }
+            }
 
             // foreach (var item in Commands)
             // {

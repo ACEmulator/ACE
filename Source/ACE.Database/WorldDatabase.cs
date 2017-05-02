@@ -27,10 +27,10 @@ namespace ACE.Database
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
 
-        protected override void InitialisePreparedStatements()
+        protected override void InitializePreparedStatements()
         {
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
-            // ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetPortalDestination, typeof(PortalDestination), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
@@ -179,6 +179,47 @@ namespace ACE.Database
             }
             else
                 return null;
+        }
+        public BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
+        {
+            var bao = new BaseAceObject();
+            var criteria = new Dictionary<string, object> { { "baseAceObjectId", weenieClassId } };
+            if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), criteria, bao))
+                return null;
+
+            foreach (var pal in GetWeeniePalettes(weenieClassId))
+            {
+                var opal = new PaletteOverride
+                             {
+                                 AceObjectId = pal.WeenieClassId,
+                                 Length = pal.Length,
+                                 Offset = pal.Offset,
+                                 SubPaletteId = pal.SubPaletteId
+                             };
+                bao.PaletteOverrides.Add(opal);
+            }
+            foreach (var tex in GetWeenieTextureMaps(weenieClassId))
+            {
+                var otex = new TextureMapOverride
+                               {
+                                   AceObjectId = tex.WeenieClassId,
+                                   Index = tex.Index,
+                                   NewId = tex.NewId,
+                                   OldId = tex.OldId
+                               };
+                bao.TextureOverrides.Add(otex);
+            }
+            foreach (var ani in GetWeenieAnimations(weenieClassId))
+            {
+                var oani = new AnimationOverride
+                               {
+                                   AceObjectId = ani.WeenieClassId,
+                                   AnimationId = ani.AnimationId,
+                                   Index = ani.Index
+                               };
+                bao.AnimationOverrides.Add(oani);
+            }
+            return bao;
         }
 
         public bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl)

@@ -1,5 +1,54 @@
 # ACEmulator Change Log
+
+### 2017-05-02
+[Og II]
+* Refactored ctw to admin commands ci and create both take parameter of a weenieId.   You can spawn anything in the database.   @ci 21376 - will spawn Martine's Robe   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
+
+### 2017-05-01
+[OptimShi]
+* Modified DatLoader.SetupModel to be easier to initiate (got missed when other items had the same changes applied). Also added working example to the Lifestone.cs OnUse function to take model radius into account.
+* Hooked up the "ExaminationQueuePop" in Player.cs to fire.
+* Added IdentifyResponseFlags, for when we start to send actual data.
+* Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
+
+### 2017-04-30
+[OptimShi]
+* Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
+* Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
+
+### 2017-04-29
+[Ripley]
+* Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.
+* Added Translucency to DebugObject. This fixes ghostly npcs.
+* Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
+
+### 2017-04-26
+[OptimShi]
+* Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
+* Changed sort order of character list to use character.lastUpdate instead of alphabetical. Your last used character will now be selected upon a new client instance.
+
+[fantoms]
+* Built out the admin `@teleto` command. Use a player's name as the parameter.
+
+[fantoms]
+* Added admin `@boot` command logic for Player, Account, and Guid - too kick a player from the server and display a CoC Violation warning message.
+* Added Booting capabilites in the `Sesssion` object.
+* Added the `GameMessageBootAccount` game message.
+* Added an enum for `AccountLookupType`.
+* Added `CharacterNameExtension.cs` and included the string helper function `stringArrayToCharacterName`, for converting a string array containing spaces to a player name string.
+
+[Ripley]
+* Rebased SQL scripts.
+* It is recommended if you have an already existing database you wipe it and start fresh from the new base scripts.
+* Download the latest release of the ACE-World database to populate your world.
+* Added some exception catching to UniversalMotion.
+
 ### 2017-04-25
+[MiachofTD]
+* Changed 010_2017_04_24_Gharu_town_Part_2_portal_destination.sql to 011_2017_04_24_Gharu_town_Part_2_portal_destination.sql.
+* Changed 0010_2017_04_25_portal_destination.sql to 012_2017_04_25_portal_destination.sql and updated MySqlInstall.bat.
+* Added 010_2017_04_24_portal_destination_Academy.sql to MySqlInstall.bat.
+
 [Jyard1]
 * Added 16 portals around the Shoushi area.
 
@@ -12,6 +61,14 @@
 * Added 30 portals in the destination_portal for Gharu towns.
 
 ### 2017-04-24
+[OptimShi]
+* Added XpTable class to the ACE.DatLoader.FileTypes. This loads the XP tables from the client_portal.dat
+* Modified Player.cs to use the new XpTable class.
+* Removed JSON based XP charts.
+* Removed ACE.Database.ChartDatabase (classes that loaded the JSON XP charts)
+* Removed DatReader parameter from DatLoader.FileTypes classes CharGen and GeneratorTable. It's always going to be the same file, so no need to specify it.
+* Changed parameters of other DatLoader.FileTypes to be more straight-forward. They will auto-create the DatReader and the parameter is the fileId to read.
+
 [Jyrus]
 * Add a few more portals, add a level five restriction to Drudge Hideout, and correct drop point for Tou-Tou Outpost portal - File will not work using PHPMYADMIN
 	Must use MySQL, SQLyog, or possibly HeidiSQL
@@ -346,5 +403,3 @@
 ### 2017-03-25
 [Mogwai]
 * weenies weenies everywhere. object structure pass 1
-
-

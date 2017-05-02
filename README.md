@@ -19,7 +19,8 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 * Install MySQL (MariaDB is preferred, but either will work).
 * Create three databases named `ace_auth`, `ace_character`, and `ace_world`.
 * Load AuthenticationBase.sql, CharacterBase.sql, and WorldBase.sql for their respective databases. 
-* Load all incremental SQL updates in the Database\Updates sub directories. 
+* Load all incremental SQL updates in the Database\Updates sub directories.
+* Download from [ACE-World](https://github.com/ACEmulator/ACE-World) the [latest release](https://github.com/ACEmulator/ACE-World/releases/latest) of world data, extract and load into your ace_world database.
 * Copy `Config.json.example` to `Config.json` and modify database settings, such as your database password.
 * Build and run ACE.
 * Create your first account as an admin at the prompt - `accountcreate testaccount testpassword 5`

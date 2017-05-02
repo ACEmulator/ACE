@@ -22,14 +22,14 @@ namespace ACE
             log.Info("Starting ACEmulator...");
             Console.Title = "ACEmulator";
 
-            ConfigManager.Initialise();
-            DatabaseManager.Initialise();
-            AssetManager.Initialise();
-            InboundMessageManager.Initialise();
+            ConfigManager.Initialize();
+            DatabaseManager.Initialize();
+            AssetManager.Initialize();
+            InboundMessageManager.Initialize();
             DatManager.Initialize();
-            SocketManager.Initialise();
-            WorldManager.Initialise();
-            CommandManager.Initialise();
+            SocketManager.Initialize();
+            WorldManager.Initialize();
+            CommandManager.Initialize();
         }
 
         private static void OnProcessExit(object sender, EventArgs e)

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ACE.DatLoader.Entity
+namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x02. 
@@ -38,8 +38,9 @@ namespace ACE.DatLoader.Entity
         public uint DefaultSoundTable { get; set; }
         public uint DefaultScriptTable { get; set; }
 
-        public static SetupModel ReadFromDat(DatReader datReader)
+        public static SetupModel ReadFromDat(uint fileId)
         {
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
             SetupModel m = new SetupModel();
             m.ModelId = datReader.ReadUInt32();
 
