@@ -2,9 +2,16 @@
 
 ### 2017-04-30
 [Og II]
-* Refactored ctw to cwo takes a new optional parameter of a weenieId.   You can spawn anything in the database.   @ctw me 21376 - will spawn Martine's Robe If no weenieId
-* is given, it gives you the old faithful training wand.   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
- 
+* Refactored ctw to admin commands ci and create both take parameter of a weenieId.   You can spawn anything in the database.   @ci 21376 - will spawn Martine's Robe   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
+
+### 2017-05-01
+[OptimShi]
+* Modified DatLoader.SetupModel to be easier to initiate (got missed when other items had the same changes applied). Also added working example to the Lifestone.cs OnUse function to take model radius into account.
+* Hooked up the "ExaminationQueuePop" in Player.cs to fire.
+* Added IdentifyResponseFlags, for when we start to send actual data.
+* Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
+
+### 2017-04-30
 [OptimShi]
 * Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
 * Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
@@ -14,6 +21,7 @@
 * Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.
 * Added Translucency to DebugObject. This fixes ghostly npcs.
 * Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
+
 ### 2017-04-26
 [OptimShi]
 * Renamed ace_character.character.birth to lastUpdate to better reflect its use. (Birth is already stored in character_properties_int). See Character database update 01_2017_04_26_CharacterLastUpdate.sql
@@ -397,3 +405,4 @@
 * weenies weenies everywhere. object structure pass 1
 
 
+>>>>>>> 177bf95801295bd497a90490dc2c6fa37efee833

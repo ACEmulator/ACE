@@ -3,6 +3,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -46,8 +47,9 @@ namespace ACE.Entity
         public override void OnUse(Player player)
         {
             string serverMessage = null;
-            // validate within use range
-            float radiusSquared = this.GameData.UseRadius * this.GameData.UseRadius;
+            // validate within use range, taking into account the radius of the model itself, as well
+            SetupModel csetup = SetupModel.ReadFromDat(this.PhysicsData.CSetup);
+            float radiusSquared = (this.GameData.UseRadius + csetup.Radius) * (this.GameData.UseRadius + csetup.Radius);
 
             var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
