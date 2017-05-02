@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
 ### 2017-05-02
+[fantoms]
+* Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
+* Updated `SaveCharacterPosition` too prevent PortalType.Undef types from being used as a valid position type.
+* Updated `PositionType` for Positions, too prevent position types outside of the definition from entering the database.
+
 [Og II]
 * Refactored ctw to admin commands ci and create both take parameter of a weenieId.   You can spawn anything in the database.   @ci 21376 - will spawn Martine's Robe   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
 
