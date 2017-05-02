@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-04-30
+### 2017-05-02
 [Og II]
 * Refactored ctw to admin commands ci and create both take parameter of a weenieId.   You can spawn anything in the database.   @ci 21376 - will spawn Martine's Robe   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
 
@@ -403,6 +403,3 @@
 ### 2017-03-25
 [Mogwai]
 * weenies weenies everywhere. object structure pass 1
-
-
->>>>>>> 177bf95801295bd497a90490dc2c6fa37efee833
