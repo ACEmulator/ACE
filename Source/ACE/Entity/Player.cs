@@ -75,22 +75,22 @@ namespace ACE.Entity
 
         private Character character;
 
-        private object clientObjectMutex = new object();
+        private readonly object clientObjectMutex = new object();
 
-        private Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
+        private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
         // queue of all the "actions" that come from the player that require processing
-        // aynchronous to or outside of the network thread
-        private ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
+        // asynchronous to or outside of the network thread
+        private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
 
         // examination queue is really a subset of the actionQueue, but this existed on
         // retail servers as it's own separate thing and was intentionally throttled.
-        private ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
+        private readonly ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
 
-        private object delayedActionsMutex = new object();
+        private readonly object delayedActionsMutex = new object();
 
         // dictionary for delaying further actions for an objectID
-        private Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
+        private readonly Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
@@ -266,7 +266,7 @@ namespace ACE.Entity
                 // Check the character scale
                 if (sex.Scale != 100u)
                 {
-                    // Set the PhysicaData flag to let it know we're changing the scale
+                    // Set the PhysicsData flag to let it know we're changing the scale
                     PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
                     PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
                 }
@@ -303,7 +303,7 @@ namespace ACE.Entity
                 ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
                 for (int i = 0; i < mouth.TextureChanges.Count; i++)
                     ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
-                
+
                 // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
                 ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
@@ -883,7 +883,7 @@ namespace ACE.Entity
             character.NumDeaths++; // Increase the NumDeaths counter
             character.DeathLevel++; // Increase the DeathLevel
 
-            // TODO: Find correct vitae formula/value 
+            // TODO: Find correct vitae formula/value
             character.VitaeCpPool = 0; // Set vitae
 
             // TODO: Generate a death message based on the damage type to pass in to each death message:
@@ -965,7 +965,7 @@ namespace ACE.Entity
         /// Sends a death message broadcast all players on the landblock? that a killer has a victim
         /// </summary>
         /// <remarks>
-        /// TODO: 
+        /// TODO:
         ///     1. Figure out who all receieves death messages, on what landblock and at what order -
         ///         Example: Does the players around the vicitm receive the message or do the players at the lifestone receieve the message, or both?
         /// </remarks>

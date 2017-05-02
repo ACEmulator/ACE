@@ -21,7 +21,7 @@ namespace ACE.Common.Cryptography
             randRsl = new uint[256];
             offset  = 255u;
 
-            Initialise(seed);
+            Initialize(seed);
         }
 
         public uint GetOffset()
@@ -38,7 +38,7 @@ namespace ACE.Common.Cryptography
             return issacValue;
         }
 
-        private void Initialise(byte[] keyBytes)
+        private void Initialize(byte[] keyBytes)
         {
             int i, j, k;
             for (i = 0; i < 256; i++)

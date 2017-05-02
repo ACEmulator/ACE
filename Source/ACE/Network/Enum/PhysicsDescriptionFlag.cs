@@ -21,7 +21,7 @@ namespace ACE.Network.Enum
         Children               = 0x000040,
         ObjScale               = 0x000080,
         Friction               = 0x000100,
-        Elastcity              = 0x000200,
+        Elasticity             = 0x000200,
         Timestamp              = 0x000400,
         /// <summary>
         ///  Sound Table

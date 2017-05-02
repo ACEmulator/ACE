@@ -26,9 +26,9 @@ namespace ACE.Database.Tests
             // copy config.json
             File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
 
-            ConfigManager.Initialise();
+            ConfigManager.Initialize();
             worldDb = new Database();
-            worldDb.Initialise(ConfigManager.Config.MySql.World.Host,
+            worldDb.Initialize(ConfigManager.Config.MySql.World.Host,
                           ConfigManager.Config.MySql.World.Port,
                           ConfigManager.Config.MySql.World.Username,
                           ConfigManager.Config.MySql.World.Password,

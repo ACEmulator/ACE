@@ -116,7 +116,7 @@ namespace ACE.Database
 
         protected virtual Type PreparedStatementType { get; }
 
-        public void Initialise(string host, uint port, string user, string password, string database)
+        public void Initialize(string host, uint port, string user, string password, string database)
         {
             var connectionBuilder = new MySqlConnectionStringBuilder()
             {
@@ -150,12 +150,12 @@ namespace ACE.Database
                 }
             }
 
-            InitialisePreparedStatements();
+            InitializePreparedStatements();
         }
 
         public DatabaseTransaction BeginTransaction() { return new DatabaseTransaction(this); }
 
-        protected virtual void InitialisePreparedStatements() { }
+        protected virtual void InitializePreparedStatements() { }
 
         protected void AddPreparedStatement<T>(T id, string query, params MySqlDbType[] types)
         {
@@ -192,7 +192,7 @@ namespace ACE.Database
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
             DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
-            
+
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
 
@@ -222,7 +222,7 @@ namespace ACE.Database
                     types.Add((MySqlDbType)p.Item2.DbFieldType);
                 }
             }
-            
+
             string query = $"SELECT {selectList} FROM `{tableName}` WHERE {whereList}";
 
             PrepareStatement(statementId, query, types);

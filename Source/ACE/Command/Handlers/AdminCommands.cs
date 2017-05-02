@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿﻿using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -10,6 +8,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
+using ACE.Factories;
 
 using log4net;
 
@@ -97,7 +96,7 @@ namespace ACE.Command.Handlers
         /// <remarks>
         ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
         /// </remarks>
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2, 
+        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
             "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
             "{ account | char | iid } who")]
         public static void HandleBoot(Session session, params string[] parameters)
@@ -189,7 +188,7 @@ namespace ACE.Command.Handlers
                     // finish execution of command logic
                     return;
                 }
-            } 
+            }
 
             // Did not find a player
             string errorText = $"Error locating the player or account to boot.";
@@ -225,7 +224,7 @@ namespace ACE.Command.Handlers
 
             switch (parameters?[0].ToLower())
             {
-                case "on":                    
+                case "on":
                     newPhysicsState |= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
                     newPhysicsState ^= PhysicsState.ReportCollision;
                     session.Player.SetPhysicsState(newPhysicsState, true);
@@ -828,25 +827,45 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // create wclassid (string or number)
-        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        // create wclassid (number)
+        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in the world.", "wclassid(string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            // Creates the given object in the world, external to the admin
-            // @create - Creates an object in the world.
-            // usage: @create wclassid (string or number)
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
 
-            // TODO: output
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            session.Player.TrackObject(loot);
         }
 
-        // ci wclassid (string or number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        // ci wclassid (number)
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
-            // Creates the given object in the admin's inventory
-            // @ci - Creates an object in your inventory.
-
-            // TODO: output
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            LootGenerationFactory.AddToContainer(loot, session.Player);
+            session.Player.TrackObject(loot);
         }
 
         // cm <material type> <quantity> <ave. workmanship>

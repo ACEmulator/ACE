@@ -21,7 +21,7 @@ namespace ACE.Database
         uint GetMaxId();
 
         bool IsNameAvailable(string name);
-        
+
         Task<bool> CreateCharacter(Character character);
 
         Task UpdateCharacter(Character character);
@@ -45,7 +45,7 @@ namespace ACE.Database
         Task LoadCharacterProperties(DbObject dbObject);
 
         /// <summary>
-        /// loads positons into the provided db object
+        /// loads positions into the provided db object
         /// </summary>
         void LoadCharacterPositions(Character character);
 

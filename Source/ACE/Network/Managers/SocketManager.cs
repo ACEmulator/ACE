@@ -14,7 +14,7 @@ namespace ACE.Network.Managers
 
         private static readonly List<ConnectionListener> Listeners = new List<ConnectionListener>();
 
-        public static void Initialise()
+        public static void Initialize()
         {
             IPAddress host;
 

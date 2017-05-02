@@ -151,6 +151,7 @@
     <Compile Include="BaseAceObject.cs" />
     <Compile Include="Vector3.cs" />
     <Compile Include="Weenie.cs" />
+    <Compile Include="AceCharacter.cs" />
     <Compile Include="WeenieAnimationOverride.cs" />
     <Compile Include="WeeniePaletteOverride.cs" />
     <Compile Include="WeenieTextureMapOverride.cs" />
