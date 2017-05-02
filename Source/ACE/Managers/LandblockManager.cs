@@ -85,7 +85,7 @@ namespace ACE.Managers
                     if (landblocks[x, y] == null)
                     {
                         // load up this landblock
-                        Landblock block = new Landblock(landblockId, x, y);
+                        Landblock block = new Landblock(landblockId);
                         block.Load();
 
                         landblocks[x, y] = block;

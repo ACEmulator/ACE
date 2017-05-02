@@ -15,6 +15,7 @@ using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
@@ -48,9 +49,6 @@ namespace ACE.Entity
         // inherent functionality that needs to be modelled in an object.
         // private Landcell[,] cellGrid; // todo: load from cell.dat
 
-        private int row;
-        private int col;
-
         public LandBlockStatus Status = new LandBlockStatus();
         private bool running = false;
 
@@ -59,11 +57,9 @@ namespace ACE.Entity
             get { return id; }
         }
 
-        public Landblock(LandblockId id, int r, int c)
+        public Landblock(LandblockId id)
         {
             this.id = id;
-            row = r;
-            col = c;
 
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
@@ -78,7 +74,7 @@ namespace ACE.Entity
             this.adjacencies.Add(Adjacency.NorthWest, null);
         }
 
-        public async void Load()
+        public void Load()
         {
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
@@ -827,16 +823,16 @@ namespace ACE.Entity
         private void UpdateStatus(LandBlockStatusFlag flag)
         {
             Status.LandBlockStatusFlag = flag;
-            Diagnostics.Diagnostics.SetLandBlockKey(row, col, Status);
+            Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
         }
 
         private void UpdateStatus(int pcount)
         {
-            Status.Playercount = pcount;
+            Status.PlayerCount = pcount;
             if (pcount > 0)
             {
                 Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
-                Diagnostics.Diagnostics.SetLandBlockKey(row, col, Status);
+                Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
             }
             else
             {

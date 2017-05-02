@@ -4,8 +4,7 @@ namespace ACE.Entity
 {
     public class LandBlockStatus
     {
-        public int Playercount;
+        public int PlayerCount;
         public LandBlockStatusFlag LandBlockStatusFlag = new LandBlockStatusFlag();
-        public LandblockId LandBlockId = new LandblockId();
     }
 }

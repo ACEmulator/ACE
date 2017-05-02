@@ -21,10 +21,10 @@ namespace ACE.Diagnostics
         private LandBlockStatusFlag[,] TempLandBlockKeys = new LandBlockStatusFlag[256, 256];
         private BackgroundWorker bwUpdateLandblockGrid = new BackgroundWorker();
 
-        private Bitmap bitmapdiag = new Bitmap(256, 256, PixelFormat.Format32bppArgb);
+        private Bitmap bitmapdiag = new Bitmap(256, 256, PixelFormat.Format32bppPArgb);
         private int blocksize = 1;
 
-        private Brush brushIdleUnloaded = Brushes.Black;
+        private Brush brushIdleUnloaded = Brushes.Transparent;
         private Brush brushIdleLoaded = Brushes.LightGreen;
         private Brush brushIdleLoading = Brushes.LightYellow;
         private Brush brushIdleUnloading = Brushes.WhiteSmoke;
@@ -34,20 +34,17 @@ namespace ACE.Diagnostics
         private Brush brushInuseHigh = Brushes.Orange;
         private Brush brushGenericError = Brushes.DarkRed;
 
-        private int zoomFactor = 20;
+        private int zoomFactor = 5;
+
         private Color backColor;
         private int selrow = 0;
         private int selcol = 0;
 
         private void FrmMonitor_Load(object sender, EventArgs e)
         {
-            // Synchronize some private members with the form's values.
-            backColor = Color.Black;
 
-            // Set the sizemode of both pictureboxes. These modes are important
-            // to the functionality and should not be changed.
-            // picImage.SizeMode = PictureBoxSizeMode.CenterImage;
-            picZoom.SizeMode = PictureBoxSizeMode.StretchImage;
+            backColor = Color.Black;
+            picZoom.SizeMode = PictureBoxSizeMode.Zoom;
 
             bwUpdateLandblockGrid.DoWork += new DoWorkEventHandler(bwUpdateLandblockGrid_DoWork);
             timerDraw.Enabled = true;
@@ -71,31 +68,37 @@ namespace ACE.Diagnostics
             Graphics imgGraphics = Graphics.FromImage(bitmapdiag);
             imgGraphics.CompositingMode = CompositingMode.SourceCopy;
 
+            // 0,255  ******** 255,255
+            //        ********
+            // 0,0    ******** 255,0
+
+            //  rows decrease / col increase.
+
             // Draw to bitmap in memory
             using (imgGraphics)
             {
                 int coloffset = 0;
                 int rowoffset = 0;
 
-                for (int row = 0; row < 256; row++)
+                for (int row = 0; row < 255; row++)
                 {
-                    for (int col = 0; col < 256; col++)
+                 for    (int col = 0; col < 255; col++)
                     {
                         if (!Diagnostics.LandBlockDiag)
                             return;
 
                         LandBlockStatusFlag key = new LandBlockStatusFlag();
-                        key = Diagnostics.GetLandBlockKeyFlag(row, col);
+                        key = Diagnostics.GetLandBlockKeyFlag(col, row);
 
                         // has it changed from last known state ?
                         if (initdraw)
                         {
-                            TempLandBlockKeys[row, col] = key;
+                            TempLandBlockKeys[col, row] = key;
                         }
                         else
                         {
                             LandBlockStatusFlag prevkey = new LandBlockStatusFlag();
-                            prevkey = TempLandBlockKeys[row, col];
+                            prevkey = TempLandBlockKeys[col, row];
                             // if no change then no need to write.
                             if (prevkey == key)
                                 break;
@@ -104,28 +107,28 @@ namespace ACE.Diagnostics
                         switch (key)
                         {
                             case LandBlockStatusFlag.IdleLoading:
-                                imgGraphics.FillRectangle(brushIdleLoading, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushIdleLoading, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.IdleLoaded:
-                                imgGraphics.FillRectangle(brushIdleLoaded, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushIdleLoaded, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.InUseLow:
-                                imgGraphics.FillRectangle(brushInUseLow, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushInUseLow, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.InUseMed:
-                                imgGraphics.FillRectangle(brushInUseMed, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushInUseMed, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.InuseHigh:
-                                imgGraphics.FillRectangle(brushInuseHigh, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushInuseHigh, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.IdleUnloading:
-                                imgGraphics.FillRectangle(brushIdleUnloading, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushIdleUnloading, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.IdleUnloaded:
-                                imgGraphics.FillRectangle(brushIdleUnloaded, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushIdleUnloaded, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.GenericError:
-                                imgGraphics.FillRectangle(brushGenericError, rowoffset, coloffset, blocksize, blocksize);
+                                imgGraphics.FillRectangle(brushGenericError, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                         }
                         coloffset = coloffset + blocksize;
@@ -134,15 +137,19 @@ namespace ACE.Diagnostics
                     coloffset = 0;
                 }
 
-                // Draw from memory to image
-                picImage.Image = bitmapdiag;
+                // over lap ac map
+                Image canvas = new Bitmap(Properties.Resources.map);
+                Graphics gra = Graphics.FromImage(canvas);
+
+                gra.DrawImage(bitmapdiag, 0, 0);
+
+                picImage.Image = canvas;
 
             }
             // on first draw this is true.
             if (initdraw)
             {
                 initdraw = true;
-                // ResizeAndDisplayImage();
             }
         }
 
@@ -166,111 +173,6 @@ namespace ACE.Diagnostics
         private void FrmMonitor_Move(object sender, EventArgs e)
         {
             initdraw = true;
-        }
-
-        private void ResizeAndDisplayImage()
-        {
-            // Zooming Functions Credit too 
-            // JohnWillemse, 30 Oct 2007 
-            // https://www.codeproject.com/Articles/21097/PictureBox-Zoom
-
-            // Set the backcolor of the pictureboxes
-
-            picImage.BackColor = backColor;
-            picZoom.BackColor = backColor;
-
-            if (picImage == null)
-                return;
-
-            int sourceWidth = bitmapdiag.Width;
-            int sourceHeight = bitmapdiag.Height;
-            int targetWidth;
-            int targetHeight;
-            double ratio;
-
-            // Calculate targetWidth and targetHeight, so that the image will fit into
-
-            // the picImage picturebox without changing the proportions of the image.
-
-            if (sourceWidth > sourceHeight)
-            {
-                // Set the new width
-
-                targetWidth = picImage.Width;
-                // Calculate the ratio of the new width against the original width
-
-                ratio = (double)targetWidth / sourceWidth;
-                // Calculate a new height that is in proportion with the original image
-
-                targetHeight = (int)(ratio * sourceHeight);
-            }
-            else if (sourceWidth < sourceHeight)
-            {
-                // Set the new height
-
-                targetHeight = picImage.Height;
-                // Calculate the ratio of the new height against the original height
-
-                ratio = (double)targetHeight / sourceHeight;
-                // Calculate a new width that is in proportion with the original image
-
-                targetWidth = (int)(ratio * sourceWidth);
-            }
-            else
-            {
-                // In this case, the image is square and resizing is easy
-
-                targetHeight = picImage.Height;
-                targetWidth = picImage.Width;
-            }
-
-            // Calculate the targetTop and targetLeft values, to center the image
-
-            // horizontally or vertically if needed
-
-            int targetTop = (picImage.Height - targetHeight) / 2;
-            int targetLeft = (picImage.Width - targetWidth) / 2;
-
-            // Create a new temporary bitmap to resize the original image
-
-            // The size of this bitmap is the size of the picImage picturebox.
-
-            Bitmap tempBitmap = new Bitmap(picImage.Width, picImage.Height,
-                                           PixelFormat.Format24bppRgb);
-
-            // Set the resolution of the bitmap to match the original resolution.
-
-            tempBitmap.SetResolution(bitmapdiag.HorizontalResolution,
-                                     bitmapdiag.VerticalResolution);
-
-            // Create a Graphics object to further edit the temporary bitmap
-
-            Graphics bmGraphics = Graphics.FromImage(tempBitmap);
-
-            // First clear the image with the current backcolor
-
-            bmGraphics.Clear(backColor);
-
-            // Set the interpolationmode since we are resizing an image here
-
-            bmGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-
-            // Draw the original image on the temporary bitmap, resizing it using
-
-            // the calculated values of targetWidth and targetHeight.
-
-            bmGraphics.DrawImage(bitmapdiag,
-                                 new Rectangle(targetLeft, targetTop, targetWidth, targetHeight),
-                                 new Rectangle(0, 0, sourceWidth, sourceHeight),
-                                 GraphicsUnit.Pixel);
-
-            // Dispose of the bmGraphics object
-
-            bmGraphics.Dispose();
-
-            // Set the image of the picImage picturebox to the temporary bitmap
-
-            picImage.Image = tempBitmap;
         }
 
         private void UpdateZoomedImage(MouseEventArgs e)
@@ -306,7 +208,7 @@ namespace ACE.Diagnostics
 
             // Clear the bitmap with the selected backcolor
 
-            bmGraphics.Clear(backColor);
+            bmGraphics.Clear(Color.Black);
 
             // Set the interpolation mode
 
@@ -330,10 +232,10 @@ namespace ACE.Diagnostics
             picZoom.Image = tempBitmap;
 
             // Draw a crosshair on the bitmap to simulate the cursor position
-            bmGraphics.DrawLine(Pens.Blue, halfWidth + 0, halfHeight - 2, halfWidth + 0, halfHeight - 0);
-            bmGraphics.DrawLine(Pens.Blue, halfWidth + 0, halfHeight + 2, halfWidth + 0, halfHeight + 0);
-            bmGraphics.DrawLine(Pens.Blue, halfWidth - 2, halfHeight + 0, halfWidth - 0, halfHeight + 0);
-            bmGraphics.DrawLine(Pens.Blue, halfWidth + 2, halfHeight + 0, halfWidth + 0, halfHeight + 0);
+            bmGraphics.DrawLine(Pens.Gold, halfWidth + 0, halfHeight - 2, halfWidth + 0, halfHeight - 0);
+            bmGraphics.DrawLine(Pens.Gold, halfWidth + 0, halfHeight + 2, halfWidth + 0, halfHeight + 0);
+            bmGraphics.DrawLine(Pens.Gold, halfWidth - 2, halfHeight + 0, halfWidth - 0, halfHeight + 0);
+            bmGraphics.DrawLine(Pens.Gold, halfWidth + 2, halfHeight + 0, halfWidth + 0, halfHeight + 0);
 
             // Dispose of the Graphics object
 
@@ -342,38 +244,48 @@ namespace ACE.Diagnostics
             // Refresh the picZoom picturebox to reflect the changes
 
             picZoom.Refresh();
+
         }
 
         private void picImage_MouseMove(object sender, MouseEventArgs e)
         {
+
+            // The AC landblocks are laid out in a grid of 0,0 by 255,255 but as you would expect
+            // 0,255  ******** 255,255
+            //        ********
+            // 0,0    ******** 255,0
+
             if (picImage.Image == null)
                 return;
 
-            Tuple<int, int> bla = Reverse(e.X, e.Y);
-            selrow = (bla.Item1);
-            selcol = (bla.Item2);
+            selcol = Reverse(e.Y);
+            selrow = e.X;
 
             UpdateZoomedImage(e);
             lblDetail.Text = string.Format("Landblock Detail: {0}, {1} ", selrow, selcol);
         }
 
-        private Tuple<int, int> Reverse(int x, int y)
+        private int Reverse(int x)
         {
-            var bla = new Tuple<int, int>(Math.Abs(255 - y), Math.Abs(255 - x));
-            return bla;
+            x = (Math.Abs(255 - x));
+            return x;
         }
-
 
         private void picImage_Click(object sender, EventArgs e)
         {
             txtDetail.Clear();
+   
+            // this is used for unloaded and loaded landblocks
+            LandblockId landblockid = new LandblockId((byte)selrow, (byte)selcol);
+            txtDetail.Text = string.Format("Landblock: {0} ", landblockid.Raw.ToString("X"));
+
+            // this only works if the landblock is loaded..
             LandBlockStatus status = new LandBlockStatus();
             status = Diagnostics.GetLandBlockKey(selrow, selcol);
             if (status != null)
             {
-                txtDetail.AppendText(string.Format("Landblock: ", status.LandBlockId));
-                txtDetail.AppendText(string.Format("Status: ", status.LandBlockStatusFlag.ToString()));
-                txtDetail.AppendText(string.Format("Players: ", status.Playercount));
+                txtDetail.Text += Environment.NewLine + string.Format("Status:  {0} ", status.LandBlockStatusFlag.ToString());
+                txtDetail.Text += Environment.NewLine + string.Format("Players:  {0} ", status.PlayerCount);
             }
         }
 

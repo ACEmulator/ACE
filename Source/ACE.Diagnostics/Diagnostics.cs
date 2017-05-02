@@ -22,28 +22,28 @@ namespace ACE.Diagnostics
             return landBlockInfos;
         }
 
-        public static void SetLandBlockKey(int row, int col, LandBlockStatus info)
+        public static void SetLandBlockKey(int col, int row, LandBlockStatus info)
         {
             lock (landBlockMutex)
             {
-                landBlockInfos[row, col] = info;
+                landBlockInfos[col, row] = info;
             }
         }
 
-        public static LandBlockStatusFlag GetLandBlockKeyFlag(int row, int col)
+        public static LandBlockStatusFlag GetLandBlockKeyFlag(int col, int row)
         {
-            if (landBlockInfos[row, col] == null)
+            if (landBlockInfos[col, row] == null)
                 return LandBlockStatusFlag.IdleUnloaded;
             else
-                return landBlockInfos[row, col].LandBlockStatusFlag;
+                return landBlockInfos[col, row].LandBlockStatusFlag;
         }
 
-        public static LandBlockStatus GetLandBlockKey(int row, int col)
+        public static LandBlockStatus GetLandBlockKey(int col, int row)
         {
-            if (landBlockInfos[row, col] == null)
+            if (landBlockInfos[col, row] == null)
                 return null;
             else
-                return landBlockInfos[row, col];
+                return landBlockInfos[col, row];
         }
     }
 }
