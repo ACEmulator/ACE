@@ -165,11 +165,6 @@ namespace ACE.Diagnostics
                     bwUpdateLandblockGrid.RunWorkerAsync();
         }
 
-        private void picLandblockDiag_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            MessageBox.Show(string.Format("X: {0} Y: {1}", e.X, e.Y));          
-        }
-
         private void FrmMonitor_Move(object sender, EventArgs e)
         {
             initdraw = true;
