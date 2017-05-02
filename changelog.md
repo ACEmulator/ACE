@@ -2,6 +2,7 @@
 
 ### 2017-05-01
 [OptimShi]
+* Modified DatLoader.SetupModel to be easier to initiate (got missed when other items had the same changes applied). Also added working example to the Lifestone.cs OnUse function to take model radius into account.
 * Hooked up the "ExaminationQueuePop" in Player.cs to fire.
 * Added IdentifyResponseFlags, for when we start to send actual data.
 * Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
