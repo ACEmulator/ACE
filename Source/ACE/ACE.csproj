@@ -143,6 +143,7 @@
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
     <Compile Include="Network\Enum\CombatMode.cs" />
     <Compile Include="Network\Enum\CoverageMask.cs" />
+    <Compile Include="Network\Enum\IdentifyResponseFlags.cs" />
     <Compile Include="Network\Enum\PlayScript.cs" />
     <Compile Include="Network\Enum\EquipMask.cs" />
     <Compile Include="Network\Enum\Material.cs" />
