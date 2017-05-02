@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-05-01
+[OptimShi]
+* Hooked up the "ExaminationQueuePop" in Player.cs to fire.
+* Added IdentifyResponseFlags, for when we start to send actual data.
+* Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
+
 ### 2017-04-30
 [OptimShi]
 * Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
