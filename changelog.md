@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-05-02
+[Ripley]
+* Changed create and ci to use DebugObject.
+
 [Og II]
 * Refactored ctw to admin commands ci and create both take parameter of a weenieId.   You can spawn anything in the database.   @ci 21376 - will spawn Martine's Robe   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
 
