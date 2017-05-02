@@ -125,6 +125,7 @@ namespace ACE.Diagnostics
                                 imgGraphics.FillRectangle(brushIdleUnloading, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.IdleUnloaded:
+                                // todo: grab pixel from original map image
                                 imgGraphics.FillRectangle(brushIdleUnloaded, coloffset, Reverse(rowoffset), blocksize, blocksize);
                                 break;
                             case LandBlockStatusFlag.GenericError:
@@ -149,6 +150,7 @@ namespace ACE.Diagnostics
             // on first draw this is true.
             if (initdraw)
             {
+                // always true for now.
                 initdraw = true;
             }
         }
