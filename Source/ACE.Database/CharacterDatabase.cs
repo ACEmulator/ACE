@@ -548,8 +548,11 @@ namespace ACE.Database
         /// <summary>
         /// Updates a position in the database. If no position is present, a new row will be created.
         /// </summary>
+        /// <remarks>Do not pass in an position with PositionType Undef, it will be ignored.</remarks>
         public void SaveCharacterPosition(Character character, Position characterPosition)
         {
+            if (characterPosition.PositionType == PositionType.Undef) return;
+
             Position currentPosition = GetCharacterPosition(character, characterPosition.PositionType);
 
             if (currentPosition.PositionType != PositionType.Undef)

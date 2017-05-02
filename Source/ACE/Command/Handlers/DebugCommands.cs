@@ -18,6 +18,7 @@ using System.Linq;
 namespace ACE.Command.Handlers
 {
     using global::ACE.Database;
+    using System.Collections.Generic;
 
     public static class DebugCommands
     {
@@ -449,6 +450,87 @@ namespace ACE.Command.Handlers
                         Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}");
                 }
             });
+        }
+
+        /// <summary>
+        /// Debug command to save the player's current location as sepecific position type.
+        /// </summary>
+        /// <param name="parameters">A single uint value within the range of 1 through 27</param>
+        [CommandHandler("setposition", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Saves the supplied character position type to the database.",
+            "uint 1-27\n" +
+            "@setposition 1")]
+        public static void HandleSetPosition(Session session, params string[] parameters)
+        {
+            if (parameters?.Length == 1)
+            {
+                PositionType positionType = new PositionType();
+                string parsePositionString = parameters[0].Length > 19 ? parameters[0].Substring(0, 19) : parameters[0];
+                // The enum labels max character length has been observered as length 19
+                // int value can be: 0-27
+                if (Enum.TryParse(parsePositionString, out positionType))
+                {
+                    if (positionType != PositionType.Undef)
+                    {
+                        // Create a new position from the current player location
+                        Position playerPosition = session.Player.Location;
+                        // Change the position type
+                        playerPosition.PositionType = positionType;
+                        // Save the position
+                        session.Player.SetCharacterPosition(playerPosition);
+                        // Report changes to client
+                        var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                        session.Network.EnqueueSend(positionMessage);
+                        return;
+                    }
+                }
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Debug command to teleport a player to a saved position, if the position type exists within the database.
+        /// </summary>
+        /// <param name="parameters">A single uint value within the range of 1 through 27</param>
+        [CommandHandler("teletype", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Teleport to a saved character position.",
+            "uint 0-22\n" +
+            "@teletype 1")]
+        public static void HandleTeleType(Session session, params string[] parameters)
+        {
+            PositionType positionType = new PositionType();
+            if (parameters?.Length > 0)
+            {
+                string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
+
+                if (Enum.TryParse(parsePositionString, out positionType))
+                {
+                    Position playerPosition = new Position();
+                    if (session.Player.Positions.TryGetValue(positionType, out playerPosition))
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
+                    else
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Debug command to print out all of the saved character positions.
+        /// </summary>
+        [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Displays all available saved character positions from the database.",
+            "@listpositions")]
+        public static void HandleListPositions(Session session, params string[] parameters)
+        {
+            // Build a string message containing all available character positions and send as a System Chat message
+            string message = $"Saved character positions:\n";
+            foreach (KeyValuePair<PositionType, Position> kvPositions in session.Player.Positions)
+            {
+                message += "ID: " + (uint)kvPositions.Key + " Type: " + kvPositions.Key.ToString() + " Loc: " + kvPositions.Value.ToString() + "\n";
+            }
+            message += $"Total positions: " + session.Player.Positions.Count.ToString() + "\n";
+            var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(positionMessage);
         }
     }
 }

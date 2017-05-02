@@ -1226,19 +1226,17 @@ namespace ACE.Entity
         {
             // Some positions come from outside of the Player and Character classes
             if (newPosition.CharacterId == 0) newPosition.CharacterId = Guid.Low;
-
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
             {
                 newPosition.LandblockId = new LandblockId(newPosition.Cell);
             }
-
             character.SetCharacterPosition(newPosition);
             DatabaseManager.Character.SaveCharacterPosition(character, newPosition);
         }
 
         /// <summary>
-        /// Saves a CharacterPosition to the character position dictionary
+        /// Sets a position type and then Saves a CharacterPosition to the character position dictionary
         /// </summary>
         public void SetCharacterPosition(PositionType type, Position newPosition)
         {

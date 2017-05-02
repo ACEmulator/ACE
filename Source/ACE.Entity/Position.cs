@@ -45,7 +45,11 @@
             }
             set
             {
-                DbPositionType = (uint)value;
+                // Limit the database from receiving invalid positions
+                if ((uint)value >= System.Enum.GetValues(typeof(PositionType)).Length)
+                    DbPositionType = 0;
+                else
+                    DbPositionType = (uint)value;
             }
         }
 
