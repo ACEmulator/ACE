@@ -1,4 +1,5 @@
-﻿using ACE.Database;
+﻿using System;
+using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum;
@@ -8,6 +9,20 @@ namespace ACE.Entity
 {
     public class Portal : CollidableObject
     {
+        private Position portalDestination;
+
+        private uint portalMinLvl;
+
+        private uint portalMaxLvl;
+
+        private byte portalSocietyId;
+
+        private bool portalIsTieable;
+
+        private bool portalIsRecallable;
+
+        private bool portalIsSummonable;
+
         private enum SpecialPortalWCID : ushort
         {
             /// <summary>
@@ -99,53 +114,59 @@ namespace ACE.Entity
         {
         }
 
-        public Portal(AceObject aceO)
+        public Portal(AcePortalObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
-            this.Name = aceO.Name;
-            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
-            this.Location = aceO.Position;
-            this.WeenieClassid = aceO.WeenieClassId;
-            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            Name = aceO.Name;
+            DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
+            Location = aceO.Position;
+            WeenieClassid = aceO.WeenieClassId;
+            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
 
-            this.PhysicsData.MTableResourceId = aceO.MotionTableId;
-            this.PhysicsData.Stable = aceO.SoundTableId;
-            this.PhysicsData.CSetup = aceO.ModelTableId;
+            PhysicsData.MTableResourceId = aceO.MotionTableId;
+            PhysicsData.Stable = aceO.SoundTableId;
+            PhysicsData.CSetup = aceO.ModelTableId;
 
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
-            this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
+            PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
-            this.PhysicsData.ObjScale = aceO.ObjectScale;
+            PhysicsData.ObjScale = aceO.ObjectScale;
 
             // game data min required flags;
-            this.Icon = (ushort)aceO.IconId;
+            Icon = (ushort)aceO.IconId;
 
-            this.GameData.Usable = (Usable)aceO.Usability;
-            this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
-            this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
-            this.GameData.UseRadius = aceO.UseRadius;
+            GameData.Usable = (Usable)aceO.Usability;
+            GameData.RadarColour = (RadarColor)aceO.BlipColor;
+            GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
+            GameData.UseRadius = aceO.UseRadius;
 
-            aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
-            aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
-            aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-        }
+            aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
 
-        public override void OnCollide(Player player)
+            portalDestination = aceO.DestPosition;
+            portalMinLvl = aceO.MinLvl;
+            portalMaxLvl = aceO.MaxLvl;
+            portalSocietyId = aceO.SocietyId;
+            portalIsTieable = Convert.ToBoolean(aceO.IsTieable);
+            portalIsRecallable = Convert.ToBoolean(aceO.IsRecallable);
+            portalIsSummonable = Convert.ToBoolean(aceO.IsSummonable);
+    }
+
+    public override void OnCollide(Player player)
         {
             // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
             float rangeCheck = 5.0f;
 
-            if (player.Location.SquaredDistanceTo(this.Location) < rangeCheck)
+            if (player.Location.SquaredDistanceTo(Location) < rangeCheck)
             {
-                PortalDestination portalDestination = DatabaseManager.World.GetPortalDestination(this.WeenieClassid);
-
-                if (portalDestination != null)
+                if (portalDestination.LandblockId.Raw != 0)
                 {
-                    if ((player.Level >= portalDestination.MinLvl) && ((player.Level <= portalDestination.MaxLvl) || (portalDestination.MaxLvl == 0)))
+                    if ((player.Level >= portalMinLvl) && ((player.Level <= portalMaxLvl) || (portalMaxLvl == 0)))
                     {
-                        Position portalDest = portalDestination.Position;
-                        switch (this.WeenieClassid)
+                        Position portalDest = portalDestination;
+                        switch (WeenieClassid)
                         {
                             /// <summary>
                             /// Setup correct racial portal destination for the Central Courtyard in the Training Academy
@@ -177,13 +198,13 @@ namespace ACE.Entity
                                             }
                                     }
 
-                                    portalDest.PositionX = portalDestination.PosX;
-                                    portalDest.PositionY = portalDestination.PosY;
-                                    portalDest.PositionZ = portalDestination.PosZ;
-                                    portalDest.RotationX = portalDestination.QX;
-                                    portalDest.RotationY = portalDestination.QY;
-                                    portalDest.RotationZ = portalDestination.QZ;
-                                    portalDest.RotationW = portalDestination.QW;
+                                    portalDest.PositionX = portalDestination.PositionX;
+                                    portalDest.PositionY = portalDestination.PositionY;
+                                    portalDest.PositionZ = portalDestination.PositionZ;
+                                    portalDest.RotationX = portalDestination.RotationX;
+                                    portalDest.RotationY = portalDestination.RotationY;
+                                    portalDest.RotationZ = portalDestination.RotationZ;
+                                    portalDest.RotationW = portalDestination.RotationW;
                                     break;
                                 }
                             /// <summary>
@@ -216,13 +237,13 @@ namespace ACE.Entity
                                             }
                                     }
 
-                                    portalDest.PositionX = portalDestination.PosX;
-                                    portalDest.PositionY = portalDestination.PosY;
-                                    portalDest.PositionZ = portalDestination.PosZ;
-                                    portalDest.RotationX = portalDestination.QX;
-                                    portalDest.RotationY = portalDestination.QY;
-                                    portalDest.RotationZ = portalDestination.QZ;
-                                    portalDest.RotationW = portalDestination.QW;
+                                    portalDest.PositionX = portalDestination.PositionX;
+                                    portalDest.PositionY = portalDestination.PositionY;
+                                    portalDest.PositionZ = portalDestination.PositionZ;
+                                    portalDest.RotationX = portalDestination.RotationX;
+                                    portalDest.RotationY = portalDestination.RotationY;
+                                    portalDest.RotationZ = portalDestination.RotationZ;
+                                    portalDest.RotationW = portalDestination.RotationW;
                                     break;
                                 }
                             /// <summary>
@@ -235,11 +256,15 @@ namespace ACE.Entity
                         }
 
                         player.Session.Player.Teleport(portalDest);
+                        // If the portal just used is able to be recalled to,
+                        // save the destination coordinates to the LastPortal character position save table
+                        if (Convert.ToBoolean(portalIsRecallable) == true)
+                            player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent);
                     }
-                    else if ((player.Level > portalDestination.MaxLvl) && (portalDestination.MaxLvl != 0))
+                    else if ((player.Level > portalMaxLvl) && (portalMaxLvl != 0))
                     {
                         // You are too powerful to interact with that portal!
                         var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);
