@@ -351,7 +351,7 @@ namespace ACE.Database
                                 foreach (var p in properties)
                                 {
                                     if (commandReader[p.Item2.DbFieldName] == DBNull.Value)
-                                        p.Item1.SetValue(instance, (byte)0);
+                                        p.Item1.SetValue(instance, null);
                                     else
                                         p.Item1.SetValue(instance, commandReader[p.Item2.DbFieldName]);
                                 }

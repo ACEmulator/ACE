@@ -19,7 +19,7 @@ namespace ACE.Entity
                 if (DestLandblockId == null)
                     return null;
                 else
-                    return new Position(DestLandblockId.Value, DestPosX, DestPosY, DestPosZ, DestQX, DestQY, DestQZ, DestQW);
+                    return new Position(DestLandblockId.Value, DestPosX.Value, DestPosY.Value, DestPosZ.Value, DestQX, DestQY, DestQZ.Value, DestQW.Value);
             }
         }
 
@@ -27,13 +27,13 @@ namespace ACE.Entity
         private uint? DestLandblockId { get; set; }
 
         [DbField("destX", (int)MySqlDbType.Float)]
-        private float DestPosX { get; set; }
+        private float? DestPosX { get; set; }
 
         [DbField("destY", (int)MySqlDbType.Float)]
-        private float DestPosY { get; set; }
+        private float? DestPosY { get; set; }
 
         [DbField("destZ", (int)MySqlDbType.Float)]
-        private float DestPosZ { get; set; }
+        private float? DestPosZ { get; set; }
 
         // Should always be zero
         private float DestQX { get { return 0; } }
@@ -42,10 +42,10 @@ namespace ACE.Entity
         private float DestQY { get { return 0; } }
 
         [DbField("destQZ", (int)MySqlDbType.Float)]
-        private float DestQZ { get; set; }
+        private float? DestQZ { get; set; }
 
         [DbField("destQW", (int)MySqlDbType.Float)]
-        private float DestQW { get; set; }
+        private float? DestQW { get; set; }
 
         [DbField("min_lvl", (int)MySqlDbType.UInt32)]
         public uint MinLvl { get; set; }
