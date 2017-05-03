@@ -525,7 +525,10 @@ namespace ACE.Command.Handlers
                 {
                     Position playerPosition = new Position();
                     if (session.Player.Positions.TryGetValue(positionType, out playerPosition))
+                    {
+                        session.Player.Teleport(playerPosition);
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
+                    }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
                 }
