@@ -68,6 +68,7 @@ namespace ACE.Diagnostics
             Graphics imgGraphics = Graphics.FromImage(bitmapdiag);
             imgGraphics.CompositingMode = CompositingMode.SourceCopy;
 
+            // The AC landblocks are laid out in a grid of 0,0 by 255,255 but not as you would expect
             // 0,255  ******** 255,255
             //        ********
             // 0,0    ******** 255,0
@@ -247,7 +248,7 @@ namespace ACE.Diagnostics
         private void picImage_MouseMove(object sender, MouseEventArgs e)
         {
 
-            // The AC landblocks are laid out in a grid of 0,0 by 255,255 but as you would expect
+            // The AC landblocks are laid out in a grid of 0,0 by 255,255 but not as you would expect
             // 0,255  ******** 255,255
             //        ********
             // 0,0    ******** 255,0
