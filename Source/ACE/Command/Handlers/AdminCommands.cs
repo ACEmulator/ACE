@@ -487,7 +487,7 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Command for saving the Admin's current location as the sanctuary position. If a uint between 1-9 is provided as a parameter, the corresponding named recall is saved.
         /// </summary>
-        /// <param name="parameters">A single uint value from 0 to 9</param>
+        /// <param name="parameters">A single uint value from 0 to 9. Value 0 saves the Sanctuary recall (default), values 1 through 9 save the corresponding named recall point.</param>
         [CommandHandler("save", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Sets your sanctuary position or a named recall point.",
             "@save < recall number > - Saves your position into the numbered recall, valid values are 1 - 9.\n" +
