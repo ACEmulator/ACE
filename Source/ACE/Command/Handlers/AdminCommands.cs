@@ -344,8 +344,8 @@ namespace ACE.Command.Handlers
         /// <param name="parameters">A single uint value from 0 to 9. Value 0 recalls to Sanctuary, values 1 through 9 teleports too the corresponding saved recall point.</param>
         [CommandHandler("home", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Teleports you to your sanctuary position.",
-            "@home < recall number > - Recalls to a saved position, valid values are 1 - 9.\n" +
-            "NOTE: Calling @home without a number recalls your sanctuary position, calling it with recalls to the saved numbered spot.")]
+            "< recall number > - Recalls to a saved position, valid values are 1 - 9.\n" +
+            "NOTE: Calling @home without a number recalls your sanctuary position; calling it with a number will teleport you to the corresponding saved position.")]
         public static void HandleHome(Session session, params string[] parameters)
         {
             // @home has the alias @recall
