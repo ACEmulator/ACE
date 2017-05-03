@@ -16,6 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
+using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -72,10 +73,7 @@ namespace ACE.Entity
             this.adjacencies.Add(Adjacency.SouthWest, null);
             this.adjacencies.Add(Adjacency.West, null);
             this.adjacencies.Add(Adjacency.NorthWest, null);
-        }
 
-        public void Load()
-        {
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
             // TODO: Load cell.dat contents
@@ -481,7 +479,6 @@ namespace ACE.Entity
                 }
 
                 // for all players on landblock.
-                int curplayer = 0;
                 Parallel.ForEach(allplayers, player =>
                 {
                     // Process Action Queue for player.
@@ -493,9 +490,8 @@ namespace ACE.Entity
                     QueuedGameAction examination = player.ExaminationQueuePop();
                     if (examination != null)
                         HandleGameAction(examination, player);
-                    curplayer++;
                 });
-                UpdateStatus(curplayer);
+                UpdateStatus(allplayers.Count);
 
                 // broadcast moving objects to the world..
                 // players and creatures can move.

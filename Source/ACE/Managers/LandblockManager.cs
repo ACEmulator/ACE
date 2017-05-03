@@ -86,7 +86,6 @@ namespace ACE.Managers
                     {
                         // load up this landblock
                         Landblock block = new Landblock(landblockId);
-                        block.Load();
 
                         landblocks[x, y] = block;
                         bool autoLoad = propogate && landblockId.MapScope == Entity.Enum.MapScope.Outdoors;
