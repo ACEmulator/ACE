@@ -338,15 +338,17 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // home < recall number >
-        [CommandHandler("home", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        /// <summary>
+        /// Teleports an admin to their sanctuary position. If a single uint value from 1 to 9 is provided as a parameter then the admin is teleported to the cooresponding named recall point.
+        /// </summary>
+        /// <param name="parameters">A single uint value from 0 to 9. Value 0 recalls to Sanctuary, values 1 through 9 teleports too the corresponding saved recall point.</param>
+        [CommandHandler("home", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Teleports you to your sanctuary position.",
+            "@home < recall number > - Recalls to a saved position, valid values are 1 - 9.\n" +
+            "NOTE: Calling @home without a number recalls your sanctuary position, calling it with recalls to the saved numbered spot.")]
         public static void HandleHome(Session session, params string[] parameters)
         {
-            // usage: @home - This command teleports you to your sanctuary position.
-            // @home < recall number > -Recall to your position into the numbered recall, valid values are 1 - 9.
-            // NOTE: Calling @home without a number recalls your sanctuary position, calling it with recalls to the saved numbered spot.
             // @home has the alias @recall
-            // @home[recall number] -Teleports you to your sanctuary position.
             string parsePositionString = "0";
 
             // Limit the incoming parameter to 1 character
