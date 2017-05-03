@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-03
+[Ripley]
+* Changed create and ci to use DebugObject.
+
 ### 2017-05-02
 [fantoms]
 * Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
