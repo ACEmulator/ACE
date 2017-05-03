@@ -1,9 +1,10 @@
 # ACEmulator Change Log
 
-### 2017-05-02
+### 2017-05-03
 [StackOverflow]
-Added Landblock Diag tool, type diag from console to launch the gui.
+* Added Landblock Diag tool, type diag from console to launch the gui.
 
+### 2017-05-02
 [fantoms]
 * Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
 * Updated `SaveCharacterPosition` too prevent PortalType.Undef types from being used as a valid position type.
