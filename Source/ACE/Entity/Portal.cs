@@ -161,7 +161,7 @@ namespace ACE.Entity
 
             if (player.Location.SquaredDistanceTo(Location) < rangeCheck)
             {
-                if (portalDestination.LandblockId.Raw != 0)
+                if (portalDestination != null)
                 {
                     if ((player.Level >= portalMinLvl) && ((player.Level <= portalMaxLvl) || (portalMaxLvl == 0)))
                     {
