@@ -1025,9 +1025,9 @@ namespace ACE.Command.Handlers
             session.Player.Stamina.Current = session.Player.Stamina.UnbuffedValue;
             session.Player.Mana.Current = session.Player.Mana.UnbuffedValue;
 
-            var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
-            var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.Current);
-            var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Mana, session.Player.Mana.Current);
+            var updatePlayersHealth = new GameMessagePrivateUpdateVital(session, Entity.Enum.Ability.Health, session.Player.Health.Ranks, session.Player.Health.Base, session.Player.Health.ExperienceSpent, session.Player.Health.Current);
+            var updatePlayersStamina = new GameMessagePrivateUpdateVital(session, Entity.Enum.Ability.Stamina, session.Player.Stamina.Ranks, session.Player.Stamina.Base, session.Player.Stamina.ExperienceSpent, session.Player.Stamina.Current);
+            var updatePlayersMana = new GameMessagePrivateUpdateVital(session, Entity.Enum.Ability.Mana, session.Player.Mana.Ranks, session.Player.Mana.Base, session.Player.Mana.ExperienceSpent, session.Player.Mana.Current);
 
             session.Network.EnqueueSend(updatePlayersHealth, updatePlayersStamina, updatePlayersMana);
         }
