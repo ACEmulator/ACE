@@ -16,6 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
+using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -40,7 +41,6 @@ namespace ACE.Entity
 
         private readonly object objectCacheLocker = new object();
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
-
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
@@ -50,6 +50,7 @@ namespace ACE.Entity
         // inherent functionality that needs to be modelled in an object.
         // private Landcell[,] cellGrid; // todo: load from cell.dat
 
+        public LandBlockStatus Status = new LandBlockStatus();
         private bool running = false;
 
         public LandblockId Id
@@ -61,6 +62,8 @@ namespace ACE.Entity
         {
             this.id = id;
 
+            UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
+
             // initialize adjacency array
             this.adjacencies.Add(Adjacency.North, null);
             this.adjacencies.Add(Adjacency.NorthEast, null);
@@ -70,6 +73,8 @@ namespace ACE.Entity
             this.adjacencies.Add(Adjacency.SouthWest, null);
             this.adjacencies.Add(Adjacency.West, null);
             this.adjacencies.Add(Adjacency.NorthWest, null);
+
+            UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
@@ -100,6 +105,8 @@ namespace ACE.Entity
                     worldObjects.Add(c.Guid, c);
                 }
             }
+
+            UpdateStatus(LandBlockStatusFlag.IdleLoaded);
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -484,6 +491,7 @@ namespace ACE.Entity
                     if (examination != null)
                         HandleGameAction(examination, player);
                 });
+                UpdateStatus(allplayers.Count);
 
                 // broadcast moving objects to the world..
                 // players and creatures can move.
@@ -831,6 +839,27 @@ namespace ACE.Entity
                         }
                         break;
                     }
+            }
+        }
+
+        private void UpdateStatus(LandBlockStatusFlag flag)
+        {
+            Status.LandBlockStatusFlag = flag;
+            Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
+        }
+
+        private void UpdateStatus(int pcount)
+        {
+            Status.PlayerCount = pcount;
+            if (pcount > 0)
+            {
+                Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
+                Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
+            }
+            else
+            {
+                Status.LandBlockStatusFlag = LandBlockStatusFlag.IdleLoaded;
+                UpdateStatus(Status.LandBlockStatusFlag);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -92,6 +92,7 @@
     <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
+    <Compile Include="AcePortalObject.cs" />
     <Compile Include="AnimationOverride.cs" />
     <Compile Include="Appearance.cs" />
     <Compile Include="CharacterOptions1Attribute.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="Enum\CharacterOptions1.cs" />
     <Compile Include="Enum\CharacterOptions2.cs" />
     <Compile Include="Enum\IdLookupType.cs" />
+    <Compile Include="Enum\LandBlockStatusFlag.cs" />
     <Compile Include="Enum\PositionType.cs" />
     <Compile Include="Enum\ChatDisplayMask.cs" />
     <Compile Include="Enum\ChatFilterMask.cs" />
@@ -119,7 +121,7 @@
     <Compile Include="Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
-    <Compile Include="PortalDestination.cs" />
+    <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
     <Compile Include="Enum\Properties\PropertyDouble.cs" />

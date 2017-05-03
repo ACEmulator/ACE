@@ -1,8 +1,21 @@
 # ACEmulator Change Log
 
+### 2017-05-03
+[Jyrus]
+* Changed the structure of the table that contains the Portal Destinations to include other portal properties
+* Renamed table from portal_destination to ace_portal_object and added a foreign key constraint to the weenieClassId field
+* !!! Please note that the ACE-World tables must be filled before importing the ace_portal_object's table
+* Implemented a portal recall debug command
+* Added a Null check to Database.cs
+
+### 2017-05-03
+[StackOverflow]
+* Added Landblock Diag tool, type diag from console to launch the gui.
+
 ### 2017-05-02
 [fantoms]
 * Built out the `@home` admin command.
+* Built out the `@save` functionality.
 * Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
 * Updated `SaveCharacterPosition` too prevent PortalType.Undef types from being used as a valid position type.
 * Updated `PositionType` for Positions, too prevent position types outside of the definition from entering the database.

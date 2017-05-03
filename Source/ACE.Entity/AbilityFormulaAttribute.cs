@@ -1,5 +1,4 @@
 ﻿using System;
-
 using ACE.Entity.Enum;
 
 namespace ACE.Entity
