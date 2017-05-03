@@ -45,6 +45,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Tests", "ACE.Tests\ACE.Tests.csproj", "{D8EE6B89-EA54-4F84-988E-BF323C3662C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Diagnostics", "ACE.Diagnostics\ACE.Diagnostics.csproj", "{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -83,6 +85,10 @@ Global
 		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Debug|x64.Build.0 = Debug|x64
 		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Release|x64.ActiveCfg = Release|x64
 		{D8EE6B89-EA54-4F84-988E-BF323C3662C5}.Release|x64.Build.0 = Release|x64
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.Build.0 = Debug|Any CPU
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.ActiveCfg = Release|Any CPU
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
