@@ -490,7 +490,7 @@ namespace ACE.Command.Handlers
         /// <param name="parameters">A single uint value from 0 to 9. Value 0 saves the Sanctuary recall (default), values 1 through 9 save the corresponding named recall point.</param>
         [CommandHandler("save", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Sets your sanctuary position or a named recall point.",
-            "@save < recall number > - Saves your position into the numbered recall, valid values are 1 - 9.\n" +
+            "< recall number > - Saves your position into the numbered recall, valid values are 1 - 9.\n" +
             "NOTE: Calling @save without a number saves your sanctuary (Lifestone Recall) position.")]
         public static void HandleSave(Session session, params string[] parameters)
         {
