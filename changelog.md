@@ -7,6 +7,7 @@
 * !!! Please note that the ACE-World tables must be filled before importing the ace_portal_object's table
 * Implemented a portal recall debug command
 * Added a Null check to Database.cs
+* Fixed bug in ACE.Entity\Ace_portal_object.cs
 
 ### 2017-05-03
 [StackOverflow]
