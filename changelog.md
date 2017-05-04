@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-04
+[Ripley]
+* Cleaned up project and solution files.
+
 ### 2017-05-03
 [Jyrus]
 * Changed the structure of the table that contains the Portal Destinations to include other portal properties
