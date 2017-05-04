@@ -16,6 +16,18 @@ namespace ACE.Database
 {
     public class Database
     {
+        private IObjectFactory instanceFactory;
+
+        public Database()
+        {
+            instanceFactory = new ActivatorFactory();
+        }
+
+        public Database(IObjectFactory factory)
+        {
+            instanceFactory = factory;
+        }
+
         // This is a debug channel for the general debugging of the database.
         private ILog log = LogManager.GetLogger("Database");
 
@@ -402,7 +414,7 @@ namespace ACE.Database
                         {
                             while (commandReader.Read())
                             {
-                                T2 o = Activator.CreateInstance<T2>();
+                                T2 o = instanceFactory.GetProperObjectType<T2>(commandReader);
                                 foreach (var p in properties)
                                 {
                                     p.Item1.SetValue(o, commandReader[p.Item2.DbFieldName]);
