@@ -45,7 +45,7 @@ namespace ACE.Network
             ushort beValue = (ushort)((ushort)((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
             writer.Write(beValue);
         }
-        
+
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }
 
         public static void Align(this BinaryWriter writer)
