@@ -27,7 +27,9 @@ namespace ACE.Factories
                 }
                 else if ((oDescFlag & ObjectDescriptionFlag.Portal) != 0)
                 {
-                    results.Add(new Portal(aceO as AcePortalObject));
+                    AcePortalObject acePO = DatabaseManager.World.GetPortalObjectsByAceObjectId(aceO.AceObjectId);
+                    
+                    results.Add(new Portal(acePO));
                     continue;
                 }
                 else if ((oDescFlag & ObjectDescriptionFlag.Door) != 0)

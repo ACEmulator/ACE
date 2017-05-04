@@ -6,9 +6,6 @@ namespace ACE.Database
 {
     public class WorldDatabase : Database, IWorldDatabase
     {
-        public WorldDatabase() : base(new AceObjectFactory())
-        { }
-
         private enum WorldPreparedStatement
         {
             TeleportLocationSelect,
