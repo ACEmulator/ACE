@@ -19,8 +19,7 @@
 
 ### 2017-05-02
 [fantoms]
-* Built out the `@home` admin command.
-* Built out the `@save` functionality.
+* Fixed character's total `Mana` when spending experience points on the `Self` ability.
 * Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
 * Updated `SaveCharacterPosition` too prevent PortalType.Undef types from being used as a valid position type.
 * Updated `PositionType` for Positions, too prevent position types outside of the definition from entering the database.
