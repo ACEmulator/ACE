@@ -24,28 +24,28 @@ namespace ACE.Entity
         }
 
         [DbField("destLandblockId", (int)MySqlDbType.UInt32)]
-        private uint? DestLandblockId { get; set; }
+        public uint? DestLandblockId { get; set; }
 
         [DbField("destX", (int)MySqlDbType.Float)]
-        private float? DestPosX { get; set; }
+        public float? DestPosX { get; set; }
 
         [DbField("destY", (int)MySqlDbType.Float)]
-        private float? DestPosY { get; set; }
+        public float? DestPosY { get; set; }
 
         [DbField("destZ", (int)MySqlDbType.Float)]
-        private float? DestPosZ { get; set; }
+        public float? DestPosZ { get; set; }
 
         // Should always be zero
-        private float DestQX { get { return 0; } }
+        public float DestQX { get { return 0; } }
 
         // Should always be zero
-        private float DestQY { get { return 0; } }
+        public float DestQY { get { return 0; } }
 
         [DbField("destQZ", (int)MySqlDbType.Float)]
-        private float? DestQZ { get; set; }
+        public float? DestQZ { get; set; }
 
         [DbField("destQW", (int)MySqlDbType.Float)]
-        private float? DestQW { get; set; }
+        public float? DestQW { get; set; }
 
         [DbField("min_lvl", (int)MySqlDbType.UInt32)]
         public uint MinLvl { get; set; }
