@@ -1,0 +1,38 @@
+﻿{
+    "Server": {
+        "WorldName": "ACEmulator",
+        "Welcome": "Welcome to this ACE server!\nFor more information visit http://www.acemulator.org.",
+      "Network": {
+        "Host": "0.0.0.0",
+        "Port": 9000
+      },
+        "Accounts": {
+            "OverrideCharacterPermissions": true,
+            "DefaultAccessLevel": 0
+        },
+        "DatFilesDirectory": "c:\\ACE\\"
+    },
+    "MySql": {
+        "Authentication": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_auth",
+            "Username": "root",
+            "Password": ""
+        },
+        "Character": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_character",
+            "Username": "root",
+            "Password": ""
+        },
+        "World": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_world",
+            "Username": "root",
+            "Password": ""
+        }
+    }
+}
