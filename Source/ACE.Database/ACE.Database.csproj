@@ -14,25 +14,6 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet />
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
@@ -84,6 +65,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AceObjectFactory.cs" />
+    <Compile Include="ActivatorFactory.cs" />
     <Compile Include="AuthenticationDatabase.cs" />
     <Compile Include="CharacterDatabase.cs" />
     <Compile Include="ConstructedStatementType.cs" />
@@ -91,6 +74,7 @@
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="IAuthenticationDatabase.cs" />
     <Compile Include="ICharacterDatabase.cs" />
+    <Compile Include="IObjectFactory.cs" />
     <Compile Include="IWorldDatabase.cs" />
     <Compile Include="MySqlResult.cs">
       <SubType>Component</SubType>

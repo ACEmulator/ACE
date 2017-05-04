@@ -11,7 +11,7 @@ namespace ACE.Entity
         public override uint AceObjectId { get; set; }
 
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public ushort WeenieClassId { get; set; }
+        public virtual ushort WeenieClassId { get; set; }
 
         public Position Position
         {

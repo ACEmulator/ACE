@@ -1,12 +1,11 @@
 ﻿using System;
-
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
-
 using log4net;
+using ACE.Common;
 
 namespace ACE.Managers
 {
@@ -87,6 +86,7 @@ namespace ACE.Managers
                     {
                         // load up this landblock
                         Landblock block = new Landblock(landblockId);
+
                         landblocks[x, y] = block;
                         bool autoLoad = propogate && landblockId.MapScope == Entity.Enum.MapScope.Outdoors;
 
