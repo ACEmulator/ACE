@@ -225,7 +225,6 @@ namespace ACE.DatLoader.FileTypes
 
                     cg.HeritageGroups.Add(heritageIndex, heritage);
                 }
-
                 // Store this object in the FileCache
                 DatManager.PortalDat.FileCache[0x0E000002] = cg;
                 return cg;

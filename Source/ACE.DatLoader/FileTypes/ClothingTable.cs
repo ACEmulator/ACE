@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ACE.DatLoader.Entity;
 namespace ACE.DatLoader.FileTypes
 {

@@ -1,8 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 /// <summary>
 /// Very special thanks to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
@@ -47,6 +44,8 @@ namespace ACE.DatLoader.FileTypes
         /// <returns></returns>
         public static CellLandblock ReadFromDat(uint landblockId)
         {
+            CellLandblock c = new CellLandblock();
+
             // Check if landblockId is a full dword. We just need the hiword for the landblockId
             if ((landblockId >> 16) != 0)
                 landblockId = landblockId >> 16;
@@ -61,8 +60,6 @@ namespace ACE.DatLoader.FileTypes
             }
             else
             {
-                CellLandblock c = new CellLandblock();
-
                 if (DatManager.CellDat.AllFiles.ContainsKey(landblockFileIndex))
                 {
                     DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockFileIndex);
@@ -88,6 +85,7 @@ namespace ACE.DatLoader.FileTypes
 
                 // Store this object in the FileCache
                 DatManager.CellDat.FileCache[landblockFileIndex] = c;
+
                 return c;
             }
         }

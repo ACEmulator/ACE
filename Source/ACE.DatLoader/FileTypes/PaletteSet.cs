@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 
 namespace ACE.DatLoader.FileTypes
@@ -32,6 +31,7 @@ namespace ACE.DatLoader.FileTypes
 
                 // Store this object in the FileCache
                 DatManager.PortalDat.FileCache[fileId] = p;
+
                 return p;
             }
         }
@@ -49,8 +49,7 @@ namespace ACE.DatLoader.FileTypes
 
             // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
             int palIndex = Convert.ToInt32(Convert.ToDouble(this.PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
-                                                                                                       
-            // Since the hue numbers are a little odd, make sure we're in the bounds.
+                                                                                                       // Since the hue numbers are a little odd, make sure we're in the bounds.
             if (palIndex < 0)
                 palIndex = 0;
             if (palIndex > this.PaletteList.Count - 1)
