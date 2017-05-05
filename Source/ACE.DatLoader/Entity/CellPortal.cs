@@ -2,7 +2,7 @@
 {
     public class CellPortal
     {
-        public ushort flags { get; set; }
+        public ushort Flags { get; set; }
 
         // Not exactly sure what these two are for, but they are from the flags
         public byte ExactMatch { get; set; }

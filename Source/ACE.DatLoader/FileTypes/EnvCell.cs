@@ -13,7 +13,6 @@ namespace ACE.DatLoader.FileTypes
 {
     public class EnvCell
     {
-
         public uint CellId { get; set; }
         public uint Bitfield { get; set; }
 
@@ -61,7 +60,7 @@ namespace ACE.DatLoader.FileTypes
                     ushort numVisibleBlocks = datReader.ReadUInt16();
 
                     // Read what textures are used in this cell
-                    for ( uint i = 0;i < numTextures; i++)
+                    for (uint i = 0; i < numTextures; i++)
                     {
                         c.Textures.Add(0x08000000u + datReader.ReadUInt16()); // these are stored in the dat as short vals, so we'll make them a full dword
                     }
@@ -82,12 +81,12 @@ namespace ACE.DatLoader.FileTypes
                     for (uint i = 0; i < numPortals; i++)
                     {
                         CellPortal cp = new CellPortal();
-                        cp.flags = datReader.ReadUInt16();
+                        cp.Flags = datReader.ReadUInt16();
                         cp.EnvironmentId = datReader.ReadUInt16();
                         cp.OtherCellId = datReader.ReadUInt16();
                         cp.OtherPortalId = datReader.ReadUInt16();
-                        cp.ExactMatch = (byte)(cp.flags & 1);
-                        cp.PortalSide = (byte)((cp.flags >> 1) & 1);
+                        cp.ExactMatch = (byte)(cp.Flags & 1);
+                        cp.PortalSide = (byte)((cp.Flags >> 1) & 1);
                         c.CellPortals.Add(cp);
                     }
 

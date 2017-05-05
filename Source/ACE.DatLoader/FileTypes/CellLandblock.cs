@@ -47,7 +47,6 @@ namespace ACE.DatLoader.FileTypes
         /// <returns></returns>
         public static CellLandblock ReadFromDat(uint landblockId)
         {
-
             // Check if landblockId is a full dword. We just need the hiword for the landblockId
             if ((landblockId >> 16) != 0)
                 landblockId = landblockId >> 16;
