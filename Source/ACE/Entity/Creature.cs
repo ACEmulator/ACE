@@ -5,16 +5,11 @@ using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using System;
+using ACE.StateMachines.Rules;
+using ACE.StateMachines;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -43,6 +38,22 @@ namespace ACE.Entity
         public CreatureAbility Mana { get; set; }
 
         /// <summary>
+        /// This is used to allow us to queue up game actions that we are out of range to preform
+        /// </summary>
+        public QueuedGameAction BlockedGameAction { get; set; }
+
+        /// <summary>
+        /// If we need to move, where do we need to go?   This may be replaced by a property that Mogwai was discussing
+        /// </summary>
+        // TODO: Revisit to see if still needed
+        public Position MoveToPosition { get; set; }
+
+        /// <summary>
+        /// What is the square of the sum of use radius plus csphear
+        /// </summary>
+        public float ArrivedRadiusSquared { get; set; }
+
+        /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
         public bool IsAlive { get; set; }
@@ -52,14 +63,20 @@ namespace ACE.Entity
         /// </summary>
         public double RespawnTime { get; set; }
 
+        /// <summary>
+        /// Track state of creature if their current action is blocked.   Either until they are no longer blocked or the action is abandoned.
+        /// </summary>
+        public StateMachine Statemachine = new StateMachine();
+
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
+            Statemachine.Initialize(MovementRules.GetRules(), MovementRules.GetInitState());
         }
 
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.TypeId, 
-                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), 
+            : base((ObjectType)aceC.CreatureData.TypeId,
+                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
                   aceC.CreatureData.Name,
                   aceC.WeenieClassId,
                   (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField,
@@ -83,7 +100,7 @@ namespace ACE.Entity
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.ObjectScale;
-            
+
             // this should probably be determined based on the presence of data.
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
@@ -172,7 +189,7 @@ namespace ACE.Entity
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
             QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
             session.Player.AddToActionQueue(actionDeath);
-            
+
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
@@ -183,7 +200,7 @@ namespace ACE.Entity
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
             corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
-            // If the object is a creature, Remove it from from Landblock 
+            // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
                 QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);

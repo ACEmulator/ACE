@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Network.Sequence;
+using ACE.StateMachines.Enum;
 
 namespace ACE.Network.GameMessages.Messages
 {
@@ -18,6 +19,8 @@ namespace ACE.Network.GameMessages.Messages
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport)); // teleport_timestamp - always 0 in my pcaps
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition)); // force_position_timestamp - always 0 in my pcaps
                 Writer.Write(1u); // contact - always "true" / 1 in my pcaps
+                if (p.Statemachine.CurrentState == (int)MovementStates.Idle)
+                    p.Statemachine.ChangeState((int)MovementStates.Moving);
             }
         }
     }

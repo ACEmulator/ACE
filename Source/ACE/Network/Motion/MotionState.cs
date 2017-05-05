@@ -1,10 +1,4 @@
 ﻿using ACE.Entity;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Network.Motion
 {
@@ -12,9 +6,9 @@ namespace ACE.Network.Motion
     {
         public bool IsAutonomous { get; set; }
 
-        public virtual byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f)
+        public virtual byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f, float heading = 0.00f)
         {
             return null;
-        }        
+        }
     }
 }

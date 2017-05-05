@@ -1,4 +1,6 @@
 ﻿using ACE.Entity;
+using ACE.StateMachines.Enum;
+using System;
 
 namespace ACE.Network.GameAction
 {
@@ -14,6 +16,17 @@ namespace ACE.Network.GameAction
             var forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
             session.Player.UpdatePosition(position);
+
+            if (session.Player.Statemachine.CurrentState != (int)MovementStates.Moving) return;
+            if ((Math.Abs(session.Player.PhysicsData.Position.SquaredDistanceTo(session.Player.MoveToPosition)) <= session.Player.ArrivedRadiusSquared))
+            {
+                session.Player.Statemachine.ChangeState((int)MovementStates.Arrived);
+                session.Player.AddToActionQueue(session.Player.BlockedGameAction);
+                session.Player.Statemachine.ChangeState((int)MovementStates.Idle);
+                session.Player.BlockedGameAction = null;
+                session.Player.MoveToPosition = null;
+                session.Player.ArrivedRadiusSquared = 0.00f;
+            }
         }
     }
 }

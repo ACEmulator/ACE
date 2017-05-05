@@ -90,6 +90,10 @@ Global
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.Build.0 = Debug|x64
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.ActiveCfg = Release|x64
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.Build.0 = Release|x64
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.Build.0 = Debug|Any CPU
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.ActiveCfg = Release|Any CPU
+		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

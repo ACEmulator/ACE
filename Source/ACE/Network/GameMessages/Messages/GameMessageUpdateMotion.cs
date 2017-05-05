@@ -62,7 +62,7 @@ namespace ACE.Network.GameMessages.Messages
         /// <param name="newState"></param>
         /// <param name="movementType"></param>
         /// <param name="runRate"></param>
-        public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, UniversalMotion newState, MovementTypes movementType, float runRate = 1.0f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
+        public GameMessageUpdateMotion(WorldObject player, WorldObject moveToTarget, UniversalMotion newState, MovementTypes movementType, float runRate = 1.0f, float distanceFrom = 0.60f) : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
         {
             Writer.WriteGuid(player.Guid); // Object_Id (uint)
             Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
@@ -71,9 +71,9 @@ namespace ACE.Network.GameMessages.Messages
             // Looking at the pcaps in training_hall_main_section.pcap - the key to server control timestamp seems to be the movement type
             // TODO: Og II Reseach if it is all of the server control movement types - it may be all them them except MovementTypes.General
 
-             if (movementType == MovementTypes.MoveToObject | movementType == MovementTypes.TurnToObject)
+            if (movementType == MovementTypes.MoveToObject | movementType == MovementTypes.TurnToObject)
                 Writer.Write(moveToTarget.Sequences.GetNextSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
-             else
+            else
                 Writer.Write(moveToTarget.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
 
             ushort autonomous;
@@ -83,7 +83,7 @@ namespace ACE.Network.GameMessages.Messages
                 autonomous = 0;
             Writer.Write(autonomous);
 
-            var movementData = newState.GetPayload(moveToTarget, 0.6f);
+            var movementData = newState.GetPayload(moveToTarget, distanceFrom);
             Writer.Write(movementData);
             Writer.Align();
         }

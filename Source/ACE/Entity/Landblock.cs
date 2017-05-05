@@ -16,7 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
-using ACE.Diagnostics;
+using ACE.StateMachines.Enum;
 
 namespace ACE.Entity
 {
@@ -643,8 +643,13 @@ namespace ACE.Entity
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
                                     > Math.Pow(inventoryItem.GameData.UseRadius, 2))
                                 {
-                                    // This is where I need to hook in the move to object code.
-                                    // TODO: Og II work on this soon.
+                                    aPlayer.BlockedGameAction = action;
+                                    aPlayer.MoveToPosition = inventoryItem.PhysicsData.Position;
+                                    var newMotion = new UniversalMotion(MotionStance.Standing, inventoryItem);
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer));
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject, 1.0f, inventoryItem.GameData.UseRadius));
+                                    aPlayer.Statemachine.ChangeState((int)MovementStates.Moving);
+                                    break;
                                 }
                                 var motion = new UniversalMotion(MotionStance.Standing);
                                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;

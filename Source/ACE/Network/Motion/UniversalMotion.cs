@@ -9,6 +9,16 @@ namespace ACE.Network.Motion
     public class UniversalMotion : MotionState
     {
         public uint Flag { get; set; } = 0x0041EE0F;
+        public float MinimumDistance { get; set; } = 0.00f;
+
+        public float FailDistance { get; set; } = float.MaxValue;
+
+        public float Speed { get; set; } = 1.0f;
+        public float WalkRunThreshold { get; set; } = 15.0f;
+        /// <summary>
+        /// I believe this to be calculated based on a factor of your quickness, run, enchanments, less burden factor Og II
+        /// </summary>
+        public float RunRate { get; set; } = 1.0f;
 
         public MovementTypes MovementTypes { get; set; } = MovementTypes.General;
 
@@ -52,7 +62,7 @@ namespace ACE.Network.Motion
             Commands.Add(motionItem);
         }
 
-        public override byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f)
+        public override byte[] GetPayload(WorldObject animationTarget, float distanceFrom = 0.6f, float heading = 0.00f)
         {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
@@ -84,48 +94,47 @@ namespace ACE.Network.Motion
                         }
                         break;
                     }
-                case MovementTypes.MoveToObject:
-                    {
-                        // 4320783 = EE0F
-                        // 4320847 = EE4F
-                        // 4321264 = EFF0
-                        // 4321136 = EF70
-                        // 4319823 = EA4F
-                        // EE9F -? fail distance 100
-                        writer.Write(animationTarget.Guid.Full);
-                        Position.Serialize(writer, false);
-                        // TODO: Og Fix to real numbers
-                        writer.Write(Flag);
-                        writer.Write(distanceFromObject);
-                        writer.Write((float)0);
-                        writer.Write(float.MaxValue);
-                        writer.Write((float)1);
-                        writer.Write((float)15);
-                        writer.Write((float)0);
-                        writer.Write(1.0f);
-                        break;
-                    }
                 case MovementTypes.MoveToPosition:
+                case MovementTypes.MoveToObject:
                     {
                         try
                         {
+                            if (MovementTypes == MovementTypes.MoveToObject)
+                                writer.Write(animationTarget.Guid.Full);
+
                             Position.Serialize(writer, false);
-                            // TODO: Og Fix to real numbers
                             writer.Write(Flag);
-                            writer.Write(distanceFromObject);
-                            writer.Write((float)0);
-                            writer.Write(float.MaxValue);
-                            writer.Write((float)1);
-                            writer.Write((float)15);
-                            writer.Write((float)0);
-                            writer.Write(1.0f);
+                            writer.Write(distanceFrom);
+                            writer.Write(MinimumDistance);
+                            writer.Write(FailDistance);
+                            writer.Write(Speed);
+                            writer.Write(WalkRunThreshold);
+                            writer.Write(heading);
+                            writer.Write(RunRate);
+                            // TODO: This needs to be calculated and the flag needs to be deciphered Og II
                         }
                         catch (Exception)
                         {
                             // Do nothing
-
                             // TODO: This prevents a crash in Kryst and possibly other locations, Please investigate and fix if possible.
                         }
+                        break;
+                    }
+                case MovementTypes.TurnToObject:
+                    {
+                        float desiredHeading = 0.0f;
+                        writer.Write(animationTarget.Guid.Full);
+                        writer.Write(heading);
+                        writer.Write(Flag);
+                        writer.Write(Speed);
+                        writer.Write(desiredHeading); // always 0.0 in every pcap of this type.
+                        break;
+                    }
+                case MovementTypes.TurnToHeading:
+                    {
+                        writer.Write(Flag);
+                        writer.Write(Speed);
+                        writer.Write(heading);
                         break;
                     }
             }
