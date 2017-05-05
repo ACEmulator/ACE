@@ -18,6 +18,7 @@ using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.StateMachines.Enum;
 using ACE.DatLoader.FileTypes;
+using ACE.Diagnostics;
 
 namespace ACE.Entity
 {

@@ -9,11 +9,6 @@
 * State Machine
 * Currently one last bug to be addressed but wanted to get this in.
 
-
-### 2017-05-04
-[Ripley]
-* Cleaned up project and solution files.
-
 ### 2017-05-03
 [Jyrus]
 * Changed the structure of the table that contains the Portal Destinations to include other portal properties
@@ -23,7 +18,10 @@
 * Added a Null check to Database.cs
 * Fixed bug in ACE.Entity\Ace_portal_object.cs
 
-### 2017-05-03
+[Ripley]
+* Cleaned up project and solution files.
+* Changed create and ci to use DebugObject.
+
 [StackOverflow]
 * Added Landblock Diag tool, type diag from console to launch the gui.
 
