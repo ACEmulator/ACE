@@ -15,15 +15,25 @@ namespace ACE.DatLoader.FileTypes
 
         public static PaletteSet ReadFromDat(uint fileId)
         {
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-            PaletteSet p = new PaletteSet();
-            p.PaletteSetId = datReader.ReadUInt32();
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000018))
+            {
+                return (PaletteSet)DatManager.PortalDat.FileCache[0x0E000018];
+            }
+            else
+            {
+                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+                PaletteSet p = new PaletteSet();
+                p.PaletteSetId = datReader.ReadUInt32();
 
-            uint numpalettesets = datReader.ReadUInt32();
-            for (int i = 0; i < numpalettesets; i++)
-                p.PaletteList.Add(datReader.ReadUInt32());
+                uint numpalettesets = datReader.ReadUInt32();
+                for (int i = 0; i < numpalettesets; i++)
+                    p.PaletteList.Add(datReader.ReadUInt32());
 
-            return p;
+                // Store this object in the FileCache
+                DatManager.PortalDat.FileCache[fileId] = p;
+                return p;
+            }
         }
 
         /// <summary>

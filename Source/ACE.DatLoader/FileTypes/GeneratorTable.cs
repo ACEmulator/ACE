@@ -16,22 +16,32 @@ namespace ACE.DatLoader.FileTypes
     {
         public static Generator ReadFromDat()
         {
-            Generator gen = new Generator();
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E00000D))
+            {
+                return (Generator)DatManager.PortalDat.FileCache[0x0E00000D];
+            }
+            else
+            {
+                Generator gen = new Generator();
 
-            // Create the datReader for the proper file
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
+                // Create the datReader for the proper file
+                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
 
-            gen.Id = datReader.ReadInt32();
-            gen.Name = "0E00000D";
-            gen.Count = 2;
-            datReader.Offset = 16;
+                gen.Id = datReader.ReadInt32();
+                gen.Name = "0E00000D";
+                gen.Count = 2;
+                datReader.Offset = 16;
 
-            Generator playDay = new Generator();
-            Generator weenieObjects = new Generator();
-            gen.Items.Add(playDay.GetNextGenerator(datReader)); // Parse and add PlayDay hierarchy
-            gen.Items.Add(weenieObjects.GetNextGenerator(datReader)); // Parse and add WeenieObjects hierarchy
+                Generator playDay = new Generator();
+                Generator weenieObjects = new Generator();
+                gen.Items.Add(playDay.GetNextGenerator(datReader)); // Parse and add PlayDay hierarchy
+                gen.Items.Add(weenieObjects.GetNextGenerator(datReader)); // Parse and add WeenieObjects hierarchy
 
-            return gen;
+                // Store this object in the FileCache
+                DatManager.PortalDat.FileCache[0x0E00000D] = gen;
+                return gen;
+            }
         }
 
         public static IEnumerable<Generator> ReadItems(this Generator root)

@@ -9,15 +9,18 @@ namespace ACE.DatLoader.FileTypes
 {
     public class CharGen
     {
-        private static CharGen instance;
-
         public int Did { get; set; }
         public List<List<Loc>> StarterAreas { get; set; } = new List<List<Loc>>();
         public Dictionary<int, HeritageGroupCG> HeritageGroups { get; set; } = new Dictionary<int, HeritageGroupCG>();
 
         public static CharGen ReadFromDat()
         {
-            if (instance == null) // We'll store the CG data into the instance the first time it's loaded. No need to read it multiple times.
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000002))
+            {
+                return (CharGen)DatManager.PortalDat.FileCache[0x0E000002];
+            }
+            else
             {
                 // Create the datReader for the proper file
                 DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000002);
@@ -225,10 +228,11 @@ namespace ACE.DatLoader.FileTypes
 
                     cg.HeritageGroups.Add(heritageIndex, heritage);
                 }
-                instance = cg;
+
+                // Store this object in the FileCache
+                DatManager.PortalDat.FileCache[0x0E000002] = cg;
+                return cg;
             }
-           
-            return instance;
         }
     }
 }
