@@ -17,6 +17,7 @@ using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.StateMachines.Enum;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -640,14 +641,17 @@ namespace ACE.Entity
 
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
+                                var csetup = SetupModel.ReadFromDat(inventoryItem.PhysicsData.CSetup);
+                                var arrivedRadius = (float)Math.Pow((inventoryItem.GameData.UseRadius + csetup.Radius + 1.5), 2);
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow(inventoryItem.GameData.UseRadius, 2))
+                                    > arrivedRadius)
                                 {
                                     aPlayer.BlockedGameAction = action;
                                     aPlayer.MoveToPosition = inventoryItem.PhysicsData.Position;
+                                    aPlayer.ArrivedRadiusSquared = arrivedRadius;
                                     var newMotion = new UniversalMotion(MotionStance.Standing, inventoryItem);
                                     aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer));
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject, 1.0f, inventoryItem.GameData.UseRadius));
+                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject));
                                     aPlayer.Statemachine.ChangeState((int)MovementStates.Moving);
                                     break;
                                 }
