@@ -1,5 +1,3 @@
-﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using ACE.DatLoader.Entity;
 namespace ACE.DatLoader.FileTypes

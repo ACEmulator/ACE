@@ -1,13 +1,10 @@
 # ACEmulator Change Log
 
-### 2017-05-04
+### 2017-05-05
 [OptimShi]
 * Added caching to all portal/cell.dat items.
 * Added EnvCell decoding from the cell.dat (dungeon cells/indoor locations)
 * Changed the cell-export console command to properly use datReader. If you had used this command previous, your exported files are incorrect.
-
-[Ripley]
-* Cleaned up project and solution files.
 
 ### 2017-05-03
 [Jyrus]
@@ -18,7 +15,10 @@
 * Added a Null check to Database.cs
 * Fixed bug in ACE.Entity\Ace_portal_object.cs
 
-### 2017-05-03
+[Ripley]
+* Cleaned up project and solution files.
+* Changed create and ci to use DebugObject.
+
 [StackOverflow]
 * Added Landblock Diag tool, type diag from console to launch the gui.
 

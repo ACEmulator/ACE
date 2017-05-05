@@ -34,8 +34,7 @@
         {
             var aceObject = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieId);
 
-            var wo = new UsableObject(
-               new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None),
+            var wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None),
                ObjectDescriptionFlag.Inscribable,
                aceObject);
             return wo;

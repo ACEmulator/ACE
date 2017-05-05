@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.DatLoader.Entity;
 using System;
 using System.Collections.Generic;
