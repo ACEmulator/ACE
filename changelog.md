@@ -9,7 +9,6 @@
 * State Machine
 * Currently one last bug to be addressed but wanted to get this in.
 
-### 2017-05-04
 [Ripley]
 * Cleaned up project and solution files.
 
