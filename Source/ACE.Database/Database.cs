@@ -350,7 +350,10 @@ namespace ACE.Database
                             {
                                 foreach (var p in properties)
                                 {
-                                    p.Item1.SetValue(instance, commandReader[p.Item2.DbFieldName]);
+                                    if (commandReader[p.Item2.DbFieldName] == DBNull.Value)
+                                        p.Item1.SetValue(instance, null);
+                                    else
+                                        p.Item1.SetValue(instance, commandReader[p.Item2.DbFieldName]);
                                 }
 
                                 return true;
