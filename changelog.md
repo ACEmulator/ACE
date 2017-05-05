@@ -15,6 +15,9 @@
 * Added Landblock Diag tool, type diag from console to launch the gui.
 
 ### 2017-05-02
+[Ripley]
+* Changed create and ci to use DebugObject.
+
 [fantoms]
 * Fixed character's total `Mana` when spending experience points on the `Self` ability.
 * Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
