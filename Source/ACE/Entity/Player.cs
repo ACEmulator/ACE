@@ -702,6 +702,11 @@ namespace ACE.Entity
                     var healthUpdate = new GameMessagePrivateUpdateVital(Session, Enum.Ability.Health, Health.Ranks, Health.Base, Health.ExperienceSpent, Health.Current);
                     Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, healthUpdate);
                 }
+                else if (ability == Enum.Ability.Self)
+                {
+                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Enum.Ability.Mana, Mana.Ranks, Mana.Base, Mana.ExperienceSpent, Mana.Current);
+                    Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, manaUpdate);
+                }
                 else
                 {
                     Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);

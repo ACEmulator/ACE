@@ -1,10 +1,7 @@
-4/4/2017
+5/2/2017
 ===========================================
 Rebased all database scripts.
 
-The scripts in this folder are DATA ONLY in case you need to recover data.  The Base script, which is a SQL Dump, should generally contain this data, though it is not always up to date.
+The scripts in this folder are structure additions/changes that are not contained in the base scripts.  The Base script, which is a SQL Dump, should generally contain this data, though it is not always up to date.
 
-000 Teleport Locations.sql
-001 Lifestone_weenies.sql
-002 Lifestone_objects.sql
-003 2017_04_03_portals.sql
+001_5_02_2017_ace_portal_object.sql

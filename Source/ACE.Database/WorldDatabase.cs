@@ -22,7 +22,7 @@ namespace ACE.Database
             InsertCreatureStaticLocation,
             GetCreatureGeneratorByLandblock,
             GetCreatureGeneratorData,
-            GetPortalDestination
+            GetPortalObjectsByAceObjectId
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -31,7 +31,7 @@ namespace ACE.Database
         {
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
             ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetPortalDestination, typeof(PortalDestination), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
@@ -64,19 +64,21 @@ namespace ACE.Database
             return locations;
         }
 
-        public PortalDestination GetPortalDestination(uint weenieClassId)
+        public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
         {
-            PortalDestination portalDestination = new PortalDestination();
+            AcePortalObject apo = new AcePortalObject();
             Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("weenieClassId", weenieClassId);
-            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalDestination, typeof(PortalDestination), criteria, portalDestination))
+            criteria.Add("baseAceObjectId", aceObjectId);
+            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
             {
-                return portalDestination;
+                apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
+                apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
+                apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);
+
+                return apo;
             }
             else
-            {
                 return null;
-            }
         }
 
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
@@ -180,6 +182,7 @@ namespace ACE.Database
             else
                 return null;
         }
+
         public BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
         {
             var bao = new BaseAceObject();
