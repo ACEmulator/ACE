@@ -5,10 +5,9 @@
 * Move to object
 * Move to position
 * Turn to object
-* Turn to Postion
+* Turn to Position
 * State Machine
 * Currently one last bug to be addressed but wanted to get this in.
-
 
 ### 2017-05-04
 [Ripley]
@@ -23,7 +22,10 @@
 * Added a Null check to Database.cs
 * Fixed bug in ACE.Entity\Ace_portal_object.cs
 
-### 2017-05-03
+[Ripley]
+* Cleaned up project and solution files.
+* Changed create and ci to use DebugObject.
+
 [StackOverflow]
 * Added Landblock Diag tool, type diag from console to launch the gui.
 

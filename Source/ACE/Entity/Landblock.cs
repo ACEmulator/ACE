@@ -17,6 +17,7 @@ using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.StateMachines.Enum;
+using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
