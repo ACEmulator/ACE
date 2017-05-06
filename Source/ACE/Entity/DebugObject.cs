@@ -76,6 +76,7 @@ namespace ACE.Entity
 
                 // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
                 this.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
+                this.GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
             }
             if (this.PhysicsData.AnimationFrame != 0)
             {
