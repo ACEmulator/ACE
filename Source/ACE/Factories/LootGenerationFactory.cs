@@ -16,9 +16,6 @@
         public static void AddToContainer(WorldObject inventoryItem, Container container)
         {
             inventoryItem.GameData.ContainerId = container.Guid.Full;
-            // I think this is right Og II
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Parent & ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PhysicsData.Position = null;
             container.GameData.Burden += inventoryItem.GameData.Burden;
             container.AddToInventory(inventoryItem);
         }
