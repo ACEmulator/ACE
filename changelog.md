@@ -3,6 +3,7 @@
 * Add new Portal consructor that accepts a weenieClassId and Position object
 * Add PortalWeenie enum for Floating City, Golem Sanctum, Humming Crystal, and The Orphanage portals, for use with the new Portal constructor
 * Modified the /createportal debug command to use the new Portal constructor and the Humming Crystal weenie as a PoC
+* TODO: add a TTL timer to the portal to cause it to despawn after a period of time
 
 ### 2017-05-03
 [Jyrus]

@@ -114,15 +114,17 @@ namespace ACE.Entity
         {
         }
 
-        public Portal(ObjectType type, ObjectGuid guid, ushort weenieClassId, Position position)
-            : base(type, guid, weenieClassId, position)
+        public Portal(ObjectType type, ObjectGuid guid, PortalWeenie weenieClassId, Position position)
+            : base(type, guid, (ushort)weenieClassId, position)
         {
-            BaseAceObject baceO = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieClassId);
+            // TODO: Create a TTL timer for portal despawning for this type of portal creation
+
+            BaseAceObject baceO = DatabaseManager.World.GetBaseAceObjectDataByWeenie((ushort)weenieClassId);
 
             Name = baceO.Name;
             DescriptionFlags = (ObjectDescriptionFlag)baceO.WdescBitField;
             Location = position;
-            WeenieClassid = weenieClassId;
+            WeenieClassid = (ushort)weenieClassId;
             WeenieFlags = (WeenieHeaderFlag)baceO.WeenieFlags;
 
             PhysicsData.MTableResourceId = baceO.MotionTableId;
@@ -147,7 +149,7 @@ namespace ACE.Entity
             baceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
             baceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
 
-            AceSubPortalData spD = DatabaseManager.World.GetSubPortalDataByWeenie(weenieClassId);
+            AceSubPortalData spD = DatabaseManager.World.GetSubPortalDataByWeenie((ushort)weenieClassId);
 
             if (spD == null)
             {
