@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿﻿using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -8,6 +7,10 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
 using ACE.Network.Enum;
+using ACE.DatLoader.FileTypes;
+using ACE.Factories;
+
+using log4net;
 
 namespace ACE.Command.Handlers
 {
@@ -87,19 +90,124 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // boot { account | char | iid } who
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
+        /// <summary>
+        /// Boots the Player or Account holder from the server and displays the CoC Violation Warning
+        /// </summary>
+        /// <remarks>
+        ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
+        /// </remarks>
+        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
+            "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
+            "{ account | char | iid } who")]
         public static void HandleBoot(Session session, params string[] parameters)
         {
-            // usage: @boot { account,char, iid} who
+            // usage: @boot { account, char, iid} who
             // This command boots the specified character out of the game.You can specify who to boot by account, character name, or player instance id.  'who' is the account / character / instance id to actually boot.
             // @boot - Boots the character out of the game.
+            // The first parameter may be only text
+            // The second paramater and proceeding parameters may also be a number or text, but the logic depends on the text from the first parameter.
+            AccountLookupType selectorType = AccountLookupType.Undef;
+            string bootName = "";
+            uint bootId = 0;
+            Session playerSession = null;
 
-            // TODO: output
+            // Loop through the AccountLookupEnum to attempt at matching the first parameter with a lookup type
+            foreach (string bootType in System.Enum.GetNames(typeof(AccountLookupType)))
+            {
+                // Check the FIRST character of the first parameter against the Enum dictionary
+                // If the first character matches (a,c,i) then the selector will be returned.
+                // This allows for users to type @boot char <name>, since char is a keyword in c#
+                // Switch case to Lower when matching
+                if (parameters[0].ToLower()[0] == bootType.ToLower()[0])
+                {
+                    // If found, selectorType will hold the correct AccoutLookupType
+                    // If this returns true, that means we were successful and can stop looping
+                    if (Enum.TryParse(bootType, out selectorType))
+                        break;
+                }
+            }
+
+            // Peform logic
+            if (selectorType != AccountLookupType.Undef)
+            {
+                // Extract the name from the parameters and get the name from the first parameter
+                if (selectorType == AccountLookupType.Account || selectorType == AccountLookupType.Character)
+                    bootName = Common.Extensions.CharacterNameExtensions.StringArrayToCharacterName(parameters, 1);
+
+                switch (selectorType)
+                {
+                    case AccountLookupType.Account:
+                        {
+                            playerSession = WorldManager.Find(bootName);
+                            if (playerSession != null)
+                                bootId = playerSession.Player.Guid.Low;
+                            break;
+                        }
+                    case AccountLookupType.Character:
+                        {
+                            playerSession = WorldManager.FindByPlayerName(bootName);
+                            if (playerSession != null)
+                                bootId = playerSession.Player.Guid.Low;
+                            break;
+                        }
+                    case AccountLookupType.Iid:
+                        {
+                            // Extract the Id from the parameters
+                            uint.TryParse(parameters[1], out bootId);
+                            playerSession = WorldManager.Find(new ObjectGuid(bootId));
+                            if (playerSession != null)
+                                bootName = playerSession.Player.Name;
+                            break;
+                        }
+                }
+
+                if (playerSession != null)
+                {
+                    string bootText = $"account or player: {bootName} id: {bootId}";
+                    // Boot the player
+                    playerSession.BootPlayer();
+
+                    // Send an update to the admin, but prevent sending too if the admin was the player being booted
+                    if (session != null)
+                    {
+                        // Log the player who initiated the boot
+                        bootText = "Player: " + session.Player.Name + " has booted " + bootText;
+                        if (session != playerSession)
+                            session.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
+                        // TODO: Send out a message on the Audit Group Chat Channel, to alert other admins of the boot
+                    }
+                    else
+                    {
+                        bootText = "Console booted " + bootText;
+                    }
+
+                    // log the boot to file
+                    ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+                    log.Info(bootText);
+
+                    // finish execution of command logic
+                    return;
+                }
+            }
+
+            // Did not find a player
+            string errorText = $"Error locating the player or account to boot.";
+            // Send the error to a player or the console
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat(errorText, ChatMessageType.Broadcast));
+            else
+                Console.WriteLine(errorText);
         }
 
         // cloak < on / off / player / creature >
-        [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Sets your cloaking state.",
+            "< on / off / player / creature >\n" +
+            "This command sets your current cloaking state\n" +
+            "< on > You will be completely invisible to players.\n" +
+            "< off > You will show up as a normal.\n" +
+            "< player > You will appear as a player. (No + and a white radar dot.)\n" +
+            "< creature > You will appear as a creature. (No + and an orange radar dot.)")]
         public static void HandleCloak(Session session, params string[] parameters)
         {
             // Please specify if you want cloaking on or off.usage: @cloak < on / off / player / creature >
@@ -110,7 +218,34 @@ namespace ACE.Command.Handlers
             // < creature > You will appear as a creature. (No + and an orange radar dot.)
             // @cloak - Sets your cloaking state.
 
-            // TODO: output
+            // TODO: Fix cloaking state resetting after teleport, investigate translucensy/visbility of other cloaked admins.
+
+            var newPhysicsState = session.Player.PhysicsData.PhysicsState;
+
+            switch (parameters?[0].ToLower())
+            {
+                case "on":
+                    newPhysicsState |= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
+                    newPhysicsState ^= PhysicsState.ReportCollision;
+                    session.Player.SetPhysicsState(newPhysicsState, true);
+                    // var test = session.Player.PhysicsData.PhysicsDescriptionFlag;
+                    // test |= PhysicsDescriptionFlag.Translucency;
+                    // session.Player.PhysicsData.PhysicsDescriptionFlag = test;
+                    // session.Player.PhysicsData.Translucency = 0.5f;
+                    break;
+                case "off":
+                    newPhysicsState ^= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
+                    newPhysicsState |= PhysicsState.ReportCollision;
+                    session.Player.SetPhysicsState(newPhysicsState, true);
+                    break;
+                case "player":
+                case "creature":
+                    session.Network.EnqueueSend(new GameMessageSystemChat("This cloaking option not implemented yet.", ChatMessageType.Broadcast));
+                    break;
+                default:
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please specify if you want cloaking on or off.", ChatMessageType.Broadcast));
+                    break;
+            }
         }
 
         // deaf < on / off >
@@ -203,17 +338,95 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // home < recall number >
-        [CommandHandler("home", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        /// <summary>
+        /// Teleports an admin to their sanctuary position. If a single uint value from 1 to 9 is provided as a parameter then the admin is teleported to the cooresponding named recall point.
+        /// </summary>
+        /// <param name="parameters">A single uint value from 0 to 9. Value 0 recalls to Sanctuary, values 1 through 9 teleports too the corresponding saved recall point.</param>
+        [CommandHandler("home", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Teleports you to your sanctuary position.",
+            "< recall number > - Recalls to a saved position, valid values are 1 - 9.\n" +
+            "NOTE: Calling @home without a number recalls your sanctuary position; calling it with a number will teleport you to the corresponding saved position.")]
         public static void HandleHome(Session session, params string[] parameters)
         {
-            // usage: @home - This command teleports you to your sanctuary position.
-            // @home < recall number > -Recall to your position into the numbered recall, valid values are 1 - 9.
-            // NOTE: Calling @home without a number recalls your sanctuary position, calling it with recalls to the saved numbered spot.
             // @home has the alias @recall
-            // @home[recall number] -Teleports you to your sanctuary position.
+            string parsePositionString = "0";
 
-            // TODO: output
+            // Limit the incoming parameter to 1 character
+            if (parameters?.Length >= 1)
+                parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
+
+            uint parsedPositionInt = 0;
+            // Attempt to parse the integer
+            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            {
+                // parsedPositionInt value should be limited too a value from, 0-9
+                // Create a new position from the current player location
+                PositionType positionType = new PositionType();
+                // Transform too the correct PositionType, based on the "Saved Positions" subset:
+                switch (parsedPositionInt)
+                {
+                    case 0:
+                        {
+                            positionType = PositionType.Sanctuary;
+                            break;
+                        }
+                    case 1:
+                        {
+                            positionType = PositionType.Save1;
+                            break;
+                        }
+                    case 2:
+                        {
+                            positionType = PositionType.Save2;
+                            break;
+                        }
+                    case 3:
+                        {
+                            positionType = PositionType.Save3;
+                            break;
+                        }
+                    case 4:
+                        {
+                            positionType = PositionType.Save4;
+                            break;
+                        }
+                    case 5:
+                        {
+                            positionType = PositionType.Save5;
+                            break;
+                        }
+                    case 6:
+                        {
+                            positionType = PositionType.Save6;
+                            break;
+                        }
+                    case 7:
+                        {
+                            positionType = PositionType.Save7;
+                            break;
+                        }
+                    case 8:
+                        {
+                            positionType = PositionType.Save8;
+                            break;
+                        }
+                    case 9:
+                        {
+                            positionType = PositionType.Save9;
+                            break;
+                        }
+                }
+                // If we have the position, teleport the player
+                if (session.Player.Positions.ContainsKey(positionType)) {
+                    session.Player.Teleport(session.Player.Positions[positionType]);
+                    var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(positionMessage);
+                    return;
+                }
+            }
+            // Invalid character was receieved in the input (it was not 0-9)
+            var homeErrorMessage = new GameMessageSystemChat($"Could not find a valid recall position.", ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(homeErrorMessage);
         }
 
         // mrt
@@ -349,16 +562,97 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // save < recall number >
-        [CommandHandler("save", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        /// <summary>
+        /// Command for saving the Admin's current location as the sanctuary position. If a uint between 1-9 is provided as a parameter, the corresponding named recall is saved.
+        /// </summary>
+        /// <param name="parameters">A single uint value from 0 to 9. Value 0 saves the Sanctuary recall (default), values 1 through 9 save the corresponding named recall point.</param>
+        [CommandHandler("save", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Sets your sanctuary position or a named recall point.",
+            "< recall number > - Saves your position into the numbered recall, valid values are 1 - 9.\n" +
+            "NOTE: Calling @save without a number saves your sanctuary (Lifestone Recall) position.")]
         public static void HandleSave(Session session, params string[] parameters)
         {
-            // @save - This command sets your current position to be your sanctuary position.
-            // @save < recall number > -Save your position into the numbered recall, valid values are 1 - 9.
-            // NOTE: Calling @save without a number saves your sanctuary position, calling it with saves  it in a separate save spot.
-            // @save - Sets your sanctuary position or a named recall point.
+            // Set the default of 0 to save the sanctuary portal if no parameter is passed.
+            string parsePositionString = "0";
 
-            // TODO: output
+            // Limit the incoming parameter to 1 character
+            if (parameters?.Length >= 1)
+                parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
+
+            uint parsedPositionInt = 0;
+            // Attempt to parse the integer
+            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            {
+                // parsedPositionInt value should be limited too a value from, 0-9
+                // Create a new position from the current player location
+                Position playerPosition = session.Player.Location;
+                // Set the correct PositionType, based on the "Saved Positions" position type subset:
+                switch (parsedPositionInt)
+                {
+                    case 0:
+                        {
+                            playerPosition.PositionType = PositionType.Sanctuary;
+                            break;
+                        }
+                    case 1:
+                        {
+                            playerPosition.PositionType = PositionType.Save1;
+                            break;
+                        }
+                    case 2:
+                        {
+                            playerPosition.PositionType = PositionType.Save2;
+                            break;
+                        }
+                    case 3:
+                        {
+                            playerPosition.PositionType = PositionType.Save3;
+                            break;
+                        }
+                    case 4:
+                        {
+                            playerPosition.PositionType = PositionType.Save4;
+                            break;
+                        }
+                    case 5:
+                        {
+                            playerPosition.PositionType = PositionType.Save5;
+                            break;
+                        }
+                    case 6:
+                        {
+                            playerPosition.PositionType = PositionType.Save6;
+                            break;
+                        }
+                    case 7:
+                        {
+                            playerPosition.PositionType = PositionType.Save7;
+                            break;
+                        }
+                    case 8:
+                        {
+                            playerPosition.PositionType = PositionType.Save8;
+                            break;
+                        }
+                    case 9:
+                        {
+                            playerPosition.PositionType = PositionType.Save9;
+                            break;
+                        }
+                }
+
+                // Save the position
+                session.Player.SetCharacterPosition(playerPosition);
+                // Report changes to client
+                var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(positionMessage);
+                return;
+                
+            }
+            // Error parsing the text input, from parameter[0]
+            var positionErrorMessage = new GameMessageSystemChat($"Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(positionErrorMessage);
+            return;
         }
 
         // serverlist
@@ -488,6 +782,8 @@ namespace ACE.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
+                var cellLandblock = CellLandblock.ReadFromDat(position.Cell);
+                position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)
             {
@@ -690,25 +986,45 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        // create wclassid (string or number)
-        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        // create wclassid (number)
+        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in the world.", "wclassid(string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            // Creates the given object in the world, external to the admin
-            // @create - Creates an object in the world.
-            // usage: @create wclassid (string or number)
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
 
-            // TODO: output
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            session.Player.TrackObject(loot);
         }
 
-        // ci wclassid (string or number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        // ci wclassid (number)
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
-            // Creates the given object in the admin's inventory
-            // @ci - Creates an object in your inventory.
-
-            // TODO: output
+            ushort weenieId;
+            try
+            {
+                weenieId = Convert.ToUInt16(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            LootGenerationFactory.AddToContainer(loot, session.Player);
+            session.Player.TrackObject(loot);
         }
 
         // cm <material type> <quantity> <ave. workmanship>

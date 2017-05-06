@@ -1,4 +1,46 @@
-# ACEmulator Change Log
+### 2017-05-03
+[Jyrus]
+* Changed the structure of the table that contains the Portal Destinations to include other portal properties
+* Renamed table from portal_destination to ace_portal_object and added a foreign key constraint to the weenieClassId field
+* !!! Please note that the ACE-World tables must be filled before importing the ace_portal_object's table
+* Implemented a portal recall debug command
+* Added a Null check to Database.cs
+* Fixed bug in ACE.Entity\Ace_portal_object.cs
+
+[Ripley]
+* Cleaned up project and solution files.
+* Changed create and ci to use DebugObject.
+
+[StackOverflow]
+* Added Landblock Diag tool, type diag from console to launch the gui.
+
+### 2017-05-02
+[fantoms]
+* Fixed character's total `Mana` when spending experience points on the `Self` ability.
+* Added useful position debug commands, `@teletype`, `@setposition`, and `@listpositions`. `@teletype` will teleport the player, `@setposition` will test the database save functionality, and `@listpositions` will print out a list of all database positions too chat.
+* Updated `SaveCharacterPosition` too prevent PortalType.Undef types from being used as a valid position type.
+* Updated `PositionType` for Positions, too prevent position types outside of the definition from entering the database.
+
+[Og II]
+* Refactored ctw to admin commands ci and create both take parameter of a weenieId.   You can spawn anything in the database.   @ci 21376 - will spawn Martine's Robe   This does not include the turn to object code - I pulled that out due to a bug.   I will submit via new PR.
+
+### 2017-05-01
+[OptimShi]
+* Modified DatLoader.SetupModel to be easier to initiate (got missed when other items had the same changes applied). Also added working example to the Lifestone.cs OnUse function to take model radius into account.
+* Hooked up the "ExaminationQueuePop" in Player.cs to fire.
+* Added IdentifyResponseFlags, for when we start to send actual data.
+* Added a basic debug string to any DebugObject. It simply returns the objects GUID and WeenieClassID. (WorldObjects will return a "failed" examine response)
+
+### 2017-04-30
+[OptimShi]
+* Add client_cell.dat reading for landblocks in CellLandblock.cs (named so as to avoid confusion with existing Landblock class)
+* Adjusted "@tele" command to pull correct PositionZ from client_cell.dat
+
+### 2017-04-29
+[Ripley]
+* Added @cloak command. Use this to bypass objects blocking your way. Partially implemented as was used in retail.
+* Added Translucency to DebugObject. This fixes ghostly npcs.
+* Changed GOF and Landblock to key off of ObjectDescriptionFlag first for at least some objects, made lots of changes to Door to allow for simple open/close usage.
 
 ### 2017-04-26
 [OptimShi]
@@ -7,6 +49,13 @@
 
 [fantoms]
 * Built out the admin `@teleto` command. Use a player's name as the parameter.
+
+[fantoms]
+* Added admin `@boot` command logic for Player, Account, and Guid - too kick a player from the server and display a CoC Violation warning message.
+* Added Booting capabilites in the `Sesssion` object.
+* Added the `GameMessageBootAccount` game message.
+* Added an enum for `AccountLookupType`.
+* Added `CharacterNameExtension.cs` and included the string helper function `stringArrayToCharacterName`, for converting a string array containing spaces to a player name string.
 
 [Ripley]
 * Rebased SQL scripts.
@@ -374,5 +423,3 @@
 ### 2017-03-25
 [Mogwai]
 * weenies weenies everywhere. object structure pass 1
-
-

@@ -17,6 +17,9 @@ using System.Linq;
 
 namespace ACE.Command.Handlers
 {
+    using global::ACE.Database;
+    using System.Collections.Generic;
+
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
@@ -72,6 +75,24 @@ namespace ACE.Command.Handlers
             }
 
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+        }
+
+        // portalrecall
+        [CommandHandler("portalrecall", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Recalls the last portal used.")]
+        public static void HandleDebugPortalRecall(Session session, params string[] parameters)
+        {
+            Position lastPortalUsed = null;
+            if (session.Player.Positions.TryGetValue(PositionType.LastPortal, out lastPortalUsed))
+            {
+                session.Player.Teleport(lastPortalUsed);
+            }
+            else
+            {
+                // You are too powerful to interact with that portal!
+                var portalRecallMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.Enum_04A3);
+                session.Network.EnqueueSend(portalRecallMessage);
+            }
         }
 
         // grantxp ulong
@@ -229,9 +250,10 @@ namespace ACE.Command.Handlers
         public static void MoveTo(Session session, params string[] parameters)
         {
             var distance = 10.0f;
+            ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
             var newMotion = new UniversalMotion(MotionStance.Standing, loot);
@@ -311,45 +333,6 @@ namespace ACE.Command.Handlers
 
             AceVector3 velocity = new AceVector3(x, y, z);
             LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
-        }
-
-        [CommandHandler("ctw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Creates a training wand on the ground or in your main pack.",
-            "[me or ground]" +
-            "@ctw me = Creates the wand in your main pack.\n" +
-            "@ctw ground = Creates the wand in front of you on the ground.")]
-        public static void CreateTrainingWand(Session session, params string[] parameters)
-        {
-            if (!(parameters?.Length > 0))
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                   ChatMessageType.Broadcast);
-                return;
-            }
-            string location = parameters[0];
-            if (location == "me" | location == "ground")
-            {
-                var loot = LootGenerationFactory.CreateTrainingWand(session.Player);
-                switch (location)
-                {
-                    case "me":
-                        {
-                            LootGenerationFactory.AddToContainer(loot, session.Player);
-                            break;
-                        }
-                    case "ground":
-                        {
-                            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-                            break;
-                        }
-                }
-                session.Player.TrackObject(loot);
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @ctw me or @ctw ground",
-                    ChatMessageType.Broadcast);
-            }
         }
 
         // Kill a player - equivalent to legal virtual murder, by admin
@@ -468,7 +451,7 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat. 
+        /// Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat.
         /// </summary>
         [CommandHandler("readgenerators", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
             "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
@@ -482,9 +465,93 @@ namespace ACE.Command.Handlers
                 if (gen.Count > 0)
                 {
                     for (var i = 0; i < gen.Count; i++)
-                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}"); 
+                        Console.WriteLine($"{gen.Items[i].Id:X8} {gen.Items[i].Count:X8} {gen.Items[i].Name}");
                 }
             });
+        }
+
+        /// <summary>
+        /// Debug command to save the player's current location as sepecific position type.
+        /// </summary>
+        /// <param name="parameters">A single uint value within the range of 1 through 27</param>
+        [CommandHandler("setposition", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Saves the supplied character position type to the database.",
+            "uint 1-27\n" +
+            "@setposition 1")]
+        public static void HandleSetPosition(Session session, params string[] parameters)
+        {
+            if (parameters?.Length == 1)
+            {
+                PositionType positionType = new PositionType();
+                string parsePositionString = parameters[0].Length > 19 ? parameters[0].Substring(0, 19) : parameters[0];
+                // The enum labels max character length has been observered as length 19
+                // int value can be: 0-27
+                if (Enum.TryParse(parsePositionString, out positionType))
+                {
+                    if (positionType != PositionType.Undef)
+                    {
+                        // Create a new position from the current player location
+                        Position playerPosition = session.Player.Location;
+                        // Change the position type
+                        playerPosition.PositionType = positionType;
+                        // Save the position
+                        session.Player.SetCharacterPosition(playerPosition);
+                        // Report changes to client
+                        var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                        session.Network.EnqueueSend(positionMessage);
+                        return;
+                    }
+                }
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Debug command to teleport a player to a saved position, if the position type exists within the database.
+        /// </summary>
+        /// <param name="parameters">A single uint value within the range of 1 through 27</param>
+        [CommandHandler("teletype", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Teleport to a saved character position.",
+            "uint 0-22\n" +
+            "@teletype 1")]
+        public static void HandleTeleType(Session session, params string[] parameters)
+        {
+            PositionType positionType = new PositionType();
+            if (parameters?.Length > 0)
+            {
+                string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
+
+                if (Enum.TryParse(parsePositionString, out positionType))
+                {
+                    Position playerPosition = new Position();
+                    if (session.Player.Positions.TryGetValue(positionType, out playerPosition))
+                    {
+                        session.Player.Teleport(playerPosition);
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
+                    }
+                    else
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Debug command to print out all of the saved character positions.
+        /// </summary>
+        [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Displays all available saved character positions from the database.",
+            "@listpositions")]
+        public static void HandleListPositions(Session session, params string[] parameters)
+        {
+            // Build a string message containing all available character positions and send as a System Chat message
+            string message = $"Saved character positions:\n";
+            foreach (KeyValuePair<PositionType, Position> kvPositions in session.Player.Positions)
+            {
+                message += "ID: " + (uint)kvPositions.Key + " Type: " + kvPositions.Key.ToString() + " Loc: " + kvPositions.Value.ToString() + "\n";
+            }
+            message += $"Total positions: " + session.Player.Positions.Count.ToString() + "\n";
+            var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(positionMessage);
         }
     }
 }

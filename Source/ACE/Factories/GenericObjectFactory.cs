@@ -1,4 +1,5 @@
-﻿using ACE.Entity;
+﻿using ACE.Database;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
@@ -17,14 +18,28 @@ namespace ACE.Factories
             foreach (var aceO in sourceObjects)
             {
                 ObjectType ot = (ObjectType)aceO.TypeId;
+                ObjectDescriptionFlag oDescFlag = (ObjectDescriptionFlag)aceO.WdescBitField;
+
+                if ((oDescFlag & ObjectDescriptionFlag.LifeStone) != 0)
+                {
+                    results.Add(new Lifestone(aceO));
+                    continue;
+                }
+                else if ((oDescFlag & ObjectDescriptionFlag.Portal) != 0)
+                {
+                    AcePortalObject acePO = DatabaseManager.World.GetPortalObjectsByAceObjectId(aceO.AceObjectId);
+                    
+                    results.Add(new Portal(acePO));
+                    continue;
+                }
+                else if ((oDescFlag & ObjectDescriptionFlag.Door) != 0)
+                {
+                    results.Add(new Door(aceO));
+                    continue;
+                }
+
                 switch (ot)
                 {
-                    case ObjectType.LifeStone:
-                        results.Add(new Lifestone(aceO));
-                        break;
-                    case ObjectType.Portal:
-                        results.Add(new Portal(aceO));
-                        break;
 #if DEBUG
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies

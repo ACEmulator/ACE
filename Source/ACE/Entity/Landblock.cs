@@ -15,6 +15,8 @@ using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
+using ACE.Entity.Enum;
+using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -39,7 +41,6 @@ namespace ACE.Entity
 
         private readonly object objectCacheLocker = new object();
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
-
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
@@ -49,6 +50,7 @@ namespace ACE.Entity
         // inherent functionality that needs to be modelled in an object.
         // private Landcell[,] cellGrid; // todo: load from cell.dat
 
+        public LandBlockStatus Status = new LandBlockStatus();
         private bool running = false;
 
         public LandblockId Id
@@ -60,6 +62,8 @@ namespace ACE.Entity
         {
             this.id = id;
 
+            UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
+
             // initialize adjacency array
             this.adjacencies.Add(Adjacency.North, null);
             this.adjacencies.Add(Adjacency.NorthEast, null);
@@ -69,6 +73,8 @@ namespace ACE.Entity
             this.adjacencies.Add(Adjacency.SouthWest, null);
             this.adjacencies.Add(Adjacency.West, null);
             this.adjacencies.Add(Adjacency.NorthWest, null);
+
+            UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
@@ -99,6 +105,8 @@ namespace ACE.Entity
                     worldObjects.Add(c.Guid, c);
                 }
             }
+
+            UpdateStatus(LandBlockStatusFlag.IdleLoaded);
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -473,11 +481,17 @@ namespace ACE.Entity
                 // for all players on landblock.
                 Parallel.ForEach(allplayers, player =>
                 {
-                    // Process Action Que for player.
+                    // Process Action Queue for player.
                     QueuedGameAction action = player.ActionQueuePop();
                     if (action != null)
                         HandleGameAction(action, player);
+
+                    // Process Examination Queue for player
+                    QueuedGameAction examination = player.ExaminationQueuePop();
+                    if (examination != null)
+                        HandleGameAction(examination, player);
                 });
+                UpdateStatus(allplayers.Count);
 
                 // broadcast moving objects to the world..
                 // players and creatures can move.
@@ -594,6 +608,19 @@ namespace ACE.Entity
                         }
                         var soundEffect = (Sound)action.SecondaryObjectId;
                         HandleSoundEvent(obj, soundEffect);
+                        break;
+                    }
+                case GameActionType.IdentifyObject:
+                    {
+                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
+                        var g = new ObjectGuid(action.ObjectId);
+                        WorldObject obj = (WorldObject)player;
+                        if (worldObjects.ContainsKey(g))
+                        {
+                            obj = worldObjects[g];
+                        }
+                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
+                        player.Session.Network.EnqueueSend(identifyResponse);
                         break;
                     }
                 case GameActionType.PutItemInContainer:
@@ -785,25 +812,54 @@ namespace ACE.Entity
                         {
                             WorldObject obj = worldObjects[g];
 
-                            switch (obj.Type)
-                            {
-                                case Enum.ObjectType.Portal:
-                                    {
-                                        // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
+                            if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
+                                (obj as Lifestone).OnUse(player);
+                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
+                                // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
+                                (obj as Portal).OnCollide(player);
+                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
+                                (obj as Door).OnUse(player);
 
-                                        (obj as Portal).OnCollide(player);
-
-                                        break;
-                                    }
-                                case Enum.ObjectType.LifeStone:
-                                    {
-                                        (obj as Lifestone).OnUse(player);
-                                        break;
-                                    }
-                            }
+                            // switch (obj.Type)
+                            // {
+                            //    case Enum.ObjectType.Portal:
+                            //        {
+                            //            // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
+                            //
+                            //            (obj as Portal).OnCollide(player);
+                            //
+                            //            break;
+                            //        }
+                            //    case Enum.ObjectType.LifeStone:
+                            //        {
+                            //            (obj as Lifestone).OnUse(player);
+                            //            break;
+                            //        }
+                            // }
                         }
                         break;
                     }
+            }
+        }
+
+        private void UpdateStatus(LandBlockStatusFlag flag)
+        {
+            Status.LandBlockStatusFlag = flag;
+            Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
+        }
+
+        private void UpdateStatus(int pcount)
+        {
+            Status.PlayerCount = pcount;
+            if (pcount > 0)
+            {
+                Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
+                Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
+            }
+            else
+            {
+                Status.LandBlockStatusFlag = LandBlockStatusFlag.IdleLoaded;
+                UpdateStatus(Status.LandBlockStatusFlag);
             }
         }
 

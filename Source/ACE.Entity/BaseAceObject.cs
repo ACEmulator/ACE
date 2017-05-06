@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿using System.Collections.Generic;
 using ACE.Common;
 using MySql.Data.MySqlClient;
 
@@ -32,7 +30,7 @@ namespace ACE.Entity
         /// </summary>
         [DbField("blipColor", (int)MySqlDbType.UByte)]
         public byte BlipColor { get; set; }
-        
+
         [DbField("bitField", (int)MySqlDbType.UInt32)]
         public uint WdescBitField { get; set; }
 
@@ -53,7 +51,7 @@ namespace ACE.Entity
 
         [DbField("effects", (int)MySqlDbType.UInt32)]
         public uint Effects { get; set; }
-        
+
         [DbField("containersCapacity", (int)MySqlDbType.UByte)]
         public byte ContainersCapacity { get; set; }
 
@@ -62,7 +60,7 @@ namespace ACE.Entity
         /// </summary>
         [DbField("hookTypeId", (int)MySqlDbType.UInt32)]
         public uint HookTypeId { get; set; }
-        
+
         [DbField("iconId", (int)MySqlDbType.UInt32)]
         public uint IconId { get; set; }
 
@@ -155,7 +153,9 @@ namespace ACE.Entity
 
         [DbField("locationId", (int)MySqlDbType.UInt32)]
         public uint LocationId { get; set; }
-
+        /// <summary>
+        /// PhysicsData.CSetup
+        /// </summary>
         [DbField("modelTableId", (int)MySqlDbType.UInt32)]
         public uint ModelTableId { get; set; }
 

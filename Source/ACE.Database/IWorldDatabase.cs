@@ -8,7 +8,7 @@ namespace ACE.Database
     {
         List<TeleportLocation> GetLocations();
 
-        PortalDestination GetPortalDestination(uint weenieClassId);
+        AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId);
 
         List<AceObject> GetObjectsByLandblock(ushort landblock);
 
@@ -17,6 +17,8 @@ namespace ACE.Database
         List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock);
 
         AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId);
+
+        BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId);
 
         bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl);
     }

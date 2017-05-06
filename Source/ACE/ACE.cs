@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 using ACE.Command;
 using ACE.Common;
@@ -13,19 +14,27 @@ namespace ACE
     public class ACE
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+
             log.Info("Starting ACEmulator...");
             Console.Title = "ACEmulator";
 
-            ConfigManager.Initialise();
-            DatabaseManager.Initialise();
-            AssetManager.Initialise();
-            InboundMessageManager.Initialise();
+            ConfigManager.Initialize();
+            DatabaseManager.Initialize();
+            AssetManager.Initialize();
+            InboundMessageManager.Initialize();
             DatManager.Initialize();
-            SocketManager.Initialise();
-            WorldManager.Initialise();
-            CommandManager.Initialise();
+            SocketManager.Initialize();
+            WorldManager.Initialize();
+            CommandManager.Initialize();
+        }
+
+        private static void OnProcessExit(object sender, EventArgs e)
+        {
+            Diagnostics.Diagnostics.LandBlockDiag = false;
         }
     }
 }
