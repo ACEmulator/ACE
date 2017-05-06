@@ -2,10 +2,6 @@
 using ACE.Network.Enum;
 using ACE.Network.Motion;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -16,36 +12,48 @@ namespace ACE.Entity
         {
         }
 
-        public DebugObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, BaseAceObject baseAceObject)
+        public DebugObject(ObjectGuid guid,  BaseAceObject baseAceObject)
             : base((ObjectType)baseAceObject.TypeId, guid)
         {
+            this.Type = (ObjectType)baseAceObject.TypeId;
+            this.WeenieClassid = baseAceObject.AceObjectId;
+            this.Icon = baseAceObject.IconId;
+            this.DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.WdescBitField;
             this.Name = baseAceObject.Name;
             if (this.Name == null)
                 this.Name = "NULL";
-
-            this.DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.WdescBitField;
-            this.WeenieClassid = baseAceObject.AceObjectId;
             this.WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieFlags;
+            // Even if we spawn on the ground, we have the potential to have a container.
+            // Container will always be 0 or a value and we should write it.
+            // Not sure if the align packs us out with 0's may be redundant Og II
+            this.WeenieFlags |= WeenieHeaderFlag.Container;
 
-            this.PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
-            this.PhysicsData.Stable = baseAceObject.SoundTableId;
-            this.PhysicsData.CSetup = baseAceObject.ModelTableId;
-            this.PhysicsData.Petable = baseAceObject.PhysicsTableId;
-
-            // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsBitField;
+            this.PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
             this.PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
+            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsBitField;
 
+            // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
+            this.PhysicsData.PhysicsDescriptionFlag &= PhysicsDescriptionFlag.Parent;
+            if (this.PhysicsData.AnimationFrame != 0)
+            {
+                this.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
+            }
+            this.PhysicsData.CSetup = baseAceObject.ModelTableId;
             if (baseAceObject.CurrentMotionState == "0")
                 this.PhysicsData.CurrentMotionState = null;
             else
                 this.PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
-
+            this.PhysicsData.DefaultScript = baseAceObject.DefaultScript;
+            this.PhysicsData.DefaultScriptIntensity = baseAceObject.DefaultScriptIntensity;
+            this.PhysicsData.Elastcity = baseAceObject.Elasticity;
+            this.PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
+            this.PhysicsData.Friction = baseAceObject.Friction;
+            this.PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             this.PhysicsData.ObjScale = baseAceObject.ObjectScale;
-            this.PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
-            this.PhysicsData.Translucency = baseAceObject.Translucency;
+            this.PhysicsData.Petable = baseAceObject.PhysicsTableId;
+            this.PhysicsData.Stable = baseAceObject.SoundTableId;
 
-            // game data min required flags;
+            // game data slighly adjusted for pcap origins Og II;
             this.Icon = baseAceObject.IconId;
 
             if (this.GameData.NamePlural == null)
@@ -71,7 +79,7 @@ namespace ACE.Entity
         }
 
         public DebugObject(AceObject aceO)
-            : this(new ObjectGuid(aceO.AceObjectId), (ObjectDescriptionFlag)aceO.WdescBitField, aceO)
+            : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
             this.Location = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
