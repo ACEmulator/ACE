@@ -21,5 +21,7 @@ namespace ACE.Database
         BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId);
 
         bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl);
+
+        AceSubPortalData GetSubPortalDataByWeenie(uint weenieClassId);
     }
 }

@@ -22,7 +22,8 @@ namespace ACE.Database
             InsertCreatureStaticLocation,
             GetCreatureGeneratorByLandblock,
             GetCreatureGeneratorData,
-            GetPortalObjectsByAceObjectId
+            GetPortalObjectsByAceObjectId,
+            GetSubPortalDataByWeenie
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -31,6 +32,7 @@ namespace ACE.Database
         {
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
             ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetSubPortalDataByWeenie, typeof(AceSubPortalData), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
@@ -62,6 +64,17 @@ namespace ACE.Database
             }
 
             return locations;
+        }
+
+        public AceSubPortalData GetSubPortalDataByWeenie(uint weenieClassId)
+        {
+            AceSubPortalData spd = new AceSubPortalData();
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            criteria.Add("weenieClassId", weenieClassId);
+            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetSubPortalDataByWeenie, typeof(AceSubPortalData), criteria, spd))
+                return spd;
+            else
+                return null;
         }
 
         public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)

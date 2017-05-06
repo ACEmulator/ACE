@@ -1,3 +1,9 @@
+### 2017-05-05
+[Jyrus]
+* Add new Portal consructor that accepts a weenieClassId and Position object
+* Add PortalWeenie enum for Floating City, Golem Sanctum, Humming Crystal, and The Orphanage portals, for use with the new Portal constructor
+* Modified the /createportal debug command to use the new Portal constructor and the Humming Crystal weenie as a PoC
+
 ### 2017-05-03
 [Jyrus]
 * Changed the structure of the table that contains the Portal Destinations to include other portal properties

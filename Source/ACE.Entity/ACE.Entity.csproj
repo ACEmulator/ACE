@@ -74,6 +74,7 @@
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
     <Compile Include="AcePortalObject.cs" />
+	<Compile Include="AceSubPortalData.cs" />
     <Compile Include="AnimationOverride.cs" />
     <Compile Include="Appearance.cs" />
     <Compile Include="CharacterOptions1Attribute.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="Enum\PhysicsState.cs" />
     <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
+	<Compile Include="Enum\PortalWeenie.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
     <Compile Include="Enum\Properties\PropertyDouble.cs" />
     <Compile Include="Enum\Properties\PropertyInt.cs" />
