@@ -1,3 +1,7 @@
+### 2017-05-06
+[MiachofTD]
+* Added settlement portal drops for Yaraq Zaikhal and Al-Arqas
+
 ### 2017-05-03
 [Jyrus]
 * Changed the structure of the table that contains the Portal Destinations to include other portal properties
