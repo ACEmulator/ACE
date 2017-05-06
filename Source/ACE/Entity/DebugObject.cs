@@ -33,7 +33,7 @@ namespace ACE.Entity
             this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsBitField;
 
             // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
-            this.PhysicsData.PhysicsDescriptionFlag &= PhysicsDescriptionFlag.Parent;
+            this.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
             if (this.PhysicsData.AnimationFrame != 0)
             {
                 this.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
