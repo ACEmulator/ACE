@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_portal_object")]
-    [DbGetList("ace_portal_object", 15, "weenieClassId")]
+    [DbGetList("ace_portal_object", 16, "weenieClassId")]
     public class AceSubPortalData
     {
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]

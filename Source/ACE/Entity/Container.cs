@@ -38,6 +38,7 @@ namespace ACE.Entity
                 inventoryItem.GameData.ContainerId = Guid.Full;
                 inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
                 inventoryItem.PositionFlag = UpdatePositionFlag.None;
+                inventoryItem.PhysicsData.Position = null;
             }
         }
 
@@ -45,13 +46,12 @@ namespace ACE.Entity
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
             GameData.Burden -= inventoryItem.GameData.Burden;
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |=
-            PhysicsDescriptionFlag.Position;
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
                                            | UpdatePositionFlag.Placement
                                            | UpdatePositionFlag.ZeroQy
                                            | UpdatePositionFlag.ZeroQx;
-            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(0.50f);
+            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
             inventoryItem.GameData.ContainerId = 0;
             inventoryItem.GameData.Wielder = 0;
 
