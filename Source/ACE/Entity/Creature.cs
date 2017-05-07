@@ -57,15 +57,6 @@ namespace ACE.Entity
         {
         }
 
-        public Creature(AceObject aceO)
-            : this((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId), aceO.Name, aceO.WeenieClassId, (ObjectDescriptionFlag)aceO.WdescBitField, (WeenieHeaderFlag)aceO.WeenieFlags, aceO.Position)
-        {
-            this.Location = aceO.Position;
-            this.WeenieClassid = aceO.WeenieClassId;
-
-            this.GameData.Type = aceO.WeenieClassId;
-        }
-
         public Creature(AceCreatureStaticLocation aceC)
             : base((ObjectType)aceC.CreatureData.TypeId, 
                   new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), 

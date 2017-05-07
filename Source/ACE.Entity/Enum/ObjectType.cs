@@ -6,7 +6,7 @@ namespace ACE.Entity.Enum
     public enum ObjectType : uint
     {
         None                       = 0x00000000,
-        MeleeWeapon                 = 0x00000001,
+        MeleeWeapn                 = 0x00000001,
         Armor                      = 0x00000002,
         Clothing                   = 0x00000004,
         Jewelry                    = 0x00000008,
