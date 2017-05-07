@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-07
+[Ripley]
+* First pass on weenie code building.
+
 ### 2017-05-06
 [Og II]
 * I fixed both admin functions, ci and create.   I added some logic to leave, NPC's, portals and creatures with the same code as prior to my fix.
