@@ -5,6 +5,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("base_ace_object")]
+    [DbGetList("base_ace_object", 15, "typeId")]
     public class BaseAceObject
     {
         [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
