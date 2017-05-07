@@ -25,7 +25,7 @@ namespace ACE.Database
             GetPortalObjectsByAceObjectId,
             GetItemsByTypeId,
             GetSubPortalDataByWeenie
-		}
+        }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
 
