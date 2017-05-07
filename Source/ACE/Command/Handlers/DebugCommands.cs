@@ -361,14 +361,14 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.
+        /// Debug command to spawn a monster in front of the player and save it as a static spawn if the static option is specified.
         /// </summary>
-        [CommandHandler("createcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.",
+        [CommandHandler("createmonster", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Debug command to spawn a monster in front of the player and save it as a static spawn if the static option is specified.",
             "weenieClassId")]
-        public static void CreateStaticCreature(Session session, params string[] parameters)
+        public static void CreateStaticMonster(Session session, params string[] parameters)
         {
-            Creature newC = null;
+            Monster newC = null;
 
             if (!(parameters?.Length > 0))
             {
@@ -381,7 +381,7 @@ namespace ACE.Command.Handlers
                 if (parameters?.Length > 1)
                 {
                     uint weenie = Convert.ToUInt32(parameters[1]);
-                    newC = MonsterFactory.SpawnCreature(weenie, true, session.Player.Location.InFrontOf(2.0f));
+                    newC = MonsterFactory.SpawnMonster(weenie, true, session.Player.Location.InFrontOf(2.0f));
                 }
                 else
                 {
@@ -393,7 +393,7 @@ namespace ACE.Command.Handlers
             else
             {
                 uint weenie = Convert.ToUInt32(parameters[0]);
-                newC = MonsterFactory.SpawnCreature(weenie, false, session.Player.Location.InFrontOf(2.0f));
+                newC = MonsterFactory.SpawnMonster(weenie, false, session.Player.Location.InFrontOf(2.0f));
             }
 
             if (newC != null)

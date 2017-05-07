@@ -19,6 +19,8 @@
 
         YourDeath                           = 0x01AC, // You have died, as a player.
         DeathNotice                         = 0x01AD, // Something (player/creature) died.
+        InflictMeleeDamage                  = 0x01B1,
+        ReceiveMeleeDamage                  = 0x01B2,
 
         UpdateHealth                        = 0x01C0,
         QueryAgeResponse                    = 0x01C3,

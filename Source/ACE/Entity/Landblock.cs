@@ -16,6 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
+using ACE.StateMachines;
 
 namespace ACE.Entity
 {
@@ -86,7 +87,7 @@ namespace ACE.Entity
             var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             foreach (var c in creatures)
             {
-                Creature cwo = new Creature(c);
+                Monster cwo = new Monster(c);
                 worldObjects.Add(cwo.Guid, cwo);
             }
 
@@ -94,7 +95,7 @@ namespace ACE.Entity
             var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
             foreach (var cg in creatureGenerators)
             {
-                List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
+                List<Monster> creatureList = MonsterFactory.SpawnMonstersFromGenerator(cg);
                 foreach (var c in creatureList)
                 {
                     worldObjects.Add(c.Guid, c);
@@ -428,6 +429,7 @@ namespace ACE.Entity
 
                 List<WorldObject> allworldobj = null;
                 List<Player> allplayers = null;
+                List<Monster> aliveMonsters = null;
                 List<WorldObject> movedObjects = null;
                 List<WorldObject> despawnObjects = null;
                 List<Creature> deadCreatures = null;
@@ -445,6 +447,9 @@ namespace ACE.Entity
 
                 deadCreatures = allworldobj.OfType<Creature>().ToList();
                 deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
+
+                aliveMonsters = allworldobj.OfType<Monster>().ToList();
+                aliveMonsters = aliveMonsters.Where(x => x.IsAlive == true).ToList();
 
                 // flag them as updated now in order to reduce chance of missing an update
                 // this is only for moving objects across landblocks.
@@ -523,6 +528,13 @@ namespace ACE.Entity
                         this.RemoveWorldObject(mo.Guid, false);
                         LandblockManager.AddObject(mo);
                     }
+                });
+
+                // handle monster actions
+                // Parallel.ForEach(aliveMonsters, amo =>
+                aliveMonsters.ForEach(amo =>
+                {
+                    HandleMonsterLogic(amo);
                 });
 
                 // despawn objects
@@ -831,6 +843,34 @@ namespace ACE.Entity
                         }
                         break;
                     }
+            }
+        }
+
+        private void HandleMonsterLogic(Monster mo)
+        {
+            switch (mo.CombatCurrentState)
+            {
+                case (int)MonsterStates.AttackPlayer:
+                    mo.OnAttackPlayer();
+                    break;
+                case (int)MonsterStates.EnterCombat:
+                    break;
+                case (int)MonsterStates.ExitCombat:
+                    break;
+                case (int)MonsterStates.Idle:
+                    var nearPlayers = GetWorldObjectsInRange(mo, 80.0f, false).OfType<Player>().ToList();
+                    mo.OnIdle(nearPlayers);
+                    break;
+                case (int)MonsterStates.MoveToPlayer:
+                    mo.OnMoveToPlayer();
+                    break;
+                case (int)MonsterStates.ReturnToSpawn:
+                    mo.OnReturnToSpawn();
+                    break;
+                case (int)MonsterStates.SensePlayer:
+                    break;
+                case (int)MonsterStates.UnderAttack:
+                    break;
             }
         }
 

@@ -12,10 +12,10 @@ namespace ACE.Factories
     public class MonsterFactory
     {
         /// <summary>
-        /// Create a new creature at the specified position
+        /// Create a new monster at the specified position
         /// </summary>
-        /// <param name="saveAsStatic">If set to true, it saves the spawned creature in the DB as a static spawn</param>
-        public static Creature SpawnCreature(uint weenieClassId, bool saveAsStatic, Position position)
+        /// <param name="saveAsStatic">If set to true, it saves the spawned monster in the DB as a static spawn</param>
+        public static Monster SpawnMonster(uint weenieClassId, bool saveAsStatic, Position position)
         {
             AceCreatureObject aco = DatabaseManager.World.GetCreatureDataByWeenie(weenieClassId);
             if (aco == null)
@@ -34,7 +34,7 @@ namespace ACE.Factories
             acsl.QZ = position.RotationZ;
             acsl.CreatureData = aco;
 
-            Creature newCreature = new Creature(acsl);
+            Monster newCreature = new Monster(acsl);
 
             if (saveAsStatic) {
                 bool success = DatabaseManager.World.InsertStaticCreatureLocation(acsl);
@@ -46,11 +46,11 @@ namespace ACE.Factories
         }
 
         /// <summary>
-        /// Create a number of new creatures at the specified position as defined by the generator
+        /// Create a number of new monsters at the specified position as defined by the generator
         /// </summary>
-        public static List<Creature> SpawnCreaturesFromGenerator(AceCreatureGeneratorLocation acgl)
+        public static List<Monster> SpawnMonstersFromGenerator(AceCreatureGeneratorLocation acgl)
         {
-            List<Creature> creatureList = new List<Creature>();
+            List<Monster> creatureList = new List<Monster>();
             Random rnd = new Random();
 
             // Try to spawn #quantity amount of cratures
@@ -71,7 +71,7 @@ namespace ACE.Factories
 
                 if (wcid != 0)
                 {
-                    Creature c = SpawnCreature(wcid, false, acgl.Position);
+                    Monster c = SpawnMonster(wcid, false, acgl.Position);
                     if (c != null)
                         creatureList.Add(c);
                 }                    

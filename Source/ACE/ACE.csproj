@@ -220,7 +220,9 @@
     <Compile Include="Network\GameEvent\Events\GameEventFriendsListUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventIdentifyObjectResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventInflictMeleeDamage.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPurgeAllEnchantments.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventReceiveMeleeDamage.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventYourDeath.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUseDone.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPingResponse.cs" />
@@ -315,6 +317,10 @@
     <Compile Include="Network\SessionConnectionData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Entity\GameData.cs" />
+    <Compile Include="StateMachines\Enum\MonsterStates.cs" />
+    <Compile Include="StateMachines\Rule.cs" />
+    <Compile Include="StateMachines\Rules\MonsterRules.cs" />
+    <Compile Include="StateMachines\StateMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

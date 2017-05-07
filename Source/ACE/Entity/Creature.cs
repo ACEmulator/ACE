@@ -75,7 +75,7 @@ namespace ACE.Entity
             SetAbilities(aceC.CreatureData);
         }
 
-        private void SetObjectData(AceCreatureObject aco)
+        protected void SetObjectData(AceCreatureObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = aco.MotionTableId;
@@ -106,7 +106,7 @@ namespace ACE.Entity
             ModelData.PaletteGuid = aco.PaletteId;
         }
 
-        private void SetAbilities(AceCreatureObject aco)
+        protected void SetAbilities(AceCreatureObject aco)
         {
             Strength = new CreatureAbility(aco, Enum.Ability.Strength);
             Endurance = new CreatureAbility(aco, Enum.Ability.Endurance);

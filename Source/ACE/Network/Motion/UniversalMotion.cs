@@ -45,6 +45,14 @@ namespace ACE.Network.Motion
             Position = moveToObject.PhysicsData.Position;
             MovementTypes = MovementTypes.MoveToObject;
         }
+
+        public UniversalMotion(MotionStance stance, Position moveToPosition)
+        {
+            Stance = stance;
+            Position = moveToPosition;
+            MovementTypes = MovementTypes.MoveToPosition;
+        }
+
         public UniversalMotion(MotionStance stance, MotionItem motionItem)
         {
             Stance = stance;
