@@ -29,7 +29,7 @@ namespace ACE.Entity.Enum
         FreePkStatus           = 0x00200000,
         ImmuteCellRestrictions = 0x00400000,
         RequiresPackSlot       = 0x00800000,
-        Ratained               = 0x01000000,
+        Retained               = 0x01000000,
         PkLiteStatus           = 0x02000000,
         AdditionFlags          = 0x04000000,
         BindStone              = 0x08000000,
