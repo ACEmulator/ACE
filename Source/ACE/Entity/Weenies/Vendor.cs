@@ -1,18 +1,20 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using System;
 
 namespace ACE.Entity
 {
-    public class DebugObject : CollidableObject
+    public class Vendor : UsableObject
     {
-        public DebugObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+        public Vendor(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
         }
 
-        public DebugObject(ObjectGuid guid,  BaseAceObject baseAceObject)
+        public Vendor(ObjectGuid guid, BaseAceObject baseAceObject)
             : base((ObjectType)baseAceObject.TypeId, guid)
         {
             this.Name = baseAceObject.Name;
@@ -60,32 +62,11 @@ namespace ACE.Entity
             this.GameData.Value = baseAceObject.Value;
             this.GameData.ItemCapacity = baseAceObject.ItemsCapacity;
 
-            // Put is in for Ripley - these are the fields I want to write that he was concerned with.
-            // if ((this.Type & (ObjectType.Creature | ObjectType.LifeStone | ObjectType.Portal)) == 0)
-            // {
-            //    // because this comes from PCAP data - on create we are not animating.
-            //    this.PhysicsData.AnimationFrame = 0x65;
-            //
-            //    // I think this is wrong - we need the weenieClassId from weenie_class   Leaving it for now
-            //    // TODO: use view to return the correct value.
-            //    this.WeenieClassid = baseAceObject.AceObjectId;
-            //
-            //    // Container will always be 0 or a value and we should write it.
-            //    // Not sure if the align packs us out with 0's may be redundant Og II
-            //    this.WeenieFlags |= WeenieHeaderFlag.Container;
-            //
-            //    // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
-            //    this.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
-            //    this.GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
-            // }
-            // if (this.PhysicsData.AnimationFrame != 0)
-            // {
-            //    this.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
-            // }
+            if (this.PhysicsData.AnimationFrame != 0)
+                this.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
             this.PhysicsData.DefaultScript = baseAceObject.DefaultScript;
             this.PhysicsData.DefaultScriptIntensity = baseAceObject.DefaultScriptIntensity;
             this.PhysicsData.Elastcity = baseAceObject.Elasticity;
-            // this.PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
             this.PhysicsData.Friction = baseAceObject.Friction;
 
             baseAceObject.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
@@ -94,7 +75,7 @@ namespace ACE.Entity
             this.ModelData.PaletteGuid = baseAceObject.PaletteId;
         }
 
-        public DebugObject(AceObject aceO)
+        public Vendor(AceObject aceO)
             : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
             this.Location = aceO.Position;
@@ -103,9 +84,14 @@ namespace ACE.Entity
             this.GameData.Type = aceO.WeenieClassId;
         }
 
-        public override void OnCollide(Player player)
+        public override void OnUse(Player player)
         {
             // TODO: Implement
+
+            string serverMessage = "Generic Vendor OnUse for ID " + WeenieClassid + " not yet implemented!";
+            var useFailMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+            player.Session.Network.EnqueueSend(useFailMessage, sendUseDoneEvent);
         }
     }
 }

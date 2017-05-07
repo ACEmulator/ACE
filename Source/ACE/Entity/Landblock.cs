@@ -814,28 +814,338 @@ namespace ACE.Entity
 
                             if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
                                 (obj as Lifestone).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.BindStone) != 0)
+                            //    (obj as Bindstone).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.PkSwitch) != 0)
+                            //    (obj as PKSwitch).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.NpkSwitch) != 0)
+                            //    (obj as NPKSwitch).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.LockPick) != 0)
+                            //    (obj as Lockpick).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Food) != 0)
+                            //    (obj as Food).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Healer) != 0)
+                            //    (obj as Healer).OnUse(player);
+                            // else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Book) != 0)
+                            //    (obj as Book).OnUse(player);
                             else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
                                 // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
                                 (obj as Portal).OnCollide(player);
                             else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
                                 (obj as Door).OnUse(player);
-
-                            // switch (obj.Type)
+                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Vendor) != 0)
+                                (obj as Vendor).OnUse(player);
+                            // else if (obj.Type == ObjectType.Misc)
                             // {
-                            //    case Enum.ObjectType.Portal:
-                            //        {
-                            //            // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                            //
-                            //            (obj as Portal).OnCollide(player);
-                            //
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as SpecificMisc).OnUse(player);
                             //            break;
-                            //        }
-                            //    case Enum.ObjectType.LifeStone:
-                            //        {
-                            //            (obj as Lifestone).OnUse(player);
+                            //        default:
+                            //            (obj as GenericMisc).OnUse(player);
                             //            break;
-                            //        }
+                            //    }
                             // }
+                            // else if (obj.Type == ObjectType.Container)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.None)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Writable)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            else if (obj.Type == ObjectType.Creature)
+                            {
+                                switch (obj.WeenieClassid)
+                                {
+                                    case 5772:
+                                    case 5773:
+                                    case 5774:
+                                    case 5775:
+                                    case 5776:
+                                    case 5777:
+                                        (obj as TownCrier).OnUse(player);
+                                        break;
+                                    case 6873:
+                                        (obj as AyanBaqurDrunkenScholar).OnUse(player);
+                                        break;
+                                    case 29317:
+                                        (obj as AcademyGuardExitYaraq).OnUse(player);
+                                        break;
+                                    case 29324:
+                                        (obj as AcademyGuardExitHoltburg).OnUse(player);
+                                        break;
+                                    case 29325:
+                                        (obj as AcademyGuardExitSanamar).OnUse(player);
+                                        break;
+                                    case 29326:
+                                        (obj as AcademyGuardExitShoushi).OnUse(player);
+                                        break;
+                                    case 30991:
+                                        (obj as AcademyGreeter).OnUse(player);
+                                        break;
+                                    default:
+                                        // (obj as Creature).OnUse(player);
+                                        string serverMessage = "Generic Creature OnUse for ID " + obj.WeenieClassid + " not yet implemented!";
+                                        var useFailMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                        player.Session.Network.EnqueueSend(useFailMessage, sendUseDoneEvent);
+                                        break;
+                                }
+                            }
+                            // else if (obj.Type == ObjectType.Armor)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.MeleeWeapon)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Clothing)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Jewelry)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Food)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Money)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.MissileWeapon)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Gem)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.SpellComponents)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Key)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.Caster)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.ManaStone)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.PromissoryNote)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.CraftAlchemyBase)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.CraftAlchemyIntermediate)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.CraftCookingBase)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.CraftFletchingBase)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            // else if (obj.Type == ObjectType.CraftFletchingIntermediate)
+                            // {
+                            //    switch (obj.WeenieClassid)
+                            //    {
+                            //        case 1111:
+                            //            (obj as Specific).OnUse(player);
+                            //            break;
+                            //        default:
+                            //            (obj as Generic).OnUse(player);
+                            //            break;
+                            //    }
+                            // }
+                            else
+                            {
+                                string serverMessage = "OnUse for ID " + obj.WeenieClassid + " not yet implemented!";
+                                var useFailMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                                player.Session.Network.EnqueueSend(useFailMessage, sendUseDoneEvent);
+                                break;
+                            }
                         }
                         break;
                     }

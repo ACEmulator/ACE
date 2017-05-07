@@ -54,6 +54,9 @@
     </CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
@@ -102,11 +105,17 @@
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\Creature.cs" />
     <Compile Include="Entity\DebugObject.cs" />
-    <Compile Include="Entity\Door.cs" />
+    <Compile Include="Entity\Weenies\Door.cs" />
     <Compile Include="Entity\Events\BroadcastEventArgs.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
-    <Compile Include="Entity\Lifestone.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\AcademyGuardExitSanamar.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\AcademyGuardExitYaraq.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\AcademyGuardExitHoltburg.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\AcademyGuardExitShoushi.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\AcademyGreeter.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\AyanBaqurDrunkenScholar.cs" />
+    <Compile Include="Entity\Weenies\Lifestone.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Entity\MovementData.cs" />
     <Compile Include="Entity\Events\SpellCastArgs.cs" />
@@ -118,10 +127,13 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
-    <Compile Include="Entity\Portal.cs" />
+    <Compile Include="Entity\Weenies\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
-    <Compile Include="Entity\SummonedPortal.cs" />
+    <Compile Include="Entity\Weenies\Portals\SummonedPortal.cs" />
     <Compile Include="Entity\UsableObject.cs" />
+    <Compile Include="Entity\Weenies\Vendor.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\TownCrier.cs" />
+    <Compile Include="Entity\Weenies\Items\Creature\TownCrierAluvianFemale.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GenericObjectFactory.cs" />
@@ -363,10 +375,41 @@
       <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Entity\Weenies\Books\" />
+    <Folder Include="Entity\Weenies\Items\Armor\" />
+    <Folder Include="Entity\Weenies\Items\Casters\" />
+    <Folder Include="Entity\Weenies\Items\Clothing\" />
+    <Folder Include="Entity\Weenies\Items\Container\" />
+    <Folder Include="Entity\Weenies\Items\Crafting\AlchemyBase\" />
+    <Folder Include="Entity\Weenies\Items\Crafting\AlchemyIntermediate\" />
+    <Folder Include="Entity\Weenies\Items\Crafting\CookingBase\" />
+    <Folder Include="Entity\Weenies\Items\Crafting\FletchingBase\" />
+    <Folder Include="Entity\Weenies\Items\Crafting\FletchingIntermediate\" />
+    <Folder Include="Entity\Weenies\Items\Food\" />
+    <Folder Include="Entity\Weenies\Items\Gems\" />
+    <Folder Include="Entity\Weenies\Items\Jewelry\" />
+    <Folder Include="Entity\Weenies\Items\Keys\" />
+    <Folder Include="Entity\Weenies\Items\ManaStones\" />
+    <Folder Include="Entity\Weenies\Items\MeleeWeapons\" />
+    <Folder Include="Entity\Weenies\Items\Misc\" />
+    <Folder Include="Entity\Weenies\Items\MissileWeapons\" />
+    <Folder Include="Entity\Weenies\Items\Money\" />
+    <Folder Include="Entity\Weenies\Items\PromissoryNotes\" />
+    <Folder Include="Entity\Weenies\Items\SpellComponents\" />
+    <Folder Include="Entity\Weenies\Items\Tinkering\Materials\" />
+    <Folder Include="Entity\Weenies\Items\Tinkering\Tools\" />
+    <Folder Include="Entity\Weenies\Items\Undef\" />
+    <Folder Include="Entity\Weenies\Items\Writable\" />
+    <Folder Include="Entity\Weenies\Vendors\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>copy "$(ProjectDir)config.json" "$(TargetDir)config.json"</PreBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\StyleCop.MSBuild.5.0.0-beta01\build\StyleCop.MSBuild.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>
