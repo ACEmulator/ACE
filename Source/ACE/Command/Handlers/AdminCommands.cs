@@ -647,7 +647,7 @@ namespace ACE.Command.Handlers
                 var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
                 return;
-                
+
             }
             // Error parsing the text input, from parameter[0]
             var positionErrorMessage = new GameMessageSystemChat($"Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
@@ -1027,6 +1027,28 @@ namespace ACE.Command.Handlers
             session.Player.TrackObject(loot);
         }
 
+        // ci wclassid (number)
+        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an random object in your inventory.", "typeId (number)")]
+        public static void HandleCIRandom(Session session, params string[] parameters)
+        {
+            uint typeId;
+            try
+            {
+                typeId = Convert.ToUInt32(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
+                return;
+            }
+            var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
+            if (loot != null)
+            {
+                LootGenerationFactory.AddToContainer(loot, session.Player);
+                session.Player.TrackObject(loot);
+            }
+        }
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
         public static void HandleCM(Session session, params string[] parameters)
