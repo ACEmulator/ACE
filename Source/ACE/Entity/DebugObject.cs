@@ -61,31 +61,29 @@ namespace ACE.Entity
             this.GameData.ItemCapacity = baseAceObject.ItemsCapacity;
 
             // Put is in for Ripley - these are the fields I want to write that he was concerned with.
-            if ((this.Type & (ObjectType.Creature | ObjectType.LifeStone | ObjectType.Portal)) == 0)
-            {
-                // because this comes from PCAP data - on create we are not animating.
-                this.PhysicsData.AnimationFrame = 0x65;
-
-                // I think this is wrong - we need the weenieClassId from weenie_class   Leaving it for now
-                // TODO: use view to return the correct value.
-                this.WeenieClassid = baseAceObject.AceObjectId;
-
-                // Container will always be 0 or a value and we should write it.
-                // Not sure if the align packs us out with 0's may be redundant Og II
-                this.WeenieFlags |= WeenieHeaderFlag.Container;
-
-                // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
-                this.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
-                this.GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
-            }
+            // if ((this.Type & (ObjectType.Creature | ObjectType.LifeStone | ObjectType.Portal)) == 0)
+            // {
+            //    // because this comes from PCAP data - on create we are not animating.
+            //    this.PhysicsData.AnimationFrame = 0x65;
+            //
+            //    // I think this is wrong - we need the weenieClassId from weenie_class   Leaving it for now
+            //    // TODO: use view to return the correct value.
+            //    // this.WeenieClassid = baseAceObject.AceObjectId;
+            //
+            //    // Container will always be 0 or a value and we should write it.
+            //    // Not sure if the align packs us out with 0's may be redundant Og II
+            //    this.WeenieFlags |= WeenieHeaderFlag.Container;
+            //
+            //    // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
+            //    this.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
+            //    this.GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
+            // }
             if (this.PhysicsData.AnimationFrame != 0)
-            {
                 this.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
-            }
             this.PhysicsData.DefaultScript = baseAceObject.DefaultScript;
             this.PhysicsData.DefaultScriptIntensity = baseAceObject.DefaultScriptIntensity;
             this.PhysicsData.Elastcity = baseAceObject.Elasticity;
-            this.PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
+            // this.PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
             this.PhysicsData.Friction = baseAceObject.Friction;
 
             baseAceObject.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
