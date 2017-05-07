@@ -1,7 +1,15 @@
+# ACEmulator Change Log
+
 ### 2017-05-06
 [Og II]
 * I fixed both admin functions, ci and create.   I added some logic to leave, NPC's, portals and creatures with the same code as prior to my fix.
 * Added Admin command cirand <typeId> to allow you to fully test and exercise the test ci command.
+
+### 2017-05-05
+[OptimShi]
+* Added caching to all portal/cell.dat items.
+* Added EnvCell decoding from the cell.dat (dungeon cells/indoor locations)
+* Changed the cell-export console command to properly use datReader. If you had used this command previous, your exported files are incorrect.
 
 ### 2017-05-03
 [Jyrus]
