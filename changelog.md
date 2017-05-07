@@ -1,3 +1,11 @@
+# ACEmulator Change Log
+
+### 2017-05-05
+[OptimShi]
+* Added caching to all portal/cell.dat items.
+* Added EnvCell decoding from the cell.dat (dungeon cells/indoor locations)
+* Changed the cell-export console command to properly use datReader. If you had used this command previous, your exported files are incorrect.
+
 ### 2017-05-03
 [Jyrus]
 * Changed the structure of the table that contains the Portal Destinations to include other portal properties
