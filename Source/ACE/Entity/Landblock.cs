@@ -663,8 +663,8 @@ namespace ACE.Entity
                                     new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
 
                                 // Add to the inventory list.
-                                aPlayer.AddToInventory(inventoryItem);
                                 LandblockManager.RemoveObject(inventoryItem);
+                                aPlayer.AddToInventory(inventoryItem);
 
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,

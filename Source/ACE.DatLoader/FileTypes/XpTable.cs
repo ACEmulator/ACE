@@ -13,11 +13,14 @@ namespace ACE.DatLoader.FileTypes
         public ExperienceExpenditureChart SpecializedSkillXpChart;
         public ExperienceExpenditureChart TrainedSkillXpChart;
 
-        private static XpTable instance;
-
         public static XpTable ReadFromDat()
         {
-            if (instance == null) // We'll store the XP data into the instance the first time it's loaded. No need to read it multiple times.
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000018))
+            {
+                return (XpTable)DatManager.PortalDat.FileCache[0x0E000018];
+            }
+            else
             {
                 DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000018);
                 XpTable xp = new XpTable();
@@ -64,9 +67,11 @@ namespace ACE.DatLoader.FileTypes
                 }
 
                 xp.LevelingXpChart = levelingXpChart;
-                instance = xp;
+
+                // Store this object in the FileCache
+                DatManager.PortalDat.FileCache[0x0E000018] = xp;
+                return xp;
             }
-            return instance;
         }
 
         /// <summary>

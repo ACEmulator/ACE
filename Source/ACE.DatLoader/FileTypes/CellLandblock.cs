@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 /// <summary>
 /// Very special thanks to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
@@ -11,9 +8,6 @@ namespace ACE.DatLoader.FileTypes
 {
     public class CellLandblock
     {
-        // TODO - Come up with a solution to cache this info. 
-        // With monsters and players running around, not to mention projectiles, it will probably hit the filesystem too often.
-
         /// <summary>
         /// A landblock is divided into 8 x 8 tiles, which means 9 x 9 vertices reporesenting those tiles. 
         /// (Draw a grid of 9x9 dots; connect those dots to form squares; you'll have 8x8 squares)
@@ -59,30 +53,41 @@ namespace ACE.DatLoader.FileTypes
             // The file index is CELL + 0xFFFF. e.g. a cell of 1234, the file index would be 0x1234FFFF.
             uint landblockFileIndex = (landblockId << 16) + 0xFFFF;
 
-            if (DatManager.CellDat.AllFiles.ContainsKey(landblockFileIndex))
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.CellDat.FileCache.ContainsKey(landblockFileIndex))
             {
-                DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockFileIndex);
-                uint cellId = datReader.ReadUInt32();
-
-                uint hasObjects = datReader.ReadUInt32();
-                if (hasObjects == 1)
-                    c.HasObjects = true;
-
-                // Read in the terrain. 9x9 so 81 records.
-                for (int i = 0; i < 81; i++)
-                {
-                    uint terrain = datReader.ReadUInt16();
-                    c.Terrain.Add(terrain);
-                }
-                // Read in the height. 9x9 so 81 records
-                for (int i = 0; i < 81; i++)
-                {
-                    ushort height = datReader.ReadByte();
-                    c.Height.Add(height);
-                }
+                return (CellLandblock)DatManager.CellDat.FileCache[landblockFileIndex];
             }
+            else
+            {
+                if (DatManager.CellDat.AllFiles.ContainsKey(landblockFileIndex))
+                {
+                    DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockFileIndex);
+                    uint cellId = datReader.ReadUInt32();
 
-            return c;
+                    uint hasObjects = datReader.ReadUInt32();
+                    if (hasObjects == 1)
+                        c.HasObjects = true;
+
+                    // Read in the terrain. 9x9 so 81 records.
+                    for (int i = 0; i < 81; i++)
+                    {
+                        uint terrain = datReader.ReadUInt16();
+                        c.Terrain.Add(terrain);
+                    }
+                    // Read in the height. 9x9 so 81 records
+                    for (int i = 0; i < 81; i++)
+                    {
+                        ushort height = datReader.ReadByte();
+                        c.Height.Add(height);
+                    }
+                }
+
+                // Store this object in the FileCache
+                DatManager.CellDat.FileCache[landblockFileIndex] = c;
+
+                return c;
+            }
         }
 
         /// <summary>

@@ -13,6 +13,9 @@ namespace ACE.DatLoader
 
         public Dictionary<uint, DatFile> AllFiles { get; private set; }
 
+        // So we can cache the read files. The read methods in the FileTypes will handle the caching and casting.
+        public Dictionary<uint, object> FileCache { get; private set; } = new Dictionary<uint, object>();
+
         public DatDatabaseType DatType { get; private set; }
 
         public string FilePath { get; private set; }

@@ -22,7 +22,8 @@ namespace ACE.Database
             InsertCreatureStaticLocation,
             GetCreatureGeneratorByLandblock,
             GetCreatureGeneratorData,
-            GetPortalObjectsByAceObjectId
+            GetPortalObjectsByAceObjectId,
+            GetItemsByTypeId
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -44,6 +45,21 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
             ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(BaseAceObject), ConstructedStatementType.GetList);
+        }
+
+        public BaseAceObject GetRandomBaseAceObjectByTypeId(uint typeId)
+        {
+            // TODO: Og II - pick up here
+            var criteria = new Dictionary<string, object> { { "typeId", typeId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, BaseAceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
+            if (objects.Count > 0)
+            {
+                var rnd = new Random();
+                var r = rnd.Next(objects.Count);
+                return objects[r];
+            }
+            return null;
         }
 
         public List<TeleportLocation> GetLocations()
