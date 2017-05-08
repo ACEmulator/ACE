@@ -8,6 +8,7 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
 using ACE.StateMachines.Rules;
 using ACE.StateMachines;
+using ACE.StateMachines.Enum;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -66,12 +67,17 @@ namespace ACE.Entity
         /// <summary>
         /// Track state of creature if their current action is blocked.   Either until they are no longer blocked or the action is abandoned.
         /// </summary>
-        public StateMachine Statemachine = new StateMachine();
+        private readonly StateMachine movementStateMachine = new StateMachine();
+
+        public MovementStates CreatureMovementStates
+        { get { return (MovementStates)movementStateMachine.CurrentState; }
+          set { movementStateMachine.ChangeState((int)value); }
+        }
 
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
-            Statemachine.Initialize(MovementRules.GetRules(), MovementRules.GetInitState());
+            this.movementStateMachine.Initialize(MovementRules.GetRules(), MovementRules.GetInitState());
         }
 
         public Creature(AceCreatureStaticLocation aceC)

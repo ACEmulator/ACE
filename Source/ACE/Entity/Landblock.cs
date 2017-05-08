@@ -22,6 +22,8 @@ using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
+    using System.Diagnostics.Eventing.Reader;
+
     /// <summary>
     /// the gist of a landblock is that, generally, everything on it publishes
     /// to and subscribes to everything else in the landblock.  x/y in an outdoor
@@ -304,6 +306,45 @@ namespace ACE.Entity
                 }
             }
             return allworldobj;
+        }
+        /// <summary>
+        /// This is going to find a single object by guid and search both the current landblock and all adjacent landblocks.
+        /// If more than one item is found - this should not happen, it is going to return a null and punt. Og II
+        /// </summary>
+        /// <param name="objectGuid"></param>
+        /// <returns></returns>
+        public WorldObject GetWorldObjectByGuid(ObjectGuid objectGuid)
+        {
+            var objectList = GetWorldObjectsByGuid(objectGuid, true);
+
+            // if we get anything other than 1 punt.
+            if (objectList != null && objectList.Count == 1) return objectList[0];
+            return null;
+        }
+
+        /// <summary>
+        /// Check to see if we are close enough to interact with the target object.  If we are not, then save off the action, return false
+        /// if we pass the range check return true. We are "go" for action.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="targetWorldObject"></param>
+        /// <param name="action"></param>
+        /// <param name="movementType"></param>
+        /// <returns></returns>
+        public bool InRangeForAction(Player player, WorldObject targetWorldObject, QueuedGameAction action, MovementTypes movementType)
+        {
+            var csetup = SetupModel.ReadFromDat(targetWorldObject.PhysicsData.CSetup);
+            var arrivedRadius = (float)Math.Pow((targetWorldObject.GameData.UseRadius + csetup.Radius + 1.5), 2);
+
+            // are we close enough?   If so, our work here is done.
+            if ((player.PhysicsData.Position.SquaredDistanceTo(targetWorldObject.PhysicsData.Position) <= arrivedRadius)) return true;
+
+            // Ok, not in range.   Save off the action for later, and start them on their way.
+            player.MoveToPosition = targetWorldObject.PhysicsData.Position;
+            player.ArrivedRadiusSquared = arrivedRadius;
+            player.BlockedGameAction = action;
+            player.OnAutonomousMove(targetWorldObject, movementType);
+            return false;
         }
 
         public WorldObject GetWorldObject(ObjectGuid objectId)
@@ -629,57 +670,20 @@ namespace ACE.Entity
                     {
                         var playerId = new ObjectGuid(action.ObjectId);
                         var inventoryId = new ObjectGuid(action.SecondaryObjectId);
+
+                        // Has to be a player so need to check before I make the cast.
+                        // If he is not a player, something is bad wrong. Og II
                         if (playerId.IsPlayer())
-                        {
-                            Player aPlayer = null;
-                            WorldObject inventoryItem = null;
+                           {
+                                var aPlayer = (Player)GetWorldObjectByGuid(playerId);
+                                var inventoryItem = GetWorldObjectByGuid(inventoryId);
 
-                            if (worldObjects.ContainsKey(playerId) && worldObjects.ContainsKey(inventoryId))
-                            {
-                                aPlayer = (Player)worldObjects[playerId];
-                                inventoryItem = worldObjects[inventoryId];
-                            }
-
-                            if ((aPlayer != null) && (inventoryItem != null))
-                            {
-                                var csetup = SetupModel.ReadFromDat(inventoryItem.PhysicsData.CSetup);
-                                var arrivedRadius = (float)Math.Pow((inventoryItem.GameData.UseRadius + csetup.Radius + 1.5), 2);
-                                if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > arrivedRadius)
+                                if ((aPlayer != null) && (inventoryItem != null))
                                 {
-                                    aPlayer.BlockedGameAction = action;
-                                    aPlayer.MoveToPosition = inventoryItem.PhysicsData.Position;
-                                    aPlayer.ArrivedRadiusSquared = arrivedRadius;
-                                    var newMotion = new UniversalMotion(MotionStance.Standing, inventoryItem);
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer));
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateMotion(aPlayer, inventoryItem, newMotion, MovementTypes.MoveToObject));
-                                    aPlayer.Statemachine.ChangeState((int)MovementStates.Moving);
-                                    break;
+                                    if (!InRangeForAction(aPlayer, inventoryItem, action, MovementTypes.MoveToObject))
+                                        break;
+                                    aPlayer.NotifyOnAddToInventory(inventoryItem);
                                 }
-                                var motion = new UniversalMotion(MotionStance.Standing);
-                                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer),
-                                    new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                    new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
-
-                                // Add to the inventory list.
-                                LandblockManager.RemoveObject(inventoryItem);
-                                aPlayer.AddToInventory(inventoryItem);
-
-                                motion = new UniversalMotion(MotionStance.Standing);
-                                aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
-                                       PropertyInt.EncumbVal,
-                                       aPlayer.GameData.Burden),
-                                       new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
-                                       new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                       new GameMessageUpdateInstanceId(inventoryId, playerId),
-                                       new GameMessagePickupEvent(aPlayer.Session, inventoryItem));
-
-                                aPlayer.TrackObject(inventoryItem);
-                                // This may not be needed when we fix landblock update object -
-                                // TODO: Og II - check this later to see if it is still required.
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
-                            }
                         }
                         break;
                     }

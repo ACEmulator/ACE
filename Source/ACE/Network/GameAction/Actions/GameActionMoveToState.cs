@@ -92,15 +92,7 @@ namespace ACE.Network.GameAction.Actions
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
 
-            if (session.Player.Statemachine.CurrentState == (int)MovementStates.Moving)
-            {
-                session.Player.Statemachine.ChangeState((int)MovementStates.Abandoned);
-                session.Player.BlockedGameAction = null;
-                session.Player.MoveToPosition = null;
-                session.Player.ArrivedRadiusSquared = 0.0f;
-                session.Player.Statemachine.ChangeState((int)MovementStates.Idle);
-            }
-
+            if (session.Player.CreatureMovementStates == MovementStates.Moving) session.Player.UpdateAutonomousMove();
             session.Player.UpdatePosition(position);
         }
     }

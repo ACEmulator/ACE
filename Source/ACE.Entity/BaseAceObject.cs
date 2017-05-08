@@ -13,7 +13,9 @@ namespace ACE.Entity
 
         [DbField("name", (int)MySqlDbType.Text)]
         public string Name { get; set; }
-
+        /// <summary>
+        /// Object Type Flag (ObjectType) enum
+        /// </summary>
         [DbField("typeId", (int)MySqlDbType.UInt32)]
         public uint TypeId { get; set; }
 
@@ -31,7 +33,9 @@ namespace ACE.Entity
         /// </summary>
         [DbField("blipColor", (int)MySqlDbType.UByte)]
         public byte BlipColor { get; set; }
-
+        /// <summary>
+        /// Object Description Flags (Enum)
+        /// </summary>
         [DbField("bitField", (int)MySqlDbType.UInt32)]
         public uint WdescBitField { get; set; }
 

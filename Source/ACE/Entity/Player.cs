@@ -12,23 +12,24 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
-using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
-using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
 using ACE.Factories;
+using ACE.StateMachines.Enum;
+
+using log4net;
 
 namespace ACE.Entity
 {
+
     public sealed class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -165,6 +166,60 @@ namespace ACE.Entity
         {
             get { return character.TotalLogins; }
             set { character.TotalLogins = value; }
+        }
+
+        /// <summary>
+        /// This signature services MoveToObject and TurnToObject
+        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
+        /// </summary>
+        /// <param name="worldObject"></param>
+        /// <param name="movementType"></param>
+        /// <returns>MovementStates</returns>
+        public MovementStates OnAutonomousMove(WorldObject worldObject, MovementTypes movementType)
+        {
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, worldObject, new UniversalMotion(MotionStance.Standing, worldObject), MovementTypes.MoveToObject));
+            CreatureMovementStates = MovementStates.Moving;
+            return MovementStates.Moving;
+        }
+
+        public MovementStates UpdateAutonomousMove()
+        {
+            if (!(Math.Abs(PhysicsData.Position.SquaredDistanceTo(MoveToPosition)) <= ArrivedRadiusSquared)) return CreatureMovementStates;
+            CreatureMovementStates = MovementStates.Arrived;
+            AddToActionQueue(BlockedGameAction);
+            CreatureMovementStates = MovementStates.Idle;
+            // Clean up
+            BlockedGameAction = null;
+            MoveToPosition = null;
+            ArrivedRadiusSquared = 0.00f;
+            return MovementStates.Idle;
+        }
+
+        public void NotifyOnAddToInventory(WorldObject inventoryItem)
+        {
+            var motion = new UniversalMotion(MotionStance.Standing);
+            motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(this),
+                new GameMessageUpdateMotion(this, Session, motion),
+                new GameMessageSound(Guid, Sound.PickUpItem, (float)1.0));
+
+            // Add to the inventory list.
+            LandblockManager.RemoveObject(inventoryItem);
+            AddToInventory(inventoryItem);
+
+            motion = new UniversalMotion(MotionStance.Standing);
+            Session.Network.EnqueueSend(
+                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal, GameData.Burden),
+                    new GameMessagePutObjectInContainer(Session, this, inventoryItem.Guid),
+                    new GameMessageUpdateMotion(this, Session, motion),
+                    new GameMessageUpdateInstanceId(inventoryItem.Guid, this.Guid),
+                    new GameMessagePickupEvent(Session, inventoryItem));
+
+            TrackObject(inventoryItem);
+            // This may not be needed when we fix landblock update object -
+            // TODO: Og II - check this later to see if it is still required.
+            Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
         }
 
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar, CharacterPositionExtensions.StartingPosition(session.CharacterRequested.Guid.Low))

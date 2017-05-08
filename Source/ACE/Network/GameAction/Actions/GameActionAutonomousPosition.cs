@@ -17,16 +17,8 @@ namespace ACE.Network.GameAction
             message.Payload.ReadByte();
             session.Player.UpdatePosition(position);
 
-            if (session.Player.Statemachine.CurrentState != (int)MovementStates.Moving) return;
-            if ((Math.Abs(session.Player.PhysicsData.Position.SquaredDistanceTo(session.Player.MoveToPosition)) <= session.Player.ArrivedRadiusSquared))
-            {
-                session.Player.Statemachine.ChangeState((int)MovementStates.Arrived);
-                session.Player.AddToActionQueue(session.Player.BlockedGameAction);
-                session.Player.Statemachine.ChangeState((int)MovementStates.Idle);
-                session.Player.BlockedGameAction = null;
-                session.Player.MoveToPosition = null;
-                session.Player.ArrivedRadiusSquared = 0.00f;
-            }
+            if (session.Player.CreatureMovementStates != MovementStates.Moving) return;
+            session.Player.UpdateAutonomousMove();
         }
     }
 }
