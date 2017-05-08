@@ -98,6 +98,18 @@ namespace ACE.Entity
             SetAbilities(aceC.CreatureData);
         }
 
+        public void SetDestinationInformation(Position position, float arrivedRadiusSquared)
+        {
+            MoveToPosition = position;
+            ArrivedRadiusSquared = arrivedRadiusSquared;
+        }
+
+        public void ClearDestinationInformation()
+        {
+            MoveToPosition = null;
+            ArrivedRadiusSquared = 0.0f;
+        }
+
         private void SetObjectData(AceCreatureObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);

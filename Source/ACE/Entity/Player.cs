@@ -183,23 +183,30 @@ namespace ACE.Entity
             return MovementStates.Moving;
         }
 
-        public MovementStates UpdateAutonomousMove()
+        public void UpdateAutonomousMove()
         {
-            if (!(Math.Abs(PhysicsData.Position.SquaredDistanceTo(MoveToPosition)) <= ArrivedRadiusSquared)) return CreatureMovementStates;
-            CreatureMovementStates = MovementStates.Arrived;
-            AddToActionQueue(BlockedGameAction);
-            CreatureMovementStates = MovementStates.Idle;
-            // Clean up
-            BlockedGameAction = null;
-            MoveToPosition = null;
-            ArrivedRadiusSquared = 0.00f;
-            return MovementStates.Idle;
+            if ((Math.Abs(PhysicsData.Position.SquaredDistanceTo(MoveToPosition)) <= ArrivedRadiusSquared))
+            {
+                // We have arrived.
+                CreatureMovementStates = MovementStates.Arrived;
+                if (BlockedGameAction != null)
+                {
+                    AddToActionQueue(BlockedGameAction);
+                    BlockedGameAction = null;
+                }
+                // Clean up
+                ClearDestinationInformation();
+                CreatureMovementStates = MovementStates.Idle;
+                return;
+            }
+            return;
         }
 
         public void NotifyAndDropItem(ObjectGuid inventoryId)
         {
             var inventoryItem = GetInventoryItem(inventoryId);
-            if (inventoryItem == null) return;
+            if (inventoryItem == null)
+                return;
             RemoveFromInventory(inventoryId);
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal, GameData.Burden));
 
@@ -223,7 +230,7 @@ namespace ACE.Entity
             // This may not be needed when we fix landblock update object -
             // TODO: Og II - check this later to see if it is still required.
             Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
-            Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
+            // Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
         }
 
         public void NotifyAndAddToInventory(WorldObject inventoryItem)
@@ -235,7 +242,6 @@ namespace ACE.Entity
                 new GameMessageSound(Guid, Sound.PickUpItem, (float)1.0));
 
             // Add to the inventory list.
-            LandblockManager.RemoveObject(inventoryItem);
             AddToInventory(inventoryItem);
 
             motion = new UniversalMotion(MotionStance.Standing);
@@ -246,7 +252,7 @@ namespace ACE.Entity
                     new GameMessageUpdateInstanceId(inventoryItem.Guid, this.Guid),
                     new GameMessagePickupEvent(Session, inventoryItem));
 
-            TrackObject(inventoryItem);
+            // TrackObject(inventoryItem);
             // This may not be needed when we fix landblock update object -
             // TODO: Og II - check this later to see if it is still required.
             Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
@@ -1549,7 +1555,7 @@ namespace ACE.Entity
                 }
             }
 
-            if (sendUpdate & remove)
+            if (sendUpdate && remove)
             {
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
             }

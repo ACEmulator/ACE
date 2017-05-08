@@ -92,7 +92,8 @@ namespace ACE.Network.GameAction.Actions
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
 
-            if (session.Player.CreatureMovementStates == MovementStates.Moving) session.Player.UpdateAutonomousMove();
+            if (session.Player.CreatureMovementStates == MovementStates.Moving)
+                session.Player.UpdateAutonomousMove();
             session.Player.UpdatePosition(position);
         }
     }

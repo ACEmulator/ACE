@@ -9,16 +9,11 @@ using log4net;
 using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameAction;
-using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
-using ACE.StateMachines.Enum;
 using ACE.DatLoader.FileTypes;
-using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -249,7 +244,7 @@ namespace ACE.Entity
             // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
             // close enough.
             // if we are in a container - we need never broadcast a destroy - just remove from landblock above.
-            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null && wo.GameData.ContainerId == 0)
+            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
             {
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
@@ -281,7 +276,7 @@ namespace ACE.Entity
             return allworldobj;
         }
 
-        public List<WorldObject> GetWorldObjectsByGuid(ObjectGuid objectguid, bool neighbors)
+        private List<WorldObject> GetWorldObjectsByGuid(ObjectGuid objectguid, bool neighbors)
         {
             List<WorldObject> allworldobj = new List<WorldObject>();
             lock (objectCacheLocker)
@@ -314,38 +309,28 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="objectGuid"></param>
         /// <returns></returns>
-        public WorldObject GetWorldObjectByGuid(ObjectGuid objectGuid)
+        private WorldObject GetWorldObjectByGuid(ObjectGuid objectGuid)
         {
             var objectList = GetWorldObjectsByGuid(objectGuid, true);
 
             // if we get anything other than 1 punt.
-            if (objectList != null && objectList.Count == 1) return objectList[0];
+            if (objectList != null && objectList.Count == 1)
+                return objectList[0];
             return null;
         }
 
         /// <summary>
-        /// Check to see if we are close enough to interact with the target object.  If we are not, then save off the action, return false
-        /// if we pass the range check return true. We are "go" for action.
+        /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
         /// <param name="player"></param>
         /// <param name="targetWorldObject"></param>
-        /// <param name="action"></param>
-        /// <param name="movementType"></param>
+        /// <param name="arrivedRadiusSquared"></param>
         /// <returns></returns>
-        public bool InRangeForAction(Player player, WorldObject targetWorldObject, QueuedGameAction action, MovementTypes movementType)
+        public bool WithinUseRadius(Player player, WorldObject targetWorldObject, out float arrivedRadiusSquared)
         {
             var csetup = SetupModel.ReadFromDat(targetWorldObject.PhysicsData.CSetup);
-            var arrivedRadius = (float)Math.Pow((targetWorldObject.GameData.UseRadius + csetup.Radius + 1.5), 2);
-
-            // are we close enough?   If so, our work here is done.
-            if ((player.PhysicsData.Position.SquaredDistanceTo(targetWorldObject.PhysicsData.Position) <= arrivedRadius)) return true;
-
-            // Ok, not in range.   Save off the action for later, and start them on their way.
-            player.MoveToPosition = targetWorldObject.PhysicsData.Position;
-            player.ArrivedRadiusSquared = arrivedRadius;
-            player.BlockedGameAction = action;
-            player.OnAutonomousMove(targetWorldObject, movementType);
-            return false;
+            arrivedRadiusSquared = (float)Math.Pow((targetWorldObject.GameData.UseRadius + csetup.Radius + 1.5), 2);
+            return ((player.PhysicsData.Position.SquaredDistanceTo(targetWorldObject.PhysicsData.Position) <= arrivedRadiusSquared));
         }
 
         public WorldObject GetWorldObject(ObjectGuid objectId)
@@ -416,6 +401,9 @@ namespace ACE.Entity
                 case BroadcastAction.Delete:
                     {
                         players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+
+                        // If I am putting this in my inventory - you don't need to tell me about it.
+                        players.RemoveAll(p => p.Guid.Full == wo.GameData.ContainerId);
                         Parallel.ForEach(players, p => p.StopTrackingObject(wo, true));
                         break;
                     }
@@ -423,9 +411,9 @@ namespace ACE.Entity
                     {
                         // supresss updating if player is out of range of world object.= being updated or created
                         players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
+
                         // players never need an update of themselves
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
-
                         Parallel.ForEach(players, p => p.TrackObject(wo));
                         break;
                     }
@@ -675,16 +663,22 @@ namespace ACE.Entity
                         // Has to be a player so need to check before I make the cast.
                         // If he is not a player, something is bad wrong. Og II
                         if (playerId.IsPlayer())
-                           {
-                                var aPlayer = (Player)GetWorldObjectByGuid(playerId);
-                                var inventoryItem = GetWorldObjectByGuid(inventoryId);
+                        {
+                            var aPlayer = (Player)GetWorldObjectByGuid(playerId);
+                            var inventoryItem = GetWorldObjectByGuid(inventoryId);
 
-                                if ((aPlayer != null) && (inventoryItem != null))
-                                {
-                                    if (!InRangeForAction(aPlayer, inventoryItem, action, MovementTypes.MoveToObject))
-                                        break;
+                            if ((aPlayer != null) && (inventoryItem != null))
+                            {
+                                float arrivedRadiusSquared = 0.00f;
+                                if (WithinUseRadius(aPlayer, inventoryItem, out arrivedRadiusSquared))
                                     aPlayer.NotifyAndAddToInventory(inventoryItem);
+                                else
+                                {
+                                    aPlayer.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
+                                    aPlayer.BlockedGameAction = action;
+                                    aPlayer.OnAutonomousMove(inventoryItem, MovementTypes.MoveToObject);
                                 }
+                            }
                         }
                         break;
                     }
