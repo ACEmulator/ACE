@@ -196,7 +196,37 @@ namespace ACE.Entity
             return MovementStates.Idle;
         }
 
-        public void NotifyOnAddToInventory(WorldObject inventoryItem)
+        public void NotifyAndDropItem(ObjectGuid inventoryId)
+        {
+            var inventoryItem = GetInventoryItem(inventoryId);
+            if (inventoryItem == null) return;
+            RemoveFromInventory(inventoryId);
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal, GameData.Burden));
+
+            var motion = new UniversalMotion(MotionStance.Standing);
+            motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
+            var clearContainer = new ObjectGuid(0);
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, motion),
+                new GameMessageUpdateInstanceId(inventoryId, clearContainer));
+
+            motion = new UniversalMotion(MotionStance.Standing);
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, motion),
+                new GameMessagePutObjectIn3d(Session, this, inventoryId),
+                new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
+                new GameMessageUpdateInstanceId(inventoryId, clearContainer));
+
+            // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+            inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
+            LandblockManager.AddObject(inventoryItem);
+
+            // This may not be needed when we fix landblock update object -
+            // TODO: Og II - check this later to see if it is still required.
+            Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
+            Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
+        }
+
+        public void NotifyAndAddToInventory(WorldObject inventoryItem)
         {
             var motion = new UniversalMotion(MotionStance.Standing);
             motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;

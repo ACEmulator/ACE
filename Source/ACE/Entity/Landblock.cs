@@ -248,7 +248,8 @@ namespace ACE.Entity
             // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
             // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
             // close enough.
-            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
+            // if we are in a container - we need never broadcast a destroy - just remove from landblock above.
+            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null && wo.GameData.ContainerId == 0)
             {
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
@@ -682,7 +683,7 @@ namespace ACE.Entity
                                 {
                                     if (!InRangeForAction(aPlayer, inventoryItem, action, MovementTypes.MoveToObject))
                                         break;
-                                    aPlayer.NotifyOnAddToInventory(inventoryItem);
+                                    aPlayer.NotifyAndAddToInventory(inventoryItem);
                                 }
                         }
                         break;
@@ -690,56 +691,14 @@ namespace ACE.Entity
                 case GameActionType.DropItem:
                     {
                         var g = new ObjectGuid(action.ObjectId);
-                        // ReSharper disable once InconsistentlySynchronizedField
                         if (worldObjects.ContainsKey(g))
                         {
                             var playerId = new ObjectGuid(action.ObjectId);
                             var inventoryId = new ObjectGuid(action.SecondaryObjectId);
                             if (playerId.IsPlayer())
                             {
-                                Player aPlayer = null;
-                                WorldObject inventoryItem = null;
-
-                                if (worldObjects.ContainsKey(playerId))
-                                {
-                                    aPlayer = (Player)worldObjects[playerId];
-                                    inventoryItem = aPlayer.GetInventoryItem(inventoryId);
-                                    aPlayer.RemoveFromInventory(inventoryId);
-                                }
-
-                                if ((aPlayer != null) && (inventoryItem != null))
-                                {
-                                    var targetContainer = new ObjectGuid(0);
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessagePrivateUpdatePropertyInt(
-                                            aPlayer.Session,
-                                            PropertyInt.EncumbVal,
-                                            (uint)aPlayer.Session.Player.GameData.Burden));
-
-                                    var motion = new UniversalMotion(MotionStance.Standing);
-                                    motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
-
-                                    motion = new UniversalMotion(MotionStance.Standing);
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                        new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
-                                        new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
-
-                                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-                                    LandblockManager.AddObject(inventoryItem);
-
-                                    // This may not be needed when we fix landblock update object -
-                                    // TODO: Og II - check this later to see if it is still required.
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
-
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
-                                }
+                                var aPlayer = (Player)worldObjects[playerId];
+                                aPlayer.NotifyAndDropItem(inventoryId);
                             }
                         }
                         break;
