@@ -70,7 +70,8 @@ namespace ACE.Entity
         private readonly StateMachine movementStateMachine = new StateMachine();
 
         public MovementStates CreatureMovementStates
-        { get { return (MovementStates)movementStateMachine.CurrentState; }
+        { 
+          get { return (MovementStates)movementStateMachine.CurrentState; }
           set { movementStateMachine.ChangeState((int)value); }
         }
 
