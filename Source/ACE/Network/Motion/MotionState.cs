@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Network.Sequence;
 
 namespace ACE.Network.Motion
 {
@@ -6,7 +7,7 @@ namespace ACE.Network.Motion
     {
         public bool IsAutonomous { get; set; }
 
-        public virtual byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f, float heading = 0.00f)
+        public virtual byte[] GetPayload(ObjectGuid animationTargetGuid, SequenceManager sequence)
         {
             return null;
         }

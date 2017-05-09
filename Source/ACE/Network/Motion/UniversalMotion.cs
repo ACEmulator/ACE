@@ -3,17 +3,28 @@ using System.IO;
 using ACE.Network.Enum;
 using ACE.Entity;
 using System;
+using ACE.Network.Sequence;
 
 namespace ACE.Network.Motion
 {
     public class UniversalMotion : MotionState
     {
         public uint Flag { get; set; } = 0x0041EE0F;
+
         public float MinimumDistance { get; set; } = 0.00f;
+
+        public ObjectGuid TargetGuid { get; set; } = new ObjectGuid(0);
 
         public float FailDistance { get; set; } = float.MaxValue;
 
         public float Speed { get; set; } = 1.0f;
+
+        public float Heading { get; set; } = 0.0f;
+
+        public float DesiredHeading { get; set; } = 0.0f;
+
+        public float DistanceFrom { get; set; } = 0.60f;
+
         public float WalkRunThreshold { get; set; } = 15.0f;
         /// <summary>
         /// I believe this to be calculated based on a factor of your quickness, run, enchanments, less burden factor Og II
@@ -49,10 +60,11 @@ namespace ACE.Network.Motion
             MovementData = movementData;
         }
 
-        public UniversalMotion(MotionStance stance, WorldObject moveToObject)
+        public UniversalMotion(MotionStance stance, Position moveToObjectPosition, ObjectGuid targetGuid)
         {
             Stance = stance;
-            Position = moveToObject.PhysicsData.Position;
+            Position = moveToObjectPosition;
+            TargetGuid = targetGuid;
             MovementTypes = MovementTypes.MoveToObject;
         }
         public UniversalMotion(MotionStance stance, MotionItem motionItem)
@@ -62,7 +74,7 @@ namespace ACE.Network.Motion
             Commands.Add(motionItem);
         }
 
-        public override byte[] GetPayload(WorldObject animationTarget, float distanceFrom = 0.6f, float heading = 0.00f)
+        public override byte[] GetPayload(ObjectGuid animationTargetGuid, SequenceManager sequence)
         {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
@@ -89,7 +101,7 @@ namespace ACE.Network.Motion
                         foreach (var item in Commands)
                         {
                             writer.Write((ushort)item.Motion);
-                            writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
+                            writer.Write(sequence.GetNextSequence(SequenceType.Motion));
                             writer.Write(item.Speed);
                         }
                         break;
@@ -100,16 +112,16 @@ namespace ACE.Network.Motion
                         try
                         {
                             if (MovementTypes == MovementTypes.MoveToObject)
-                                writer.Write(animationTarget.Guid.Full);
+                                writer.Write(TargetGuid.Full);
 
                             Position.Serialize(writer, false);
                             writer.Write(Flag);
-                            writer.Write(distanceFrom);
+                            writer.Write(DistanceFrom);
                             writer.Write(MinimumDistance);
                             writer.Write(FailDistance);
                             writer.Write(Speed);
                             writer.Write(WalkRunThreshold);
-                            writer.Write(heading);
+                            writer.Write(Heading);
                             writer.Write(RunRate);
                             // TODO: This needs to be calculated and the flag needs to be deciphered Og II
                         }
@@ -122,25 +134,25 @@ namespace ACE.Network.Motion
                     }
                 case MovementTypes.TurnToObject:
                     {
-                        float desiredHeading = 0.0f;
-                        writer.Write(animationTarget.Guid.Full);
-                        writer.Write(heading);
+                        writer.Write(animationTargetGuid.Full);
+                        writer.Write(Heading);
                         writer.Write(Flag);
                         writer.Write(Speed);
-                        writer.Write(desiredHeading); // always 0.0 in every pcap of this type.
+                        writer.Write(DesiredHeading); // always 0.0 in every pcap of this type.
                         break;
                     }
                 case MovementTypes.TurnToHeading:
                     {
                         writer.Write(Flag);
                         writer.Write(Speed);
-                        writer.Write(heading);
+                        writer.Write(Heading);
                         break;
                     }
             }
 
             return stream.ToArray();
         }
+
         public UniversalMotion(byte[] currentMotionState)
         {
             MemoryStream stream = new MemoryStream(currentMotionState);
@@ -243,37 +255,6 @@ namespace ACE.Network.Motion
                     MovementData.TurnSpeed = 0;
                 }
             }
-
-            // foreach (var item in Commands)
-            // {
-            //    writer.Write((ushort)item.Motion);
-            //    writer.Write(animationTarget.Sequences.GetNextSequence(Sequence.SequenceType.Motion));
-            //    writer.Write(item.Speed);
-            // }
-
-            // if ((generalFlags & MovementStateFlag.ForwardCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-            // if ((generalFlags & MovementStateFlag.SideStepCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-            // if ((generalFlags & MovementStateFlag.TurnCommand) != 0)
-            // {
-            //    MotionItem item = new MotionItem();
-            //    item.Motion = (MotionCommand)reader.ReadUInt16();
-            //    item.Speed = reader.ReadSingle();
-            //    Commands.Add(item);
-            // }
-
-            // return stream.ToArray();
         }
     }
 }

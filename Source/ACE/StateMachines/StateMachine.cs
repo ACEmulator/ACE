@@ -6,25 +6,25 @@ namespace ACE.StateMachines
 {
     public class StateMachine
     {
-        private List<Rule> validrules;
+        private List<Rule> validRules;
         public int CurrentState { get; private set; }
 
         public void Initialize(List<Rule> states, int startingstate)
         {
             CurrentState = startingstate;
-            validrules = states;
+            validRules = states;
         }
 
         public bool ChangeState(int too)
         {
             bool valid = false;
 
-            if (validrules.Count == 0)
+            if (validRules.Count == 0)
                 throw new ApplicationException("StateMachine must be Initialized before it can used");
 
             // Look up current state machine state and locate its allowed states.
             List<Rule> currule = new List<Rule>();
-            currule = validrules.Where(r => r.FromState == CurrentState).ToList();
+            currule = validRules.Where(r => r.FromState == CurrentState).ToList();
 
             if (currule.Count != 1)
                 throw new ApplicationException("StateMachine is in a invalid state");

@@ -9,7 +9,8 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageAutonomousPosition(WorldObject worldObject)
             : base(GameMessageOpcode.AutonomousPosition, GameMessageGroup.Group07)
         {
-            if (!(worldObject is Player)) return;
+            if (!(worldObject is Player))
+                return;
             var p = (Player)worldObject;
             Writer.WriteGuid(p.Guid);
             p.Location.Serialize(Writer, true, false);

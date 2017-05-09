@@ -1,16 +1,9 @@
-﻿using ACE.Common.Extensions;
-using ACE.Database;
-using ACE.Entity;
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Network.GameEvent;
-using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using System;
-using System.Collections.Generic;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -32,7 +25,9 @@ namespace ACE.Network.GameAction.Actions
 
                 var motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
 
-                var animationEvent = new GameMessageUpdateMotion(session.Player, session, motionLifestoneRecall);
+                var animationEvent = new GameMessageUpdateMotion(session.Player.Guid,
+                                                                 session.Player.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectInstance),
+                                                                 session.Player.Sequences, motionLifestoneRecall);
 
                 // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
                 // FIX: Recall text isn't being broadcast yet, need to address
