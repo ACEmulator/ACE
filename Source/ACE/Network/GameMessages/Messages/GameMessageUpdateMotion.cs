@@ -67,14 +67,7 @@ namespace ACE.Network.GameMessages.Messages
             Writer.WriteGuid(player.Guid); // Object_Id (uint)
             Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // Instance_Timestamp
             Writer.Write(player.Sequences.GetNextSequence(SequenceType.ObjectMovement)); // Movement_Timestamp
-
-            // Looking at the pcaps in training_hall_main_section.pcap - the key to server control timestamp seems to be the movement type
-            // TODO: Og II Reseach if it is all of the server control movement types - it may be all them them except MovementTypes.General
-
-            if (movementType == MovementTypes.MoveToObject | movementType == MovementTypes.TurnToObject)
-                Writer.Write(moveToTarget.Sequences.GetNextSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
-            else
-                Writer.Write(moveToTarget.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
+            Writer.Write(player.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectServerControl)); // Server_Control_Timestamp
 
             ushort autonomous;
             if (newState.IsAutonomous)

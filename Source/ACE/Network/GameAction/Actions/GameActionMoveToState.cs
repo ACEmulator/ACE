@@ -91,7 +91,6 @@ namespace ACE.Network.GameAction.Actions
             teleportTimestamp = message.Payload.ReadUInt16();
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
-
             if (session.Player.CreatureMovementStates == MovementStates.Moving)
                 session.Player.UpdateAutonomousMove();
             session.Player.UpdatePosition(position);

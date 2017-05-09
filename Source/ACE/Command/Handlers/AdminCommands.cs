@@ -1002,7 +1002,6 @@ namespace ACE.Command.Handlers
                 return;
             }
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
             session.Player.TrackObject(loot);
         }

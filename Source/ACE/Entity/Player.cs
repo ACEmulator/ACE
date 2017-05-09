@@ -177,8 +177,9 @@ namespace ACE.Entity
         /// <returns>MovementStates</returns>
         public MovementStates OnAutonomousMove(WorldObject worldObject, MovementTypes movementType)
         {
+            var newMotion = new UniversalMotion(MotionStance.Standing, worldObject);
             Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
-            Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, worldObject, new UniversalMotion(MotionStance.Standing, worldObject), MovementTypes.MoveToObject));
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, worldObject, newMotion, MovementTypes.MoveToObject));
             CreatureMovementStates = MovementStates.Moving;
             return MovementStates.Moving;
         }
@@ -187,7 +188,7 @@ namespace ACE.Entity
         {
             if ((Math.Abs(PhysicsData.Position.SquaredDistanceTo(MoveToPosition)) <= ArrivedRadiusSquared))
             {
-                // We have arrived.
+                // We have arrived
                 CreatureMovementStates = MovementStates.Arrived;
                 if (BlockedGameAction != null)
                 {
@@ -197,9 +198,7 @@ namespace ACE.Entity
                 // Clean up
                 ClearDestinationInformation();
                 CreatureMovementStates = MovementStates.Idle;
-                return;
             }
-            return;
         }
 
         public void NotifyAndDropItem(ObjectGuid inventoryId)

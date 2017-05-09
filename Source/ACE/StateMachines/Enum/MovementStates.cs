@@ -4,7 +4,7 @@
     {
         Idle,
         Moving,
-        Arrived,
+        Arrived,    
         Abandoned,
     }
 }
