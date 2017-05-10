@@ -282,7 +282,7 @@ namespace ACE.Entity
             return false;
         }
 
-        public WorldObject GetWorldObject(ObjectGuid objectId)
+        private WorldObject GetWorldObject(ObjectGuid objectId)
         {
             Log($"Getting WorldObject {objectId.Full:X}");
 
