@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-05-09
+[Og II]
+* Major rip and replace to stop reaching into landblock and passing out WorldObjects.   I tested all of my stuff and as many items as I could
+* think of and they all appear to work.   May want to have others test their stuff.   I think this is worth merging even if it did break stuff,
+* it is much cleaner and less confusing I think.
+* Fixed bug from 05/04 Og II update.
+
 ### 2017-05-06
 [Og II]
 * I fixed both admin functions, ci and create.   I added some logic to leave, NPC's, portals and creatures with the same code as prior to my fix.
@@ -10,6 +17,18 @@
 * Added caching to all portal/cell.dat items.
 * Added EnvCell decoding from the cell.dat (dungeon cells/indoor locations)
 * Changed the cell-export console command to properly use datReader. If you had used this command previous, your exported files are incorrect.
+
+### 2017-05-04
+[Og II]
+* Move to object
+* Move to position
+* Turn to object
+* Turn to Position
+* State Machine
+* Currently one last bug to be addressed but wanted to get this in.
+
+[Ripley]
+* Cleaned up project and solution files.
 
 ### 2017-05-03
 [Jyrus]

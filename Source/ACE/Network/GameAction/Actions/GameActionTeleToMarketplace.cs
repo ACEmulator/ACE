@@ -2,7 +2,6 @@
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
-using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using System;
@@ -25,7 +24,9 @@ namespace ACE.Network.GameAction.Actions
 
             var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
 
-            var animationEvent = new GameMessageUpdateMotion(session.Player, session, motionMarketplaceRecall);
+            var animationEvent = new GameMessageUpdateMotion(session.Player.Guid,
+                                                             session.Player.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectInstance),
+                                                             session.Player.Sequences, motionMarketplaceRecall);
 
             // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
             // FIX: Recall text isn't being broadcast yet, need to address

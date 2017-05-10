@@ -9,14 +9,11 @@ using log4net;
 using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameAction;
-using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
-using ACE.Diagnostics;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -65,14 +62,14 @@ namespace ACE.Entity
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
             // initialize adjacency array
-            this.adjacencies.Add(Adjacency.North, null);
-            this.adjacencies.Add(Adjacency.NorthEast, null);
-            this.adjacencies.Add(Adjacency.East, null);
-            this.adjacencies.Add(Adjacency.SouthEast, null);
-            this.adjacencies.Add(Adjacency.South, null);
-            this.adjacencies.Add(Adjacency.SouthWest, null);
-            this.adjacencies.Add(Adjacency.West, null);
-            this.adjacencies.Add(Adjacency.NorthWest, null);
+            adjacencies.Add(Adjacency.North, null);
+            adjacencies.Add(Adjacency.NorthEast, null);
+            adjacencies.Add(Adjacency.East, null);
+            adjacencies.Add(Adjacency.SouthEast, null);
+            adjacencies.Add(Adjacency.South, null);
+            adjacencies.Add(Adjacency.SouthWest, null);
+            adjacencies.Add(Adjacency.West, null);
+            adjacencies.Add(Adjacency.NorthWest, null);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
@@ -185,21 +182,6 @@ namespace ACE.Entity
             });
         }
 
-        private void RemovePlayerTracking(List<ObjectGuid> wolist, Player player)
-        {
-            Parallel.ForEach(wolist, (o) =>
-            {
-                // Find What Landblock Controls this object because we have to ref it
-                // to find its sequance id..
-                List<WorldObject> foundwo = new List<WorldObject>();
-                foundwo = GetWorldObjectsByGuid(o, true);
-                Parallel.ForEach(foundwo, (f) =>
-                {
-                    player.StopTrackingObject(f, false);
-                });
-            });
-        }
-
         public void AddWorldObject(WorldObject wo)
         {
             List<WorldObject> allObjects;
@@ -233,18 +215,19 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                if (this.worldObjects.ContainsKey(objectId))
+                if (worldObjects.ContainsKey(objectId))
                 {
-                    wo = this.worldObjects[objectId];
+                    wo = worldObjects[objectId];
                     if (!objectId.IsCreature())
-                        this.worldObjects.Remove(objectId);
+                        worldObjects.Remove(objectId);
                 }
             }
 
             // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
             // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
             // close enough.
-            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
+            // if we are in a container - we need never broadcast a destroy - just remove from landblock above.
+            if (!adjacencyMove && id.MapScope == Enum.MapScope.Outdoors && wo != null)
             {
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
@@ -257,7 +240,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                allworldobj = this.worldObjects.Values.ToList();
+                allworldobj = worldObjects.Values.ToList();
             }
             allworldobj = allworldobj.Where(o => o.Location.SquaredDistanceTo(wo.Location) < maxrange).ToList();
 
@@ -276,42 +259,67 @@ namespace ACE.Entity
             return allworldobj;
         }
 
-        public List<WorldObject> GetWorldObjectsByGuid(ObjectGuid objectguid, bool neighbors)
+        /// <summary>
+        /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
+        /// </summary>
+        /// <param name="playerGuid"></param>
+        /// <param name="targetGuid"></param>
+        /// <param name="arrivedRadiusSquared"></param>
+        /// <param name="arrivedRadiusSquared"></param>
+        /// <returns></returns>
+        public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
         {
-            List<WorldObject> allworldobj = new List<WorldObject>();
-            lock (objectCacheLocker)
+            var playerPosition = GetWorldObjectPosition(playerGuid);
+            var targetPosition = GetWorldObjectPosition(targetGuid);
+            if (playerPosition != null && targetPosition != null)
             {
-                allworldobj = this.worldObjects.Values.ToList();
+                validGuids = true;
+                arrivedRadiusSquared = GetWorldObjectEffectiveUseRadius(targetGuid);
+                return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
             }
-            allworldobj = allworldobj.Where(o => o.Guid == objectguid).ToList();
-
-            // todo: verify if a object can only exsist on one landblock at a time..
-            // if so then we can stop right here, we found it, for now we will resume and assume the worst.
-            // a object can be on any landblock around you.
-
-            if (neighbors)
-            {
-                foreach (var block in adjacencies)
-                {
-                    if (block.Value != null)
-                    {
-                        List<WorldObject> wol = null;
-                        wol = block.Value.GetWorldObjectsByGuid(objectguid, false);
-                        allworldobj.AddRange(wol);
-                    }
-                }
-            }
-            return allworldobj;
+            arrivedRadiusSquared = 0.00f;
+            validGuids = false;
+            return false;
         }
 
+        /// <summary>
+        /// This method is subject to removal.  It ought not exist.  Please DO NOT USE IT.
+        /// </summary>
         public WorldObject GetWorldObject(ObjectGuid objectId)
         {
             Log($"Getting WorldObject {objectId.Full:X}");
 
             lock (objectCacheLocker)
             {
-                return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
+                return worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             }
+        }
+
+        public Position GetWorldObjectPosition(ObjectGuid objectId)
+        {
+            Log($"Getting WorldObject Position {objectId.Full:X}");
+
+            lock (objectCacheLocker)
+            {
+                return worldObjects.ContainsKey(objectId) ? worldObjects[objectId].PhysicsData.Position : null;
+            }
+        }
+
+        public float GetWorldObjectEffectiveUseRadius(ObjectGuid objectId)
+        {
+            WorldObject wo;
+            Log($"Getting WorldObject Effective Use Radius {objectId.Full:X}");
+
+            lock (objectCacheLocker)
+            {
+                wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
+            }
+            if (wo != null)
+            {
+                var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup);
+                return (float)Math.Pow((wo.GameData.UseRadius + csetup.Radius + 1.5), 2);
+            }
+            return 0.00f;
         }
 
         public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
@@ -339,7 +347,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                players = this.worldObjects.Values.OfType<Player>().ToList();
+                players = worldObjects.Values.OfType<Player>().ToList();
             }
 
             BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
@@ -364,7 +372,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                players = this.worldObjects.Values.OfType<Player>().ToList();
+                players = worldObjects.Values.OfType<Player>().ToList();
             }
 
             switch (args.ActionType)
@@ -372,6 +380,9 @@ namespace ACE.Entity
                 case BroadcastAction.Delete:
                     {
                         players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+
+                        // If I am putting this in my inventory - you don't need to tell me about it.
+                        players.RemoveAll(p => p.Guid.Full == wo.GameData.ContainerId);
                         Parallel.ForEach(players, p => p.StopTrackingObject(wo, true));
                         break;
                     }
@@ -379,9 +390,9 @@ namespace ACE.Entity
                     {
                         // supresss updating if player is out of range of world object.= being updated or created
                         players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
+
                         // players never need an update of themselves
                         players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
-
                         Parallel.ForEach(players, p => p.TrackObject(wo));
                         break;
                     }
@@ -441,7 +452,7 @@ namespace ACE.Entity
 
                 lock (objectCacheLocker)
                 {
-                    allworldobj = this.worldObjects.Values.ToList();
+                    allworldobj = worldObjects.Values.ToList();
                 }
 
                 // all players on this land block
@@ -459,10 +470,10 @@ namespace ACE.Entity
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
-                if (this.id.MapScope == Enum.MapScope.Outdoors)
+                if (id.MapScope == Enum.MapScope.Outdoors)
                 {
                     // check to see if a player or other mutable object "roamed" to an adjacent landblock
-                    var objectsToRelocate = movedObjects.Where(m => m.Location.LandblockId.IsAdjacentTo(this.id) && m.Location.LandblockId != this.id).ToList();
+                    var objectsToRelocate = movedObjects.Where(m => m.Location.LandblockId.IsAdjacentTo(id) && m.Location.LandblockId != id).ToList();
 
                     // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
                     // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
@@ -520,7 +531,7 @@ namespace ACE.Entity
                         }
                     });
 
-                    if (mo.Location.LandblockId == this.id)
+                    if (mo.Location.LandblockId == id)
                     {
                         // update if it's still here
                         Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
@@ -528,7 +539,7 @@ namespace ACE.Entity
                     else
                     {
                         // remove and readd if it's not
-                        this.RemoveWorldObject(mo.Guid, false);
+                        RemoveWorldObject(mo.Guid, false);
                         LandblockManager.AddObject(mo);
                     }
                 });
@@ -538,7 +549,7 @@ namespace ACE.Entity
                 {
                     if (deo.DespawnTime < WorldManager.PortalYearTicks)
                     {
-                        this.RemoveWorldObject(deo.Guid, false);
+                        RemoveWorldObject(deo.Guid, false);
                     }
                 });
 
@@ -549,7 +560,7 @@ namespace ACE.Entity
                     {
                         dc.IsAlive = true;
                         // HandleParticleEffectEvent(dc, PlayScript.Create);
-                        this.AddWorldObject(dc);
+                        AddWorldObject(dc);
                     }
                 });
 
@@ -625,50 +636,29 @@ namespace ACE.Entity
                     }
                 case GameActionType.PutItemInContainer:
                     {
-                        var playerId = new ObjectGuid(action.ObjectId);
-                        var inventoryId = new ObjectGuid(action.SecondaryObjectId);
-                        if (playerId.IsPlayer())
+                        var playerGuid = new ObjectGuid(action.ObjectId);
+                        var inventoryGuid = new ObjectGuid(action.SecondaryObjectId);
+
+                        // Has to be a player so need to check before I make the cast.
+                        // If he is not a player, something is bad wrong. Og II
+                        if (playerGuid.IsPlayer())
                         {
-                            Player aPlayer = null;
-                            WorldObject inventoryItem = null;
+                            var aPlayer = (Player)GetWorldObject(playerGuid);
+                            var inventoryItem = GetWorldObject(inventoryGuid);
 
-                            if (worldObjects.ContainsKey(playerId) && worldObjects.ContainsKey(inventoryId))
+                            float arrivedRadiusSquared = 0.00f;
+                            bool validGuids;
+                            if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
+                                aPlayer.NotifyAndAddToInventory(inventoryItem);
+                            else
                             {
-                                aPlayer = (Player)worldObjects[playerId];
-                                inventoryItem = worldObjects[inventoryId];
-                            }
-
-                            if ((aPlayer != null) && (inventoryItem != null))
-                            {
-                                if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow(inventoryItem.GameData.UseRadius, 2))
+                                if (validGuids)
                                 {
-                                    // This is where I need to hook in the move to object code.
-                                    // TODO: Og II work on this soon.
+                                    aPlayer.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
+                                    aPlayer.BlockedGameAction = action;
+                                    aPlayer.OnAutonomousMove(inventoryItem.PhysicsData.Position,
+                                                             aPlayer.Sequences, MovementTypes.MoveToObject, inventoryGuid);
                                 }
-                                var motion = new UniversalMotion(MotionStance.Standing);
-                                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer),
-                                    new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                    new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
-
-                                // Add to the inventory list.
-                                LandblockManager.RemoveObject(inventoryItem);
-                                aPlayer.AddToInventory(inventoryItem);
-
-                                motion = new UniversalMotion(MotionStance.Standing);
-                                aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
-                                       PropertyInt.EncumbVal,
-                                       aPlayer.GameData.Burden),
-                                       new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
-                                       new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                       new GameMessageUpdateInstanceId(inventoryId, playerId),
-                                       new GameMessagePickupEvent(aPlayer.Session, inventoryItem));
-
-                                aPlayer.TrackObject(inventoryItem);
-                                // This may not be needed when we fix landblock update object -
-                                // TODO: Og II - check this later to see if it is still required.
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                             }
                         }
                         break;
@@ -676,56 +666,14 @@ namespace ACE.Entity
                 case GameActionType.DropItem:
                     {
                         var g = new ObjectGuid(action.ObjectId);
-                        // ReSharper disable once InconsistentlySynchronizedField
                         if (worldObjects.ContainsKey(g))
                         {
                             var playerId = new ObjectGuid(action.ObjectId);
                             var inventoryId = new ObjectGuid(action.SecondaryObjectId);
                             if (playerId.IsPlayer())
                             {
-                                Player aPlayer = null;
-                                WorldObject inventoryItem = null;
-
-                                if (worldObjects.ContainsKey(playerId))
-                                {
-                                    aPlayer = (Player)worldObjects[playerId];
-                                    inventoryItem = aPlayer.GetInventoryItem(inventoryId);
-                                    aPlayer.RemoveFromInventory(inventoryId);
-                                }
-
-                                if ((aPlayer != null) && (inventoryItem != null))
-                                {
-                                    var targetContainer = new ObjectGuid(0);
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessagePrivateUpdatePropertyInt(
-                                            aPlayer.Session,
-                                            PropertyInt.EncumbVal,
-                                            (uint)aPlayer.Session.Player.GameData.Burden));
-
-                                    var motion = new UniversalMotion(MotionStance.Standing);
-                                    motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
-
-                                    motion = new UniversalMotion(MotionStance.Standing);
-                                    aPlayer.Session.Network.EnqueueSend(
-                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                        new GameMessagePutObjectIn3d(aPlayer.Session, aPlayer, inventoryId),
-                                        new GameMessageSound(aPlayer.Guid, Sound.DropItem, (float)1.0),
-                                        new GameMessageUpdateInstanceId(inventoryId, targetContainer));
-
-                                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-                                    LandblockManager.AddObject(inventoryItem);
-
-                                    // This may not be needed when we fix landblock update object -
-                                    // TODO: Og II - check this later to see if it is still required.
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
-
-                                    aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
-                                }
+                                var aPlayer = (Player)worldObjects[playerId];
+                                aPlayer.NotifyAndDropItem(inventoryId);
                             }
                         }
                         break;
@@ -744,12 +692,12 @@ namespace ACE.Entity
                     }
                 case GameActionType.ObjectCreate:
                     {
-                        this.AddWorldObject(action.WorldObject);
+                        AddWorldObject(action.WorldObject);
                         break;
                     }
                 case GameActionType.ObjectDelete:
                     {
-                        this.RemoveWorldObject(action.WorldObject.Guid, false);
+                        RemoveWorldObject(action.WorldObject.Guid, false);
                         break;
                     }
                 case GameActionType.QueryHealth:
@@ -771,8 +719,8 @@ namespace ACE.Entity
                         //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
                         if (targetId.IsPlayer() || targetId.IsCreature())
                         {
-                            if (this.worldObjects.ContainsKey(targetId))
-                                target = this.worldObjects[targetId];
+                            if (worldObjects.ContainsKey(targetId))
+                                target = worldObjects[targetId];
 
                             if (target == null)
                             {

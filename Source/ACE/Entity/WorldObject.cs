@@ -1,23 +1,15 @@
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using ACE.Network.Sequence;
 using System.IO;
+using ACE.Managers;
+using log4net;
+using ACE.Network.Motion;
 
 namespace ACE.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Remoting.Messaging;
-
-    using global::ACE.Entity.Enum.Properties;
-    using global::ACE.Managers;
-    using Network.Motion;
-    using log4net;
-
     public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -137,7 +129,8 @@ namespace ACE.Entity
         {
             Player p = (Player)this;
             PhysicsData.CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            var updateMotion = new GameMessageUpdateMotion(p.Guid,
+                p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), p.Sequences, motionState);
             p.Session.Network.EnqueueSend(updateMotion);
         }
 

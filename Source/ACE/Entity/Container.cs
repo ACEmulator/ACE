@@ -1,10 +1,7 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -36,6 +33,8 @@ namespace ACE.Entity
 
                 GameData.Burden += inventoryItem.GameData.Burden;
                 inventoryItem.GameData.ContainerId = Guid.Full;
+                if (inventoryItem.PhysicsData.Position != null)
+                    LandblockManager.RemoveObject(inventoryItem);
                 inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
                 inventoryItem.PositionFlag = UpdatePositionFlag.None;
                 inventoryItem.PhysicsData.Position = null;

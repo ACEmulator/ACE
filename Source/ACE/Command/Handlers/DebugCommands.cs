@@ -4,14 +4,11 @@ using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
 using ACE.Network.Motion;
-using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
 
@@ -237,9 +234,13 @@ namespace ACE.Command.Handlers
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                        session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                        session.Player.Sequences, movement));
             movement = new UniversalMotion(MotionStance.Standing);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                        session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                        session.Player.Sequences, movement));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -256,9 +257,12 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
-            var newMotion = new UniversalMotion(MotionStance.Standing, loot);
+            var newMotion = new UniversalMotion(MotionStance.Standing, loot.PhysicsData.Position, loot.Guid);
+            newMotion.MovementTypes = MovementTypes.MoveToObject;
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                        session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                        session.Player.Sequences, newMotion));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
