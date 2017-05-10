@@ -282,7 +282,10 @@ namespace ACE.Entity
             return false;
         }
 
-        private WorldObject GetWorldObject(ObjectGuid objectId)
+        /// <summary>
+        /// This method is subject to removal.  It ought not exist.  Please DO NOT USE IT.
+        /// </summary>
+        public WorldObject GetWorldObject(ObjectGuid objectId)
         {
             Log($"Getting WorldObject {objectId.Full:X}");
 
