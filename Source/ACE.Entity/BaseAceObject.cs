@@ -13,6 +13,7 @@ namespace ACE.Entity
 
         [DbField("name", (int)MySqlDbType.Text)]
         public string Name { get; set; }
+        
         /// <summary>
         /// Object Type Flag (ObjectType) enum
         /// </summary>
@@ -33,6 +34,7 @@ namespace ACE.Entity
         /// </summary>
         [DbField("blipColor", (int)MySqlDbType.UByte)]
         public byte BlipColor { get; set; }
+        
         /// <summary>
         /// Object Description Flags (Enum)
         /// </summary>
