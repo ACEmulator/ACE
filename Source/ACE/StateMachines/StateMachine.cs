@@ -7,6 +7,7 @@ namespace ACE.StateMachines
     public class StateMachine
     {
         private List<Rule> validRules;
+        
         public int CurrentState { get; private set; }
 
         public void Initialize(List<Rule> states, int startingstate)
