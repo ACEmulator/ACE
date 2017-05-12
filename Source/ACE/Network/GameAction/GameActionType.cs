@@ -300,6 +300,8 @@
         EvtMovementTurnToEvent                          = 0xF649,
         EvtMovementStopMovementCommand                  = 0xF661,
         EvtMovementAutonomyLevel                        = 0xF752,
-        EvtMovementJumpNonAutonomous                    = 0xF7C9
+        EvtMovementJumpNonAutonomous                    = 0xF7C9,
+
+        ApproachVendor                                  = 0x0062,
     }
 }

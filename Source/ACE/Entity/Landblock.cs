@@ -768,6 +768,9 @@ namespace ACE.Entity
                             else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
                                 (obj as Door).OnUse(player);
 
+                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Vendor) != 0)
+                                (obj as Vendor).OnUse(player);
+
                             // switch (obj.Type)
                             // {
                             //    case Enum.ObjectType.Portal:

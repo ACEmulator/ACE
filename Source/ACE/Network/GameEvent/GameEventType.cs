@@ -8,6 +8,9 @@
         FriendsListUpdate                   = 0x0021,
         InventoryPutObjInContainer          = 0x0022,
         CharacterTitle                      = 0x0029,
+
+        ApproachVendor                      = 0x0062,
+
         UpdateTitle                         = 0x002B,
 
         IdentifyObjectResponse              = 0x00C9,

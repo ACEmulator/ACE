@@ -1,4 +1,4 @@
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
@@ -137,15 +137,18 @@ namespace ACE.Entity
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
-            SerializeCreateObject(writer);
+            SerializeCreateObject(writer, false);
         }
 
-        public virtual void SerializeCreateObject(BinaryWriter writer)
+        public virtual void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)
         {
             writer.WriteGuid(Guid);
 
-            ModelData.Serialize(writer);
-            PhysicsData.Serialize(this, writer);
+            if (!gamedataonly)
+            {
+                ModelData.Serialize(writer);
+                PhysicsData.Serialize(this, writer);
+            }
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
@@ -266,7 +269,7 @@ namespace ACE.Entity
 
             /*if ((WeenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
                 writer.Write(0u);*/
-
+           
             writer.Align();
         }
 
