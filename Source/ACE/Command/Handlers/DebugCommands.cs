@@ -264,6 +264,75 @@ namespace ACE.Command.Handlers
                                         session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
                                         session.Player.Sequences, newMotion));
         }
+        
+        // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
+        [CommandHandler("setstat", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+             "Sets the specified stat to a specified value",
+            "Usage: @setstat <stat> <value>\n" +
+            "<stat> is one of the following strings:\n" +
+            "    health, hp\n" +
+            "    stamina, stam, sp\n" +
+            "    mana, mp\n" +
+            "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
+        public static void SetStat(Session session, params string[] parameters)
+        {
+            string paramStat = parameters[0].ToLower();
+            string paramValue = parameters[1];
+
+            bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
+            int value = int.MaxValue;
+
+            if (!int.TryParse(paramValue, out value)) {
+                ChatPacket.SendServerMessage(session, "setstat Error: Invalid set value", ChatMessageType.Broadcast);
+                return;
+            }
+
+            string statname;
+            Entity.Enum.Ability ability;
+            // Parse args...
+            CreatureAbility stat = null;
+            if (paramStat == "health" || paramStat == "hp")
+            {
+                ability = Entity.Enum.Ability.Health;
+                statname = "Health";
+                stat = session.Player.Health;
+            }
+            else if (paramStat == "stamina" || paramStat == "stam" || paramStat == "sp")
+            {
+                ability = Entity.Enum.Ability.Stamina;
+                statname = "Stamina";
+                stat = session.Player.Stamina;
+            }
+            else if (paramStat == "mana" || paramStat == "mp")
+            {
+                ability = Entity.Enum.Ability.Mana;
+                statname = "Mana";
+                stat = session.Player.Mana;
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "setstat Error: Invalid stat", ChatMessageType.Broadcast);
+                return;
+            }
+
+            long targetValue = 0;
+            if (relValue)
+                targetValue = stat.Current + value;
+            else
+                targetValue = value;
+
+            if (targetValue < 0 || targetValue > stat.MaxValue)
+            {
+                ChatPacket.SendServerMessage(session, "setstat Error: Value over/underflow", ChatMessageType.Broadcast);
+                return;
+            }
+
+            stat.Current = (uint)targetValue;
+
+            // ChatPacket.SendServerMessage(session, $"{statname} is now: {stat.Current}", ChatMessageType.Broadcast);
+            // Send an update packet
+            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, stat));
+        }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Teleports you to current position with PositionZ set to +8000.")]
