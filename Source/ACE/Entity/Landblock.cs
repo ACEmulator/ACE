@@ -446,6 +446,7 @@ namespace ACE.Entity
 
                 List<WorldObject> allworldobj = null;
                 List<Player> allplayers = null;
+                List<Creature> allcreatures = null;
                 List<WorldObject> movedObjects = null;
                 List<WorldObject> despawnObjects = null;
                 List<Creature> deadCreatures = null;
@@ -457,6 +458,7 @@ namespace ACE.Entity
 
                 // all players on this land block
                 allplayers = allworldobj.OfType<Player>().ToList();
+                allcreatures = allworldobj.OfType<Creature>().ToList();
 
                 despawnObjects = allworldobj.ToList();
                 despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
@@ -503,6 +505,13 @@ namespace ACE.Entity
                         HandleGameAction(examination, player);
                 });
                 UpdateStatus(allplayers.Count);
+
+                // per-creature update on landblock.
+                Parallel.ForEach(allcreatures, creature =>
+                {
+                    // Process the creatures
+                    creature.GameLoopUpdate();
+                });
 
                 // broadcast moving objects to the world..
                 // players and creatures can move.

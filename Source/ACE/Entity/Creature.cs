@@ -12,10 +12,14 @@ using ACE.StateMachines.Enum;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
+using log4net;
+
 namespace ACE.Entity
 {
     public class Creature : Container
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
 
         public ReadOnlyDictionary<Enum.Ability, CreatureAbility> Abilities;
@@ -37,6 +41,53 @@ namespace ACE.Entity
         public CreatureAbility Stamina { get; set; }
 
         public CreatureAbility Mana { get; set; }
+
+        /// <summary>
+        /// Used to determine if health/stamina/mana updates need to be sent periodically
+        /// </summary>
+        protected class VitalUpdater
+        {
+            public double LastTime { get; private set; }
+            public double Rate { get; set; }
+
+            public VitalUpdater(double rate)
+            {
+                Rate = rate;
+                LastTime = double.NegativeInfinity;
+            }
+
+            public uint Update()
+            {
+                if (LastTime == double.NegativeInfinity)
+                {
+                    LastTime = WorldManager.PortalYearTicks;
+                    return 0;
+                }
+
+                double curTime = WorldManager.PortalYearTicks;
+
+                if (curTime > LastTime)
+                {
+                    double timeDiff = curTime - LastTime;
+
+                    uint numTicks = (uint)(timeDiff * Rate);
+
+                    if (numTicks > 0)
+                    {
+                        // LastTime is the time at which the last tick would have happened
+                        LastTime = LastTime + numTicks / Rate;
+                    }
+
+                    return numTicks;
+                }
+
+                return 0;
+            }
+        }
+
+        protected VitalUpdater healthUpdater = new VitalUpdater(5);
+        protected VitalUpdater staminaUpdater = new VitalUpdater(10);
+        protected VitalUpdater manaUpdater = new VitalUpdater(7);
 
         /// <summary>
         /// This is used to allow us to queue up game actions that we are out of range to preform
@@ -229,6 +280,29 @@ namespace ACE.Entity
             // Add Corpse in that location via the ActionQueue to honor the motion delays
             QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
             session.Player.AddToActionQueue(addCorpse);
+        }
+
+        public virtual void GameLoopUpdate()
+        {
+            // Update vitals
+            uint healthVal = healthUpdater.Update();
+            if (healthVal > 0)
+            {
+                uint oldHealth = Health.Current;
+                Health.Current = System.Math.Min(Health.MaxValue, Health.Current + healthVal);
+            }
+
+            uint stamVal = staminaUpdater.Update();
+            if (stamVal > 0)
+            {
+                Stamina.Current = System.Math.Min(Stamina.MaxValue, Stamina.Current + stamVal);
+            }
+
+            uint manaVal = staminaUpdater.Update();
+            if (manaVal > 0)
+            {
+                Mana.Current = System.Math.Min(Mana.MaxValue, Mana.Current + manaVal);
+            }
         }
     }
 }
