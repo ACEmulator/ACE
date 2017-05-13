@@ -65,7 +65,7 @@
     {
         public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyString val)
         {
-            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
+            return val.GetAttributeOfType<PersistedPropertyAttribute>();
         }
     }
 }

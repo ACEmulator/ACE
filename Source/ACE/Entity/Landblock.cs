@@ -658,7 +658,7 @@ namespace ACE.Entity
 
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
-                                       PropertyInt.EncumbVal,
+                                       PropertyInt.EncumbranceVal,
                                        aPlayer.GameData.Burden),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
@@ -699,7 +699,7 @@ namespace ACE.Entity
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessagePrivateUpdatePropertyInt(
                                             aPlayer.Session,
-                                            PropertyInt.EncumbVal,
+                                            PropertyInt.EncumbranceVal,
                                             (uint)aPlayer.Session.Player.GameData.Burden));
 
                                     var motion = new UniversalMotion(MotionStance.Standing);
