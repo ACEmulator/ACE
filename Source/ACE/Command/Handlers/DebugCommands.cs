@@ -265,7 +265,7 @@ namespace ACE.Command.Handlers
                                         session.Player.Sequences, newMotion));
         }
         
-        // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
+        // This function 
         [CommandHandler("setstat", AccessLevel.Developer, CommandHandlerFlag.None, 2,
              "Sets the specified stat to a specified value",
             "Usage: @setstat <stat> <value>\n" +
@@ -287,26 +287,22 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            string statname;
             Entity.Enum.Ability ability;
             // Parse args...
             CreatureAbility stat = null;
             if (paramStat == "health" || paramStat == "hp")
             {
                 ability = Entity.Enum.Ability.Health;
-                statname = "Health";
                 stat = session.Player.Health;
             }
             else if (paramStat == "stamina" || paramStat == "stam" || paramStat == "sp")
             {
                 ability = Entity.Enum.Ability.Stamina;
-                statname = "Stamina";
                 stat = session.Player.Stamina;
             }
             else if (paramStat == "mana" || paramStat == "mp")
             {
                 ability = Entity.Enum.Ability.Mana;
-                statname = "Mana";
                 stat = session.Player.Mana;
             }
             else
@@ -329,7 +325,6 @@ namespace ACE.Command.Handlers
 
             stat.Current = (uint)targetValue;
 
-            // ChatPacket.SendServerMessage(session, $"{statname} is now: {stat.Current}", ChatMessageType.Broadcast);
             // Send an update packet
             session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, stat));
         }

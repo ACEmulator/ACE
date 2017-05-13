@@ -1608,38 +1608,26 @@ namespace ACE.Entity
 
         override public void GameLoopUpdate()
         {
-            // Update vitals
-            uint healthVal = healthUpdater.Update();
-            if (healthVal > 0)
+            uint oldHealth = Health.Current;
+            uint oldStamina = Stamina.Current;
+            uint oldMana = Mana.Current;
+
+            base.GameLoopUpdate();
+
+            // If the game loop changed a vital -- send an update message to the client
+            if (Health.Current != oldHealth)
             {
-                uint oldHealth = Health.Current;
-                Health.Current = System.Math.Min(Health.MaxValue, Health.Current + healthVal);
-                if (oldHealth != Health.Current)
-                {
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(Session, Enum.Ability.Health, Health));
-                }
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(Session, Enum.Ability.Health, Health));
             }
 
-            uint stamVal = staminaUpdater.Update();
-            if (stamVal > 0)
+            if (Stamina.Current != oldStamina)
             {
-                uint oldStamina = Stamina.Current;
-                Stamina.Current = System.Math.Min(Stamina.MaxValue, Stamina.Current + stamVal);
-                if (oldStamina != Stamina.Current)
-                {
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(Session, Enum.Ability.Stamina, Stamina));
-                }
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(Session, Enum.Ability.Stamina, Stamina));
             }
 
-            uint manaVal = staminaUpdater.Update();
-            if (manaVal > 0)
+            if (Mana.Current != oldMana)
             {
-                uint oldMana = Mana.Current;
-                Mana.Current = System.Math.Min(Mana.MaxValue, Mana.Current + manaVal);
-                if (oldMana != Mana.Current)
-                {
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(Session, Enum.Ability.Mana, Mana));
-                }
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(Session, Enum.Ability.Mana, Mana));
             }
         }
     }
