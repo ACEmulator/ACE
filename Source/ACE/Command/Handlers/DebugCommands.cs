@@ -266,67 +266,67 @@ namespace ACE.Command.Handlers
         }
         
         // This function 
-        [CommandHandler("setstat", AccessLevel.Developer, CommandHandlerFlag.None, 2,
-             "Sets the specified stat to a specified value",
-            "Usage: @setstat <stat> <value>\n" +
-            "<stat> is one of the following strings:\n" +
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+             "Sets the specified vital to a specified value",
+            "Usage: @setvital <vital> <value>\n" +
+            "<vital> is one of the following strings:\n" +
             "    health, hp\n" +
             "    stamina, stam, sp\n" +
             "    mana, mp\n" +
             "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
-        public static void SetStat(Session session, params string[] parameters)
+        public static void SetVital(Session session, params string[] parameters)
         {
-            string paramStat = parameters[0].ToLower();
+            string paramVital = parameters[0].ToLower();
             string paramValue = parameters[1];
 
             bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
             int value = int.MaxValue;
 
             if (!int.TryParse(paramValue, out value)) {
-                ChatPacket.SendServerMessage(session, "setstat Error: Invalid set value", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
                 return;
             }
 
             Entity.Enum.Ability ability;
             // Parse args...
-            CreatureAbility stat = null;
-            if (paramStat == "health" || paramStat == "hp")
+            CreatureAbility vital = null;
+            if (paramVital == "health" || paramVital == "hp")
             {
                 ability = Entity.Enum.Ability.Health;
-                stat = session.Player.Health;
+                vital = session.Player.Health;
             }
-            else if (paramStat == "stamina" || paramStat == "stam" || paramStat == "sp")
+            else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
             {
                 ability = Entity.Enum.Ability.Stamina;
-                stat = session.Player.Stamina;
+                vital = session.Player.Stamina;
             }
-            else if (paramStat == "mana" || paramStat == "mp")
+            else if (paramVital == "mana" || paramVital == "mp")
             {
                 ability = Entity.Enum.Ability.Mana;
-                stat = session.Player.Mana;
+                vital = session.Player.Mana;
             }
             else
             {
-                ChatPacket.SendServerMessage(session, "setstat Error: Invalid stat", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
                 return;
             }
 
             long targetValue = 0;
             if (relValue)
-                targetValue = stat.Current + value;
+                targetValue = vital.Current + value;
             else
                 targetValue = value;
 
-            if (targetValue < 0 || targetValue > stat.MaxValue)
+            if (targetValue < 0 || targetValue > vital.MaxValue)
             {
-                ChatPacket.SendServerMessage(session, "setstat Error: Value over/underflow", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "setvital Error: Value over/underflow", ChatMessageType.Broadcast);
                 return;
             }
 
-            stat.Current = (uint)targetValue;
+            vital.Current = (uint)targetValue;
 
             // Send an update packet
-            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, stat));
+            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, vital));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
