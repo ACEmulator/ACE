@@ -42,52 +42,44 @@ namespace ACE.Entity
 
         public CreatureAbility Mana { get; set; }
 
+        private double lastHealthUpdateTime = double.NegativeInfinity;
+        private double lastStaminaUpdateTime = double.NegativeInfinity;
+        private double lastManaUpdateTime = double.NegativeInfinity;
+
         /// <summary>
         /// Used to determine if health/stamina/mana updates need to be sent periodically
+        /// Returns the "last time" the vitals were updated
+        /// Takes the vital to update, the lastTime it was updated, and the update rate
         /// </summary>
-        protected class VitalUpdater
+        private double UpdateVital(CreatureAbility ability, double lastTime, double rate)
         {
-            public double LastTime { get; private set; }
-            public double Rate { get; set; }
-
-            public VitalUpdater(double rate)
+            if (lastTime == double.NegativeInfinity)
             {
-                Rate = rate;
-                LastTime = double.NegativeInfinity;
+                return WorldManager.PortalYearTicks;
             }
 
-            public uint Update()
+            double curTime = WorldManager.PortalYearTicks;
+
+            if (curTime <= lastTime)
             {
-                if (LastTime == double.NegativeInfinity)
-                {
-                    LastTime = WorldManager.PortalYearTicks;
-                    return 0;
-                }
-
-                double curTime = WorldManager.PortalYearTicks;
-
-                if (curTime > LastTime)
-                {
-                    double timeDiff = curTime - LastTime;
-
-                    uint numTicks = (uint)(timeDiff * Rate);
-
-                    if (numTicks > 0)
-                    {
-                        // LastTime is the time at which the last tick would have happened
-                        LastTime = LastTime + numTicks / Rate;
-                    }
-
-                    return numTicks;
-                }
-
-                return 0;
+                return lastTime;
             }
+
+            double timeDiff = curTime - lastTime;
+
+            uint numTicks = (uint)(timeDiff * rate);
+
+            if (numTicks > 0)
+            {
+                // lastTime is the time at which the last tick would have happened
+                lastTime = lastTime + numTicks / rate;
+
+                // Now, update our value
+                ability.Current = System.Math.Min(ability.MaxValue, ability.Current + numTicks);
+            }
+
+            return lastTime;
         }
-
-        protected VitalUpdater healthUpdater = new VitalUpdater(5);
-        protected VitalUpdater staminaUpdater = new VitalUpdater(10);
-        protected VitalUpdater manaUpdater = new VitalUpdater(7);
 
         /// <summary>
         /// This is used to allow us to queue up game actions that we are out of range to preform
@@ -284,25 +276,10 @@ namespace ACE.Entity
 
         public virtual void GameLoopUpdate()
         {
-            // Update vitals
-            uint healthVal = healthUpdater.Update();
-            if (healthVal > 0)
-            {
-                uint oldHealth = Health.Current;
-                Health.Current = System.Math.Min(Health.MaxValue, Health.Current + healthVal);
-            }
-
-            uint stamVal = staminaUpdater.Update();
-            if (stamVal > 0)
-            {
-                Stamina.Current = System.Math.Min(Stamina.MaxValue, Stamina.Current + stamVal);
-            }
-
-            uint manaVal = staminaUpdater.Update();
-            if (manaVal > 0)
-            {
-                Mana.Current = System.Math.Min(Mana.MaxValue, Mana.Current + manaVal);
-            }
+            // TODO: Realistic rates && adjusting rates for spells...
+            lastHealthUpdateTime = UpdateVital(Health, lastHealthUpdateTime, .5);
+            lastStaminaUpdateTime = UpdateVital(Stamina, lastStaminaUpdateTime, 1.0);
+            lastManaUpdateTime = UpdateVital(Mana, lastManaUpdateTime, .7);
         }
     }
 }
