@@ -1,23 +1,15 @@
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using ACE.Network.Sequence;
 using System.IO;
+using ACE.Managers;
+using ACE.Network.Motion;
+using log4net;
 
 namespace ACE.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Remoting.Messaging;
-
-    using global::ACE.Entity.Enum.Properties;
-    using global::ACE.Managers;
-    using Network.Motion;
-    using log4net;
-
     public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
