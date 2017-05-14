@@ -1,4 +1,4 @@
-namespace ACE.Network.GameMessages
+﻿namespace ACE.Network.GameMessages
 {
     public enum GameMessageOpcode
     {
@@ -68,5 +68,7 @@ namespace ACE.Network.GameMessages
         DDD_BeginPullDDD                = 0xF7E8,
         DDD_IterationData               = 0xF7E9,
         DDD_EndDDD                      = 0xF7EA,
+
+        PUpdateQualityEvent              = 0x2CD,
     }
 }

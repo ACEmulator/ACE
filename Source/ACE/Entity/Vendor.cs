@@ -61,10 +61,15 @@ namespace ACE.Entity
                 serverMessage = "You Break you Buy!,You Break you Buy!";
             }
 
+            // give player money
+            var money = new GameMessageUpdateQualityEvent(player.Session);
+            player.Session.Network.EnqueueSend(money);
+
             var vendordebug = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
             // always send useDone event
             var sendUseDoneEvent = new GameEventUseDone(player.Session);
             player.Session.Network.EnqueueSend(vendordebug, sendUseDoneEvent);
+
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this));
         }
     }
