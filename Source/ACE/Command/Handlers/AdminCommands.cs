@@ -1026,21 +1026,6 @@ namespace ACE.Command.Handlers
             session.Player.TrackObject(loot);
         }
 
-        // money
-        [CommandHandler("money", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates an money in your inventory.","money")]
-        public static void Handlemoney(Session session, params string[] parameters)
-        {
-            var loot = LootGenerationFactory.CreateTestWorldObject(273);
-            if (loot != null)
-            {
-                loot.GameData.StackSize = 1000;
-                loot.GameData.Value = 0;
-                LootGenerationFactory.AddToContainer(loot, session.Player);
-                session.Player.TrackObject(loot);
-            }
-        }
-
         // ci wclassid (number)
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an random object in your inventory.", "typeId (number)")]
