@@ -638,49 +638,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.Buy:
                     {
-                        // todo: lots, need vendor list, money checks, etc.
-
-                        var money = new GameMessagePrivateUpdatePropertyInt(player.Session, PropertyInt.CoinValue, 4000);
-                        var sound = new GameMessageSound(player.Guid, Sound.PickUpItem, 1);
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
-
-                        // send updated vendor inventory.
-                        player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, action.ObjectId));
-
-                        // this is just some testing code for now.
-                        foreach (ItemProfile item in action.ProfileItems)
-                        {
-                            // todo: something with vendor id and profile list... iid list from vendor dbs.
-                            // todo: something with amounts..
-
-                            if (item.Iid == 5)
-                            {
-                                while (item.Amount > 0)
-                                {
-                                    item.Amount--;
-                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
-                                    LootGenerationFactory.AddToContainer(loot, player);
-                                    player.TrackObject(loot);
-                                }
-                                var rudecomment = "Who do you think you are, Johny Apple Seed ?";
-                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                                player.Session.Network.EnqueueSend(buyrudemsg);
-                            }
-                            else if (item.Iid == 10)
-                            {
-                                while (item.Amount > 0)
-                                {
-                                    item.Amount--;
-                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
-                                    LootGenerationFactory.AddToContainer(loot, player);
-                                    player.TrackObject(loot);
-                                }
-                                var rudecomment = "That smells awful, Enjoy eating it!";
-                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                                player.Session.Network.EnqueueSend(buyrudemsg);
-                            }
-                        }
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.PutItemInContainer:

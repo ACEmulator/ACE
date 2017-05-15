@@ -36,7 +36,7 @@ namespace ACE.Network.GameAction.Actions
             uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            QueuedGameAction action = new QueuedGameAction(vendorID, items, GameActionType.Buy);
+            QueuedGameAction action = new QueuedGameActionBuy(vendorID, items, GameActionType.Buy);
             session.Player.AddToActionQueue(action);
             return;
         }

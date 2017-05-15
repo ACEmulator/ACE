@@ -204,6 +204,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToMarketplace.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActionBuy.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
