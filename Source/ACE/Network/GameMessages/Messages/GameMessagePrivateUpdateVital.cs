@@ -6,8 +6,8 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateVital : GameMessage
     {
-        public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability ability, CreatureAbility ca) :
-            this(session, ability, ca.Ranks, ca.Base, ca.ExperienceSpent, ca.Current) { }
+        public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability ability, CreatureVital cv) :
+            this(session, ability, cv.Ranks, cv.Base, cv.ExperienceSpent, cv.Current) { }
 
         public GameMessagePrivateUpdateVital(Session session, Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
             : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.Group09)

@@ -289,7 +289,7 @@ namespace ACE.Command.Handlers
 
             Entity.Enum.Ability ability;
             // Parse args...
-            CreatureAbility vital = null;
+            CreatureVital vital = null;
             if (paramVital == "health" || paramVital == "hp")
             {
                 ability = Entity.Enum.Ability.Health;

@@ -82,11 +82,11 @@ namespace ACE.Entity
 
         public CreatureAbility SelfAbility { get; set; }
 
-        public CreatureAbility Health { get; set; }
+        public CreatureVital Health { get; set; }
 
-        public CreatureAbility Stamina { get; set; }
+        public CreatureVital Stamina { get; set; }
 
-        public CreatureAbility Mana { get; set; }
+        public CreatureVital Mana { get; set; }
 
         public Appearance Appearance { get; set; } = new Appearance();
 
@@ -181,16 +181,17 @@ namespace ACE.Entity
 
         private Character()
         {
-            StrengthAbility = new CreatureAbility(this, Enum.Ability.Strength);
-            EnduranceAbility = new CreatureAbility(this, Enum.Ability.Endurance);
-            CoordinationAbility = new CreatureAbility(this, Enum.Ability.Coordination);
-            QuicknessAbility = new CreatureAbility(this, Enum.Ability.Quickness);
-            FocusAbility = new CreatureAbility(this, Enum.Ability.Focus);
-            SelfAbility = new CreatureAbility(this, Enum.Ability.Self);
+            StrengthAbility = new CreatureAbility(Enum.Ability.Strength);
+            EnduranceAbility = new CreatureAbility(Enum.Ability.Endurance);
+            CoordinationAbility = new CreatureAbility(Enum.Ability.Coordination);
+            QuicknessAbility = new CreatureAbility(Enum.Ability.Quickness);
+            FocusAbility = new CreatureAbility(Enum.Ability.Focus);
+            SelfAbility = new CreatureAbility(Enum.Ability.Self);
 
-            Health = new CreatureAbility(this, Enum.Ability.Health);
-            Stamina = new CreatureAbility(this, Enum.Ability.Stamina);
-            Mana = new CreatureAbility(this, Enum.Ability.Mana);
+            // TODO: Real regen rates?
+            Health = new CreatureVital(this, Enum.Ability.Health, .5);
+            Stamina = new CreatureVital(this, Enum.Ability.Stamina, 1.0);
+            Mana = new CreatureVital(this, Enum.Ability.Mana, .7);
 
             abilities.Add(Enum.Ability.Strength, StrengthAbility);
             abilities.Add(Enum.Ability.Endurance, EnduranceAbility);

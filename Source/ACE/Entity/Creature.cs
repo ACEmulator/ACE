@@ -32,15 +32,11 @@ namespace ACE.Entity
 
         public CreatureAbility Self { get; set; }
 
-        public CreatureAbility Health { get; set; }
+        public CreatureVital Health { get; set; }
 
-        public CreatureAbility Stamina { get; set; }
+        public CreatureVital Stamina { get; set; }
 
-        public CreatureAbility Mana { get; set; }
-
-        private double lastHealthUpdateTime = double.NegativeInfinity;
-        private double lastStaminaUpdateTime = double.NegativeInfinity;
-        private double lastManaUpdateTime = double.NegativeInfinity;
+        public CreatureVital Mana { get; set; }
 
         /// <summary>
         /// This is used to allow us to queue up game actions that we are out of range to preform
@@ -148,16 +144,17 @@ namespace ACE.Entity
 
         private void SetAbilities(AceCreatureObject aco)
         {
-            Strength = new CreatureAbility(aco, Enum.Ability.Strength);
-            Endurance = new CreatureAbility(aco, Enum.Ability.Endurance);
-            Coordination = new CreatureAbility(aco, Enum.Ability.Coordination);
-            Quickness = new CreatureAbility(aco, Enum.Ability.Quickness);
-            Focus = new CreatureAbility(aco, Enum.Ability.Focus);
-            Self = new CreatureAbility(aco, Enum.Ability.Self);
+            Strength = new CreatureAbility(Enum.Ability.Strength);
+            Endurance = new CreatureAbility(Enum.Ability.Endurance);
+            Coordination = new CreatureAbility(Enum.Ability.Coordination);
+            Quickness = new CreatureAbility(Enum.Ability.Quickness);
+            Focus = new CreatureAbility(Enum.Ability.Focus);
+            Self = new CreatureAbility(Enum.Ability.Self);
 
-            Health = new CreatureAbility(aco, Enum.Ability.Health);
-            Stamina = new CreatureAbility(aco, Enum.Ability.Stamina);
-            Mana = new CreatureAbility(aco, Enum.Ability.Mana);
+            // TODO: Real regen rates?
+            Health = new CreatureVital(aco, Enum.Ability.Health, .5);
+            Stamina = new CreatureVital(aco, Enum.Ability.Stamina, 1.0);
+            Mana = new CreatureVital(aco, Enum.Ability.Mana, .7);
 
             Strength.Base = aco.Strength;
             Endurance.Base = aco.Endurance;
@@ -236,50 +233,15 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Used to determine if health/stamina/mana updates need to be sent periodically
-        /// Returns the "last time" the vitals were updated
-        /// Takes the vital to update, the lastTime it was updated, and the update rate
-        /// </summary>
-        private double UpdateVital(CreatureAbility ability, double lastTime, double rate)
-        {
-            if (lastTime == double.NegativeInfinity)
-            {
-                return WorldManager.PortalYearTicks;
-            }
-
-            double curTime = WorldManager.PortalYearTicks;
-
-            if (curTime <= lastTime)
-            {
-                return lastTime;
-            }
-
-            double timeDiff = curTime - lastTime;
-
-            uint numTicks = (uint)(timeDiff * rate);
-
-            if (numTicks > 0)
-            {
-                // lastTime is the time at which the last tick would have happened
-                lastTime = lastTime + numTicks / rate;
-
-                // Now, update our value
-                ability.Current = System.Math.Min(ability.MaxValue, ability.Current + numTicks);
-            }
-
-            return lastTime;
-        }
-
-        /// <summary>
         /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
         /// </summary>
         // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
-        public virtual void GameLoopUpdate()
+        override public void Tick(double tickTime)
         {
             // TODO: Realistic rates && adjusting rates for spells...
-            lastHealthUpdateTime = UpdateVital(Health, lastHealthUpdateTime, .5);
-            lastStaminaUpdateTime = UpdateVital(Stamina, lastStaminaUpdateTime, 1.0);
-            lastManaUpdateTime = UpdateVital(Mana, lastManaUpdateTime, .7);
+            Health.Tick(tickTime);
+            Stamina.Tick(tickTime);
+            Mana.Tick(tickTime);
         }
     }
 }

@@ -506,11 +506,12 @@ namespace ACE.Entity
                 });
                 UpdateStatus(allplayers.Count);
 
+                double tickTime = WorldManager.PortalYearTicks;
                 // per-creature update on landblock.
-                Parallel.ForEach(allcreatures, creature =>
+                Parallel.ForEach(allworldobj, wo =>
                 {
                     // Process the creatures
-                    creature.GameLoopUpdate();
+                    wo.Tick(tickTime);
                 });
 
                 // broadcast moving objects to the world..
