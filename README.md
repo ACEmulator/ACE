@@ -9,6 +9,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 
 ***
 ## Recommended Tools
+* [Visual Studio 2015 Community Edition](https://www.visualstudio.com/vs/) - 2017 will work, but we're standardized on 2015.
 * SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
 * Hex Editor (Hexplorer or 010 Editor are both good)
 * ACLogView [on Github](https://github.com/tfarley/aclogview)
