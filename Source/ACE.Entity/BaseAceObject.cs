@@ -14,13 +14,11 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        public uint ? AmmoType
+        public uint? AmmoType
         {
             get
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType);
-                if (listItem == null) return null;
-                return listItem.PropertyValue;
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType)?.PropertyValue;
             }
             set
             {
@@ -35,13 +33,11 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        public byte ? BlipColor
+        public byte? BlipColor
         {
             get
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor);
-                if (listItem == null) return null;
-                return (byte)listItem.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor)?.PropertyValue;
             }
             set
             {
@@ -50,17 +46,15 @@ namespace ACE.Entity
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor).PropertyValue = (byte)value;
                 else
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
             }
         }
 
-        public uint ? Burden
+        public uint? Burden
         {
             get
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal);
-                if (listItem == null) return null;
-                return listItem.PropertyValue;
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal)?.PropertyValue;
             }
             set
             {
@@ -75,13 +69,11 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        public byte ? CombatUse
+        public byte? CombatUse
         {
             get
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (byte)PropertyInt.CombatUse);
-                if (listItem == null) return null;
-                return (byte)listItem.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse)?.PropertyValue;
             }
             set
             {
@@ -94,13 +86,11 @@ namespace ACE.Entity
             }
         }
 
-        public byte ? ContainersCapacity
+        public byte? ContainersCapacity
         {
             get
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity);
-                if (listItem == null) return null;
-                return (byte)listItem.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity)?.PropertyValue;
             }
             set
             {
@@ -113,13 +103,11 @@ namespace ACE.Entity
             }
         }
 
-        public double ? CooldownDuration
+        public double? CooldownDuration
         {
             get
             {
-                var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
-                if (listItem == null) return null;
-                return (byte)listItem.PropertyValue;
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyDouble.CooldownDuration)?.PropertyValue;
             }
             set
             {
