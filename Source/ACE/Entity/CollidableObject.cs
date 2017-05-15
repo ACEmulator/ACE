@@ -49,10 +49,11 @@ namespace ACE.Entity
             // game data min required flags;
             this.Icon = aceO.IconId;
 
+            // TODO: Check to see if we should default a 0 to fix these possible null errors Og II
             this.GameData.AmmoType = (AmmoType)aceO.AmmoType;
             this.GameData.Burden = (ushort)aceO.Burden;
             this.GameData.CombatUse = (CombatUse)aceO.CombatUse;
-            this.GameData.ContainerCapacity = aceO.ContainersCapacity;
+            this.GameData.ContainerCapacity = (byte)aceO.ContainersCapacity;
             this.GameData.Cooldown = aceO.CooldownId;
             this.GameData.CooldownDuration = (decimal)aceO.CooldownDuration;
             this.GameData.HookItemTypes = aceO.HookItemTypes;

@@ -76,8 +76,10 @@ namespace ACE.Entity
         {
             get { return (byte)((rawValue >> 16) & 0xFF); }
         }
-
-        public ushort Landcell
+        /// <summary>
+        /// This is only used to calclate LandcellX and LandcellY - it has no other function.
+        /// </summary>
+        private ushort Landcell
         {
             get { return (byte)((rawValue & 0x3F) - 1); }
         }
@@ -101,7 +103,7 @@ namespace ACE.Entity
         {
             return c1.Landblock == c2.Landblock;
         }
-        
+
         public static bool operator !=(LandblockId c1, LandblockId c2)
         {
             return c1.Landblock != c2.Landblock;

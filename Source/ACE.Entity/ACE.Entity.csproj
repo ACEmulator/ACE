@@ -71,6 +71,11 @@
     <Compile Include="AceCreatureGeneratorLocation.cs" />
     <Compile Include="AceCreatureObject.cs" />
     <Compile Include="AceCreatureStaticLocation.cs" />
+    <Compile Include="AceObjectPropertiesBigInt.cs" />
+    <Compile Include="AceObjectPropertiesBool.cs" />
+    <Compile Include="AceObjectPropertiesDouble.cs" />
+    <Compile Include="AceObjectPropertiesInt.cs" />
+    <Compile Include="AceObjectPropertiesString.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AceObject.cs" />
     <Compile Include="AcePortalObject.cs" />

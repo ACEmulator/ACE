@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
@@ -10,6 +11,126 @@ namespace ACE.Entity
     {
         [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
+        /// <summary>
+        /// TODO: convert to enum
+        /// </summary>
+        public uint ? AmmoType
+        {
+            get
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType);
+                if (listItem == null) return null;
+                return listItem.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+        /// <summary>
+        /// TODO: convert to enum
+        /// </summary>
+        public byte ? BlipColor
+        {
+            get
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor);
+                if (listItem == null) return null;
+                return (byte)listItem.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+
+        public uint ? Burden
+        {
+            get
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal);
+                if (listItem == null) return null;
+                return listItem.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+        /// <summary>
+        /// TODO: convert to enum
+        /// </summary>
+        public byte ? CombatUse
+        {
+            get
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (byte)PropertyInt.CombatUse);
+                if (listItem == null) return null;
+                return (byte)listItem.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+
+        public byte ? ContainersCapacity
+        {
+            get
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity);
+                if (listItem == null) return null;
+                return (byte)listItem.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+
+        public double ? CooldownDuration
+        {
+            get
+            {
+                var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
+                if (listItem == null) return null;
+                return (byte)listItem.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyDouble.CooldownDuration);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyDouble.CooldownDuration).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
         [DbField("name", (int)MySqlDbType.Text)]
         public string Name { get; set; }
@@ -20,41 +141,14 @@ namespace ACE.Entity
         [DbField("paletteId", (int)MySqlDbType.UInt32)]
         public uint PaletteId { get; set; }
 
-        /// <summary>
-        /// TODO: convert to AmmoType enum
-        /// </summary>
-        [DbField("ammoType", (int)MySqlDbType.UInt32)]
-        public uint AmmoType { get; set; }
-
-        /// <summary>
-        /// TODO: convert to RadarColor enum
-        /// </summary>
-        [DbField("blipColor", (int)MySqlDbType.UByte)]
-        public byte BlipColor { get; set; }
-
         [DbField("bitField", (int)MySqlDbType.UInt32)]
         public uint WdescBitField { get; set; }
-
-        [DbField("burden", (int)MySqlDbType.UInt32)]
-        public uint Burden { get; set; }
-
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        [DbField("combatUse", (int)MySqlDbType.UByte)]
-        public byte CombatUse { get; set; }
-
-        [DbField("cooldownDuration", (int)MySqlDbType.Double)]
-        public double CooldownDuration { get; set; }
 
         [DbField("cooldownId", (int)MySqlDbType.UInt32)]
         public uint CooldownId { get; set; }
 
         [DbField("effects", (int)MySqlDbType.UInt32)]
         public uint Effects { get; set; }
-
-        [DbField("containersCapacity", (int)MySqlDbType.UByte)]
-        public byte ContainersCapacity { get; set; }
 
         /// <summary>
         /// TODO: convert to enum
@@ -192,5 +286,15 @@ namespace ACE.Entity
         public List<TextureMapOverride> TextureOverrides { get; set; } = new List<TextureMapOverride>();
 
         public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
+
+        public List<AceObjectPropertiesInt> AceObjectPropertiesInt { get; set; } = new List<AceObjectPropertiesInt>();
+
+        public List<AceObjectPropertiesBigInt> AceObjectPropertiesBigInt { get; set; } = new List<AceObjectPropertiesBigInt>();
+
+        public List<AceObjectPropertiesDouble> AceObjectPropertiesDouble { get; set; } = new List<AceObjectPropertiesDouble>();
+
+        public List<AceObjectPropertiesBool> AceObjectPropertiesBool { get; set; } = new List<AceObjectPropertiesBool>();
+
+        public List<AceObjectPropertiesString> AceObjectPropertiesString { get; set; } = new List<AceObjectPropertiesString>();
     }
 }

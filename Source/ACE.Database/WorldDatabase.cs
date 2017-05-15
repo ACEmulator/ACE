@@ -8,44 +8,49 @@ namespace ACE.Database
     {
         private enum WorldPreparedStatement
         {
-            TeleportLocationSelect,
-            GetWeenieClass,
-            GetObjectsByLandblock,
-            GetCreaturesByLandblock,
-            GetWeeniePalettes,
-            GetWeenieTextureMaps,
-            GetWeenieAnimations,
-            GetPaletteOverridesByObject,
-            GetAnimationOverridesByObject,
-            GetTextureOverridesByObject,
-            GetCreatureDataByWeenie,
-            InsertCreatureStaticLocation,
-            GetCreatureGeneratorByLandblock,
-            GetCreatureGeneratorData,
-            GetPortalObjectsByAceObjectId,
-            GetItemsByTypeId
+            TeleportLocationSelect = 0,
+            GetWeenieClass = 1,
+            GetObjectsByLandblock = 2,
+            GetCreaturesByLandblock = 3,
+            GetWeeniePalettes = 4,
+            GetWeenieTextureMaps = 5,
+            GetWeenieAnimations = 6,
+            GetPaletteOverridesByObject = 7,
+            GetAnimationOverridesByObject = 8,
+            GetTextureOverridesByObject = 9,
+            GetCreatureDataByWeenie = 10,
+            InsertCreatureStaticLocation = 11,
+            GetCreatureGeneratorByLandblock = 12,
+            GetCreatureGeneratorData = 13,
+            GetPortalObjectsByAceObjectId = 14,
+            GetItemsByTypeId = 15,
+            GetAceObjectPropertiesInt = 16,
+            GetAceObjectPropertiesBigInt = 17,
+            GetAceObjectPropertiesDouble = 18,
+            GetAceObjectPropertiesBool = 19,
+            GetAceObjectPropertiesString = 20
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
 
         protected override void InitializePreparedStatements()
         {
-            AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
-            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
-            ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(BaseAceObject), ConstructedStatementType.GetList);
+            // AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
+            // ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
+            // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
+            // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
+            // ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
+            // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(BaseAceObject), ConstructedStatementType.GetList);
         }
 
         public BaseAceObject GetRandomBaseAceObjectByTypeId(uint typeId)

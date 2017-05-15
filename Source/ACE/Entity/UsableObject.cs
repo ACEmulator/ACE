@@ -62,11 +62,11 @@ namespace ACE.Entity
             PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
             PhysicsData.Stable = baseAceObject.SoundTableId;
             PhysicsData.Translucency = baseAceObject.Translucency;
-
+            // TODO: Check to see if we should default a 0 to fix these possible null errors Og II
             GameData.AmmoType = (AmmoType)baseAceObject.AmmoType;
             GameData.Burden = (ushort)baseAceObject.Burden;
             GameData.CombatUse = (CombatUse)baseAceObject.CombatUse;
-            GameData.ContainerCapacity = baseAceObject.ContainersCapacity;
+            GameData.ContainerCapacity = (byte)baseAceObject.ContainersCapacity;
             GameData.Cooldown = baseAceObject.CooldownId;
             GameData.CooldownDuration = (decimal)baseAceObject.CooldownDuration;
             GameData.HookItemTypes = baseAceObject.HookItemTypes;
