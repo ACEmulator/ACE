@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------------------------- 
+﻿// --------------------------------------------------------------------------------------------------------------------
 // <summary>
 //   Defines the Positions types that we need to track.
 // </summary>
@@ -7,7 +7,7 @@
 namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// The enumerations for the different positions we want to track.  This code provided by Ripley via pastebin  
+    /// The enumerations for the different positions we want to track.  This code provided by Ripley via pastebin
     /// </summary>
     public enum PositionType
     {
@@ -111,7 +111,7 @@ namespace ACE.Entity.Enum
         HouseBoot = 13,
 
         /// <summary>
-        /// The last outside death. --- boy would I love to extend this to cover deaths in dungeons as well.   
+        /// The last outside death. --- boy would I love to extend this to cover deaths in dungeons as well.
         /// </summary>
         LastOutsideDeath = 14, // Location of Corpse
 
@@ -174,6 +174,7 @@ namespace ACE.Entity.Enum
         /// needs research
         /// </summary>
         RelativeDestination = 26,
-        TeleportedCharacter = 27
+        TeleportedCharacter = 27,
+        PoiDestination = 28
     }
 }

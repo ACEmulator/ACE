@@ -18,7 +18,7 @@ namespace ACE.Entity
         public string NamePlural;
         public byte ItemCapacity;
         public byte ContainerCapacity;
-        public AmmoType AmmoType;
+        public AmmoType? AmmoType;
         public uint Value;
         public Usable Usable = Usable.UsableNo;
         public float UseRadius = 0.25f;
