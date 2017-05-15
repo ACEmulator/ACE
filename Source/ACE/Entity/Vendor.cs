@@ -4,6 +4,7 @@ using ACE.Network.Motion;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
@@ -62,7 +63,7 @@ namespace ACE.Entity
             }
 
             // give player starting money
-            var money = new GameMessageUpdateQualityEvent(player.Session, 5000);
+            var money = new GameMessagePrivateUpdatePropertyInt(player.Session, PropertyInt.CoinValue, 5000);
             player.Session.Network.EnqueueSend(money);
 
             var welcomemsg = new GameMessageSystemChat(serverMessage, ChatMessageType.Tell);
@@ -70,7 +71,7 @@ namespace ACE.Entity
             var sendUseDoneEvent = new GameEventUseDone(player.Session);
             player.Session.Network.EnqueueSend(welcomemsg, sendUseDoneEvent);
 
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this));
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this.Guid.Full));
         }
     }
 }

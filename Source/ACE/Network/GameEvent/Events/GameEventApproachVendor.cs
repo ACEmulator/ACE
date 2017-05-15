@@ -7,14 +7,18 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, WorldObject worldObject)
+        public GameEventApproachVendor(Session session, uint objectID)
             : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
         {        
-            Writer.WriteGuid(worldObject.Guid); // merchant id
+            // todo: turn this into a real vendor that reads from a database
 
-            // Pack Categories Food & Trade Notes ?
-            uint buycatgegories = 17291; 
-            Writer.Write(buycatgegories); // item_types, not really relevant for selling items here. It's for what they will buy
+            Writer.Write(objectID); // merchant id
+
+            // bit mask ? categories / mask may need figured out more.
+            // what will the vendor offer to buy
+            ObjectDescriptionFlag buycatgegories;
+            buycatgegories = ObjectDescriptionFlag.Food;
+            Writer.Write((uint)buycatgegories); 
 
             Writer.Write((uint)0); // min_value
             Writer.Write((uint)0); // max_value
@@ -42,10 +46,10 @@ namespace ACE.Network.GameEvent.Events
                                 Enum.WeenieHeaderFlag.Burden | 
                                 Enum.WeenieHeaderFlag.Usable;
             apple.Value = 10;
-            apple.ContainerId = worldObject.Guid.Full; // because the vendor has it!
+            apple.ContainerId = objectID; // because the vendor has it!
             apple.Usable = Enum.Usable.UsableNo;
             apple.StackSize = 1;
-            apple.MaxStackSize = 100;
+            apple.MaxStackSize = 1;
             apple.CombatUse = Enum.CombatUse.MissleWeapon;
             apple.ValidEquipLocations = (Enum.EquipMask)4194304;
             apple.HookType = (ushort)ObjectType.Armor;
@@ -55,7 +59,7 @@ namespace ACE.Network.GameEvent.Events
 
             Writer.Write((uint)0xFFFFFFFF); // first byte, if non-zero, tells it to use oldPublicWeenieDesc. We've only got (new)PublicWeenieDesc in gamedata
             Writer.Write((uint)10); // this should be the iid. I made this one up.
-            GameDataTest applepie = new GameDataTest(ObjectType.Food, "Stacks famous Pie", 4709, 100669942);
+            GameDataTest applepie = new GameDataTest(ObjectType.Food, "Stacks Famous Pie", 4709, 100669942);
             applepie.WeenieFlags = Enum.WeenieHeaderFlag.Value |
                                 Enum.WeenieHeaderFlag.Container |
                                 Enum.WeenieHeaderFlag.StackSize |
@@ -65,11 +69,11 @@ namespace ACE.Network.GameEvent.Events
                                 Enum.WeenieHeaderFlag.HookType |
                                 Enum.WeenieHeaderFlag.Burden |
                                 Enum.WeenieHeaderFlag.Usable;
-            applepie.Value = 20;
-            applepie.ContainerId = worldObject.Guid.Full; // because the vendor has it!
+            applepie.Value = 1;
+            applepie.ContainerId = objectID; // because the vendor has it!
             applepie.Usable = Enum.Usable.UsableNo;
             applepie.StackSize = 1;
-            applepie.MaxStackSize = 100;
+            applepie.MaxStackSize = 1;
             applepie.CombatUse = Enum.CombatUse.MissleWeapon;
             applepie.ValidEquipLocations = (Enum.EquipMask)4194304;
             applepie.HookType = (ushort)ObjectType.Armor;

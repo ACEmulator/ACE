@@ -15,6 +15,7 @@ using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Network.GameMessages.Messages;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
@@ -638,15 +639,16 @@ namespace ACE.Entity
                 case GameActionType.Buy:
                     {
                         // todo: lots, need vendor list, money checks, etc.
-                    
-                        var money = new GameMessageUpdateQualityEvent(player.Session, 4000);
-                        player.Session.Network.EnqueueSend(money);
 
+                        var money = new GameMessagePrivateUpdatePropertyInt(player.Session, PropertyInt.CoinValue, 4000);
                         var sound = new GameMessageSound(player.Guid, Sound.PickUpItem, 1);
-
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
 
+                        // send updated vendor inventory.
+                        player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, action.ObjectId));
+
+                        // this is just some testing code for now.
                         foreach (ItemProfile item in action.ProfileItems)
                         {
                             // todo: something with vendor id and profile list... iid list from vendor dbs.
