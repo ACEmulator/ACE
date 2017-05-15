@@ -14,6 +14,7 @@ using ACE.Network.Enum;
 using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -632,6 +633,44 @@ namespace ACE.Entity
                         }
                         var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
                         player.Session.Network.EnqueueSend(identifyResponse);
+                        break;
+                    }
+                case GameActionType.Buy:
+                    {
+                        // todo: lots, need vendor list, money checks, etc.
+                    
+                        var money = new GameMessageUpdateQualityEvent(player.Session, 4000);
+                        player.Session.Network.EnqueueSend(money);
+
+                        var sound = new GameMessageSound(player.Guid, Sound.PickUpItem, 1);
+
+                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        player.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
+
+                        foreach (ItemProfile item in action.ProfileItems)
+                        {
+                            // todo: something with vendor id and profile list... iid list from vendor dbs.
+                            // todo: something with amounts..
+
+                            if (item.Iid == 5)
+                            {
+                                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(258);
+                                LootGenerationFactory.AddToContainer(loot, player);
+                                player.TrackObject(loot);
+                                var rudecomment = "Who do you think you are, Johny Apple seed ?";
+                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
+                                player.Session.Network.EnqueueSend(buyrudemsg);
+                            }
+                            else if (item.Iid == 10)
+                            {
+                                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(4709);
+                                LootGenerationFactory.AddToContainer(loot, player);
+                                player.TrackObject(loot);
+                                var rudecomment = "That smells awful, Enjoy eating it!";
+                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
+                                player.Session.Network.EnqueueSend(buyrudemsg);
+                            }
+                        }
                         break;
                     }
                 case GameActionType.PutItemInContainer:

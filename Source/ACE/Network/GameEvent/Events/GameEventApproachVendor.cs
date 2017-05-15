@@ -25,12 +25,12 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write((uint)0); // trade number .. is this a timestamp type val?
             Writer.WriteString16L("");
 
-            int itemCount = 1;
+            int itemCount = 2;
             Writer.Write((uint)itemCount); // number of items
 
             // Write the item(s)
             Writer.Write((uint)0xFFFFFFFF); // first byte, if non-zero, tells it to use oldPublicWeenieDesc. We've only got (new)PublicWeenieDesc in gamedata
-            Writer.Write((uint)0x889cab5e); // this should be the guid. I made this one up.
+            Writer.Write((uint)5); // this should be the iid. I made this one up.
             GameDataTest apple = new GameDataTest(ObjectType.Food, "Apple", 258, 100667465);
             apple.WeenieFlags = Enum.WeenieHeaderFlag.Value | 
                                 Enum.WeenieHeaderFlag.Container | 
@@ -41,7 +41,7 @@ namespace ACE.Network.GameEvent.Events
                                 Enum.WeenieHeaderFlag.HookType |
                                 Enum.WeenieHeaderFlag.Burden | 
                                 Enum.WeenieHeaderFlag.Usable;
-            apple.Value = 1;
+            apple.Value = 10;
             apple.ContainerId = worldObject.Guid.Full; // because the vendor has it!
             apple.Usable = Enum.Usable.UsableNo;
             apple.StackSize = 1;
@@ -51,6 +51,30 @@ namespace ACE.Network.GameEvent.Events
             apple.HookType = (ushort)ObjectType.Armor;
             apple.Burden = 50;
             apple.Serialize(Writer);
+            Writer.Align();
+
+            Writer.Write((uint)0xFFFFFFFF); // first byte, if non-zero, tells it to use oldPublicWeenieDesc. We've only got (new)PublicWeenieDesc in gamedata
+            Writer.Write((uint)10); // this should be the iid. I made this one up.
+            GameDataTest applepie = new GameDataTest(ObjectType.Food, "Stacks famous Pie", 4709, 100669942);
+            applepie.WeenieFlags = Enum.WeenieHeaderFlag.Value |
+                                Enum.WeenieHeaderFlag.Container |
+                                Enum.WeenieHeaderFlag.StackSize |
+                                Enum.WeenieHeaderFlag.MaxStackSize |
+                                Enum.WeenieHeaderFlag.CombatUse |
+                                Enum.WeenieHeaderFlag.ValidLocations |
+                                Enum.WeenieHeaderFlag.HookType |
+                                Enum.WeenieHeaderFlag.Burden |
+                                Enum.WeenieHeaderFlag.Usable;
+            applepie.Value = 20;
+            applepie.ContainerId = worldObject.Guid.Full; // because the vendor has it!
+            applepie.Usable = Enum.Usable.UsableNo;
+            applepie.StackSize = 1;
+            applepie.MaxStackSize = 100;
+            applepie.CombatUse = Enum.CombatUse.MissleWeapon;
+            applepie.ValidEquipLocations = (Enum.EquipMask)4194304;
+            applepie.HookType = (ushort)ObjectType.Armor;
+            applepie.Burden = 50;
+            applepie.Serialize(Writer);
             Writer.Align();
         }
     }

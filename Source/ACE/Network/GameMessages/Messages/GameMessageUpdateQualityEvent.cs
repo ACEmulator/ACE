@@ -9,12 +9,12 @@ namespace ACE.Network.GameMessages.Messages
     /// </summary>
     public class GameMessageUpdateQualityEvent : GameMessage
     {
-        public GameMessageUpdateQualityEvent(Session session)
+        public GameMessageUpdateQualityEvent(Session session, int amount)
             : base(GameMessageOpcode.PUpdateQualityEvent, GameMessageGroup.Group09)
         {
             Writer.Write((byte)1); // wts .. maybe a sequance based off of the object .. ie vendor or player ?
             Writer.Write(0x14); // coin value -- see STypeInt in aclog for more info on this. many options!
-            Writer.Write(5000);
+            Writer.Write(amount);
         }
     }
 }

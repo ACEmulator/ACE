@@ -108,6 +108,7 @@
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
     <Compile Include="Entity\GameDataTest.cs" />
+    <Compile Include="Entity\ItemProfile.cs" />
     <Compile Include="Entity\Lifestone.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Entity\MovementData.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionBuyItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />

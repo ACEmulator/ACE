@@ -53,22 +53,22 @@ namespace ACE.Entity
 
             if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
             {
-                serverMessage = "You wandered too far from the vendor";
+                serverMessage = "Your way to far away to trust, come closer and buy something or leave me alone!";
             }
             else
             {
                 // create the outbound server message
-                serverMessage = "You Break you Buy!,You Break you Buy!";
+                serverMessage = "You Break it, you bought it!";
             }
 
-            // give player money
-            var money = new GameMessageUpdateQualityEvent(player.Session);
+            // give player starting money
+            var money = new GameMessageUpdateQualityEvent(player.Session, 5000);
             player.Session.Network.EnqueueSend(money);
 
-            var vendordebug = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
+            var welcomemsg = new GameMessageSystemChat(serverMessage, ChatMessageType.Tell);
             // always send useDone event
             var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(vendordebug, sendUseDoneEvent);
+            player.Session.Network.EnqueueSend(welcomemsg, sendUseDoneEvent);
 
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this));
         }
