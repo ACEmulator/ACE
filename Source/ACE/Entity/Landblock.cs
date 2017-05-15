@@ -656,18 +656,26 @@ namespace ACE.Entity
 
                             if (item.Iid == 5)
                             {
-                                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
-                                LootGenerationFactory.AddToContainer(loot, player);
-                                player.TrackObject(loot);
+                                while (item.Amount > 0)
+                                {
+                                    item.Amount--;
+                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
+                                    LootGenerationFactory.AddToContainer(loot, player);
+                                    player.TrackObject(loot);
+                                }
                                 var rudecomment = "Who do you think you are, Johny Apple Seed ?";
                                 var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
                                 player.Session.Network.EnqueueSend(buyrudemsg);
                             }
                             else if (item.Iid == 10)
                             {
-                                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
-                                LootGenerationFactory.AddToContainer(loot, player);
-                                player.TrackObject(loot);
+                                while (item.Amount > 0)
+                                {
+                                    item.Amount--;
+                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
+                                    LootGenerationFactory.AddToContainer(loot, player);
+                                    player.TrackObject(loot);
+                                }
                                 var rudecomment = "That smells awful, Enjoy eating it!";
                                 var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
                                 player.Session.Network.EnqueueSend(buyrudemsg);
