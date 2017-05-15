@@ -137,18 +137,15 @@ namespace ACE.Entity
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
-            SerializeCreateObject(writer, false);
+            SerializeCreateObject(writer);
         }
 
-        public virtual void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)
+        public virtual void SerializeCreateObject(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
 
-            if (!gamedataonly)
-            {
-                ModelData.Serialize(writer);
-                PhysicsData.Serialize(this, writer);
-            }
+            ModelData.Serialize(writer);
+            PhysicsData.Serialize(this, writer);
 
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
@@ -269,7 +266,7 @@ namespace ACE.Entity
 
             /*if ((WeenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
                 writer.Write(0u);*/
-           
+
             writer.Align();
         }
 
