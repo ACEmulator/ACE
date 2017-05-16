@@ -204,7 +204,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToMarketplace.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
-    <Compile Include="Network\GameAction\QueuedGameActionBuy.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionBuy.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
@@ -216,6 +216,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameAction\QueuedGameAction.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionMovementEvent.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />

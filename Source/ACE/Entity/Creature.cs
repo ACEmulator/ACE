@@ -11,6 +11,7 @@ using ACE.StateMachines;
 using ACE.StateMachines.Enum;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using ACE.Network.GameAction.QueuedGameActions;
 
 namespace ACE.Entity
 {
@@ -206,7 +207,7 @@ namespace ACE.Entity
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
+            QueuedGameAction actionDeath = new QueuedGameActionMovementEvent(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent, Location.LandblockId);
             session.Player.AddToActionQueue(actionDeath);
 
             // Create Corspe and set a location on the ground

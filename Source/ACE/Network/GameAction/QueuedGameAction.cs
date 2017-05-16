@@ -7,6 +7,53 @@ namespace ACE.Network.GameAction
 {
     public class QueuedGameAction
     {
+        public void Handler(Player obj) { Handle(obj); }
+        protected virtual void Handle(Player obj) { }
+
+        public void Handler(Monster obj) { Handle(obj); }
+        protected virtual void Handle(Monster obj) { }
+
+        public void Handler(Door obj) { Handle(obj); }
+        protected virtual void Handle(Door obj) { }
+
+        public void Handler(Container obj) { Handle(obj); }
+        protected virtual void Handle(Container obj) { }
+
+        public void Handler(WorldObject obj) { Handle(obj); }
+        protected virtual void Handle(WorldObject obj) { }
+
+        public LandblockId LandBlockId { get; protected set; }
+
+        public uint ObjectId { get; protected set; }
+
+        public uint SecondaryObjectId { get; protected set; }
+
+        public WorldObject WorldObject { get; protected set; }
+
+        public string ActionBroadcastMessage { get; protected set; }
+
+        public GameActionType ActionType { get; protected set; }
+
+        public Position ActionLocation { get; protected set; }
+
+        public UniversalMotion Motion { get; protected set; }
+
+        public bool OnlyRemove { get; protected set; }
+
+        public bool RespectDelay { get; protected set; }
+
+        public double StartTime { get; set; }
+
+        public double EndTime { get; set; }
+
+        public List<ItemProfile> ProfileItems { get; protected set; }
+
+        // this is going to be the only one left once am done converting them all.
+        public QueuedGameAction()
+        {
+        }
+
+        // All the code below this line is to be chucked.
         public QueuedGameAction(uint objectId, GameActionType actionType)
         {
             this.ObjectId = objectId;
@@ -75,7 +122,6 @@ namespace ACE.Network.GameAction
             this.ActionLocation = newQueuedPosition;
             this.ActionType = actionType;
         }
-
         /// <summary>
         /// Send a player killed event
         /// </summary>
@@ -96,35 +142,5 @@ namespace ACE.Network.GameAction
             this.ProfileItems = profileItems;
             this.ActionType = actionType;
         }
-
-        public void Handler(Player player) { Handle(player); }
-        protected virtual void Handle(Player player) { }
-
-        public void Handler(Monster monster) { Handle(monster); }
-        protected virtual void Handle(Monster monster) { }
-
-        public uint ObjectId { get; private set; }
-
-        public uint SecondaryObjectId { get; private set; }
-
-        public WorldObject WorldObject { get; private set; }
-
-        public string ActionBroadcastMessage { get; private set; }
-
-        public GameActionType ActionType { get; private set; }
-
-        public Position ActionLocation { get; private set; }
-
-        public UniversalMotion Motion { get; private set; }
-
-        public bool OnlyRemove { get; private set; }
-
-        public bool RespectDelay { get; private set; }
-
-        public double StartTime { get; set; }
-
-        public double EndTime { get; set; }
-
-        public List<ItemProfile> ProfileItems = new List<ItemProfile>();
     }
 }

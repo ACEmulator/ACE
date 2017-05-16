@@ -336,12 +336,6 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        public void HandleMovementEvent(WorldObject sender, UniversalMotion motion)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
-            Broadcast(args, true, Quadrant.All);
-        }
-
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -365,7 +359,7 @@ namespace ACE.Entity
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
-        private void Broadcast(BroadcastEventArgs args, bool propogate, Quadrant quadrant)
+        public void Broadcast(BroadcastEventArgs args, bool propogate, Quadrant quadrant)
         {
             WorldObject wo = args.Sender;
             List<Player> players = null;
@@ -574,17 +568,21 @@ namespace ACE.Entity
 
         private void HandleGameAction(QueuedGameAction action, Player player)
         {
+            // short circuit players no longer on this landblock.
+            var g = new ObjectGuid(action.ObjectId);
+            WorldObject obj = (WorldObject)player;
+            if (worldObjects.ContainsKey(g))
+            {
+                obj = worldObjects[g];
+            }
+            else
+                return;
+
             switch (action.ActionType)
             {
                 case GameActionType.TalkDirect:
                     {
                         // TODO: remove this hack (using TalkDirect) ASAP
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
                         DeathMessageArgs d = new DeathMessageArgs(action.ActionBroadcastMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
                         HandleDeathMessage(obj, d);
                         break;
@@ -601,24 +599,12 @@ namespace ACE.Entity
                     }
                 case GameActionType.ApplyVisualEffect:
                     {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
                         var particleEffect = (PlayScript)action.SecondaryObjectId;
                         HandleParticleEffectEvent(obj, particleEffect);
                         break;
                     }
                 case GameActionType.ApplySoundEffect:
                     {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
                         var soundEffect = (Sound)action.SecondaryObjectId;
                         HandleSoundEvent(obj, soundEffect);
                         break;
@@ -626,12 +612,6 @@ namespace ACE.Entity
                 case GameActionType.IdentifyObject:
                     {
                         // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
                         var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
                         player.Session.Network.EnqueueSend(identifyResponse);
                         break;
@@ -672,9 +652,6 @@ namespace ACE.Entity
                     }
                 case GameActionType.DropItem:
                     {
-                        var g = new ObjectGuid(action.ObjectId);
-                        if (worldObjects.ContainsKey(g))
-                        {
                             var playerId = new ObjectGuid(action.ObjectId);
                             var inventoryId = new ObjectGuid(action.SecondaryObjectId);
                             if (playerId.IsPlayer())
@@ -682,19 +659,11 @@ namespace ACE.Entity
                                 var aPlayer = (Player)worldObjects[playerId];
                                 aPlayer.NotifyAndDropItem(inventoryId);
                             }
-                        }
                         break;
                     }
                 case GameActionType.MovementEvent:
                     {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var motion = action.Motion;
-                        HandleMovementEvent(obj, motion);
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.ObjectCreate:
@@ -762,11 +731,6 @@ namespace ACE.Entity
                     }
                 case GameActionType.Use:
                     {
-                        var g = new ObjectGuid(action.ObjectId);
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            WorldObject obj = worldObjects[g];
-
                             if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
                                 (obj as Lifestone).OnUse(player);
                             else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
@@ -798,7 +762,6 @@ namespace ACE.Entity
                         break;
                     }
             }
-        }
 
         private void UpdateStatus(LandBlockStatusFlag flag)
         {

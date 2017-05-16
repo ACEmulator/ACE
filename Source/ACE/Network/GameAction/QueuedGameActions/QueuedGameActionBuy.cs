@@ -11,13 +11,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Network.GameAction.Actions
+namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionBuy : QueuedGameAction
     {
         public QueuedGameActionBuy(uint objectId, List<ItemProfile> profileItems, GameActionType actionType)
-        : base(objectId, profileItems, actionType)
         {
+            ObjectId = objectId;
+            ProfileItems = profileItems;
+            ActionType = actionType;
         }
 
         protected override void Handle(Player player)

@@ -26,6 +26,7 @@ using ACE.Factories;
 using ACE.StateMachines.Enum;
 
 using log4net;
+using ACE.Network.GameAction.QueuedGameActions;
 
 namespace ACE.Entity
 {
@@ -1065,7 +1066,7 @@ namespace ACE.Entity
         /// <param name="teleportType">Must be a teleportation range action type</param>
         public void ActionQueuedTeleport(Position teleportPosition, ObjectGuid objectId, GameActionType teleportType)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, teleportPosition, teleportType);
+            QueuedGameAction action = new QueuedGameActionMovementEvent(objectId.Full, teleportPosition, teleportType, Location.LandblockId);
             AddToActionQueue(action);
         }
 
@@ -1111,7 +1112,7 @@ namespace ACE.Entity
 
         public void EnqueueMovementEvent(UniversalMotion motion, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
+            QueuedGameAction action = new QueuedGameActionMovementEvent(objectId.Full, motion, GameActionType.MovementEvent, Location.LandblockId);
             AddToActionQueue(action);
         }
 

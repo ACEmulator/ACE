@@ -6,6 +6,7 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using log4net;
 using ACE.Common;
+using ACE.Entity.Events;
 
 namespace ACE.Managers
 {
@@ -68,7 +69,11 @@ namespace ACE.Managers
             return block.GetWorldObject(targetId);
         }
 
-        /// <summary>
+        public static void BroadcastByLandblockID(BroadcastEventArgs args, bool propogate, Quadrant quadrant, LandblockId landBlockId)
+        {
+            Landblock block = GetLandblock(landBlockId, false);
+            block.Broadcast(args, propogate, quadrant);
+        }
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
