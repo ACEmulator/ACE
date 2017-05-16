@@ -235,35 +235,125 @@ namespace ACE.Entity
                 }
             }
 
-            if (((WeenieFlags & WeenieHeaderFlag.TargetType) != 0) && GameData.TargetType != null)
-                writer.Write((uint)GameData.TargetType);
+            if ((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)
+            {
+                if (GameData.TargetType != null)
+                {
+                    writer.Write((uint)GameData.TargetType);
+                }
+                else
+                {
+                    writer.Write((uint)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0) && GameData.UiEffects != null)
-                writer.Write((uint)GameData.UiEffects);
+            if ((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0)
+            {
+                if (GameData.UiEffects != null)
+                {
+                    writer.Write((uint)GameData.UiEffects);
+                }
+                else
+                {
+                    writer.Write((uint)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0) && GameData.CombatUse != null)
-                writer.Write((byte)GameData.CombatUse);
+            if ((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0)
+                {
+                if (GameData.CombatUse != null)
+                {
+                    writer.Write((byte)GameData.CombatUse);
+                }
+                else
+                {
+                    writer.Write((byte)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.Struture) != 0) && GameData.Structure != null)
-                writer.Write((ushort)GameData.Structure);
+            if ((WeenieFlags & WeenieHeaderFlag.Struture) != 0)
+            {
+                if (GameData.Structure != null)
+                {
+                    writer.Write((ushort)GameData.Structure);
+                }
+                else
+                {
+                    writer.Write((ushort)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0) && GameData.ItemCapacity != null)
-                writer.Write((ushort)GameData.MaxStructure);
+            if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
+            {
+                if (GameData.ItemCapacity != null)
+                {
+                    writer.Write((ushort)GameData.MaxStructure);
+                }
+                else
+                {
+                    writer.Write((ushort)0);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.StackSize) != 0) && GameData.StackSize != null)
-                writer.Write((ushort)GameData.StackSize);
+            if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
+            {
+                if (GameData.StackSize != null)
+                {
+                    writer.Write((ushort)GameData.StackSize);
+                }
+                else
+                {
+                    writer.Write((ushort)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0) && GameData.MaxStackSize != null)
-                writer.Write((ushort)GameData.MaxStackSize);
+            if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
+            {
+                if (GameData.MaxStackSize != null)
+                {
+                    writer.Write((ushort)GameData.MaxStackSize);
+                }
+                else
+                {
+                    writer.Write((ushort)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.Container) != 0) && GameData.ContainerId != null)
-                writer.Write((uint)GameData.ContainerId);
+            if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
+            {
+                if (GameData.ContainerId != null)
+                {
+                    writer.Write((uint)GameData.ContainerId);
+                }
+                else
+                {
+                    writer.Write((uint)0u);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.Wielder) != 0) && GameData.Wielder != null)
-                writer.Write((uint)GameData.Wielder);
+            if ((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)
+            {
+                if (GameData.Wielder != null)
+                {
+                    writer.Write((uint)GameData.Wielder);
+                }
+                else
+                {
+                    writer.Write((uint)0);
+                }
+            }
 
-            if (((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0) && GameData.ValidLocations != null)
-                writer.Write((uint)GameData.ValidLocations);
+            if ((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
+            {
+                if (GameData.ValidLocations != null)
+                {
+                    writer.Write((uint)GameData.ValidLocations);
+                }
+                else
+                {
+                    writer.Write((uint)0);
+                }
+            }
 
             if (((WeenieFlags & WeenieHeaderFlag.Location) != 0) && GameData.Location != null)
                 writer.Write((uint)GameData.Location);
