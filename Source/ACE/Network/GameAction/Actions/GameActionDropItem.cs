@@ -1,6 +1,7 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
+using ACE.Network.GameAction.QueuedGameActions;
 using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.GameAction.Actions
@@ -12,7 +13,7 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var objectGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            QueuedGameAction action = new QueuedGameAction(session.Player.Guid.Full, objectGuid.Full, GameActionType.DropItem);
+            QueuedGameAction action = new QueuedGameActionDropItem(session.Player.Guid.Full, objectGuid.Full, GameActionType.DropItem, session.Player.Location.LandblockId);
             session.Player.AddToActionQueue(action);
         }
     }

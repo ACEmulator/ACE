@@ -1100,13 +1100,13 @@ namespace ACE.Entity
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
+            QueuedGameAction action = new QueuedGameActionApplySoundEffect(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect, Location.LandblockId);
             AddToActionQueue(action);
         }
 
         public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect);
+            QueuedGameAction action = new QueuedGameActionApplyVisualEffect(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect, Location.LandblockId);
             AddToActionQueue(action);
         }
 

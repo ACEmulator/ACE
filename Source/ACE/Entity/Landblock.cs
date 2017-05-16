@@ -324,18 +324,6 @@ namespace ACE.Entity
             return 0.00f;
         }
 
-        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
-            Broadcast(args, true, Quadrant.All);
-        }
-
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -599,14 +587,12 @@ namespace ACE.Entity
                     }
                 case GameActionType.ApplyVisualEffect:
                     {
-                        var particleEffect = (PlayScript)action.SecondaryObjectId;
-                        HandleParticleEffectEvent(obj, particleEffect);
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.ApplySoundEffect:
                     {
-                        var soundEffect = (Sound)action.SecondaryObjectId;
-                        HandleSoundEvent(obj, soundEffect);
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.IdentifyObject:
@@ -652,13 +638,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.DropItem:
                     {
-                            var playerId = new ObjectGuid(action.ObjectId);
-                            var inventoryId = new ObjectGuid(action.SecondaryObjectId);
-                            if (playerId.IsPlayer())
-                            {
-                                var aPlayer = (Player)worldObjects[playerId];
-                                aPlayer.NotifyAndDropItem(inventoryId);
-                            }
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.MovementEvent:
