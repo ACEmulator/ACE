@@ -397,7 +397,6 @@ namespace ACE.Database
             //                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
             //                    command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName];
             //            }
-
             //            connection.Open();
             //            using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
             //            {
@@ -408,7 +407,6 @@ namespace ACE.Database
             //                    {
             //                        p.Item1.SetValue(o, commandReader[p.Item2.DbFieldName]);
             //                    }
-
             //                    results.Add(o);
             //                }
             //            }

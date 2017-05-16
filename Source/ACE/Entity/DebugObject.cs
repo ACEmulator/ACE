@@ -37,9 +37,9 @@ namespace ACE.Entity
             else
                 this.PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
 
-            this.PhysicsData.ObjScale = baseAceObject.ObjectScale;
+            this.PhysicsData.ObjScale = (float)baseAceObject.DefaultScale;
             this.PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
-            this.PhysicsData.Translucency = baseAceObject.Translucency;
+            this.PhysicsData.Translucency = (float)baseAceObject.Translucency;
 
             // game data min required flags;
             this.Icon = baseAceObject.IconId;
@@ -49,7 +49,7 @@ namespace ACE.Entity
 
             this.GameData.Type = (ushort)baseAceObject.AceObjectId;
 
-            this.GameData.Usable = (Usable)baseAceObject.Usability;
+            this.GameData.Usable = (Usable)baseAceObject.ItemUseable;
             this.GameData.RadarColour = (RadarColor)baseAceObject.BlipColor;
             this.GameData.RadarBehavior = (RadarBehavior)baseAceObject.Radar;
             this.GameData.UseRadius = baseAceObject.UseRadius;
@@ -83,7 +83,7 @@ namespace ACE.Entity
                 this.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
             }
             this.PhysicsData.DefaultScript = baseAceObject.DefaultScript;
-            this.PhysicsData.DefaultScriptIntensity = baseAceObject.DefaultScriptIntensity;
+            this.PhysicsData.DefaultScriptIntensity = (float)baseAceObject.PhysicsScriptIntensity;
             this.PhysicsData.Elastcity = baseAceObject.Elasticity;
             this.PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
             this.PhysicsData.Friction = baseAceObject.Friction;

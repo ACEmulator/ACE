@@ -82,7 +82,7 @@ namespace ACE.Entity
             PhysicsData.Stable = aco.SoundTableId;
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
-            PhysicsData.ObjScale = aco.ObjectScale;
+            PhysicsData.ObjScale = (float)aco.DefaultScale;
 
             // this should probably be determined based on the presence of data.
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsDescriptionFlag;
@@ -94,7 +94,7 @@ namespace ACE.Entity
             // TODO: Check to see if we should default a 0 to fix these possible null errors Og II
             GameData.ContainerCapacity = (byte)aco.ContainersCapacity;
             GameData.ItemCapacity = aco.ItemsCapacity;
-            GameData.Usable = (Usable)aco.Usability;
+            GameData.Usable = (Usable)aco.ItemUseable;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
             GameData.RadarColour = (RadarColor)aco.BlipColor;

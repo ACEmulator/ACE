@@ -29,8 +29,8 @@ namespace ACE.Entity
         private List<EquippedItem> children = new List<EquippedItem>();
 
         public float ObjScale;
-        public float Friction;
-        public float Elastcity;
+        public float? Friction;
+        public float? Elastcity;
         public uint AnimationFrame;
         public AceVector3 Acceleration;
         public float Translucency;
@@ -128,10 +128,10 @@ namespace ACE.Entity
                 writer.Write(ObjScale);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
-                writer.Write(Friction);
+                writer.Write((float)Friction);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
-                writer.Write(Elastcity);
+                writer.Write((float)Elastcity);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
                 writer.Write(Translucency);

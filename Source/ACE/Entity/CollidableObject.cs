@@ -69,14 +69,14 @@ namespace ACE.Entity
             this.GameData.RadarColour = (RadarColor)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
             this.GameData.Spell = (Spell)aceO.SpellId;
-            this.GameData.Script = aceO.PhysicsScript;
+            this.GameData.Script = aceO.PlayScript;
             this.GameData.ValidLocations = (EquipMask)aceO.ValidLocations;
             this.GameData.StackSize = aceO.StackSize;
             this.GameData.Structure = aceO.Structure;
             this.GameData.Value = aceO.Value;
             this.GameData.Type = (ushort)aceO.AceObjectId;
             this.GameData.TargetType = aceO.TargetTypeId;
-            this.GameData.Usable = (Usable)aceO.Usability;
+            this.GameData.Usable = (Usable)aceO.ItemUseable;
 
             aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
             aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));

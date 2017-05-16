@@ -16,4 +16,3 @@ namespace ACE.Entity
         public uint PropertyValue { get; set; }
     }
 }
-

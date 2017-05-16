@@ -43,16 +43,16 @@ namespace ACE.Entity
 
             this.PhysicsData.CurrentMotionState = motionStateClosed;
 
-            this.PhysicsData.ObjScale = aceO.ObjectScale;
+            this.PhysicsData.ObjScale = (float)aceO.DefaultScale;
             this.PhysicsData.AnimationFrame = aceO.AnimationFrameId;
-            this.PhysicsData.Translucency = aceO.Translucency;
+            this.PhysicsData.Translucency = (float)aceO.Translucency;
 
             // game data min required flags;
             this.Icon = aceO.IconId;
 
             this.GameData.Type = aceO.WeenieClassId;
 
-            this.GameData.Usable = (Usable)aceO.Usability;
+            this.GameData.Usable = (Usable)aceO.ItemUseable;
             this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;

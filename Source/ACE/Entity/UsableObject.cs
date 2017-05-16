@@ -41,12 +41,12 @@ namespace ACE.Entity
             //// TODO: Og II - fix once you understand what we are doing in the database.   Looks like a blob??
             //// PhysicsData.CurrentMotionState = baseAceObject.CurrentMotionState;
             PhysicsData.DefaultScript = baseAceObject.DefaultScript;
-            PhysicsData.DefaultScriptIntensity = baseAceObject.DefaultScriptIntensity;
+            PhysicsData.DefaultScriptIntensity = (float)baseAceObject.PhysicsScriptIntensity;
             PhysicsData.Elastcity = baseAceObject.Elasticity;
             PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
             PhysicsData.Friction = baseAceObject.Friction;
             PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
-            PhysicsData.ObjScale = baseAceObject.ObjectScale;
+            PhysicsData.ObjScale = (float)baseAceObject.DefaultScale;
             PhysicsData.Petable = baseAceObject.PhysicsTableId;
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsDescriptionFlag;
 
@@ -61,7 +61,7 @@ namespace ACE.Entity
 
             PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
             PhysicsData.Stable = baseAceObject.SoundTableId;
-            PhysicsData.Translucency = baseAceObject.Translucency;
+            PhysicsData.Translucency = (float)baseAceObject.Translucency;
             // TODO: Check to see if we should default a 0 to fix these possible null errors Og II
             GameData.AmmoType = (AmmoType?)baseAceObject.AmmoType;
             GameData.Burden = (ushort)baseAceObject.Burden;
@@ -82,14 +82,14 @@ namespace ACE.Entity
             GameData.RadarColour = (RadarColor)baseAceObject.Radar;
             GameData.UseRadius = baseAceObject.UseRadius;
             GameData.Spell = (Spell)baseAceObject.SpellId;
-            GameData.Script = baseAceObject.PhysicsScript;
+            GameData.Script = baseAceObject.PlayScript;
             GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
             GameData.StackSize = baseAceObject.StackSize;
             GameData.Structure = baseAceObject.Structure;
             GameData.Value = baseAceObject.Value;
             GameData.Type = (ushort)baseAceObject.AceObjectId;
             GameData.TargetType = baseAceObject.TargetTypeId;
-            GameData.Usable = (Usable)baseAceObject.Usability;
+            GameData.Usable = (Usable)baseAceObject.ItemUseable;
         }
         public UsableObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)

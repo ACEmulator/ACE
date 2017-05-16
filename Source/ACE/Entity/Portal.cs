@@ -131,12 +131,12 @@ namespace ACE.Entity
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
-            PhysicsData.ObjScale = aceO.ObjectScale;
+            PhysicsData.ObjScale = (float)aceO.DefaultScale;
 
             // game data min required flags;
             Icon = (ushort)aceO.IconId;
 
-            GameData.Usable = (Usable)aceO.Usability;
+            GameData.Usable = (Usable)aceO.ItemUseable;
             GameData.RadarColour = (RadarColor)aceO.BlipColor;
             GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             GameData.UseRadius = aceO.UseRadius;

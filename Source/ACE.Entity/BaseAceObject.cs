@@ -12,7 +12,7 @@ namespace ACE.Entity
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
 
-        [DbField("bitField", (int)MySqlDbType.UInt32)]
+        [DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
         public uint AceObjectDescriptionFlags { get; set; }
 
         [DbField("animationFrameId", (int)MySqlDbType.UInt32)]
@@ -38,11 +38,11 @@ namespace ACE.Entity
         [DbField("motionTableId", (int)MySqlDbType.UInt32)]
         public uint MotionTableId { get; set; }
 
-        [DbField("physicsBitField", (int)MySqlDbType.UInt32)]
+        [DbField("physicsDescriptionFlag", (int)MySqlDbType.UInt32)]
         public uint PhysicsDescriptionFlag { get; set; }
 
-        [DbField("physicsScript", (int)MySqlDbType.UInt16)]
-        public ushort PhysicsScript { get; set; }
+        [DbField("playScript", (int)MySqlDbType.UInt16)]
+        public ushort PlayScript { get; set; }
 
         [DbField("physicsTableId", (int)MySqlDbType.UInt32)]
         public uint PhysicsTableId { get; set; }
@@ -50,7 +50,7 @@ namespace ACE.Entity
         [DbField("soundTableId", (int)MySqlDbType.UInt32)]
         public uint SoundTableId { get; set; }
 
-        [DbField("header", (int)MySqlDbType.UInt32)]
+        [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
         public uint WeenieHeaderFlags { get; set; }
 
         [DbField("spellId", (int)MySqlDbType.UInt16)]
@@ -70,12 +70,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
         /// <summary>
@@ -85,16 +87,18 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor)?.PropertyValue;
+                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor)?.PropertyValue;
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor).PropertyValue = (byte)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor);
                     if (listItem != null)
                         AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -106,12 +110,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
         /// <summary>
@@ -121,16 +127,18 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse)?.PropertyValue;
+                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse)?.PropertyValue;
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse).PropertyValue = (byte)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -138,16 +146,18 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity)?.PropertyValue;
+                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity)?.PropertyValue;
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity).PropertyValue = (byte)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -159,12 +169,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
                 if (value != null)
                     AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration).PropertyValue = (double)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
                     if (listItem != null)
-                    AceObjectPropertiesDouble.Remove(listItem);
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
             }
         }
 
@@ -176,12 +188,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name);
                 if (value != null)
                     AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name).PropertyValue = value;
                 else
+                {
+                    var listItem = AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name);
                     if (listItem != null)
-                    AceObjectPropertiesString.Remove(listItem);
+                        AceObjectPropertiesString.Remove(listItem);
+                }
             }
         }
 
@@ -193,12 +207,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -210,12 +226,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -228,12 +246,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -245,12 +265,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -265,12 +287,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -285,12 +309,14 @@ namespace ACE.Entity
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType).PropertyValue = (uint)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -298,16 +324,18 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity)?.PropertyValue;
+                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity)?.PropertyValue;
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity).PropertyValue = (byte)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
@@ -318,24 +346,61 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType)?.PropertyValue;
+                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType)?.PropertyValue;
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType);
                 if (value != null)
                     AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType).PropertyValue = (byte)value;
                 else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType);
                     if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
             }
         }
 
-        [DbField("maxStackSize", (int)MySqlDbType.UInt16)]
-        public ushort MaxStackSize { get; set; }
-
-        [DbField("maxStructure", (int)MySqlDbType.UInt16)]
-        public ushort MaxStructure { get; set; }
+        public ushort? MaxStackSize
+        {
+            get
+            {
+                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStackSize)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStackSize).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStackSize);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
+        /// <summary>
+        /// This is the Maximum an item can hold in the case of salvage 100
+        /// everything else healing kits, lock picks etc it is the max number of uses.
+        /// </summary>
+        public ushort? MaxStructure
+        {
+            get
+            {
+                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStructure)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStructure).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStructure);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
         /// <summary>
         /// TODO: convert to enum
@@ -344,7 +409,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar)?.PropertyValue;
+                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar)?.PropertyValue;
             }
             set
             {
@@ -357,58 +422,304 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("stackSize", (int)MySqlDbType.UInt16)]
-        public ushort StackSize { get; set; }
-
-        [DbField("structure", (int)MySqlDbType.UInt16)]
-        public ushort Structure { get; set; }
+        public ushort? StackSize
+        {
+            get
+            {
+                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.StackSize)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.StackSize).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.StackSize);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
+        /// <summary>
+        /// This field represents the number of units or uses an item has in it or left.   Salvage in it
+        /// healing kits, essences the number left.
+        /// </summary>
+        public ushort? Structure
+        {
+            get
+            {
+                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Structure)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Structure).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Structure);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        [DbField("targetTypeId", (int)MySqlDbType.UInt32)]
-        public uint TargetTypeId { get; set; }
+        public uint? TargetTypeId
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.TargetType)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.TargetType).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.TargetType);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("usability", (int)MySqlDbType.UInt32)]
-        public uint Usability { get; set; }
+        public uint? ItemUseable
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemUseable)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemUseable).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemUseable);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("useRadius", (int)MySqlDbType.Float)]
-        public float UseRadius { get; set; }
+        public float? UseRadius
+        {
+            get
+            {
+                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.UseRadius)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.UseRadius).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.UseRadius);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
         /// <summary>
-        /// TODO: Investigate if this is an enum - i expect it is a flags enum of some sort.
+        /// Left the name as ValidLocations as it is more descriptive of what it does than just locations.
+        /// This field maps to EquipMask Enum
         /// </summary>
-        [DbField("validLocations", (int)MySqlDbType.UInt32)]
-        public uint ValidLocations { get; set; }
+        public uint? ValidLocations
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Locations)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Locations).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Locations);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("value", (int)MySqlDbType.UInt32)]
-        public uint Value { get; set; }
+        public uint? Value
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Value)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Value).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Value);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("workmanship", (int)MySqlDbType.Float)]
-        public float Workmanship { get; set; }
+        // TODO: come fix this one the debate is over. Og II
+        public float? Workmanship
+        {
+            get
+            {
+                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("defaultScriptIntensity", (int)MySqlDbType.Float)]
-        public float DefaultScriptIntensity { get; set; }
+        public float? PhysicsScriptIntensity
+        {
+            get
+            {
+                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.PhysicsScriptIntensity)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.PhysicsScriptIntensity).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.PhysicsScriptIntensity);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("elasticity", (int)MySqlDbType.Float)]
-        public float Elasticity { get; set; }
+        public float? Elasticity
+        {
+            get
+            {
+                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Elasticity)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Elasticity).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Elasticity);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("friction", (int)MySqlDbType.Float)]
-        public float Friction { get; set; }
+        public float? Friction
+        {
+            get
+            {
+                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Friction)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Friction).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Friction);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("locationId", (int)MySqlDbType.UInt32)]
-        public uint LocationId { get; set; }
+        public uint? CurrentWieldedLocation
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CurrentWieldedLocation)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CurrentWieldedLocation).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CurrentWieldedLocation);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
 
-        [DbField("objectScale", (int)MySqlDbType.Float)]
-        public float ObjectScale { get; set; }
+        public float? DefaultScale
+        {
+            get
+            {
+                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
         /// <summary>
         /// TODO: convert to enum, probably a flags enum
         /// </summary>
-        [DbField("physicsState", (int)MySqlDbType.UInt32)]
-        public uint PhysicsState { get; set; }
-        [DbField("translucency", (int)MySqlDbType.Float)]
-        public float Translucency { get; set; }
+        public uint? PhysicsState
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState).PropertyValue = (uint)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState);
+                    if (listItem != null)
+                        AceObjectPropertiesInt.Remove(listItem);
+                }
+            }
+        }
+
+        public float? Translucency
+        {
+            get
+            {
+                return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Translucency)?.PropertyValue;
+            }
+            set
+            {
+                if (value != null)
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Translucency).PropertyValue = (double)value;
+                else
+                {
+                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale);
+                    if (listItem != null)
+                        AceObjectPropertiesDouble.Remove(listItem);
+                }
+            }
+        }
 
         public List<PaletteOverride> PaletteOverrides { get; set; } = new List<PaletteOverride>();
 
