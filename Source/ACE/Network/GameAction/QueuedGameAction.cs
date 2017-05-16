@@ -97,14 +97,11 @@ namespace ACE.Network.GameAction
             this.ActionType = actionType;
         }
 
-        public void Handler(Player player)
-        {
-            Handle(player);
-        }
+        public void Handler(Player player) { Handle(player); }
+        protected virtual void Handle(Player player) { }
 
-        protected virtual void Handle(Player player)
-        {
-        }
+        public void Handler(Monster monster) { Handle(monster); }
+        protected virtual void Handle(Monster monster) { }
 
         public uint ObjectId { get; private set; }
 
