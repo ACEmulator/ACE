@@ -262,29 +262,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
-        /// </summary>
-        /// <param name="playerGuid"></param>
-        /// <param name="targetGuid"></param>
-        /// <param name="arrivedRadiusSquared"></param>
-        /// <param name="arrivedRadiusSquared"></param>
-        /// <returns></returns>
-        public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
-        {
-            var playerPosition = GetWorldObjectPosition(playerGuid);
-            var targetPosition = GetWorldObjectPosition(targetGuid);
-            if (playerPosition != null && targetPosition != null)
-            {
-                validGuids = true;
-                arrivedRadiusSquared = GetWorldObjectEffectiveUseRadius(targetGuid);
-                return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
-            }
-            arrivedRadiusSquared = 0.00f;
-            validGuids = false;
-            return false;
-        }
-
-        /// <summary>
         /// This method is subject to removal.  It ought not exist.  Please DO NOT USE IT.
         /// </summary>
         public WorldObject GetWorldObject(ObjectGuid objectId)
@@ -609,31 +586,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.PutItemInContainer:
                     {
-                        var playerGuid = new ObjectGuid(action.ObjectId);
-                        var inventoryGuid = new ObjectGuid(action.SecondaryObjectId);
-
-                        // Has to be a player so need to check before I make the cast.
-                        // If he is not a player, something is bad wrong. Og II
-                        if (playerGuid.IsPlayer())
-                        {
-                            var aPlayer = (Player)GetWorldObject(playerGuid);
-                            var inventoryItem = GetWorldObject(inventoryGuid);
-
-                            float arrivedRadiusSquared = 0.00f;
-                            bool validGuids;
-                            if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
-                                aPlayer.NotifyAndAddToInventory(inventoryItem);
-                            else
-                            {
-                                if (validGuids)
-                                {
-                                    aPlayer.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
-                                    aPlayer.BlockedGameAction = action;
-                                    aPlayer.OnAutonomousMove(inventoryItem.PhysicsData.Position,
-                                                             aPlayer.Sequences, MovementTypes.MoveToObject, inventoryGuid);
-                                }
-                            }
-                        }
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.DropItem:
@@ -648,7 +601,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.ObjectCreate:
                     {
-                        AddWorldObject(action.WorldObject);
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.ObjectDelete:

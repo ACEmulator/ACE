@@ -218,8 +218,10 @@
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameAction\QueuedGameAction.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionCreateObject.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionDropItem.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionMovementEvent.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionPutItemInContainer.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />

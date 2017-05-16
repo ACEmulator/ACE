@@ -228,7 +228,7 @@ namespace ACE.Entity
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            QueuedGameAction addCorpse = new QueuedGameActionCreateObject(this.Guid.Full, corpse, true, GameActionType.ObjectCreate, Location.LandblockId);
             session.Player.AddToActionQueue(addCorpse);
         }
     }

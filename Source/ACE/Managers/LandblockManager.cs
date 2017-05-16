@@ -74,6 +74,19 @@ namespace ACE.Managers
             Landblock block = GetLandblock(landBlockId, false);
             block.Broadcast(args, propogate, quadrant);
         }
+
+        public static Position GetWorldObjectPositionByLandblockID(ObjectGuid objectId, LandblockId landBlockId)
+        {
+            Landblock block = GetLandblock(landBlockId, false);
+            return block.GetWorldObjectPosition(objectId);
+        }
+
+        public static float GetWorldObjectEffectiveUseRadiusByLandblockID(ObjectGuid objectId, LandblockId landBlockId)
+        {
+            Landblock block = GetLandblock(landBlockId, false);
+            return block.GetWorldObjectEffectiveUseRadius(objectId);
+        }
+
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
