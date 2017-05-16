@@ -62,8 +62,8 @@ namespace ACE.Entity
                   new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
                   aceC.CreatureData.Name,
                   aceC.WeenieClassId,
-                  (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField,
-                  (WeenieHeaderFlag)aceC.CreatureData.WeenieFlags,
+                  (ObjectDescriptionFlag)aceC.CreatureData.AceObjectDescriptionFlags,
+                  (WeenieHeaderFlag)aceC.CreatureData.WeenieHeaderFlags,
                   aceC.Position)
         {
             if (aceC.WeenieClassId < 0x8000u)
@@ -85,7 +85,7 @@ namespace ACE.Entity
             PhysicsData.ObjScale = aco.ObjectScale;
 
             // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
@@ -104,7 +104,7 @@ namespace ACE.Entity
             aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = aco.PaletteId;
+            ModelData.PaletteGuid = (uint)aco.PaletteId;
         }
 
         private void SetAbilities(AceCreatureObject aco)

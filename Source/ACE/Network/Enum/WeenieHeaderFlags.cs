@@ -29,7 +29,7 @@ namespace ACE.Network.Enum
         BlipColour        = 0x00100000,
         Burden            = 0x00200000,
         Spell             = 0x00400000,
-        Radar             = 0x00800000,
+        RadarBehavior             = 0x00800000,
         Workmanship       = 0x01000000,
         HouseOwner        = 0x02000000,
         HouseRestrictions = 0x04000000,

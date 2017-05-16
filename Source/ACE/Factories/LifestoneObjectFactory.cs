@@ -14,7 +14,7 @@ namespace ACE.Factories
         /// </summary>
         public static Lifestone CreateLifestone(ushort weenieClassId, Position newPosition, LifestoneType lifestoneType)
         {
-            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
+            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.RadarBehavior | WeenieHeaderFlag.UseRadius;
             Lifestone wo = new Lifestone(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
             // model id 0x000026 is one of several lifestone IDs

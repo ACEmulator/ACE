@@ -118,17 +118,17 @@ namespace ACE.Entity
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             Name = aceO.Name;
-            DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
+            DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
             Location = aceO.Position;
             WeenieClassid = aceO.WeenieClassId;
-            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
             PhysicsData.MTableResourceId = aceO.MotionTableId;
             PhysicsData.Stable = aceO.SoundTableId;
             PhysicsData.CSetup = aceO.ModelTableId;
 
             // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
             PhysicsData.ObjScale = aceO.ObjectScale;

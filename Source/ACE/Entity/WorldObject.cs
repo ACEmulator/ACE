@@ -160,93 +160,93 @@ namespace ACE.Entity
             if ((WeenieFlags & WeenieHeaderFlag.PuralName) != 0)
                 writer.WriteString16L(GameData.NamePlural);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ItemCapacity) != 0)
-                writer.Write(GameData.ItemCapacity);
+            if (((WeenieFlags & WeenieHeaderFlag.ItemCapacity) != 0) && GameData.ItemCapacity != null)
+                writer.Write((byte)GameData.ItemCapacity);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ContainerCapacity) != 0)
-                writer.Write(GameData.ContainerCapacity);
+            if (((WeenieFlags & WeenieHeaderFlag.ContainerCapacity) != 0)  && GameData.ContainerCapacity != null)
+                writer.Write((byte)GameData.ContainerCapacity);
 
-            if ((WeenieFlags & WeenieHeaderFlag.AmmoType) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.AmmoType) != 0)  && GameData.AmmoType != null)
                 writer.Write((ushort)GameData.AmmoType);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Value) != 0)
-                writer.Write(GameData.Value);
+            if (((WeenieFlags & WeenieHeaderFlag.Value) != 0)  && GameData.Value != null)
+                writer.Write((uint)GameData.Value);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Usable) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.Usable) != 0)  && GameData.Usable != null)
                 writer.Write((uint)GameData.Usable);
 
-            if ((WeenieFlags & WeenieHeaderFlag.UseRadius) != 0)
-                writer.Write(GameData.UseRadius);
+            if (((WeenieFlags & WeenieHeaderFlag.UseRadius) != 0)  && GameData.UseRadius != null)
+                writer.Write((float)GameData.UseRadius);
 
-            if ((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)  && GameData.TargetType != null)
                 writer.Write((uint)GameData.TargetType);
 
-            if ((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0)  && GameData.UiEffects != null)
                 writer.Write((uint)GameData.UiEffects);
 
-            if ((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0)  && GameData.CombatUse != null)
                 writer.Write((byte)GameData.CombatUse);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Struture) != 0)
-                writer.Write((ushort)GameData.Struture);
+            if (((WeenieFlags & WeenieHeaderFlag.Struture) != 0)  && GameData.Structure != null)
+                writer.Write((ushort)GameData.Structure);
 
-            if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)  && GameData.ItemCapacity != null)
                 writer.Write((ushort)GameData.MaxStructure);
 
-            if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(GameData.StackSize);
+            if (((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)  && GameData.StackSize != null)
+                writer.Write((ushort)GameData.StackSize);
 
-            if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
-                writer.Write(GameData.MaxStackSize);
+            if (((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)  && GameData.MaxStackSize != null)
+                writer.Write((ushort)GameData.MaxStackSize);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
-                writer.Write(GameData.ContainerId);
+            if (((WeenieFlags & WeenieHeaderFlag.Container) != 0)  && GameData.ContainerId != null)
+                writer.Write((uint)GameData.ContainerId);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)
-                writer.Write(GameData.Wielder);
+            if (((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)  && GameData.Wielder != null)
+                writer.Write((uint)GameData.Wielder);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)  && GameData.ValidLocations != null)
                 writer.Write((uint)GameData.ValidLocations);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Location) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.Location) != 0)  && GameData.Location != null)
                 writer.Write((uint)GameData.Location);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Priority) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.Priority) != 0)  && GameData.Priority != null)
                 writer.Write((uint)GameData.Priority);
 
-            if ((WeenieFlags & WeenieHeaderFlag.BlipColour) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.BlipColour) != 0)  && GameData.RadarColour != null)
                 writer.Write((byte)GameData.RadarColour);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Radar) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.RadarBehavior) != 0)  && GameData.RadarBehavior != null)
                 writer.Write((byte)GameData.RadarBehavior);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Script) != 0)
-                writer.Write(GameData.Script);
+            if (((WeenieFlags & WeenieHeaderFlag.Script) != 0)  && GameData.Script != null)
+                writer.Write((ushort)GameData.Script);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
-                writer.Write(GameData.Workmanship);
+            if (((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)  && GameData.Workmanship != null)
+                writer.Write((float)GameData.Workmanship);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
-                writer.Write(GameData.Burden);
+            if (((WeenieFlags & WeenieHeaderFlag.Burden) != 0)  && GameData.Burden != null)
+                writer.Write((ushort)GameData.Burden);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.Spell) != 0)  && GameData.Spell != null)
                 writer.Write((uint)GameData.Spell);
 
-            if ((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
-                writer.Write(GameData.HouseOwner);
+            if (((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)  && GameData.HouseOwner != null)
+                writer.Write((uint)GameData.HouseOwner);
 
             /*if ((WeenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
             {
             }*/
 
-            if ((WeenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
-                writer.Write(GameData.HookItemTypes);
+            if (((WeenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)  && GameData.HookItemTypes != null)
+                writer.Write((uint)GameData.HookItemTypes);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Monarch) != 0)
-                writer.Write(GameData.Monarch);
+            if (((WeenieFlags & WeenieHeaderFlag.Monarch) != 0)  && GameData.Monarch != null)
+                writer.Write((uint)GameData.Monarch);
 
-            if ((WeenieFlags & WeenieHeaderFlag.HookType) != 0)
-                writer.Write(GameData.HookType);
+            if (((WeenieFlags & WeenieHeaderFlag.HookType) != 0)  && GameData.HookType != null)
+                writer.Write((ushort)GameData.HookType);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
                 writer.WritePackedDwordOfKnownType(GameData.IconOverlay, 0x6000000);
@@ -254,7 +254,7 @@ namespace ACE.Entity
             if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
                 writer.WritePackedDwordOfKnownType(GameData.IconUnderlay, 0x6000000);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Material) != 0)
+            if (((WeenieFlags & WeenieHeaderFlag.Material) != 0)   && GameData.Monarch != null)
                 writer.Write((uint)GameData.Material);
 
             /*if ((WeenieFlags2 & WeenieHeaderFlag2.Cooldown) != 0)

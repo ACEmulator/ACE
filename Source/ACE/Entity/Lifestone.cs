@@ -18,17 +18,17 @@ namespace ACE.Entity
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
-            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
+            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
             this.Location = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
-            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
             this.PhysicsData.MTableResourceId = aceO.MotionTableId;
             this.PhysicsData.Stable = aceO.SoundTableId;
             this.PhysicsData.CSetup = aceO.ModelTableId;
 
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
+            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
             // game data min required flags;
@@ -49,7 +49,7 @@ namespace ACE.Entity
             string serverMessage = null;
             // validate within use range, taking into account the radius of the model itself, as well
             SetupModel csetup = SetupModel.ReadFromDat(this.PhysicsData.CSetup);
-            float radiusSquared = (this.GameData.UseRadius + csetup.Radius) * (this.GameData.UseRadius + csetup.Radius);
+            float radiusSquared = ((float)GameData.UseRadius + csetup.Radius) * ((float)GameData.UseRadius + csetup.Radius);
 
             var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 

@@ -5,12 +5,60 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
-    [DbTable("base_ace_object")]
-    [DbGetList("base_ace_object", 15, "typeId")]
+    [DbTable("ace_object")]
+    [DbGetList("ace_object", 15, "typeId")]
     public class BaseAceObject
     {
-        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
+
+        [DbField("bitField", (int)MySqlDbType.UInt32)]
+        public uint AceObjectDescriptionFlags { get; set; }
+
+        [DbField("animationFrameId", (int)MySqlDbType.UInt32)]
+        public uint AnimationFrameId { get; set; }
+
+        [DbField("currentMotionState", (int)MySqlDbType.Text)]
+        public string CurrentMotionState { get; set; }
+
+        [DbField("iconId", (int)MySqlDbType.UInt32)]
+        public uint IconId { get; set; }
+
+        [DbField("iconOverlayId", (int)MySqlDbType.UInt32)]
+        public uint IconOverlayId { get; set; }
+
+        [DbField("iconUnderlayId", (int)MySqlDbType.UInt32)]
+        public uint IconUnderlayId { get; set; }
+        /// <summary>
+        /// PhysicsData.CSetup
+        /// </summary>
+        [DbField("modelTableId", (int)MySqlDbType.UInt32)]
+        public uint ModelTableId { get; set; }
+
+        [DbField("motionTableId", (int)MySqlDbType.UInt32)]
+        public uint MotionTableId { get; set; }
+
+        [DbField("physicsBitField", (int)MySqlDbType.UInt32)]
+        public uint PhysicsDescriptionFlag { get; set; }
+
+        [DbField("physicsScript", (int)MySqlDbType.UInt16)]
+        public ushort PhysicsScript { get; set; }
+
+        [DbField("physicsTableId", (int)MySqlDbType.UInt32)]
+        public uint PhysicsTableId { get; set; }
+
+        [DbField("soundTableId", (int)MySqlDbType.UInt32)]
+        public uint SoundTableId { get; set; }
+
+        [DbField("header", (int)MySqlDbType.UInt32)]
+        public uint WeenieHeaderFlags { get; set; }
+
+        [DbField("spellId", (int)MySqlDbType.UInt16)]
+        public ushort SpellId { get; set; }
+
+        [DbField("defaultScript", (int)MySqlDbType.UInt32)]
+        public uint DefaultScript { get; set; }
+
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
@@ -107,66 +155,181 @@ namespace ACE.Entity
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyDouble.CooldownDuration)?.PropertyValue;
+                return AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration)?.PropertyValue;
             }
             set
             {
-                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyDouble.CooldownDuration);
+                var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyDouble.CooldownDuration).PropertyValue = (byte)value;
+                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration).PropertyValue = (double)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesDouble.Remove(listItem);
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name);
+                if (value != null)
+                    AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name).PropertyValue = value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesString.Remove(listItem);
+            }
+        }
+
+        public uint? TypeId
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType).PropertyValue = (uint)value;
                 else
                     if (listItem != null)
                     AceObjectPropertiesInt.Remove(listItem);
             }
         }
 
-        [DbField("name", (int)MySqlDbType.Text)]
-        public string Name { get; set; }
+        public uint? PaletteId
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
-        [DbField("typeId", (int)MySqlDbType.UInt32)]
-        public uint TypeId { get; set; }
+        // TODO: Not sure if this enum is right.
+        public uint? CooldownId
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
-        [DbField("paletteId", (int)MySqlDbType.UInt32)]
-        public uint PaletteId { get; set; }
-
-        [DbField("bitField", (int)MySqlDbType.UInt32)]
-        public uint WdescBitField { get; set; }
-
-        [DbField("cooldownId", (int)MySqlDbType.UInt32)]
-        public uint CooldownId { get; set; }
-
-        [DbField("effects", (int)MySqlDbType.UInt32)]
-        public uint Effects { get; set; }
+        public uint? UiEffects
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        [DbField("hookTypeId", (int)MySqlDbType.UInt32)]
-        public uint HookTypeId { get; set; }
-
-        [DbField("iconId", (int)MySqlDbType.UInt32)]
-        public uint IconId { get; set; }
-
-        [DbField("iconOverlayId", (int)MySqlDbType.UInt32)]
-        public uint IconOverlayId { get; set; }
-
-        [DbField("iconUnderlayId", (int)MySqlDbType.UInt32)]
-        public uint IconUnderlayId { get; set; }
-
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        [DbField("hookItemTypes", (int)MySqlDbType.UInt32)]
-        public uint HookItemTypes { get; set; }
-
-        [DbField("itemsCapacity", (int)MySqlDbType.UByte)]
-        public byte ItemsCapacity { get; set; }
+        public uint? HookType
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        [DbField("materialType", (int)MySqlDbType.UByte)]
-        public byte MaterialType { get; set; }
+        public uint? HookItemTypes
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType).PropertyValue = (uint)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+
+        public byte? ItemsCapacity
+        {
+            get
+            {
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+
+        /// <summary>
+        /// TODO: convert to enum
+        /// </summary>
+        public byte? MaterialType
+        {
+            get
+            {
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
         [DbField("maxStackSize", (int)MySqlDbType.UInt16)]
         public ushort MaxStackSize { get; set; }
@@ -177,14 +340,22 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        [DbField("radar", (int)MySqlDbType.UByte)]
-        public byte Radar { get; set; }
-
-        [DbField("pscript", (int)MySqlDbType.UInt16)]
-        public ushort PScript { get; set; }
-
-        [DbField("spellId", (int)MySqlDbType.UInt16)]
-        public ushort SpellId { get; set; }
+        public byte? Radar
+        {
+            get
+            {
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar)?.PropertyValue;
+            }
+            set
+            {
+                var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar);
+                if (value != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar).PropertyValue = (byte)value;
+                else
+                    if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
 
         [DbField("stackSize", (int)MySqlDbType.UInt16)]
         public ushort StackSize { get; set; }
@@ -213,17 +384,8 @@ namespace ACE.Entity
         [DbField("value", (int)MySqlDbType.UInt32)]
         public uint Value { get; set; }
 
-        [DbField("header", (int)MySqlDbType.UInt32)]
-        public uint WeenieFlags { get; set; }
-
         [DbField("workmanship", (int)MySqlDbType.Float)]
         public float Workmanship { get; set; }
-
-        [DbField("animationFrameId", (int)MySqlDbType.UInt32)]
-        public uint AnimationFrameId { get; set; }
-
-        [DbField("defaultScript", (int)MySqlDbType.UInt32)]
-        public uint DefaultScript { get; set; }
 
         [DbField("defaultScriptIntensity", (int)MySqlDbType.Float)]
         public float DefaultScriptIntensity { get; set; }
@@ -236,38 +398,17 @@ namespace ACE.Entity
 
         [DbField("locationId", (int)MySqlDbType.UInt32)]
         public uint LocationId { get; set; }
-        /// <summary>
-        /// PhysicsData.CSetup
-        /// </summary>
-        [DbField("modelTableId", (int)MySqlDbType.UInt32)]
-        public uint ModelTableId { get; set; }
-
-        [DbField("motionTableId", (int)MySqlDbType.UInt32)]
-        public uint MotionTableId { get; set; }
 
         [DbField("objectScale", (int)MySqlDbType.Float)]
         public float ObjectScale { get; set; }
-
-        [DbField("physicsBitField", (int)MySqlDbType.UInt32)]
-        public uint PhysicsBitField { get; set; }
 
         /// <summary>
         /// TODO: convert to enum, probably a flags enum
         /// </summary>
         [DbField("physicsState", (int)MySqlDbType.UInt32)]
         public uint PhysicsState { get; set; }
-
-        [DbField("physicsTableId", (int)MySqlDbType.UInt32)]
-        public uint PhysicsTableId { get; set; }
-
-        [DbField("soundTableId", (int)MySqlDbType.UInt32)]
-        public uint SoundTableId { get; set; }
-
         [DbField("translucency", (int)MySqlDbType.Float)]
         public float Translucency { get; set; }
-
-        [DbField("currentMotionState", (int)MySqlDbType.Text)]
-        public string CurrentMotionState { get; set; }
 
         public List<PaletteOverride> PaletteOverrides { get; set; } = new List<PaletteOverride>();
 

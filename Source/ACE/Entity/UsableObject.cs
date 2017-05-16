@@ -23,7 +23,7 @@ namespace ACE.Entity
             Name = baseAceObject.Name;
             DescriptionFlags = descriptionFlag;
 
-            WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieFlags;
+            WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieHeaderFlags;
             // Even if we spawn on the ground, we have the potential to have a container.   Container will always be 0 or a value and we should write it.
             WeenieFlags |= WeenieHeaderFlag.Container;
 
@@ -48,7 +48,7 @@ namespace ACE.Entity
             PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             PhysicsData.ObjScale = baseAceObject.ObjectScale;
             PhysicsData.Petable = baseAceObject.PhysicsTableId;
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsBitField;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsDescriptionFlag;
 
             // Creating from weenie - the pcap may have had a container or a position
             // but if we are creating new that will be sent when we place ground or container not at create
@@ -70,7 +70,7 @@ namespace ACE.Entity
             GameData.Cooldown = baseAceObject.CooldownId;
             GameData.CooldownDuration = (decimal)baseAceObject.CooldownDuration;
             GameData.HookItemTypes = baseAceObject.HookItemTypes;
-            GameData.HookType = (ushort)baseAceObject.HookTypeId;
+            GameData.HookType = (ushort)baseAceObject.HookType;
             GameData.IconOverlay = (ushort)baseAceObject.IconOverlayId;
             GameData.IconUnderlay = (ushort)baseAceObject.IconUnderlayId;
             GameData.ItemCapacity = baseAceObject.ItemsCapacity;
@@ -82,10 +82,10 @@ namespace ACE.Entity
             GameData.RadarColour = (RadarColor)baseAceObject.Radar;
             GameData.UseRadius = baseAceObject.UseRadius;
             GameData.Spell = (Spell)baseAceObject.SpellId;
-            GameData.Script = baseAceObject.PScript;
+            GameData.Script = baseAceObject.PhysicsScript;
             GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
             GameData.StackSize = baseAceObject.StackSize;
-            GameData.Struture = baseAceObject.Structure;
+            GameData.Structure = baseAceObject.Structure;
             GameData.Value = baseAceObject.Value;
             GameData.Type = (ushort)baseAceObject.AceObjectId;
             GameData.TargetType = baseAceObject.TargetTypeId;

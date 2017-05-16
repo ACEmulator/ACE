@@ -19,9 +19,9 @@ namespace ACE.Entity
             if (this.Name == null)
                 this.Name = "NULL";
 
-            this.DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.WdescBitField;
+            this.DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
             this.WeenieClassid = baseAceObject.AceObjectId;
-            this.WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieFlags;
+            this.WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieHeaderFlags;
 
             this.PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             this.PhysicsData.Stable = baseAceObject.SoundTableId;
@@ -29,7 +29,7 @@ namespace ACE.Entity
             this.PhysicsData.Petable = baseAceObject.PhysicsTableId;
 
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsBitField;
+            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsDescriptionFlag;
             this.PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
 
             if (baseAceObject.CurrentMotionState == "0")
@@ -54,7 +54,7 @@ namespace ACE.Entity
             this.GameData.RadarBehavior = (RadarBehavior)baseAceObject.Radar;
             this.GameData.UseRadius = baseAceObject.UseRadius;
 
-            this.GameData.HookType = (ushort)baseAceObject.HookTypeId;
+            this.GameData.HookType = (ushort)baseAceObject.HookType;
             this.GameData.HookItemTypes = baseAceObject.HookItemTypes;
             this.GameData.Burden = (ushort)baseAceObject.Burden;
             this.GameData.Value = baseAceObject.Value;
@@ -91,7 +91,7 @@ namespace ACE.Entity
             baseAceObject.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             baseAceObject.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             baseAceObject.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            this.ModelData.PaletteGuid = baseAceObject.PaletteId;
+            this.ModelData.PaletteGuid = (uint)baseAceObject.PaletteId;
         }
 
         public DebugObject(AceObject aceO)

@@ -26,10 +26,10 @@ namespace ACE.Entity
         {
             this.Name = aceO.Name;
 
-            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
+            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
             this.Location = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
-            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
             this.PhysicsData.MTableResourceId = aceO.MotionTableId;
             this.PhysicsData.Stable = aceO.SoundTableId;
@@ -37,7 +37,7 @@ namespace ACE.Entity
             this.PhysicsData.Petable = aceO.PhysicsTableId;
 
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
+            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             // this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
             this.PhysicsData.PhysicsState |= PhysicsState.HasPhysicsBsp | PhysicsState.ReportCollision;
 
@@ -60,7 +60,7 @@ namespace ACE.Entity
             aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            this.ModelData.PaletteGuid = aceO.PaletteId;
+            this.ModelData.PaletteGuid = (uint)aceO.PaletteId;
 
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
