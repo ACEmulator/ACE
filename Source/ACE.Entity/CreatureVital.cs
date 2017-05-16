@@ -45,12 +45,7 @@ namespace ACE.Entity
             }
         }
 
-        new public uint MaxValue {
-            get
-            {
-                return UnbuffedValue;
-            }
-        }
+        new public uint MaxValue { get { return UnbuffedValue; } }
 
         /// <summary>
         /// only applies to Health/Stam/Mana
