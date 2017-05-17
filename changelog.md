@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-17
+[StackOverflow]
+* Major Code Refractoring, added handlers for QueuedGameAction, converted all spec que logic to QueuedGameActions handlers.
+
 ### 2017-05-15
 [StackOverflow]
 * Added basic Vendors, walk up to any vendor to enjoy some warm apple pies.
