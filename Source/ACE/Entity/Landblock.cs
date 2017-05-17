@@ -262,16 +262,20 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// This method is subject to removal.  It ought not exist.  Please DO NOT USE IT.
+        /// This method returns read only version of world object
         /// </summary>
         public WorldObject GetWorldObject(ObjectGuid objectId)
         {
-            Log($"Getting WorldObject {objectId.Full:X}");
+            Log($"Copying Readonly WorldObject {objectId.Full:X}");
+
+            WorldObject wo = new WorldObject(ObjectType.None);
 
             lock (objectCacheLocker)
             {
-                return worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
+                wo = worldObjects.ContainsKey(objectId) ? (worldObjects[objectId]) : null;
             }
+
+            return wo;
         }
 
         public Position GetWorldObjectPosition(ObjectGuid objectId)

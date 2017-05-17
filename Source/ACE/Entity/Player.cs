@@ -1088,7 +1088,7 @@ namespace ACE.Entity
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             // TODO: remove TalkDirect hack and implement a proper mechanism for this.  perhaps a server action queue
-            QueuedGameAction action = new QueuedGameActionDeathMessage(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect, Location.LandblockId);
+            QueuedGameAction action = new QueuedGameActionDeathMessage(deathMessage, victimId.Full, killerId.Full, Location.LandblockId);
             AddToActionQueue(action);
         }
 
@@ -1105,13 +1105,13 @@ namespace ACE.Entity
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameActionApplySoundEffect(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect, Location.LandblockId);
+            QueuedGameAction action = new QueuedGameActionApplySoundEffect(objectId.Full, (uint)sound, Location.LandblockId);
             AddToActionQueue(action);
         }
 
         public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameActionApplyVisualEffect(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect, Location.LandblockId);
+            QueuedGameAction action = new QueuedGameActionApplyVisualEffect(objectId.Full, (uint)effect, Location.LandblockId);
             AddToActionQueue(action);
         }
 

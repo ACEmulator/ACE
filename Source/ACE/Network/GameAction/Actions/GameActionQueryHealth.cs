@@ -13,7 +13,7 @@ namespace ACE.Network.GameAction.Actions
         {
             uint fullId = message.Payload.ReadUInt32();
 
-            QueuedGameAction action = new QueuedGameActionQueryHealth(fullId, GameActionType.QueryHealth);
+            QueuedGameAction action = new QueuedGameActionQueryHealth(fullId);
             session.Player.AddToActionQueue(action);
         }
     }

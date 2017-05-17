@@ -12,10 +12,9 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionQueryHealth : QueuedGameAction
     {
-        public QueuedGameActionQueryHealth(uint objectId, GameActionType actionType)
+        public QueuedGameActionQueryHealth(uint objectId)
         {
             ObjectId = objectId;
-            ActionType = actionType;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = StartTime;
         }

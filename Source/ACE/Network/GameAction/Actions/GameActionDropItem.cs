@@ -13,7 +13,7 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var objectGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            QueuedGameAction action = new QueuedGameActionDropItem(session.Player.Guid.Full, objectGuid.Full, GameActionType.DropItem, session.Player.Location.LandblockId);
+            QueuedGameAction action = new QueuedGameActionDropItem(session.Player.Guid.Full, objectGuid.Full, session.Player.Location.LandblockId);
             session.Player.AddToActionQueue(action);
         }
     }

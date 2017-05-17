@@ -11,10 +11,9 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionIdentifyObject : QueuedGameAction
     {
-        public QueuedGameActionIdentifyObject(uint objectId, GameActionType actionType)
+        public QueuedGameActionIdentifyObject(uint objectId)
         {
             ObjectId = objectId;
-            ActionType = actionType;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = StartTime;
         }

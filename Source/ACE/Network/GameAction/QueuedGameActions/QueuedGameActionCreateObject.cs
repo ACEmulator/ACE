@@ -10,12 +10,11 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionCreateObject : QueuedGameAction
     {
-        public QueuedGameActionCreateObject(uint objectId, WorldObject worldObject, bool respectDelay, GameActionType actionType, LandblockId landBlockID)
+        public QueuedGameActionCreateObject(uint objectId, WorldObject worldObject, bool respectDelay, LandblockId landBlockID)
         {
             ObjectId = objectId;
             WorldObject = worldObject;
             RespectDelay = respectDelay;
-            ActionType = actionType;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = this.StartTime;
             LandBlockId = landBlockID;

@@ -12,11 +12,10 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionApplyVisualEffect : QueuedGameAction
     {
-        public QueuedGameActionApplyVisualEffect(uint objectId, uint secondaryObjectId, GameActionType actionType, LandblockId landBlockId)
+        public QueuedGameActionApplyVisualEffect(uint objectId, uint secondaryObjectId, LandblockId landBlockId)
         {
             ObjectId = objectId;
             SecondaryObjectId = secondaryObjectId;
-            ActionType = actionType;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = this.StartTime;
             LandBlockId = landBlockId;

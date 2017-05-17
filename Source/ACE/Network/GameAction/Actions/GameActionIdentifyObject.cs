@@ -11,7 +11,7 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var id = message.Payload.ReadUInt32();
-            QueuedGameAction action = new QueuedGameActionIdentifyObject(id, GameActionType.IdentifyObject);
+            QueuedGameAction action = new QueuedGameActionIdentifyObject(id);
             session.Player.AddToExaminationQueue(action);
         }
     }

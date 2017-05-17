@@ -224,12 +224,12 @@ namespace ACE.Entity
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                QueuedGameAction removeCreature = new QueuedGameActionDeleteObject(this.Guid.Full, this, true, true, GameActionType.ObjectDelete, Location.LandblockId);
+                QueuedGameAction removeCreature = new QueuedGameActionDeleteObject(this.Guid.Full, this, true, true, Location.LandblockId);
                 session.Player.AddToActionQueue(removeCreature);
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction addCorpse = new QueuedGameActionCreateObject(this.Guid.Full, corpse, true, GameActionType.ObjectCreate, Location.LandblockId);
+            QueuedGameAction addCorpse = new QueuedGameActionCreateObject(this.Guid.Full, corpse, true, Location.LandblockId);
             session.Player.AddToActionQueue(addCorpse);
         }
 

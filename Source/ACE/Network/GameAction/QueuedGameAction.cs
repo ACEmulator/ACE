@@ -32,6 +32,8 @@ namespace ACE.Network.GameAction
 
         public string ActionBroadcastMessage { get; protected set; }
 
+        // this is weird, its only realy used now for teleport ?
+        // maybe it can go away soon enough.
         public GameActionType ActionType { get; protected set; }
 
         public Position ActionLocation { get; protected set; }

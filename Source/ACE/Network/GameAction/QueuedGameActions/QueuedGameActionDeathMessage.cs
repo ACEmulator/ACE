@@ -12,12 +12,11 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionDeathMessage : QueuedGameAction
     {
-        public QueuedGameActionDeathMessage(string broadcastMessage, uint objectId, uint secondaryObjectId, GameActionType actionType, LandblockId landBlockId)
+        public QueuedGameActionDeathMessage(string broadcastMessage, uint objectId, uint secondaryObjectId, LandblockId landBlockId)
         {
             ObjectId = objectId;
             SecondaryObjectId = secondaryObjectId;
             ActionBroadcastMessage = broadcastMessage;
-            ActionType = actionType;
             LandBlockId = landBlockId;
         }
 

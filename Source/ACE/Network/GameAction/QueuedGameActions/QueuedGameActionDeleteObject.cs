@@ -10,13 +10,12 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionDeleteObject : QueuedGameAction
     {
-        public QueuedGameActionDeleteObject(uint objectId, WorldObject worldObject, bool respectDelay, bool onlyRemove, GameActionType actionType, LandblockId landBlockID)
+        public QueuedGameActionDeleteObject(uint objectId, WorldObject worldObject, bool respectDelay, bool onlyRemove, LandblockId landBlockID)
         {
             ObjectId = objectId;
             WorldObject = worldObject;
             RespectDelay = respectDelay;
             OnlyRemove = onlyRemove;
-            ActionType = actionType;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = this.StartTime;
             LandBlockId = landBlockID;

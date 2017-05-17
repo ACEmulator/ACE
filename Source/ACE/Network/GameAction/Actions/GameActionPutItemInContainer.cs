@@ -10,7 +10,7 @@
         {
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            QueuedGameAction action = new QueuedGameActionPutItemInContainer(containerGuid.Full, itemGuid.Full, GameActionType.PutItemInContainer, session.Player.Location.LandblockId);
+            QueuedGameAction action = new QueuedGameActionPutItemInContainer(containerGuid.Full, itemGuid.Full, session.Player.Location.LandblockId);
             session.Player.AddToActionQueue(action);
         }
     }

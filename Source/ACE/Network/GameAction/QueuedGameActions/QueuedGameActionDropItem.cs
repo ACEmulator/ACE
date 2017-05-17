@@ -10,11 +10,10 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionDropItem : QueuedGameAction
     {
-        public QueuedGameActionDropItem(uint objectId, uint secondaryObjectId, GameActionType actionType, LandblockId landBlockID)
+        public QueuedGameActionDropItem(uint objectId, uint secondaryObjectId, LandblockId landBlockID)
         {
             ObjectId = objectId;
             SecondaryObjectId = secondaryObjectId;
-            ActionType = actionType;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = this.StartTime;
             LandBlockId = landBlockID;

@@ -12,11 +12,10 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionApplySoundEffect : QueuedGameAction
     {
-        public QueuedGameActionApplySoundEffect(uint objectId, uint secondaryObjectId, GameActionType actionType, LandblockId landBlockId)
+        public QueuedGameActionApplySoundEffect(uint objectId, uint secondaryObjectIds, LandblockId landBlockId)
         {
             ObjectId = objectId;
-            SecondaryObjectId = secondaryObjectId;
-            ActionType = actionType;
+            SecondaryObjectId = secondaryObjectIds;
             StartTime = WorldManager.PortalYearTicks;
             EndTime = this.StartTime;
             LandBlockId = landBlockId;

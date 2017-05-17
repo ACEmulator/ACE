@@ -15,11 +15,10 @@ namespace ACE.Network.GameAction.QueuedGameActions
 {
     public class QueuedGameActionBuy : QueuedGameAction
     {
-        public QueuedGameActionBuy(uint objectId, List<ItemProfile> profileItems, GameActionType actionType)
+        public QueuedGameActionBuy(uint objectId, List<ItemProfile> profileItems)
         {
             ObjectId = objectId;
             ProfileItems = profileItems;
-            ActionType = actionType;
         }
 
         protected override void Handle(Player player)
