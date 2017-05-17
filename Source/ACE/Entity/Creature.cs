@@ -48,19 +48,19 @@ namespace ACE.Entity
             set { AceObject.SelfAbility = value; }
         }
 
-        public CreatureAbility Health
+        public CreatureVital Health
         {
             get { return AceObject.Health; }
             set { AceObject.Health = value; }
         }
 
-        public CreatureAbility Stamina
+        public CreatureVital Stamina
         {
             get { return AceObject.Stamina; }
             set { AceObject.Stamina = value; }
         }
 
-        public CreatureAbility Mana
+        public CreatureVital Mana
         {
             get { return AceObject.Mana; }
             set { AceObject.Mana = value; }
@@ -96,7 +96,7 @@ namespace ACE.Entity
                 this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
 
             SetObjectData(aceC.WeenieObject);
-            SetAbilities(aceC.WeenieObject);
+            IsAlive = true;
         }
 
         public Creature(AceObject baseObject) : base(baseObject)
@@ -114,22 +114,6 @@ namespace ACE.Entity
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.DefaultScale;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
-        }
-
-        protected void SetAbilities(AceObject aco)
-        {
-            // TODO: determine if this is necessary
-            // recalculate the base value as the abilities end/will have an influence on those
-            // Health.Base = aco.Health - Health.UnbuffedValue;
-            // Stamina.Base = aco.Stamina - Stamina.UnbuffedValue;
-            // Mana.Base = aco.Mana - Mana.UnbuffedValue;
-
-            // FIXME(ddevec): Should we always start w/ max's? Probably not...
-            Health.Current = Health.MaxValue;
-            Stamina.Current = Stamina.MaxValue;
-            Mana.Current = Mana.MaxValue;
-
-            IsAlive = true;
         }
 
         public virtual void OnKill(Session session)
@@ -174,6 +158,18 @@ namespace ACE.Entity
             // Add Corpse in that location via the ActionQueue to honor the motion delays
             QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
             session.Player.AddToActionQueue(addCorpse);
+        }
+
+        /// <summary>
+        /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
+        /// </summary>
+        // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
+        override public void Tick(double tickTime)
+        {
+            // TODO: Realistic rates && adjusting rates for spells...
+            Health.Tick(tickTime);
+            Stamina.Tick(tickTime);
+            Mana.Tick(tickTime);
         }
     }
 }

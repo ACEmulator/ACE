@@ -244,8 +244,7 @@ namespace ACE.Entity
 
             Location = character.Location;
 
-            SetAbilities(character);
-
+            IsAlive = true;
             IsOnline = true;
 
             PhysicsData.MTableResourceId = Character.MotionTableId;
@@ -494,21 +493,24 @@ namespace ACE.Entity
 
         public void SpendXp(Enum.Ability ability, uint amount)
         {
+            bool isSecondary = false;
             CreatureAbility creatureAbility;
             bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
             if (!success)
             {
-                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out creatureAbility);
+                CreatureVital v;
+                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out v);
                 // Invalid ability
                 if (!success)
                 {
                     log.Error("Invalid ability passed to Player.SpendXp");
                     return;
                 }
+                creatureAbility = v;
+                isSecondary = true;
             }
             uint baseValue = creatureAbility.Base;
             uint result = SpendAbilityXp(creatureAbility, amount);
-            bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
             uint ranks = creatureAbility.Ranks;
             uint newValue = creatureAbility.UnbuffedValue;
             string messageText = "";
@@ -521,7 +523,8 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureAbility.Current);
+                    CreatureVital vital = creatureAbility as CreatureVital;
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, vital.Current);
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
@@ -621,7 +624,12 @@ namespace ACE.Entity
 
             if (rankUps > 0)
             {
-                ability.Current += addToCurrentValue ? rankUps : 0u;
+                // FIXME(ddevec): This needs to be done for vitals only? Someone verify -- 
+                //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
+                CreatureVital vital = ability as CreatureVital;
+                if (vital != null) {
+                    vital.Current += addToCurrentValue ? rankUps : 0u;
+                }
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
                 this.Character.SpendXp(amount);
@@ -1338,6 +1346,31 @@ namespace ACE.Entity
             DelayedTeleportDestination = null;
             DelayedTeleportTime = DateTime.MinValue;
             WaitingForDelayedTeleport = false;
+        }
+
+        override public void Tick(double tickTime)
+        {
+            uint oldHealth = Health.Current;
+            uint oldStamina = Stamina.Current;
+            uint oldMana = Mana.Current;
+
+            base.Tick(tickTime);
+
+            // If the game loop changed a vital -- send an update message to the client
+            if (Health.Current != oldHealth)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current));
+            }
+
+            if (Stamina.Current != oldStamina)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Stamina, Stamina.Current));
+            }
+
+            if (Mana.Current != oldMana)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current));
+            }
         }
     }
 }
