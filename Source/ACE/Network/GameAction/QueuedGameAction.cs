@@ -53,15 +53,6 @@ namespace ACE.Network.GameAction
         {
         }
 
-        // All the code below this line is to be chucked.
-        public QueuedGameAction(uint objectId, GameActionType actionType)
-        {
-            this.ObjectId = objectId;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
-        }
-
         /// <summary>
         /// Send a player killed event
         /// </summary>

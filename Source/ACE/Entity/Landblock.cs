@@ -574,9 +574,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.IdentifyObject:
                     {
-                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
-                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
-                        player.Session.Network.EnqueueSend(identifyResponse);
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.Buy:
@@ -611,55 +609,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.QueryHealth:
                     {
-                        if (action.ObjectId == 0)
-                        {
-                            // Deselect the formerly selected Target
-                            player.SelectedTarget = 0;
-                            break;
-                        }
-
-                        object target = null;
-                        var targetId = new ObjectGuid(action.ObjectId);
-
-                        // Remember the selected Target
-                        player.SelectedTarget = action.ObjectId;
-
-                        // TODO: once items are implemented check if there are items that can trigger
-                        //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
-                        if (targetId.IsPlayer() || targetId.IsCreature())
-                        {
-                            if (worldObjects.ContainsKey(targetId))
-                                target = worldObjects[targetId];
-
-                            if (target == null)
-                            {
-                                // check adjacent landblocks for the targetId
-                                foreach (var block in adjacencies)
-                                {
-                                    if (block.Value != null)
-                                        if (block.Value.worldObjects.ContainsKey(targetId))
-                                            target = block.Value.worldObjects[targetId];
-                                }
-                            }
-                            if (target != null)
-                            {
-                                float healthPercentage = 0;
-
-                                if (targetId.IsPlayer())
-                                {
-                                    Player tmpTarget = (Player)target;
-                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                                }
-                                if (targetId.IsCreature())
-                                {
-                                    Creature tmpTarget = (Creature)target;
-                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                                }
-                                var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
-                                player.Session.Network.EnqueueSend(updateHealth);
-                            }
-                        }
-
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.Use:
