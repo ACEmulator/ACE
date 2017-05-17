@@ -1538,7 +1538,7 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
 
             // remove the player from landblock management
-            LandblockManager.RemoveObject(this);
+            LandblockManager.RemoveObject(this, true);
 
             if (!clientSessionTerminatedAbruptly)
             {

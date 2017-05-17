@@ -45,10 +45,10 @@ namespace ACE.Managers
 
         // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
 
-        public static void RemoveObject(WorldObject worldObject)
+        public static void RemoveObject(WorldObject worldObject, bool neighbors)
         {
-            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
-            block.RemoveWorldObject(worldObject.Guid, false);
+            Landblock block = GetLandblock(worldObject.Location.LandblockId, neighbors);
+            block.RemoveWorldObject(worldObject.Guid, neighbors);
         }
 
         /// <summary>

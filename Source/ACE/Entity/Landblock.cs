@@ -574,9 +574,6 @@ namespace ACE.Entity
                     }
                 case GameActionType.IdentifyObject:
                     {
-                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
-                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
-                        player.Session.Network.EnqueueSend(identifyResponse);
                         break;
                     }
                 case GameActionType.Buy:
@@ -606,7 +603,7 @@ namespace ACE.Entity
                     }
                 case GameActionType.ObjectDelete:
                     {
-                        RemoveWorldObject(action.WorldObject.Guid, false);
+                        action.Handler(player);
                         break;
                     }
                 case GameActionType.QueryHealth:

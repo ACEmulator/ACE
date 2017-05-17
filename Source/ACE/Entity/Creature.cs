@@ -223,7 +223,7 @@ namespace ACE.Entity
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+                QueuedGameAction removeCreature = new QueuedGameActionDeleteObject(this.Guid.Full, this, true, true, GameActionType.ObjectDelete, Location.LandblockId);
                 session.Player.AddToActionQueue(removeCreature);
             }
 

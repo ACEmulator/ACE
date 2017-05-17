@@ -62,17 +62,6 @@ namespace ACE.Network.GameAction
             this.EndTime = this.StartTime;
         }
 
-        public QueuedGameAction(uint objectId, WorldObject worldObject, bool respectDelay, bool onlyRemove, GameActionType actionType)
-        {
-            this.ObjectId = objectId;
-            this.WorldObject = worldObject;
-            this.RespectDelay = respectDelay;
-            this.OnlyRemove = onlyRemove;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
-        }
-
         /// <summary>
         /// Send a player killed event
         /// </summary>

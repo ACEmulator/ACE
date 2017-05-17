@@ -16,9 +16,10 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.EvtInventoryUseEvent)]
         public static void Handle(ClientMessage message, Session session)
         {
-            uint fullId = message.Payload.ReadUInt32();
-            QueuedGameAction action = new QueuedGameAction(fullId, GameActionType.EvtInventoryUseEvent);
-            session.Player.AddToActionQueue(action);
+            // nothing here is called anywhere yet!
+            // uint fullId = message.Payload.ReadUInt32();
+            // QueuedGameAction action = new QueuedGameAction(fullId, GameActionType.EvtInventoryUseEvent);
+            // session.Player.AddToActionQueue(action);
             return;
         }
     }
