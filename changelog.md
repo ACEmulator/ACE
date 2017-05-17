@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-05-17
+[ddevec]
+* Added "Tick" functionality to WorldObjects.
+* CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
+* Creatures now update their vitals on Tick.
+* Players notify their client session on vital changes.
+
 ### 2017-05-09
 [Og II]
 * Major rip and replace to stop reaching into landblock and passing out WorldObjects.   I tested all of my stuff and as many items as I could
