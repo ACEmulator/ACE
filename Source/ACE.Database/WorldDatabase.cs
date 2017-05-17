@@ -35,7 +35,8 @@ namespace ACE.Database
 
         protected override void InitializePreparedStatements()
         {
-            // AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
+            // TODO: Og II - switch to constructed Statement
+            AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `name`, `landblock`, `posX`, `posY`, `posZ`, `qx`, `qy`, `qz`, `qw` FROM `vw_teleport_location`;");
             // ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
@@ -60,7 +61,6 @@ namespace ACE.Database
 
         public BaseAceObject GetRandomBaseAceObjectByTypeId(uint typeId)
         {
-            // TODO: Og II - pick up here
             var criteria = new Dictionary<string, object> { { "typeId", typeId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, BaseAceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
             if (objects.Count > 0)
@@ -75,15 +75,15 @@ namespace ACE.Database
         public List<TeleportLocation> GetLocations()
         {
             var result = SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect);
-            List<TeleportLocation> locations = new List<TeleportLocation>();
+            var locations = new List<TeleportLocation>();
 
-            for (uint i = 0u; i < result.Count; i++)
+            for (var i = 0u; i < result.Count; i++)
             {
                 locations.Add(new TeleportLocation
                 {
-                    Location = result.Read<string>(i, "location"),
-                    Position = new Position(result.Read<uint>(i, "cell"), result.Read<float>(i, "x"), result.Read<float>(i, "y"),
-                        result.Read<float>(i, "z"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
+                    Location = result.Read<string>(i, "name"),
+                    Position = new Position(result.Read<uint>(i, "landblock"), result.Read<float>(i, "posX"), result.Read<float>(i, "posY"),
+                        result.Read<float>(i, "posZ"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
                 });
             }
 

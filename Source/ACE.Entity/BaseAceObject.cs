@@ -2,12 +2,10 @@
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum.Properties;
+using System;
 
 namespace ACE.Entity
 {
-    using System;
-    using System.Diagnostics.Eventing.Reader;
-
     [DbTable("ace_object")]
     [DbGetList("ace_object", 15, "typeId")]
     public class BaseAceObject
@@ -534,15 +532,15 @@ namespace ACE.Entity
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Locations)?.PropertyValue;
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ValidLocations)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Locations).PropertyValue = (uint)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ValidLocations).PropertyValue = (uint)value;
                 else
                 {
-                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Locations);
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ValidLocations);
                     if (listItem != null)
                         AceObjectPropertiesInt.Remove(listItem);
                 }

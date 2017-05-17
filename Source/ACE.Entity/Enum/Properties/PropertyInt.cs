@@ -12,7 +12,7 @@
         [PersistedProperty(true, typeof(Character), 20u)]
         ContainersCapacity = 7,
         Mass = 8,
-        Locations = 9,
+        ValidLocations = 9,
         CurrentWieldedLocation = 10,
         MaxStackSize = 11,
         StackSize = 12,

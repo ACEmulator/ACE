@@ -14,7 +14,7 @@ namespace ACE.Factories
         /// </summary>
         public static Portal CreatePortal(ushort weenieClassId, Position newPosition, string portalTitle, PortalType portalType)
         {
-            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.RadarBehavior | WeenieHeaderFlag.UseRadius;
+            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior | WeenieHeaderFlag.UseRadius;
             Portal wo = new Portal(ObjectType.Portal, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), portalTitle, weenieClassId, ObjectDescriptionFlag.Portal, weenie, newPosition);
 
             wo.PhysicsData.MTableResourceId = 0x09000003u;

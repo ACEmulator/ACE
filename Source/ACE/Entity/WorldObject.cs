@@ -355,7 +355,7 @@ namespace ACE.Entity
                 }
             }
 
-            if ((WeenieFlags & WeenieHeaderFlag.Location) != 0)
+            if ((WeenieFlags & WeenieHeaderFlag.CurrentlyWeildedLocation) != 0)
             {
                 if (GameData.Location != null)
                 {
@@ -379,7 +379,7 @@ namespace ACE.Entity
                 }
             }
 
-            if ((WeenieFlags & WeenieHeaderFlag.BlipColour) != 0)
+            if ((WeenieFlags & WeenieHeaderFlag.RadarBlipColor) != 0)
             {
                 if (GameData.RadarColour != null)
                 {
