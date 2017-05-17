@@ -9,7 +9,7 @@
         InventoryPutObjInContainer          = 0x0022,
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
-
+        ApproachVendor                      = 0x0062,
         IdentifyObjectResponse              = 0x00C9,
 
         ChannelBroadcast                    = 0x0147,

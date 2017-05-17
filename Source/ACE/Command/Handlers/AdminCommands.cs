@@ -1001,7 +1001,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            var loot = LootGenerationFactory.CreateTestWorldObject(weenieId);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
             session.Player.TrackObject(loot);
         }
@@ -1021,7 +1021,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            var loot = LootGenerationFactory.CreateTestWorldObject(weenieId);
             LootGenerationFactory.AddToContainer(loot, session.Player);
             session.Player.TrackObject(loot);
         }
@@ -1041,7 +1041,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
+            var loot = LootGenerationFactory.CreateRandomTestWorldObject(typeId);
             if (loot != null)
             {
                 LootGenerationFactory.AddToContainer(loot, session.Player);

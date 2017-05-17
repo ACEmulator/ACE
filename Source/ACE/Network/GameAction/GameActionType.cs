@@ -207,6 +207,7 @@
         EvtCommunicationModifyGlobalSquelch             = 0x005B,
         EvtVendorBuy                                    = 0x005F,
         EvtVendorSell                                   = 0x0060,
+        EvtApproachVendor                               = 0x0062,
         EvtCharacterTeleToLifestone                     = 0x0063,
         EvtFellowshipCreate                             = 0x00A2,
         EvtFellowshipQuit                               = 0x00A3,
@@ -300,6 +301,6 @@
         EvtMovementTurnToEvent                          = 0xF649,
         EvtMovementStopMovementCommand                  = 0xF661,
         EvtMovementAutonomyLevel                        = 0xF752,
-        EvtMovementJumpNonAutonomous                    = 0xF7C9
+        EvtMovementJumpNonAutonomous                    = 0xF7C9,
     }
 }
