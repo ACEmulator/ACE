@@ -1,4 +1,4 @@
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
@@ -278,6 +278,10 @@ namespace ACE.Entity
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+        }
+
+        public virtual void Tick(double tickTime)
+        {
         }
     }
 }

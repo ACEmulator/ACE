@@ -37,7 +37,11 @@ namespace ACE.Factories
                     results.Add(new Door(aceO));
                     continue;
                 }
-
+                else if ((oDescFlag & ObjectDescriptionFlag.Vendor) != 0)
+                {
+                    results.Add(new Vendor(aceO));
+                    continue;
+                }
                 switch (ot)
                 {
 #if DEBUG
