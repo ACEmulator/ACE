@@ -5,6 +5,9 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
+    using System;
+    using System.Diagnostics.Eventing.Reader;
+
     [DbTable("ace_object")]
     [DbGetList("ace_object", 15, "typeId")]
     public class BaseAceObject
@@ -87,12 +90,12 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor)?.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor).PropertyValue = (byte)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor).PropertyValue = (uint)value;
                 else
                 {
                     var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor);
@@ -127,12 +130,12 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse)?.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse).PropertyValue = (byte)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse).PropertyValue = (uint)value;
                 else
                 {
                     var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse);
@@ -146,12 +149,12 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity)?.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity).PropertyValue = (byte)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity).PropertyValue = (uint)value;
                 else
                 {
                     var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity);
@@ -324,12 +327,12 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity)?.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity).PropertyValue = (byte)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity).PropertyValue = (uint)value;
                 else
                 {
                     var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity);
@@ -346,12 +349,12 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType)?.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType).PropertyValue = (byte)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType).PropertyValue = (uint)value;
                 else
                 {
                     var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType);
@@ -365,7 +368,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStackSize)?.PropertyValue;
+                return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStackSize)?.PropertyValue;
             }
             set
             {
@@ -387,7 +390,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStructure)?.PropertyValue;
+                return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStructure)?.PropertyValue;
             }
             set
             {
@@ -409,13 +412,13 @@ namespace ACE.Entity
         {
             get
             {
-                return (byte)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar)?.PropertyValue;
+                return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar)?.PropertyValue;
             }
             set
             {
                 var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar);
                 if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar).PropertyValue = (byte)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar).PropertyValue = (uint)value;
                 else
                     if (listItem != null)
                     AceObjectPropertiesInt.Remove(listItem);
@@ -426,7 +429,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.StackSize)?.PropertyValue;
+                return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.StackSize)?.PropertyValue;
             }
             set
             {
@@ -448,7 +451,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Structure)?.PropertyValue;
+                return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Structure)?.PropertyValue;
             }
             set
             {
@@ -508,7 +511,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.UseRadius)?.PropertyValue;
+                return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.UseRadius)?.PropertyValue;
             }
             set
             {
@@ -565,22 +568,44 @@ namespace ACE.Entity
             }
         }
 
-        // TODO: come fix this one the debate is over. Og II
-        public float? Workmanship
+        public float Workmanship
         {
             get
             {
-                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration)?.PropertyValue;
+                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
+                {
+                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
+                }
+                return 0.00f;
+            }
+            set
+            {
+                if ((Structure != null) && (Structure != 0))
+                {
+                    ItemWorkmanship = (uint)Convert.ToInt32(value * 10000 * Structure);
+                }
+                else
+                {
+                    ItemWorkmanship = (uint)Convert.ToInt32(value);
+                }
+            }
+        }
+
+        private uint? ItemWorkmanship
+        {
+            get
+            {
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemWorkmanship)?.PropertyValue;
             }
             set
             {
                 if (value != null)
-                    AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration).PropertyValue = (double)value;
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemWorkmanship).PropertyValue = (uint)value;
                 else
                 {
-                    var listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration);
+                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemWorkmanship);
                     if (listItem != null)
-                        AceObjectPropertiesDouble.Remove(listItem);
+                        AceObjectPropertiesInt.Remove(listItem);
                 }
             }
         }
@@ -589,7 +614,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.PhysicsScriptIntensity)?.PropertyValue;
+                return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.PhysicsScriptIntensity)?.PropertyValue;
             }
             set
             {
@@ -608,7 +633,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Elasticity)?.PropertyValue;
+                return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Elasticity)?.PropertyValue;
             }
             set
             {
@@ -627,7 +652,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Friction)?.PropertyValue;
+                return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Friction)?.PropertyValue;
             }
             set
             {
@@ -665,7 +690,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (float)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale)?.PropertyValue;
+                return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale)?.PropertyValue;
             }
             set
             {
