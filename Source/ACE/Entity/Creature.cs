@@ -58,7 +58,7 @@ namespace ACE.Entity
         }
 
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.TypeId,
+            : base((ObjectType)aceC.CreatureData.ItemType,
                   new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
                   aceC.CreatureData.Name,
                   aceC.WeenieClassId,

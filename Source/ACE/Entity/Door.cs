@@ -22,7 +22,7 @@ namespace ACE.Entity
         private static UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
         public Door(AceObject aceO)
-            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
 

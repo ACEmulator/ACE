@@ -26,7 +26,7 @@ namespace ACE.Entity
         }
 
         public CollidableObject(AceObject aceO)
-            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
             this.DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;

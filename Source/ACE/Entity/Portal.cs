@@ -115,7 +115,7 @@ namespace ACE.Entity
         }
 
         public Portal(AcePortalObject aceO)
-            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
             Name = aceO.Name;
             DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;

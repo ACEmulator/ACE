@@ -13,7 +13,7 @@ namespace ACE.Entity
         }
 
         public DebugObject(ObjectGuid guid,  BaseAceObject baseAceObject)
-            : base((ObjectType)baseAceObject.TypeId, guid)
+            : base((ObjectType)baseAceObject.ItemType, guid)
         {
             this.Name = baseAceObject.Name;
             if (this.Name == null)

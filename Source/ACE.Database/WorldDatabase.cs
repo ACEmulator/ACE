@@ -44,9 +44,9 @@ namespace ACE.Database
             // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
-            // ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
-            // ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
-            // ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
+             ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
+             ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
+             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
             // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
@@ -59,17 +59,14 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
         }
 
-        public BaseAceObject GetRandomBaseAceObjectByTypeId(uint typeId)
+        public BaseAceObject GetRandomBaseAceObjectByTypeId(uint itemType)
         {
-            var criteria = new Dictionary<string, object> { { "typeId", typeId } };
+            var criteria = new Dictionary<string, object> { { "itemType", itemType } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, BaseAceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
-            if (objects.Count > 0)
-            {
-                var rnd = new Random();
-                var r = rnd.Next(objects.Count);
-                return objects[r];
-            }
-            return null;
+            if (objects.Count <= 0) return null;
+            var rnd = new Random();
+            var r = rnd.Next(objects.Count);
+            return objects[r];
         }
 
         public List<TeleportLocation> GetLocations()

@@ -15,9 +15,9 @@ namespace ACE.Entity
         }
 
         public UsableObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, BaseAceObject baseAceObject)
-           : base((ObjectType)baseAceObject.TypeId, guid)
+           : base((ObjectType)baseAceObject.ItemType, guid)
         {
-            Type = (ObjectType)baseAceObject.TypeId;
+            Type = (ObjectType)baseAceObject.ItemType;
             WeenieClassid = baseAceObject.AceObjectId;
             Icon = baseAceObject.IconId - 0x06000000; // Database has the unpacked values - may be able to remove later.
             Name = baseAceObject.Name;

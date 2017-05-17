@@ -7,7 +7,7 @@ using System;
 namespace ACE.Entity
 {
     [DbTable("ace_object")]
-    [DbGetList("ace_object", 15, "typeId")]
+    [DbGetList("vw_ace_object", 15, "typeId")]
     public class BaseAceObject
     {
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
@@ -200,7 +200,7 @@ namespace ACE.Entity
             }
         }
 
-        public uint? TypeId
+        public uint? ItemType
         {
             get
             {
