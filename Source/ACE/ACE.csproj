@@ -224,6 +224,7 @@
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionIdentifyObject.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionMovementEvent.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionPutItemInContainer.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionUseObject.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />

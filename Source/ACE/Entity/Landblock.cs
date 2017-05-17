@@ -574,6 +574,9 @@ namespace ACE.Entity
                     }
                 case GameActionType.IdentifyObject:
                     {
+                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
+                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
+                        player.Session.Network.EnqueueSend(identifyResponse);
                         break;
                     }
                 case GameActionType.Buy:
@@ -661,37 +664,11 @@ namespace ACE.Entity
                     }
                 case GameActionType.Use:
                     {
-                            if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
-                                (obj as Lifestone).OnUse(player);
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
-                                // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                                (obj as Portal).OnCollide(player);
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
-                                (obj as Door).OnUse(player);
-
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Vendor) != 0)
-                                (obj as Vendor).OnUse(player);
-
-                            // switch (obj.Type)
-                            // {
-                            //    case Enum.ObjectType.Portal:
-                            //        {
-                            //            // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                            //
-                            //            (obj as Portal).OnCollide(player);
-                            //
-                            //            break;
-                            //        }
-                            //    case Enum.ObjectType.LifeStone:
-                            //        {
-                            //            (obj as Lifestone).OnUse(player);
-                            //            break;
-                            //        }
-                            // }
-                        }
+                        action.Handler(player);
                         break;
                     }
             }
+        }
 
         private void UpdateStatus(LandBlockStatusFlag flag)
         {
