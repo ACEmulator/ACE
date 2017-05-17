@@ -83,6 +83,7 @@
     <Compile Include="CharacterLevel.cs" />
     <Compile Include="CharacterSkill.cs" />
     <Compile Include="CreatureAbility.cs" />
+    <Compile Include="CreatureVital.cs" />
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />

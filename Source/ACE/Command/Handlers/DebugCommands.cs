@@ -264,6 +264,70 @@ namespace ACE.Command.Handlers
                                         session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
                                         session.Player.Sequences, newMotion));
         }
+        
+        // This function 
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+             "Sets the specified vital to a specified value",
+            "Usage: @setvital <vital> <value>\n" +
+            "<vital> is one of the following strings:\n" +
+            "    health, hp\n" +
+            "    stamina, stam, sp\n" +
+            "    mana, mp\n" +
+            "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
+        public static void SetVital(Session session, params string[] parameters)
+        {
+            string paramVital = parameters[0].ToLower();
+            string paramValue = parameters[1];
+
+            bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
+            int value = int.MaxValue;
+
+            if (!int.TryParse(paramValue, out value)) {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
+                return;
+            }
+
+            Entity.Enum.Ability ability;
+            // Parse args...
+            CreatureVital vital = null;
+            if (paramVital == "health" || paramVital == "hp")
+            {
+                ability = Entity.Enum.Ability.Health;
+                vital = session.Player.Health;
+            }
+            else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
+            {
+                ability = Entity.Enum.Ability.Stamina;
+                vital = session.Player.Stamina;
+            }
+            else if (paramVital == "mana" || paramVital == "mp")
+            {
+                ability = Entity.Enum.Ability.Mana;
+                vital = session.Player.Mana;
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
+                return;
+            }
+
+            long targetValue = 0;
+            if (relValue)
+                targetValue = vital.Current + value;
+            else
+                targetValue = value;
+
+            if (targetValue < 0 || targetValue > vital.MaxValue)
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Value over/underflow", ChatMessageType.Broadcast);
+                return;
+            }
+
+            vital.Current = (uint)targetValue;
+
+            // Send an update packet
+            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, vital));
+        }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Teleports you to current position with PositionZ set to +8000.")]
