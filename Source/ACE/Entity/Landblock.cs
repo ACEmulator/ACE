@@ -315,12 +315,6 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        public void HandleDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(sender, deathMessageArgs);
-            Broadcast(args, false, Quadrant.All);
-        }
-
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
@@ -533,91 +527,10 @@ namespace ACE.Entity
 
         private void HandleGameAction(QueuedGameAction action, Player player)
         {
-            // short circuit players no longer on this landblock.
-            var g = new ObjectGuid(action.ObjectId);
-            WorldObject obj = (WorldObject)player;
-            if (worldObjects.ContainsKey(g))
-            {
-                obj = worldObjects[g];
-            }
+            if (worldObjects.ContainsKey(new ObjectGuid(action.ObjectId)))
+                action.Handler(player);
             else
                 return;
-
-            switch (action.ActionType)
-            {
-                case GameActionType.TalkDirect:
-                    {
-                        // TODO: remove this hack (using TalkDirect) ASAP
-                        DeathMessageArgs d = new DeathMessageArgs(action.ActionBroadcastMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
-                        HandleDeathMessage(obj, d);
-                        break;
-                    }
-                case GameActionType.TeleToHouse:
-                case GameActionType.TeleToLifestone:
-                case GameActionType.TeleToMansion:
-                case GameActionType.TeleToMarketPlace:
-                case GameActionType.TeleToPkArena:
-                case GameActionType.TeleToPklArena:
-                    {
-                        player.Teleport(action.ActionLocation);
-                        break;
-                    }
-                case GameActionType.ApplyVisualEffect:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.ApplySoundEffect:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.IdentifyObject:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.Buy:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.PutItemInContainer:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.DropItem:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.MovementEvent:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.ObjectCreate:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.ObjectDelete:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.QueryHealth:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-                case GameActionType.Use:
-                    {
-                        action.Handler(player);
-                        break;
-                    }
-            }
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)

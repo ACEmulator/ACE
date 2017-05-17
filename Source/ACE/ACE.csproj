@@ -219,6 +219,7 @@
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameAction\QueuedGameAction.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionCreateObject.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionDeathMessage.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionDeleteObject.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionDropItem.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionIdentifyObject.cs" />

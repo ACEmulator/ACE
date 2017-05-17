@@ -48,23 +48,9 @@ namespace ACE.Network.GameAction
 
         public List<ItemProfile> ProfileItems { get; protected set; }
 
-        // this is going to be the only one left once am done converting them all.
+        // Implement your own methods in your own QueuedGameAction class.
         public QueuedGameAction()
         {
-        }
-
-        /// <summary>
-        /// Send a player killed event
-        /// </summary>
-        /// <param name="objectId">Victim's Object Guid</param>
-        /// <param name="secondaryObjectId">Killer's Object Guid</param>
-        /// <param name="broadcastMessage">Text string for chat output, usually containing the death message</param>
-        public QueuedGameAction(string broadcastMessage, uint objectId, uint secondaryObjectId, GameActionType actionType)
-        {
-            this.ObjectId = objectId;
-            this.SecondaryObjectId = secondaryObjectId;
-            this.ActionBroadcastMessage = broadcastMessage;
-            this.ActionType = actionType;
         }
     }
 }
