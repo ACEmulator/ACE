@@ -37,7 +37,7 @@ namespace ACE.Database
         {
             // TODO: Og II - switch to constructed Statement
             AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `name`, `landblock`, `posX`, `posY`, `posZ`, `qx`, `qy`, `qz`, `qw` FROM `vw_teleport_location`;");
-            // ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
@@ -145,17 +145,17 @@ namespace ACE.Database
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorData>(WorldPreparedStatement.GetCreatureGeneratorData, criteria);
         }
 
-        private List<WeeniePaletteOverride> GetWeeniePalettes(uint weenieClassId)
+        private List<WeeniePaletteOverride> GetWeeniePalettes(uint aceObjectId)
          {
              Dictionary<string, object> criteria = new Dictionary<string, object>();
-             criteria.Add("weenieClassId", weenieClassId);
+             criteria.Add("aceObjectId", aceObjectId);
              return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
          }
 
-        private List<WeenieTextureMapOverride> GetWeenieTextureMaps(uint weenieClassId)
+        private List<WeenieTextureMapOverride> GetWeenieTextureMaps(uint aceObjectId)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("weenieClassId", weenieClassId);
+            criteria.Add("aceObjectId", aceObjectId);
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieTextureMapOverride>(WorldPreparedStatement.GetWeenieTextureMaps, criteria);
         }
 
@@ -209,15 +209,20 @@ namespace ACE.Database
         public BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
         {
             var bao = new BaseAceObject();
-            var criteria = new Dictionary<string, object> { { "baseAceObjectId", weenieClassId } };
+            var criteria = new Dictionary<string, object> { { "AceObjectId", weenieClassId } };
             if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), criteria, bao))
                 return null;
+            bao.AceObjectPropertiesInt = GetAceObjectPropertiesInt(bao.AceObjectId);
+            bao.AceObjectPropertiesBigInt = GetAceObjectPropertiesBigInt(bao.AceObjectId);
+            bao.AceObjectPropertiesBool = GetAceObjectPropertiesBool(bao.AceObjectId);
+            bao.AceObjectPropertiesDouble = GetAceObjectPropertiesDouble(bao.AceObjectId);
+            bao.AceObjectPropertiesString = GetAceObjectPropertiesString(bao.AceObjectId);
 
-            foreach (var pal in GetWeeniePalettes(weenieClassId))
+            foreach (var pal in GetWeeniePalettes(bao.AceObjectId))
             {
                 var opal = new PaletteOverride
                              {
-                                 AceObjectId = pal.WeenieClassId,
+                                 AceObjectId = pal.AceObjectId,
                                  Length = pal.Length,
                                  Offset = pal.Offset,
                                  SubPaletteId = pal.SubPaletteId
@@ -228,7 +233,7 @@ namespace ACE.Database
             {
                 var otex = new TextureMapOverride
                                {
-                                   AceObjectId = tex.WeenieClassId,
+                                   AceObjectId = tex.AceObjectId,
                                    Index = tex.Index,
                                    NewId = tex.NewId,
                                    OldId = tex.OldId

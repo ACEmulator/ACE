@@ -6,8 +6,8 @@ using System;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object")]
-    [DbGetList("vw_ace_object", 15, "typeId")]
+    [DbTable("vw_base_ace_object")]
+    [DbGetList("vw_base_ace_object", 15, "typeId")]
     public class BaseAceObject
     {
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]

@@ -13,6 +13,6 @@ namespace ACE.Entity
         public uint BigIntPropertyId { get; set; }
 
         [DbField("propertyValue", (int)MySqlDbType.UInt64)]
-        public ulong PropertyValue { get; set; }
+        public double PropertyValue { get; set; }
     }
 }
