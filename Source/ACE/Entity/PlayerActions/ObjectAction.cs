@@ -38,7 +38,6 @@ namespace ACE.Entity.PlayerActions
             // The remainder of the code creates a call-stack to handle nested co-routines
             while (!canContinue && callStack.Count != 0)
             {
-                log.Warn("Done with frame, popping stack: " + canContinue);
                 enumerator = callStack.Pop();
                 canContinue = enumerator.MoveNext();
             }
@@ -48,7 +47,6 @@ namespace ACE.Entity.PlayerActions
                 ObjectAction a = enumerator.Current as ObjectAction;
                 if (a != null)
                 {
-                    log.Warn("Have action frame, pushing stack: " + canContinue);
                     IEnumerator nextEnum = a.Act();
                     callStack.Push(enumerator);
                     enumerator = nextEnum;
@@ -56,7 +54,6 @@ namespace ACE.Entity.PlayerActions
                 }
                 else
                 {
-                    log.Warn("Have new frame, pushing stack: " + canContinue);
                     IEnumerator nextEnum = (IEnumerator)enumerator.Current;
                     callStack.Push(enumerator);
                     enumerator = nextEnum;

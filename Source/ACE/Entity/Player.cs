@@ -1396,7 +1396,50 @@ namespace ACE.Entity
 
         public IEnumerator ActBuy(uint vendorId, List<ItemProfile> items)
         {
-            log.Warn("FIXME: ActBuy unimplemented (see Landblock for code, Player for stub)");
+            // todo: lots, need vendor list, money checks, etc.
+
+            var money = new GameMessagePrivateUpdatePropertyInt(this.Session, PropertyInt.CoinValue, 4000);
+            var sound = new GameMessageSound(this.Guid, Sound.PickUpItem, 1);
+            var sendUseDoneEvent = new GameEventUseDone(this.Session);
+            this.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
+
+            // send updated vendor inventory.
+            this.Session.Network.EnqueueSend(new GameEventApproachVendor(this.Session, vendorId));
+
+            // this is just some testing code for now.
+            foreach (ItemProfile item in items)
+            {
+                // todo: something with vendor id and profile list... iid list from vendor dbs.
+                // todo: something with amounts..
+
+                if (item.Iid == 5)
+                {
+                    while (item.Amount > 0)
+                    {
+                        item.Amount--;
+                        WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
+                        LootGenerationFactory.AddToContainer(loot, this);
+                        this.TrackObject(loot);
+                    }
+                    var rudecomment = "Who do you think you are, Johny Apple Seed ?";
+                    var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
+                    this.Session.Network.EnqueueSend(buyrudemsg);
+                }
+                else if (item.Iid == 10)
+                {
+                    while (item.Amount > 0)
+                    {
+                        item.Amount--;
+                        WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
+                        LootGenerationFactory.AddToContainer(loot, this);
+                        this.TrackObject(loot);
+                    }
+                    var rudecomment = "That smells awful, Enjoy eating it!";
+                    var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
+                    this.Session.Network.EnqueueSend(buyrudemsg);
+                }
+            }
+
             yield break;
         }
 
@@ -1453,7 +1496,14 @@ namespace ACE.Entity
 
         public IEnumerator ActDrop(ObjectGuid itemGuid)
         {
-            WorldObject wo = LandblockManager.GetWorldObject(Session, itemGuid);
+            // FIXME: The object is in your pack not the world!  
+            //WorldObject wo = LandblockManager.GetWorldObject(Session, itemGuid);
+            WorldObject wo = GetInventoryItem(itemGuid);
+
+            if (wo == null)
+            {
+                yield break;
+            }
 
             lock (wo)
             {
@@ -1629,11 +1679,6 @@ namespace ACE.Entity
             var updateTitle = new GameEventUpdateTitle(Session, title);
             var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(updateTitle, message);
-        }
-
-        public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
-        {
-            // TODO: Implement
         }
 
         /// <summary>

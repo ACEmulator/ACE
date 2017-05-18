@@ -24,68 +24,8 @@ namespace ACE.Entity.Events
             };
         }
 
-        public static BroadcastEventArgs CreateChatAction(WorldObject sender, ChatMessageArgs chatMessage)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.LocalChat,
-                Sender = sender,
-                ChatMessage = chatMessage
-            };
-        }
-
-        public static BroadcastEventArgs CreateSoundAction(WorldObject sender, Sound sound)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.PlaySound,
-                Sender = sender,
-                Sound = sound
-            };
-        }
-
-        public static BroadcastEventArgs CreateEffectAction(WorldObject sender, PlayScript effect)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.PlayParticleEffect,
-                Sender = sender,
-                Effect = effect
-            };
-        }
-
-        public static BroadcastEventArgs CreateMovementEvent(WorldObject sender, UniversalMotion motion)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.MovementEvent,
-                Sender = sender,
-                Motion = motion
-            };
-        }
-
-        public static BroadcastEventArgs CreateDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
-        {
-            return new BroadcastEventArgs()
-            {
-                ActionType = BroadcastAction.BroadcastDeath,
-                Sender = sender,
-                DeathMessage = deathMessageArgs
-            };
-        }
-
         public BroadcastAction ActionType { get; private set; }
 
         public WorldObject Sender { get; private set; }
-
-        public ChatMessageArgs ChatMessage { get; private set; }
-
-        public Sound Sound { get;  private set; }
-
-        public PlayScript Effect { get; private set; }
-
-        public UniversalMotion Motion { get; private set; }
-        
-        public DeathMessageArgs DeathMessage { get; private set; }
     }
 }
