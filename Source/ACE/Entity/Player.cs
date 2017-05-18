@@ -953,7 +953,7 @@ namespace ACE.Entity
         /// </remarks>
         public override IEnumerator ActOnKill(Session killerSession)
         {
-            base.ActOnKill(killerSession);
+            yield return ObjectAction.CallCoroutine(base.ActOnKill(killerSession));
 
             ObjectGuid killerId = killerSession.Player.Guid;
 
@@ -1036,10 +1036,15 @@ namespace ACE.Entity
 
         public void SendMovementEvent(UniversalMotion motion)
         {
-            Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
+            SendMovementEvent(motion, Guid);
+        }
+
+        public void SendMovementEvent(UniversalMotion motion, ObjectGuid guid)
+        {
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(guid,
                                                                     Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                                     Sequences, motion));
-            EnqueueBroadcast(s => new GameMessageUpdateMotion(Guid,
+            EnqueueBroadcast(s => new GameMessageUpdateMotion(guid,
                                                               Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                               Sequences, motion));
         }
@@ -1401,7 +1406,6 @@ namespace ACE.Entity
                 healthPct = (float)co.Health.Current / (float)co.Health.MaxValue;
             }
 
-            log.Warn($"Have healthpct: {healthPct}");
             Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, id.Full, healthPct));
 
             yield break;
