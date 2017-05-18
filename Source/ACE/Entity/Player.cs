@@ -1036,17 +1036,21 @@ namespace ACE.Entity
 
         public void SendMovementEvent(UniversalMotion motion)
         {
-            SendMovementEvent(motion, Guid);
+            SendMovementEvent(motion, this);
         }
 
-        public void SendMovementEvent(UniversalMotion motion, ObjectGuid guid)
+        /// <summary>
+        /// NOTE: Assumes sender is locked, or this
+        /// </summary>
+        /// <param name="motion"></param>
+        /// <param name="sender"></param>
+        public void SendMovementEvent(UniversalMotion motion, WorldObject sender)
         {
-            Session.Network.EnqueueSend(new GameMessageUpdateMotion(guid,
-                                                                    Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                                    Sequences, motion));
-            EnqueueBroadcast(s => new GameMessageUpdateMotion(guid,
-                                                              Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                              Sequences, motion));
+            GameMessageUpdateMotion msg = new GameMessageUpdateMotion(sender.Guid,
+                                                                    sender.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                                    sender.Sequences, motion);
+            Session.Network.EnqueueSend(msg);
+            EnqueueBroadcast(s => msg);
         }
 
         // Play a sound
