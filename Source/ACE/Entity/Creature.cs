@@ -14,7 +14,7 @@ using System.Collections.ObjectModel;
 
 namespace ACE.Entity
 {
-    public class Creature : Container
+    public class Creature : Container, ITickable
     {
         protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
 
@@ -236,12 +236,14 @@ namespace ACE.Entity
         /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
         /// </summary>
         // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
-        override public void Tick(double tickTime)
+        public virtual void Tick(double tickTime, LazyBroadcastList broadcaster)
         {
             // TODO: Realistic rates && adjusting rates for spells...
             Health.Tick(tickTime);
             Stamina.Tick(tickTime);
             Mana.Tick(tickTime);
+
+            DoBroadcast(broadcaster);
         }
     }
 }

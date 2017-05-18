@@ -1,9 +1,11 @@
 ﻿﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 using ACE.Database;
 using ACE.Entity.Enum;
@@ -15,6 +17,7 @@ using ACE.Network.GameEvent.Events;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
+using ACE.Entity.PlayerActions;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
 using ACE.Network.GameAction;
@@ -83,6 +86,8 @@ namespace ACE.Entity
         // queue of all the "actions" that come from the player that require processing
         // asynchronous to or outside of the network thread
         private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
+
+        private ObjectAction curAction = null;
 
         // examination queue is really a subset of the actionQueue, but this existed on
         // retail servers as it's own separate thing and was intentionally throttled.
@@ -1419,6 +1424,12 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(player, title, friends);
         }
 
+        /// <summary>
+        /// Sends a SetPhysicsState broadcast
+        /// NOTE: This should only be called with (packet = true) from an ObjectAction
+        /// </summary>
+        /// <param name="state"></param>
+        /// <param name="packet"></param>
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
             PhysicsData.PhysicsState = state;
@@ -1426,28 +1437,85 @@ namespace ACE.Entity
             if (packet)
             {
                 Session.Network.EnqueueSend(new GameMessageSetState(this, state));
-                // TODO: this should be broadcast
+                // FIXME(ddevec): Are the sequences right for this?  They are based off teh world object being update :-/
+                EnqueueBroadcast(session => new GameMessageSetState(this, state));
             }
         }
 
-        public void Teleport(Position newPosition)
+        /// <summary>
+        /// Updates the current action -- Locks "this" implicitly
+        /// </summary>
+        /// <param name="action"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestAction(ObjectAction action)
         {
-            if (!InWorld)
-                return;
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            curAction = action;
+        }
 
-            InWorld = false;
-            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
+        /// <summary>
+        /// Updates the current action -- Locks "this" implicitly
+        /// </summary>
+        /// <param name="action"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestAction(Func<IEnumerator> actFunc)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            RequestAction(new DelegateAction(actFunc));
+        }
 
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
+        public IEnumerator ActDelayedTeleport(string message, MotionItem motion, Position destination)
+        {
+            var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
 
-            lock (clientObjectMutex)
+            // Create/send local messages
+            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
+            var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
+            var animationEvent = new GameMessageUpdateMotion(Session.Player.Guid,
+                                                             Session.Player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                             Session.Player.Sequences, motionMarketplaceRecall);
+            // Send locally
+            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(Session.Player.Guid,
+                                                                    Session.Player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                                    Session.Player.Sequences, motionMarketplaceRecall));
+
+            // Enqueue broadcast messages
+            EnqueueBroadcast(x => sysChatMessage);
+            //p.Session.Network.EnqueueSend(sysChatMessage);
+            EnqueueBroadcast(x => new GameMessageUpdateMotion(Session.Player.Guid,
+                                                                    x.Player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                                    x.Player.Sequences, motionMarketplaceRecall));
+
+            // Delay 14 seconds
+            yield return ObjectAction.CallCoroutine(new DelayAction(TimeSpan.FromSeconds(14)));
+
+            // Then, have the player do a normal (non-delay) "Teleport"
+            yield return ObjectAction.CallCoroutine(Teleport(destination));
+        }
+
+        public IEnumerator Teleport(Position newPosition)
+        {
+            // Done
+            if (InWorld)
             {
-                clientObjectList.Clear();
-                Session.Player.Location = newPosition;
-                SetPhysicalCharacterPosition();
-            }
+                InWorld = false;
+                SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
 
-            DelayedUpdatePosition(newPosition);
+                Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
+
+                lock (clientObjectMutex)
+                {
+                    clientObjectList.Clear();
+                    Session.Player.Location = newPosition;
+                    SetPhysicalCharacterPosition();
+                }
+
+                // FIXME(ddevec): This Waits 10 seconds, it should instead wait until new location loads
+                yield return ObjectAction.CallCoroutine(new DelayAction(TimeSpan.FromSeconds(10)));
+
+                UpdatePosition(newPosition);
+            }
         }
 
         public void UpdatePosition(Position newPosition)
@@ -1493,20 +1561,21 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// FIXME(ddevec): Is this still needed? -- The part that runs GameMessageCreateObject def is -- dunno bout the tracking
         /// forces either an update or a create object to be sent to the client
         /// </summary>
         public void TrackObject(WorldObject worldObject)
         {
-            bool sendUpdate = true;
+            bool newObject = true;
 
             if (worldObject.Guid == Guid)
                 return;
 
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
+                newObject = !clientObjectList.ContainsKey(worldObject.Guid);
 
-                if (!sendUpdate)
+                if (newObject)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
                     worldObject.PlayScript(Session);
@@ -1515,16 +1584,11 @@ namespace ACE.Entity
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
 
-            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
-
-            if (sendUpdate)
+            if (newObject)
             {
-                // Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
-                // TODO: Better handling of sending updates to client. The above line is causing much more problems then it is solving until we get proper movement.
-                // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
-            }
-            else
+                log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+            }
         }
 
         /// <summary>
@@ -1586,6 +1650,7 @@ namespace ACE.Entity
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
             Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+            EnqueueBroadcast(x => new GameMessageUpdatePosition(this));
         }
 
         public void SendAutonomousPosition()
@@ -1611,13 +1676,23 @@ namespace ACE.Entity
             WaitingForDelayedTeleport = false;
         }
 
-        override public void Tick(double tickTime)
+        override public void Tick(double tickTime, LazyBroadcastList broadcastList)
         {
             uint oldHealth = Health.Current;
             uint oldStamina = Stamina.Current;
             uint oldMana = Mana.Current;
 
-            base.Tick(tickTime);
+            if (curAction != null)
+            {
+                curAction.RunNext();
+                if (curAction.Done)
+                {
+                    curAction = null;
+                }
+            }
+
+            // Base tick will broadcast for us
+            base.Tick(tickTime, broadcastList);
 
             // If the game loop changed a vital -- send an update message to the client
             if (Health.Current != oldHealth)

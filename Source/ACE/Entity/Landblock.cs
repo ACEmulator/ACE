@@ -16,6 +16,7 @@ using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum.Properties;
+using ACE.Network.GameMessages;
 
 namespace ACE.Entity
 {
@@ -474,6 +475,7 @@ namespace ACE.Entity
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
+                // Track object motion
                 if (id.MapScope == Enum.MapScope.Outdoors)
                 {
                     // check to see if a player or other mutable object "roamed" to an adjacent landblock
@@ -493,6 +495,7 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
                 }
 
+                /*
                 // for all players on landblock.
                 Parallel.ForEach(allplayers, player =>
                 {
@@ -506,16 +509,10 @@ namespace ACE.Entity
                     if (examination != null)
                         HandleGameAction(examination, player);
                 });
+                */
                 UpdateStatus(allplayers.Count);
 
-                double tickTime = WorldManager.PortalYearTicks;
-                // per-creature update on landblock.
-                Parallel.ForEach(allworldobj, wo =>
-                {
-                    // Process the creatures
-                    wo.Tick(tickTime);
-                });
-
+                // Update tracked lists for players
                 // broadcast moving objects to the world..
                 // players and creatures can move.
                 Parallel.ForEach(movedObjects, mo =>
@@ -543,16 +540,33 @@ namespace ACE.Entity
                         }
                     });
 
-                    if (mo.Location.LandblockId == id)
-                    {
-                        // update if it's still here
-                        Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
-                    }
-                    else
+                    if (mo.Location.LandblockId != id)
                     {
                         // remove and readd if it's not
                         RemoveWorldObject(mo.Guid, false);
                         LandblockManager.AddObject(mo);
+                    }
+                });
+
+                // Tick all objects
+                double tickTime = WorldManager.PortalYearTicks;
+                // per-creature update on landblock.
+                Parallel.ForEach(allworldobj, wo =>
+                {
+                    // Process the creatures
+                    // We lock here -- it IS required becuase this is run in a Parallel.ForEach loop
+                    //   AND because of cross-landblock dependencies
+                    //   Any use of OTHER objects within the tick function (gotten through landblock by guid) requires locking
+                    //   updates of THIS object within Tick are safe
+                    var tickable = wo as ITickable;
+                    if (tickable != null)
+                    {
+                        lock (tickable)
+                        {
+                            // FIXME(ddevec): LBBroadcaster class was a fast hacky fix to the problem -- there is probably a more elegant solution..
+                            //    -- Maybe someone more familiar with C# would know the magic off the top of their head
+                            tickable.Tick(tickTime, new LazyBroadcastList(wo.Guid, allplayers));
+                        }
                     }
                 });
 

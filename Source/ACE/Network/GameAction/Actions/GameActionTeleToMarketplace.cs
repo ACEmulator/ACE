@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.PlayerActions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
@@ -16,6 +17,10 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToMarketPlace)]
         public static void Handle(ClientMessage clientMessage, Session session)
         {
+            session.Player.RequestAction(() => session.Player.ActDelayedTeleport($"{session.Player.Name} is recalling to the marketplace.",
+                new MotionItem(MotionCommand.MarketplaceRecall), marketplaceDrop));
+            // Old event-based architecture
+            /*
             string message = $"{session.Player.Name} is recalling to the marketplace.";
 
             var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
@@ -34,6 +39,7 @@ namespace ACE.Network.GameAction.Actions
             session.Player.EnqueueMovementEvent(motionMarketplaceRecall, session.Player.Guid);
 
             session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), marketplaceDrop);
+            */
         }
     }
 }
