@@ -1,6 +1,7 @@
 ﻿using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.Motion;
+using System.Collections.Generic;
 
 namespace ACE.Network.GameAction
 {
@@ -89,6 +90,13 @@ namespace ACE.Network.GameAction
             this.ActionType = actionType;
         }
 
+        public QueuedGameAction(uint objectId, List<ItemProfile> profileItems, GameActionType actionType)
+        {
+            this.ObjectId = objectId;
+            this.ProfileItems = profileItems;
+            this.ActionType = actionType;
+        }
+
         public uint ObjectId { get; private set; }
 
         public uint SecondaryObjectId { get; private set; }
@@ -110,5 +118,7 @@ namespace ACE.Network.GameAction
         public double StartTime { get; set; }
 
         public double EndTime { get; set; }
+
+        public List<ItemProfile> ProfileItems = new List<ItemProfile>();
     }
 }

@@ -254,7 +254,7 @@ namespace ACE.Command.Handlers
             ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
+            var loot = LootGenerationFactory.CreateTestWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
             var newMotion = new UniversalMotion(MotionStance.Standing, loot.PhysicsData.Position, loot.Guid);

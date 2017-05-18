@@ -7,6 +7,10 @@
 * Creatures now update their vitals on Tick.
 * Players notify their client session on vital changes.
 
+### 2017-05-15
+[StackOverflow]
+* Added basic Vendors, walk up to any vendor to enjoy some warm apple pies.
+
 ### 2017-05-09
 [Og II]
 * Major rip and replace to stop reaching into landblock and passing out WorldObjects.   I tested all of my stuff and as many items as I could
