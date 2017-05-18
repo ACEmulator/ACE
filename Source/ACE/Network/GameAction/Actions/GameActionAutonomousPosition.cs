@@ -11,8 +11,10 @@ namespace ACE.Network.GameAction
             var position = new Position(message.Payload);
             message.Payload.ReadByte();
             session.Player.UpdatePosition(position);
+            /*
             if (session.Player.CreatureMovementStates == MovementStates.Moving)
                 session.Player.UpdateAutonomousMove();
+            */
         }
     }
 }

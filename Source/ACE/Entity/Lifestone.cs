@@ -70,7 +70,7 @@ namespace ACE.Entity
 
                 // create the outbound server message
                 serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                player.EnqueueMovementEvent(motionSanctuary, player.Guid);
+                player.SendMovementEvent(motionSanctuary);
                 player.Session.Network.EnqueueSend(soundEvent);
             }
 

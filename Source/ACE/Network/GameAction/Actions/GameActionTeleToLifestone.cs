@@ -12,34 +12,7 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToLifestone)]
         public static void Handle(ClientMessage message, Session session)
         {
-            if (session.Player.Positions.ContainsKey(PositionType.Sanctuary)) {
-                // session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
-                string msg = $"{session.Player.Name} is recalling to the lifestone.";
-
-                var sysChatMessage = new GameMessageSystemChat(msg, ChatMessageType.Recall);
-
-                session.Player.Mana.Current = session.Player.Mana.Current / 2;
-                var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Mana, session.Player.Mana.Current);
-
-                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(session, PropertyInt.CombatMode, 1);
-
-                var motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
-
-                var animationEvent = new GameMessageUpdateMotion(session.Player.Guid,
-                                                                 session.Player.Sequences.GetCurrentSequence(Sequence.SequenceType.ObjectInstance),
-                                                                 session.Player.Sequences, motionLifestoneRecall);
-
-                // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-                // FIX: Recall text isn't being broadcast yet, need to address
-                session.Network.EnqueueSend(updatePlayersMana, updateCombatMode, sysChatMessage);
-                session.Player.EnqueueMovementEvent(motionLifestoneRecall, session.Player.Guid);
-
-                session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), session.Player.Positions[PositionType.Sanctuary]);
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Your spirit has not been attuned to a sanctuary location.", ChatMessageType.Broadcast);
-            }
+            session.Player.RequestAction(() => session.Player.ActLifestone());
         }
     }
 }

@@ -14,7 +14,10 @@ namespace ACE.Entity.PlayerActions
         private IEnumerator enumerator = null;
         private Stack<IEnumerator> callStack = new Stack<IEnumerator>();
 
-        public ObjectAction() { }
+        public ObjectAction()
+        {
+            Done = false;
+        }
 
         protected abstract IEnumerator Act();
 
@@ -42,6 +45,8 @@ namespace ACE.Entity.PlayerActions
                 enumerator = nextEnum;
                 canContinue = enumerator.MoveNext();
             }
+
+            Done = !canContinue && callStack.Count == 0;
         }
 
         public static IEnumerator CallCoroutine(IEnumerator actor)

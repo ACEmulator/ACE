@@ -1,6 +1,7 @@
 ﻿using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.PlayerActions;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameEvent;
@@ -36,8 +37,11 @@ namespace ACE.Network.GameAction.Actions
             uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
+            /*
             QueuedGameAction action = new QueuedGameAction(vendorID, items, GameActionType.Buy);
             session.Player.AddToActionQueue(action);
+            */
+            session.Player.AddNonBlockingAction(new DelegateAction(() => session.Player.ActBuy(vendorID, items)));
             return;
         }
     }

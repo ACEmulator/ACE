@@ -10,6 +10,7 @@ using System.IO;
 using ACE.Managers;
 using log4net;
 using ACE.Network.Motion;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -302,6 +303,12 @@ namespace ACE.Entity
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+        }
+
+        public float GetUseRadius()
+        {
+            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup);
+            return (float)Math.Pow(GameData.UseRadius + csetup.Radius + 1.5, 2);
         }
 
         /// <summary>

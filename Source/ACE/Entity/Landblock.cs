@@ -413,28 +413,9 @@ namespace ACE.Entity
                         Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
                         break;
                     }
-                case BroadcastAction.PlayParticleEffect:
-                    {
-                        // supresss updating if player is out of range of world object.= being updated or created
-                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
-                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
-                        break;
-                    }
-                case BroadcastAction.MovementEvent:
-                    {
-                        // suppress updating if player is out of range of world object.= being updated or created
-                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
-                        Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
-                        break;
-                    }
-                case BroadcastAction.BroadcastDeath:
-                    {
-                        // players never need an update of themselves
-                        // TODO: Filter to players in range and include adjacencies
-                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
-                        Parallel.ForEach(players, p => p.BroadcastPlayerDeath(args.DeathMessage.Message, args.DeathMessage.Victim, args.DeathMessage.Killer));
-                        break;
-                    }
+                default:
+                    log.Warn($"Unsuppoorted action: {args.ActionType}");
+                    break;
             }
         }
 
@@ -707,35 +688,6 @@ namespace ACE.Entity
                         }
                         break;
                     }
-                case GameActionType.PutItemInContainer:
-                    {
-                        var playerGuid = new ObjectGuid(action.ObjectId);
-                        var inventoryGuid = new ObjectGuid(action.SecondaryObjectId);
-
-                        // Has to be a player so need to check before I make the cast.
-                        // If he is not a player, something is bad wrong. Og II
-                        if (playerGuid.IsPlayer())
-                        {
-                            var aPlayer = (Player)GetWorldObject(playerGuid);
-                            var inventoryItem = GetWorldObject(inventoryGuid);
-
-                            float arrivedRadiusSquared = 0.00f;
-                            bool validGuids;
-                            if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
-                                aPlayer.NotifyAndAddToInventory(inventoryItem);
-                            else
-                            {
-                                if (validGuids)
-                                {
-                                    aPlayer.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
-                                    aPlayer.BlockedGameAction = action;
-                                    aPlayer.OnAutonomousMove(inventoryItem.PhysicsData.Position,
-                                                             aPlayer.Sequences, MovementTypes.MoveToObject, inventoryGuid);
-                                }
-                            }
-                        }
-                        break;
-                    }
                 case GameActionType.DropItem:
                     {
                         var g = new ObjectGuid(action.ObjectId);
@@ -749,18 +701,6 @@ namespace ACE.Entity
                                 aPlayer.NotifyAndDropItem(inventoryId);
                             }
                         }
-                        break;
-                    }
-                case GameActionType.MovementEvent:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var motion = action.Motion;
-                        HandleMovementEvent(obj, motion);
                         break;
                     }
                 case GameActionType.ObjectCreate:

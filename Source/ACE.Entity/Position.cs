@@ -132,6 +132,21 @@
             RotationW = newRotationW;
         }
 
+        public Position(Position pos)
+        {
+            this.LandblockId = pos.LandblockId;
+            this.CharacterId = pos.CharacterId;
+            this.PositionType = pos.PositionType;
+            this.Cell = pos.Cell;
+            this.PositionX = pos.PositionX;
+            this.PositionY = pos.PositionY;
+            this.PositionZ = pos.PositionZ;
+            this.RotationX = pos.RotationX;
+            this.RotationY = pos.RotationY;
+            this.RotationZ = pos.RotationZ;
+            this.RotationW = pos.RotationW;
+        }
+
         public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
         {
             LandblockId = new LandblockId(landblock);
