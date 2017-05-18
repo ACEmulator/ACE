@@ -84,6 +84,7 @@ namespace ACE.Entity
         protected List<ObjectAction> nonBlockingActions = new List<ObjectAction>();
 
         protected ObjectAction currentAction = null;
+        protected ObjectAction nextAction = null;
 
         public MovementStates CreatureMovementStates
         { 
@@ -277,7 +278,8 @@ namespace ACE.Entity
                 currentAction.RunNext();
                 if (currentAction.Done)
                 {
-                    currentAction = null;
+                    currentAction = nextAction;
+                    nextAction = null;
                 }
             }
 
@@ -295,6 +297,13 @@ namespace ACE.Entity
             currentAction = action;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestChainAction(ObjectAction action)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            nextAction = action;
+        }
+
         /// <summary>
         /// Updates the current action -- Locks "this" implicitly
         /// </summary>
@@ -304,6 +313,17 @@ namespace ACE.Entity
         {
             // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
             RequestAction(new DelegateAction(actFunc));
+        }
+
+        /// <summary>
+        /// Updates the current action -- Locks "this" implicitly
+        /// </summary>
+        /// <param name="action"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestChainAction(Func<IEnumerator> actFunc)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            RequestChainAction(new DelegateAction(actFunc));
         }
     }
 }

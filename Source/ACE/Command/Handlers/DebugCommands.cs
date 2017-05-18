@@ -72,7 +72,8 @@ namespace ACE.Command.Handlers
                 positionData[i] = position;
             }
 
-            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            session.Player.RequestAction(() => 
+                session.Player.ActTeleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6])));
         }
 
         // portalrecall
@@ -83,7 +84,7 @@ namespace ACE.Command.Handlers
             Position lastPortalUsed = null;
             if (session.Player.Positions.TryGetValue(PositionType.LastPortal, out lastPortalUsed))
             {
-                session.Player.Teleport(lastPortalUsed);
+                session.Player.RequestAction(() => session.Player.ActTeleport(lastPortalUsed));
             }
             else
             {
@@ -339,7 +340,7 @@ namespace ACE.Command.Handlers
         public static void SpaceJump(Session session, params string[] parameters)
         {
             Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
-            session.Player.Teleport(newPosition);
+            session.Player.RequestAction(() => session.Player.ActTeleport(newPosition));
         }
 
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
@@ -600,7 +601,7 @@ namespace ACE.Command.Handlers
                     Position playerPosition = new Position();
                     if (session.Player.Positions.TryGetValue(positionType, out playerPosition))
                     {
-                        session.Player.Teleport(playerPosition);
+                        session.Player.RequestAction(() => session.Player.ActTeleport(playerPosition));
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
                     }
                     else

@@ -597,6 +597,11 @@ namespace ACE.Entity
             return true;
         }
 
+        public bool AddNonBlockingAction(Func<IEnumerator> fcn)
+        {
+            return AddNonBlockingAction(new DelegateAction(fcn));
+        }
+
         /// <summary>
         /// Raise the available XP by a specified amount
         /// FIXME(ddevec): Non blocking action?
@@ -1022,7 +1027,7 @@ namespace ACE.Entity
             // Queue the teleport to lifestone
             //ActionQueuedTeleport(newPositon, Guid, GameActionType.TeleToLifestone);
             yield return ObjectAction.CallCoroutine(new DelegateAction(() =>
-                    Teleport(newPosition)));
+                    ActTeleport(newPosition)));
 
 
             // Regenerate/ressurect?
@@ -1422,20 +1427,26 @@ namespace ACE.Entity
             // Move to the object
             yield return ObjectAction.CallCoroutine(ActMoveTo(usableWo));
 
+            // FIXME(ddevec): Special case for portals :(  Perhaps Usable should be an interface, not base class?
+            var portal = usableWo as Portal;
+            var uo = usableWo as UsableObject;
+
             // Then use the object
+            // FIXME(ddevec): Sanity checks -- object usable, still close, etc etc
             lock(usableWo)
             {
-                // FIXME(ddevec): Sanity checks -- object usable, still close, etc etc
-                var uo = usableWo as UsableObject;
-                if (uo == null)
+                if (portal != null)
                 {
-                    yield break;
+                    portal.OnCollide(this);
                 }
+                else if (uo != null)
+                {
 
-                // Use it -- let it do the rest
-                // NOTE(ddevec): We cannot yield in OnUse -- we are holding the lock to that object
-                //    If we need a back and forth interaction it will have to be via message passing/waiting of some kind
-                uo.OnUse(this);
+                    // Use it -- let it do the rest
+                    // NOTE(ddevec): We cannot yield in OnUse -- we are holding the lock to that object
+                    //    If we need a back and forth interaction it will have to be via message passing/waiting of some kind
+                    uo.OnUse(this);
+                }
             }
             yield break;
         }
@@ -1567,10 +1578,10 @@ namespace ACE.Entity
             yield return ObjectAction.CallCoroutine(new DelayAction(TimeSpan.FromSeconds(14)));
 
             // Then, have the player do a normal (non-delay) "Teleport"
-            yield return ObjectAction.CallCoroutine(Teleport(destination));
+            yield return ObjectAction.CallCoroutine(ActTeleport(destination));
         }
 
-        public IEnumerator Teleport(Position newPosition)
+        public IEnumerator ActTeleport(Position newPosition)
         {
             // Done
             if (InWorld)
@@ -1590,8 +1601,20 @@ namespace ACE.Entity
                 // FIXME(ddevec): This Waits 10 seconds, it should instead wait until new location loads
                 yield return ObjectAction.CallCoroutine(new DelayAction(TimeSpan.FromSeconds(10)));
 
+                log.Warn("UpdatePositionTele: " + newPosition);
                 UpdatePosition(newPosition);
             }
+            yield break;
+        }
+
+        public IEnumerator ActUpdatePosition(Position newPosition)
+        {
+            // Ignore incoming position updates when in teleport space
+            if (InWorld)
+            {
+                UpdatePosition(newPosition);
+            }
+            yield break;
         }
 
         public void UpdatePosition(Position newPosition)
@@ -1599,18 +1622,6 @@ namespace ACE.Entity
             Location = newPosition;
             // character.SetCharacterPosition(newPosition);
             SendUpdatePosition();
-        }
-
-        private void DelayedUpdatePosition(Position newPosition)
-        {
-            var t = new Thread(() =>
-            {
-                Thread.Sleep(10);
-                Location = newPosition;
-                // character.SetCharacterPosition(newPosition);
-                SendUpdatePosition();
-            });
-            t.Start();
         }
 
         public void SetTitle(uint title)
@@ -1722,11 +1733,12 @@ namespace ACE.Entity
             }
         }
 
-        public void SendUpdatePosition()
+        private void SendUpdatePosition()
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-            Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
-            EnqueueBroadcast(x => new GameMessageUpdatePosition(this));
+            var msg = new GameMessageUpdatePosition(this);
+            Session.Network.EnqueueSend(msg);
+            EnqueueBroadcast(x => msg);
         }
 
         public void SendAutonomousPosition()

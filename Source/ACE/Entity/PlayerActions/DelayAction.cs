@@ -21,7 +21,7 @@ namespace ACE.Entity.PlayerActions
             {
                 yield return null;
             }
-            yield return null;
+            yield break;
         }
     }
 }

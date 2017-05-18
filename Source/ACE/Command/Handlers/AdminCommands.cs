@@ -418,7 +418,7 @@ namespace ACE.Command.Handlers
                 }
                 // If we have the position, teleport the player
                 if (session.Player.Positions.ContainsKey(positionType)) {
-                    session.Player.Teleport(session.Player.Positions[positionType]);
+                    session.Player.RequestAction(() => session.Player.ActTeleport(session.Player.Positions[positionType]));
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -798,7 +798,7 @@ namespace ACE.Command.Handlers
 
             ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
 
-            session.Player.Teleport(position);
+            session.Player.RequestAction(() => session.Player.ActTeleport(position));
         }
 
         // teleto [char]
@@ -814,7 +814,7 @@ namespace ACE.Command.Handlers
             Session playerSession = WorldManager.FindByPlayerName(playerName);
             // If the player is found, teleport the admin to the Player's location
             if (playerSession != null)
-                session.Player.Teleport(playerSession.Player.Location);
+                session.Player.RequestAction(() => session.Player.ActTeleport(playerSession.Player.Location));
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
@@ -831,7 +831,7 @@ namespace ACE.Command.Handlers
             if (teleportPOI == null)
                 return;
 
-            session.Player.Teleport(teleportPOI);
+            session.Player.RequestAction(() => session.Player.ActTeleport(teleportPOI));
         }
 
         // teleloc cell x y z [qx qy qz qw]
@@ -866,7 +866,7 @@ namespace ACE.Command.Handlers
                     positionData[i] = position;
                 }
 
-                session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[4], positionData[5], positionData[6], positionData[3]));
+                session.Player.RequestAction(() => session.Player.ActTeleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[4], positionData[5], positionData[6], positionData[3])));
             }
             catch (Exception)
             {

@@ -594,16 +594,6 @@ namespace ACE.Entity
                         HandleDeathMessage(obj, d);
                         break;
                     }
-                case GameActionType.TeleToHouse:
-                case GameActionType.TeleToLifestone:
-                case GameActionType.TeleToMansion:
-                case GameActionType.TeleToMarketPlace:
-                case GameActionType.TeleToPkArena:
-                case GameActionType.TeleToPklArena:
-                    {
-                        player.Teleport(action.ActionLocation);
-                        break;
-                    }
                 case GameActionType.ApplyVisualEffect:
                     {
                         var g = new ObjectGuid(action.ObjectId);
