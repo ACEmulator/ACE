@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-05-17
+[fantoms]
+* Added the debug command `listplayers`, that will list all players currently connected too the server.
 
 ### 2017-05-17
 [ddevec]
