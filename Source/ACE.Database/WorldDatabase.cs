@@ -159,16 +159,16 @@ namespace ACE.Database
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieTextureMapOverride>(WorldPreparedStatement.GetWeenieTextureMaps, criteria);
         }
 
-        private List<WeenieAnimationOverride> GetWeenieAnimations(uint weenieClassId)
+        private List<WeenieAnimationOverride> GetWeenieAnimations(uint aceObjectId)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("weenieClassId", weenieClassId);
+            criteria.Add("aceObjectId", aceObjectId);
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieAnimationOverride>(WorldPreparedStatement.GetWeenieAnimations, criteria);
         }
         private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
+            criteria.Add("aceObjectId", aceObjectId);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetTextureOverridesByObject, criteria);
             return objects;
         }
@@ -176,7 +176,7 @@ namespace ACE.Database
         private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
+            criteria.Add("aceObjectId", aceObjectId);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, PaletteOverride>(WorldPreparedStatement.GetPaletteOverridesByObject, criteria);
             return objects;
         }
@@ -184,7 +184,7 @@ namespace ACE.Database
         private List<AnimationOverride> GetAceObjectAnimations(uint aceObjectId)
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
+            criteria.Add("aceObjectId", aceObjectId);
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetAnimationOverridesByObject, criteria);
             return objects;
         }
@@ -209,7 +209,7 @@ namespace ACE.Database
         public BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
         {
             var bao = new BaseAceObject();
-            var criteria = new Dictionary<string, object> { { "AceObjectId", weenieClassId } };
+            var criteria = new Dictionary<string, object> { { "weenieClassId", weenieClassId } };
             if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), criteria, bao))
                 return null;
             bao.AceObjectPropertiesInt = GetAceObjectPropertiesInt(bao.AceObjectId);
@@ -218,7 +218,7 @@ namespace ACE.Database
             bao.AceObjectPropertiesDouble = GetAceObjectPropertiesDouble(bao.AceObjectId);
             bao.AceObjectPropertiesString = GetAceObjectPropertiesString(bao.AceObjectId);
 
-            foreach (var pal in GetWeeniePalettes(bao.AceObjectId))
+            foreach (var pal in this.GetAceObjectPalettes(bao.AceObjectId))
             {
                 var opal = new PaletteOverride
                              {
@@ -229,7 +229,7 @@ namespace ACE.Database
                              };
                 bao.PaletteOverrides.Add(opal);
             }
-            foreach (var tex in GetWeenieTextureMaps(weenieClassId))
+            foreach (var tex in GetAceObjectTextureMaps(bao.AceObjectId))
             {
                 var otex = new TextureMapOverride
                                {
@@ -240,11 +240,11 @@ namespace ACE.Database
                                };
                 bao.TextureOverrides.Add(otex);
             }
-            foreach (var ani in GetWeenieAnimations(weenieClassId))
+            foreach (var ani in this.GetAceObjectAnimations(bao.AceObjectId))
             {
                 var oani = new AnimationOverride
                                {
-                                   AceObjectId = ani.WeenieClassId,
+                                   AceObjectId = ani.AceObjectId,
                                    AnimationId = ani.AnimationId,
                                    Index = ani.Index
                                };

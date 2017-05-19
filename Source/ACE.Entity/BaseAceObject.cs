@@ -13,6 +13,9 @@ namespace ACE.Entity
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
 
+        [DbField("WeenidClassId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        public virtual uint WeenieClassId { get; set; }
+
         [DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
         public uint AceObjectDescriptionFlags { get; set; }
 
