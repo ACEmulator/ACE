@@ -10,6 +10,13 @@
 [StackOverflow]
 * Major Code Refractoring, added handlers for QueuedGameAction, converted all spec que logic to QueuedGameActions handlers.
 
+### 2017-05-17
+[ddevec]
+* Added "Tick" functionality to WorldObjects.
+* CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
+* Creatures now update their vitals on Tick.
+* Players notify their client session on vital changes.
+
 ### 2017-05-15
 [StackOverflow]
 * Added basic Vendors, walk up to any vendor to enjoy some warm apple pies.
