@@ -92,6 +92,7 @@
     <Compile Include="Enum\CharacterOptions2.cs" />
     <Compile Include="Enum\IdLookupType.cs" />
     <Compile Include="Enum\LandBlockStatusFlag.cs" />
+    <Compile Include="Enum\MagicSchool.cs" />
     <Compile Include="Enum\PositionType.cs" />
     <Compile Include="Enum\ChatDisplayMask.cs" />
     <Compile Include="Enum\ChatFilterMask.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Enum\ObjectBehaviorFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
+    <Compile Include="Enum\SpellType.cs" />
     <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />

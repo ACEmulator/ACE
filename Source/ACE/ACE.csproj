@@ -227,6 +227,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventFriendsListUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventHouseStatus.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventIdentifyObjectResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventMagicUpdateSpell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPurgeAllEnchantments.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventYourDeath.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventUseDone.cs" />

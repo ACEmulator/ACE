@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-19
+[OptimShi]
+* Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event.
+
 ### 2017-05-15
 [StackOverflow]
 * Added basic Vendors, walk up to any vendor to enjoy some warm apple pies.
