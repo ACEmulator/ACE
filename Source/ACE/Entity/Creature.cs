@@ -82,7 +82,7 @@ namespace ACE.Entity
             PhysicsData.Stable = aco.SoundTableId;
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
-            PhysicsData.ObjScale = (float)aco.DefaultScale;
+            PhysicsData.ObjScale = aco.DefaultScale;
 
             // this should probably be determined based on the presence of data.
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsDescriptionFlag;
@@ -97,7 +97,7 @@ namespace ACE.Entity
             GameData.Usable = (Usable)aco.ItemUseable;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            GameData.RadarColour = (RadarColor)aco.BlipColor;
+            GameData.RadarColor = (RadarColor)aco.BlipColor;
             GameData.RadarBehavior = (RadarBehavior)aco.Radar;
             GameData.UseRadius = aco.UseRadius;
 
@@ -177,8 +177,8 @@ namespace ACE.Entity
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
-            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
+            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
 
             // Corpses stay on the ground for 5 * player level but minimum 1 hour
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live

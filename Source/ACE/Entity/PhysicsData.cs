@@ -28,10 +28,10 @@ namespace ACE.Entity
         public EquipMask EquipperPhysicsDescriptionFlag;
         private List<EquippedItem> children = new List<EquippedItem>();
 
-        public float ObjScale;
+        public float? ObjScale;
         public float? Friction;
         public float? Elastcity;
-        public uint AnimationFrame;
+        public uint? AnimationFrame;
         public AceVector3 Acceleration;
         public float Translucency;
         public AceVector3 Velocity = null;
@@ -44,8 +44,8 @@ namespace ACE.Entity
             set { currentMotionState = value; }
         }
 
-        public uint DefaultScript;
-        public float DefaultScriptIntensity;
+        public uint? DefaultScript;
+        public float? DefaultScriptIntensity;
 
         private SequenceManager sequences;
 
@@ -125,13 +125,13 @@ namespace ACE.Entity
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
-                writer.Write(ObjScale);
+                writer.Write(ObjScale ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
-                writer.Write((float)Friction);
+                writer.Write(Friction ?? 0.00f);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
-                writer.Write((float)Elastcity);
+                writer.Write(Elastcity ?? 0.00f);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
                 writer.Write(Translucency);
@@ -152,10 +152,10 @@ namespace ACE.Entity
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write((uint)DefaultScript);
+                writer.Write(DefaultScript ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write((float)DefaultScriptIntensity);
+                writer.Write(DefaultScriptIntensity ?? 0.00f);
 
             // TODO: There are 9 of these - but we need to research the correct sequence.   I know that the last one is instance (totalLogins) Og II
             writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectPosition));

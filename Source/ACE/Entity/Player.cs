@@ -188,7 +188,7 @@ namespace ACE.Entity
             GameData.ItemCapacity = 102;
             GameData.ContainerCapacity = 7;
             GameData.RadarBehavior = RadarBehavior.ShowAlways;
-            GameData.RadarColour = RadarColor.White;
+            GameData.RadarColor = RadarColor.White;
             GameData.Usable = Usable.UsableObjectSelf;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
@@ -912,8 +912,8 @@ namespace ACE.Entity
 
             // create corpse at location
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
-            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
+            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
 
             // Corpses stay on the ground for 5 * player level but minimum 1 hour
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live

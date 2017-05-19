@@ -66,7 +66,7 @@ namespace ACE.Entity
             this.GameData.MaxStructure = aceO.MaxStructure;
             // GameData.Name = aceO.Name;  I think this is redundant and should be removed from Game Data or from world object
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
-            this.GameData.RadarColour = (RadarColor)aceO.Radar;
+            this.GameData.RadarColor = (RadarColor)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
             this.GameData.Spell = (Spell)aceO.SpellId;
             this.GameData.Script = aceO.PlayScript;

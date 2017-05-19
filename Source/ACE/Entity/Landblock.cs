@@ -641,7 +641,7 @@ namespace ACE.Entity
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow((double)inventoryItem.GameData.UseRadius, 2))
+                                    > Math.Pow((inventoryItem.GameData.UseRadius ?? 0.00), 2))
                                 {
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
@@ -659,7 +659,7 @@ namespace ACE.Entity
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbranceVal,
-                                       (uint)aPlayer.GameData.Burden),
+                                       (aPlayer.GameData.Burden ?? 0u)),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),

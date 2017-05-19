@@ -31,7 +31,7 @@ namespace ACE.Factories
             // wo.GameData.Icon = (ushort)0x1036;
 
             wo.GameData.Usable = Usable.UsableRemote;
-            wo.GameData.RadarColour = RadarColor.Blue;
+            wo.GameData.RadarColor = RadarColor.Blue;
             wo.GameData.RadarBehavior = RadarBehavior.ShowAlways;
             wo.GameData.UseRadius = 4f;
 

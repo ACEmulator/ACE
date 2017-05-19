@@ -79,7 +79,7 @@ namespace ACE.Entity
             GameData.MaxStructure = baseAceObject.MaxStructure;
             // GameData.Name = baseAceObject.Name;  I think this is redundant and should be removed from Game Data or from world object
             GameData.RadarBehavior = (RadarBehavior)baseAceObject.Radar;
-            GameData.RadarColour = (RadarColor)baseAceObject.Radar;
+            GameData.RadarColor = (RadarColor)baseAceObject.Radar;
             GameData.UseRadius = baseAceObject.UseRadius;
             GameData.Spell = (Spell)baseAceObject.SpellId;
             GameData.Script = baseAceObject.PlayScript;

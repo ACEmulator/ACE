@@ -30,7 +30,7 @@ namespace ACE.Entity
         public EquipMask? ValidLocations;
         public EquipMask? Location;
         public CoverageMask? Priority;
-        public RadarColor? RadarColour;
+        public RadarColor? RadarColor;
         public RadarBehavior? RadarBehavior;
         public ushort? Script;
         public float? Workmanship;
@@ -44,8 +44,8 @@ namespace ACE.Entity
         public uint? HookItemTypes;
         public uint? Monarch;
         public ushort? HookType;
-        public ushort IconOverlay;
-        public ushort IconUnderlay;
+        public ushort? IconOverlay;
+        public ushort? IconUnderlay;
 
         public Material? Material;
         public uint? PetOwner;

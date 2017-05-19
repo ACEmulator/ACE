@@ -137,7 +137,7 @@ namespace ACE.Entity
             Icon = (ushort)aceO.IconId;
 
             GameData.Usable = (Usable)aceO.ItemUseable;
-            GameData.RadarColour = (RadarColor)aceO.BlipColor;
+            GameData.RadarColor = (RadarColor)aceO.BlipColor;
             GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             GameData.UseRadius = aceO.UseRadius;
 

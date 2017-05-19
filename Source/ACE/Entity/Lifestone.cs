@@ -35,7 +35,7 @@ namespace ACE.Entity
             this.Icon = aceO.IconId;
 
             this.GameData.Usable = (Usable)aceO.ItemUseable;
-            this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
+            this.GameData.RadarColor = (RadarColor)aceO.BlipColor;
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
 

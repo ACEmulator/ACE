@@ -3,17 +3,18 @@ using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum.Properties;
 using System;
+using System.CodeDom.Compiler;
 
 namespace ACE.Entity
 {
     [DbTable("vw_base_ace_object")]
-    [DbGetList("vw_base_ace_object", 15, "typeId")]
+    [DbGetList("vw_base_ace_object", 15, "itemType")]
     public class BaseAceObject
     {
-        [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
 
-        [DbField("WeenidClassId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public virtual uint WeenieClassId { get; set; }
 
         [DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
@@ -283,11 +284,11 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        public uint? HookType
+        public ushort? HookType
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType)?.PropertyValue;
+                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType)?.PropertyValue;
             }
             set
             {
