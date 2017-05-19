@@ -1,6 +1,12 @@
-# ACEmulator Change Log
+﻿# ACEmulator Change Log
 
 ### 2017-05-17
+[ddevec]
+* Added "Tick" functionality to WorldObjects.
+* CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
+* Creatures now update their vitals on Tick.
+* Players notify their client session on vital changes.
+
 [StackOverflow]
 * Major Code Refractoring, added handlers for QueuedGameAction, converted all spec que logic to QueuedGameActions handlers.
 
