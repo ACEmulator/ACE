@@ -621,5 +621,26 @@ namespace ACE.Command.Handlers
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }
+
+        /// <summary>
+        /// Debug command to print out all of the active players connected too the server.
+        /// </summary>
+        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Displays all of the active players connected too the serve.",
+            "@players")]
+        public static void HandleListPlayers(Session session, params string[] parameters)
+        {
+            uint playerCounter = 0;
+            // Build a string message containing all available characters and send as a System Chat message
+            string message = "";
+            foreach (Session playerSession in WorldManager.GetAll(false))
+            {
+                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
+                playerCounter++;
+            }
+            message += $"Total connected Players: {playerCounter}\n";
+            var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(listPlayersMessage);
+        }
     }
 }
