@@ -1,9 +1,15 @@
 # ACEmulator Change Log
+
+### 2017-05-19
+[fantoms]
+* Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
+* Added `MaximumAllowedSessions` to the `ConfigManager` and the `Config.json.example` file.
+* Began using the variable in the `WorldManager.cs` server initalization step, allowing usersr to configure the max allowed sessions.
+
 ### 2017-05-17
 [fantoms]
 * Added the debug command `listplayers`, that will list all players currently connected too the server.
 
-### 2017-05-17
 [ddevec]
 * Added "Tick" functionality to WorldObjects.
 * CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
