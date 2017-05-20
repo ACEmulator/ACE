@@ -14,7 +14,7 @@ namespace ACE.Factories
         /// </summary>
         public static Lifestone CreateLifestone(ushort weenieClassId, Position newPosition, LifestoneType lifestoneType)
         {
-            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar | WeenieHeaderFlag.UseRadius;
+            var weenie = WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior | WeenieHeaderFlag.UseRadius;
             Lifestone wo = new Lifestone(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
             // model id 0x000026 is one of several lifestone IDs
@@ -31,7 +31,7 @@ namespace ACE.Factories
             // wo.GameData.Icon = (ushort)0x1036;
 
             wo.GameData.Usable = Usable.UsableRemote;
-            wo.GameData.RadarColour = RadarColor.Blue;
+            wo.GameData.RadarColor = RadarColor.Blue;
             wo.GameData.RadarBehavior = RadarBehavior.ShowAlways;
             wo.GameData.UseRadius = 4f;
 

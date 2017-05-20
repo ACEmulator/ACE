@@ -82,28 +82,29 @@ namespace ACE.Entity
             // TODO: Load spawn data
 
             // TODO: load objects from world database such as lifestones, doors, player corpses, NPCs, Vendors
-            var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
-            var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
-            factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
+            // TODO: Object Overhaul Og II uncomment once working
+            // var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
+            // var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
+            // factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
 
             // Load static creature spawns from DB
-            var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
-            foreach (var c in creatures)
-            {
-                Creature cwo = new Creature(c);
-                worldObjects.Add(cwo.Guid, cwo);
-            }
+            // var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
+            // foreach (var c in creatures)
+            // {
+            //    Creature cwo = new Creature(c);
+            //    worldObjects.Add(cwo.Guid, cwo);
+            // }
 
-            // Load generator creature spawns from DB
-            var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
-            foreach (var cg in creatureGenerators)
-            {
-                List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
-                foreach (var c in creatureList)
-                {
-                    worldObjects.Add(c.Guid, c);
-                }
-            }
+            //// Load generator creature spawns from DB
+            // var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
+            // foreach (var cg in creatureGenerators)
+            // {
+            //    List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
+            //    foreach (var c in creatureList)
+            //    {
+            //        worldObjects.Add(c.Guid, c);
+            //    }
+            // }
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
         }
@@ -640,7 +641,7 @@ namespace ACE.Entity
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow(inventoryItem.GameData.UseRadius, 2))
+                                    > Math.Pow((inventoryItem.GameData.UseRadius ?? 0.00), 2))
                                 {
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
@@ -658,7 +659,7 @@ namespace ACE.Entity
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbranceVal,
-                                       aPlayer.GameData.Burden),
+                                       (aPlayer.GameData.Burden ?? 0u)),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),

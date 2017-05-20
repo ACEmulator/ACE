@@ -115,29 +115,29 @@ namespace ACE.Entity
         }
 
         public Portal(AcePortalObject aceO)
-            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
             Name = aceO.Name;
-            DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
+            DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
             Location = aceO.Position;
             WeenieClassid = aceO.WeenieClassId;
-            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
             PhysicsData.MTableResourceId = aceO.MotionTableId;
             PhysicsData.Stable = aceO.SoundTableId;
             PhysicsData.CSetup = aceO.ModelTableId;
 
             // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
-            PhysicsData.ObjScale = aceO.ObjectScale;
+            PhysicsData.ObjScale = (float)aceO.DefaultScale;
 
             // game data min required flags;
             Icon = (ushort)aceO.IconId;
 
-            GameData.Usable = (Usable)aceO.Usability;
-            GameData.RadarColour = (RadarColor)aceO.BlipColor;
+            GameData.Usable = (Usable)aceO.ItemUseable;
+            GameData.RadarColor = (RadarColor)aceO.BlipColor;
             GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
             GameData.UseRadius = aceO.UseRadius;
 

@@ -9,11 +9,11 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object_palette_changes")]
-    [DbGetList("ace_object_palette_changes", 7, "baseAceObjectId")]
+    [DbTable("ace_object_palette_change")]
+    [DbGetList("ace_object_palette_change", 7, "aceObjectId")]
     public class PaletteOverride
     {
-        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("subPaletteId", (int)MySqlDbType.UInt32)]

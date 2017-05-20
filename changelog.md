@@ -1,5 +1,18 @@
 # ACEmulator Change Log
 
+### 2017-05-17
+[Og II]
+* Continued work on Overhaul 
+* Created mapping cross reference file to faciltate docuatation and cleaning up names - work in progress https://goo.gl/eaaNQb
+* Created new database schema for world_object - modified mysqlinstall.bat to refect new baseline
+* created script to ETL old schema to new schema.   I have not included it as we will be refactoring the initial data load to use the new
+* schema according to Ripley.   I have the script tested and posted on my dropbox if anyone wants it.   I also have a complete data dump that
+* zips down to a manageable size.
+* BaseAceObject is now using the new schema
+* I re-hooked up telepoi to use the new schema.   Still to do, convert to constructed statement
+* Next steps - refactor AceObject and make sure world objects load again.
+* Once that is complete - start same process using clone of this schema for character as discussed.
+
 ### 2017-05-12
 [Og II]
 * Started object Overhaul - added explicit values to properties enums.   Minor cleanup.  

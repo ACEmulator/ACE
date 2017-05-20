@@ -58,12 +58,12 @@ namespace ACE.Entity
         }
 
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.TypeId,
+            : base((ObjectType)aceC.CreatureData.ItemType,
                   new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
                   aceC.CreatureData.Name,
                   aceC.WeenieClassId,
-                  (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField,
-                  (WeenieHeaderFlag)aceC.CreatureData.WeenieFlags,
+                  (ObjectDescriptionFlag)aceC.CreatureData.AceObjectDescriptionFlags,
+                  (WeenieHeaderFlag)aceC.CreatureData.WeenieHeaderFlags,
                   aceC.Position)
         {
             if (aceC.WeenieClassId < 0x8000u)
@@ -82,10 +82,10 @@ namespace ACE.Entity
             PhysicsData.Stable = aco.SoundTableId;
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
-            PhysicsData.ObjScale = aco.ObjectScale;
+            PhysicsData.ObjScale = aco.DefaultScale;
 
             // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
@@ -94,17 +94,17 @@ namespace ACE.Entity
             // TODO: Check to see if we should default a 0 to fix these possible null errors Og II
             GameData.ContainerCapacity = (byte)aco.ContainersCapacity;
             GameData.ItemCapacity = aco.ItemsCapacity;
-            GameData.Usable = (Usable)aco.Usability;
+            GameData.Usable = (Usable)aco.ItemUseable;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            GameData.RadarColour = (RadarColor)aco.BlipColor;
+            GameData.RadarColor = (RadarColor)aco.BlipColor;
             GameData.RadarBehavior = (RadarBehavior)aco.Radar;
             GameData.UseRadius = aco.UseRadius;
 
             aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = aco.PaletteId;
+            ModelData.PaletteGuid = (uint)aco.PaletteId;
         }
 
         private void SetAbilities(AceCreatureObject aco)
@@ -177,8 +177,8 @@ namespace ACE.Entity
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
-            corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
+            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
 
             // Corpses stay on the ground for 5 * player level but minimum 1 hour
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live

@@ -374,52 +374,50 @@ namespace ACE.Database
         public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
         {
             var results = new List<T2>();
-            // TODO: Object Overhaul - fix after refactor Og II
-            // uint statementId = Convert.ToUInt32(id);
-            // DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
+            // TODO: Object Overhaul - testing this now.
+            uint statementId = Convert.ToUInt32(id);
+            DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
 
-            // StoredPreparedStatement preparedStatement;
-            // if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
-            // {
-            //    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
-            //    return null;
-            // }
+            StoredPreparedStatement preparedStatement;
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                return null;
+            }
 
-            // try
-            // {
-            //    using (var connection = new MySqlConnection(connectionString))
-            //    {
-            //        using (var command = new MySqlCommand(preparedStatement.Query, connection))
-            //        {
-            //            var properties = GetPropertyCache(typeof(T2));
-            //            foreach (var p in properties)
-            //            {
-            //                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
-            //                    command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName];
-            //            }
-
-            //            connection.Open();
-            //            using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
-            //            {
-            //                while (commandReader.Read())
-            //                {
-            //                    T2 o = Activator.CreateInstance<T2>();
-            //                    foreach (var p in properties)
-            //                    {
-            //                        p.Item1.SetValue(o, commandReader[p.Item2.DbFieldName]);
-            //                    }
-
-            //                    results.Add(o);
-            //                }
-            //            }
-            //        }
-            //    }
-            // }
-            // catch (MySqlException exception)
-            // {
-            //    log.Error($"An exception occured while executing prepared statement {id}!");
-            //    log.Error($"Exception: {exception.Message}");
-            // }
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    using (var command = new MySqlCommand(preparedStatement.Query, connection))
+                    {
+                        var properties = GetPropertyCache(typeof(T2));
+                        foreach (var p in properties)
+                        {
+                            if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                                command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName];
+                        }
+                        connection.Open();
+                        using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                        {
+                            while (commandReader.Read())
+                            {
+                                T2 o = Activator.CreateInstance<T2>();
+                                foreach (var p in properties)
+                                {
+                                    p.Item1.SetValue(o, commandReader[p.Item2.DbFieldName]);
+                                }
+                                results.Add(o);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySqlException exception)
+            {
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
+            }
 
             return results;
         }

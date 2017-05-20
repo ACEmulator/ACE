@@ -26,20 +26,20 @@ namespace ACE.Entity
         }
 
         public CollidableObject(AceObject aceO)
-            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
             this.Name = aceO.Name;
-            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
+            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
             this.Location = aceO.Position;
             this.WeenieClassid = aceO.WeenieClassId;
-            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
             this.PhysicsData.MTableResourceId = aceO.MotionTableId;
             this.PhysicsData.Stable = aceO.SoundTableId;
             this.PhysicsData.CSetup = aceO.ModelTableId;
 
             // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
+            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             // Creating from weenie - the pcap may have had a container or a position
             // but if we are creating new that will be sent when we place ground or container not at create
             this.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
@@ -57,7 +57,7 @@ namespace ACE.Entity
             this.GameData.Cooldown = aceO.CooldownId;
             this.GameData.CooldownDuration = (decimal)aceO.CooldownDuration;
             this.GameData.HookItemTypes = aceO.HookItemTypes;
-            this.GameData.HookType = (ushort)aceO.HookTypeId;
+            this.GameData.HookType = (ushort)aceO.HookType;
             this.GameData.IconOverlay = (ushort)aceO.IconOverlayId;
             this.GameData.IconUnderlay = (ushort)aceO.IconUnderlayId;
             this.GameData.ItemCapacity = aceO.ItemsCapacity;
@@ -66,17 +66,17 @@ namespace ACE.Entity
             this.GameData.MaxStructure = aceO.MaxStructure;
             // GameData.Name = aceO.Name;  I think this is redundant and should be removed from Game Data or from world object
             this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
-            this.GameData.RadarColour = (RadarColor)aceO.Radar;
+            this.GameData.RadarColor = (RadarColor)aceO.Radar;
             this.GameData.UseRadius = aceO.UseRadius;
             this.GameData.Spell = (Spell)aceO.SpellId;
-            this.GameData.Script = aceO.PScript;
+            this.GameData.Script = aceO.PlayScript;
             this.GameData.ValidLocations = (EquipMask)aceO.ValidLocations;
             this.GameData.StackSize = aceO.StackSize;
-            this.GameData.Struture = aceO.Structure;
+            this.GameData.Structure = aceO.Structure;
             this.GameData.Value = aceO.Value;
             this.GameData.Type = (ushort)aceO.AceObjectId;
             this.GameData.TargetType = aceO.TargetTypeId;
-            this.GameData.Usable = (Usable)aceO.Usability;
+            this.GameData.Usable = (Usable)aceO.ItemUseable;
 
             aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
             aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));

@@ -17,8 +17,8 @@ namespace ACE.Factories
 
             foreach (var aceO in sourceObjects)
             {
-                ObjectType ot = (ObjectType)aceO.TypeId;
-                ObjectDescriptionFlag oDescFlag = (ObjectDescriptionFlag)aceO.WdescBitField;
+                ObjectType ot = (ObjectType)aceO.ItemType;
+                ObjectDescriptionFlag oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 
                 if ((oDescFlag & ObjectDescriptionFlag.LifeStone) != 0)
                 {

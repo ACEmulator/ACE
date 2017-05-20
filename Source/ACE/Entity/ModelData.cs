@@ -11,13 +11,13 @@ namespace ACE.Entity
     /// </summary>
     public class ModelData
     {
-        public uint PaletteGuid { get; set; } = 0;
+        public uint? PaletteGuid { get; set; } = 0;
 
-        private List<ModelPalette> modelPalettes = new List<ModelPalette>();
+        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
-        private List<ModelTexture> modelTextures = new List<ModelTexture>();
+        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
 
-        private List<Model> models = new List<Model>();
+        private readonly List<Model> models = new List<Model>();
 
         public List<ModelPalette> GetPalettes
         {
@@ -60,8 +60,8 @@ namespace ACE.Entity
             writer.Write((byte)modelTextures.Count);
             writer.Write((byte)models.Count);
 
-            if (modelPalettes.Count > 0)
-                writer.WritePackedDwordOfKnownType(PaletteGuid, 0x4000000);
+            if ((modelPalettes.Count > 0) && (PaletteGuid != null))
+                writer.WritePackedDwordOfKnownType((uint)PaletteGuid, 0x4000000);
             foreach (ModelPalette palette in modelPalettes)
             {
                 writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);

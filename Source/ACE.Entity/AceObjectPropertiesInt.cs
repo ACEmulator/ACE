@@ -9,11 +9,10 @@ namespace ACE.Entity
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
-        [DbField("intPropertyId", (int)MySqlDbType.UInt32)]
+        [DbField("intPropertyId", (int)MySqlDbType.UInt16)]
         public uint IntPropertyId { get; set; }
 
         [DbField("propertyValue", (int)MySqlDbType.UInt32)]
         public uint PropertyValue { get; set; }
     }
 }
-

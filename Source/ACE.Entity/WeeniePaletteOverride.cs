@@ -1,19 +1,14 @@
 ﻿using ACE.Common;
 using MySql.Data.MySqlClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    [DbTable("weenice_palette_changes")]
-    [DbGetList("weenie_palette_changes", 4, "weenieClassId")]
+    [DbTable("ace_object_palette_change")]
+    [DbGetList("ace_object_palette_change", 4, "aceObjectId")]
     public class WeeniePaletteOverride
     {
-        [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public ushort WeenieClassId { get; set; }
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        public uint AceObjectId { get; set; }
 
         [DbField("subPaletteId", (int)MySqlDbType.UInt32)]
         public uint SubPaletteId { get; set; }
