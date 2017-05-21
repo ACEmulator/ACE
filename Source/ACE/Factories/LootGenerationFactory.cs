@@ -16,7 +16,7 @@
         public static void AddToContainer(WorldObject inventoryItem, Container container)
         {
             inventoryItem.GameData.ContainerId = container.Guid.Full;
-            container.GameData.Burden += inventoryItem.GameData.Burden;
+            inventoryItem.GameData.Burden += inventoryItem.GameData.Burden;
             container.AddToInventory(inventoryItem);
         }
 

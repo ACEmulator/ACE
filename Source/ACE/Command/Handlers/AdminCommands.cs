@@ -14,6 +14,8 @@ using log4net;
 
 namespace ACE.Command.Handlers
 {
+    using System.Linq;
+
     public static class AdminCommands
     {
         // // commandname parameters
@@ -1027,12 +1029,12 @@ namespace ACE.Command.Handlers
             session.Player.TrackObject(loot);
         }
 
-        // ci wclassid (number)
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an random object in your inventory.", "typeId (number)")]
+            "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
         {
             uint typeId;
+            byte numItems = 10;
             try
             {
                 typeId = Convert.ToUInt32(parameters[0]);
@@ -1042,9 +1044,24 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
-            if (loot != null)
+            if (parameters.Length == 2)
             {
+                try
+                {
+                    numItems = Convert.ToByte(parameters[1]);
+                }
+                catch (Exception)
+                {
+                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 0 - 50", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            for (byte b = 1; b <= numItems; b++)
+            {
+                var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
+                if (loot == null)  return;
+                // We may have captured this from an NPC, creature or player - lets skip those.
+                if (loot.GameData.ContainerId != null) continue;
                 LootGenerationFactory.AddToContainer(loot, session.Player);
                 session.Player.TrackObject(loot);
             }

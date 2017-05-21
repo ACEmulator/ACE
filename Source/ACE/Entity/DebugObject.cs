@@ -15,50 +15,69 @@ namespace ACE.Entity
         public DebugObject(ObjectGuid guid,  BaseAceObject baseAceObject)
             : base((ObjectType)baseAceObject.ItemType, guid)
         {
-            Name = baseAceObject.Name;
-            if (Name == null)
-                Name = "NULL";
+            Name = baseAceObject.Name ?? "NULL";
 
             DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
             WeenieClassid = baseAceObject.AceObjectId;
             WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieHeaderFlags;
 
+            // this should probably be determined based on the presence of data.
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsDescriptionFlag;
             PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             PhysicsData.Stable = baseAceObject.SoundTableId;
             PhysicsData.CSetup = baseAceObject.ModelTableId;
             PhysicsData.Petable = baseAceObject.PhysicsTableId;
-
-            // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
-
+            PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0.00f;
+            PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
+            PhysicsData.Translucency = baseAceObject.Translucency ?? 0.00f;
+            PhysicsData.DefaultScript = baseAceObject.DefaultScript;
+            PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
+            PhysicsData.Elasticity = baseAceObject.Elasticity;
+            PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
+            PhysicsData.Friction = baseAceObject.Friction;
+            if (PhysicsData.AnimationFrame != 0)
+                PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
             if (baseAceObject.CurrentMotionState == "0")
                 PhysicsData.CurrentMotionState = null;
             else
                 PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
 
-            PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0.00f;
-            PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
-            PhysicsData.Translucency = baseAceObject.Translucency ?? 0.00f;
-
             // game data min required flags;
             Icon = baseAceObject.IconId;
 
-            if (GameData.NamePlural == null)
-                GameData.NamePlural = "NULLs";
-
-            GameData.Type = (ushort)baseAceObject.AceObjectId;
-
-            GameData.Usable = (Usable?)baseAceObject.ItemUseable;
-            GameData.RadarColor = (RadarColor?)baseAceObject.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
-            GameData.UseRadius = baseAceObject.UseRadius;
-
-            GameData.HookType = baseAceObject.HookType;
+            GameData.AmmoType = (AmmoType?)baseAceObject.AmmoType;
+            GameData.Burden = baseAceObject.Burden;
+            GameData.CombatUse = (CombatUse?)baseAceObject.CombatUse;
+            GameData.ContainerCapacity = baseAceObject.ContainersCapacity;
+            GameData.Cooldown = baseAceObject.CooldownId;
+            GameData.CooldownDuration = (decimal?)baseAceObject.CooldownDuration;
             GameData.HookItemTypes = baseAceObject.HookItemTypes;
-            GameData.Burden = (ushort?)baseAceObject.Burden;
-            GameData.Value = baseAceObject.Value;
+            GameData.HookType = baseAceObject.HookType;
+            GameData.IconOverlay = (ushort?)baseAceObject.IconOverlayId;
+            GameData.IconUnderlay = (ushort?)baseAceObject.IconUnderlayId;
             GameData.ItemCapacity = baseAceObject.ItemsCapacity;
+            GameData.Material = (Material?)baseAceObject.MaterialType;
+            GameData.MaxStackSize = baseAceObject.MaxStackSize;
+            GameData.NamePlural = GameData.NamePlural ?? "NULLs";
+            // TODO: this needs to be pulled in from pcap data. Missing
+            // GameData.Priority = baseAceObject.Priority;
+            GameData.RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
+            GameData.RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
+            GameData.RadarColor = (RadarColor?)baseAceObject.BlipColor;
+            GameData.RadarColor = (RadarColor?)baseAceObject.BlipColor;
+            GameData.Script = baseAceObject.PlayScript;
+            GameData.Spell = (Spell?)baseAceObject.SpellId;
+            GameData.StackSize = baseAceObject.StackSize;
+            GameData.Structure = baseAceObject.Structure;
+            GameData.TargetType = baseAceObject.TargetTypeId;
+            GameData.Type = (ushort)baseAceObject.AceObjectId;
+            GameData.Type = (ushort)baseAceObject.ItemType;
+            GameData.UiEffects = (UiEffects?)baseAceObject.UiEffects;
+            GameData.Usable = (Usable?)baseAceObject.ItemUseable;
+            GameData.UseRadius = baseAceObject.UseRadius;
+            GameData.Value = baseAceObject.Value;
+            GameData.Workmanship = baseAceObject.Workmanship;
 
             // Put is in for Ripley - these are the fields I want to write that he was concerned with.
             if ((Type & (ObjectType.Creature | ObjectType.LifeStone | ObjectType.Portal)) == 0)
@@ -66,28 +85,15 @@ namespace ACE.Entity
                 // because this comes from PCAP data - on create we are not animating.
                 PhysicsData.AnimationFrame = 0x65;
 
-                // I think this is wrong - we need the weenieClassId from weenie_class   Leaving it for now
-                // TODO: use view to return the correct value.
-                WeenieClassid = baseAceObject.AceObjectId;
-
                 // Container will always be 0 or a value and we should write it.
                 // Not sure if the align packs us out with 0's may be redundant Og II
-                WeenieFlags |= WeenieHeaderFlag.Container;
+                WeenieFlags &= ~WeenieHeaderFlag.Container;
 
                 // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
                 PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
-                GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
+                if (baseAceObject.ValidLocations != null)
+                    GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
             }
-            if (PhysicsData.AnimationFrame != 0)
-            {
-                PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
-            }
-            PhysicsData.DefaultScript = baseAceObject.DefaultScript;
-            PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
-            PhysicsData.Elastcity = baseAceObject.Elasticity;
-            PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
-            PhysicsData.Friction = baseAceObject.Friction;
-
             baseAceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
             baseAceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             baseAceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
@@ -99,8 +105,7 @@ namespace ACE.Entity
         {
             Location = aceO.Position;
             WeenieClassid = aceO.WeenieClassId;
-
-            GameData.Type = aceO.WeenieClassId;
+            GameData.Type = (ushort)aceO.ItemType;
         }
 
         public override void OnCollide(Player player)

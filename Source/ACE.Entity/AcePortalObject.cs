@@ -10,10 +10,7 @@ namespace ACE.Entity
         [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public override uint AceObjectId { get; set; }
 
-        [DbField("weenieClassId", (int)MySqlDbType.UInt16)]
-        public override ushort WeenieClassId { get; set; }
-
-        public Position DestPosition
+       public Position DestPosition
         {
             get {
                 if (DestLandblockId == null)

@@ -34,14 +34,14 @@ namespace ACE.Entity
         public RadarBehavior? RadarBehavior;
         public ushort? Script;
         public float? Workmanship;
-        public ushort? Burden;
+        public ushort Burden = 0;
         public Spell? Spell;
 
         // Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
         public uint? HouseOwner;
         public uint? HouseRestrictions;
 
-        public uint? HookItemTypes;
+        public ushort? HookItemTypes;
         public uint? Monarch;
         public ushort? HookType;
         public ushort? IconOverlay;

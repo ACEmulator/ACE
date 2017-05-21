@@ -3,7 +3,6 @@ using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum.Properties;
 using System;
-using System.CodeDom.Compiler;
 
 namespace ACE.Entity
 {
@@ -107,22 +106,15 @@ namespace ACE.Entity
             }
         }
 
-        public uint? Burden
+        public ushort Burden
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal)?.PropertyValue;
+                return (ushort)(AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal)?.PropertyValue ?? 0);
             }
             set
             {
-                if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal).PropertyValue = (uint)value;
-                else
-                {
-                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal);
-                    if (listItem != null)
-                        AceObjectPropertiesInt.Remove(listItem);
-                }
+                AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal).PropertyValue = (uint)value;
             }
         }
         /// <summary>
@@ -204,21 +196,25 @@ namespace ACE.Entity
             }
         }
 
-        public uint? ItemType
+        [DbField("itemType", (int)MySqlDbType.UInt32)]
+        public uint ItemType
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType)?.PropertyValue;
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType).PropertyValue;
             }
             set
             {
-                if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType).PropertyValue = (uint)value;
+                if (AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType)?.PropertyValue != null)
+                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType).PropertyValue = value;
                 else
                 {
-                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType);
-                    if (listItem != null)
-                        AceObjectPropertiesInt.Remove(listItem);
+                    AceObjectPropertiesInt.Add(new AceObjectPropertiesInt
+                    {
+                        AceObjectId = AceObjectId,
+                        PropertyValue = value,
+                        IntPropertyId = (uint)PropertyInt.ItemType
+                    });
                 }
             }
         }
@@ -288,7 +284,7 @@ namespace ACE.Entity
         {
             get
             {
-                return (ushort)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType)?.PropertyValue;
+                return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType)?.PropertyValue;
             }
             set
             {
@@ -306,11 +302,11 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
-        public uint? HookItemTypes
+        public ushort? HookItemTypes
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType)?.PropertyValue;
+                return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType)?.PropertyValue;
             }
             set
             {
@@ -578,7 +574,7 @@ namespace ACE.Entity
                 {
                     return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
                 }
-                return 0.00f;
+                return (ItemWorkmanship ?? 0.0f);
             }
             set
             {
@@ -710,22 +706,15 @@ namespace ACE.Entity
         /// <summary>
         /// TODO: convert to enum, probably a flags enum
         /// </summary>
-        public uint? PhysicsState
+        public uint PhysicsState
         {
             get
             {
-                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState)?.PropertyValue;
+                return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState).PropertyValue;
             }
             set
             {
-                if (value != null)
-                    AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState).PropertyValue = (uint)value;
-                else
-                {
-                    var listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState);
-                    if (listItem != null)
-                        AceObjectPropertiesInt.Remove(listItem);
-                }
+                AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState).PropertyValue = value;
             }
         }
 

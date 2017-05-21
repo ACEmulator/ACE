@@ -1,5 +1,4 @@
 ﻿using System;
-using ACE.Database;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum;
@@ -7,19 +6,19 @@ using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
-    public class Portal : CollidableObject
+    public sealed class Portal : CollidableObject
     {
-        private Position portalDestination;
+        private readonly Position portalDestination;
 
-        private uint portalMinLvl;
+        private readonly uint portalMinLvl;
 
-        private uint portalMaxLvl;
+        private readonly uint portalMaxLvl;
 
         private byte portalSocietyId;
 
         private bool portalIsTieable;
 
-        private bool portalIsRecallable;
+        private readonly bool portalIsRecallable;
 
         private bool portalIsSummonable;
 
@@ -126,19 +125,15 @@ namespace ACE.Entity
             PhysicsData.MTableResourceId = aceO.MotionTableId;
             PhysicsData.Stable = aceO.SoundTableId;
             PhysicsData.CSetup = aceO.ModelTableId;
-
-            // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
-
-            PhysicsData.ObjScale = (float)aceO.DefaultScale;
+            PhysicsData.ObjScale = aceO.DefaultScale;
 
             // game data min required flags;
             Icon = (ushort)aceO.IconId;
 
-            GameData.Usable = (Usable)aceO.ItemUseable;
-            GameData.RadarColor = (RadarColor)aceO.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
+            GameData.Usable = (Usable?)aceO.ItemUseable;
+            GameData.RadarColor = (RadarColor?)aceO.BlipColor;
+            GameData.RadarBehavior = (RadarBehavior?)aceO.Radar;
             GameData.UseRadius = aceO.UseRadius;
 
             aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
@@ -157,7 +152,7 @@ namespace ACE.Entity
     public override void OnCollide(Player player)
         {
             // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
-            float rangeCheck = 5.0f;
+            var rangeCheck = 5.0f;
 
             if (player.Location.SquaredDistanceTo(Location) < rangeCheck)
             {
@@ -165,35 +160,37 @@ namespace ACE.Entity
                 {
                     if ((player.Level >= portalMinLvl) && ((player.Level <= portalMaxLvl) || (portalMaxLvl == 0)))
                     {
-                        Position portalDest = portalDestination;
+                        var portalDest = portalDestination;
                         switch (WeenieClassid)
                         {
-                            /// <summary>
-                            /// Setup correct racial portal destination for the Central Courtyard in the Training Academy
-                            /// </summary>
+                            // Setup correct racial portal destination for the Central Courtyard in the Training Academy
                             case (ushort)SpecialPortalWCID.CentralCourtyard:
                                 {
-                                    uint playerLandblockId = player.Location.LandblockId.Raw;
+                                    var playerLandblockId = player.Location.LandblockId.Raw;
                                     switch (playerLandblockId)
                                     {
-                                        case (uint)SpecialPortalLandblockID.ShoushiCCLaunch:    // Shoushi
+                                        case (uint)SpecialPortalLandblockID.ShoushiCCLaunch: // Shoushi
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiCCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.ShoushiCCLanding);
                                                 break;
                                             }
-                                        case (uint)SpecialPortalLandblockID.YaraqCCLaunch:    // Yaraq
+                                        case (uint)SpecialPortalLandblockID.YaraqCCLaunch: // Yaraq
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqCCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.YaraqCCLanding);
                                                 break;
                                             }
-                                        case (uint)SpecialPortalLandblockID.SanamarCCLaunch:    // Sanamar
+                                        case (uint)SpecialPortalLandblockID.SanamarCCLaunch: // Sanamar
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarCCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.SanamarCCLanding);
                                                 break;
                                             }
-                                        default:            // Holtburg
+                                        default: // Holtburg
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgCCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.HoltburgCCLanding);
                                                 break;
                                             }
                                     }
@@ -207,32 +204,34 @@ namespace ACE.Entity
                                     portalDest.RotationW = portalDestination.RotationW;
                                     break;
                                 }
-                            /// <summary>
-                            /// Setup correct racial portal destination for the Outer Courtyard in the Training Academy
-                            /// </summary>
+                            // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
                             case (ushort)SpecialPortalWCID.OuterCourtyard:
                                 {
-                                    uint playerLandblockId = player.Location.LandblockId.Raw;
+                                    var playerLandblockId = player.Location.LandblockId.Raw;
                                     switch (playerLandblockId)
                                     {
-                                        case (uint)SpecialPortalLandblockID.ShoushiOCLaunch:    // Shoushi
+                                        case (uint)SpecialPortalLandblockID.ShoushiOCLaunch: // Shoushi
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiOCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.ShoushiOCLanding);
                                                 break;
                                             }
-                                        case (uint)SpecialPortalLandblockID.YaraqOCLaunch:    // Yaraq
+                                        case (uint)SpecialPortalLandblockID.YaraqOCLaunch: // Yaraq
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqOCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.YaraqOCLanding);
                                                 break;
                                             }
-                                        case (uint)SpecialPortalLandblockID.SanamarOCLaunch:    // Sanamar
+                                        case (uint)SpecialPortalLandblockID.SanamarOCLaunch: // Sanamar
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarOCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.SanamarOCLanding);
                                                 break;
                                             }
-                                        default:            // Holtburg
+                                        default: // Holtburg
                                             {
-                                                portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgOCLanding);
+                                                portalDest.LandblockId =
+                                                    new LandblockId((uint)SpecialPortalLandblockID.HoltburgOCLanding);
                                                 break;
                                             }
                                     }
@@ -246,9 +245,7 @@ namespace ACE.Entity
                                     portalDest.RotationW = portalDestination.RotationW;
                                     break;
                                 }
-                            /// <summary>
-                            /// All other portals don't need adjustments.
-                            /// </summary>
+                            // All other portals don't need adjustments.
                             default:
                                 {
                                     break;
@@ -256,10 +253,11 @@ namespace ACE.Entity
                         }
 
                         player.Session.Player.Teleport(portalDest);
+
                         // If the portal just used is able to be recalled to,
                         // save the destination coordinates to the LastPortal character position save table
-                        if (Convert.ToBoolean(portalIsRecallable) == true)
-                            player.SetCharacterPosition(PositionType.LastPortal, portalDest);
+                        if (Convert.ToBoolean(portalIsRecallable) == true) player.SetCharacterPosition(PositionType.LastPortal, portalDest);
+
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent);
@@ -267,7 +265,10 @@ namespace ACE.Entity
                     else if ((player.Level > portalMaxLvl) && (portalMaxLvl != 0))
                     {
                         // You are too powerful to interact with that portal!
-                        var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);
+                        var usePortalMessage = new GameEventDisplayStatusMessage(
+                            player.Session,
+                            StatusMessageType1.Enum_04AC);
+
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
@@ -275,7 +276,10 @@ namespace ACE.Entity
                     else
                     {
                         // You are not powerful enough to interact with that portal!
-                        var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AB);
+                        var usePortalMessage = new GameEventDisplayStatusMessage(
+                            player.Session,
+                            StatusMessageType1.Enum_04AB);
+
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
@@ -283,8 +287,10 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    string serverMessage = "Portal destination for portal ID " + this.WeenieClassid + " not yet implemented!";
+                    var serverMessage = "Portal destination for portal ID " + this.WeenieClassid
+                                        + " not yet implemented!";
                     var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+
                     // always send useDone event
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
                     player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);

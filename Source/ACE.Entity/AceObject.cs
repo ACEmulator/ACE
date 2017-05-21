@@ -7,22 +7,16 @@ namespace ACE.Entity
     [DbGetList("vw_ace_object", 2, "landblock")]
     public class AceObject : BaseAceObject
     {
-        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public override uint AceObjectId { get; set; }
-
-        [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public virtual ushort WeenieClassId { get; set; }
 
         public Position Position
         {
-            get { return new Position((((uint)Landblock) << 16) + Cell, PosX, PosY, PosZ, QX, QY, QZ, QW); }
+            get { return new Position(Landblock, PosX, PosY, PosZ, QX, QY, QZ, QW); }
         }
 
         [DbField("landblock", (int)MySqlDbType.UInt16)]
-        public ushort Landblock { get; set; }
-
-        [DbField("cell", (int)MySqlDbType.UInt16)]
-        public ushort Cell { get; set; }
+        public uint Landblock { get; set; }
 
         [DbField("posX", (int)MySqlDbType.Float)]
         public float PosX { get; set; }
