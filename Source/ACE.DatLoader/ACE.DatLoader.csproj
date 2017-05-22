@@ -54,9 +54,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CellDatDatabase.cs" />
+    <Compile Include="Entity\BuildInfo.cs" />
+    <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
+    <Compile Include="Entity\RestrictionTable.cs" />
     <Compile Include="Entity\Stab.cs" />
-    <Compile Include="FileTypes\EnvCell.cs" />	
+    <Compile Include="FileTypes\CLandblockInfo.cs" />
+    <Compile Include="FileTypes\EnvCell.cs" />
     <Compile Include="DatDatabaseType.cs" />
     <Compile Include="DatDatabaseTypeAttribute.cs" />
     <Compile Include="DatDirectory.cs" />

@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-21
+[OptimShi]
+* Finished parsing the client_cell.dat file with the CLandblockInfo type (xxyyFFFE files), along with supporting classes. This makes the client_cell.dat reading complete.
+
 ### 2017-05-19
 [fantoms]
 * Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
