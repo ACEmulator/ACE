@@ -7,11 +7,19 @@ using System.IO;
 using ACE.Managers;
 using log4net;
 using ACE.Network.Motion;
+using ACE.LandManagers;
 
 namespace ACE.Entity
 {
     public class WorldObject
     {
+        private LandMediator landmediator;
+        public LandMediator LandMediator
+        {
+            set { landmediator = value; }
+            get { return landmediator; }
+        }
+
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private ObjectType none;
 

@@ -698,7 +698,7 @@ namespace ACE.Command.Handlers
                     var creatureIds = session.Player.GetKnownCreatures();
                     foreach (var cId in creatureIds)
                     {
-                        var wo = LandblockManager.GetWorldObject(session, cId);
+                        var wo = OpenWorldManager.OpenWorld.ReadOnlyClone(cId);
                         if (wo != null)
                             (wo as Creature).OnKill(session);
                     }
@@ -711,7 +711,7 @@ namespace ACE.Command.Handlers
                 if (session.Player.SelectedTarget != 0)
                 {
                     var target = new ObjectGuid(session.Player.SelectedTarget);
-                    var wo = LandblockManager.GetWorldObject(session, target);
+                    var wo = OpenWorldManager.OpenWorld.ReadOnlyClone(target);
 
                     if (target.IsCreature())
                     {

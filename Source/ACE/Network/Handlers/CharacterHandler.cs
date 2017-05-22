@@ -53,7 +53,8 @@ namespace ACE.Network.Handlers
                 session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             }
 
-            LandblockManager.PlayerEnterWorld(session);
+            // LandblockManager.PlayerEnterWorld(session);
+            OpenWorldManager.PlayerEnterWorld(session);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]

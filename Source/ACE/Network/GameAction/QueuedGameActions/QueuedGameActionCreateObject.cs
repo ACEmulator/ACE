@@ -22,7 +22,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
 
         protected override void Handle(Player player)
         {
-            LandblockManager.AddObject(WorldObject);
+            OpenWorldManager.OpenWorld.Register(WorldObject);
         }
     }
 }

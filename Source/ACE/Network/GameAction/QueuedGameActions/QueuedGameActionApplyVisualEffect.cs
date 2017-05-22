@@ -24,10 +24,10 @@ namespace ACE.Network.GameAction.QueuedGameActions
         protected override void Handle(Player player)
         {
             var particleEffect = (PlayScript)SecondaryObjectId;
-            WorldObject wo = LandblockManager.GetWorldObject(player.Session, new ObjectGuid(ObjectId));
+            WorldObject wo = OpenWorldManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
 
             BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(wo, particleEffect);
-            LandblockManager.BroadcastByLandblockID(args, true, Quadrant.All, LandBlockId);
+            OpenWorldManager.OpenWorld.Broadcast(args, Quadrant.All);
         }
     }
 }

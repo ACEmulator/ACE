@@ -1,4 +1,5 @@
-﻿using ACE.Entity;
+﻿using ACE.DatLoader.FileTypes;
+using ACE.Entity;
 using ACE.Managers;
 using ACE.Network.Enum;
 using System;
@@ -25,7 +26,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             var playerGuid = new ObjectGuid(ObjectId);
             var inventoryGuid = new ObjectGuid(SecondaryObjectId);
 
-                var inventoryItem = LandblockManager.GetWorldObject(player.Session, inventoryGuid);
+            var inventoryItem = OpenWorldManager.OpenWorld.ReadOnlyClone(inventoryGuid);
 
                 float arrivedRadiusSquared = 0.00f;
                 bool validGuids;
@@ -52,13 +53,22 @@ namespace ACE.Network.GameAction.QueuedGameActions
         /// <returns></returns>
         public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
         {
-            var playerPosition = LandblockManager.GetWorldObjectPositionByLandblockID(playerGuid, LandBlockId);
-            var targetPosition = LandblockManager.GetWorldObjectPositionByLandblockID(targetGuid, LandBlockId);
+            var playerPosition = OpenWorldManager.OpenWorld.ReadOnlyClone(playerGuid).Location;
+            var targetPosition = OpenWorldManager.OpenWorld.ReadOnlyClone(targetGuid).Location;
 
             if (playerPosition != null && targetPosition != null)
             {
                 validGuids = true;
-                arrivedRadiusSquared = LandblockManager.GetWorldObjectEffectiveUseRadiusByLandblockID(targetGuid, LandBlockId);
+
+                var wo = OpenWorldManager.OpenWorld.ReadOnlyClone(targetGuid);
+                if (wo != null)
+                {
+                    var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup);
+                    arrivedRadiusSquared = (float)Math.Pow((wo.GameData.UseRadius + csetup.Radius + 1.5), 2);
+                }
+                else
+                    arrivedRadiusSquared = 0.00f;
+
                 return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
             }
             arrivedRadiusSquared = 0.00f;

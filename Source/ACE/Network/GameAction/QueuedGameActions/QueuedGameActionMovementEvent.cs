@@ -42,9 +42,9 @@ namespace ACE.Network.GameAction.QueuedGameActions
 
         protected override void Handle(Player obj)
         {
-            WorldObject wo = LandblockManager.GetWorldObject(obj.Session, new ObjectGuid(ObjectId));
+            WorldObject wo = OpenWorldManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
             BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(wo,  Motion);
-            LandblockManager.BroadcastByLandblockID(args, true, Quadrant.All, LandBlockId);
+            OpenWorldManager.OpenWorld.Broadcast(args, Quadrant.All);
         }
     }
 }

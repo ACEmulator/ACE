@@ -134,9 +134,12 @@
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\PortalObjectFactory.cs" />
     <Compile Include="Factories\SpellObjectFactory.cs" />
+    <Compile Include="LandManagers\LandMediator.cs" />
+    <Compile Include="LandManagers\OpenWorld.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
+    <Compile Include="Managers\OpenWorldManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ClientMessage.cs" />
     <Compile Include="Network\ClientPacket.cs" />

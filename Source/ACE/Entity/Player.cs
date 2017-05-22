@@ -67,6 +67,8 @@ namespace ACE.Entity
         /// </summary>
         public double LastStreamingObjectChange { get; set; }
 
+        public bool IsLoading { get; set; } = true;
+
         /// <summary>
         /// Level of the player
         /// </summary>
@@ -169,6 +171,7 @@ namespace ACE.Entity
             set { character.TotalLogins = value; }
         }
 
+ 
         /// <summary>
         /// This signature services MoveToObject and TurnToObject
         /// Update Position prior to start, start them moving or turning, set statemachine to moving.
@@ -234,7 +237,7 @@ namespace ACE.Entity
             // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            LandblockManager.AddObject(inventoryItem);
+            OpenWorldManager.OpenWorld.Register(inventoryItem);
 
             // This may not be needed when we fix landblock update object -
             // TODO: Og II - check this later to see if it is still required.
@@ -1543,7 +1546,7 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
 
             // remove the player from landblock management
-            LandblockManager.RemoveObject(this, true);
+            OpenWorldManager.OpenWorld.UnRegister(this);
 
             if (!clientSessionTerminatedAbruptly)
             {

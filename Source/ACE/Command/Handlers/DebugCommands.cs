@@ -341,14 +341,14 @@ namespace ACE.Command.Handlers
             "Creates a lifestone in front of you.")]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
-        }
+            OpenWorldManager.OpenWorld.Register(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
+       }
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+            OpenWorldManager.OpenWorld.Register(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace ACE.Command.Handlers
             }
 
             AceVector3 velocity = new AceVector3(x, y, z);
-            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
+            OpenWorldManager.OpenWorld.Register(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
         // Kill a player - equivalent to legal virtual murder, by admin
@@ -486,7 +486,7 @@ namespace ACE.Command.Handlers
             {
                 ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}.",
                     ChatMessageType.Broadcast);
-                LandblockManager.AddObject(newC);
+                OpenWorldManager.OpenWorld.Register(newC);
             }
             else
             {
@@ -504,7 +504,7 @@ namespace ACE.Command.Handlers
             if (session.Player.SelectedTarget != 0)
             {
                 var target = new ObjectGuid(session.Player.SelectedTarget);
-                var wo = LandblockManager.GetWorldObject(session, target);
+                var wo = OpenWorldManager.OpenWorld.ReadOnlyClone(target);
 
                 if (target.IsCreature())
                 {
