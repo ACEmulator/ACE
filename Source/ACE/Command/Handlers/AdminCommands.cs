@@ -1025,7 +1025,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            LootGenerationFactory.AddToContainer(loot, session.Player);
+            session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
         }
 
@@ -1060,9 +1060,7 @@ namespace ACE.Command.Handlers
             {
                 var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
                 if (loot == null)  return;
-                // We may have captured this from an NPC, creature or player - lets skip those.
-                if (loot.GameData.ContainerId != null) continue;
-                LootGenerationFactory.AddToContainer(loot, session.Player);
+                session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
             }
         }

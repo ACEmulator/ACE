@@ -27,7 +27,7 @@ namespace ACE.Entity
         // these are all related
         public uint ItemsEquipedCount;
         public uint Parent;
-        public EquipMask EquipperPhysicsDescriptionFlag;
+        public EquipMask? EquipperPhysicsDescriptionFlag;
         private readonly List<EquippedItem> children = new List<EquippedItem>();
 
         public float? ObjScale;
@@ -69,7 +69,7 @@ namespace ACE.Entity
             if (currentMotionState != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if (AnimationFrame != null)
+            if ((AnimationFrame != null) && (AnimationFrame != 0))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
             if (Position != null)

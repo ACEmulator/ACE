@@ -205,7 +205,7 @@ namespace ACE.Entity
             if (GameData.RadarBehavior != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBehavior;
 
-            if (GameData.Script != null)
+            if ((GameData.Script != null) && (GameData.Script != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.Script;
 
             if (GameData.Workmanship != null)

@@ -18,7 +18,7 @@ namespace ACE.Entity
             Name = baseAceObject.Name ?? "NULL";
 
             DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
-            WeenieClassid = baseAceObject.AceObjectId;
+            WeenieClassid = baseAceObject.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieHeaderFlags;
 
             // this should probably be determined based on the presence of data.
@@ -28,16 +28,14 @@ namespace ACE.Entity
             PhysicsData.CSetup = baseAceObject.ModelTableId;
             PhysicsData.Petable = baseAceObject.PhysicsTableId;
             PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
-            PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0.00f;
+            PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0u;
             PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
-            PhysicsData.Translucency = baseAceObject.Translucency ?? 0.00f;
+            PhysicsData.Translucency = baseAceObject.Translucency ?? 0u;
             PhysicsData.DefaultScript = baseAceObject.DefaultScript;
             PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
             PhysicsData.Elasticity = baseAceObject.Elasticity;
-            PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
+            PhysicsData.EquipperPhysicsDescriptionFlag = (EquipMask?)baseAceObject.CurrentWieldedLocation;
             PhysicsData.Friction = baseAceObject.Friction;
-            if (PhysicsData.AnimationFrame != 0)
-                PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
             if (baseAceObject.CurrentMotionState == "0")
                 PhysicsData.CurrentMotionState = null;
             else
@@ -45,6 +43,7 @@ namespace ACE.Entity
 
             // game data min required flags;
             Icon = baseAceObject.IconId;
+            PhysicsData.SetPhysicsDescriptionFlag();
 
             GameData.AmmoType = (AmmoType?)baseAceObject.AmmoType;
             GameData.Burden = baseAceObject.Burden;
@@ -59,7 +58,7 @@ namespace ACE.Entity
             GameData.ItemCapacity = baseAceObject.ItemsCapacity;
             GameData.Material = (Material?)baseAceObject.MaterialType;
             GameData.MaxStackSize = baseAceObject.MaxStackSize;
-            GameData.NamePlural = GameData.NamePlural ?? "NULLs";
+            GameData.NamePlural = GameData.NamePlural;
             // TODO: this needs to be pulled in from pcap data. Missing
             // GameData.Priority = baseAceObject.Priority;
             GameData.RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
@@ -76,24 +75,13 @@ namespace ACE.Entity
             GameData.UiEffects = (UiEffects?)baseAceObject.UiEffects;
             GameData.Usable = (Usable?)baseAceObject.ItemUseable;
             GameData.UseRadius = baseAceObject.UseRadius;
+            GameData.ValidLocations = (EquipMask?)baseAceObject.ValidLocations;
             GameData.Value = baseAceObject.Value;
             GameData.Workmanship = baseAceObject.Workmanship;
 
-            // Put is in for Ripley - these are the fields I want to write that he was concerned with.
-            if ((Type & (ObjectType.Creature | ObjectType.LifeStone | ObjectType.Portal)) == 0)
-            {
-                // because this comes from PCAP data - on create we are not animating.
-                PhysicsData.AnimationFrame = 0x65;
+            WeenieFlags = SetWeenieHeaderFlag();
+            WeenieFlags2 = SetWeenieHeaderFlag2();
 
-                // Container will always be 0 or a value and we should write it.
-                // Not sure if the align packs us out with 0's may be redundant Og II
-                WeenieFlags &= ~WeenieHeaderFlag.Container;
-
-                // Creating from a pcap of the weenie - this will be set by the loot generation factory. Og II
-                PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Parent;
-                if (baseAceObject.ValidLocations != null)
-                    GameData.ValidLocations = (EquipMask)baseAceObject.ValidLocations;
-            }
             baseAceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
             baseAceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             baseAceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));

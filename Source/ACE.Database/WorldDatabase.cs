@@ -127,6 +127,11 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
             if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
             {
+                apo.AceObjectPropertiesInt = GetAceObjectPropertiesInt(apo.AceObjectId);
+                apo.AceObjectPropertiesBigInt = GetAceObjectPropertiesBigInt(apo.AceObjectId);
+                apo.AceObjectPropertiesBool = GetAceObjectPropertiesBool(apo.AceObjectId);
+                apo.AceObjectPropertiesDouble = GetAceObjectPropertiesDouble(apo.AceObjectId);
+                apo.AceObjectPropertiesString = GetAceObjectPropertiesString(apo.AceObjectId);
                 apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
                 apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
                 apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);

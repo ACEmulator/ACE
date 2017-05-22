@@ -12,7 +12,7 @@ namespace ACE.Factories
             var results = new List<WorldObject>();
 
             foreach (var aceO in sourceObjects)
-            {                
+            {
                 var ot = (ObjectType)aceO.ItemType;
                 var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 

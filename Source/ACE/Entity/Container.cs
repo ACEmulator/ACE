@@ -32,10 +32,8 @@ namespace ACE.Entity
 
                 GameData.Burden += inventoryItem.GameData.Burden;
                 inventoryItem.GameData.ContainerId = Guid.Full;
-                inventoryItem.WeenieFlags |= WeenieHeaderFlag.Container;
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-                inventoryItem.PositionFlag = UpdatePositionFlag.None;
                 inventoryItem.PhysicsData.Position = null;
+                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
             }
         }
 
@@ -43,14 +41,18 @@ namespace ACE.Entity
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
             GameData.Burden -= inventoryItem.GameData.Burden;
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                           | UpdatePositionFlag.Placement
-                                           | UpdatePositionFlag.ZeroQy
-                                           | UpdatePositionFlag.ZeroQx;
+
             inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
-            inventoryItem.GameData.ContainerId = 0;
-            inventoryItem.GameData.Wielder = 0;
+            // TODO: Write a method to set this based on data.
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
+
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag();
+            inventoryItem.GameData.ContainerId = null;
+            inventoryItem.GameData.Wielder = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
 
             lock (inventoryMutex)
             {

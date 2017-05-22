@@ -1,26 +1,14 @@
-﻿namespace ACE.Factories
+﻿using ACE.Entity;
+using ACE.Database;
+using ACE.Managers;
+using ACE.Network.Enum;
+using ACE.Network.Sequence;
+
+namespace ACE.Factories
 {
-    using Entity;
-    using Entity.Enum;
-
-    using Database;
-
-    using Managers;
-    using Network.Enum;
-    using Network.Sequence;
-
     public class LootGenerationFactory
     {
-        // This is throw away code to understand the world object creation process.
-
-        public static void AddToContainer(WorldObject inventoryItem, Container container)
-        {
-            inventoryItem.GameData.ContainerId = container.Guid.Full;
-            inventoryItem.GameData.Burden += inventoryItem.GameData.Burden;
-            container.AddToInventory(inventoryItem);
-        }
-
-        public static void Spawn(WorldObject inventoryItem, Position position)
+       public static void Spawn(WorldObject inventoryItem, Position position)
         {
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
