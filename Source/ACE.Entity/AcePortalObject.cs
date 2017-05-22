@@ -4,19 +4,19 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("vw_ace_portal_object")]
-    [DbGetList("vw_ace_portal_object", 14, "baseAceObjectId")]
+    [DbGetList("vw_ace_portal_object", 14, "AceObjectId")]
     public class AcePortalObject : AceObject
     {
-        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("AceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public override uint AceObjectId { get; set; }
 
        public Position DestPosition
         {
-            get {
-                if (DestLandblockId == null)
+            get
+            {
+                if ((DestLandblockId == null) || (DestPosX == null) || (DestPosY == null) || (DestPosZ == null) || (DestQZ == null) || (DestQW == null))
                     return null;
-                else
-                    return new Position(DestLandblockId.Value, DestPosX.Value, DestPosY.Value, DestPosZ.Value, DestQX, DestQY, DestQZ.Value, DestQW.Value);
+                return new Position(DestLandblockId.Value, DestPosX.Value, DestPosY.Value, DestPosZ.Value, DestQX, DestQY, DestQZ.Value, DestQW.Value);
             }
         }
 

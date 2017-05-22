@@ -15,7 +15,7 @@ namespace ACE.Entity
             get { return new Position(Landblock, PosX, PosY, PosZ, QX, QY, QZ, QW); }
         }
 
-        [DbField("landblock", (int)MySqlDbType.UInt16)]
+        [DbField("landblock", (int)MySqlDbType.UInt32)]
         public uint Landblock { get; set; }
 
         [DbField("posX", (int)MySqlDbType.Float)]

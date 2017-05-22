@@ -44,7 +44,7 @@ namespace ACE.Database
                 typeof(BaseAceObject),
                 ConstructedStatementType.Get);
 
-            // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
@@ -124,7 +124,7 @@ namespace ACE.Database
         public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
         {
             var apo = new AcePortalObject();
-            var criteria = new Dictionary<string, object> { { "baseAceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
             if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
             {
                 apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
@@ -136,12 +136,17 @@ namespace ACE.Database
             return null;
         }
 
-        public List<AceObject> GetObjectsByLandblock(ushort landblock)
+        public List<AceObject> GetObjectsByLandblock(uint landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
             objects.ForEach(o =>
             {
+                o.AceObjectPropertiesInt = GetAceObjectPropertiesInt(o.AceObjectId);
+                o.AceObjectPropertiesBigInt = GetAceObjectPropertiesBigInt(o.AceObjectId);
+                o.AceObjectPropertiesBool = GetAceObjectPropertiesBool(o.AceObjectId);
+                o.AceObjectPropertiesDouble = GetAceObjectPropertiesDouble(o.AceObjectId);
+                o.AceObjectPropertiesString = GetAceObjectPropertiesString(o.AceObjectId);
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
