@@ -1,8 +1,28 @@
 # ACEmulator Change Log
 
-### 2017-05-19
+### 2017-05-23
 [OptimShi]
 * Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event.
+
+### 2017-05-21
+[OptimShi]
+* Finished parsing the client_cell.dat file with the CLandblockInfo type (xxyyFFFE files), along with supporting classes. This makes the client_cell.dat reading complete.
+
+### 2017-05-19
+[fantoms]
+* Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
+* Added `MaximumAllowedSessions` to the `ConfigManager` and the `Config.json.example` file.
+* Began using the variable in the `WorldManager.cs` server initalization step, allowing usersr to configure the max allowed sessions.
+
+### 2017-05-17
+[fantoms]
+* Added the debug command `listplayers`, that will list all players currently connected too the server.
+
+[ddevec]
+* Added "Tick" functionality to WorldObjects.
+* CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
+* Creatures now update their vitals on Tick.
+* Players notify their client session on vital changes.
 
 ### 2017-05-15
 [StackOverflow]

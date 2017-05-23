@@ -623,8 +623,9 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to print out all of the saved character positions.
+        /// Debug command to learn a spell.
         /// </summary>
+        /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
         [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
             "@learnspell")]
@@ -661,6 +662,27 @@ namespace ACE.Command.Handlers
                 var errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(errorMessage);
             }
+        }
+
+        /// <summary>
+        /// Debug command to print out all of the active players connected too the server.
+        /// </summary>
+        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Displays all of the active players connected too the serve.",
+            "@players")]
+        public static void HandleListPlayers(Session session, params string[] parameters)
+        {
+            uint playerCounter = 0;
+            // Build a string message containing all available characters and send as a System Chat message
+            string message = "";
+            foreach (Session playerSession in WorldManager.GetAll(false))
+            {
+                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
+                playerCounter++;
+            }
+            message += $"Total connected Players: {playerCounter}\n";
+            var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(listPlayersMessage);
         }
     }
 }
