@@ -193,7 +193,8 @@ namespace ACE.Entity
             if (GameData.ValidLocations != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
 
-            if (GameData.Location != null)
+            // You can't be in a wielded location if you don't have a weilder.   This is a gurad against crap data. Og II
+            if ((GameData.Location != null) && (GameData.Location != 0) && (GameData.Wielder != null) && (GameData.Wielder != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 
             if (GameData.Priority != null)
@@ -208,7 +209,7 @@ namespace ACE.Entity
             if ((GameData.Script != null) && (GameData.Script != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.Script;
 
-            if (GameData.Workmanship != null)
+            if ((GameData.Workmanship != null) && ((uint)GameData.Workmanship != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
             // This probably needs to be fixed.   Character was loading a null burden
@@ -228,16 +229,16 @@ namespace ACE.Entity
                 weenieHeaderFlag |= WeenieHeaderFlag.HookItemTypes;
 
             if (GameData.Monarch != null)
-            weenieHeaderFlag |= WeenieHeaderFlag.Monarch;
+                weenieHeaderFlag |= WeenieHeaderFlag.Monarch;
 
             if (GameData.HookType != null)
-            weenieHeaderFlag |= WeenieHeaderFlag.HookType;
+                weenieHeaderFlag |= WeenieHeaderFlag.HookType;
 
             if ((GameData.IconOverlay != null) && (GameData.IconOverlay != 0))
-            weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
+                weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
-            if (GameData.Material != null)
-            weenieHeaderFlag |= WeenieHeaderFlag.Material;
+            // if (GameData.Material != null)
+            //    weenieHeaderFlag |= WeenieHeaderFlag.Material;
 
             return weenieHeaderFlag;
         }
@@ -246,16 +247,16 @@ namespace ACE.Entity
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
-            if (GameData.IconUnderlay != null)
+            if ((GameData.IconUnderlay != null) && (GameData.IconUnderlay != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
-           if (GameData.Cooldown != null)
+            if ((GameData.Cooldown != null) && (GameData.Cooldown != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
 
-            if (GameData.CooldownDuration != null)
+            if ((GameData.CooldownDuration != null) && (GameData.CooldownDuration != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.CooldownDuration;
 
-            if (GameData.PetOwner != null)
+            if ((GameData.PetOwner != null) && (GameData.PetOwner != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.PetOwner;
 
             return weenieHeaderFlag2;
@@ -269,6 +270,8 @@ namespace ACE.Entity
             PhysicsData.Serialize(this, writer);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
+            if (WeenieFlags2 != WeenieHeaderFlag2.None)
+                DescriptionFlags |= ObjectDescriptionFlag.AdditionFlags;
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassid);
@@ -299,7 +302,7 @@ namespace ACE.Entity
                 writer.Write((uint?)GameData.Usable ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.UseRadius) != 0)
-                writer.Write(GameData.UseRadius ?? 0.00f);
+                writer.Write(GameData.UseRadius ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)
                 writer.Write(GameData.TargetType ?? 0u);
@@ -308,7 +311,7 @@ namespace ACE.Entity
                 writer.Write((uint?)GameData.UiEffects ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0)
-                writer.Write((byte?)GameData.CombatUse ?? 0u);
+                writer.Write((sbyte?)GameData.CombatUse ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
                 writer.Write(GameData.Structure ?? 0u);
@@ -347,7 +350,7 @@ namespace ACE.Entity
                 writer.Write(GameData.Script ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
-                writer.Write(GameData.Workmanship ?? 0.00f);
+                writer.Write(GameData.Workmanship ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
                 writer.Write(GameData.Burden);
@@ -385,7 +388,7 @@ namespace ACE.Entity
                 writer.Write(GameData.Cooldown ?? 0u);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.CooldownDuration) != 0)
-                writer.Write((float?)GameData.CooldownDuration ?? 0.00f);
+                writer.Write((double?)GameData.CooldownDuration ?? 0u);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
                 writer.Write(GameData.PetOwner ?? 0u);

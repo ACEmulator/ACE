@@ -6,7 +6,7 @@ namespace ACE.Network.Enum
     public enum WeenieHeaderFlag : uint
     {
         None                        = 0x00000000,
-        PluralName                   = 0x00000001,
+        PluralName                  = 0x00000001,
         ItemCapacity                = 0x00000002,
         ContainerCapacity           = 0x00000004,
         Value                       = 0x00000008,
@@ -16,7 +16,7 @@ namespace ACE.Network.Enum
         UiEffects                   = 0x00000080,
         AmmoType                    = 0x00000100,
         CombatUse                   = 0x00000200,
-        Structure                    = 0x00000400,
+        Structure                   = 0x00000400,
         MaxStructure                = 0x00000800,
         StackSize                   = 0x00001000,
         MaxStackSize                = 0x00002000,

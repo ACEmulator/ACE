@@ -91,7 +91,7 @@ namespace ACE.Entity
             if (ItemsEquipedCount != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
-            if (ObjScale <= 0.00f)
+            if ((ObjScale != null) && (ObjScale >= 0.00f))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
 
             if (Friction <= 0.00f)
@@ -181,7 +181,7 @@ namespace ACE.Entity
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
-                writer.Write(ObjScale ?? 0u);
+                writer.Write(ObjScale ?? 0.00f);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
                 writer.Write(Friction ?? 0.00f);
