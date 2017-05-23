@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2017-05-21
+[Og II]
+* Continued work on Overhaul 
+* re-enabled more constructed statements
+* Most of the work to use existance of data to set flags for both phyics and weenieHeaderFlags - some cleanup remains - either logic issues or bad data
+* modifed cirand to take an optional second parameter to spawn X items at a time.   This speeds up testing.   I set a default to 10 if you ommit the second parameter.
+* base_ace_object and ace_object both seem to be loading.
+* updated or created several views.
+* have not tested with Ripley's new data export - I did not want to add a second variable to testing.   
+* Next steps - use Ripley's data, create needed views, re-enable door, portal, NPC --- all the world things.
+
 ### 2017-05-17
 [Og II]
 * Continued work on Overhaul 

@@ -1,11 +1,7 @@
 ﻿using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Factories
 {
@@ -13,26 +9,25 @@ namespace ACE.Factories
     {
         public static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
         {
-            List<WorldObject> results = new List<WorldObject>();
+            var results = new List<WorldObject>();
 
             foreach (var aceO in sourceObjects)
             {
-                ObjectType ot = (ObjectType)aceO.ItemType;
-                ObjectDescriptionFlag oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
+                var ot = (ObjectType)aceO.ItemType;
+                var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 
                 if ((oDescFlag & ObjectDescriptionFlag.LifeStone) != 0)
                 {
                     results.Add(new Lifestone(aceO));
                     continue;
                 }
-                else if ((oDescFlag & ObjectDescriptionFlag.Portal) != 0)
+                if ((oDescFlag & ObjectDescriptionFlag.Portal) != 0)
                 {
-                    AcePortalObject acePO = DatabaseManager.World.GetPortalObjectsByAceObjectId(aceO.AceObjectId);
-                    
+                    var acePO = DatabaseManager.World.GetPortalObjectsByAceObjectId(aceO.AceObjectId);
                     results.Add(new Portal(acePO));
                     continue;
                 }
-                else if ((oDescFlag & ObjectDescriptionFlag.Door) != 0)
+                if ((oDescFlag & ObjectDescriptionFlag.Door) != 0)
                 {
                     results.Add(new Door(aceO));
                     continue;

@@ -10,7 +10,7 @@ namespace ACE.Database
 
         AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId);
 
-        List<AceObject> GetObjectsByLandblock(ushort landblock);
+        List<AceObject> GetObjectsByLandblock(uint landblock);
 
         List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
 
