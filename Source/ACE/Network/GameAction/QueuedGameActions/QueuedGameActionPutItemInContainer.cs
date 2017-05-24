@@ -26,7 +26,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             var playerGuid = new ObjectGuid(ObjectId);
             var inventoryGuid = new ObjectGuid(SecondaryObjectId);
 
-            var inventoryItem = OpenWorldManager.OpenWorld.ReadOnlyClone(inventoryGuid);
+            var inventoryItem = LandManager.OpenWorld.ReadOnlyClone(inventoryGuid);
 
                 float arrivedRadiusSquared = 0.00f;
                 bool validGuids;
@@ -53,14 +53,14 @@ namespace ACE.Network.GameAction.QueuedGameActions
         /// <returns></returns>
         public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
         {
-            var playerPosition = OpenWorldManager.OpenWorld.ReadOnlyClone(playerGuid).Location;
-            var targetPosition = OpenWorldManager.OpenWorld.ReadOnlyClone(targetGuid).Location;
+            var playerPosition = LandManager.OpenWorld.ReadOnlyClone(playerGuid).Location;
+            var targetPosition = LandManager.OpenWorld.ReadOnlyClone(targetGuid).Location;
 
             if (playerPosition != null && targetPosition != null)
             {
                 validGuids = true;
 
-                var wo = OpenWorldManager.OpenWorld.ReadOnlyClone(targetGuid);
+                var wo = LandManager.OpenWorld.ReadOnlyClone(targetGuid);
                 if (wo != null)
                 {
                     var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup);

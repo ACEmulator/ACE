@@ -10,28 +10,47 @@ using ACE.Network.GameAction;
 using System.Threading;
 using ACE.Database;
 using ACE.Factories;
+using ACE.Network;
 
-namespace ACE.LandManagers
+namespace ACE.InGameManager
 {
-    public class OpenWorld : LandMediator
+    public class GameWorld
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         private readonly object objectCacheLocker = new object();
         private Dictionary<ObjectGuid, WorldObject> worldobjects = new Dictionary<ObjectGuid, WorldObject>();
-        private Dictionary<LandblockId, LandblockId> landblocks = new Dictionary<LandblockId, LandblockId>();
+        private Dictionary<uint, LandblockId> landblocks = new Dictionary<uint, LandblockId>();
 
+        private bool running;
         private const float maxobjectRange = 20000;
         private const float maxobjectGhostRange = 40000;
-        private bool running;
+        private GameConcreteMediator meditor;
 
-        public override WorldObject ReadOnlyClone(ObjectGuid objectguid)
+        public GameWorld(GameConcreteMediator meditor)
+        {
+            this.meditor = meditor;
+        }
+
+        public void PlayerEnterWorld(Session session)
+        {
+        }
+
+        public void PlayerExitWorld(Session session)
+        {
+        }
+
+        internal void Tick()
+        {
+            throw new NotImplementedException();
+        }
+
+        public WorldObject ReadOnlyClone(ObjectGuid objectguid)
         {
             lock (objectCacheLocker)
             {
                 if (worldobjects.ContainsKey(objectguid))
                 {
-                    // stodo : mark as read only..
+                    // todo : mark as read only..
                     return worldobjects[objectguid];
                 }
                 else
@@ -39,7 +58,7 @@ namespace ACE.LandManagers
             }
         }
 
-        public override void Register(WorldObject wo)
+        public void Register(WorldObject wo)
         {
             lock (objectCacheLocker)
             {
@@ -75,10 +94,10 @@ namespace ACE.LandManagers
         public void LoadLandBlocksById(LandblockId landblockid)
         {
             // load world objects on this landblock and neghbor landblocks
-            if (!landblocks.ContainsKey(landblockid))
+            if (!landblocks.ContainsKey(landblockid.Raw))
             {
                 // land block not already loaded.
-                landblocks.Add(landblockid, landblockid);
+                landblocks.Add(landblockid.Raw  , landblockid);
                 var objects = DatabaseManager.World.GetObjectsByLandblock(landblockid.Landblock);
                 var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
                 factoryObjects.ForEach(fo => this.Register(fo));
@@ -86,7 +105,7 @@ namespace ACE.LandManagers
             }
         }
 
-        public override void UnRegister(WorldObject wo)
+        public void UnRegister(WorldObject wo)
         {
             lock (objectCacheLocker)
             {
@@ -97,14 +116,13 @@ namespace ACE.LandManagers
             }
         }
 
-        public override void Update(WorldObject wo)
+        public void Update(WorldObject wo)
         {
             lock (objectCacheLocker)
             {
                 if (worldobjects.ContainsKey(wo.Guid))
                 {
                     worldobjects[wo.Guid] = wo;
-                    wo.LandMediator = this;
                 }
             }
         }
@@ -121,7 +139,7 @@ namespace ACE.LandManagers
         }
 
         // stodo fix this.. it needs some work.  needs abstracted more.. to tied
-        public override void Broadcast(BroadcastEventArgs args, Quadrant quadrant)
+        public void Broadcast(BroadcastEventArgs args)
         {
             WorldObject wo = args.Sender;
             List<Player> players = null;
@@ -191,11 +209,6 @@ namespace ACE.LandManagers
             }
         }
 
-        public void StartUseTime()
-        {
-            running = true;
-            new Thread(UseTime).Start();
-        }
 
         public void UseTime()
         {
@@ -290,7 +303,7 @@ namespace ACE.LandManagers
                         }
                     });
 
-                    Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), Quadrant.All);
+                    Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo));
                 });
                 // despawn objects
                 despawnObjects.ForEach(deo =>
@@ -326,5 +339,6 @@ namespace ACE.LandManagers
                     return;
             }
         }
+        
     }
 }

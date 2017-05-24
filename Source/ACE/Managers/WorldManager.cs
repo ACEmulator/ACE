@@ -11,7 +11,7 @@ using ACE.Entity;
 using ACE.Network;
 
 using log4net;
-using ACE.LandManagers;
+using ACE.InGameManager;
 
 namespace ACE.Managers
 {

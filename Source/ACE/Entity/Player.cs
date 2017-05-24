@@ -237,7 +237,10 @@ namespace ACE.Entity
             // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            OpenWorldManager.OpenWorld.Register(inventoryItem);
+
+
+            // todo... broadcast..
+            // LandManager.OpenWorld.Register(inventoryItem);
 
             // This may not be needed when we fix landblock update object -
             // TODO: Og II - check this later to see if it is still required.
@@ -1546,7 +1549,7 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
 
             // remove the player from landblock management
-            OpenWorldManager.OpenWorld.UnRegister(this);
+            LandManager.OpenWorld.UnRegister(this);
 
             if (!clientSessionTerminatedAbruptly)
             {

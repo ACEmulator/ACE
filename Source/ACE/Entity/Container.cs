@@ -34,7 +34,7 @@ namespace ACE.Entity
                 GameData.Burden += inventoryItem.GameData.Burden;
                 inventoryItem.GameData.ContainerId = Guid.Full;
                 if (inventoryItem.PhysicsData.Position != null)
-                    OpenWorldManager.OpenWorld.UnRegister(inventoryItem);
+                    LandManager.OpenWorld.UnRegister(inventoryItem);
                 inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
                 inventoryItem.PositionFlag = UpdatePositionFlag.None;
                 inventoryItem.PhysicsData.Position = null;

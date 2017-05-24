@@ -21,7 +21,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
 
         protected override void Handle(Player player)
         {
-            var obj = OpenWorldManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
+            var obj = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
 
             if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
                 (obj as Lifestone).OnUse(player);

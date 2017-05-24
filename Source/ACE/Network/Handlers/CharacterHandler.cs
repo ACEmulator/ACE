@@ -54,7 +54,7 @@ namespace ACE.Network.Handlers
             }
 
             // LandblockManager.PlayerEnterWorld(session);
-            OpenWorldManager.PlayerEnterWorld(session);
+            LandManager.PlayerEnterWorld(session);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]

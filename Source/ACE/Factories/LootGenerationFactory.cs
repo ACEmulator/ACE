@@ -26,7 +26,7 @@
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
             inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            OpenWorldManager.OpenWorld.Register(inventoryItem);
+            LandManager.OpenWorld.Register(inventoryItem);
         }
 
         public static WorldObject CreateTestWorldObject(ushort weenieId)
