@@ -5,16 +5,9 @@ using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -83,28 +76,24 @@ namespace ACE.Entity
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.DefaultScale;
-
-            // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsDescriptionFlag;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
             Icon = aco.IconId;
 
-            // TODO: Check to see if we should default a 0 to fix these possible null errors Og II
-            GameData.ContainerCapacity = (byte)aco.ContainersCapacity;
+            GameData.ContainerCapacity = aco.ContainersCapacity;
             GameData.ItemCapacity = aco.ItemsCapacity;
-            GameData.Usable = (Usable)aco.ItemUseable;
+            GameData.Usable = (Usable?)aco.ItemUseable;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            GameData.RadarColor = (RadarColor)aco.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior)aco.Radar;
+            GameData.RadarColor = (RadarColor?)aco.BlipColor;
+            GameData.RadarBehavior = (RadarBehavior?)aco.Radar;
             GameData.UseRadius = aco.UseRadius;
 
             aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
             aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = (uint)aco.PaletteId;
+            ModelData.PaletteGuid = aco.PaletteId;
         }
 
         private void SetAbilities(AceCreatureObject aco)

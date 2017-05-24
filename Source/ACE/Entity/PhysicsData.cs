@@ -1,4 +1,5 @@
-﻿using ACE.Entity.Enum;
+﻿using System;
+using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.Sequence;
@@ -8,6 +9,8 @@ using System.IO;
 
 namespace ACE.Entity
 {
+    using System.Diagnostics;
+
     public class PhysicsData
     {
         public uint CSetup;
@@ -25,19 +28,19 @@ namespace ACE.Entity
         // these are all related
         public uint ItemsEquipedCount;
         public uint Parent;
-        public EquipMask EquipperPhysicsDescriptionFlag;
-        private List<EquippedItem> children = new List<EquippedItem>();
+        public EquipMask? EquipperPhysicsDescriptionFlag;
+        private readonly List<EquippedItem> children = new List<EquippedItem>();
 
         public float? ObjScale;
         public float? Friction;
-        public float? Elastcity;
+        public float? Elasticity;
         public uint? AnimationFrame;
         public AceVector3 Acceleration;
-        public float Translucency;
+        public float? Translucency;
         public AceVector3 Velocity = null;
-        public AceVector3 Omega = new AceVector3(0f, 0f, 0f);
+        public AceVector3 Omega = null;
 
-        private MotionState currentMotionState = null;
+        private MotionState currentMotionState;
         public MotionState CurrentMotionState
         {
             get { return currentMotionState; }
@@ -47,27 +50,81 @@ namespace ACE.Entity
         public uint? DefaultScript;
         public float? DefaultScriptIntensity;
 
-        private SequenceManager sequences;
+        private readonly SequenceManager sequences;
 
         public PhysicsData(SequenceManager sequences)
         {
             this.sequences = sequences;
         }
 
-        public void AddEquipedItem(uint index, EquipMask equiperflag)
+        public void AddEquipedItem(uint index, EquipMask equipflag)
         {
-            EquippedItem newitem = new EquippedItem(index, equiperflag);
+            var newitem = new EquippedItem(index, equipflag);
             children.Add(newitem);
         }
 
+        public PhysicsDescriptionFlag SetPhysicsDescriptionFlag()
+        {
+            var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
+
+            if (currentMotionState != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
+
+            if ((AnimationFrame != null) && (AnimationFrame != 0))
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
+
+            if (Position != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+
+            // NOTE: While we fill with 0 the flag still has to reflect that we are not really making this entry for the client.
+            if (MTableResourceId != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.MTable;
+
+            if (Stable != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Stable;
+
+            if (Petable != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Petable;
+
+            if (CSetup != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
+
+            if (ItemsEquipedCount != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
+
+            if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
+
+            if (Friction != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Friction;
+
+            if (Elasticity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Elasticity;
+
+            if (Translucency != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
+
+            if (Velocity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
+
+            if (Acceleration != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
+
+            if (Omega != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
+
+            if (DefaultScript != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
+
+            if (DefaultScriptIntensity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
+
+            return physicsDescriptionFlag;
+        }
         // todo: return bytes of data for network write ? ?
         public void Serialize(WorldObject wo, BinaryWriter writer)
         {
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) > 0 && this.Velocity == null)
-            {
-                // velocity is null, but the flag wants to include it.  unset the flag.
-                PhysicsDescriptionFlag ^= PhysicsDescriptionFlag.Velocity;
-            }
+            PhysicsDescriptionFlag = SetPhysicsDescriptionFlag();
 
             writer.Write((uint)PhysicsDescriptionFlag);
 
@@ -95,31 +152,31 @@ namespace ACE.Entity
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
-                writer.Write((uint)AnimationFrame);
+                writer.Write((AnimationFrame ?? 0u));
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
                 Position.Serialize(writer);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
-                writer.Write((uint)MTableResourceId);
+                writer.Write(MTableResourceId);
 
             // stable_id =  BYTE1(v12) & 8 )  =  8
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
-                writer.Write((uint)Stable);
+                writer.Write(Stable);
 
             // setup id
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
-                writer.Write((uint)Petable);
+                writer.Write(Petable);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
-                writer.Write((uint)CSetup);
+                writer.Write(CSetup);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
-                writer.Write((uint)ItemsEquipedCount);
-                foreach (EquippedItem child in children)
+                writer.Write(ItemsEquipedCount);
+                foreach (var child in children)
                 {
-                    writer.Write((uint)child.Guid);
+                    writer.Write(child.Guid);
                     writer.Write((uint)child.EquipMask);
                 }
             }
@@ -128,16 +185,18 @@ namespace ACE.Entity
                 writer.Write(ObjScale ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
-                writer.Write(Friction ?? 0.00f);
+                writer.Write(Friction ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
-                writer.Write(Elastcity ?? 0.00f);
+                writer.Write(Elasticity ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
-                writer.Write(Translucency);
+                writer.Write(Translucency ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
+                Debug.Assert(Velocity != null, "Velocity != null");
+                // We do a null check above and unset the flag so this has to be good.
                 Velocity.Serialize(writer);
             }
 
@@ -155,7 +214,7 @@ namespace ACE.Entity
                 writer.Write(DefaultScript ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(DefaultScriptIntensity ?? 0.00f);
+                writer.Write(DefaultScriptIntensity ?? 0u);
 
             // TODO: There are 9 of these - but we need to research the correct sequence.   I know that the last one is instance (totalLogins) Og II
             writer.Write(sequences.GetCurrentSequence(SequenceType.ObjectPosition));

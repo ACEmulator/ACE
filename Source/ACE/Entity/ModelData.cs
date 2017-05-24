@@ -48,7 +48,7 @@ namespace ACE.Entity
 
         public void AddModel(byte index, uint modelresourceid)
         {
-            Model newmodel = new Model(index, modelresourceid);
+            var newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);
         }
 
@@ -62,21 +62,21 @@ namespace ACE.Entity
 
             if ((modelPalettes.Count > 0) && (PaletteGuid != null))
                 writer.WritePackedDwordOfKnownType((uint)PaletteGuid, 0x4000000);
-            foreach (ModelPalette palette in modelPalettes)
+            foreach (var palette in modelPalettes)
             {
                 writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);
                 writer.Write((byte)palette.Offset);
                 writer.Write((byte)palette.Length);
             }
 
-            foreach (ModelTexture texture in modelTextures)
+            foreach (var texture in modelTextures)
             {
                 writer.Write((byte)texture.Index);
                 writer.WritePackedDwordOfKnownType(texture.OldTexture, 0x5000000);
                 writer.WritePackedDwordOfKnownType(texture.NewTexture, 0x5000000);
             }
 
-            foreach (Model model in models)
+            foreach (var model in models)
             {
                 writer.Write((byte)model.Index);
                 writer.WritePackedDwordOfKnownType(model.ModelID, 0x1000000);

@@ -19,7 +19,7 @@ namespace ACE.Entity
         {
             vector.X = x; vector.Y = y; vector.Z = z;
         }
-        
+
         public Vector3 Forward()
         {
             // todo figure out how to calculate vector forward for AC.

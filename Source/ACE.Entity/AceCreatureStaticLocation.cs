@@ -1,6 +1,5 @@
 ﻿using ACE.Common;
 using MySql.Data.MySqlClient;
-using System.Collections.Generic;
 
 namespace ACE.Entity
 {
