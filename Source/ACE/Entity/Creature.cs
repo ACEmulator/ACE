@@ -11,6 +11,7 @@ using ACE.StateMachines;
 using ACE.StateMachines.Enum;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using ACE.Network.GameAction.QueuedGameActions;
 
 namespace ACE.Entity
 {
@@ -207,7 +208,7 @@ namespace ACE.Entity
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
+            QueuedGameAction actionDeath = new QueuedGameActionMovementEvent(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent, Location.LandblockId);
             session.Player.AddToActionQueue(actionDeath);
 
             // Create Corspe and set a location on the ground
@@ -223,12 +224,12 @@ namespace ACE.Entity
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+                QueuedGameAction removeCreature = new QueuedGameActionDeleteObject(this.Guid.Full, this, true, true, Location.LandblockId);
                 session.Player.AddToActionQueue(removeCreature);
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            QueuedGameAction addCorpse = new QueuedGameActionCreateObject(this.Guid.Full, corpse, true, Location.LandblockId);
             session.Player.AddToActionQueue(addCorpse);
         }
 

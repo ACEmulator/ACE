@@ -262,39 +262,20 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
-        /// </summary>
-        /// <param name="playerGuid"></param>
-        /// <param name="targetGuid"></param>
-        /// <param name="arrivedRadiusSquared"></param>
-        /// <param name="arrivedRadiusSquared"></param>
-        /// <returns></returns>
-        public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
-        {
-            var playerPosition = GetWorldObjectPosition(playerGuid);
-            var targetPosition = GetWorldObjectPosition(targetGuid);
-            if (playerPosition != null && targetPosition != null)
-            {
-                validGuids = true;
-                arrivedRadiusSquared = GetWorldObjectEffectiveUseRadius(targetGuid);
-                return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
-            }
-            arrivedRadiusSquared = 0.00f;
-            validGuids = false;
-            return false;
-        }
-
-        /// <summary>
-        /// This method is subject to removal.  It ought not exist.  Please DO NOT USE IT.
+        /// This method returns read only version of world object
         /// </summary>
         public WorldObject GetWorldObject(ObjectGuid objectId)
         {
-            Log($"Getting WorldObject {objectId.Full:X}");
+            Log($"Copying Readonly WorldObject {objectId.Full:X}");
+
+            WorldObject wo = new WorldObject(ObjectType.None);
 
             lock (objectCacheLocker)
             {
-                return worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
+                wo = worldObjects.ContainsKey(objectId) ? (worldObjects[objectId]) : null;
             }
+
+            return wo;
         }
 
         public Position GetWorldObjectPosition(ObjectGuid objectId)
@@ -324,24 +305,6 @@ namespace ACE.Entity
             return 0.00f;
         }
 
-        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleMovementEvent(WorldObject sender, UniversalMotion motion)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
-            Broadcast(args, true, Quadrant.All);
-        }
-
         public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
         {
             // only players receive this
@@ -356,16 +319,10 @@ namespace ACE.Entity
             Broadcast(args, true, Quadrant.All);
         }
 
-        public void HandleDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(sender, deathMessageArgs);
-            Broadcast(args, false, Quadrant.All);
-        }
-
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
-        private void Broadcast(BroadcastEventArgs args, bool propogate, Quadrant quadrant)
+        public void Broadcast(BroadcastEventArgs args, bool propogate, Quadrant quadrant)
         {
             WorldObject wo = args.Sender;
             List<Player> players = null;
@@ -584,272 +541,10 @@ namespace ACE.Entity
 
         private void HandleGameAction(QueuedGameAction action, Player player)
         {
-            switch (action.ActionType)
-            {
-                case GameActionType.TalkDirect:
-                    {
-                        // TODO: remove this hack (using TalkDirect) ASAP
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        DeathMessageArgs d = new DeathMessageArgs(action.ActionBroadcastMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
-                        HandleDeathMessage(obj, d);
-                        break;
-                    }
-                case GameActionType.TeleToHouse:
-                case GameActionType.TeleToLifestone:
-                case GameActionType.TeleToMansion:
-                case GameActionType.TeleToMarketPlace:
-                case GameActionType.TeleToPkArena:
-                case GameActionType.TeleToPklArena:
-                    {
-                        player.Teleport(action.ActionLocation);
-                        break;
-                    }
-                case GameActionType.ApplyVisualEffect:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var particleEffect = (PlayScript)action.SecondaryObjectId;
-                        HandleParticleEffectEvent(obj, particleEffect);
-                        break;
-                    }
-                case GameActionType.ApplySoundEffect:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var soundEffect = (Sound)action.SecondaryObjectId;
-                        HandleSoundEvent(obj, soundEffect);
-                        break;
-                    }
-                case GameActionType.IdentifyObject:
-                    {
-                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
-                        player.Session.Network.EnqueueSend(identifyResponse);
-                        break;
-                    }
-                case GameActionType.Buy:
-                    {
-                        // todo: lots, need vendor list, money checks, etc.
-
-                        var money = new GameMessagePrivateUpdatePropertyInt(player.Session, PropertyInt.CoinValue, 4000);
-                        var sound = new GameMessageSound(player.Guid, Sound.PickUpItem, 1);
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
-
-                        // send updated vendor inventory.
-                        player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, action.ObjectId));
-
-                        // this is just some testing code for now.
-                        foreach (ItemProfile item in action.ProfileItems)
-                        {
-                            // todo: something with vendor id and profile list... iid list from vendor dbs.
-                            // todo: something with amounts..
-
-                            if (item.Iid == 5)
-                            {
-                                while (item.Amount > 0)
-                                {
-                                    item.Amount--;
-                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
-                                    LootGenerationFactory.AddToContainer(loot, player);
-                                    player.TrackObject(loot);
-                                }
-                                var rudecomment = "Who do you think you are, Johny Apple Seed ?";
-                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                                player.Session.Network.EnqueueSend(buyrudemsg);
-                            }
-                            else if (item.Iid == 10)
-                            {
-                                while (item.Amount > 0)
-                                {
-                                    item.Amount--;
-                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
-                                    LootGenerationFactory.AddToContainer(loot, player);
-                                    player.TrackObject(loot);
-                                }
-                                var rudecomment = "That smells awful, Enjoy eating it!";
-                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                                player.Session.Network.EnqueueSend(buyrudemsg);
-                            }
-                        }
-                        break;
-                    }
-                case GameActionType.PutItemInContainer:
-                    {
-                        var playerGuid = new ObjectGuid(action.ObjectId);
-                        var inventoryGuid = new ObjectGuid(action.SecondaryObjectId);
-
-                        // Has to be a player so need to check before I make the cast.
-                        // If he is not a player, something is bad wrong. Og II
-                        if (playerGuid.IsPlayer())
-                        {
-                            var aPlayer = (Player)GetWorldObject(playerGuid);
-                            var inventoryItem = GetWorldObject(inventoryGuid);
-
-                            float arrivedRadiusSquared = 0.00f;
-                            bool validGuids;
-                            if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
-                                aPlayer.NotifyAndAddToInventory(inventoryItem);
-                            else
-                            {
-                                if (validGuids)
-                                {
-                                    aPlayer.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
-                                    aPlayer.BlockedGameAction = action;
-                                    aPlayer.OnAutonomousMove(inventoryItem.PhysicsData.Position,
-                                                             aPlayer.Sequences, MovementTypes.MoveToObject, inventoryGuid);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                case GameActionType.DropItem:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            var playerId = new ObjectGuid(action.ObjectId);
-                            var inventoryId = new ObjectGuid(action.SecondaryObjectId);
-                            if (playerId.IsPlayer())
-                            {
-                                var aPlayer = (Player)worldObjects[playerId];
-                                aPlayer.NotifyAndDropItem(inventoryId);
-                            }
-                        }
-                        break;
-                    }
-                case GameActionType.MovementEvent:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var motion = action.Motion;
-                        HandleMovementEvent(obj, motion);
-                        break;
-                    }
-                case GameActionType.ObjectCreate:
-                    {
-                        AddWorldObject(action.WorldObject);
-                        break;
-                    }
-                case GameActionType.ObjectDelete:
-                    {
-                        RemoveWorldObject(action.WorldObject.Guid, false);
-                        break;
-                    }
-                case GameActionType.QueryHealth:
-                    {
-                        if (action.ObjectId == 0)
-                        {
-                            // Deselect the formerly selected Target
-                            player.SelectedTarget = 0;
-                            break;
-                        }
-
-                        object target = null;
-                        var targetId = new ObjectGuid(action.ObjectId);
-
-                        // Remember the selected Target
-                        player.SelectedTarget = action.ObjectId;
-
-                        // TODO: once items are implemented check if there are items that can trigger
-                        //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
-                        if (targetId.IsPlayer() || targetId.IsCreature())
-                        {
-                            if (worldObjects.ContainsKey(targetId))
-                                target = worldObjects[targetId];
-
-                            if (target == null)
-                            {
-                                // check adjacent landblocks for the targetId
-                                foreach (var block in adjacencies)
-                                {
-                                    if (block.Value != null)
-                                        if (block.Value.worldObjects.ContainsKey(targetId))
-                                            target = block.Value.worldObjects[targetId];
-                                }
-                            }
-                            if (target != null)
-                            {
-                                float healthPercentage = 0;
-
-                                if (targetId.IsPlayer())
-                                {
-                                    Player tmpTarget = (Player)target;
-                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                                }
-                                if (targetId.IsCreature())
-                                {
-                                    Creature tmpTarget = (Creature)target;
-                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                                }
-                                var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
-                                player.Session.Network.EnqueueSend(updateHealth);
-                            }
-                        }
-
-                        break;
-                    }
-                case GameActionType.Use:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            WorldObject obj = worldObjects[g];
-
-                            if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
-                                (obj as Lifestone).OnUse(player);
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
-                                // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                                (obj as Portal).OnCollide(player);
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
-                                (obj as Door).OnUse(player);
-
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Vendor) != 0)
-                                (obj as Vendor).OnUse(player);
-
-                            // switch (obj.Type)
-                            // {
-                            //    case Enum.ObjectType.Portal:
-                            //        {
-                            //            // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                            //
-                            //            (obj as Portal).OnCollide(player);
-                            //
-                            //            break;
-                            //        }
-                            //    case Enum.ObjectType.LifeStone:
-                            //        {
-                            //            (obj as Lifestone).OnUse(player);
-                            //            break;
-                            //        }
-                            // }
-                        }
-                        break;
-                    }
-            }
+            if (worldObjects.ContainsKey(new ObjectGuid(action.ObjectId)))
+                action.Handler(player);
+            else
+                return;
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)

@@ -10,9 +10,10 @@ using ACE.Network.Motion;
 
 namespace ACE.Entity
 {
-    public abstract class WorldObject
+    public class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private ObjectType none;
 
         public ObjectGuid Guid { get; }
 
@@ -105,6 +106,11 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
 
             PhysicsData = new PhysicsData(Sequences);
+        }
+
+        public WorldObject(ObjectType none)
+        {
+            this.none = none;
         }
 
         public void SetCombatMode(CombatMode newCombatMode)

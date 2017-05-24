@@ -26,6 +26,7 @@ using ACE.Factories;
 using ACE.StateMachines.Enum;
 
 using log4net;
+using ACE.Network.GameAction.QueuedGameActions;
 
 namespace ACE.Entity
 {
@@ -1070,7 +1071,7 @@ namespace ACE.Entity
         /// <param name="teleportType">Must be a teleportation range action type</param>
         public void ActionQueuedTeleport(Position teleportPosition, ObjectGuid objectId, GameActionType teleportType)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, teleportPosition, teleportType);
+            QueuedGameAction action = new QueuedGameActionMovementEvent(objectId.Full, teleportPosition, teleportType, Location.LandblockId);
             AddToActionQueue(action);
         }
 
@@ -1087,7 +1088,7 @@ namespace ACE.Entity
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             // TODO: remove TalkDirect hack and implement a proper mechanism for this.  perhaps a server action queue
-            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect);
+            QueuedGameAction action = new QueuedGameActionDeathMessage(deathMessage, victimId.Full, killerId.Full, Location.LandblockId);
             AddToActionQueue(action);
         }
 
@@ -1104,19 +1105,19 @@ namespace ACE.Entity
 
         public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
+            QueuedGameAction action = new QueuedGameActionApplySoundEffect(objectId.Full, (uint)sound, Location.LandblockId);
             AddToActionQueue(action);
         }
 
         public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect);
+            QueuedGameAction action = new QueuedGameActionApplyVisualEffect(objectId.Full, (uint)effect, Location.LandblockId);
             AddToActionQueue(action);
         }
 
         public void EnqueueMovementEvent(UniversalMotion motion, ObjectGuid objectId)
         {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
+            QueuedGameAction action = new QueuedGameActionMovementEvent(objectId.Full, motion, GameActionType.MovementEvent, Location.LandblockId);
             AddToActionQueue(action);
         }
 
@@ -1542,7 +1543,7 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
 
             // remove the player from landblock management
-            LandblockManager.RemoveObject(this);
+            LandblockManager.RemoveObject(this, true);
 
             if (!clientSessionTerminatedAbruptly)
             {
