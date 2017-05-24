@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-05-23
+[OptimShi]
+* Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event.
+
 ### 2017-05-21
 [OptimShi]
 * Finished parsing the client_cell.dat file with the CLandblockInfo type (xxyyFFFE files), along with supporting classes. This makes the client_cell.dat reading complete.

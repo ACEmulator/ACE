@@ -14,7 +14,6 @@ namespace ACE.DatLoader.FileTypes
 {
     public class CLandblockInfo
     {
-
         // number of EnvCells in the landblock. This should match up to the unique items in the building stab lists.
         public uint NumCells { get; set; } 
 
