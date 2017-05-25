@@ -15,9 +15,9 @@ namespace ACE.DatLoader
 
         public void ExtractLandblockContents(string path)
         {
-            foreach (KeyValuePair<uint, DatFile> entry in this.AllFiles)
+            foreach (var entry in AllFiles)
             {
-                string thisFolder = Path.Combine(path, (entry.Value.ObjectId >> 16).ToString("X4"));
+                var thisFolder = Path.Combine(path, (entry.Value.ObjectId >> 16).ToString("X4"));
 
                 if (!Directory.Exists(thisFolder))
                 {
@@ -25,10 +25,10 @@ namespace ACE.DatLoader
                 }
 
                 // Use the DatReader to get the file data - file blocks can extend over block size.
-                DatReader dr = this.GetReaderForFile(entry.Value.ObjectId);
+                var dr = GetReaderForFile(entry.Value.ObjectId);
 
-                string hex = entry.Value.ObjectId.ToString("X8");
-                string thisFile = Path.Combine(thisFolder, hex + ".bin");
+                var hex = entry.Value.ObjectId.ToString("X8");
+                var thisFile = Path.Combine(thisFolder, hex + ".bin");
                 File.WriteAllBytes(thisFile, dr.Buffer);
             }
         }

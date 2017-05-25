@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.Network.GameEvent.Events
@@ -175,75 +173,75 @@ namespace ACE.Network.GameEvent.Events
 
                 if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
                 {
-                    Writer.Write(this.Session.Player.Strength.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Strength.Base);
-                    Writer.Write(this.Session.Player.Strength.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Strength.Ranks); // ranks
+                    Writer.Write(Session.Player.Strength.Base);
+                    Writer.Write(Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
                 {
-                    Writer.Write(this.Session.Player.Endurance.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Endurance.Base);
-                    Writer.Write(this.Session.Player.Endurance.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Endurance.Ranks); // ranks
+                    Writer.Write(Session.Player.Endurance.Base);
+                    Writer.Write(Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
                 {
-                    Writer.Write(this.Session.Player.Quickness.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Quickness.Base);
-                    Writer.Write(this.Session.Player.Quickness.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Quickness.Ranks); // ranks
+                    Writer.Write(Session.Player.Quickness.Base);
+                    Writer.Write(Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
                 {
-                    Writer.Write(this.Session.Player.Coordination.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Coordination.Base);
-                    Writer.Write(this.Session.Player.Coordination.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Coordination.Ranks); // ranks
+                    Writer.Write(Session.Player.Coordination.Base);
+                    Writer.Write(Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
                 {
-                    Writer.Write(this.Session.Player.Focus.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Focus.Base);
-                    Writer.Write(this.Session.Player.Focus.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Focus.Ranks); // ranks
+                    Writer.Write(Session.Player.Focus.Base);
+                    Writer.Write(Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
                 {
-                    Writer.Write(this.Session.Player.Self.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Self.Base);
-                    Writer.Write(this.Session.Player.Self.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Self.Ranks); // ranks
+                    Writer.Write(Session.Player.Self.Base);
+                    Writer.Write(Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
                 {
-                    Writer.Write(this.Session.Player.Health.Ranks); // ranks
+                    Writer.Write(Session.Player.Health.Ranks); // ranks
                     Writer.Write(0u); // unknown
-                    Writer.Write(this.Session.Player.Health.ExperienceSpent); // xp spent
-                    Writer.Write(this.Session.Player.Health.Current); // current value
+                    Writer.Write(Session.Player.Health.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Health.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
                 {
-                    Writer.Write(this.Session.Player.Stamina.Ranks); // ranks
+                    Writer.Write(Session.Player.Stamina.Ranks); // ranks
                     Writer.Write(0u); // unknown
-                    Writer.Write(this.Session.Player.Stamina.ExperienceSpent); // xp spent
-                    Writer.Write(this.Session.Player.Stamina.Current); // current value
+                    Writer.Write(Session.Player.Stamina.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Stamina.Current); // current value
                 }
 
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
                 {
-                    Writer.Write(this.Session.Player.Mana.Ranks); // ranks
+                    Writer.Write(Session.Player.Mana.Ranks); // ranks
                     Writer.Write(0u); // unknown
-                    Writer.Write(this.Session.Player.Mana.ExperienceSpent); // xp spent
-                    Writer.Write(this.Session.Player.Mana.Current); // current value
+                    Writer.Write(Session.Player.Mana.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Mana.Current); // current value
                 }
             }
 
             // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                var skills = this.Session.Player.Skills;
+                var skills = Session.Player.Skills;
 
                 Writer.Write((ushort)skills.Count);
                 Writer.Write((ushort)0x20); // unknown
@@ -278,7 +276,7 @@ namespace ACE.Network.GameEvent.Events
 
             var optionFlags = DescriptionOptionFlag.CharacterOption2;
             Writer.Write((uint)optionFlags);
-            Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
+            Writer.Write(Session.Player.CharacterOptions.GetCharacterOptions1Flag());
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
@@ -305,7 +303,7 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                Writer.Write(Session.Player.CharacterOptions.GetCharacterOptions2Flag());
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {

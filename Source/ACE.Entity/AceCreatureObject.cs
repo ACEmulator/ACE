@@ -9,7 +9,7 @@ namespace ACE.Entity
     public class AceCreatureObject : BaseAceObject, ICreatureStats
     {
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public ushort WeenieClassId { get; set; }
+        public override uint WeenieClassId { get; set; }
 
         [DbField("baseAceObjectId", (int)MySqlDbType.UInt32)]
         public override uint AceObjectId { get; set; }

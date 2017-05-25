@@ -34,7 +34,7 @@ namespace ACE.Entity
         [DbField("iconUnderlayId", (int)MySqlDbType.UInt32)]
         public uint IconUnderlayId { get; set; }
         /// <summary>
-        /// PhysicsData.CSetup
+        /// CSetup
         /// </summary>
         [DbField("modelTableId", (int)MySqlDbType.UInt32)]
         public uint ModelTableId { get; set; }

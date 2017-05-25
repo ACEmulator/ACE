@@ -13,7 +13,7 @@ namespace ACE.DatLoader
 
         public DatDatabaseTypeAttribute(DatDatabaseType type)
         {
-            this.Type = type;
+            Type = type;
         }
     }
 }

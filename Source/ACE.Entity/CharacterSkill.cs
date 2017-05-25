@@ -13,15 +13,15 @@ namespace ACE.Entity
 
         public SkillStatus Status { get; private set; }
 
-        public uint Ranks { get; set; } 
-        
+        public uint Ranks { get; set; }
+
         public uint UnbuffedValue
         {
             get
             {
                 // TODO: buffs?  not sure where they will go
 
-                var formula = this.Skill.GetFormula();
+                var formula = Skill.GetFormula();
 
                 uint abilityTotal = 0;
                 uint skillTotal = 0;
@@ -32,20 +32,20 @@ namespace ACE.Entity
                         Status == SkillStatus.Trained ||
                         Status == SkillStatus.Specialized)
                     {
-                        Ability abilities = formula.Abilities;
-                        uint str = (uint)((abilities & Ability.Strength) > 0 ? 1 : 0);
-                        uint end = (uint)((abilities & Ability.Endurance) > 0 ? 1 : 0);
-                        uint coo = (uint)((abilities & Ability.Coordination) > 0 ? 1 : 0);
-                        uint qui = (uint)((abilities & Ability.Quickness) > 0 ? 1 : 0);
-                        uint foc = (uint)((abilities & Ability.Focus) > 0 ? 1 : 0);
-                        uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
+                        var abilities = formula.Abilities;
+                        var str = (uint)((abilities & Ability.Strength) > 0 ? 1 : 0);
+                        var end = (uint)((abilities & Ability.Endurance) > 0 ? 1 : 0);
+                        var coo = (uint)((abilities & Ability.Coordination) > 0 ? 1 : 0);
+                        var qui = (uint)((abilities & Ability.Quickness) > 0 ? 1 : 0);
+                        var foc = (uint)((abilities & Ability.Focus) > 0 ? 1 : 0);
+                        var wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
 
-                        abilityTotal += str * this.character.StrengthAbility.UnbuffedValue;
-                        abilityTotal += end * this.character.EnduranceAbility.UnbuffedValue;
-                        abilityTotal += coo * this.character.CoordinationAbility.UnbuffedValue;
-                        abilityTotal += qui * this.character.QuicknessAbility.UnbuffedValue;
-                        abilityTotal += foc * this.character.FocusAbility.UnbuffedValue;
-                        abilityTotal += wil * this.character.SelfAbility.UnbuffedValue;
+                        abilityTotal += str * character.StrengthAbility.UnbuffedValue;
+                        abilityTotal += end * character.EnduranceAbility.UnbuffedValue;
+                        abilityTotal += coo * character.CoordinationAbility.UnbuffedValue;
+                        abilityTotal += qui * character.QuicknessAbility.UnbuffedValue;
+                        abilityTotal += foc * character.FocusAbility.UnbuffedValue;
+                        abilityTotal += wil * character.SelfAbility.UnbuffedValue;
 
                         abilityTotal *= formula.AbilityMultiplier;
                     }
@@ -53,7 +53,7 @@ namespace ACE.Entity
                     skillTotal = abilityTotal / formula.Divisor;
                 }
 
-                skillTotal += this.Ranks;
+                skillTotal += Ranks;
 
                 return skillTotal;
             }

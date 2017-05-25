@@ -18,22 +18,22 @@ namespace ACE.Factories
             Lifestone wo = new Lifestone(ObjectType.LifeStone, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Life Stone", weenieClassId, ObjectDescriptionFlag.LifeStone, weenie, newPosition);
 
             // model id 0x000026 is one of several lifestone IDs
-            wo.PhysicsData.MTableResourceId = 0x09000026u;
-            wo.PhysicsData.Stable = 0x20000014u;
-            wo.PhysicsData.CSetup = (uint)lifestoneType;
+            wo.MTableResourceId = 0x09000026u;
+            wo.Stable = 0x20000014u;
+            wo.CSetup = (uint)lifestoneType;
 
-            wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Position;
+            wo.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Position;
 
-            wo.PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Gravity;
+            wo.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Gravity;
 
             // game data min required flags;
-            // wo.GameData.Type = (ushort)0x1355;
-            // wo.GameData.Icon = (ushort)0x1036;
+            // wo.Type = (ushort)0x1355;
+            // wo.Icon = (ushort)0x1036;
 
-            wo.GameData.Usable = Usable.UsableRemote;
-            wo.GameData.RadarColor = RadarColor.Blue;
-            wo.GameData.RadarBehavior = RadarBehavior.ShowAlways;
-            wo.GameData.UseRadius = 4f;
+            wo.Usable = Usable.UsableRemote;
+            wo.RadarColor = RadarColor.Blue;
+            wo.RadarBehavior = RadarBehavior.ShowAlways;
+            wo.UseRadius = 4f;
 
             return wo;
         }

@@ -1,5 +1,4 @@
-﻿using ACE.Network;
-using ACE.Network.Enum;
+﻿using ACE.Network.Enum;
 using System.IO;
 
 namespace ACE.Entity
@@ -108,26 +107,26 @@ namespace ACE.Entity
 
         public void Serialize(BinaryWriter writer)
         {
-            if ((this.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-                writer.Write((uint)this.CurrentStyle);
+            if ((MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+                writer.Write((uint)CurrentStyle);
 
-            if ((this.MovementStateFlag & MovementStateFlag.ForwardCommand) != 0)
-                writer.Write((uint)this.ForwardCommand);
+            if ((MovementStateFlag & MovementStateFlag.ForwardCommand) != 0)
+                writer.Write((uint)ForwardCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
-                writer.Write((float)this.ForwardSpeed);
+            if ((MovementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
+                writer.Write((float)ForwardSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.SideStepCommand) != 0)
-                writer.Write((uint)this.SideStepCommand);
+            if ((MovementStateFlag & MovementStateFlag.SideStepCommand) != 0)
+                writer.Write((uint)SideStepCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
-                writer.Write((float)this.SideStepSpeed);
+            if ((MovementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
+                writer.Write((float)SideStepSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.TurnCommand) != 0)
-                writer.Write((uint)this.TurnCommand);
+            if ((MovementStateFlag & MovementStateFlag.TurnCommand) != 0)
+                writer.Write((uint)TurnCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.TurnSpeed) != 0)
-                writer.Write((float)this.TurnSpeed);
+            if ((MovementStateFlag & MovementStateFlag.TurnSpeed) != 0)
+                writer.Write((float)TurnSpeed);
         }
     }
 }

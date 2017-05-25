@@ -44,14 +44,14 @@ namespace ACE.DatLoader.FileTypes
         /// <returns></returns>
         public static CellLandblock ReadFromDat(uint landblockId)
         {
-            CellLandblock c = new CellLandblock();
+            var c = new CellLandblock();
 
             // Check if landblockId is a full dword. We just need the hiword for the landblockId
             if ((landblockId >> 16) != 0)
                 landblockId = landblockId >> 16;
 
             // The file index is CELL + 0xFFFF. e.g. a cell of 1234, the file index would be 0x1234FFFF.
-            uint landblockFileIndex = (landblockId << 16) + 0xFFFF;
+            var landblockFileIndex = (landblockId << 16) + 0xFFFF;
 
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.CellDat.FileCache.ContainsKey(landblockFileIndex))
@@ -62,21 +62,21 @@ namespace ACE.DatLoader.FileTypes
             {
                 if (DatManager.CellDat.AllFiles.ContainsKey(landblockFileIndex))
                 {
-                    DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockFileIndex);
-                    uint cellId = datReader.ReadUInt32();
+                    var datReader = DatManager.CellDat.GetReaderForFile(landblockFileIndex);
+                    var cellId = datReader.ReadUInt32();
 
-                    uint hasObjects = datReader.ReadUInt32();
+                    var hasObjects = datReader.ReadUInt32();
                     if (hasObjects == 1)
                         c.HasObjects = true;
 
                     // Read in the terrain. 9x9 so 81 records.
-                    for (int i = 0; i < 81; i++)
+                    for (var i = 0; i < 81; i++)
                     {
                         uint terrain = datReader.ReadUInt16();
                         c.Terrain.Add(terrain);
                     }
                     // Read in the height. 9x9 so 81 records
-                    for (int i = 0; i < 81; i++)
+                    for (var i = 0; i < 81; i++)
                     {
                         ushort height = datReader.ReadByte();
                         c.Height.Add(height);
@@ -99,29 +99,29 @@ namespace ACE.DatLoader.FileTypes
         public float GetZ(float x, float y)
         {
             // Find the exact tile in the 8x8 square grid. The cell is 192x192, so each tile is 24x24
-            uint tileX = (uint)Math.Ceiling(x / 24) - 1; // Subract 1 to 0-index these
-            uint tileY = (uint)Math.Ceiling(y / 24) - 1; // Subract 1 to 0-index these
+            var tileX = (uint)Math.Ceiling(x / 24) - 1; // Subract 1 to 0-index these
+            var tileY = (uint)Math.Ceiling(y / 24) - 1; // Subract 1 to 0-index these
 
-            uint v1 = tileX * 9 + tileY;
-            uint v2 = tileX * 9 + tileY + 1;
-            uint v3 = (tileX + 1) * 9 + tileY;
+            var v1 = tileX * 9 + tileY;
+            var v2 = tileX * 9 + tileY + 1;
+            var v3 = (tileX + 1) * 9 + tileY;
 
-            Point3d p1 = new Point3d();
+            var p1 = new Point3d();
             p1.X = tileX * 24;
             p1.Y = tileY * 24;
             p1.Z = Height[(int)v1] * 2;
 
-            Point3d p2 = new Point3d();
+            var p2 = new Point3d();
             p2.X = tileX * 24;
             p2.Y = (tileY + 1) * 24;
             p2.Z = Height[(int)v2] * 2;
 
-            Point3d p3 = new Point3d();
+            var p3 = new Point3d();
             p3.X = (tileX + 1) * 24;
             p3.Y = tileY * 24;
             p3.Z = Height[(int)v3] * 2;
 
-            float z = GetPointOnPlane(p1, p2, p3, x, y);
+            var z = GetPointOnPlane(p1, p2, p3, x, y);
             return z;
         }
 
@@ -131,9 +131,9 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         private float GetPointOnPlane(Point3d p1, Point3d p2, Point3d p3, float x, float y)
         {
-            Point3d v1 = new Point3d();
-            Point3d v2 = new Point3d();
-            Point3d abc = new Point3d();
+            var v1 = new Point3d();
+            var v2 = new Point3d();
+            var abc = new Point3d();
 
             v1.X = p1.X - p3.X;
             v1.Y = p1.Y - p3.Y;
@@ -147,9 +147,9 @@ namespace ACE.DatLoader.FileTypes
             abc.Y = (v1.Z * v2.X) - (v1.X * v2.Z);
             abc.Z = (v1.X * v2.Y) - (v1.Y * v2.X);
 
-            float d = (abc.X * p3.X) + (abc.Y * p3.Y) + (abc.Z * p3.Z);
+            var d = (abc.X * p3.X) + (abc.Y * p3.Y) + (abc.Z * p3.Z);
 
-            float z = (d - (abc.X * x) - (abc.Y * y)) / abc.Z;
+            var z = (d - (abc.X * x) - (abc.Y * y)) / abc.Z;
 
             return z;
         }

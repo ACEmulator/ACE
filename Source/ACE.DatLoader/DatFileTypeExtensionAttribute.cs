@@ -13,7 +13,7 @@ namespace ACE.DatLoader
 
         public DatFileTypeExtensionAttribute(string fileExtension)
         {
-            this.FileExtension = fileExtension;
+            FileExtension = fileExtension;
         }
     }
 }

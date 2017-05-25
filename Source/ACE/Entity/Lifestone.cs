@@ -23,22 +23,22 @@ namespace ACE.Entity
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
-            PhysicsData.MTableResourceId = aceO.MotionTableId;
-            PhysicsData.Stable = aceO.SoundTableId;
-            PhysicsData.CSetup = aceO.ModelTableId;
-            PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
+            MTableResourceId = aceO.MotionTableId;
+            Stable = aceO.SoundTableId;
+            CSetup = aceO.ModelTableId;
+            PhysicsState = (PhysicsState)aceO.PhysicsState;
 
             // game data min required flags;
             Icon = aceO.IconId;
 
-            GameData.Usable = (Usable?)aceO.ItemUseable;
-            GameData.RadarColor = (RadarColor?)aceO.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aceO.Radar;
-            GameData.UseRadius = aceO.UseRadius;
+            Usable = (Usable?)aceO.ItemUseable;
+            RadarColor = (RadarColor?)aceO.BlipColor;
+            RadarBehavior = (RadarBehavior?)aceO.Radar;
+            UseRadius = aceO.UseRadius;
 
-            aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
-            aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
-            aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            aceO.AnimationOverrides.ForEach(ao => AddModel(ao.Index, (ushort)ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            aceO.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
         public override void OnUse(Player player)
@@ -46,9 +46,9 @@ namespace ACE.Entity
             string serverMessage = null;
 
             // validate within use range, taking into account the radius of the model itself, as well
-            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup);
-            var radiusSquared = ((GameData.UseRadius ?? 0.00f) + csetup.Radius)
-                                * ((GameData.UseRadius ?? 0.00f) + csetup.Radius);
+            var csetup = SetupModel.ReadFromDat(CSetup);
+            var radiusSquared = ((UseRadius ?? 0.00f) + csetup.Radius)
+                                * ((UseRadius ?? 0.00f) + csetup.Radius);
 
             var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 

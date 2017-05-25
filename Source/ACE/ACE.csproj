@@ -116,8 +116,6 @@
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
-    <Compile Include="Entity\ModelData.cs" />
-    <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
     <Compile Include="Entity\SummonedPortal.cs" />
@@ -315,7 +313,6 @@
     <Compile Include="ACE.cs" />
     <Compile Include="Network\SessionConnectionData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Entity\GameData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

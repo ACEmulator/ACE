@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using MySql.Data.MySqlClient;
 using log4net;
 using ACE.Common;

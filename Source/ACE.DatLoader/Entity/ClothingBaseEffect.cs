@@ -11,7 +11,7 @@ namespace ACE.DatLoader.Entity
 
         public ClothingBaseEffect()
         {
-            this.SetupModel = 0;
+            SetupModel = 0;
             // this.Radius = 0;
         }
     }

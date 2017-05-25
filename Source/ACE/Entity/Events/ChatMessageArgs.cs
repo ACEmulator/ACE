@@ -11,8 +11,8 @@ namespace ACE.Entity.Events
 
         public ChatMessageArgs(string message, ChatMessageType type)
         {
-            this.Message = message;
-            this.MessageType = type;
+            Message = message;
+            MessageType = type;
         }
     }
 }

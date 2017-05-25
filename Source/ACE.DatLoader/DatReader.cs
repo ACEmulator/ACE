@@ -11,16 +11,16 @@ namespace ACE.DatLoader
         public DatReader(string datFilePath, uint offset, uint size, uint sectorSize)
         {
             uint nextAddress = 0;
-            FileStream stream = new FileStream(datFilePath, FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(datFilePath, FileMode.Open, FileAccess.Read);
             using (stream)
             {
-                this.Buffer = new byte[size];
+                Buffer = new byte[size];
                 stream.Seek(offset, SeekOrigin.Begin);
                 // Dat "file" is broken up into sectors that are not neccessarily congruous. Next address is stored in first four bytes of each sector.
                 if (size > sectorSize)
-                    nextAddress = this.GetNextAddress(stream, -4);
+                    nextAddress = GetNextAddress(stream, -4);
 
-                int bufferOffset = 0;
+                var bufferOffset = 0;
                 while (size > 0)
                 {
                     if (size < sectorSize)
@@ -44,7 +44,7 @@ namespace ACE.DatLoader
         private uint GetNextAddress(FileStream stream, int relOffset)
         {
             // The location of the start of the next sector is the first four bytes of the current sector. This should be 0x00000000 if no next sector.
-            byte[] nextAddressBytes = new byte[4];
+            var nextAddressBytes = new byte[4];
             if (relOffset != 0)
                 stream.Seek(relOffset, SeekOrigin.Current); // To be used to back up 4 bytes from the origin at the start
             stream.Read(nextAddressBytes, 0, 4);
@@ -53,56 +53,56 @@ namespace ACE.DatLoader
 
         public ulong ReadUInt64()
         {
-            ulong data = BitConverter.ToUInt64(Buffer, Offset);
+            var data = BitConverter.ToUInt64(Buffer, Offset);
             Offset += 8;
             return data;
         }
 
         public long ReadInt64()
         {
-            long data = BitConverter.ToInt64(Buffer, Offset);
+            var data = BitConverter.ToInt64(Buffer, Offset);
             Offset += 8;
             return data;
         }
 
         public uint ReadUInt32()
         {
-            uint data = BitConverter.ToUInt32(Buffer, Offset);
+            var data = BitConverter.ToUInt32(Buffer, Offset);
             Offset += 4;
             return data;
         }
 
         public int ReadInt32()
         {
-            int data = BitConverter.ToInt32(Buffer, Offset);
+            var data = BitConverter.ToInt32(Buffer, Offset);
             Offset += 4;
             return data;
         }
 
         public ushort ReadUInt16()
         {
-            ushort data = BitConverter.ToUInt16(Buffer, Offset);
+            var data = BitConverter.ToUInt16(Buffer, Offset);
             Offset += 2;
             return data;
         }
 
         public short ReadInt16()
         {
-            short data = BitConverter.ToInt16(Buffer, Offset);
+            var data = BitConverter.ToInt16(Buffer, Offset);
             Offset += 2;
             return data;
         }
 
         public byte ReadByte()
         {
-            byte data = Buffer[Offset];
+            var data = Buffer[Offset];
             Offset += 1;
             return data;
         }
 
         public float ReadSingle()
         {
-            float data = BitConverter.ToSingle(Buffer, Offset);
+            var data = BitConverter.ToSingle(Buffer, Offset);
             Offset += 4;
             return data;
         }
@@ -112,8 +112,8 @@ namespace ACE.DatLoader
         /// </summary>
         public string ReadPString()
         {
-            int stringlength = this.ReadByte();
-            byte[] thestring = new byte[stringlength];
+            int stringlength = ReadByte();
+            var thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
             return System.Text.Encoding.ASCII.GetString(thestring);
@@ -124,9 +124,9 @@ namespace ACE.DatLoader
         /// </summary>
         public string ReadObfuscatedString()
         {
-            int stringlength = this.ReadByte();
+            int stringlength = ReadByte();
             Offset += 1; // unknown, seems to be mostly 00
-            byte[] thestring = new byte[stringlength];
+            var thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             for (var i = 0; i < stringlength; i++)
             {
@@ -140,7 +140,7 @@ namespace ACE.DatLoader
 
         public string ReadString(int stringlength)
         {
-            byte[] thestring = new byte[stringlength];
+            var thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
             return System.Text.Encoding.ASCII.GetString(thestring);

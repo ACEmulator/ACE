@@ -1,6 +1,17 @@
 # ACEmulator Change Log
 
-### 2017-05-21
+### 2017-05-25
+[Og II]
+* Refactored WorldObject to have all of the properties and methods of GameData, PhysicsData and ModelData.   
+* Since I had to touch a ton of files, I cleaned up as much as I could.   Removed unneeded using statements,
+* killed whitespace where I found it, removed this. where not needed and where the type was obvious switched to a more
+* consistant use of var.
+* Re-enabled the unit tests for database.   We don't have a delete = if you insert into the table, you have to manually kill 
+* the test data to avoid a duplicate key violation on a second running of the tests.    If those run in AppVeyor - will not be an issue as
+* an fresh db is created each time.
+* ************************** TODO ******************************
+
+### 2017-05-24
 [Og II]
 * Intital work done for new schema.   Rebased and removed update sql files.
 * Tested and the auto setting of Physics and Weenie Header Flags looks really solid.   Side note, the values we have
@@ -216,7 +227,7 @@
 
 [Ripley]
 * Filled out Portal object and included ObjScale.
-* Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
+* Changed Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
 ### 2017-04-19

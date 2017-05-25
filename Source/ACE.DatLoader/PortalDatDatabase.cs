@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace ACE.DatLoader
 {
@@ -17,7 +12,7 @@ namespace ACE.DatLoader
         {
             string thisFolder = null;
 
-            foreach (KeyValuePair<uint, DatFile> entry in this.AllFiles)
+            foreach (var entry in AllFiles)
             {
                 if (entry.Value.GetFileType() != null)
                     thisFolder = Path.Combine(path, entry.Value.GetFileType().ToString());
@@ -29,12 +24,12 @@ namespace ACE.DatLoader
                     Directory.CreateDirectory(thisFolder);
                 }
 
-                string hex = entry.Value.ObjectId.ToString("X8");
-                string thisFile = Path.Combine(thisFolder, hex + ".bin");
+                var hex = entry.Value.ObjectId.ToString("X8");
+                var thisFile = Path.Combine(thisFolder, hex + ".bin");
 
                 // Use the DatReader to get the file data
-                DatReader dr = this.GetReaderForFile(entry.Value.ObjectId);
-                   
+                var dr = GetReaderForFile(entry.Value.ObjectId);
+
                 File.WriteAllBytes(thisFile, dr.Buffer);
             }
         }

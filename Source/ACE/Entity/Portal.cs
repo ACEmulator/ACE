@@ -6,7 +6,7 @@ using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
-    public sealed class Portal : CollidableObject
+    public class Portal : CollidableObject
     {
         private readonly Position portalDestination;
 
@@ -122,23 +122,23 @@ namespace ACE.Entity
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
-            PhysicsData.MTableResourceId = aceO.MotionTableId;
-            PhysicsData.Stable = aceO.SoundTableId;
-            PhysicsData.CSetup = aceO.ModelTableId;
-            PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
-            PhysicsData.ObjScale = aceO.DefaultScale;
+            MTableResourceId = aceO.MotionTableId;
+            Stable = aceO.SoundTableId;
+            CSetup = aceO.ModelTableId;
+            PhysicsState = (PhysicsState)aceO.PhysicsState;
+            ObjScale = aceO.DefaultScale;
 
             // game data min required flags;
             Icon = (ushort)aceO.IconId;
 
-            GameData.Usable = (Usable?)aceO.ItemUseable;
-            GameData.RadarColor = (RadarColor?)aceO.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aceO.Radar;
-            GameData.UseRadius = aceO.UseRadius;
+            Usable = (Usable?)aceO.ItemUseable;
+            RadarColor = (RadarColor?)aceO.BlipColor;
+            RadarBehavior = (RadarBehavior?)aceO.Radar;
+            UseRadius = aceO.UseRadius;
 
-            aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
-            aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
-            aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            aceO.AnimationOverrides.ForEach(ao => AddModel(ao.Index, (ushort)ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            aceO.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
 
             portalDestination = aceO.DestPosition;
             portalMinLvl = aceO.MinLvl;

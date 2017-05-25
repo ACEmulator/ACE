@@ -20,18 +20,18 @@ namespace ACE.DatLoader.FileTypes
             }
             else
             {
-                Generator gen = new Generator();
+                var gen = new Generator();
 
                 // Create the datReader for the proper file
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
+                var datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
 
                 gen.Id = datReader.ReadInt32();
                 gen.Name = "0E00000D";
                 gen.Count = 2;
                 datReader.Offset = 16;
 
-                Generator playDay = new Generator();
-                Generator weenieObjects = new Generator();
+                var playDay = new Generator();
+                var weenieObjects = new Generator();
                 gen.Items.Add(playDay.GetNextGenerator(datReader)); // Parse and add PlayDay hierarchy
                 gen.Items.Add(weenieObjects.GetNextGenerator(datReader)); // Parse and add WeenieObjects hierarchy
 
@@ -46,7 +46,7 @@ namespace ACE.DatLoader.FileTypes
             var nodes = new Stack<Generator>(new[] { root });
             while (nodes.Any())
             {
-                Generator node = nodes.Pop();
+                var node = nodes.Pop();
                 yield return node;
                 foreach (var n in node.Items) nodes.Push(n);
             }
