@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -12,14 +11,12 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
 using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
-using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
@@ -29,7 +26,7 @@ using ACE.Factories;
 
 namespace ACE.Entity
 {
-    public sealed class Player : Creature
+    public class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -185,22 +182,22 @@ namespace ACE.Entity
 
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
-            GameData.ItemCapacity = 102;
-            GameData.ContainerCapacity = 7;
-            GameData.RadarBehavior = RadarBehavior.ShowAlways;
-            GameData.RadarColor = RadarColor.White;
-            GameData.Usable = Usable.UsableObjectSelf;
+            ItemCapacity = 102;
+            ContainerCapacity = 7;
+            RadarBehavior = Network.Enum.RadarBehavior.ShowAlways;
+            RadarColor = Network.Enum.RadarColor.White;
+            Usable = Network.Enum.Usable.UsableObjectSelf;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
+            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
-            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            PhysicsData.MTableResourceId = 0x09000001u;
-            PhysicsData.Stable = 0x20000001u;
-            PhysicsData.Petable = 0x34000004u;
-            PhysicsData.CSetup = 0x02000001u;
+            CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            MTableResourceId = 0x09000001u;
+            Stable = 0x20000001u;
+            Petable = 0x34000004u;
+            CSetup = 0x02000001u;
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -257,18 +254,18 @@ namespace ACE.Entity
                 int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
                 SexCG sex = cg.HeritageGroups[h].SexList[s];
                 // Set the character basics
-                PhysicsData.MTableResourceId = sex.MotionTable;
-                PhysicsData.Stable = sex.SoundTable;
-                PhysicsData.Petable = sex.PhysicsTable;
-                PhysicsData.CSetup = sex.SetupID;
-                ModelData.PaletteGuid = sex.BasePalette;
+                MTableResourceId = sex.MotionTable;
+                Stable = sex.SoundTable;
+                Petable = sex.PhysicsTable;
+                CSetup = sex.SetupID;
+                PaletteGuid = sex.BasePalette;
 
                 // Check the character scale
                 if (sex.Scale != 100u)
                 {
                     // Set the PhysicsData flag to let it know we're changing the scale
-                    PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
-                    PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
+                    PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
+                    ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
                 }
 
                 // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
@@ -277,13 +274,13 @@ namespace ACE.Entity
 
                 // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
                 if (hairstyle.AlternateSetup > 0)
-                    PhysicsData.CSetup = hairstyle.AlternateSetup;
+                    CSetup = hairstyle.AlternateSetup;
 
                 // Apply the hair models & texture changes
                 for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
-                    ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
+                    AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
                 for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
-                    ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
+                    AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
 
                 // Eyes only have Texture Changes - eye color is set seperately
                 ObjDesc eyes;
@@ -292,31 +289,31 @@ namespace ACE.Entity
                 else
                     eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
                 for (int i = 0; i < eyes.TextureChanges.Count; i++)
-                    ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
+                    AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
 
                 // Nose only has Texture Changes
                 ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
                 for (int i = 0; i < nose.TextureChanges.Count; i++)
-                    ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
+                    AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
 
                 // Mouth, suprise, only Texture Changes
                 ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
                 for (int i = 0; i < mouth.TextureChanges.Count; i++)
-                    ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
+                    AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
 
                 // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
-                ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
+                ushort skinPal = (ushort)skinPalSet.GetPaletteId(character.Appearance.SkinHue);
                 // Apply the skin palette...
-                ModelData.AddPalette(skinPal, 0x0, 0x18);
+                AddPalette(skinPal, 0x0, 0x18);
 
                 // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
                 PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]);
-                ushort hairPal = (ushort)hairPalSet.GetPaletteID(character.Appearance.HairHue);
-                ModelData.AddPalette(hairPal, 0x18, 0x8);
+                ushort hairPal = (ushort)hairPalSet.GetPaletteId(character.Appearance.HairHue);
+                AddPalette(hairPal, 0x18, 0x8);
 
                 // Eye color palette
-                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
+                AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
 
                 // Get the character's startup gear.
                 // TODO: Load the proper inventory/equipment options once that system is created.
@@ -331,10 +328,10 @@ namespace ACE.Entity
                         for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
                         {
                             byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
-                            ModelData.AddModel((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].ModelId);
+                            AddModel((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].ModelId);
 
                             for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                                ModelData.AddTexture((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                                AddTexture((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
                         }
 
                         // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
@@ -342,13 +339,13 @@ namespace ACE.Entity
                         for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
                         {
                             PaletteSet headgearPalSet = PaletteSet.ReadFromDat(headSubPal.CloSubPalettes[i].PaletteSet);
-                            ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(character.Appearance.HeadgearHue);
+                            ushort headgearPal = (ushort)headgearPalSet.GetPaletteId(character.Appearance.HeadgearHue);
 
                             for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
                             {
                                 uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                                 uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                ModelData.AddPalette(headgearPal, (ushort)palOffset, (ushort)numColors);
+                                AddPalette(headgearPal, (ushort)palOffset, (ushort)numColors);
                             }
                         }
                     }
@@ -363,10 +360,10 @@ namespace ACE.Entity
                     for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
                     {
                         byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
-                        ModelData.AddModel((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].ModelId);
+                        AddModel((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].ModelId);
 
                         for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                            ModelData.AddTexture((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                            AddTexture((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
                     }
 
                     // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
@@ -374,13 +371,13 @@ namespace ACE.Entity
                     for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
                     {
                         PaletteSet pantsPalSet = PaletteSet.ReadFromDat(pantsSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(character.Appearance.PantsHue);
+                        ushort pantsPal = (ushort)pantsPalSet.GetPaletteId(character.Appearance.PantsHue);
 
                         for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
                         {
                             uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                             uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            ModelData.AddPalette(pantsPal, (ushort)palOffset, (ushort)numColors);
+                            AddPalette(pantsPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
                 } // end pants
@@ -394,10 +391,10 @@ namespace ACE.Entity
                     for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
                     {
                         byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
-                        ModelData.AddModel((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].ModelId);
+                        AddModel((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].ModelId);
 
                         for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                            ModelData.AddTexture((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                            AddTexture((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
                     }
 
                     // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
@@ -408,7 +405,7 @@ namespace ACE.Entity
                         for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
                         {
                             PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
-                            ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(character.Appearance.ShirtHue);
+                            ushort shirtPal = (ushort)shirtPalSet.GetPaletteId(character.Appearance.ShirtHue);
 
                             if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
                             {
@@ -416,7 +413,7 @@ namespace ACE.Entity
                                 {
                                     uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                                     uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                    ModelData.AddPalette(shirtPal, (ushort)palOffset, (ushort)numColors);
+                                    AddPalette(shirtPal, (ushort)palOffset, (ushort)numColors);
                                 }
                             }
                         }
@@ -432,10 +429,10 @@ namespace ACE.Entity
                     for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
                     {
                         byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
-                        ModelData.AddModel((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].ModelId);
+                        AddModel((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].ModelId);
 
                         for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                            ModelData.AddTexture((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                            AddTexture((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
                     }
 
                     // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
@@ -443,13 +440,13 @@ namespace ACE.Entity
                     for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
                     {
                         PaletteSet footwearPalSet = PaletteSet.ReadFromDat(footwearSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(character.Appearance.FootwearHue);
+                        ushort footwearPal = (ushort)footwearPalSet.GetPaletteId(character.Appearance.FootwearHue);
 
                         for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
                         {
                             uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                             uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
+                            AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
                 } // end footwear
@@ -457,7 +454,7 @@ namespace ACE.Entity
 
             IsOnline = true;
 
-            this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
+            TotalLogins = character.TotalLogins = character.TotalLogins + 1;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
@@ -475,18 +472,18 @@ namespace ACE.Entity
 
         public void AddToActionQueue(QueuedGameAction action)
         {
-            this.actionQueue.Enqueue(action);
+            actionQueue.Enqueue(action);
         }
 
         public void AddToExaminationQueue(QueuedGameAction action)
         {
-            this.examinationQueue.Enqueue(action);
+            examinationQueue.Enqueue(action);
         }
 
         public QueuedGameAction ActionQueuePop()
         {
             QueuedGameAction action = null;
-            if (this.actionQueue.TryDequeue(out action))
+            if (actionQueue.TryDequeue(out action))
             {
                 lock (delayedActionsMutex)
                 {
@@ -502,7 +499,7 @@ namespace ACE.Entity
                         {
                             // the new action should start before the old one is complete, so enqueue the new one again
                             action.StartTime = WorldManager.PortalYearTicks;
-                            this.actionQueue.Enqueue(action);
+                            actionQueue.Enqueue(action);
                             return null;
                         }
                     }
@@ -523,7 +520,7 @@ namespace ACE.Entity
         public QueuedGameAction ExaminationQueuePop()
         {
             QueuedGameAction action = null;
-            if (this.examinationQueue.TryDequeue(out action))
+            if (examinationQueue.TryDequeue(out action))
                 return action;
             else
                 return null;
@@ -631,7 +628,7 @@ namespace ACE.Entity
                 // break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
-                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
                     break;
                 }
             }
@@ -656,7 +653,7 @@ namespace ACE.Entity
                 else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 // play level up effect
-                ActionApplyVisualEffect(Network.Enum.PlayScript.LevelUp, this.Guid);
+                ActionApplyVisualEffect(Network.Enum.PlayScript.LevelUp, Guid);
             }
         }
 
@@ -684,7 +681,7 @@ namespace ACE.Entity
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
-                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -692,7 +689,7 @@ namespace ACE.Entity
                     messageText = $"Your base {ability} is now {newValue}!";
                 }
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
-                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
+                var soundEvent = new GameMessageSound(Guid, Network.Enum.Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
 
                 // This seems to be needed to keep health up to date properly.
@@ -780,7 +777,7 @@ namespace ACE.Entity
                 ability.Current += addToCurrentValue ? rankUps : 0u;
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
-                this.character.SpendXp(amount);
+                character.SpendXp(amount);
                 result = ability.ExperienceSpent;
             }
 
@@ -840,7 +837,7 @@ namespace ACE.Entity
             var status = character.Skills[skill].Status;
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
+            var soundEvent = new GameMessageSound(Guid, Network.Enum.Sound.RaiseTrait, 1f);
             string messageText = "";
 
             if (result > 0u)
@@ -850,7 +847,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
+                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -911,9 +908,9 @@ namespace ACE.Entity
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
 
             // create corpse at location
-            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
-            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
+            var corpse = CorpseObjectFactory.CreateCorpse(this, Location);
+            corpse.Location.PositionY -= corpse.ObjScale ?? 0;
+            corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
 
             // Corpses stay on the ground for 5 * player level but minimum 1 hour
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
@@ -943,7 +940,7 @@ namespace ACE.Entity
             }
 
             // Queue the teleport to lifestone
-            ActionQueuedTeleport(newPositon, this.Guid, GameActionType.TeleToLifestone);
+            ActionQueuedTeleport(newPositon, Guid, GameActionType.TeleToLifestone);
 
             // Regenerate/ressurect?
             Health.Current = 5;
@@ -1089,7 +1086,7 @@ namespace ACE.Entity
             {
                 skill.Ranks += rankUps;
                 skill.ExperienceSpent += amount;
-                this.character.SpendXp(amount);
+                character.SpendXp(amount);
                 result = skill.ExperienceSpent;
             }
 
@@ -1311,7 +1308,7 @@ namespace ACE.Entity
 
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
-            PhysicsData.PhysicsState = state;
+            PhysicsState = state;
 
             if (packet)
             {
@@ -1342,7 +1339,7 @@ namespace ACE.Entity
 
         public void UpdatePosition(Position newPosition)
         {
-            this.Location = newPosition;
+            Location = newPosition;
             // character.SetCharacterPosition(newPosition);
             SendUpdatePosition();
         }
@@ -1352,7 +1349,7 @@ namespace ACE.Entity
             var t = new Thread(() =>
             {
                 Thread.Sleep(10);
-                this.Location = newPosition;
+                Location = newPosition;
                 // character.SetCharacterPosition(newPosition);
                 SendUpdatePosition();
             });
@@ -1389,7 +1386,7 @@ namespace ACE.Entity
         {
             bool sendUpdate = true;
 
-            if (worldObject.Guid == this.Guid)
+            if (worldObject.Guid == Guid)
                 return;
 
             lock (clientObjectMutex)
@@ -1399,7 +1396,7 @@ namespace ACE.Entity
                 if (!sendUpdate)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
-                    worldObject.PlayScript(this.Session);
+                    worldObject.PlayScript(Session);
                 }
                 else
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
@@ -1472,7 +1469,7 @@ namespace ACE.Entity
 
         public void SendUpdatePosition()
         {
-            this.LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
+            LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
             Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
         }
 

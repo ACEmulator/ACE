@@ -1,11 +1,11 @@
-﻿namespace ACE.Entity
-{
-    using System;
-    using System.IO;
-    using Enum;
-    using Common;
-    using MySql.Data.MySqlClient;
+﻿using System;
+using System.IO;
+using ACE.Entity.Enum;
+using ACE.Common;
+using MySql.Data.MySqlClient;
 
+namespace ACE.Entity
+{
     [DbTable("character_position")]
     [DbGetList("vw_character_positions", 23, "character_id")]
     public class Position
@@ -284,18 +284,18 @@
         /// </summary>
         public float SquaredDistanceTo(Position p)
         {
-            if (p.LandblockId == this.LandblockId)
+            if (p.LandblockId == LandblockId)
             {
-                var dx = this.PositionX - p.PositionX;
-                var dy = this.PositionY - p.PositionY;
-                var dz = this.PositionZ - p.PositionZ;
+                var dx = PositionX - p.PositionX;
+                var dy = PositionY - p.PositionY;
+                var dz = PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-            else if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            else if (p.LandblockId.MapScope == MapScope.Outdoors && LandblockId.MapScope == MapScope.Outdoors)
             {
-                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
-                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
-                var dz = this.PositionZ - p.PositionZ;
+                var dx = (LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + PositionX - p.PositionX;
+                var dy = (LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + PositionY - p.PositionY;
+                var dz = PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
             else
@@ -306,7 +306,7 @@
 
         public override string ToString()
         {
-            return $"{LandblockId.Landblock.ToString("X")}: {PositionX} {PositionY} {PositionZ}";
+            return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -35,7 +34,7 @@ namespace ACE.DatLoader
         /// </summary>
         public static DatFile FromBuffer(byte[] buffer, int offset, DatDatabaseType type)
         {
-            DatFile cf = new DatFile()
+            var cf = new DatFile()
             {
                 BitFlags = BitConverter.ToUInt32(buffer, offset),
                 ObjectId = BitConverter.ToUInt32(buffer, offset + 4),
@@ -62,11 +61,11 @@ namespace ACE.DatLoader
                 var memInfo = type.GetMember(fileType.ToString());
                 var datType = memInfo[0].GetCustomAttributes(typeof(DatDatabaseTypeAttribute), false).Cast<DatDatabaseTypeAttribute>().ToList();
 
-                if (datType?.Count > 0 && datType[0].Type == this.DatType)
+                if (datType?.Count > 0 && datType[0].Type == DatType)
                 {
                     // file type matches, now check id range
                     var idRange = memInfo[0].GetCustomAttributes(typeof(DatFileTypeIdRangeAttribute), false).Cast<DatFileTypeIdRangeAttribute>().ToList();
-                    if (idRange?.Count > 0 && idRange[0].BeginRange <= this.ObjectId && idRange[0].EndRange >= this.ObjectId)
+                    if (idRange?.Count > 0 && idRange[0].BeginRange <= ObjectId && idRange[0].EndRange >= ObjectId)
                     {
                         // id range matches
                         this.fileType = fileType;
@@ -83,8 +82,8 @@ namespace ACE.DatLoader
         /// </summary>
         public byte[] GetContent(FileStream stream)
         {
-            stream.Seek(this.FileOffset, SeekOrigin.Begin);
-            byte[] content = new byte[FileSize];
+            stream.Seek(FileOffset, SeekOrigin.Begin);
+            var content = new byte[FileSize];
             stream.Read(content, 0, Convert.ToInt32(FileSize));
             return content;
         }

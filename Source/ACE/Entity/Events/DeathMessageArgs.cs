@@ -1,5 +1,4 @@
-﻿using ACE.Entity.Enum;
-using System;
+﻿using System;
 
 namespace ACE.Entity.Events
 {
@@ -13,9 +12,9 @@ namespace ACE.Entity.Events
 
         public DeathMessageArgs(string message, ObjectGuid victimId, ObjectGuid killerId)
         {
-            this.Message = message;
-            this.Victim = victimId;
-            this.Killer = killerId;
+            Message = message;
+            Victim = victimId;
+            Killer = killerId;
         }
     }
 }

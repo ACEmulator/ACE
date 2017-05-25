@@ -14,8 +14,8 @@ namespace ACE.Database.Tests
         {
             FooInsert,
             FooUpdate,
-            FooGet,
-            GetLifestonesByLandblock
+            GetLifestonesByLandblock,
+            FooGet
         }
 
         private static Database worldDb;
@@ -38,44 +38,46 @@ namespace ACE.Database.Tests
         [TestMethod]
         public void ExerciseInsertGetUpdate_SimpleCase_DoesNotThrow()
         {
-            // var o = new BaseAceObject { AceObjectId = 1, Name = "foo" };
+            var o = new Weenie
+            {
+                WeenieClassId = 1000000,
+                WeenieClassDescription = "foo"
+            };
 
-            // worldDb.ConstructStatement(TestEnum.FooInsert, typeof(BaseAceObject), ConstructedStatementType.Insert);
-            // worldDb.ConstructStatement(TestEnum.FooUpdate, typeof(BaseAceObject), ConstructedStatementType.Update);
-            // worldDb.ConstructStatement(TestEnum.FooGet, typeof(BaseAceObject), ConstructedStatementType.Get);
+            // NOTE: we don't have a delete so you have to make sure you have cleared the test insert before you run the test.
+            worldDb.ConstructStatement(TestEnum.FooInsert, typeof(Weenie), ConstructedStatementType.Insert);
+            worldDb.ConstructStatement(TestEnum.FooUpdate, typeof(Weenie), ConstructedStatementType.Update);
+            worldDb.ConstructStatement(TestEnum.FooGet, typeof(Weenie), ConstructedStatementType.Get);
+            worldDb.ExecuteConstructedInsertStatement(TestEnum.FooInsert, typeof(Weenie), o);
 
-            // worldDb.ExecuteConstructedInsertStatement(TestEnum.FooInsert, typeof(BaseAceObject), o);
+            var o2 = new Weenie();
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("WeenieClassId", 1000000u);
+            worldDb.ExecuteConstructedGetStatement(TestEnum.FooGet, typeof(Weenie), criteria, o2);
 
-            // BaseAceObject o2 = new BaseAceObject();
-            // Dictionary<string, object> criteria = new Dictionary<string, object>();
-            // criteria.Add("baseAceObjectId", 1u);
-            // worldDb.ExecuteConstructedGetStatement(TestEnum.FooGet, typeof(BaseAceObject), criteria, o2);
+            Assert.AreEqual(o.WeenieClassDescription, o2.WeenieClassDescription);
+            Assert.AreEqual(o.WeenieClassId, o2.WeenieClassId);
 
-            // Assert.AreEqual(o.Name, o2.Name);
-            // Assert.AreEqual(o.AceObjectId, o2.AceObjectId);
+            o2.WeenieClassDescription = "bar";
+            worldDb.ExecuteConstructedUpdateStatement(TestEnum.FooUpdate, typeof(Weenie), o2);
 
-            // o2.Name = "bar";
-            // worldDb.ExecuteConstructedUpdateStatement(TestEnum.FooUpdate, typeof(BaseAceObject), o2);
+            var o3 = new Weenie();
+            worldDb.ExecuteConstructedGetStatement(TestEnum.FooGet, typeof(Weenie), criteria, o3);
 
-            // BaseAceObject o3 = new BaseAceObject();
-            // worldDb.ExecuteConstructedGetStatement(TestEnum.FooGet, typeof(BaseAceObject), criteria, o3);
-
-            // Assert.AreEqual(o2.Name, o3.Name);
-            Assert.AreEqual(1, 1);
+            Assert.AreEqual(o2.WeenieClassDescription, o3.WeenieClassDescription);
         }
 
         [TestMethod]
         public void ExecuteGetListStatement_SimpleCase_DoesNotThrow()
         {
-            // worldDb.ConstructStatement(TestEnum.GetLifestonesByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
+            worldDb.ConstructStatement(TestEnum.GetLifestonesByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
 
-            // Dictionary<string, object> criteria = new Dictionary<string, object>();
-            // criteria.Add("landblock", (ushort)458);
-            // var results = worldDb.ExecuteConstructedGetListStatement<TestEnum, AceObject>(TestEnum.GetLifestonesByLandblock, criteria);
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("landblock", (ushort)458);
+            var results = worldDb.ExecuteConstructedGetListStatement<TestEnum, AceObject>(TestEnum.GetLifestonesByLandblock, criteria);
 
-            // Assert.IsNotNull(results);
-            // Assert.IsTrue(results.Count > 0);
-            Assert.IsTrue(true);
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.Count > 0);
         }
     }
 }

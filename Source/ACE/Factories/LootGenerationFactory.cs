@@ -12,8 +12,8 @@ namespace ACE.Factories
         {
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+            inventoryItem.Position = position.InFrontOf(1.00f);
+            inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             LandblockManager.AddObject(inventoryItem);
         }
 

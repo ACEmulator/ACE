@@ -9,14 +9,14 @@ namespace ACE.DatLoader.Entity
 
         public CSphere()
         {
-            this.Origin = new AceVector3(0, 0, 0);
-            this.Radius = 0;
+            Origin = new AceVector3(0, 0, 0);
+            Radius = 0;
         }
 
         public CSphere(AceVector3 origin, float radius)
         {
-            this.Origin = origin;
-            this.Radius = radius;
+            Origin = origin;
+            Radius = radius;
         }
     }
 }

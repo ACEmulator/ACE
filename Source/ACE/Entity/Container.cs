@@ -30,9 +30,9 @@ namespace ACE.Entity
                     inventory.Add(inventoryItem.Guid, inventoryItem);
                 }
 
-                GameData.Burden += inventoryItem.GameData.Burden;
-                inventoryItem.GameData.ContainerId = Guid.Full;
-                inventoryItem.PhysicsData.Position = null;
+                Burden += inventoryItem.Burden;
+                inventoryItem.ContainerId = Guid.Full;
+                inventoryItem.Position = null;
                 inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
             }
         }
@@ -40,18 +40,18 @@ namespace ACE.Entity
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
-            GameData.Burden -= inventoryItem.GameData.Burden;
+            Burden -= inventoryItem.Burden;
 
-            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
+            inventoryItem.Position = Position.InFrontOf(1.0f);
             // TODO: Write a method to set this based on data.
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
                                          | UpdatePositionFlag.Placement
                                          | UpdatePositionFlag.ZeroQy
                                          | UpdatePositionFlag.ZeroQx;
 
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag();
-            inventoryItem.GameData.ContainerId = null;
-            inventoryItem.GameData.Wielder = null;
+            inventoryItem.PhysicsDescriptionFlag = inventoryItem.SetPhysicsDescriptionFlag();
+            inventoryItem.ContainerId = null;
+            inventoryItem.Wielder = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
 
             lock (inventoryMutex)

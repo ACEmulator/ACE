@@ -8,59 +8,59 @@ namespace ACE.Network.GameAction
     {
         public QueuedGameAction(uint objectId, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
+            ObjectId = objectId;
+            ActionType = actionType;
+            StartTime = WorldManager.PortalYearTicks;
+            EndTime = StartTime;
         }
 
         public QueuedGameAction(uint objectId, uint secondaryObjectId, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.SecondaryObjectId = secondaryObjectId;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
+            ObjectId = objectId;
+            SecondaryObjectId = secondaryObjectId;
+            ActionType = actionType;
+            StartTime = WorldManager.PortalYearTicks;
+            EndTime = StartTime;
         }
 
         public QueuedGameAction(uint objectId, UniversalMotion motion, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.Motion = motion;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
+            ObjectId = objectId;
+            Motion = motion;
+            ActionType = actionType;
+            StartTime = WorldManager.PortalYearTicks;
+            EndTime = StartTime;
         }
 
         public QueuedGameAction(uint objectId, UniversalMotion motion, double duration, bool respectDelay, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.Motion = motion;
-            this.RespectDelay = respectDelay;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime + duration;
+            ObjectId = objectId;
+            Motion = motion;
+            RespectDelay = respectDelay;
+            ActionType = actionType;
+            StartTime = WorldManager.PortalYearTicks;
+            EndTime = StartTime + duration;
         }
 
         public QueuedGameAction(uint objectId, WorldObject worldObject, bool respectDelay, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.WorldObject = worldObject;
-            this.RespectDelay = respectDelay;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
+            ObjectId = objectId;
+            WorldObject = worldObject;
+            RespectDelay = respectDelay;
+            ActionType = actionType;
+            StartTime = WorldManager.PortalYearTicks;
+            EndTime = StartTime;
         }
 
         public QueuedGameAction(uint objectId, WorldObject worldObject, bool respectDelay, bool onlyRemove, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.WorldObject = worldObject;
-            this.RespectDelay = respectDelay;
-            this.OnlyRemove = onlyRemove;
-            this.ActionType = actionType;
-            this.StartTime = WorldManager.PortalYearTicks;
-            this.EndTime = this.StartTime;
+            ObjectId = objectId;
+            WorldObject = worldObject;
+            RespectDelay = respectDelay;
+            OnlyRemove = onlyRemove;
+            ActionType = actionType;
+            StartTime = WorldManager.PortalYearTicks;
+            EndTime = StartTime;
         }
 
         /// <summary>
@@ -70,9 +70,9 @@ namespace ACE.Network.GameAction
         /// <param name="newQueuedPosition">Teleport location</param>
         public QueuedGameAction(uint objectId, Position newQueuedPosition, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.ActionLocation = newQueuedPosition;
-            this.ActionType = actionType;
+            ObjectId = objectId;
+            ActionLocation = newQueuedPosition;
+            ActionType = actionType;
         }
 
         /// <summary>
@@ -83,10 +83,10 @@ namespace ACE.Network.GameAction
         /// <param name="broadcastMessage">Text string for chat output, usually containing the death message</param>
         public QueuedGameAction(string broadcastMessage, uint objectId, uint secondaryObjectId, GameActionType actionType)
         {
-            this.ObjectId = objectId;
-            this.SecondaryObjectId = secondaryObjectId;
-            this.ActionBroadcastMessage = broadcastMessage;
-            this.ActionType = actionType;
+            ObjectId = objectId;
+            SecondaryObjectId = secondaryObjectId;
+            ActionBroadcastMessage = broadcastMessage;
+            ActionType = actionType;
         }
 
         public uint ObjectId { get; private set; }

@@ -22,17 +22,17 @@ namespace ACE.DatLoader.FileTypes
             }
             else
             {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000018);
-                XpTable xp = new XpTable();
+                var datReader = DatManager.PortalDat.GetReaderForFile(0x0E000018);
+                var xp = new XpTable();
 
                 datReader.Offset += 4; // Skip the ID. We know what it is.
 
                 // The counts for each "Table" are at the top of the file.
-                int abilityCount = datReader.ReadInt32();
-                int vitalCount = datReader.ReadInt32();
-                int trainedSkillCount = datReader.ReadInt32();
-                int specializedSkillCount = datReader.ReadInt32();
-                uint levelCount = datReader.ReadUInt32();
+                var abilityCount = datReader.ReadInt32();
+                var vitalCount = datReader.ReadInt32();
+                var trainedSkillCount = datReader.ReadInt32();
+                var specializedSkillCount = datReader.ReadInt32();
+                var levelCount = datReader.ReadUInt32();
 
                 xp.AbilityXpChart = ReadExperienceChart(abilityCount, ref datReader);
                 xp.VitalXpChart = ReadExperienceChart(vitalCount, ref datReader);
@@ -40,13 +40,13 @@ namespace ACE.DatLoader.FileTypes
                 xp.SpecializedSkillXpChart = ReadExperienceChart(specializedSkillCount, ref datReader);
 
                 // The level table is a little different since it has UInt64 data types.
-                LevelingChart levelingXpChart = new LevelingChart();
+                var levelingXpChart = new LevelingChart();
                 ulong prevRank = 0;
                 datReader.Offset += 8; // skip level 0
                 // Start from 1 because dat includes level 0.
                 for (uint i = 1; i <= levelCount; i++)
                 {
-                    CharacterLevel characterLevel = new CharacterLevel();
+                    var characterLevel = new CharacterLevel();
                     characterLevel.Level = i;
                     characterLevel.TotalXp = datReader.ReadUInt64();
                     characterLevel.FromPreviousLevel = characterLevel.TotalXp - prevRank;
@@ -56,11 +56,11 @@ namespace ACE.DatLoader.FileTypes
                 }
 
                 // The final section is skill credits... It has the same count as levels.
-                int cumulativeSkillPoints = 0;
+                var cumulativeSkillPoints = 0;
                 datReader.Offset += 4; // skip level 0
-                for (int i = 0; i < levelCount; i++)
+                for (var i = 0; i < levelCount; i++)
                 {
-                    int skillPoint = datReader.ReadInt32();
+                    var skillPoint = datReader.ReadInt32();
                     cumulativeSkillPoints += skillPoint;
                     levelingXpChart.Levels[i].GrantsSkillPoint = skillPoint == 1;
                     levelingXpChart.Levels[i].CumulativeSkillPoints = cumulativeSkillPoints;
@@ -79,12 +79,12 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         private static ExperienceExpenditureChart ReadExperienceChart(int rankCounts, ref DatReader datReader)
         {
-            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+            var xpChart = new ExperienceExpenditureChart();
             uint prevRank = 0;
             // less than OR equals as the chart includes the zero rank, as well.
-            for (int i = 0; i <= rankCounts; i++) 
+            for (var i = 0; i <= rankCounts; i++) 
             {
-                ExperienceExpenditure rank = new ExperienceExpenditure();
+                var rank = new ExperienceExpenditure();
                 rank.Rank = i;
                 rank.TotalXp = datReader.ReadUInt32();
                 rank.XpFromPreviousRank = rank.TotalXp - prevRank;

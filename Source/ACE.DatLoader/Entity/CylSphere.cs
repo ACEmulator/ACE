@@ -10,9 +10,9 @@ namespace ACE.DatLoader.Entity
 
         public CylSphere(AceVector3 origin, float radius, float height)
         {
-            this.Origin = origin;
-            this.Radius = radius;
-            this.Height = height;
+            Origin = origin;
+            Radius = radius;
+            Height = height;
         }
     }
 }

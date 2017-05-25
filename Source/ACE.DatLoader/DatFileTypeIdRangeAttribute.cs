@@ -15,8 +15,8 @@ namespace ACE.DatLoader
 
         public DatFileTypeIdRangeAttribute(uint beginRange, uint endRange)
         {
-            this.BeginRange = beginRange;
-            this.EndRange = endRange;
+            BeginRange = beginRange;
+            EndRange = endRange;
         }
     }
 }

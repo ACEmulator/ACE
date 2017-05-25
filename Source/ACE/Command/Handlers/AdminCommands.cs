@@ -9,13 +9,10 @@ using ACE.Database;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Factories;
-
 using log4net;
 
 namespace ACE.Command.Handlers
 {
-    using System.Linq;
-
     public static class AdminCommands
     {
         // // commandname parameters
@@ -222,7 +219,7 @@ namespace ACE.Command.Handlers
 
             // TODO: Fix cloaking state resetting after teleport, investigate translucensy/visbility of other cloaked admins.
 
-            var newPhysicsState = session.Player.PhysicsData.PhysicsState;
+            var newPhysicsState = session.Player.PhysicsState;
 
             switch (parameters?[0].ToLower())
             {
@@ -230,10 +227,10 @@ namespace ACE.Command.Handlers
                     newPhysicsState |= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
                     newPhysicsState ^= PhysicsState.ReportCollision;
                     session.Player.SetPhysicsState(newPhysicsState, true);
-                    // var test = session.Player.PhysicsData.PhysicsDescriptionFlag;
+                    // var test = session.Player.PhysicsDescriptionFlag;
                     // test |= PhysicsDescriptionFlag.Translucency;
-                    // session.Player.PhysicsData.PhysicsDescriptionFlag = test;
-                    // session.Player.PhysicsData.Translucency = 0.5f;
+                    // session.Player.PhysicsDescriptionFlag = test;
+                    // session.Player.Translucency = 0.5f;
                     break;
                 case "off":
                     newPhysicsState ^= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;

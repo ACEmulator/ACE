@@ -1,11 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Factories
 {
@@ -64,14 +59,14 @@ namespace ACE.Factories
 
             SpellLikeEffect mobj = new SpellLikeEffect(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
 
-            mobj.PhysicsData.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
-            mobj.PhysicsData.DefaultScriptIntensity = (float)1;
+            mobj.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
+            mobj.DefaultScriptIntensity = (float)1;
 
-            mobj.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elasticity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
-            mobj.PhysicsData.Velocity = velocity;
-            mobj.PhysicsData.Friction = (float)friction;
-            mobj.PhysicsData.Elasticity = (float)electicity;
-            mobj.PhysicsData.PhysicsState = PhysicsState.Spell;
+            mobj.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elasticity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
+            mobj.Velocity = velocity;
+            mobj.Friction = (float)friction;
+            mobj.Elasticity = (float)electicity;
+            mobj.PhysicsState = PhysicsState.Spell;
 
             mobj.PlayerScript = PlayScript.Launch;
 

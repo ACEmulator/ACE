@@ -404,8 +404,7 @@
         Unknown388 = 388,
         Unknown389 = 389,
         Unknown390 = 390,
-        Count = 391,
-        uk_DescriptionFlags = 392
+        Count = 391
     }
 
     public static class PropertyIntExtensions

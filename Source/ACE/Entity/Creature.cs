@@ -60,9 +60,9 @@ namespace ACE.Entity
                   aceC.Position)
         {
             if (aceC.WeenieClassId < 0x8000u)
-                this.WeenieClassid = aceC.WeenieClassId;
+                WeenieClassid = aceC.WeenieClassId;
             else
-                this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
+                WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
 
             SetObjectData(aceC.CreatureData);
             SetAbilities(aceC.CreatureData);
@@ -70,30 +70,30 @@ namespace ACE.Entity
 
         private void SetObjectData(AceCreatureObject aco)
         {
-            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            PhysicsData.MTableResourceId = aco.MotionTableId;
-            PhysicsData.Stable = aco.SoundTableId;
-            PhysicsData.CSetup = aco.ModelTableId;
-            PhysicsData.Petable = aco.PhysicsTableId;
-            PhysicsData.ObjScale = aco.DefaultScale;
-            PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
+            CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            MTableResourceId = aco.MotionTableId;
+            Stable = aco.SoundTableId;
+            CSetup = aco.ModelTableId;
+            Petable = aco.PhysicsTableId;
+            ObjScale = aco.DefaultScale;
+            PhysicsState = (PhysicsState)aco.PhysicsState;
 
             // game data min required flags;
             Icon = aco.IconId;
 
-            GameData.ContainerCapacity = aco.ContainersCapacity;
-            GameData.ItemCapacity = aco.ItemsCapacity;
-            GameData.Usable = (Usable?)aco.ItemUseable;
+            ContainerCapacity = aco.ContainersCapacity;
+            ItemCapacity = aco.ItemsCapacity;
+            Usable = (Usable?)aco.ItemUseable;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            GameData.RadarColor = (RadarColor?)aco.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aco.Radar;
-            GameData.UseRadius = aco.UseRadius;
+            RadarColor = (RadarColor?)aco.BlipColor;
+            RadarBehavior = (RadarBehavior?)aco.Radar;
+            UseRadius = aco.UseRadius;
 
-            aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
-            aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = aco.PaletteId;
+            aco.WeenieAnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            aco.WeenieTextureMapOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            aco.WeeniePaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            PaletteGuid = aco.PaletteId;
         }
 
         private void SetAbilities(AceCreatureObject aco)
@@ -160,14 +160,14 @@ namespace ACE.Entity
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
+            QueuedGameAction actionDeath = new QueuedGameAction(Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
             session.Player.AddToActionQueue(actionDeath);
 
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
-            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
+            var corpse = CorpseObjectFactory.CreateCorpse(this, Location);
+            corpse.Location.PositionY -= corpse.ObjScale ?? 0;
+            corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
 
             // Corpses stay on the ground for 5 * player level but minimum 1 hour
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
@@ -176,12 +176,12 @@ namespace ACE.Entity
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+                QueuedGameAction removeCreature = new QueuedGameAction(Guid.Full, this, true, true, GameActionType.ObjectDelete);
                 session.Player.AddToActionQueue(removeCreature);
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            QueuedGameAction addCorpse = new QueuedGameAction(Guid.Full, corpse, true, GameActionType.ObjectCreate);
             session.Player.AddToActionQueue(addCorpse);
         }
     }

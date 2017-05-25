@@ -2,13 +2,11 @@
 using ACE.Entity;
 using System.Collections.Generic;
 
-/// <summary>
-/// This reads an "indoor" cell from the client_cell.dat. This is mostly dungeons, but can also be a building interior.
-/// An EnvCell is designated by starting 0x0100 (whereas all landcells are in the 0x0001 - 0x003E range.
-/// </summary>
-/// <remarks>
-/// Very special thanks again to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
-/// </remarks>
+// This reads an "indoor" cell from the client_cell.dat. This is mostly dungeons, but can also be a building interior.
+// An EnvCell is designated by starting 0x0100 (whereas all landcells are in the 0x0001 - 0x003E range.
+
+// Very special thanks again to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
+
 namespace ACE.DatLoader.FileTypes
 {
     public class EnvCell
@@ -18,9 +16,9 @@ namespace ACE.DatLoader.FileTypes
 
         // 0x08000000 textures (which contains degrade/quality info to reference the specific 0x06000000 graphics)
         public List<uint> Textures { get; set; } = new List<uint>();
-        
+
         // the 0x0D000000 model of the pre-fab dungeon block
-        public uint EnvironmentId { get; set; } 
+        public uint EnvironmentId { get; set; }
 
         public ushort CellStructure { get; set; }
         public Position Position { get; set; }
@@ -42,22 +40,22 @@ namespace ACE.DatLoader.FileTypes
             }
             else
             {
-                EnvCell c = new EnvCell();
+                var c = new EnvCell();
 
                 if (DatManager.CellDat.AllFiles.ContainsKey(landblockId))
                 {
-                    DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockId);
+                    var datReader = DatManager.CellDat.GetReaderForFile(landblockId);
                     c.CellId = datReader.ReadUInt32();
                     c.Bitfield = datReader.ReadUInt32();
                     datReader.Offset += 4; // Skip ahead 4 bytes, because this is the CellId. Again. Twice.
 
-                    byte numTextures = datReader.ReadByte();
+                    var numTextures = datReader.ReadByte();
 
                     // Note that "portal" in this context does not refer to the swirly pink/purple thing, its basically connecting cells
-                    byte numPortals = datReader.ReadByte();
-                    
+                    var numPortals = datReader.ReadByte();
+
                     // I believe this is what cells can be seen from this one. So the engine knows what else it needs to load/draw.
-                    ushort numVisibleBlocks = datReader.ReadUInt16();
+                    var numVisibleBlocks = datReader.ReadUInt16();
 
                     // Read what textures are used in this cell
                     for (uint i = 0; i < numTextures; i++)
@@ -80,7 +78,7 @@ namespace ACE.DatLoader.FileTypes
 
                     for (uint i = 0; i < numPortals; i++)
                     {
-                        CellPortal cp = new CellPortal();
+                        var cp = new CellPortal();
                         cp.Flags = datReader.ReadUInt16();
                         cp.EnvironmentId = datReader.ReadUInt16();
                         cp.OtherCellId = datReader.ReadUInt16();
@@ -95,10 +93,10 @@ namespace ACE.DatLoader.FileTypes
                         c.VisibleBlocks.Add(datReader.ReadUInt16());
                     }
 
-                    uint numObjects = datReader.ReadUInt32();
+                    var numObjects = datReader.ReadUInt32();
                     for (uint i = 0; i < numObjects; i++)
                     {
-                        Stab s = new Stab();
+                        var s = new Stab();
                         s.Model = datReader.ReadUInt32();
                         s.Position.LandblockId = new LandblockId(landblockId);
                         s.Position.PositionX = datReader.ReadSingle();

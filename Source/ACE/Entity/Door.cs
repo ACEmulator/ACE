@@ -26,33 +26,33 @@ namespace ACE.Entity
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
-            PhysicsData.MTableResourceId = aceO.MotionTableId;
-            PhysicsData.Stable = aceO.SoundTableId;
-            PhysicsData.CSetup = aceO.ModelTableId;
-            PhysicsData.Petable = aceO.PhysicsTableId;
-            // this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
-            PhysicsData.PhysicsState |= PhysicsState.HasPhysicsBsp | PhysicsState.ReportCollision;
+            MTableResourceId = aceO.MotionTableId;
+            Stable = aceO.SoundTableId;
+            CSetup = aceO.ModelTableId;
+            Petable = aceO.PhysicsTableId;
+            // PhysicsState = (PhysicsState)aceO.PhysicsState;
+            PhysicsState |= PhysicsState.HasPhysicsBsp | PhysicsState.ReportCollision;
 
-            PhysicsData.CurrentMotionState = motionStateClosed;
+            CurrentMotionState = motionStateClosed;
 
-            PhysicsData.ObjScale = aceO.DefaultScale;
-            PhysicsData.AnimationFrame = aceO.AnimationFrameId;
-            PhysicsData.Translucency = aceO.Translucency;
+            ObjScale = aceO.DefaultScale;
+            AnimationFrame = aceO.AnimationFrameId;
+            Translucency = aceO.Translucency;
 
             // game data min required flags;
             Icon = aceO.IconId;
 
-            GameData.Type = (ushort)aceO.ItemType;
+            GameDataType = (ushort)aceO.ItemType;
 
-            GameData.Usable = (Usable?)aceO.ItemUseable;
-            GameData.RadarColor = (RadarColor?)aceO.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aceO.Radar;
-            GameData.UseRadius = aceO.UseRadius;
+            Usable = (Usable?)aceO.ItemUseable;
+            RadarColor = (RadarColor?)aceO.BlipColor;
+            RadarBehavior = (RadarBehavior?)aceO.Radar;
+            UseRadius = aceO.UseRadius;
 
-            aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
-            aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = (uint?)aceO.PaletteId;
+            aceO.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            aceO.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            PaletteGuid = (uint?)aceO.PaletteId;
 
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
@@ -62,7 +62,7 @@ namespace ACE.Entity
         {
             // TODO: implement auto close timer, check if door is locked, send locked soundfx if locked and fail to open.
 
-            if (PhysicsData.CurrentMotionState == motionStateClosed)
+            if (CurrentMotionState == motionStateClosed)
                 Open(player);
             else
                 Close(player);
@@ -74,15 +74,15 @@ namespace ACE.Entity
         private void Open(Player player)
         {
             player.EnqueueMovementEvent(motionOpen, Guid);
-            PhysicsData.CurrentMotionState = motionStateOpen;
-            PhysicsData.PhysicsState |= PhysicsState.Ethereal;
+            CurrentMotionState = motionStateOpen;
+            PhysicsState |= PhysicsState.Ethereal;
         }
 
         private void Close(Player player)
         {
             player.EnqueueMovementEvent(motionClosed, Guid);
-            PhysicsData.CurrentMotionState = motionStateClosed;
-            PhysicsData.PhysicsState ^= PhysicsState.Ethereal;
+            CurrentMotionState = motionStateClosed;
+            PhysicsState ^= PhysicsState.Ethereal;
         }
     }
 }
