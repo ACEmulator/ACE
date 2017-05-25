@@ -26,23 +26,12 @@ namespace ACE.InGameManager
 
         public void PlayerEnterWorld(Session session)
         {
-
             this.gameMediator.Register(session.Player);
 
             session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat("  powered by ACEmulator  ", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat("For more information on commands supported by this server, type @acehelp", ChatMessageType.Broadcast));
-
-        }
-
-        public void Register(WorldObject wo)
-        {
-            lock (objectCacheLocker)
-            {
-                if (!worldplayers.ContainsKey(wo.Guid))
-                    worldplayers.Add(wo.Guid, wo as Player);
-            }
         }
 
         public void PlayerExitWorld(Session session)
@@ -57,9 +46,28 @@ namespace ACE.InGameManager
             }
         }
 
+        public void Register(WorldObject wo)
+        {
+            lock (objectCacheLocker)
+            {
+                if (!worldplayers.ContainsKey(wo.Guid))
+                    worldplayers.Add(wo.Guid, wo as Player);
+            }
+        }
+
+        public void UnRegister(WorldObject wo)
+        {
+            lock (objectCacheLocker)
+            {
+                if (!worldplayers.ContainsKey(wo.Guid))
+                {
+                    worldplayers.Remove(wo.Guid);
+                }
+            }
+        }
+
         public void Tick()
         {
-
         }
 
         public void Broadcast(BroadcastEventArgs args)

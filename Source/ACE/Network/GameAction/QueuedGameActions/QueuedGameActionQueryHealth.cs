@@ -31,7 +31,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
                 return;
             }
 
-            var obj = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
+            // var obj = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
 
             object target = null;
             var targetId = new ObjectGuid(ObjectId);

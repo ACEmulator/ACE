@@ -87,7 +87,7 @@ namespace ACE.Entity
         // asynchronous to or outside of the network thread
         private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
 
-        // examination queue is really a subset of the actionQueue, but this existed on
+        // examination queue is really a susebt of the actionQueue, but this existed on
         // retail servers as it's own separate thing and was intentionally throttled.
         private readonly ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
 
@@ -1549,7 +1549,7 @@ namespace ACE.Entity
             SendFriendStatusUpdates();
 
             // remove the player from landblock management
-            LandManager.OpenWorld.UnRegister(this);
+            // LandManager.OpenWorld.UnRegister(this);
 
             if (!clientSessionTerminatedAbruptly)
             {

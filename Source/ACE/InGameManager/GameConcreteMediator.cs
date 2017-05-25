@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Events;
 using ACE.Network;
+using ACE.Network.GameAction;
 
 namespace ACE.InGameManager
 {
@@ -17,6 +18,10 @@ namespace ACE.InGameManager
         // man in the middle class.. I see evrything that happens..
         private GamePlayers gamePlayers;
         private GameWorld gameworld;
+
+        // pending broadcast messages to the world
+        private static readonly object pendingbroadcastCacheLocker = new object();
+        private static Queue<QueuedGameAction> pendingbroadcast = new Queue<QueuedGameAction>();
 
         public void RegisterPlayers(GamePlayers players)
         {
@@ -48,14 +53,14 @@ namespace ACE.InGameManager
 
         public override void Register(WorldObject wo)
         {
-            if (wo.Guid.IsPlayer)
+            if (wo.Guid.IsPlayer())
                 gamePlayers.Register(wo);
             gameworld.Register(wo);
         }
 
         public override void UnRegister(WorldObject wo)
         {
-            if (wo.Guid.IsPlayer)
+            if (wo.Guid.IsPlayer())
                 gamePlayers.UnRegister(wo);
             gameworld.UnRegister(wo);
         }

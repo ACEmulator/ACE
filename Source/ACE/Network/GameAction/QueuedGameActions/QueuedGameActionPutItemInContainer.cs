@@ -26,21 +26,23 @@ namespace ACE.Network.GameAction.QueuedGameActions
             var playerGuid = new ObjectGuid(ObjectId);
             var inventoryGuid = new ObjectGuid(SecondaryObjectId);
 
-            var inventoryItem = LandManager.OpenWorld.ReadOnlyClone(inventoryGuid);
+            // var inventoryItem = LandManager.OpenWorld.ReadOnlyClone(inventoryGuid);
 
                 float arrivedRadiusSquared = 0.00f;
                 bool validGuids;
-                if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
-                    player.NotifyAndAddToInventory(inventoryItem);
-                else
+            // if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
+            // player.NotifyAndAddToInventory(inventoryItem);
+            if (true == true) // junk line.
+                validGuids = true; // junk line
+            else
+            {
+                if (validGuids)
                 {
-                    if (validGuids)
-                    {
-                        player.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
-                        player.BlockedGameAction = this;
-                        player.OnAutonomousMove(inventoryItem.PhysicsData.Position, player.Sequences, MovementTypes.MoveToObject, inventoryGuid);
-                    }
+                    // player.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
+                    player.BlockedGameAction = this;
+                    // player.OnAutonomousMove(inventoryItem.PhysicsData.Position, player.Sequences, MovementTypes.MoveToObject, inventoryGuid);
                 }
+            }
         }
 
         /// <summary>
@@ -53,14 +55,15 @@ namespace ACE.Network.GameAction.QueuedGameActions
         /// <returns></returns>
         public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
         {
-            var playerPosition = LandManager.OpenWorld.ReadOnlyClone(playerGuid).Location;
-            var targetPosition = LandManager.OpenWorld.ReadOnlyClone(targetGuid).Location;
+            var playerPosition = InGameManager.InGameManager.ReadOnlyClone(playerGuid).Location;
+            // var targetPosition = LandManager.OpenWorld.ReadOnlyClone(targetGuid).Location;
 
-            if (playerPosition != null && targetPosition != null)
+            if (playerPosition != null) // && targetPosition != null)
             {
                 validGuids = true;
 
-                var wo = LandManager.OpenWorld.ReadOnlyClone(targetGuid);
+                // var wo = LandManager.OpenWorld.ReadOnlyClone(targetGuid);
+                WorldObject wo = null; // junk
                 if (wo != null)
                 {
                     var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup);
@@ -69,7 +72,8 @@ namespace ACE.Network.GameAction.QueuedGameActions
                 else
                     arrivedRadiusSquared = 0.00f;
 
-                return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
+                // return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
+                return false;
             }
             arrivedRadiusSquared = 0.00f;
             validGuids = false;

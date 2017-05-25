@@ -41,7 +41,6 @@ namespace ACE.InGameManager
 
         internal void Tick()
         {
-            throw new NotImplementedException();
         }
 
         public WorldObject ReadOnlyClone(ObjectGuid objectguid)
@@ -72,7 +71,7 @@ namespace ACE.InGameManager
             }
 
             var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
-            Broadcast(args, Quadrant.All);
+            Broadcast(args);
         }
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
@@ -97,7 +96,7 @@ namespace ACE.InGameManager
             if (!landblocks.ContainsKey(landblockid.Raw))
             {
                 // land block not already loaded.
-                landblocks.Add(landblockid.Raw  , landblockid);
+                landblocks.Add(landblockid.Raw, landblockid);
                 var objects = DatabaseManager.World.GetObjectsByLandblock(landblockid.Landblock);
                 var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
                 factoryObjects.ForEach(fo => this.Register(fo));
@@ -153,7 +152,7 @@ namespace ACE.InGameManager
             {
                 case BroadcastAction.Delete:
                     {
-                        players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
+                        // players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();
 
                         // If I am putting this in my inventory - you don't need to tell me about it.
                         players.RemoveAll(p => p.Guid.Full == wo.GameData.ContainerId);
@@ -208,8 +207,6 @@ namespace ACE.InGameManager
                     }
             }
         }
-
-
         public void UseTime()
         {
             while (running)
@@ -338,7 +335,6 @@ namespace ACE.InGameManager
                 else
                     return;
             }
-        }
-        
+        }      
     }
 }

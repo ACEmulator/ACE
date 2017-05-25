@@ -24,7 +24,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
         {
             DeathMessageArgs d = new DeathMessageArgs(ActionBroadcastMessage, new ObjectGuid(ObjectId), new ObjectGuid(SecondaryObjectId));
             BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(player, d);
-            LandManager.OpenWorld.Broadcast(args, Quadrant.All);
+            // InGameManager.InGameManager.Broadcast(args, Quadrant.All);
         }
     }
 }

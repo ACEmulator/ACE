@@ -24,10 +24,10 @@ namespace ACE.Network.GameAction.QueuedGameActions
         protected override void Handle(Player player)
         {
             var soundEffect = (Sound)SecondaryObjectId;
-            WorldObject wo = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
+            // WorldObject wo = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
 
-            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(wo, soundEffect);
-            LandManager.OpenWorld.Broadcast(args, Quadrant.All);
+            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(this.WorldObject, soundEffect);
+            // LandManager.OpenWorld.Broadcast(args, Quadrant.All);
         }
     }
 }
