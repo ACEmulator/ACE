@@ -1,5 +1,32 @@
 # ACEmulator Change Log
 
+### 2017-05-21
+[Og II]
+* Intital work done for new schema.   Rebased and removed update sql files.
+* Tested and the auto setting of Physics and Weenie Header Flags looks really solid.   Side note, the values we have
+* in the database for weenieHeaderFlags and PhysicsDescriptionFlag should probably be dropped we don't read them or use them now.
+* Doors, portals NPC's and signs are all back in the world now.
+* I would suggest we remearge with the main branch sooner rather than later - we can create another branch to introduce these
+* changes into the character side.
+* TODO items:
+*	Creature spawns need to be refactored - I left them commented out.   We need to ditch seperate tables that we have now, I think all 
+*	creature can use what we have now, plus maybe two additional world tables.   Everything else fits into the current schema.
+*	Test Ripley data and update ACE_World.   
+*	Refactor portals - I just left the old way in and faked it out with a view.  
+*	Once this looks good and stable and we fix any found bugs - we need to clone this over to the character database and start refactoring
+*	That will get us to persisted inventory.   
+
+### 2017-05-21
+[Og II]
+* Continued work on Overhaul 
+* re-enabled more constructed statements
+* Most of the work to use existance of data to set flags for both phyics and weenieHeaderFlags - some cleanup remains - either logic issues or bad data
+* modifed cirand to take an optional second parameter to spawn X items at a time.   This speeds up testing.   I set a default to 10 if you ommit the second parameter.
+* base_ace_object and ace_object both seem to be loading.
+* updated or created several views.
+* have not tested with Ripley's new data export - I did not want to add a second variable to testing.   
+* Next steps - use Ripley's data, create needed views, re-enable door, portal, NPC --- all the world things.
+
 ### 2017-05-17
 [Og II]
 * Continued work on Overhaul 

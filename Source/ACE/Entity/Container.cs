@@ -1,10 +1,6 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -17,11 +13,11 @@ namespace ACE.Entity
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
-            this.Name = name;
-            this.DescriptionFlags = descriptionFlag;
-            this.WeenieFlags = weenieFlag;
-            this.Location = position;
-            this.WeenieClassid = weenieClassId;
+            Name = name;
+            DescriptionFlags = descriptionFlag;
+            WeenieFlags = weenieFlag;
+            Location = position;
+            WeenieClassid = weenieClassId;
         }
 
         // Inventory Management Functions
@@ -36,9 +32,8 @@ namespace ACE.Entity
 
                 GameData.Burden += inventoryItem.GameData.Burden;
                 inventoryItem.GameData.ContainerId = Guid.Full;
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-                inventoryItem.PositionFlag = UpdatePositionFlag.None;
                 inventoryItem.PhysicsData.Position = null;
+                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
             }
         }
 
@@ -46,19 +41,23 @@ namespace ACE.Entity
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
             GameData.Burden -= inventoryItem.GameData.Burden;
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                           | UpdatePositionFlag.Placement
-                                           | UpdatePositionFlag.ZeroQy
-                                           | UpdatePositionFlag.ZeroQx;
+
             inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
-            inventoryItem.GameData.ContainerId = 0;
-            inventoryItem.GameData.Wielder = 0;
+            // TODO: Write a method to set this based on data.
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
+
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag();
+            inventoryItem.GameData.ContainerId = null;
+            inventoryItem.GameData.Wielder = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
 
             lock (inventoryMutex)
             {
-                if (this.inventory.ContainsKey(inventoryItemGuid))
-                    this.inventory.Remove(inventoryItemGuid);
+                if (inventory.ContainsKey(inventoryItemGuid))
+                    inventory.Remove(inventoryItemGuid);
             }
         }
 
@@ -66,10 +65,9 @@ namespace ACE.Entity
         {
             lock (inventoryMutex)
             {
-                if (this.inventory.ContainsKey(objectGuid))
-                    return this.inventory[objectGuid];
-                else
-                    return null;
+                if (inventory.ContainsKey(objectGuid))
+                    return inventory[objectGuid];
+                return null;
             }
         }
     }
