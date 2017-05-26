@@ -36,11 +36,11 @@ namespace ACE.Factories
             uint tmpIcon = 100667504;
             wo.Icon = tmpIcon;
 
-            wo.GameData.ItemCapacity = 120; // constant value according to pcap
-            wo.GameData.ContainerCapacity = 10; // constant value according to pcap
-            wo.GameData.Usable = Usable.UsableViewedRemote; // constant value according to pcap
-            wo.GameData.UseRadius = 2.0f; // constant value according to pcap
-            wo.GameData.Burden = 6000; // Testdata, has to be set as the sum of the spawned items in the corpse
+            wo.ItemCapacity = 120; // constant value according to pcap
+            wo.ContainerCapacity = 10; // constant value according to pcap
+            wo.Usable = Usable.UsableViewedRemote; // constant value according to pcap
+            wo.UseRadius = 2.0f; // constant value according to pcap
+            wo.Burden = 6000; // Testdata, has to be set as the sum of the spawned items in the corpse
 
             wo.ModelData.PaletteGuid = template.ModelData.PaletteGuid;
             template.ModelData.GetModels.ForEach(mo => wo.ModelData.AddModel(mo.Index, mo.ModelID));

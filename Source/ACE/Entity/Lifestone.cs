@@ -31,10 +31,10 @@ namespace ACE.Entity
             // game data min required flags;
             Icon = aceO.IconId;
 
-            GameData.Usable = (Usable?)aceO.ItemUseable;
-            GameData.RadarColor = (RadarColor?)aceO.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aceO.Radar;
-            GameData.UseRadius = aceO.UseRadius;
+            Usable = (Usable?)aceO.ItemUseable;
+            RadarColor = (RadarColor?)aceO.BlipColor;
+            RadarBehavior = (RadarBehavior?)aceO.Radar;
+            UseRadius = aceO.UseRadius;
 
             aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
             aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
@@ -47,8 +47,8 @@ namespace ACE.Entity
 
             // validate within use range, taking into account the radius of the model itself, as well
             var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup);
-            var radiusSquared = ((GameData.UseRadius ?? 0.00f) + csetup.Radius)
-                                * ((GameData.UseRadius ?? 0.00f) + csetup.Radius);
+            var radiusSquared = ((UseRadius ?? 0.00f) + csetup.Radius)
+                                * ((UseRadius ?? 0.00f) + csetup.Radius);
 
             var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 

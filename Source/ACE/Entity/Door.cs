@@ -42,12 +42,12 @@ namespace ACE.Entity
             // game data min required flags;
             Icon = aceO.IconId;
 
-            GameData.Type = (ushort)aceO.ItemType;
+            GameDataType = aceO.ItemType;
 
-            GameData.Usable = (Usable?)aceO.ItemUseable;
-            GameData.RadarColor = (RadarColor?)aceO.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aceO.Radar;
-            GameData.UseRadius = aceO.UseRadius;
+            Usable = (Usable?)aceO.ItemUseable;
+            RadarColor = (RadarColor?)aceO.BlipColor;
+            RadarBehavior = (RadarBehavior?)aceO.Radar;
+            UseRadius = aceO.UseRadius;
 
             aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
             aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
