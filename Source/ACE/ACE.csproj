@@ -97,6 +97,10 @@
     <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Command\Handlers\HelpCommands.cs" />
+    <Compile Include="Entity\ITickable.cs" />
+    <Compile Include="Entity\LazyBroadcastList.cs" />
+    <Compile Include="Entity\PlayerActions\DelegateAction.cs" />
+    <Compile Include="Entity\PlayerActions\ObjectAction.cs" />
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\BroadcastAction.cs" />
     <Compile Include="Entity\CollidableObject.cs" />
@@ -105,14 +109,11 @@
     <Compile Include="Entity\DebugObject.cs" />
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\BroadcastEventArgs.cs" />
-    <Compile Include="Entity\Events\DeathMessageArgs.cs" />
-    <Compile Include="Entity\Events\ChatMessageArgs.cs" />
     <Compile Include="Entity\GameDataTest.cs" />
     <Compile Include="Entity\ItemProfile.cs" />
     <Compile Include="Entity\Lifestone.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Entity\MovementData.cs" />
-    <Compile Include="Entity\Events\SpellCastArgs.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\Landcell.cs" />
     <Compile Include="Entity\EquippedItem.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\ModelData.cs" />
     <Compile Include="Entity\PhysicsData.cs" />
+    <Compile Include="Entity\PlayerActions\DelayAction.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
     <Compile Include="Entity\SummonedPortal.cs" />

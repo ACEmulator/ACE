@@ -1,4 +1,5 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Entity.PlayerActions;
 using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
@@ -9,13 +10,20 @@ using ACE.Network.Motion;
 using ACE.StateMachines.Rules;
 using ACE.StateMachines;
 using ACE.StateMachines.Enum;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+
+using log4net;
 
 namespace ACE.Entity
 {
-    public class Creature : Container
+    public class Creature : Container, ITickable
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Dictionary<Enum.Ability, CreatureAbility> abilities = new Dictionary<Enum.Ability, CreatureAbility>();
 
         public ReadOnlyDictionary<Enum.Ability, CreatureAbility> Abilities;
@@ -68,6 +76,15 @@ namespace ACE.Entity
         /// Track state of creature if their current action is blocked.   Either until they are no longer blocked or the action is abandoned.
         /// </summary>
         private readonly StateMachine movementStateMachine = new StateMachine();
+
+        /// <summary>
+        /// List of actions that don't have time delays -- like IDs or health queries
+        /// We can have many of these running at one (but probably limited -- enforce at enqueue)
+        /// </summary>
+        protected List<ObjectAction> nonBlockingActions = new List<ObjectAction>();
+
+        protected ObjectAction currentAction = null;
+        protected ObjectAction nextAction = null;
 
         public MovementStates CreatureMovementStates
         { 
@@ -188,7 +205,7 @@ namespace ACE.Entity
             IsAlive = true;
         }
 
-        public virtual void OnKill(Session session)
+        public virtual IEnumerator ActOnKill(Session session)
         {
             IsAlive = false;
             // This will determine if the derived type is a player
@@ -207,8 +224,7 @@ namespace ACE.Entity
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
-            session.Player.AddToActionQueue(actionDeath);
+            session.Player.SendMovementEvent(motionDeath);
 
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
@@ -221,27 +237,93 @@ namespace ACE.Entity
             corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
             // If the object is a creature, Remove it from from Landblock
+            // FIXME(ddevec): This is the landblock's job? -- 
             if (!isDerivedPlayer)
             {
-                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
-                session.Player.AddToActionQueue(removeCreature);
+                LandblockManager.RemoveObject(this);
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-            session.Player.AddToActionQueue(addCorpse);
+            LandblockManager.AddObject(corpse);
+            yield break;
         }
 
         /// <summary>
         /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
         /// </summary>
         // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
-        override public void Tick(double tickTime)
+        public virtual void Tick(double tickTime, LazyBroadcastList broadcaster)
         {
             // TODO: Realistic rates && adjusting rates for spells...
             Health.Tick(tickTime);
             Stamina.Tick(tickTime);
             Mana.Tick(tickTime);
+
+            List<ObjectAction> newNBActions = new List<ObjectAction>();
+            foreach (ObjectAction actn in nonBlockingActions)
+            {
+                actn.RunNext();
+                if (!actn.Done)
+                {
+                    // Not strictly an error, but unexpected
+                    log.Warn("Non-blocking action takes more than 1 Tick to run?");
+                    newNBActions.Add(actn);
+                }
+            }
+
+            nonBlockingActions = newNBActions;
+
+            if (currentAction != null)
+            {
+                currentAction.RunNext();
+                if (currentAction.Done)
+                {
+                    currentAction = nextAction;
+                    nextAction = null;
+                }
+            }
+
+            DoBroadcast(broadcaster);
+        }
+
+        /// <summary>
+        /// Updates the current action -- Locks "this" implicitly
+        /// </summary>
+        /// <param name="action"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestAction(ObjectAction action)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            currentAction = action;
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestChainAction(ObjectAction action)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            nextAction = action;
+        }
+
+        /// <summary>
+        /// Updates the current action -- Locks "this" implicitly
+        /// </summary>
+        /// <param name="action"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestAction(Func<IEnumerator> actFunc)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            RequestAction(new DelegateAction(actFunc));
+        }
+
+        /// <summary>
+        /// Updates the current action -- Locks "this" implicitly
+        /// </summary>
+        /// <param name="action"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void RequestChainAction(Func<IEnumerator> actFunc)
+        {
+            // FIXME(ddevec): If curAction != null it needs to be canceled, etc.
+            RequestChainAction(new DelegateAction(actFunc));
         }
     }
 }

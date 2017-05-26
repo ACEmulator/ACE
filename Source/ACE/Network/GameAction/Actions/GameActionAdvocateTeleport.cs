@@ -23,7 +23,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO: Maybe output to chat window coords teleported to.
             // ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
             ChatPacket.SendServerMessage(session, "Teleporting...", ChatMessageType.Broadcast);
-            session.Player.Teleport(position);
+            session.Player.RequestAction(() => session.Player.ActTeleport(position));
         }
     }
 }

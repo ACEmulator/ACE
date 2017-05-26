@@ -1,9 +1,11 @@
 ﻿﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 using ACE.Database;
 using ACE.Entity.Enum;
@@ -15,6 +17,7 @@ using ACE.Network.GameEvent.Events;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
+using ACE.Entity.PlayerActions;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
 using ACE.Network.GameAction;
@@ -79,14 +82,6 @@ namespace ACE.Entity
         private readonly object clientObjectMutex = new object();
 
         private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-
-        // queue of all the "actions" that come from the player that require processing
-        // asynchronous to or outside of the network thread
-        private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
-
-        // examination queue is really a subset of the actionQueue, but this existed on
-        // retail servers as it's own separate thing and was intentionally throttled.
-        private readonly ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
 
         private readonly object delayedActionsMutex = new object();
 
@@ -185,29 +180,24 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
                                         Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                         sequence, newMotion));
+            
+            EnqueueBroadcast((s) => new GameMessageUpdatePosition(this));
+            EnqueueBroadcast((s) => new GameMessageUpdateMotion(Guid,
+                                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                        Sequences, newMotion));
             CreatureMovementStates = MovementStates.Moving;
             return MovementStates.Moving;
         }
 
-        public void UpdateAutonomousMove()
-        {
-            if ((Math.Abs(PhysicsData.Position.SquaredDistanceTo(MoveToPosition)) <= ArrivedRadiusSquared))
-            {
-                // We have arrived
-                CreatureMovementStates = MovementStates.Arrived;
-                if (BlockedGameAction != null)
-                {
-                    AddToActionQueue(BlockedGameAction);
-                    BlockedGameAction = null;
-                }
-                // Clean up
-                ClearDestinationInformation();
-                CreatureMovementStates = MovementStates.Idle;
-            }
-        }
-
+        /// <summary>
+        /// FIXME(ddevec): The animations should be accounted for (waited for) in the ActDrop() coroutine
+        /// </summary>
+        /// <param name="inventoryId"></param>
         public void NotifyAndDropItem(ObjectGuid inventoryId)
         {
+            if (inventoryId == Guid)
+                return;
+
             var inventoryItem = GetInventoryItem(inventoryId);
             if (inventoryItem == null)
                 return;
@@ -217,18 +207,22 @@ namespace ACE.Entity
             var motion = new UniversalMotion(MotionStance.Standing);
             motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
             var clearContainer = new ObjectGuid(0);
+
+            /*
             Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
                                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                             Sequences, motion),
                 new GameMessageUpdateInstanceId(inventoryId, clearContainer));
+                */
+            SendMovementEvent(motion);
+            Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(inventoryId, clearContainer));
+            EnqueueBroadcast(s => new GameMessageUpdateInstanceId(inventoryId, clearContainer));
 
             motion = new UniversalMotion(MotionStance.Standing);
-            Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
-                                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                            Sequences, motion),
-                new GameMessagePutObjectIn3d(Session, this, inventoryId),
+            Session.Network.EnqueueSend(new GameMessagePutObjectIn3d(Session, this, inventoryId),
                 new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
                 new GameMessageUpdateInstanceId(inventoryId, clearContainer));
+            SendMovementEvent(motion);
 
             // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -241,6 +235,13 @@ namespace ACE.Entity
             // Session.Network.EnqueueSend(new GameMessageUpdatePosition(inventoryItem));
         }
 
+        /// <summary>
+        /// Plays pick-up animation, and picks up an item
+        /// Should only be called from an Action
+        /// WARNING: I assume inventoryItem is LOCKED when entering this function
+        ///    This function CANNOT yield as a consequence
+        /// </summary>
+        /// <param name="inventoryItem"></param>
         public void NotifyAndAddToInventory(WorldObject inventoryItem)
         {
             var motion = new UniversalMotion(MotionStance.Standing);
@@ -250,6 +251,10 @@ namespace ACE.Entity
                                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                             Sequences, motion),
                 new GameMessageSound(Guid, Sound.PickUpItem, (float)1.0));
+            EnqueueBroadcast(s =>
+                new GameMessageUpdateMotion(Guid,
+                                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                            Sequences, motion));
 
             // Add to the inventory list.
             AddToInventory(inventoryItem);
@@ -263,11 +268,14 @@ namespace ACE.Entity
                                                 Sequences, motion),
                     new GameMessageUpdateInstanceId(inventoryItem.Guid, Guid),
                     new GameMessagePickupEvent(Session, inventoryItem));
+            EnqueueBroadcast(s =>
+                    new GameMessageUpdateMotion(Guid,
+                                                Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                Sequences, motion));
 
-            // TrackObject(inventoryItem);
-            // This may not be needed when we fix landblock update object -
-            // TODO: Og II - check this later to see if it is still required.
             Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
+            EnqueueBroadcast(s =>
+                    new GameMessageUpdateObject(inventoryItem));
         }
 
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.BlipColour | WeenieHeaderFlag.Radar, CharacterPositionExtensions.StartingPosition(session.CharacterRequested.Guid.Low))
@@ -576,64 +584,27 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
-        public void AddToActionQueue(QueuedGameAction action)
+        /// <summary>
+        /// Adds a non-blocking action to our set of non-blocking actions.  The action will be run on "Tick"
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public bool AddNonBlockingAction(ObjectAction action)
         {
-            actionQueue.Enqueue(action);
+            nonBlockingActions.Add(action);
+
+            return true;
         }
 
-        public void AddToExaminationQueue(QueuedGameAction action)
+        public bool AddNonBlockingAction(Func<IEnumerator> fcn)
         {
-            examinationQueue.Enqueue(action);
-        }
-
-        public QueuedGameAction ActionQueuePop()
-        {
-            QueuedGameAction action = null;
-            if (actionQueue.TryDequeue(out action))
-            {
-                lock (delayedActionsMutex)
-                {
-                    if (action.RespectDelay && delayedActions.ContainsKey(action.ObjectId))
-                    {
-                        double endTime = delayedActions[action.ObjectId];
-                        if (action.StartTime > endTime)
-                        {
-                            // the new action starts after the old one is complete, so remove the old one
-                            delayedActions.Remove(action.ObjectId);
-                        }
-                        else
-                        {
-                            // the new action should start before the old one is complete, so enqueue the new one again
-                            action.StartTime = WorldManager.PortalYearTicks;
-                            actionQueue.Enqueue(action);
-                            return null;
-                        }
-                    }
-
-                    // This is an action e.g. animation that takes time to complete
-                    // Remember this object to delay further actions queued for the same object
-                    if (action.EndTime > WorldManager.PortalYearTicks)
-                    {
-                        delayedActions.Add(action.ObjectId, action.EndTime);
-                    }
-                }
-                return action;
-            }
-            else
-                return null;
-        }
-
-        public QueuedGameAction ExaminationQueuePop()
-        {
-            QueuedGameAction action = null;
-            if (examinationQueue.TryDequeue(out action))
-                return action;
-            else
-                return null;
+            return AddNonBlockingAction(new DelegateAction(fcn));
         }
 
         /// <summary>
         /// Raise the available XP by a specified amount
+        /// FIXME(ddevec): Non blocking action?
         /// </summary>
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(ulong amount)
@@ -734,7 +705,7 @@ namespace ACE.Entity
                 // break if we reach max
                 if (character.Level == maxLevel.Level)
                 {
-                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
                     break;
                 }
             }
@@ -759,7 +730,7 @@ namespace ACE.Entity
                 else
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 // play level up effect
-                ActionApplyVisualEffect(Network.Enum.PlayScript.LevelUp, Guid);
+                PlayParticleEffect(Network.Enum.PlayScript.LevelUp, Guid);
             }
         }
 
@@ -787,7 +758,7 @@ namespace ACE.Entity
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
-                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -958,7 +929,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -985,9 +956,9 @@ namespace ACE.Entity
         ///         4. Determine if we need to Send Queued Action for Lifestone Materialize, after Action Location.
         ///         5. Find the health after death formula and Set the correct health
         /// </remarks>
-        public override void OnKill(Session killerSession)
+        public override IEnumerator ActOnKill(Session killerSession)
         {
-            base.OnKill(killerSession);
+            yield return ObjectAction.CallCoroutine(base.ActOnKill(killerSession));
 
             ObjectGuid killerId = killerSession.Player.Guid;
 
@@ -1016,7 +987,9 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
 
             // Broadcast the 019E: Player Killed GameMessage
-            ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
+            Session.Network.EnqueueSend(new GameMessagePlayerKilled($"{Name} has {currentDeathMessage}", Guid, killerId));
+            EnqueueBroadcast(s => new GameMessagePlayerKilled($"{Name} has {currentDeathMessage}", Guid, killerId));
+            //Session.Network.EnqueueSend(deathBroadcast);
 
             // create corpse at location
             var corpse = CorpseObjectFactory.CreateCorpse(this, Location);
@@ -1031,27 +1004,31 @@ namespace ACE.Entity
             SetCharacterPosition(PositionType.LastOutsideDeath, Location);
 
             // teleport to sanctuary or best location
-            Position newPositon = new Position();
+            Position newPosition = new Position();
 
             if (Positions.ContainsKey(PositionType.Sanctuary))
-                newPositon = Positions[PositionType.Sanctuary];
+                newPosition = Positions[PositionType.Sanctuary];
             else if (Positions.ContainsKey(PositionType.LastPortal))
-                newPositon = Positions[PositionType.LastPortal];
+                newPosition = Positions[PositionType.LastPortal];
             else
-                newPositon = Positions[PositionType.Location];
+                newPosition = Positions[PositionType.Location];
 
             // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
             // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
             // AddToActionQueue(addCorpse);
             // If the player is outside of the landblock we just died in, then reboadcast the death for
             // the players at the lifestone.
-            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell)
+            if (Positions[PositionType.LastOutsideDeath].Cell != newPosition.Cell)
             {
-                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
+                EnqueueBroadcast(s => new GameMessagePlayerKilled($"{Name} has {currentDeathMessage}", Guid, killerId));
+                //ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
             }
 
             // Queue the teleport to lifestone
-            ActionQueuedTeleport(newPositon, Guid, GameActionType.TeleToLifestone);
+            //ActionQueuedTeleport(newPositon, Guid, GameActionType.TeleToLifestone);
+            yield return ObjectAction.CallCoroutine(new DelegateAction(() =>
+                    ActTeleport(newPosition)));
+
 
             // Regenerate/ressurect?
             Health.Current = 5;
@@ -1059,72 +1036,26 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msgHealthUpdate);
 
             // Stand back up
-            EnqueueMovementEvent(new UniversalMotion(MotionStance.Standing), Guid);
+            SendMovementEvent(new UniversalMotion(MotionStance.Standing));
+        }
+
+        public void SendMovementEvent(UniversalMotion motion)
+        {
+            SendMovementEvent(motion, this);
         }
 
         /// <summary>
-        /// Used to ensure that teleport happens in a sequential order, on the queue
+        /// NOTE: Assumes sender is locked, or this
         /// </summary>
-        /// <param name="teleportPosition"></param>
-        /// <param name="objectId"></param>
-        /// <param name="teleportType">Must be a teleportation range action type</param>
-        public void ActionQueuedTeleport(Position teleportPosition, ObjectGuid objectId, GameActionType teleportType)
-        {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, teleportPosition, teleportType);
-            AddToActionQueue(action);
-        }
-
-        /// <summary>
-        /// Sends a death message broadcast all players on the landblock? that a killer has a victim
-        /// </summary>
-        /// <remarks>
-        /// TODO:
-        ///     1. Figure out who all receieves death messages, on what landblock and at what order -
-        ///         Example: Does the players around the vicitm receive the message or do the players at the lifestone receieve the message, or both?
-        /// </remarks>
-        /// <param name="deathMessage"></param>
-        /// <param name="victimId"></param>
-        public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
-        {
-            // TODO: remove TalkDirect hack and implement a proper mechanism for this.  perhaps a server action queue
-            QueuedGameAction action = new QueuedGameAction(deathMessage, victimId.Full, killerId.Full, GameActionType.TalkDirect);
-            AddToActionQueue(action);
-        }
-
-        /// <summary>
-        /// Receieves a message from the action queue about other player deaths and Sends the message to the player,
-        /// while maintaining the proper sequences. This will never be sent to the player, unless the player commits suicide.
-        /// </summary>
-        /// <param name="deathMessage">This message can be any text string</param>
-        public void BroadcastPlayerDeath(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
-        {
-            var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            Session.Network.EnqueueSend(deathBroadcast);
-        }
-
-        public void ActionApplySoundEffect(Sound sound, ObjectGuid objectId)
-        {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)sound, GameActionType.ApplySoundEffect);
-            AddToActionQueue(action);
-        }
-
-        public void ActionApplyVisualEffect(PlayScript effect, ObjectGuid objectId)
-        {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, (uint)effect, GameActionType.ApplyVisualEffect);
-            AddToActionQueue(action);
-        }
-
-        public void EnqueueMovementEvent(UniversalMotion motion, ObjectGuid objectId)
-        {
-            QueuedGameAction action = new QueuedGameAction(objectId.Full, motion, GameActionType.MovementEvent);
-            AddToActionQueue(action);
-        }
-
+        /// <param name="motion"></param>
+        /// <param name="sender"></param>
         public void SendMovementEvent(UniversalMotion motion, WorldObject sender)
         {
-            Session.Network.EnqueueSend(new GameMessageUpdateMotion(sender.Guid,
+            GameMessageUpdateMotion msg = new GameMessageUpdateMotion(sender.Guid,
                                                                     sender.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                                    sender.Sequences, motion));
+                                                                    sender.Sequences, motion);
+            Session.Network.EnqueueSend(msg);
+            EnqueueBroadcast(s => msg);
         }
 
         // Play a sound
@@ -1138,6 +1069,7 @@ namespace ACE.Entity
         {
             var effectEvent = new GameMessageScript(targetId, effectId);
             Session.Network.EnqueueSend(effectEvent);
+            EnqueueBroadcast((s) => effectEvent);
         }
 
         /// <summary>
@@ -1419,6 +1351,12 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(player, title, friends);
         }
 
+        /// <summary>
+        /// Sends a SetPhysicsState broadcast
+        /// NOTE: This should only be called with (packet = true) from an ObjectAction
+        /// </summary>
+        /// <param name="state"></param>
+        /// <param name="packet"></param>
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
             PhysicsData.PhysicsState = state;
@@ -1426,28 +1364,307 @@ namespace ACE.Entity
             if (packet)
             {
                 Session.Network.EnqueueSend(new GameMessageSetState(this, state));
-                // TODO: this should be broadcast
+                // FIXME(ddevec): Are the sequences right for this?  They are based off teh world object being update :-/
+                EnqueueBroadcast(session => new GameMessageSetState(this, state));
             }
         }
 
-        public void Teleport(Position newPosition)
+        /// <summary>
+        /// Handles ID requests from the player.
+        /// Should this be handled by the iding player, or the object being ided?
+        ///  -- The /world/ may never know :-P
+        ///  --  Seriously though, I'm not sure
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public IEnumerator ActDoExamination(ObjectGuid id)
         {
-            if (!InWorld)
-                return;
-
-            InWorld = false;
-            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
-
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
-
-            lock (clientObjectMutex)
+            WorldObject wo = LandblockManager.GetWorldObject(Session, id);
+            if (wo == null)
             {
-                clientObjectList.Clear();
-                Session.Player.Location = newPosition;
-                SetPhysicalCharacterPosition();
+                yield break;
+            }
+            GameMessage idResponse = null;
+            lock (wo)
+            {
+                idResponse = new GameEventIdentifyObjectResponse(Session, id.Full, wo);
+            }
+            Session.Network.EnqueueSend(idResponse);
+
+            yield break;
+        }
+
+        public IEnumerator ActBuy(uint vendorId, List<ItemProfile> items)
+        {
+            // todo: lots, need vendor list, money checks, etc.
+
+            var money = new GameMessagePrivateUpdatePropertyInt(this.Session, PropertyInt.CoinValue, 4000);
+            var sound = new GameMessageSound(this.Guid, Sound.PickUpItem, 1);
+            var sendUseDoneEvent = new GameEventUseDone(this.Session);
+            this.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
+
+            // send updated vendor inventory.
+            this.Session.Network.EnqueueSend(new GameEventApproachVendor(this.Session, vendorId));
+
+            // this is just some testing code for now.
+            foreach (ItemProfile item in items)
+            {
+                // todo: something with vendor id and profile list... iid list from vendor dbs.
+                // todo: something with amounts..
+
+                if (item.Iid == 5)
+                {
+                    while (item.Amount > 0)
+                    {
+                        item.Amount--;
+                        WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
+                        LootGenerationFactory.AddToContainer(loot, this);
+                        this.TrackObject(loot);
+                    }
+                    var rudecomment = "Who do you think you are, Johny Apple Seed ?";
+                    var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
+                    this.Session.Network.EnqueueSend(buyrudemsg);
+                }
+                else if (item.Iid == 10)
+                {
+                    while (item.Amount > 0)
+                    {
+                        item.Amount--;
+                        WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
+                        LootGenerationFactory.AddToContainer(loot, this);
+                        this.TrackObject(loot);
+                    }
+                    var rudecomment = "That smells awful, Enjoy eating it!";
+                    var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
+                    this.Session.Network.EnqueueSend(buyrudemsg);
+                }
             }
 
-            DelayedUpdatePosition(newPosition);
+            yield break;
+        }
+
+        public IEnumerator ActQueryHealth(ObjectGuid id)
+        {
+            WorldObject wo = LandblockManager.GetWorldObject(Session, id);
+            Creature co = wo as Creature;
+            if (co == null)
+            {
+                yield break;
+            }
+
+            float healthPct = 0;
+            lock (co)
+            {
+                healthPct = (float)co.Health.Current / (float)co.Health.MaxValue;
+            }
+
+            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, id.Full, healthPct));
+
+            yield break;
+        }
+
+        public IEnumerator ActUse(ObjectGuid usableId)
+        {
+            var usableWo = LandblockManager.GetWorldObject(Session, usableId);
+
+            // Move to the object
+            yield return ObjectAction.CallCoroutine(ActMoveTo(usableWo));
+
+            // FIXME(ddevec): Special case for portals :(  Perhaps Usable should be an interface, not base class?
+            var portal = usableWo as Portal;
+            var uo = usableWo as UsableObject;
+
+            // Then use the object
+            // FIXME(ddevec): Sanity checks -- object usable, still close, etc etc
+            lock(usableWo)
+            {
+                if (portal != null)
+                {
+                    portal.OnCollide(this);
+                }
+                else if (uo != null)
+                {
+
+                    // Use it -- let it do the rest
+                    // NOTE(ddevec): We cannot yield in OnUse -- we are holding the lock to that object
+                    //    If we need a back and forth interaction it will have to be via message passing/waiting of some kind
+                    uo.OnUse(this);
+                }
+            }
+            yield break;
+        }
+
+        public IEnumerator ActDrop(ObjectGuid itemGuid)
+        {
+            // FIXME: The object is in your pack not the world!  
+            //WorldObject wo = LandblockManager.GetWorldObject(Session, itemGuid);
+            WorldObject wo = GetInventoryItem(itemGuid);
+
+            if (wo == null)
+            {
+                yield break;
+            }
+
+            lock (wo)
+            {
+                NotifyAndDropItem(wo.Guid);
+            }
+            yield break;
+        }
+
+        public IEnumerator ActMoveTo(ObjectGuid itemGuid)
+        {
+            var item = LandblockManager.GetWorldObject(Session, itemGuid);
+            yield return ObjectAction.CallCoroutine(ActMoveTo(item));
+        }
+
+
+        public IEnumerator ActMoveTo(WorldObject wo)
+        {
+            Position desiredLocation = null;
+            lock (wo)
+            {
+                float distance = PhysicsData.Position.SquaredDistanceTo(wo.PhysicsData.Position);
+                float useDistance = wo.GetUseRadius();
+
+                if (distance > useDistance)
+                {
+                    desiredLocation = new Position(wo.PhysicsData.Position);
+                }
+            }
+
+            // If we need to move, do that before we pick up the item
+            if (desiredLocation != null)
+            {
+                // Trys to move our character to pos
+                OnAutonomousMove(desiredLocation, Sequences, MovementTypes.MoveToObject, wo.Guid);
+                // Now wait for us to get there
+                // FIXME(ddevec): How close do we move?
+                while (PhysicsData.Position.SquaredDistanceTo(desiredLocation) > 1.5f * 1.5f)
+                {
+                    yield return null;
+                }
+            }
+
+            yield break;
+        }
+
+        public IEnumerator ActPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid)
+        {
+            // Has to be a player so need to check before I make the cast.
+            // If he is not a player, something is bad wrong. Og II
+            if (containerGuid.IsPlayer())
+            {
+                var inventoryItem = LandblockManager.GetWorldObject(Session, itemGuid);
+                // There is no spoon -- done
+                if (inventoryItem == null)
+                {
+                    yield break;
+                }
+
+                // Try to move to the object (N.B. this will return immediately if we're already there)
+                yield return ObjectAction.CallCoroutine(ActMoveTo(itemGuid));
+
+                // Now that we're at the item (or at least where it was) try to actually pick it up
+                lock (inventoryItem)
+                {
+                    // FIXME: Sanity check its still on the world, hasn't been picked up, and I'm still near it
+                    //   We need to re-check everything because we unlocked
+                    NotifyAndAddToInventory(inventoryItem);
+                    // We got it! or didn't, anyway, we're done here
+                }
+            }
+            else
+            {
+                log.Warn("Trying to place object in container that isn't a player -- I don't support that yet");
+            }
+            yield return null;
+        }
+
+        public IEnumerator ActLifestone()
+        {
+            if (Positions.ContainsKey(PositionType.Sanctuary)) {
+                // session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
+                string msg = $"{Name} is recalling to the lifestone.";
+
+                var sysChatMessage = new GameMessageSystemChat(msg, ChatMessageType.Recall);
+
+                Mana.Current = Mana.Current / 2;
+                var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current);
+                Session.Network.EnqueueSend(updatePlayersMana);
+
+                yield return ObjectAction.CallCoroutine(ActDelayedTeleport(msg, new MotionItem(MotionCommand.LifestoneRecall), Positions[PositionType.Sanctuary]));
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(Session, "Your spirit has not been attuned to a sanctuary location.", ChatMessageType.Broadcast);
+            }
+        }
+
+        public IEnumerator ActDelayedTeleport(string message, MotionItem motion, Position destination)
+        {
+            var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
+
+            // Create/send local messages
+            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
+            var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
+            var animationEvent = new GameMessageUpdateMotion(Guid,
+                                                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                             Sequences, motionMarketplaceRecall);
+            // Send locally
+            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
+            Session.Network.EnqueueSend(new GameMessageUpdateMotion(Session.Player.Guid,
+                                                                    Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                                    Sequences, motionMarketplaceRecall));
+
+            // Enqueue broadcast messages
+            EnqueueBroadcast(x => sysChatMessage);
+            //p.Session.Network.EnqueueSend(sysChatMessage);
+            EnqueueBroadcast(x => new GameMessageUpdateMotion(Guid,
+                                                              Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                              Sequences, motionMarketplaceRecall));
+
+            // Delay 14 seconds
+            yield return ObjectAction.CallCoroutine(new DelayAction(TimeSpan.FromSeconds(14)));
+
+            // Then, have the player do a normal (non-delay) "Teleport"
+            yield return ObjectAction.CallCoroutine(ActTeleport(destination));
+        }
+
+        public IEnumerator ActTeleport(Position newPosition)
+        {
+            // Done
+            if (InWorld)
+            {
+                InWorld = false;
+                SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
+
+                Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
+
+                lock (clientObjectMutex)
+                {
+                    clientObjectList.Clear();
+                    Session.Player.Location = newPosition;
+                    SetPhysicalCharacterPosition();
+                }
+
+                // FIXME(ddevec): This Waits 10 seconds, it should instead wait until new location loads
+                yield return ObjectAction.CallCoroutine(new DelayAction(TimeSpan.FromSeconds(10)));
+
+                log.Warn("UpdatePositionTele: " + newPosition);
+                UpdatePosition(newPosition);
+            }
+            yield break;
+        }
+
+        public IEnumerator ActUpdatePosition(Position newPosition)
+        {
+            // Ignore incoming position updates when in teleport space
+            if (InWorld)
+            {
+                UpdatePosition(newPosition);
+            }
+            yield break;
         }
 
         public void UpdatePosition(Position newPosition)
@@ -1457,28 +1674,11 @@ namespace ACE.Entity
             SendUpdatePosition();
         }
 
-        private void DelayedUpdatePosition(Position newPosition)
-        {
-            var t = new Thread(() =>
-            {
-                Thread.Sleep(10);
-                Location = newPosition;
-                // character.SetCharacterPosition(newPosition);
-                SendUpdatePosition();
-            });
-            t.Start();
-        }
-
         public void SetTitle(uint title)
         {
             var updateTitle = new GameEventUpdateTitle(Session, title);
             var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(updateTitle, message);
-        }
-
-        public void ReceiveChat(WorldObject sender, ChatMessageArgs e)
-        {
-            // TODO: Implement
         }
 
         /// <summary>
@@ -1493,20 +1693,21 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// FIXME(ddevec): Is this still needed? -- The part that runs GameMessageCreateObject def is -- dunno bout the tracking
         /// forces either an update or a create object to be sent to the client
         /// </summary>
         public void TrackObject(WorldObject worldObject)
         {
-            bool sendUpdate = true;
+            bool newObject = true;
 
             if (worldObject.Guid == Guid)
                 return;
 
             lock (clientObjectMutex)
             {
-                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
+                newObject = !clientObjectList.ContainsKey(worldObject.Guid);
 
-                if (!sendUpdate)
+                if (newObject)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
                     worldObject.PlayScript(Session);
@@ -1515,16 +1716,11 @@ namespace ACE.Entity
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
 
-            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
-
-            if (sendUpdate)
+            if (newObject)
             {
-                // Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
-                // TODO: Better handling of sending updates to client. The above line is causing much more problems then it is solving until we get proper movement.
-                // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
-            }
-            else
+                log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+            }
         }
 
         /// <summary>
@@ -1582,10 +1778,12 @@ namespace ACE.Entity
             }
         }
 
-        public void SendUpdatePosition()
+        private void SendUpdatePosition()
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-            Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+            var msg = new GameMessageUpdatePosition(this);
+            Session.Network.EnqueueSend(msg);
+            EnqueueBroadcast(x => msg);
         }
 
         public void SendAutonomousPosition()
@@ -1611,13 +1809,14 @@ namespace ACE.Entity
             WaitingForDelayedTeleport = false;
         }
 
-        override public void Tick(double tickTime)
+        override public void Tick(double tickTime, LazyBroadcastList broadcastList)
         {
             uint oldHealth = Health.Current;
             uint oldStamina = Stamina.Current;
             uint oldMana = Mana.Current;
 
-            base.Tick(tickTime);
+            // Base tick will broadcast for us
+            base.Tick(tickTime, broadcastList);
 
             // If the game loop changed a vital -- send an update message to the client
             if (Health.Current != oldHealth)

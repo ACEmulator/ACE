@@ -1,4 +1,6 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿using ACE.Entity.PlayerActions;
+
+namespace ACE.Network.GameAction.Actions
 {
     using global::ACE.Entity;
 
@@ -9,8 +11,8 @@
         {
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            QueuedGameAction action = new QueuedGameAction(containerGuid.Full, itemGuid.Full, GameActionType.PutItemInContainer);
-            session.Player.AddToActionQueue(action);
+            session.Player.RequestAction(new DelegateAction(() =>
+                    session.Player.ActPutItemInContainer(itemGuid, containerGuid)));
         }
     }
 }

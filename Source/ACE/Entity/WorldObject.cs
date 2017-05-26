@@ -2,11 +2,15 @@
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.GameMessages;
 using ACE.Network.Sequence;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using ACE.Managers;
 using log4net;
 using ACE.Network.Motion;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -36,6 +40,14 @@ namespace ACE.Entity
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
+
+        private double lastPositionUpdate;
+
+        /// <summary>
+        /// Used to manage global objects from this object on Tick
+        /// -- Set during tick, cleared at the end of tick
+        /// </summary>
+        private List<Func<Session, GameMessage>> broadcastList = new List<Func<Session, GameMessage>>();
 
         public virtual Position Location
         {
@@ -84,6 +96,17 @@ namespace ACE.Entity
 
         public SequenceManager Sequences { get; }
 
+        /// <summary>
+        /// Determines if tick should be called
+        /// This allows avoiding excessive LOCKing from landblock on EMPTY ticks
+        /// WARNING: This function is called WITHOUT locking -- so it should have no real logic in it...
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool HasTick()
+        {
+            return false;
+        }
+
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             Type = type;
@@ -91,6 +114,8 @@ namespace ACE.Entity
 
             GameData = new GameData();
             ModelData = new ModelData();
+
+            lastPositionUpdate = WorldManager.PortalYearTicks;
 
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
@@ -280,8 +305,32 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
 
-        public virtual void Tick(double tickTime)
+        public float GetUseRadius()
         {
+            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup);
+            return (float)Math.Pow(GameData.UseRadius + csetup.Radius + 1.5, 2);
+        }
+
+        /// <summary>
+        /// N.B. Should only be called from within "Tick"
+        /// </summary>
+        /// <param name="toSend"></param>
+        public void EnqueueBroadcast(Func<Session, GameMessage> toSend)
+        {
+            broadcastList.Add(toSend);
+        }
+
+        protected void DoBroadcast(LazyBroadcastList list)
+        {
+            if (broadcastList.Count != 0)
+            {
+                foreach (Player p in list.GetBroadcasters())
+                {
+                    var msgs = broadcastList.ConvertAll<GameMessage>(act => act(p.Session));
+                    p.Session.Network.EnqueueSend(msgs.ToArray());
+                }
+                broadcastList.Clear();
+            }
         }
     }
 }

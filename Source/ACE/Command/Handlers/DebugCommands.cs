@@ -1,5 +1,6 @@
 ﻿using System;
 using ACE.Entity;
+using ACE.Entity.PlayerActions;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
@@ -71,7 +72,8 @@ namespace ACE.Command.Handlers
                 positionData[i] = position;
             }
 
-            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            session.Player.RequestAction(() => 
+                session.Player.ActTeleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6])));
         }
 
         // portalrecall
@@ -82,7 +84,7 @@ namespace ACE.Command.Handlers
             Position lastPortalUsed = null;
             if (session.Player.Positions.TryGetValue(PositionType.LastPortal, out lastPortalUsed))
             {
-                session.Player.Teleport(lastPortalUsed);
+                session.Player.RequestAction(() => session.Player.ActTeleport(lastPortalUsed));
             }
             else
             {
@@ -140,10 +142,11 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
                     {
                         message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
-                        // add the sound to the player queue for everyone to hear
-                        // player action queue items will execute on the landblock
-                        // player.playsound will play a sound on only the client session that called the function
-                        session.Player.ActionApplySoundEffect(sound, session.Player.Guid);
+                        // Lock the player and play the sound...
+                        lock (session.Player)
+                        {
+                            session.Player.PlaySound(sound, session.Player.Guid);
+                        }
                     }
                 }
 
@@ -182,7 +185,7 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
                         message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
-                        session.Player.ActionApplyVisualEffect(effect, session.Player.Guid);
+                        session.Player.PlayParticleEffect(effect, session.Player.Guid);
                     }
                 }
 
@@ -221,7 +224,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
-            session.Player.EnqueueMovementEvent(motion, session.Player.Guid);
+            session.Player.SendMovementEvent(motion);
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -257,12 +260,15 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTestWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
+            session.Player.RequestAction(new DelegateAction(() => session.Player.ActPutItemInContainer(loot.Guid, session.Player.Guid)));
+            /*
             var newMotion = new UniversalMotion(MotionStance.Standing, loot.PhysicsData.Position, loot.Guid);
             newMotion.MovementTypes = MovementTypes.MoveToObject;
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
                                         session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
                                         session.Player.Sequences, newMotion));
+            */
         }
         
         // This function 
@@ -334,7 +340,7 @@ namespace ACE.Command.Handlers
         public static void SpaceJump(Session session, params string[] parameters)
         {
             Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
-            session.Player.Teleport(newPosition);
+            session.Player.RequestAction(() => session.Player.ActTeleport(newPosition));
         }
 
         [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
@@ -437,7 +443,7 @@ namespace ACE.Command.Handlers
                 if (playerSession != null)
                 {
                     // send session a usedone
-                    playerSession.Player.OnKill(playerSession);
+                    playerSession.Player.RequestAction(() => playerSession.Player.ActOnKill(playerSession));
                     return;
                 }
             }
@@ -508,8 +514,9 @@ namespace ACE.Command.Handlers
 
                 if (target.IsCreature())
                 {
+                    var co = wo as Creature;
                     if (wo != null)
-                        (wo as Creature).OnKill(session);
+                        co.RequestAction(() => co.ActOnKill(session));
                 }
             }
             else
@@ -594,7 +601,7 @@ namespace ACE.Command.Handlers
                     Position playerPosition = new Position();
                     if (session.Player.Positions.TryGetValue(positionType, out playerPosition))
                     {
-                        session.Player.Teleport(playerPosition);
+                        session.Player.RequestAction(() => session.Player.ActTeleport(playerPosition));
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
                     }
                     else

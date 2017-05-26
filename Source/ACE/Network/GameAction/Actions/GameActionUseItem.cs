@@ -1,6 +1,7 @@
 ﻿using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.PlayerActions;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameEvent;
@@ -17,8 +18,7 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint fullId = message.Payload.ReadUInt32();
-            QueuedGameAction action = new QueuedGameAction(fullId, GameActionType.EvtInventoryUseEvent);
-            session.Player.AddToActionQueue(action);
+            session.Player.RequestAction(new DelegateAction(() => session.Player.ActUse(new ObjectGuid(fullId))));
             return;
         }
     }

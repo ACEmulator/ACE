@@ -16,6 +16,7 @@ using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum.Properties;
+using ACE.Network.GameMessages;
 
 namespace ACE.Entity
 {
@@ -324,45 +325,8 @@ namespace ACE.Entity
             return 0.00f;
         }
 
-        public void HandleSoundEvent(WorldObject sender, Sound soundEvent)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateSoundAction(sender, soundEvent);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleParticleEffectEvent(WorldObject sender, PlayScript effect)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(sender, effect);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleMovementEvent(WorldObject sender, UniversalMotion motion)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(sender, motion);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void SendChatMessage(WorldObject sender, ChatMessageArgs chatMessage)
-        {
-            // only players receive this
-            List<Player> players = null;
-
-            lock (objectCacheLocker)
-            {
-                players = worldObjects.Values.OfType<Player>().ToList();
-            }
-
-            BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
-            Broadcast(args, true, Quadrant.All);
-        }
-
-        public void HandleDeathMessage(WorldObject sender, DeathMessageArgs deathMessageArgs)
-        {
-            BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(sender, deathMessageArgs);
-            Broadcast(args, false, Quadrant.All);
-        }
-
         /// <summary>
+        /// FIXME(ddevec): Is this still needed after the redesign?
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
         private void Broadcast(BroadcastEventArgs args, bool propogate, Quadrant quadrant)
@@ -398,42 +362,9 @@ namespace ACE.Entity
                         Parallel.ForEach(players, p => p.TrackObject(wo));
                         break;
                     }
-                case BroadcastAction.LocalChat:
-                    {
-                        // supresss updating if player is out of range of world object.= being updated or created
-                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
-                        Parallel.ForEach(players, p => p.ReceiveChat(wo, args.ChatMessage));
-                        break;
-                    }
-                case BroadcastAction.PlaySound:
-                    {
-                        // supresss updating if player is out of range of world object.= being updated or created
-                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
-                        Parallel.ForEach(players, p => p.PlaySound(args.Sound, args.Sender.Guid));
-                        break;
-                    }
-                case BroadcastAction.PlayParticleEffect:
-                    {
-                        // supresss updating if player is out of range of world object.= being updated or created
-                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
-                        Parallel.ForEach(players, p => p.PlayParticleEffect(args.Effect, args.Sender.Guid));
-                        break;
-                    }
-                case BroadcastAction.MovementEvent:
-                    {
-                        // suppress updating if player is out of range of world object.= being updated or created
-                        players = GetWorldObjectsInRange(wo, maxobjectRange, true).OfType<Player>().ToList();
-                        Parallel.ForEach(players, p => p.SendMovementEvent(args.Motion, args.Sender));
-                        break;
-                    }
-                case BroadcastAction.BroadcastDeath:
-                    {
-                        // players never need an update of themselves
-                        // TODO: Filter to players in range and include adjacencies
-                        players = players.Where(p => p.Guid != args.Sender.Guid).ToList();
-                        Parallel.ForEach(players, p => p.BroadcastPlayerDeath(args.DeathMessage.Message, args.DeathMessage.Victim, args.DeathMessage.Killer));
-                        break;
-                    }
+                default:
+                    log.Warn($"Unsuppoorted action: {args.ActionType}");
+                    break;
             }
         }
 
@@ -474,6 +405,7 @@ namespace ACE.Entity
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
+                // Track object motion
                 if (id.MapScope == Enum.MapScope.Outdoors)
                 {
                     // check to see if a player or other mutable object "roamed" to an adjacent landblock
@@ -493,29 +425,9 @@ namespace ACE.Entity
                     objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
                 }
 
-                // for all players on landblock.
-                Parallel.ForEach(allplayers, player =>
-                {
-                    // Process Action Queue for player.
-                    QueuedGameAction action = player.ActionQueuePop();
-                    if (action != null)
-                        HandleGameAction(action, player);
-
-                    // Process Examination Queue for player
-                    QueuedGameAction examination = player.ExaminationQueuePop();
-                    if (examination != null)
-                        HandleGameAction(examination, player);
-                });
                 UpdateStatus(allplayers.Count);
 
-                double tickTime = WorldManager.PortalYearTicks;
-                // per-creature update on landblock.
-                Parallel.ForEach(allworldobj, wo =>
-                {
-                    // Process the creatures
-                    wo.Tick(tickTime);
-                });
-
+                // Update tracked lists for players
                 // broadcast moving objects to the world..
                 // players and creatures can move.
                 Parallel.ForEach(movedObjects, mo =>
@@ -543,16 +455,33 @@ namespace ACE.Entity
                         }
                     });
 
-                    if (mo.Location.LandblockId == id)
-                    {
-                        // update if it's still here
-                        Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
-                    }
-                    else
+                    if (mo.Location.LandblockId != id)
                     {
                         // remove and readd if it's not
                         RemoveWorldObject(mo.Guid, false);
                         LandblockManager.AddObject(mo);
+                    }
+                });
+
+                // Tick all objects
+                double tickTime = WorldManager.PortalYearTicks;
+                // per-creature update on landblock.
+                Parallel.ForEach(allworldobj, wo =>
+                {
+                    // Process the creatures
+                    // We lock here -- it IS required becuase this is run in a Parallel.ForEach loop
+                    //   AND because of cross-landblock dependencies
+                    //   Any use of OTHER objects within the tick function (gotten through landblock by guid) requires locking
+                    //   updates of THIS object within Tick are safe
+                    var tickable = wo as ITickable;
+                    if (tickable != null)
+                    {
+                        lock (tickable)
+                        {
+                            // FIXME(ddevec): LBBroadcaster class was a fast hacky fix to the problem -- there is probably a more elegant solution..
+                            //    -- Maybe someone more familiar with C# would know the magic off the top of their head
+                            tickable.Tick(tickTime, new LazyBroadcastList(wo.Guid, allplayers));
+                        }
                     }
                 });
 
@@ -580,276 +509,6 @@ namespace ACE.Entity
             }
 
             // TODO: release resources
-        }
-
-        private void HandleGameAction(QueuedGameAction action, Player player)
-        {
-            switch (action.ActionType)
-            {
-                case GameActionType.TalkDirect:
-                    {
-                        // TODO: remove this hack (using TalkDirect) ASAP
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        DeathMessageArgs d = new DeathMessageArgs(action.ActionBroadcastMessage, new ObjectGuid(action.ObjectId), new ObjectGuid(action.SecondaryObjectId));
-                        HandleDeathMessage(obj, d);
-                        break;
-                    }
-                case GameActionType.TeleToHouse:
-                case GameActionType.TeleToLifestone:
-                case GameActionType.TeleToMansion:
-                case GameActionType.TeleToMarketPlace:
-                case GameActionType.TeleToPkArena:
-                case GameActionType.TeleToPklArena:
-                    {
-                        player.Teleport(action.ActionLocation);
-                        break;
-                    }
-                case GameActionType.ApplyVisualEffect:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var particleEffect = (PlayScript)action.SecondaryObjectId;
-                        HandleParticleEffectEvent(obj, particleEffect);
-                        break;
-                    }
-                case GameActionType.ApplySoundEffect:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var soundEffect = (Sound)action.SecondaryObjectId;
-                        HandleSoundEvent(obj, soundEffect);
-                        break;
-                    }
-                case GameActionType.IdentifyObject:
-                    {
-                        // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, action.ObjectId, obj);
-                        player.Session.Network.EnqueueSend(identifyResponse);
-                        break;
-                    }
-                case GameActionType.Buy:
-                    {
-                        // todo: lots, need vendor list, money checks, etc.
-
-                        var money = new GameMessagePrivateUpdatePropertyInt(player.Session, PropertyInt.CoinValue, 4000);
-                        var sound = new GameMessageSound(player.Guid, Sound.PickUpItem, 1);
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
-
-                        // send updated vendor inventory.
-                        player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, action.ObjectId));
-
-                        // this is just some testing code for now.
-                        foreach (ItemProfile item in action.ProfileItems)
-                        {
-                            // todo: something with vendor id and profile list... iid list from vendor dbs.
-                            // todo: something with amounts..
-
-                            if (item.Iid == 5)
-                            {
-                                while (item.Amount > 0)
-                                {
-                                    item.Amount--;
-                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
-                                    LootGenerationFactory.AddToContainer(loot, player);
-                                    player.TrackObject(loot);
-                                }
-                                var rudecomment = "Who do you think you are, Johny Apple Seed ?";
-                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                                player.Session.Network.EnqueueSend(buyrudemsg);
-                            }
-                            else if (item.Iid == 10)
-                            {
-                                while (item.Amount > 0)
-                                {
-                                    item.Amount--;
-                                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
-                                    LootGenerationFactory.AddToContainer(loot, player);
-                                    player.TrackObject(loot);
-                                }
-                                var rudecomment = "That smells awful, Enjoy eating it!";
-                                var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                                player.Session.Network.EnqueueSend(buyrudemsg);
-                            }
-                        }
-                        break;
-                    }
-                case GameActionType.PutItemInContainer:
-                    {
-                        var playerGuid = new ObjectGuid(action.ObjectId);
-                        var inventoryGuid = new ObjectGuid(action.SecondaryObjectId);
-
-                        // Has to be a player so need to check before I make the cast.
-                        // If he is not a player, something is bad wrong. Og II
-                        if (playerGuid.IsPlayer())
-                        {
-                            var aPlayer = (Player)GetWorldObject(playerGuid);
-                            var inventoryItem = GetWorldObject(inventoryGuid);
-
-                            float arrivedRadiusSquared = 0.00f;
-                            bool validGuids;
-                            if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
-                                aPlayer.NotifyAndAddToInventory(inventoryItem);
-                            else
-                            {
-                                if (validGuids)
-                                {
-                                    aPlayer.SetDestinationInformation(inventoryItem.PhysicsData.Position, arrivedRadiusSquared);
-                                    aPlayer.BlockedGameAction = action;
-                                    aPlayer.OnAutonomousMove(inventoryItem.PhysicsData.Position,
-                                                             aPlayer.Sequences, MovementTypes.MoveToObject, inventoryGuid);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                case GameActionType.DropItem:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            var playerId = new ObjectGuid(action.ObjectId);
-                            var inventoryId = new ObjectGuid(action.SecondaryObjectId);
-                            if (playerId.IsPlayer())
-                            {
-                                var aPlayer = (Player)worldObjects[playerId];
-                                aPlayer.NotifyAndDropItem(inventoryId);
-                            }
-                        }
-                        break;
-                    }
-                case GameActionType.MovementEvent:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        WorldObject obj = (WorldObject)player;
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            obj = worldObjects[g];
-                        }
-                        var motion = action.Motion;
-                        HandleMovementEvent(obj, motion);
-                        break;
-                    }
-                case GameActionType.ObjectCreate:
-                    {
-                        AddWorldObject(action.WorldObject);
-                        break;
-                    }
-                case GameActionType.ObjectDelete:
-                    {
-                        RemoveWorldObject(action.WorldObject.Guid, false);
-                        break;
-                    }
-                case GameActionType.QueryHealth:
-                    {
-                        if (action.ObjectId == 0)
-                        {
-                            // Deselect the formerly selected Target
-                            player.SelectedTarget = 0;
-                            break;
-                        }
-
-                        object target = null;
-                        var targetId = new ObjectGuid(action.ObjectId);
-
-                        // Remember the selected Target
-                        player.SelectedTarget = action.ObjectId;
-
-                        // TODO: once items are implemented check if there are items that can trigger
-                        //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
-                        if (targetId.IsPlayer() || targetId.IsCreature())
-                        {
-                            if (worldObjects.ContainsKey(targetId))
-                                target = worldObjects[targetId];
-
-                            if (target == null)
-                            {
-                                // check adjacent landblocks for the targetId
-                                foreach (var block in adjacencies)
-                                {
-                                    if (block.Value != null)
-                                        if (block.Value.worldObjects.ContainsKey(targetId))
-                                            target = block.Value.worldObjects[targetId];
-                                }
-                            }
-                            if (target != null)
-                            {
-                                float healthPercentage = 0;
-
-                                if (targetId.IsPlayer())
-                                {
-                                    Player tmpTarget = (Player)target;
-                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                                }
-                                if (targetId.IsCreature())
-                                {
-                                    Creature tmpTarget = (Creature)target;
-                                    healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                                }
-                                var updateHealth = new GameEventUpdateHealth(player.Session, targetId.Full, healthPercentage);
-                                player.Session.Network.EnqueueSend(updateHealth);
-                            }
-                        }
-
-                        break;
-                    }
-                case GameActionType.Use:
-                    {
-                        var g = new ObjectGuid(action.ObjectId);
-                        if (worldObjects.ContainsKey(g))
-                        {
-                            WorldObject obj = worldObjects[g];
-
-                            if ((obj.DescriptionFlags & ObjectDescriptionFlag.LifeStone) != 0)
-                                (obj as Lifestone).OnUse(player);
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Portal) != 0)
-                                // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                                (obj as Portal).OnCollide(player);
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Door) != 0)
-                                (obj as Door).OnUse(player);
-
-                            else if ((obj.DescriptionFlags & ObjectDescriptionFlag.Vendor) != 0)
-                                (obj as Vendor).OnUse(player);
-
-                            // switch (obj.Type)
-                            // {
-                            //    case Enum.ObjectType.Portal:
-                            //        {
-                            //            // TODO: When Physics collisions are implemented, this logic should be switched there, as normal portals are not onUse.
-                            //
-                            //            (obj as Portal).OnCollide(player);
-                            //
-                            //            break;
-                            //        }
-                            //    case Enum.ObjectType.LifeStone:
-                            //        {
-                            //            (obj as Lifestone).OnUse(player);
-                            //            break;
-                            //        }
-                            // }
-                        }
-                        break;
-                    }
-            }
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)

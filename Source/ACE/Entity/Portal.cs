@@ -255,7 +255,9 @@ namespace ACE.Entity
                                 }
                         }
 
-                        player.Session.Player.Teleport(portalDest);
+                        // We need to request the player do a teleport
+                        // player.Session.Player.Teleport(portalDest);
+                        player.RequestChainAction(() => player.ActTeleport(portalDest));
                         // If the portal just used is able to be recalled to,
                         // save the destination coordinates to the LastPortal character position save table
                         if (Convert.ToBoolean(portalIsRecallable) == true)

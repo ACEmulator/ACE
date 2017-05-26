@@ -91,9 +91,13 @@ namespace ACE.Network.GameAction.Actions
             teleportTimestamp = message.Payload.ReadUInt16();
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
+            /*
             if (session.Player.CreatureMovementStates == MovementStates.Moving)
                 session.Player.UpdateAutonomousMove();
-            session.Player.UpdatePosition(position);
+            */
+            // FIXME(ddevec): This should be synchronized -- sometimes nonblocking action?
+            // session.Player.UpdatePosition(position);
+            session.Player.AddNonBlockingAction(() => session.Player.ActUpdatePosition(position));
         }
     }
 }
