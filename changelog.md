@@ -36,6 +36,12 @@
 * Fixed bug from 05/04 Og II update.
 
 ### 2017-05-06
+[Jyrus]
+* Add new Portal consructor that accepts a weenieClassId and Position object
+* Add PortalWeenie enum for Floating City, Golem Sanctum, Humming Crystal, and The Orphanage portals, for use with the new Portal constructor
+* Modified the /createportal debug command to use the new Portal constructor and the Humming Crystal weenie as a PoC
+* TODO: add a TTL timer to the portal to cause it to despawn after a period of time
+
 [Og II]
 * I fixed both admin functions, ci and create.   I added some logic to leave, NPC's, portals and creatures with the same code as prior to my fix.
 * Added Admin command cirand <typeId> to allow you to fully test and exercise the test ci command.

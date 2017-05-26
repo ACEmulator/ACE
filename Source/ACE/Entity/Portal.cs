@@ -114,6 +114,65 @@ namespace ACE.Entity
         {
         }
 
+        public Portal(ObjectType type, ObjectGuid guid, PortalWeenie weenieClassId, Position position)
+            : base(type, guid, (ushort)weenieClassId, position)
+        {
+            // TODO: Create a TTL timer for portal despawning for this type of portal creation
+
+            BaseAceObject baceO = DatabaseManager.World.GetBaseAceObjectDataByWeenie((ushort)weenieClassId);
+
+            Name = baceO.Name;
+            DescriptionFlags = (ObjectDescriptionFlag)baceO.WdescBitField;
+            Location = position;
+            WeenieClassid = (ushort)weenieClassId;
+            WeenieFlags = (WeenieHeaderFlag)baceO.WeenieFlags;
+
+            PhysicsData.MTableResourceId = baceO.MotionTableId;
+            PhysicsData.Stable = baceO.SoundTableId;
+            PhysicsData.CSetup = baceO.ModelTableId;
+
+            // this should probably be determined based on the presence of data.
+            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baceO.PhysicsBitField;
+            PhysicsData.PhysicsState = (PhysicsState)baceO.PhysicsState;
+
+            PhysicsData.ObjScale = baceO.ObjectScale;
+
+            // game data min required flags;
+            Icon = (ushort)baceO.IconId;
+
+            GameData.Usable = (Usable)baceO.Usability;
+            GameData.RadarColour = (RadarColor)baceO.BlipColor;
+            GameData.RadarBehavior = (RadarBehavior)baceO.Radar;
+            GameData.UseRadius = baceO.UseRadius;
+
+            baceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
+            baceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            baceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+
+            AceSubPortalData spD = DatabaseManager.World.GetSubPortalDataByWeenie((ushort)weenieClassId);
+
+            if (spD == null)
+            {
+                portalDestination = null;
+                portalMinLvl = 0;
+                portalMaxLvl = 0;
+                portalSocietyId = 0;
+                portalIsTieable = false;
+                portalIsRecallable = false;
+                portalIsSummonable = false;
+            }
+            else
+            {
+                portalDestination = spD.DestPosition;
+                portalMinLvl = spD.MinLvl;
+                portalMaxLvl = spD.MaxLvl;
+                portalSocietyId = spD.SocietyId;
+                portalIsTieable = Convert.ToBoolean(spD.IsTieable);
+                portalIsRecallable = Convert.ToBoolean(spD.IsRecallable);
+                portalIsSummonable = Convert.ToBoolean(spD.IsSummonable);
+            }
+        }
+
         public Portal(AcePortalObject aceO)
             : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
         {

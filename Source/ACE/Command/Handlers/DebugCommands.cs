@@ -348,7 +348,7 @@ namespace ACE.Command.Handlers
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+            LandblockManager.AddObject(new Portal(ObjectType.Portal, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), PortalWeenie.HummingCrystal, session.Player.Location.InFrontOf(3.0f)));
         }
 
         /// <summary>

@@ -15,6 +15,11 @@ namespace ACE.Entity
         {
         }
 
+        public CollidableObject(ObjectType type, ObjectGuid guid, ushort weenieClassId, Position position)
+            : base(type, guid)
+        {
+        }
+
         public CollidableObject(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
