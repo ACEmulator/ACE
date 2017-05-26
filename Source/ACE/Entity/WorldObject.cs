@@ -16,6 +16,8 @@ namespace ACE.Entity
 
         public ObjectGuid Guid { get; }
 
+        private AceObject AceObject { get; set; }
+
         public ObjectType Type { get; protected set; }
 
         /// <summary>
@@ -81,6 +83,13 @@ namespace ACE.Entity
         public PhysicsData PhysicsData { get; }
 
         public GameData GameData { get; }
+        // Logical Game Data
+
+        public ushort GameDataType
+        {
+            get { return (ushort)AceObject.ItemType; }
+            set { this.AceObject.ItemType = value; }
+        }
 
         public SequenceManager Sequences { get; }
 
@@ -105,6 +114,12 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
 
             PhysicsData = new PhysicsData(Sequences);
+        }
+
+        protected WorldObject(AceObject aceObject)
+            : this((ObjectType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
+        {
+            this.AceObject = aceObject;
         }
 
         public void SetCombatMode(CombatMode newCombatMode)
