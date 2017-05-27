@@ -21,7 +21,6 @@ namespace ACE.InGameManager
         private Dictionary<ObjectGuid, WorldObject> worldobjects = new Dictionary<ObjectGuid, WorldObject>();
         private Dictionary<uint, LandblockId> landblocks = new Dictionary<uint, LandblockId>();
 
-        private bool running;
         private const float maxobjectRange = 20000;
         private const float maxobjectGhostRange = 40000;
         private GameConcreteMediator meditor;
@@ -33,6 +32,7 @@ namespace ACE.InGameManager
 
         public void PlayerEnterWorld(Session session)
         {
+            Register(session.Player);
         }
 
         public void PlayerExitWorld(Session session)
@@ -209,6 +209,7 @@ namespace ACE.InGameManager
         }
         public void UseTime()
         {
+            bool running = false;
             while (running)
             {
                 List<WorldObject> allworldobj = null;
