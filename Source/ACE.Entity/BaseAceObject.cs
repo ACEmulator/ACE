@@ -63,6 +63,49 @@ namespace ACE.Entity
         [DbField("defaultScript", (int)MySqlDbType.UInt32)]
         public uint DefaultScript { get; set; }
 
+        public void SetIntProperty(PropertyInt intPropertyId, uint? value)
+        {
+            AceObjectPropertiesInt listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)intPropertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesInt { IntPropertyId = (uint)intPropertyId, PropertyValue = (uint)value };
+                    AceObjectPropertiesInt.Add(listItem);
+                }
+                else
+                    listItem.PropertyValue = (uint)value;
+            }
+            else
+            {
+                if (listItem != null)
+                    AceObjectPropertiesInt.Remove(listItem);
+            }
+        }
+
+        public void SetDoubleProperty(PropertyDouble dblPropertyId, double? value)
+        {
+            AceObjectPropertiesDouble listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)dblPropertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesDouble()
+                                   {
+                                       DblPropertyId = (uint)dblPropertyId,
+                                       PropertyValue = (double)value
+                                   };
+                    AceObjectPropertiesDouble.Add(listItem);
+                }
+                else listItem.PropertyValue = (double)value;
+            }
+            else
+            {
+                if (listItem != null)
+                    AceObjectPropertiesDouble.Remove(listItem);
+            }
+        }
+
         /// <summary>
         /// TODO: convert to enum
         /// </summary>

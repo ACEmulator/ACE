@@ -64,7 +64,7 @@ namespace ACE.Entity
             RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
             RadarColor = (RadarColor?)baseAceObject.BlipColor;
             Script = baseAceObject.PlayScript;
-            Spell = (Spell?)baseAceObject.SpellId;
+            Spell = (Spell)baseAceObject.SpellId;
             StackSize = baseAceObject.StackSize;
             Structure = baseAceObject.Structure;
             TargetType = baseAceObject.TargetTypeId;
