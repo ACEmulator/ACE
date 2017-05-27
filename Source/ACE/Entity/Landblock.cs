@@ -655,7 +655,7 @@ namespace ACE.Entity
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbranceVal,
-                                       (aPlayer.Burden)),
+                                       (aPlayer.Burden ?? 0)),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),

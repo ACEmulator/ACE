@@ -186,6 +186,7 @@ namespace ACE.Entity
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
             ItemCapacity = 102;
+            Burden = 0;
             ContainerCapacity = 7;
             RadarBehavior = Network.Enum.RadarBehavior.ShowAlways;
             RadarColor = Network.Enum.RadarColor.White;

@@ -223,7 +223,7 @@ namespace ACE.Entity
             set { AceObject.Workmanship = value; }
         }
 
-        public ushort Burden
+        public ushort? Burden
         {
             get { return AceObject.Burden; }
             set { AceObject.SetIntProperty(PropertyInt.EncumbranceVal, value); }
@@ -568,7 +568,7 @@ namespace ACE.Entity
                 writer.Write(Workmanship);
 
             if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
-                writer.Write(Burden);
+                writer.Write(Burden ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
                 writer.Write((ushort?)Spell ?? 0);
