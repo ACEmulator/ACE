@@ -46,7 +46,7 @@ namespace ACE.Entity
             string serverMessage = null;
 
             // validate within use range, taking into account the radius of the model itself, as well
-            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup);
+            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup ?? 0u);
             var radiusSquared = ((UseRadius ?? 0.00f) + csetup.Radius)
                                 * ((UseRadius ?? 0.00f) + csetup.Radius);
 

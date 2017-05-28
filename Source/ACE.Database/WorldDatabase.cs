@@ -28,7 +28,9 @@ namespace ACE.Database
             GetAceObjectPropertiesBigInt = 17,
             GetAceObjectPropertiesDouble = 18,
             GetAceObjectPropertiesBool = 19,
-            GetAceObjectPropertiesString = 20
+            GetAceObjectPropertiesString = 20,
+            GetAceObjectPropertiesDid = 21,
+            GetAceObjectPropertiesIid = 22
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -329,6 +331,20 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesString>(WorldPreparedStatement.GetAceObjectPropertiesString, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesDid> GetAceObjectPropertiesDid(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDid>(WorldPreparedStatement.GetAceObjectPropertiesDid, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesIid> GetAceObjectPropertiesIid(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesIid>(WorldPreparedStatement.GetAceObjectPropertiesIid, criteria);
             return objects;
         }
     }

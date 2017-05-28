@@ -77,7 +77,7 @@ namespace ACE.Entity
             RadarColor = (RadarColor?)baseAceObject.Radar;
             UseRadius = baseAceObject.UseRadius;
             Spell = (Spell)baseAceObject.SpellId;
-            Script = baseAceObject.PlayScript;
+            Script = baseAceObject.PhysicsScript;
             ValidLocations = (EquipMask?)baseAceObject.ValidLocations;
             StackSize = baseAceObject.StackSize;
             Structure = baseAceObject.Structure;

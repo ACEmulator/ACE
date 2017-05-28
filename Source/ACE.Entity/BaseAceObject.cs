@@ -10,58 +10,148 @@ namespace ACE.Entity
     [DbGetList("vw_base_ace_object", 15, "itemType")]
     public class BaseAceObject
     {
+        /// <summary>
+        /// Table field Primary Key
+        /// </summary>
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
 
+        /// <summary>
+        /// Table Field Weenie Class
+        /// </summary>
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public virtual uint WeenieClassId { get; set; }
 
+        /// <summary>
+        /// Table Field Flags
+        /// </summary>
         [DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
         public uint AceObjectDescriptionFlags { get; set; }
 
-        [DbField("animationFrameId", (int)MySqlDbType.UInt32)]
-        public uint AnimationFrameId { get; set; }
+        /// <summary>
+        /// Table Field - Flags
+        /// </summary>
+        [DbField("physicsDescriptionFlag", (int)MySqlDbType.UInt32)]
+        public uint PhysicsDescriptionFlag { get; set; }
+
+        /// <summary>
+        /// Table Field - Flags
+        /// </summary>
+        [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
+        public uint WeenieHeaderFlags { get; set; }
+
+        public uint? AnimationFrameId
+        {
+            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PlacementPosition)?.PropertyValue; }
+            set { SetIntProperty(PropertyInt.PlacementPosition, value); }
+        }
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
         public string CurrentMotionState { get; set; }
 
-        [DbField("iconId", (int)MySqlDbType.UInt32)]
-        public uint IconId { get; set; }
+        public uint? IconId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.Icon)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.Icon, value); }
+        }
 
-        [DbField("iconOverlayId", (int)MySqlDbType.UInt32)]
-        public uint IconOverlayId { get; set; }
+        public uint? IconOverlayId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.IconOverlay)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.IconOverlay, value); }
+        }
 
-        [DbField("iconUnderlayId", (int)MySqlDbType.UInt32)]
-        public uint IconUnderlayId { get; set; }
+        public uint? IconUnderlayId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.IconUnderlay)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.IconUnderlay, value); }
+        }
+
         /// <summary>
         /// PhysicsData.CSetup
         /// </summary>
-        [DbField("modelTableId", (int)MySqlDbType.UInt32)]
-        public uint ModelTableId { get; set; }
+        public uint? ModelTableId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.Setup)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.Setup, value); }
+        }
 
-        [DbField("motionTableId", (int)MySqlDbType.UInt32)]
-        public uint MotionTableId { get; set; }
+        public uint? MotionTableId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.MotionTable)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.MotionTable, value); }
+        }
 
-        [DbField("physicsDescriptionFlag", (int)MySqlDbType.UInt32)]
-        public uint PhysicsDescriptionFlag { get; set; }
+        public ushort? PhysicsScript
+        {
+            get { return (ushort?)AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.PhysicsScript)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.PhysicsScript, value); }
+        }
 
-        [DbField("playScript", (int)MySqlDbType.UInt16)]
-        public ushort PlayScript { get; set; }
+        public uint? PhysicsTableId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.PhysicsEffectTable)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.PhysicsEffectTable, value); }
+        }
 
-        [DbField("physicsTableId", (int)MySqlDbType.UInt32)]
-        public uint PhysicsTableId { get; set; }
 
-        [DbField("soundTableId", (int)MySqlDbType.UInt32)]
-        public uint SoundTableId { get; set; }
+        public uint? SoundTableId
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.SoundTable)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.SoundTable, value); }
+        }
 
-        [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
-        public uint WeenieHeaderFlags { get; set; }
+        public ushort? SpellId
+        {
+            get { return (ushort?)AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.Spell)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.Spell, value); }
+        }
 
-        [DbField("spellId", (int)MySqlDbType.UInt16)]
-        public ushort SpellId { get; set; }
+        public uint? DefaultScript
+        {
+            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.UseUserAnimation)?.PropertyValue; }
+            set { SetDidProperty(PropertiesDid.UseUserAnimation, value); }
+        }
 
-        [DbField("defaultScript", (int)MySqlDbType.UInt32)]
-        public uint DefaultScript { get; set; }
+        public void SetDidProperty(PropertiesDid didPropertyId, uint? value)
+        {
+            AceObjectPropertiesDid listItem = AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)didPropertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesDid { DidPropertyId = (uint)didPropertyId, PropertyValue = (uint)value };
+                    AceObjectPropertiesDid.Add(listItem);
+                }
+                else
+                    listItem.PropertyValue = (uint)value;
+            }
+            else
+            {
+                if (listItem != null)
+                    AceObjectPropertiesDid.Remove(listItem);
+            }
+        }
+
+        public void SetIidProperty(PropertiesDid iidPropertyId, uint? value)
+        {
+            AceObjectPropertiesIid listItem = AceObjectPropertiesIid.Find(x => x.IidPropertyId == (uint)iidPropertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesIid { IidPropertyId = (uint)iidPropertyId, PropertyValue = (uint)value };
+                    AceObjectPropertiesIid.Add(listItem);
+                }
+                else
+                    listItem.PropertyValue = (uint)value;
+            }
+            else
+            {
+                if (listItem != null)
+                    AceObjectPropertiesIid.Remove(listItem);
+            }
+        }
 
         public void SetIntProperty(PropertyInt intPropertyId, uint? value)
         {
@@ -91,10 +181,10 @@ namespace ACE.Entity
                 if (listItem == null)
                 {
                     listItem = new AceObjectPropertiesDouble()
-                                   {
-                                       DblPropertyId = (uint)dblPropertyId,
-                                       PropertyValue = (double)value
-                                   };
+                    {
+                        DblPropertyId = (uint)dblPropertyId,
+                        PropertyValue = (double)value
+                    };
                     AceObjectPropertiesDouble.Add(listItem);
                 }
                 else listItem.PropertyValue = (double)value;
@@ -391,6 +481,10 @@ namespace ACE.Entity
         public List<AceObjectPropertiesDouble> AceObjectPropertiesDouble { get; set; } = new List<AceObjectPropertiesDouble>();
 
         public List<AceObjectPropertiesBool> AceObjectPropertiesBool { get; set; } = new List<AceObjectPropertiesBool>();
+
+        public List<AceObjectPropertiesDid> AceObjectPropertiesDid { get; set; } = new List<AceObjectPropertiesDid>();
+
+        public List<AceObjectPropertiesIid> AceObjectPropertiesIid { get; set; } = new List<AceObjectPropertiesIid>();
 
         public List<AceObjectPropertiesString> AceObjectPropertiesString { get; set; } = new List<AceObjectPropertiesString>();
     }

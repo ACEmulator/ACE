@@ -11,6 +11,7 @@ using log4net;
 namespace ACE.Entity
 {
     using System.CodeDom;
+    using System.Collections.Generic;
 
     using global::ACE.Entity.Enum.Properties;
 
@@ -29,7 +30,7 @@ namespace ACE.Entity
         /// </summary>
         public uint WeenieClassid { get; protected set; }
 
-        public uint Icon { get; set; }
+        public uint? Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -211,10 +212,10 @@ namespace ACE.Entity
             set { AceObject.SetIntProperty(PropertyInt.ShowableOnRadar, (byte?)value); }
         }
 
-        public ushort Script
+        public ushort? Script
         {
-            get { return AceObject.PlayScript; }
-            set { AceObject.PlayScript = value; }
+            get { return AceObject.PhysicsScript; }
+            set { AceObject.PhysicsScript = value; }
         }
 
         public float Workmanship
@@ -229,7 +230,7 @@ namespace ACE.Entity
             set { AceObject.SetIntProperty(PropertyInt.EncumbranceVal, value); }
         }
 
-        public Spell Spell
+        public Spell? Spell
         {
             get { return (Spell)AceObject.SpellId; }
             set { this.AceObject.SpellId = (ushort)value; }
@@ -256,13 +257,13 @@ namespace ACE.Entity
             set { AceObject.SetIntProperty(PropertyInt.HookType, value); }
         }
 
-        public uint IconOverlay
+        public uint? IconOverlay
         {
             get { return AceObject.IconOverlayId; }
             set { AceObject.IconOverlayId = value; }
         }
 
-        public uint IconUnderlay
+        public uint? IconUnderlay
         {
             get { return AceObject.IconUnderlayId; }
             set { AceObject.IconUnderlayId = value; }
@@ -288,6 +289,45 @@ namespace ACE.Entity
             get { return (decimal?)AceObject.CooldownDuration; }
             set { AceObject.SetDoubleProperty(PropertyDouble.CooldownDuration, (double?)value); }
         }
+
+        // PhysicsData Logical
+
+        public uint CSetup;
+
+        // apply default for back compat with player object
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag;
+        public PhysicsState PhysicsState = 0;
+
+        public Position Position;
+        public uint MTableResourceId;
+        public uint SoundsResourceId;
+        public uint Stable;
+        public uint Petable;
+
+        // these are all related
+        public uint ItemsEquipedCount;
+        public uint Parent;
+        public EquipMask? EquipperPhysicsDescriptionFlag;
+        private readonly List<EquippedItem> children = new List<EquippedItem>();
+
+        public float? ObjScale;
+        public float? Friction;
+        public float? Elasticity;
+        public uint? AnimationFrame;
+        public AceVector3 Acceleration;
+        public float? Translucency;
+        public AceVector3 Velocity = null;
+        public AceVector3 Omega = null;
+
+        private MotionState currentMotionState;
+        public MotionState CurrentMotionState
+        {
+            get { return currentMotionState; }
+            set { currentMotionState = value; }
+        }
+
+        public uint? DefaultScript;
+        public float? DefaultScriptIntensity;
 
         public SequenceManager Sequences { get; }
 
@@ -356,7 +396,7 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag SetWeenieHeaderFlag()
         {
-            var weenieHeaderFlag = WeenieHeaderFlag.None;
+            WeenieHeaderFlag weenieHeaderFlag = WeenieHeaderFlag.None;
             if (NamePlural != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
@@ -431,7 +471,7 @@ namespace ACE.Entity
             // TODO: Fix this correctly.
             weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
-            if (Spell != null)
+            if (Spell != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
             if (HouseOwner != null)
@@ -449,11 +489,11 @@ namespace ACE.Entity
             if (HookType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookType;
 
-            if ((IconOverlay != null) && (IconOverlay != 0))
+            if (IconOverlay != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
-            // if (Material != null)
-            //    weenieHeaderFlag |= WeenieHeaderFlag.Material;
+             if (Material != null)
+                weenieHeaderFlag |= WeenieHeaderFlag.Material;
 
             return weenieHeaderFlag;
         }
@@ -462,7 +502,7 @@ namespace ACE.Entity
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
-            if ((IconUnderlay != null) && (IconUnderlay != 0))
+            if (IconUnderlay != 0)
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
             if ((Cooldown != null) && (Cooldown != 0))
@@ -490,7 +530,7 @@ namespace ACE.Entity
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassid);
-            writer.WritePackedDwordOfKnownType(Icon, 0x6000000);
+            writer.WritePackedDwordOfKnownType(Icon ?? 0, 0x6000000);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
             writer.Align();
@@ -562,7 +602,7 @@ namespace ACE.Entity
                 writer.Write((byte?)RadarBehavior ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Script) != 0)
-                writer.Write(Script);
+                writer.Write(Script ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
                 writer.Write(Workmanship);
@@ -591,10 +631,10 @@ namespace ACE.Entity
                 writer.Write(HookType ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
-                writer.WritePackedDwordOfKnownType((IconOverlay), 0x6000000);
+                writer.WritePackedDwordOfKnownType((IconOverlay ?? 0), 0x6000000);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
-                writer.WritePackedDwordOfKnownType((IconUnderlay), 0x6000000);
+                writer.WritePackedDwordOfKnownType((IconUnderlay ?? 0), 0x6000000);
 
             if ((WeenieFlags & WeenieHeaderFlag.Material) != 0)
                 writer.Write((uint)(Material ?? 0u));

@@ -63,7 +63,7 @@ namespace ACE.Entity
             // Priority = baseAceObject.Priority;
             RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
             RadarColor = (RadarColor?)baseAceObject.BlipColor;
-            Script = baseAceObject.PlayScript;
+            Script = baseAceObject.PhysicsScript;
             Spell = (Spell)baseAceObject.SpellId;
             StackSize = baseAceObject.StackSize;
             Structure = baseAceObject.Structure;

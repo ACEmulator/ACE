@@ -13,17 +13,17 @@ namespace ACE.Entity
 
     public class PhysicsData
     {
-        public uint CSetup;
+        public uint? CSetup;
 
         // apply default for back compat with player object
         public PhysicsDescriptionFlag PhysicsDescriptionFlag;
         public PhysicsState PhysicsState = 0;
 
         public Position Position;
-        public uint MTableResourceId;
-        public uint SoundsResourceId;
-        public uint Stable;
-        public uint Petable;
+        public uint? MTableResourceId;
+        public uint? SoundsResourceId;
+        public uint? Stable;
+        public uint? Petable;
 
         // these are all related
         public uint ItemsEquipedCount;
@@ -158,18 +158,18 @@ namespace ACE.Entity
                 Position.Serialize(writer);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
-                writer.Write(MTableResourceId);
+                writer.Write(MTableResourceId ?? 0u);
 
             // stable_id =  BYTE1(v12) & 8 )  =  8
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
-                writer.Write(Stable);
+                writer.Write(Stable ?? 0u);
 
             // setup id
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
-                writer.Write(Petable);
+                writer.Write(Petable ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
-                writer.Write(CSetup);
+                writer.Write(CSetup ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
