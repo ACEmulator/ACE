@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity.Enum.Properties
 {
-    public enum PropertyDouble : uint
+    public enum PropertyDouble : ushort
     {
         Undef = 0,
         HeartbeatInterval = 1,

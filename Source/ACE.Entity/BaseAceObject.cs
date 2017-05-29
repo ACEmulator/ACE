@@ -6,6 +6,8 @@ using System;
 
 namespace ACE.Entity
 {
+    using System.Net.Mime;
+
     [DbTable("vw_base_ace_object")]
     [DbGetList("vw_base_ace_object", 15, "itemType")]
     public class BaseAceObject
@@ -115,7 +117,7 @@ namespace ACE.Entity
 
         public void SetDidProperty(PropertiesDid didPropertyId, uint? value)
         {
-            AceObjectPropertiesDid listItem = AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)didPropertyId);
+            AceObjectPropertiesDid listItem = AceObjectPropertiesDid.Find(x => x.DidPropertyId == (short)didPropertyId);
             if (value != null)
             {
                 if (listItem == null)
@@ -135,7 +137,7 @@ namespace ACE.Entity
 
         public void SetIidProperty(PropertiesDid iidPropertyId, uint? value)
         {
-            AceObjectPropertiesIid listItem = AceObjectPropertiesIid.Find(x => x.IidPropertyId == (uint)iidPropertyId);
+            AceObjectPropertiesIid listItem = AceObjectPropertiesIid.Find(x => x.IidPropertyId == (ushort)iidPropertyId);
             if (value != null)
             {
                 if (listItem == null)
@@ -155,7 +157,7 @@ namespace ACE.Entity
 
         public void SetIntProperty(PropertyInt intPropertyId, uint? value)
         {
-            AceObjectPropertiesInt listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)intPropertyId);
+            AceObjectPropertiesInt listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (ushort)intPropertyId);
             if (value != null)
             {
                 if (listItem == null)
@@ -175,14 +177,14 @@ namespace ACE.Entity
 
         public void SetDoubleProperty(PropertyDouble dblPropertyId, double? value)
         {
-            AceObjectPropertiesDouble listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)dblPropertyId);
+            AceObjectPropertiesDouble listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)dblPropertyId);
             if (value != null)
             {
                 if (listItem == null)
                 {
                     listItem = new AceObjectPropertiesDouble()
                     {
-                        DblPropertyId = (uint)dblPropertyId,
+                        DblPropertyId = (short)dblPropertyId,
                         PropertyValue = (double)value
                     };
                     AceObjectPropertiesDouble.Add(listItem);
@@ -236,7 +238,7 @@ namespace ACE.Entity
 
         public double? CooldownDuration
         {
-            get { return AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.CooldownDuration)?.PropertyValue; }
+            get { return AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.CooldownDuration)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
         }
 
@@ -244,7 +246,7 @@ namespace ACE.Entity
         {
             get
             {
-                return AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name)?.PropertyValue;
+                return AceObjectPropertiesString.Find(x => x.StrPropertyId == (short)PropertyString.Name)?.PropertyValue;
             }
             set
             {
@@ -374,7 +376,7 @@ namespace ACE.Entity
 
         public float? UseRadius
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.UseRadius)?.PropertyValue; }
+            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.UseRadius)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
         }
 
@@ -425,19 +427,19 @@ namespace ACE.Entity
 
         public float? PhysicsScriptIntensity
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.PhysicsScriptIntensity)?.PropertyValue; }
+            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.PhysicsScriptIntensity)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
         }
 
         public float? Elasticity
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Elasticity)?.PropertyValue; }
+            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.Elasticity)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
         }
 
         public float? Friction
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Friction)?.PropertyValue; }
+            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.Friction)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.Friction, value); }
         }
 
@@ -449,7 +451,7 @@ namespace ACE.Entity
 
         public float? DefaultScale
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.DefaultScale)?.PropertyValue; }
+            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.DefaultScale)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
         }
 
@@ -464,7 +466,7 @@ namespace ACE.Entity
 
         public float? Translucency
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (uint)PropertyDouble.Translucency)?.PropertyValue; }
+            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.Translucency)?.PropertyValue; }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
 

@@ -232,8 +232,8 @@ namespace ACE.Entity
 
         public Spell? Spell
         {
-            get { return (Spell)AceObject.SpellId; }
-            set { this.AceObject.SpellId = (ushort)value; }
+            get { return (Spell?)AceObject.SpellId; }
+            set { this.AceObject.SpellId = (ushort?)value; }
         }
 
         /// <summary>
