@@ -454,14 +454,14 @@ namespace ACE.Entity
                 Parallel.ForEach(allplayers, player =>
                 {
                     // Process Action Queue for player.
-                    QueuedGameAction action = player.ActionQueuePop();
-                    if (action != null)
-                        HandleGameAction(action, player);
+                    // QueuedGameAction action = player.ActionQueuePop();
+                    // if (action != null)
+                    //   HandleGameAction(action, player);
 
                     // Process Examination Queue for player
-                    QueuedGameAction examination = player.ExaminationQueuePop();
-                    if (examination != null)
-                        HandleGameAction(examination, player);
+                    // QueuedGameAction examination = player.ExaminationQueuePop();
+                    // if (examination != null)
+                    //    HandleGameAction(examination, player);
                 });
                 UpdateStatus(allplayers.Count);
 
@@ -541,10 +541,10 @@ namespace ACE.Entity
 
         private void HandleGameAction(QueuedGameAction action, Player player)
         {
-            if (worldObjects.ContainsKey(new ObjectGuid(action.ObjectId)))
-                action.Handler(player);
-            else
-                return;
+            // if (worldObjects.ContainsKey(new ObjectGuid(action.ObjectId)))
+            //    action.Handler(player);
+            // else
+            //    return;
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)

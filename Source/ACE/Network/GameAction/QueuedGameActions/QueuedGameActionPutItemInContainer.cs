@@ -1,5 +1,6 @@
 ﻿using ACE.DatLoader.FileTypes;
 using ACE.Entity;
+using ACE.InGameManager;
 using ACE.Managers;
 using ACE.Network.Enum;
 using System;
@@ -21,7 +22,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             LandBlockId = landBlockId;
         }
 
-        protected override void Handle(Player player)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             var playerGuid = new ObjectGuid(ObjectId);
             var inventoryGuid = new ObjectGuid(SecondaryObjectId);

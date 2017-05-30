@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Events;
+using ACE.InGameManager;
 using ACE.Managers;
 using ACE.Network.Enum;
 using System;
@@ -14,6 +15,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
     {
         public QueuedGameActionApplyVisualEffect(uint objectId, uint secondaryObjectId, LandblockId landBlockId)
         {
+            InGameType = InGameManager.Enums.InGameType.PlayerClass;
             ObjectId = objectId;
             SecondaryObjectId = secondaryObjectId;
             StartTime = WorldManager.PortalYearTicks;
@@ -21,13 +23,12 @@ namespace ACE.Network.GameAction.QueuedGameActions
             LandBlockId = landBlockId;
         }
 
-        protected override void Handle(Player player)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             var particleEffect = (PlayScript)SecondaryObjectId;
-           // WorldObject wo = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
-
-            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(this.WorldObject, particleEffect);
-          // LandManager.OpenWorld.Broadcast(args, Quadrant.All);
+            WorldObject wo = InGameManager.InGameManager.ReadOnlyClone(new ObjectGuid(ObjectId));
+            BroadcastEventArgs args = BroadcastEventArgs.CreateEffectAction(wo, particleEffect);
+            mediator.Broadcast(args);
         }
     }
 }

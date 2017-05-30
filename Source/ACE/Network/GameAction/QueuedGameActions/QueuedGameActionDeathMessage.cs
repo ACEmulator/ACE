@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Events;
+using ACE.InGameManager;
 using ACE.Managers;
 using ACE.Network.Enum;
 using System;
@@ -20,7 +21,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             LandBlockId = landBlockId;
         }
 
-        protected override void Handle(Player player)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             DeathMessageArgs d = new DeathMessageArgs(ActionBroadcastMessage, new ObjectGuid(ObjectId), new ObjectGuid(SecondaryObjectId));
             BroadcastEventArgs args = BroadcastEventArgs.CreateDeathMessage(player, d);

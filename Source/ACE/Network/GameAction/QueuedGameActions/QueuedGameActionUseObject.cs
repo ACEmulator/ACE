@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.InGameManager;
 using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using System;
@@ -19,7 +20,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             EndTime = StartTime;
         }
 
-        protected override void Handle(Player player)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             // var obj = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
             var obj = InGameManager.InGameManager.ReadOnlyClone(new ObjectGuid(ObjectId));

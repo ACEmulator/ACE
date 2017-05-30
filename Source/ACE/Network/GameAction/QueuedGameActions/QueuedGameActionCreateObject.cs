@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.InGameManager;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             LandBlockId = landBlockID;
         }
 
-        protected override void Handle(Player player)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             // LandManager.OpenWorld.Register(WorldObject);
         }

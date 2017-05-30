@@ -207,6 +207,7 @@ namespace ACE.InGameManager
                     }
             }
         }
+
         public void UseTime()
         {
             bool running = false;
@@ -254,15 +255,15 @@ namespace ACE.InGameManager
                         player.IsLoading = false;
                     }
 
-                // Process Action Queue for player.
-                QueuedGameAction action = player.ActionQueuePop();
-                    if (action != null)
-                        HandleGameAction(action, player);
+                    // Process Action Queue for player.
+                    // QueuedGameAction action = player.ActionQueuePop();
+                    //    if (action != null)
+                    //        HandleGameAction(action, player);
 
-                // Process Examination Queue for player
-                QueuedGameAction examination = player.ExaminationQueuePop();
-                    if (examination != null)
-                        HandleGameAction(examination, player);
+                    // Process Examination Queue for player
+                    // QueuedGameAction examination = player.ExaminationQueuePop();
+                    //    if (examination != null)
+                    //        HandleGameAction(examination, player);
                 });
                 // UpdateStatus(allplayers.Count);
 
@@ -327,15 +328,15 @@ namespace ACE.InGameManager
             }
         }
 
-        private void HandleGameAction(QueuedGameAction action, Player player)
-        {
-            lock (objectCacheLocker)
-            {
-                if (worldobjects.ContainsKey(new ObjectGuid(action.ObjectId)))
-                    action.Handler(player);
-                else
-                    return;
-            }
-        }      
+        // private void HandleGameAction(QueuedGameAction action, Player player)
+        // {
+        //    lock (objectCacheLocker)
+        //    {
+        //        if (worldobjects.ContainsKey(new ObjectGuid(action.ObjectId)))
+        //            action.Handler(player);
+        //        else
+        //            return;
+        //    }
+        // }      
     }
 }

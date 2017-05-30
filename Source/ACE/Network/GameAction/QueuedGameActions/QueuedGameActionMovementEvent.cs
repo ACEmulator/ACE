@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACE.Network.Motion;
+using ACE.InGameManager;
 
 namespace ACE.Network.GameAction.QueuedGameActions
 {
@@ -40,7 +41,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             LandBlockId = landBlockId;
         }
 
-        protected override void Handle(Player obj)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             // WorldObject wo = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
             // BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(wo,  Motion);

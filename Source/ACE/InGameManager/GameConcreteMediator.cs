@@ -18,10 +18,7 @@ namespace ACE.InGameManager
         // man in the middle class.. I see evrything that happens..
         private GamePlayers gamePlayers;
         private GameWorld gameworld;
-
-        // pending broadcast messages to the world
-        private static readonly object pendingbroadcastCacheLocker = new object();
-        private static Queue<QueuedGameAction> pendingbroadcast = new Queue<QueuedGameAction>();
+        private GameQueuedAction gameactions;
 
         public void RegisterPlayers(GamePlayers players)
         {
@@ -31,6 +28,11 @@ namespace ACE.InGameManager
         public void RegisterGameWorld(GameWorld world)
         {
             gameworld = world;
+        }
+
+        public void RegisterGameQuedGameActions(GameQueuedAction quedactions)
+        {
+            gameactions = quedactions;
         }
 
         public override void Broadcast(BroadcastEventArgs args)
@@ -64,6 +66,11 @@ namespace ACE.InGameManager
             if (wo.Guid.IsPlayer())
                 gamePlayers.UnRegister(wo);
             gameworld.UnRegister(wo);
+        }
+
+        public override void CreateQueuedGameAction(QueuedGameAction action)
+        {
+            gameactions.CreateQueuedGameAction(action);
         }
     }
 }

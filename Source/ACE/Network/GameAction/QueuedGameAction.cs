@@ -1,4 +1,6 @@
 ﻿using ACE.Entity;
+using ACE.InGameManager;
+using ACE.InGameManager.Enums;
 using ACE.Managers;
 using ACE.Network.Motion;
 using System.Collections.Generic;
@@ -7,20 +9,10 @@ namespace ACE.Network.GameAction
 {
     public class QueuedGameAction
     {
-        public void Handler(Player obj) { Handle(obj); }
-        protected virtual void Handle(Player obj) { }
+        public InGameType InGameType;
 
-        public void Handler(Monster obj) { Handle(obj); }
-        protected virtual void Handle(Monster obj) { }
-
-        public void Handler(Door obj) { Handle(obj); }
-        protected virtual void Handle(Door obj) { }
-
-        public void Handler(Container obj) { Handle(obj); }
-        protected virtual void Handle(Container obj) { }
-
-        public void Handler(WorldObject obj) { Handle(obj); }
-        protected virtual void Handle(WorldObject obj) { }
+        public void Handler(GameMediator mediator, Player obj) { Handle(mediator, obj); }
+        protected virtual void Handle(GameMediator mediator, Player obj) { }
 
         public LandblockId LandBlockId { get; protected set; }
 

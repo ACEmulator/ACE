@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.InGameManager;
 using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using System;
@@ -18,8 +19,8 @@ namespace ACE.Network.GameAction.QueuedGameActions
             EndTime = StartTime;
         }
 
-            protected override void Handle(Player player)
-            {
+        protected override void Handle(GameMediator mediator, Player player)
+        {
             // TODO: Throttle this request. The live servers did this, likely for a very good reason, so we should, too.
             var identifyResponse = new GameEventIdentifyObjectResponse(player.Session, ObjectId, player);
             player.Session.Network.EnqueueSend(identifyResponse);

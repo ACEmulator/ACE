@@ -2,6 +2,7 @@
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
+using ACE.InGameManager;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
@@ -21,7 +22,7 @@ namespace ACE.Network.GameAction.QueuedGameActions
             ProfileItems = profileItems;
         }
 
-        protected override void Handle(Player player)
+        protected override void Handle(GameMediator mediator, Player player)
         {
             // todo: lots, need vendor list, money checks, etc.
 

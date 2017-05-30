@@ -1,6 +1,7 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Events;
 using ACE.Network;
+using ACE.Network.GameAction;
 
 namespace ACE.InGameManager
 {
@@ -14,5 +15,6 @@ namespace ACE.InGameManager
         public abstract void Broadcast(BroadcastEventArgs args);
         public abstract void Register(WorldObject wo);
         public abstract void UnRegister(WorldObject wo);
+        public abstract void CreateQueuedGameAction(QueuedGameAction action);
     }
 }   

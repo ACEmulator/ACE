@@ -85,11 +85,11 @@ namespace ACE.Entity
 
         // queue of all the "actions" that come from the player that require processing
         // asynchronous to or outside of the network thread
-        private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
+        // private readonly ConcurrentQueue<QueuedGameAction> actionQueue = new ConcurrentQueue<QueuedGameAction>();
 
         // examination queue is really a susebt of the actionQueue, but this existed on
         // retail servers as it's own separate thing and was intentionally throttled.
-        private readonly ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
+        // private readonly ConcurrentQueue<QueuedGameAction> examinationQueue = new ConcurrentQueue<QueuedGameAction>();
 
         private readonly object delayedActionsMutex = new object();
 
@@ -585,59 +585,61 @@ namespace ACE.Entity
 
         public void AddToActionQueue(QueuedGameAction action)
         {
-            actionQueue.Enqueue(action);
+            InGameManager.InGameManager.CreateQuedGameAction(action);
         }
 
         public void AddToExaminationQueue(QueuedGameAction action)
         {
-            examinationQueue.Enqueue(action);
+            // todo seperate exan que.
+            InGameManager.InGameManager.CreateQuedGameAction(action);
         }
 
-        public QueuedGameAction ActionQueuePop()
-        {
-            QueuedGameAction action = null;
-            if (actionQueue.TryDequeue(out action))
-            {
-                lock (delayedActionsMutex)
-                {
-                    if (action.RespectDelay && delayedActions.ContainsKey(action.ObjectId))
-                    {
-                        double endTime = delayedActions[action.ObjectId];
-                        if (action.StartTime > endTime)
-                        {
-                            // the new action starts after the old one is complete, so remove the old one
-                            delayedActions.Remove(action.ObjectId);
-                        }
-                        else
-                        {
-                            // the new action should start before the old one is complete, so enqueue the new one again
-                            action.StartTime = WorldManager.PortalYearTicks;
-                            actionQueue.Enqueue(action);
-                            return null;
-                        }
-                    }
 
-                    // This is an action e.g. animation that takes time to complete
-                    // Remember this object to delay further actions queued for the same object
-                    if (action.EndTime > WorldManager.PortalYearTicks)
-                    {
-                        delayedActions.Add(action.ObjectId, action.EndTime);
-                    }
-                }
-                return action;
-            }
-            else
-                return null;
-        }
+        // public QueuedGameAction ActionQueuePop()
+        // {
+        //    QueuedGameAction action = null;
+        //    if (actionQueue.TryDequeue(out action))
+        //    {
+        //        lock (delayedActionsMutex)
+        //        {
+        //            if (action.RespectDelay && delayedActions.ContainsKey(action.ObjectId))
+        //            {
+        //                double endTime = delayedActions[action.ObjectId];
+        //                if (action.StartTime > endTime)
+        //                {
+        //                    // the new action starts after the old one is complete, so remove the old one
+        //                    delayedActions.Remove(action.ObjectId);
+        //                }
+        //                else
+        //                {
+        //                    // the new action should start before the old one is complete, so enqueue the new one again
+        //                    action.StartTime = WorldManager.PortalYearTicks;
+        //                    actionQueue.Enqueue(action);
+        //                    return null;
+        //                }
+        //            }
 
-        public QueuedGameAction ExaminationQueuePop()
-        {
-            QueuedGameAction action = null;
-            if (examinationQueue.TryDequeue(out action))
-                return action;
-            else
-                return null;
-        }
+        //            // This is an action e.g. animation that takes time to complete
+        //            // Remember this object to delay further actions queued for the same object
+        //            if (action.EndTime > WorldManager.PortalYearTicks)
+        //            {
+        //                delayedActions.Add(action.ObjectId, action.EndTime);
+        //            }
+        //        }
+        //        return action;
+        //    }
+        //    else
+        //        return null;
+        // }
+
+        // public QueuedGameAction ExaminationQueuePop()
+        // {
+        //    QueuedGameAction action = null;
+        //    if (examinationQueue.TryDequeue(out action))
+        //        return action;
+        //    else
+        //        return null;
+        // }
 
         /// <summary>
         /// Raise the available XP by a specified amount

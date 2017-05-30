@@ -14,6 +14,8 @@ namespace ACE.InGameManager
         private static GameConcreteMediator mediator = new GameConcreteMediator();
         private static GamePlayers gameplayers;
         private static GameWorld gameworld;
+        private static GameQueuedAction gamequeuedaction;
+
         private static bool running = false;
 
         // pending player sessions trying to enter the world
@@ -24,27 +26,41 @@ namespace ACE.InGameManager
         private static readonly object pendingobjectsCacheLocker = new object();
         private static Queue<WorldObject> pendingobjects = new Queue<WorldObject>();
 
+        // pending game actions waiting to enter world loop
+        private static readonly object pendingquedCacheLocker = new object();
+        private static Queue<QueuedGameAction> pendingquedgameactions = new Queue<QueuedGameAction>();
+
         public static void Initialize()
         {
             // Create Colleague classes
             gameplayers = new GamePlayers(mediator);
             gameworld = new GameWorld(mediator);
+            gamequeuedaction = new GameQueuedAction(mediator);
             // physicsworld = new PhysicsWord(mediator);
 
             // Register Colleague classes with mediator
             mediator.RegisterGameWorld(gameworld);
             mediator.RegisterPlayers(gameplayers);
+            mediator.RegisterGameQuedGameActions(gamequeuedaction);
 
             // starts game loop.
             running = true;
             new Thread(UseTime).Start();
         }
 
-        public async static void Register(WorldObject wo)
+        public static void Register(WorldObject wo)
         {
             lock (pendingobjectsCacheLocker)
             {
                 pendingobjects.Enqueue(wo);
+            }
+        }
+
+        public static void CreateQuedGameAction(QueuedGameAction action)
+        {
+            lock (pendingquedCacheLocker)
+            {
+                pendingquedgameactions.Enqueue(action);
             }
         }
 
@@ -62,8 +78,15 @@ namespace ACE.InGameManager
                     if (pendingobjects.Count > 0)
                         mediator.Register(pendingobjects.Dequeue());
                 }
+                lock (pendingquedCacheLocker)
+                {
+                    if (pendingquedgameactions.Count > 0)
+                        // todo.. loop until all are done at one time.
+                        mediator.CreateQueuedGameAction(pendingquedgameactions.Dequeue());
+                }
                 gameplayers.Tick();
                 gameworld.Tick();
+                gamequeuedaction.Tick();
             }
         }
 
@@ -79,10 +102,9 @@ namespace ACE.InGameManager
             }
         }
 
-        // junk so i can compile while I work.
-        internal static WorldObject ReadOnlyClone(ObjectGuid playerGuid)
+        public static WorldObject ReadOnlyClone(ObjectGuid objectguid)
         {
-            throw new NotImplementedException();
+            return gameworld.ReadOnlyClone(objectguid);
         }
     }
 }

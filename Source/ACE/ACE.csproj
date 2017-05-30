@@ -137,6 +137,7 @@
     <Compile Include="InGameManager\GameConcreteMediator.cs" />
     <Compile Include="InGameManager\Enums\InGameType.cs" />
     <Compile Include="InGameManager\GameMediator.cs" />
+    <Compile Include="InGameManager\GameQueuedAction.cs" />
     <Compile Include="InGameManager\GameWorld.cs" />
     <Compile Include="InGameManager\GamePlayers.cs" />
     <Compile Include="Managers\AssetManager.cs" />
