@@ -21,7 +21,7 @@ namespace ACE.Managers
 
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
-        private static Session[] sessionMap = new Session[128]; // TODO Placeholder, should be config MaxSessions
+        private static Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
