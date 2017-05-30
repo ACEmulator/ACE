@@ -185,11 +185,15 @@ namespace ACE.Entity
 
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
-            GameData.ItemCapacity = 102;
-            GameData.ContainerCapacity = 7;
-            GameData.RadarBehavior = RadarBehavior.ShowAlways;
-            GameData.RadarColor = RadarColor.White;
-            GameData.Usable = Usable.UsableObjectSelf;
+            GameDataType = (uint)ObjectType.Creature;
+            ItemCapacity = 102;
+            Burden = 0;
+            this.Spell = 0;
+            // this.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            ContainerCapacity = 7;
+            RadarBehavior = Network.Enum.RadarBehavior.ShowAlways;
+            RadarColor = Network.Enum.RadarColor.White;
+            Usable = Network.Enum.Usable.UsableObjectSelf;
 
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;

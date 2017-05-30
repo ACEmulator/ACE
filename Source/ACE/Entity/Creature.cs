@@ -81,14 +81,14 @@ namespace ACE.Entity
             // game data min required flags;
             Icon = aco.IconId;
 
-            GameData.ContainerCapacity = aco.ContainersCapacity;
-            GameData.ItemCapacity = aco.ItemsCapacity;
-            GameData.Usable = (Usable?)aco.ItemUseable;
+            ContainerCapacity = aco.ContainersCapacity;
+            ItemCapacity = aco.ItemsCapacity;
+            Usable = (Usable?)aco.ItemUseable;
             // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
             // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            GameData.RadarColor = (RadarColor?)aco.BlipColor;
-            GameData.RadarBehavior = (RadarBehavior?)aco.Radar;
-            GameData.UseRadius = aco.UseRadius;
+            RadarColor = (RadarColor?)aco.BlipColor;
+            RadarBehavior = (RadarBehavior?)aco.Radar;
+            UseRadius = aco.UseRadius;
 
             aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));

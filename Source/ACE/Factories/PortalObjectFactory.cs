@@ -25,13 +25,13 @@ namespace ACE.Factories
             wo.PhysicsData.PhysicsState = PhysicsState.Ethereal | PhysicsState.ReportCollision | PhysicsState.LightingOn | PhysicsState.Gravity;
 
             // game data min required flags;
-            // wo.GameData.Type = (ushort)0x82D;
-            // wo.GameData.Icon = (ushort)0x106B;
+            // wo.Type = (ushort)0x82D;
+            // wo.Icon = (ushort)0x106B;
 
-            wo.GameData.Usable = Usable.UsableRemote;
-            wo.GameData.RadarColor = RadarColor.Portal;
-            wo.GameData.RadarBehavior = RadarBehavior.ShowAlways;
-            wo.GameData.UseRadius = 4f;
+            wo.Usable = Usable.UsableRemote;
+            wo.RadarColor = RadarColor.Portal;
+            wo.RadarBehavior = RadarBehavior.ShowAlways;
+            wo.UseRadius = 4f;
 
             return wo;
         }

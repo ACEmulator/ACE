@@ -637,7 +637,7 @@ namespace ACE.Entity
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow((inventoryItem.GameData.UseRadius ?? 0.00), 2))
+                                    > Math.Pow((inventoryItem.UseRadius ?? 0.00), 2))
                                 {
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
@@ -655,7 +655,7 @@ namespace ACE.Entity
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
                                        PropertyInt.EncumbranceVal,
-                                       (aPlayer.GameData.Burden)),
+                                       (aPlayer.Burden ?? 0)),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),
@@ -696,7 +696,7 @@ namespace ACE.Entity
                                         new GameMessagePrivateUpdatePropertyInt(
                                             aPlayer.Session,
                                             PropertyInt.EncumbranceVal,
-                                            (uint)aPlayer.Session.Player.GameData.Burden));
+                                            (uint)aPlayer.Session.Player.Burden));
 
                                     var motion = new UniversalMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;

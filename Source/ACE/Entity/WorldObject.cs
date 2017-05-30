@@ -10,11 +10,18 @@ using log4net;
 
 namespace ACE.Entity
 {
+    using System.CodeDom;
+    using System.Collections.Generic;
+
+    using global::ACE.Entity.Enum.Properties;
+
     public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public ObjectGuid Guid { get; }
+
+        private AceObject AceObject { get; set; }
 
         public ObjectType Type { get; protected set; }
 
@@ -23,7 +30,7 @@ namespace ACE.Entity
         /// </summary>
         public uint WeenieClassid { get; protected set; }
 
-        public uint Icon { get; set; }
+        public uint? Icon { get; set; }
 
         public string Name { get; protected set; }
 
@@ -80,16 +87,258 @@ namespace ACE.Entity
 
         public PhysicsData PhysicsData { get; }
 
-        public GameData GameData { get; }
+        // Logical Game Data
+        public uint GameDataType
+        {
+            get { return AceObject.ItemType; }
+            set { AceObject.SetIntProperty(PropertyInt.ItemType, value); }
+        }
+        public string NamePlural { get; set; }
+
+        public byte? ItemCapacity
+        {
+            get { return AceObject.ItemsCapacity; }
+            set { AceObject.SetIntProperty(PropertyInt.ItemsCapacity, value); }
+        }
+
+        public byte? ContainerCapacity
+        {
+            get { return AceObject.ContainersCapacity; }
+            set { AceObject.SetIntProperty(PropertyInt.ContainersCapacity, value); }
+        }
+
+        public AmmoType? AmmoType
+        {
+            get { return (AmmoType?)AceObject.AmmoType; }
+            set { AceObject.SetIntProperty(PropertyInt.AmmoType, (uint?)value); }
+        }
+
+        public uint? Value
+        {
+            get { return AceObject.Value; }
+            set { AceObject.SetIntProperty(PropertyInt.Value, value); }
+        }
+
+        public Usable? Usable
+        {
+            get { return (Usable?)AceObject.ItemUseable; }
+            set { AceObject.SetIntProperty(PropertyInt.ItemUseable, (uint?)value); }
+        }
+
+        public float? UseRadius
+        {
+            get { return AceObject.UseRadius = 0.25f; }
+            set { AceObject.SetDoubleProperty(PropertyDouble.UseRadius, (double?)value); }
+        }
+
+        public uint? TargetType
+        {
+            get { return AceObject.TargetTypeId; }
+            set { AceObject.SetIntProperty(PropertyInt.TargetType, value); }
+        }
+
+        public UiEffects? UiEffects
+        {
+            get { return (UiEffects?)AceObject.UiEffects; }
+            set { AceObject.SetIntProperty(PropertyInt.UiEffects, (uint?)value); }
+        }
+
+        public CombatUse? CombatUse
+        {
+            get { return (CombatUse?)AceObject.CombatUse; }
+            set { AceObject.SetIntProperty(PropertyInt.CombatUse, (byte?)value); }
+        }
+        /// <summary>
+        /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
+        /// </summary>
+        public ushort? Structure
+        {
+            get { return AceObject.Structure; }
+            set { AceObject.SetIntProperty(PropertyInt.Structure, value); }
+        }
+        /// <summary>
+        /// Use Limit - example 50 use healing kit
+        /// </summary>
+        public ushort? MaxStructure
+        {
+            get { return AceObject.MaxStructure; }
+            set { AceObject.SetIntProperty(PropertyInt.MaxStructure, value); }
+        }
+
+        public ushort? StackSize
+        {
+            get { return AceObject.StackSize; }
+            set { AceObject.SetIntProperty(PropertyInt.StackSize, value); }
+        }
+
+        public ushort? MaxStackSize
+        {
+            get { return AceObject.MaxStackSize; }
+            set { AceObject.SetIntProperty(PropertyInt.MaxStackSize, value); }
+        }
+
+        public uint? ContainerId { get; set; }
+
+        // TODO: I think we need to store this in aceObject from pacps - example Paul's Axe (Blue Ox)
+        public uint? Wielder { get; set; }
+
+        public EquipMask? ValidLocations
+        {
+            get { return (EquipMask?)AceObject.ValidLocations; }
+            set { AceObject.SetIntProperty(PropertyInt.ValidLocations, (uint?)value); }
+        }
+
+        /// <summary>
+        /// Location - renamed for conflict with wo and to have a more descriptive name
+        /// </summary>
+        public EquipMask? CurrentWieldedLocation
+        {
+            get { return (EquipMask?)AceObject.CurrentWieldedLocation; }
+            set { AceObject.SetIntProperty(PropertyInt.CurrentWieldedLocation, (uint?)value); }
+        }
+
+        // TODO: This needs to be saved in the pcaps and in AceObject - we don't capture it yet.
+        public CoverageMask? Priority { get; set; }
+
+        public RadarColor? RadarColor
+        {
+            get { return (RadarColor?)AceObject.BlipColor; }
+            set { AceObject.SetIntProperty(PropertyInt.RadarBlipColor, (byte?)value); }
+        }
+
+        public RadarBehavior? RadarBehavior
+        {
+            get { return (RadarBehavior?)AceObject.Radar; }
+            set { AceObject.SetIntProperty(PropertyInt.ShowableOnRadar, (byte?)value); }
+        }
+
+        public ushort? Script
+        {
+            get { return AceObject.PhysicsScript; }
+            set { AceObject.PhysicsScript = value; }
+        }
+
+        public float Workmanship
+        {
+            get { return AceObject.Workmanship; }
+            set { AceObject.Workmanship = value; }
+        }
+
+        public ushort? Burden
+        {
+            get { return AceObject.Burden; }
+            set { AceObject.SetIntProperty(PropertyInt.EncumbranceVal, value); }
+        }
+
+        public Spell? Spell
+        {
+            get { return (Spell?)AceObject.SpellId; }
+            set { this.AceObject.SpellId = (ushort?)value; }
+        }
+
+        /// <summary>
+        /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
+        /// </summary>
+        public uint? HouseOwner { get; set; }
+
+        public uint? HouseRestrictions { get; set; }
+
+        public ushort? HookItemTypes
+        {
+            get { return AceObject.HookItemTypes; }
+            set { AceObject.SetIntProperty(PropertyInt.HookItemType, value); }
+        }
+
+        public uint? Monarch { get; set; }
+
+        public ushort? HookType
+        {
+            get { return AceObject.HookType; }
+            set { AceObject.SetIntProperty(PropertyInt.HookType, value); }
+        }
+
+        public uint? IconOverlay
+        {
+            get { return AceObject.IconOverlayId; }
+            set { AceObject.IconOverlayId = value; }
+        }
+
+        public uint? IconUnderlay
+        {
+            get { return AceObject.IconUnderlayId; }
+            set { AceObject.IconUnderlayId = value; }
+        }
+
+        public Material? Material
+        {
+            get { return (Material?)AceObject.MaterialType; }
+            set { AceObject.SetIntProperty(PropertyInt.MaterialType, (byte?)value); }
+        }
+
+        public uint? PetOwner { get; set; }
+
+        // WeenieHeaderFlag2
+        public uint? Cooldown
+        {
+            get { return AceObject.CooldownId; }
+            set { AceObject.SetIntProperty(PropertyInt.SharedCooldown, value); }
+        }
+
+        public decimal? CooldownDuration
+        {
+            get { return (decimal?)AceObject.CooldownDuration; }
+            set { AceObject.SetDoubleProperty(PropertyDouble.CooldownDuration, (double?)value); }
+        }
+
+        // PhysicsData Logical
+
+        public uint CSetup;
+
+        // apply default for back compat with player object
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag;
+        public PhysicsState PhysicsState = 0;
+
+        public Position Position;
+        public uint MTableResourceId;
+        public uint SoundsResourceId;
+        public uint Stable;
+        public uint Petable;
+
+        // these are all related
+        public uint ItemsEquipedCount;
+        public uint Parent;
+        public EquipMask? EquipperPhysicsDescriptionFlag;
+        private readonly List<EquippedItem> children = new List<EquippedItem>();
+
+        public float? ObjScale;
+        public float? Friction;
+        public float? Elasticity;
+        public uint? AnimationFrame;
+        public AceVector3 Acceleration;
+        public float? Translucency;
+        public AceVector3 Velocity = null;
+        public AceVector3 Omega = null;
+
+        private MotionState currentMotionState;
+        public MotionState CurrentMotionState
+        {
+            get { return currentMotionState; }
+            set { currentMotionState = value; }
+        }
+
+        public uint? DefaultScript;
+        public float? DefaultScriptIntensity;
 
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
+            // Kludge until I get everything refactored correctly Og II
+            if (AceObject == null)
+                AceObject = new AceObject();
             Type = type;
             Guid = guid;
 
-            GameData = new GameData();
             ModelData = new ModelData();
 
             Sequences = new SequenceManager();
@@ -105,6 +354,12 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
 
             PhysicsData = new PhysicsData(Sequences);
+        }
+
+        protected WorldObject(AceObject aceObject)
+            : this((ObjectType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
+        {
+            this.AceObject = aceObject;
         }
 
         public void SetCombatMode(CombatMode newCombatMode)
@@ -141,104 +396,104 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag SetWeenieHeaderFlag()
         {
-            var weenieHeaderFlag = WeenieHeaderFlag.None;
-            if (GameData.NamePlural != null)
+            WeenieHeaderFlag weenieHeaderFlag = WeenieHeaderFlag.None;
+            if (NamePlural != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
-            if (GameData.ItemCapacity != null)
+            if (ItemCapacity != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ItemCapacity;
 
-            if (GameData.ContainerCapacity != null)
+            if (ContainerCapacity != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ContainerCapacity;
 
-            if (GameData.AmmoType != null)
+            if (AmmoType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.AmmoType;
 
-            if (GameData.Value != null)
+            if (Value != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Value;
 
-            if (GameData.Usable != null)
+            if (Usable != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Usable;
 
-            if (GameData.UseRadius != null)
+            if (UseRadius != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.UseRadius;
 
-            if (GameData.TargetType != null)
+            if (TargetType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.TargetType;
 
-            if (GameData.UiEffects != null)
+            if (UiEffects != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.UiEffects;
 
-            if (GameData.CombatUse != null)
+            if (CombatUse != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.CombatUse;
 
-            if (GameData.Structure != null)
+            if (Structure != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Structure;
 
-            if (GameData.MaxStructure != null)
+            if (MaxStructure != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaxStructure;
 
-            if (GameData.StackSize != null)
+            if (StackSize != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.StackSize;
 
-            if (GameData.MaxStackSize != null)
+            if (MaxStackSize != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaxStackSize;
 
-            if (GameData.ContainerId != null)
+            if (ContainerId != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Container;
 
-            if (GameData.Wielder != null)
+            if (Wielder != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Wielder;
 
-            if (GameData.ValidLocations != null)
+            if (ValidLocations != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
 
             // You can't be in a wielded location if you don't have a weilder.   This is a gurad against crap data. Og II
-            if ((GameData.Location != null) && (GameData.Location != 0) && (GameData.Wielder != null) && (GameData.Wielder != 0))
+            if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (Wielder != null) && (Wielder != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 
-            if (GameData.Priority != null)
+            if (Priority != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Priority;
 
-            if (GameData.RadarColor != null)
+            if (RadarColor != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBlipColor;
 
-            if (GameData.RadarBehavior != null)
+            if (RadarBehavior != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBehavior;
 
-            if ((GameData.Script != null) && (GameData.Script != 0u))
+            if (Script != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Script;
 
-            if ((GameData.Workmanship != null) && ((uint)GameData.Workmanship != 0u))
+            if ((uint)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
             // This probably needs to be fixed.   Character was loading a null burden
             // TODO: Fix this correctly.
             weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
-            if (GameData.Spell != null)
+            if (Spell != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
-            if (GameData.HouseOwner != null)
+            if (HouseOwner != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
 
-            if (GameData.HouseRestrictions != null)
+            if (HouseRestrictions != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
-            if (GameData.HookItemTypes != null)
+            if (HookItemTypes != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookItemTypes;
 
-            if (GameData.Monarch != null)
+            if (Monarch != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Monarch;
 
-            if (GameData.HookType != null)
+            if (HookType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookType;
 
-            if ((GameData.IconOverlay != null) && (GameData.IconOverlay != 0))
+            if (IconOverlay != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
-            // if (GameData.Material != null)
-            //    weenieHeaderFlag |= WeenieHeaderFlag.Material;
+             if (Material != null)
+                weenieHeaderFlag |= WeenieHeaderFlag.Material;
 
             return weenieHeaderFlag;
         }
@@ -247,16 +502,16 @@ namespace ACE.Entity
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
-            if ((GameData.IconUnderlay != null) && (GameData.IconUnderlay != 0))
+            if (IconUnderlay != 0)
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
-            if ((GameData.Cooldown != null) && (GameData.Cooldown != 0))
+            if ((Cooldown != null) && (Cooldown != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
 
-            if ((GameData.CooldownDuration != null) && (GameData.CooldownDuration != 0))
+            if ((CooldownDuration != null) && (CooldownDuration != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.CooldownDuration;
 
-            if ((GameData.PetOwner != null) && (GameData.PetOwner != 0))
+            if ((PetOwner != null) && (PetOwner != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.PetOwner;
 
             return weenieHeaderFlag2;
@@ -275,7 +530,7 @@ namespace ACE.Entity
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassid);
-            writer.WritePackedDwordOfKnownType(Icon, 0x6000000);
+            writer.WritePackedDwordOfKnownType(Icon ?? 0, 0x6000000);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);
             writer.Align();
@@ -284,114 +539,114 @@ namespace ACE.Entity
                 writer.Write((uint)WeenieFlags2);
 
             if ((WeenieFlags & WeenieHeaderFlag.PluralName) != 0)
-                writer.WriteString16L(GameData.NamePlural);
+                writer.WriteString16L(NamePlural);
 
             if ((WeenieFlags & WeenieHeaderFlag.ItemCapacity) != 0)
-                writer.Write(GameData.ItemCapacity ?? 0);
+                writer.Write(ItemCapacity ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.ContainerCapacity) != 0)
-                writer.Write(GameData.ContainerCapacity ?? 0);
+                writer.Write(ContainerCapacity ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.AmmoType) != 0)
-                writer.Write((ushort?)GameData.AmmoType ?? 0);
+                writer.Write((ushort?)AmmoType ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Value) != 0)
-                writer.Write(GameData.Value ?? 0u);
+                writer.Write(Value ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Usable) != 0)
-                writer.Write((uint?)GameData.Usable ?? 0u);
+                writer.Write((uint?)Usable ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.UseRadius) != 0)
-                writer.Write(GameData.UseRadius ?? 0u);
+                writer.Write(UseRadius ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)
-                writer.Write(GameData.TargetType ?? 0u);
+                writer.Write(TargetType ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0)
-                writer.Write((uint?)GameData.UiEffects ?? 0u);
+                writer.Write((uint?)UiEffects ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0)
-                writer.Write((sbyte?)GameData.CombatUse ?? 0);
+                writer.Write((sbyte?)CombatUse ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
-                writer.Write(GameData.Structure ?? 0u);
+                writer.Write(Structure ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
-                writer.Write(GameData.MaxStructure ?? 0u);
+                writer.Write(MaxStructure ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(GameData.StackSize ?? 0u);
+                writer.Write(StackSize ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
-                writer.Write(GameData.MaxStackSize ?? 0u);
+                writer.Write(MaxStackSize ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
-                writer.Write(GameData.ContainerId ?? 0u);
+                writer.Write(ContainerId ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)
-                writer.Write(GameData.Wielder ?? 0u);
+                writer.Write(Wielder ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
-                writer.Write((uint?)GameData.ValidLocations ?? 0u);
+                writer.Write((uint?)ValidLocations ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.CurrentlyWieldedLocation) != 0)
-                writer.Write((uint?)GameData.Location ?? 0u);
+                writer.Write((uint?)CurrentWieldedLocation ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Priority) != 0)
-                writer.Write((uint?)GameData.Priority ?? 0u);
+                writer.Write((uint?)Priority ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.RadarBlipColor) != 0)
-                writer.Write((byte?)GameData.RadarColor ?? 0);
+                writer.Write((byte?)RadarColor ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.RadarBehavior) != 0)
-                writer.Write((byte?)GameData.RadarBehavior ?? 0);
+                writer.Write((byte?)RadarBehavior ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Script) != 0)
-                writer.Write(GameData.Script ?? 0u);
+                writer.Write(Script ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
-                writer.Write(GameData.Workmanship ?? 0u);
+                writer.Write(Workmanship);
 
             if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
-                writer.Write(GameData.Burden);
+                writer.Write(Burden ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
-                writer.Write((ushort?)GameData.Spell ?? 0);
+                writer.Write((ushort?)Spell ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
-                writer.Write(GameData.HouseOwner ?? 0u);
+                writer.Write(HouseOwner ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
             {
-                writer.Write(GameData.HouseRestrictions ?? 0u);
+                writer.Write(HouseRestrictions ?? 0u);
             }
 
             if ((WeenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
-                writer.Write(GameData.HookItemTypes ?? 0);
+                writer.Write(HookItemTypes ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Monarch) != 0)
-                writer.Write(GameData.Monarch ?? 0u);
+                writer.Write(Monarch ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.HookType) != 0)
-                writer.Write(GameData.HookType ?? 0u);
+                writer.Write(HookType ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
-                writer.WritePackedDwordOfKnownType((GameData.IconOverlay ?? 0), 0x6000000);
+                writer.WritePackedDwordOfKnownType((IconOverlay ?? 0), 0x6000000);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
-                writer.WritePackedDwordOfKnownType((GameData.IconUnderlay ?? 0), 0x6000000);
+                writer.WritePackedDwordOfKnownType((IconUnderlay ?? 0), 0x6000000);
 
             if ((WeenieFlags & WeenieHeaderFlag.Material) != 0)
-                writer.Write((uint)(GameData.Material ?? 0u));
+                writer.Write((uint)(Material ?? 0u));
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.Cooldown) != 0)
-                writer.Write(GameData.Cooldown ?? 0u);
+                writer.Write(Cooldown ?? 0u);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.CooldownDuration) != 0)
-                writer.Write((double?)GameData.CooldownDuration ?? 0u);
+                writer.Write((double?)CooldownDuration ?? 0u);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
-                writer.Write(GameData.PetOwner ?? 0u);
+                writer.Write(PetOwner ?? 0u);
 
             writer.Align();
         }
