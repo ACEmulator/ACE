@@ -29,8 +29,8 @@ namespace ACE.Network.GameAction.QueuedGameActions
 
             // var inventoryItem = LandManager.OpenWorld.ReadOnlyClone(inventoryGuid);
 
-                float arrivedRadiusSquared = 0.00f;
-                bool validGuids;
+            float arrivedRadiusSquared = 0.00f;
+            bool validGuids;
             // if (WithinUseRadius(playerGuid, inventoryGuid, out arrivedRadiusSquared, out validGuids))
             // player.NotifyAndAddToInventory(inventoryItem);
             if (true == true) // junk line.

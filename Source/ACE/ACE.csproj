@@ -211,6 +211,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToMarketplace.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
+    <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionUpdateTicks.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionApplySoundEffect.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionApplyVisualEffect.cs" />
     <Compile Include="Network\GameAction\QueuedGameActions\QueuedGameActionBuy.cs" />

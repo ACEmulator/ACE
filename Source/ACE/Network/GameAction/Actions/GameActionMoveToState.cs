@@ -93,7 +93,7 @@ namespace ACE.Network.GameAction.Actions
             message.Payload.ReadByte();
             if (session.Player.CreatureMovementStates == MovementStates.Moving)
                 session.Player.UpdateAutonomousMove();
-            session.Player.UpdatePosition(position);
+            // session.Player.UpdatePosition(position);
         }
     }
 }

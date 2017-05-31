@@ -53,6 +53,16 @@ namespace ACE.Entity
             }
         }
 
+        // zones around world object
+        public virtual LandblockId LandBlockIdWest { get; set; }
+        public virtual LandblockId LandBlockIdEast { get; set; }
+        public virtual LandblockId LandBlockIdNorth { get; set; }
+        public virtual LandblockId LandBlockIdNorthEast { get; set; }
+        public virtual LandblockId LandBlockIdNorthWest { get; set; }
+        public virtual LandblockId LandBlockIdSouth { get; set; }
+        public virtual LandblockId LandBlockIdSouthEast { get; set; }
+        public virtual LandblockId LandBlockIdSouthWest { get; set; }
+
         /// <summary>
         /// tick-stamp for the last time a movement update was sent
         /// </summary>

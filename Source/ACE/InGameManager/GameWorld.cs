@@ -41,6 +41,54 @@ namespace ACE.InGameManager
 
         internal void Tick()
         {
+            List<WorldObject> allworldobj = null;
+            List<WorldObject> movedObjects = null;
+
+            lock (objectCacheLocker)
+            {
+                // all players on this land block
+                allworldobj = worldobjects.OfType<WorldObject>().ToList();
+            }
+
+            double tickTime = WorldManager.PortalYearTicks;
+            // per-creature update on landblock.
+            Parallel.ForEach(allworldobj, wo =>
+            {
+                // Process the creatures
+                wo.Tick(tickTime);
+            });
+
+            movedObjects = allworldobj.ToList();
+            movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
+            movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
+
+            Parallel.ForEach(movedObjects, mo =>
+            {
+                // detect all world objects in ghost range
+                List<WorldObject> woproxghost = new List<WorldObject>();
+                woproxghost.AddRange(GetWorldObjectsInRange(mo, maxobjectGhostRange));
+
+                // for all objects in rang of this moving object or in ghost range of moving object update them.
+                Parallel.ForEach(woproxghost, wo =>
+                {
+                    if (mo.Guid.IsPlayer())
+                    {
+                        // if world object is in active zone then.
+                        if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
+                        {
+                            // if world object is in active zone.
+                            if (!(mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                                (mo as Player).TrackObject(wo);
+                        }
+                        // if world object is in ghost zone and outside of active zone
+                        else
+                                if ((mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                            (mo as Player).StopTrackingObject(wo, true);
+                    }
+                });
+
+                Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo));
+            });
         }
 
         public WorldObject ReadOnlyClone(ObjectGuid objectguid)
@@ -92,15 +140,32 @@ namespace ACE.InGameManager
 
         public void LoadLandBlocksById(LandblockId landblockid)
         {
+            LoadLandBlockById(landblockid);
+
+            if (landblockid.MapScope == Entity.Enum.MapScope.Outdoors)
+            {
+                LoadLandBlockById(landblockid.East);
+                LoadLandBlockById(landblockid.West);
+                LoadLandBlockById(landblockid.North);
+                LoadLandBlockById(landblockid.NorthEast);
+                LoadLandBlockById(landblockid.NorthWest);
+                LoadLandBlockById(landblockid.SouthEast);
+                LoadLandBlockById(landblockid.South);
+                LoadLandBlockById(landblockid.SouthWest);
+            }
+        }
+
+        public void LoadLandBlockById(LandblockId landblockid)
+        {
             // load world objects on this landblock and neghbor landblocks
             if (!landblocks.ContainsKey(landblockid.Raw))
             {
                 // land block not already loaded.
                 landblocks.Add(landblockid.Raw, landblockid);
+
                 var objects = DatabaseManager.World.GetObjectsByLandblock(landblockid.Landblock);
                 var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
                 factoryObjects.ForEach(fo => this.Register(fo));
-                // todo adjancy loading..
             }
         }
 
@@ -150,6 +215,13 @@ namespace ACE.InGameManager
     
             switch (args.ActionType)
             {
+                case BroadcastAction.UpdateTick:
+                    {
+                        // supresss updating if player is out of range of world object.= being updated or created
+                        players = GetWorldObjectsInRange(wo, 2000f).OfType<Player>().ToList();
+                        Parallel.ForEach(players, p => p.LastUpdatedTicks = args.Tick);
+                        break;
+                    }
                 case BroadcastAction.Delete:
                     {
                         // players = players.Where(p => p.Location?.IsInQuadrant(quadrant) ?? false).ToList();

@@ -43,9 +43,9 @@ namespace ACE.Network.GameAction.QueuedGameActions
 
         protected override void Handle(GameMediator mediator, Player player)
         {
-            // WorldObject wo = LandManager.OpenWorld.ReadOnlyClone(new ObjectGuid(ObjectId));
-            // BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(wo,  Motion);
-            // LandManager.OpenWorld.Broadcast(args, Quadrant.All);
+            WorldObject wo = InGameManager.InGameManager.ReadOnlyClone(new ObjectGuid(ObjectId));
+            BroadcastEventArgs args = BroadcastEventArgs.CreateMovementEvent(wo,  Motion);
+            mediator.Broadcast(args);
         }
     }
 }

@@ -345,8 +345,8 @@ namespace ACE.Entity
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
                     character.IsAdmin = true;
-                if (Session.AccessLevel == AccessLevel.Developer)
                     character.IsArch = true;
+                if (Session.AccessLevel == AccessLevel.Developer)
                 if (Session.AccessLevel == AccessLevel.Envoy)
                     character.IsEnvoy = true;
                 // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
@@ -1462,6 +1462,18 @@ namespace ACE.Entity
         public void UpdatePosition(Position newPosition)
         {
             Location = newPosition;
+            if (Location.LandblockId.MapScope == Entity.Enum.MapScope.Outdoors)
+            {
+                LandBlockIdWest = newPosition.LandblockId.West;
+                LandBlockIdEast = newPosition.LandblockId.East;
+                LandBlockIdNorth = newPosition.LandblockId.North;
+                LandBlockIdNorthEast = newPosition.LandblockId.NorthEast;
+                LandBlockIdNorthWest = newPosition.LandblockId.NorthWest;
+                LandBlockIdSouthEast = newPosition.LandblockId.SouthEast;
+                LandBlockIdSouth = newPosition.LandblockId.South;
+                LandBlockIdSouthWest = newPosition.LandblockId.SouthWest;
+            }
+
             // character.SetCharacterPosition(newPosition);
             SendUpdatePosition();
         }
@@ -1595,6 +1607,11 @@ namespace ACE.Entity
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
             Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+
+            // sends movement update to world.
+            QueuedGameActionUpdateTicks action = new QueuedGameActionUpdateTicks(this, this.Guid.Full, WorldManager.PortalYearTicks);
+            InGameManager.InGameManager.CreateQuedGameAction(action);
+            
         }
 
         public void SendAutonomousPosition()
