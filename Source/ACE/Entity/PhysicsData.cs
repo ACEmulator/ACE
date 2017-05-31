@@ -11,6 +11,9 @@ namespace ACE.Entity
 {
     using System.Diagnostics;
 
+    /// <summary>
+    /// TODO: Remove and use WorldObject.AceObject
+    /// </summary>
     public class PhysicsData
     {
         public uint? CSetup;

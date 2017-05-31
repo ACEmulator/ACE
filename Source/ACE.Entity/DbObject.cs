@@ -77,43 +77,5 @@ namespace ACE.Entity
             Debug.Assert(property < PropertyString.Count, "Invalid Property.");
             propertiesString[property] = value;
         }
-
-        protected void InitializeProperties(Type type)
-        {
-            foreach (PropertyInt prop in System.Enum.GetValues(typeof(PropertyInt)))
-            {
-                var property = prop.GetPersistedPropertyAttribute();
-                if (property?.AppliesTo == type && property?.DefaultValue != null)
-                    SetPropertyInt(prop, (uint)property.DefaultValue);
-            }
-
-            foreach (PropertyBool prop in System.Enum.GetValues(typeof(PropertyBool)))
-            {
-                var property = prop.GetPersistedPropertyAttribute();
-                if (property?.AppliesTo == type && property?.DefaultValue != null)
-                    SetPropertyBool(prop, (bool)property.DefaultValue);
-            }
-
-            foreach (PropertyInt64 prop in System.Enum.GetValues(typeof(PropertyInt64)))
-            {
-                var property = prop.GetPersistedPropertyAttribute();
-                if (property?.AppliesTo == type && property?.DefaultValue != null)
-                    SetPropertyInt64(prop, (ulong)property.DefaultValue);
-            }
-
-            foreach (PropertyDouble prop in System.Enum.GetValues(typeof(PropertyDouble)))
-            {
-                var property = prop.GetPersistedPropertyAttribute();
-                if (property?.AppliesTo == type && property?.DefaultValue != null)
-                    SetPropertyDouble(prop, (double)property.DefaultValue);
-            }
-
-            foreach (PropertyString prop in System.Enum.GetValues(typeof(PropertyString)))
-            {
-                var property = prop.GetPersistedPropertyAttribute();
-                if (property?.AppliesTo == type && property?.DefaultValue != null)
-                    SetPropertyString(prop, (string)property.DefaultValue);
-            }
-        }
     }
 }

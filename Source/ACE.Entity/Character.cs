@@ -92,7 +92,7 @@ namespace ACE.Entity
 
         public Position Location { get; set; }
 
-        public Dictionary<Skill, CharacterSkill> Skills { get; private set; } = new Dictionary<Skill, CharacterSkill>();
+        public Dictionary<Skill, CreatureSkill> Skills { get; private set; } = new Dictionary<Skill, CreatureSkill>();
 
         private Dictionary<CharacterOption, bool> characterOptions;
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions { get; }
@@ -181,16 +181,16 @@ namespace ACE.Entity
 
         private Character()
         {
-            StrengthAbility = new CreatureAbility(this, Enum.Ability.Strength);
-            EnduranceAbility = new CreatureAbility(this, Enum.Ability.Endurance);
-            CoordinationAbility = new CreatureAbility(this, Enum.Ability.Coordination);
-            QuicknessAbility = new CreatureAbility(this, Enum.Ability.Quickness);
-            FocusAbility = new CreatureAbility(this, Enum.Ability.Focus);
-            SelfAbility = new CreatureAbility(this, Enum.Ability.Self);
+            //StrengthAbility = new CreatureAbility(this, Enum.Ability.Strength);
+            //EnduranceAbility = new CreatureAbility(this, Enum.Ability.Endurance);
+            //CoordinationAbility = new CreatureAbility(this, Enum.Ability.Coordination);
+            //QuicknessAbility = new CreatureAbility(this, Enum.Ability.Quickness);
+            //FocusAbility = new CreatureAbility(this, Enum.Ability.Focus);
+            //SelfAbility = new CreatureAbility(this, Enum.Ability.Self);
 
-            Health = new CreatureAbility(this, Enum.Ability.Health);
-            Stamina = new CreatureAbility(this, Enum.Ability.Stamina);
-            Mana = new CreatureAbility(this, Enum.Ability.Mana);
+            //Health = new CreatureAbility(this, Enum.Ability.Health);
+            //Stamina = new CreatureAbility(this, Enum.Ability.Stamina);
+            //Mana = new CreatureAbility(this, Enum.Ability.Mana);
 
             abilities.Add(Enum.Ability.Strength, StrengthAbility);
             abilities.Add(Enum.Ability.Endurance, EnduranceAbility);
@@ -204,10 +204,7 @@ namespace ACE.Entity
             abilities.Add(Enum.Ability.Mana, Mana);
 
             Abilities = new ReadOnlyDictionary<Enum.Ability, CreatureAbility>(abilities);
-
-            // initialize properties collections to reasonable defaults
-            InitializeProperties(typeof(Character));
-
+            
             friends = new List<Friend>();
             Friends = new ReadOnlyCollection<Friend>(friends);
 
@@ -235,7 +232,7 @@ namespace ACE.Entity
             if (Skills[skill].Status != SkillStatus.Trained && Skills[skill].Status != SkillStatus.Specialized)
                 if (PropertiesInt[PropertyInt.AvailableSkillCredits] >= creditsSpent)
                 {
-                    Skills[skill] = new CharacterSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    Skills[skill] = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
                     AvailableSkillCredits = PropertiesInt[PropertyInt.AvailableSkillCredits] - creditsSpent;
                     return true;
                 }
@@ -272,7 +269,7 @@ namespace ACE.Entity
 
         private void AddSkill(Skill skill, SkillStatus status, uint ranks, uint xpSpent)
         {
-            Skills.Add(skill, new CharacterSkill(this, skill, status, ranks, xpSpent));
+            Skills.Add(skill, new CreatureSkill(this, skill, status, ranks, xpSpent));
         }
 
         public void AddFriend(Friend friend)

@@ -1,19 +1,16 @@
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Sequence;
-using System.IO;
-using ACE.Managers;
 using ACE.Network.Motion;
+using ACE.Network.Sequence;
 using log4net;
+using System.IO;
 
 namespace ACE.Entity
 {
-    using System.CodeDom;
     using System.Collections.Generic;
-
-    using global::ACE.Entity.Enum.Properties;
 
     public abstract class WorldObject
     {
@@ -21,7 +18,7 @@ namespace ACE.Entity
 
         public ObjectGuid Guid { get; }
 
-        private AceObject AceObject { get; set; }
+        protected AceObject AceObject { get; set; }
 
         public ObjectType Type { get; protected set; }
 
@@ -91,90 +88,93 @@ namespace ACE.Entity
         public uint GameDataType
         {
             get { return AceObject.ItemType; }
-            set { AceObject.SetIntProperty(PropertyInt.ItemType, value); }
+            set { AceObject.ItemType = value; }
         }
+
         public string NamePlural { get; set; }
 
         public byte? ItemCapacity
         {
             get { return AceObject.ItemsCapacity; }
-            set { AceObject.SetIntProperty(PropertyInt.ItemsCapacity, value); }
+            set { AceObject.ItemsCapacity = value; }
         }
 
         public byte? ContainerCapacity
         {
             get { return AceObject.ContainersCapacity; }
-            set { AceObject.SetIntProperty(PropertyInt.ContainersCapacity, value); }
+            set { AceObject.ContainersCapacity = value; }
         }
 
         public AmmoType? AmmoType
         {
             get { return (AmmoType?)AceObject.AmmoType; }
-            set { AceObject.SetIntProperty(PropertyInt.AmmoType, (uint?)value); }
+            set { AceObject.AmmoType = (uint?)value; }
         }
 
         public uint? Value
         {
             get { return AceObject.Value; }
-            set { AceObject.SetIntProperty(PropertyInt.Value, value); }
+            set { AceObject.Value = value; }
         }
 
         public Usable? Usable
         {
             get { return (Usable?)AceObject.ItemUseable; }
-            set { AceObject.SetIntProperty(PropertyInt.ItemUseable, (uint?)value); }
+            set { AceObject.ItemUseable = (uint?)value; }
         }
 
         public float? UseRadius
         {
-            get { return AceObject.UseRadius = 0.25f; }
-            set { AceObject.SetDoubleProperty(PropertyDouble.UseRadius, (double?)value); }
+            get { return AceObject.UseRadius ?? 0.25f; }
+            set { AceObject.UseRadius = value; }
         }
 
         public uint? TargetType
         {
             get { return AceObject.TargetTypeId; }
-            set { AceObject.SetIntProperty(PropertyInt.TargetType, value); }
+            set { AceObject.TargetTypeId = value; }
         }
 
         public UiEffects? UiEffects
         {
             get { return (UiEffects?)AceObject.UiEffects; }
-            set { AceObject.SetIntProperty(PropertyInt.UiEffects, (uint?)value); }
+            set { AceObject.UiEffects = (uint?)value; }
         }
 
         public CombatUse? CombatUse
         {
             get { return (CombatUse?)AceObject.CombatUse; }
-            set { AceObject.SetIntProperty(PropertyInt.CombatUse, (byte?)value); }
+            set { AceObject.CombatUse = (byte?)value; }
         }
+
         /// <summary>
         /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
         /// </summary>
         public ushort? Structure
         {
             get { return AceObject.Structure; }
-            set { AceObject.SetIntProperty(PropertyInt.Structure, value); }
+            set { AceObject.Structure = value; }
         }
+
         /// <summary>
         /// Use Limit - example 50 use healing kit
         /// </summary>
         public ushort? MaxStructure
         {
             get { return AceObject.MaxStructure; }
-            set { AceObject.SetIntProperty(PropertyInt.MaxStructure, value); }
+            set { AceObject.MaxStructure = value; }
         }
 
         public ushort? StackSize
         {
             get { return AceObject.StackSize; }
-            set { AceObject.SetIntProperty(PropertyInt.StackSize, value); }
+            set { AceObject.StackSize = value; }
         }
 
         public ushort? MaxStackSize
         {
             get { return AceObject.MaxStackSize; }
-            set { AceObject.SetIntProperty(PropertyInt.MaxStackSize, value); }
+            set { AceObject.MaxStackSize = value; }
         }
 
         public uint? ContainerId { get; set; }
@@ -185,7 +185,7 @@ namespace ACE.Entity
         public EquipMask? ValidLocations
         {
             get { return (EquipMask?)AceObject.ValidLocations; }
-            set { AceObject.SetIntProperty(PropertyInt.ValidLocations, (uint?)value); }
+            set { AceObject.ValidLocations = (uint?)value; }
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace ACE.Entity
         public EquipMask? CurrentWieldedLocation
         {
             get { return (EquipMask?)AceObject.CurrentWieldedLocation; }
-            set { AceObject.SetIntProperty(PropertyInt.CurrentWieldedLocation, (uint?)value); }
+            set { AceObject.CurrentWieldedLocation = (uint?)value; }
         }
 
         // TODO: This needs to be saved in the pcaps and in AceObject - we don't capture it yet.
@@ -203,13 +203,13 @@ namespace ACE.Entity
         public RadarColor? RadarColor
         {
             get { return (RadarColor?)AceObject.BlipColor; }
-            set { AceObject.SetIntProperty(PropertyInt.RadarBlipColor, (byte?)value); }
+            set { AceObject.BlipColor = (byte?)value; }
         }
 
         public RadarBehavior? RadarBehavior
         {
             get { return (RadarBehavior?)AceObject.Radar; }
-            set { AceObject.SetIntProperty(PropertyInt.ShowableOnRadar, (byte?)value); }
+            set { AceObject.Radar = (byte?)value; }
         }
 
         public ushort? Script
@@ -227,7 +227,7 @@ namespace ACE.Entity
         public ushort? Burden
         {
             get { return AceObject.Burden; }
-            set { AceObject.SetIntProperty(PropertyInt.EncumbranceVal, value); }
+            set { AceObject.Burden = value; }
         }
 
         public Spell? Spell
@@ -246,7 +246,7 @@ namespace ACE.Entity
         public ushort? HookItemTypes
         {
             get { return AceObject.HookItemTypes; }
-            set { AceObject.SetIntProperty(PropertyInt.HookItemType, value); }
+            set { AceObject.HookItemTypes = value; }
         }
 
         public uint? Monarch { get; set; }
@@ -254,7 +254,7 @@ namespace ACE.Entity
         public ushort? HookType
         {
             get { return AceObject.HookType; }
-            set { AceObject.SetIntProperty(PropertyInt.HookType, value); }
+            set { AceObject.HookType = value; }
         }
 
         public uint? IconOverlay
@@ -272,7 +272,7 @@ namespace ACE.Entity
         public Material? Material
         {
             get { return (Material?)AceObject.MaterialType; }
-            set { AceObject.SetIntProperty(PropertyInt.MaterialType, (byte?)value); }
+            set { AceObject.MaterialType = (byte?)value; }
         }
 
         public uint? PetOwner { get; set; }
@@ -281,13 +281,13 @@ namespace ACE.Entity
         public uint? Cooldown
         {
             get { return AceObject.CooldownId; }
-            set { AceObject.SetIntProperty(PropertyInt.SharedCooldown, value); }
+            set { AceObject.CooldownId = value; }
         }
 
-        public decimal? CooldownDuration
+        public double? CooldownDuration
         {
-            get { return (decimal?)AceObject.CooldownDuration; }
-            set { AceObject.SetDoubleProperty(PropertyDouble.CooldownDuration, (double?)value); }
+            get { return AceObject.CooldownDuration; }
+            set { AceObject.CooldownDuration = value; }
         }
 
         // PhysicsData Logical
@@ -299,14 +299,8 @@ namespace ACE.Entity
         public PhysicsState PhysicsState = 0;
 
         public Position Position;
-        public uint MTableResourceId;
-        public uint SoundsResourceId;
-        public uint Stable;
-        public uint Petable;
 
         // these are all related
-        public uint ItemsEquipedCount;
-        public uint Parent;
         public EquipMask? EquipperPhysicsDescriptionFlag;
         private readonly List<EquippedItem> children = new List<EquippedItem>();
 

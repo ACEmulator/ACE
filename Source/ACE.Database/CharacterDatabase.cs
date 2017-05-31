@@ -251,7 +251,7 @@ namespace ACE.Database
                 character.Stamina.Current,
                 character.Mana.Current);
 
-            foreach (CharacterSkill skill in character.Skills.Values)
+            foreach (CreatureSkill skill in character.Skills.Values)
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsInsert,
                     character.Id,
                     (uint)skill.Skill,
@@ -312,7 +312,7 @@ namespace ACE.Database
                     SkillStatus ss = result.Read<SkillStatus>(i, "skillStatus");
                     uint ranks = result.Read<uint>(i, "skillPoints");
                     uint xpSpent = result.Read<uint>(i, "skillXpSpent");
-                    c.Skills.Add(s, new CharacterSkill(c, s, ss, ranks, xpSpent));
+                    c.Skills.Add(s, new CreatureSkill(c, s, ss, ranks, xpSpent));
                 }
 
                 result = await SelectPreparedStatementAsync(CharacterPreparedStatement.CharacterAppearanceSelect, id);
@@ -621,7 +621,7 @@ namespace ACE.Database
 
         public void UpdateCharacterSkills(Character character, DatabaseTransaction transaction)
         {
-            foreach (KeyValuePair<Skill, CharacterSkill> skill in character.Skills)
+            foreach (KeyValuePair<Skill, CreatureSkill> skill in character.Skills)
             {
                 transaction.AddPreparedStatement(CharacterPreparedStatement.CharacterSkillsUpdate, (uint)skill.Value.Status, (ushort)skill.Value.Ranks, skill.Value.ExperienceSpent, character.Id, (uint)skill.Value.Skill);
             }

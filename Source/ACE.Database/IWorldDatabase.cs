@@ -8,7 +8,7 @@ namespace ACE.Database
     {
         List<TeleportLocation> GetLocations();
 
-        AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId);
+        // AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId);
 
         List<AceObject> GetObjectsByLandblock(ushort landblock);
 

@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity.Enum.Properties
 {
-    public enum PropertiesIid : uint
+    public enum PropertyInstanceId : uint
     {
         Undef = 0,
         Owner = 1,

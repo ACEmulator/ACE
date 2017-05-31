@@ -43,7 +43,7 @@ namespace ACE.Entity
             CombatUse = (CombatUse?)aceO.CombatUse;
             ContainerCapacity = aceO.ContainersCapacity;
             Cooldown = aceO.CooldownId;
-            CooldownDuration = (decimal?)aceO.CooldownDuration;
+            CooldownDuration = aceO.CooldownDuration;
             HookItemTypes = aceO.HookItemTypes;
             HookType = aceO.HookType;
             IconOverlay = aceO.IconOverlayId;

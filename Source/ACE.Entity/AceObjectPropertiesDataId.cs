@@ -2,15 +2,15 @@
 using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
-    [DbTable("ace_object_properties_iid")]
-    [DbGetList("ace_object_properties_iid", 22, "AceObjectId")]
-    public class AceObjectPropertiesIid
+    [DbTable("ace_object_properties_did")]
+    [DbGetList("ace_object_properties_did", 21, "AceObjectId")]
+    public class AceObjectPropertiesDataId
     {
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
-        [DbField("iidPropertyId", (int)MySqlDbType.UInt16)]
-        public uint IidPropertyId { get; set; }
+        [DbField("didPropertyId", (int)MySqlDbType.UInt16)]
+        public uint PropertyId { get; set; }
 
         [DbField("propertyValue", (int)MySqlDbType.UInt32)]
         public uint PropertyValue { get; set; }

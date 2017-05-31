@@ -156,9 +156,9 @@ namespace ACE.Entity
             get { return character.PropertiesString; }
         }
 
-        public ReadOnlyDictionary<Skill, CharacterSkill> Skills
+        public ReadOnlyDictionary<Skill, CreatureSkill> Skills
         {
-            get { return new ReadOnlyDictionary<Skill, CharacterSkill>(character.Skills); }
+            get { return new ReadOnlyDictionary<Skill, CreatureSkill>(character.Skills); }
         }
 
         public uint TotalLogins
@@ -1042,7 +1042,7 @@ namespace ACE.Entity
         ///         1. Not checking and accounting for XP gained from skill usage.
         /// </remarks>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendSkillXp(CharacterSkill skill, uint amount)
+        private uint SpendSkillXp(CreatureSkill skill, uint amount)
         {
             uint result = 0u;
             ExperienceExpenditureChart chart;

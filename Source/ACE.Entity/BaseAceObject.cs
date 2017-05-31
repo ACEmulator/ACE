@@ -6,6 +6,7 @@ using System;
 
 namespace ACE.Entity
 {
+    using System.Linq;
     using System.Net.Mime;
 
     [DbTable("vw_base_ace_object")]
@@ -44,7 +45,7 @@ namespace ACE.Entity
 
         public uint? AnimationFrameId
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PlacementPosition)?.PropertyValue; }
+            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.PlacementPosition)?.PropertyValue; }
             set { SetIntProperty(PropertyInt.PlacementPosition, value); }
         }
 
@@ -53,20 +54,20 @@ namespace ACE.Entity
 
         public uint? IconId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.Icon)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.Icon, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.Icon)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.Icon, value); }
         }
 
         public uint? IconOverlayId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.IconOverlay)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.IconOverlay, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.IconOverlay)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
         }
 
         public uint? IconUnderlayId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.IconUnderlay)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.IconUnderlay, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.IconUnderlay)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
         }
 
         /// <summary>
@@ -74,127 +75,287 @@ namespace ACE.Entity
         /// </summary>
         public uint? ModelTableId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.Setup)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.Setup, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.Setup)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.Setup, value); }
         }
 
         public uint? MotionTableId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.MotionTable)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.MotionTable, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.MotionTable)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
         }
 
         public ushort? PhysicsScript
         {
-            get { return (ushort?)AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.PhysicsScript)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.PhysicsScript, value); }
+            get { return (ushort?)DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.PhysicsScript)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
         }
 
         public uint? PhysicsTableId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.PhysicsEffectTable)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.PhysicsEffectTable, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.PhysicsEffectTable)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
         }
 
 
         public uint? SoundTableId
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.SoundTable)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.SoundTable, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.SoundTable)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
         }
 
         public ushort? SpellId
         {
-            get { return (ushort?)AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.Spell)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.Spell, value); }
+            get { return (ushort?)DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.Spell)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.Spell, value); }
         }
 
         public uint? DefaultScript
         {
-            get { return AceObjectPropertiesDid.Find(x => x.DidPropertyId == (uint)PropertiesDid.UseUserAnimation)?.PropertyValue; }
-            set { SetDidProperty(PropertiesDid.UseUserAnimation, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.UseUserAnimation)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
         }
 
-        public void SetDidProperty(PropertiesDid didPropertyId, uint? value)
+        public uint? GetDataIdProperty(PropertyDataId property)
         {
-            AceObjectPropertiesDid listItem = AceObjectPropertiesDid.Find(x => x.DidPropertyId == (short)didPropertyId);
+            return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+        }
+
+        public List<uint> GetDataIdProperties(PropertyDataId property)
+        {
+            return DataIdProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+        }
+
+        public void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
+        {
+            AceObjectPropertiesDataId listItem = DataIdProperties.Find(x => x.PropertyId == (short)didPropertyId);
             if (value != null)
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesDid { DidPropertyId = (uint)didPropertyId, PropertyValue = (uint)value };
-                    AceObjectPropertiesDid.Add(listItem);
+                    listItem = new AceObjectPropertiesDataId { PropertyId = (uint)didPropertyId, PropertyValue = (uint)value };
+                    DataIdProperties.Add(listItem);
                 }
                 else
+                {
                     listItem.PropertyValue = (uint)value;
+                }
             }
             else
             {
                 if (listItem != null)
-                    AceObjectPropertiesDid.Remove(listItem);
+                {
+                    DataIdProperties.Remove(listItem);
+                }
             }
         }
 
-        public void SetIidProperty(PropertiesDid iidPropertyId, uint? value)
+        public bool? GetBoolProperty(PropertyBool property)
         {
-            AceObjectPropertiesIid listItem = AceObjectPropertiesIid.Find(x => x.IidPropertyId == (ushort)iidPropertyId);
+            return BoolProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+        }
+
+        public List<bool> GetBoolProperties(PropertyBool property)
+        {
+            return BoolProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+        }
+
+        public void SetBoolProperty(PropertyBool propertyId, bool? value)
+        {
+            AceObjectPropertiesBool listItem = BoolProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesIid { IidPropertyId = (uint)iidPropertyId, PropertyValue = (uint)value };
-                    AceObjectPropertiesIid.Add(listItem);
+                    listItem = new AceObjectPropertiesBool { PropertyId = (uint)propertyId, PropertyValue = (bool)value };
+                    BoolProperties.Add(listItem);
                 }
                 else
-                    listItem.PropertyValue = (uint)value;
+                {
+                    listItem.PropertyValue = (bool)value;
+                }
             }
             else
             {
                 if (listItem != null)
-                    AceObjectPropertiesIid.Remove(listItem);
+                {
+                    BoolProperties.Remove(listItem);
+                }
             }
+        }
+
+        public uint? GetInstanceIdProperty(PropertyInstanceId property)
+        {
+            return InstanceIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+        }
+
+        public List<uint> GetInstanceIdProperties(PropertyInstanceId property)
+        {
+            return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+        }
+
+        public void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
+        {
+            AceObjectPropertiesInstanceId listItem = InstanceIdProperties.Find(x => x.PropertyId == (ushort)iidPropertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesInstanceId { PropertyId = (uint)iidPropertyId, PropertyValue = (uint)value };
+                    InstanceIdProperties.Add(listItem);
+                }
+                else
+                {
+                    listItem.PropertyValue = (uint)value;
+                }
+            }
+            else
+            {
+                if (listItem != null)
+                {
+                    InstanceIdProperties.Remove(listItem);
+                }
+            }
+        }
+
+        public uint? GetIntProperty(PropertyInt property)
+        {
+            return IntProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+        }
+
+        public List<uint> GetIntProperties(PropertyInt property)
+        {
+            return IntProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
         }
 
         public void SetIntProperty(PropertyInt intPropertyId, uint? value)
         {
-            AceObjectPropertiesInt listItem = AceObjectPropertiesInt.Find(x => x.IntPropertyId == (ushort)intPropertyId);
+            AceObjectPropertiesInt listItem = IntProperties.Find(x => x.PropertyId == (ushort)intPropertyId);
             if (value != null)
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesInt { IntPropertyId = (uint)intPropertyId, PropertyValue = (uint)value };
-                    AceObjectPropertiesInt.Add(listItem);
+                    listItem = new AceObjectPropertiesInt { PropertyId = (uint)intPropertyId, PropertyValue = (uint)value };
+                    IntProperties.Add(listItem);
                 }
                 else
+                {
                     listItem.PropertyValue = (uint)value;
+                }
             }
             else
             {
                 if (listItem != null)
-                    AceObjectPropertiesInt.Remove(listItem);
+                {
+                    IntProperties.Remove(listItem);
+                }
             }
         }
 
-        public void SetDoubleProperty(PropertyDouble dblPropertyId, double? value)
+        public ulong? GetInt64Property(PropertyInt64 property)
         {
-            AceObjectPropertiesDouble listItem = AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)dblPropertyId);
+            return Int64Properties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+        }
+
+        public List<ulong> GetInt64Properties(PropertyInt64 property)
+        {
+            return Int64Properties.Where(x => x.PropertyId == (ushort)property).Select(x => x.PropertyValue).ToList();
+        }
+
+        public void SetInt64Property(PropertyInt64 int64PropertyId, ulong? value)
+        {
+            AceObjectPropertiesInt64 listItem = Int64Properties.Find(x => x.PropertyId == (ushort)int64PropertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesInt64 { PropertyId = (uint)int64PropertyId, PropertyValue = (ulong)value };
+                    Int64Properties.Add(listItem);
+                }
+                else
+                {
+                    listItem.PropertyValue = (uint)value;
+                }
+            }
+            else
+            {
+                if (listItem != null)
+                    Int64Properties.Remove(listItem);
+            }
+        }
+
+        public double? GetDoubleProperty(PropertyDouble property)
+        {
+            return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
+        }
+
+        public List<double> GetDoubleProperties(PropertyDouble property)
+        {
+            return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Select(x => x.PropertyValue).ToList();
+        }
+
+        public void SetDoubleProperty(PropertyDouble propertyId, double? value)
+        {
+            AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
             {
                 if (listItem == null)
                 {
                     listItem = new AceObjectPropertiesDouble()
                     {
-                        DblPropertyId = (short)dblPropertyId,
+                        PropertyId = (ushort)propertyId,
                         PropertyValue = (double)value
                     };
-                    AceObjectPropertiesDouble.Add(listItem);
+                    DoubleProperties.Add(listItem);
                 }
-                else listItem.PropertyValue = (double)value;
+                else
+                {
+                    listItem.PropertyValue = (double)value;
+                }
             }
             else
             {
                 if (listItem != null)
-                    AceObjectPropertiesDouble.Remove(listItem);
+                    DoubleProperties.Remove(listItem);
+            }
+        }
+
+        public string GetStringProperty(PropertyString property)
+        {
+            return StringProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+        }
+
+        public List<string> GetStringProperties(PropertyString property)
+        {
+            return StringProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+        }
+
+        public void SetStringProperty(PropertyString propertyId, string value)
+        {
+            AceObjectPropertiesString listItem = StringProperties.Find(x => x.PropertyId == (ushort)propertyId);
+            if (value != null)
+            {
+                if (listItem == null)
+                {
+                    listItem = new AceObjectPropertiesString()
+                    {
+                        PropertyId = (ushort)propertyId,
+                        PropertyValue = value
+                    };
+
+                    StringProperties.Add(listItem);
+                }
+                else
+                {
+                    listItem.PropertyValue = value;
+                }
+            }
+            else
+            {
+                if (listItem != null)
+                {
+                    StringProperties.Remove(listItem);
+                }
             }
         }
 
@@ -203,7 +364,7 @@ namespace ACE.Entity
         /// </summary>
         public uint? AmmoType
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.AmmoType)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.AmmoType); }
             set { SetIntProperty(PropertyInt.AmmoType, value); }
         }
 
@@ -212,13 +373,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? BlipColor
         {
-            get { return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.RadarBlipColor)?.PropertyValue; }
+            get { return (byte?)GetIntProperty(PropertyInt.RadarBlipColor); }
             set { SetIntProperty(PropertyInt.RadarBlipColor, value); }
         }
 
         public ushort? Burden
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.EncumbranceVal)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.EncumbranceVal); }
             set { SetIntProperty(PropertyInt.EncumbranceVal, value); }
         }
         /// <summary>
@@ -226,64 +387,53 @@ namespace ACE.Entity
         /// </summary>
         public byte? CombatUse
         {
-            get { return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CombatUse)?.PropertyValue; }
+            get { return (byte?)GetIntProperty(PropertyInt.CombatUse); }
             set { SetIntProperty(PropertyInt.CombatUse, value); }
         }
 
-        public byte? ContainersCapacity
+        public virtual byte? ContainersCapacity
         {
-            get { return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ContainersCapacity)?.PropertyValue; }
+            get { return (byte?)GetIntProperty(PropertyInt.ContainersCapacity); }
             set { SetIntProperty(PropertyInt.ContainersCapacity, value); }
         }
 
         public double? CooldownDuration
         {
-            get { return AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.CooldownDuration)?.PropertyValue; }
+            get { return GetDoubleProperty(PropertyDouble.CooldownDuration); }
             set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
         }
 
         public string Name
         {
-            get
-            {
-                return AceObjectPropertiesString.Find(x => x.StrPropertyId == (short)PropertyString.Name)?.PropertyValue;
-            }
-            set
-            {
-                if (value != null)
-                    AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name).PropertyValue = value;
-                else
-                {
-                    var listItem = AceObjectPropertiesString.Find(x => x.StrPropertyId == (uint)PropertyString.Name);
-                    if (listItem != null)
-                        AceObjectPropertiesString.Remove(listItem);
-                }
-            }
+            get { return GetStringProperty(PropertyString.Name); }
+            set { SetStringProperty(PropertyString.Name, value); }
         }
-
-        [DbField("itemType", (int)MySqlDbType.UInt32)]
+        
+        /// <summary>
+        /// will throw if not null!
+        /// </summary>
         public uint ItemType
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
+            get { return GetIntProperty(PropertyInt.ItemType).Value; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
         public uint? PaletteId
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PaletteTemplate)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.PaletteTemplate).Value; }
             set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
         }
 
         // TODO: Not sure if this enum is right.
         public uint? CooldownId
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.SharedCooldown)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.SharedCooldown).Value; }
             set { SetIntProperty(PropertyInt.SharedCooldown, value); }
         }
 
         public uint? UiEffects
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.UiEffects)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.UiEffects).Value; }
             set { SetIntProperty(PropertyInt.UiEffects, value); }
         }
 
@@ -292,7 +442,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? HookType
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookType)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.HookType).Value; }
             set { SetIntProperty(PropertyInt.HookType, value); }
         }
 
@@ -301,13 +451,13 @@ namespace ACE.Entity
         /// </summary>
         public ushort? HookItemTypes
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.HookItemType)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType).Value; }
             set { SetIntProperty(PropertyInt.HookItemType, value); }
         }
 
         public byte? ItemsCapacity
         {
-            get { return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemsCapacity)?.PropertyValue; }
+            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity).Value; }
             set { SetIntProperty(PropertyInt.ItemsCapacity, value); }
         }
 
@@ -316,13 +466,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? MaterialType
         {
-            get { return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaterialType)?.PropertyValue; }
+            get { return (byte?)GetIntProperty(PropertyInt.MaterialType).Value; }
             set { SetIntProperty(PropertyInt.MaterialType, value); }
         }
 
         public ushort? MaxStackSize
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStackSize)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize).Value; }
             set { SetIntProperty(PropertyInt.MaxStackSize, value); }
         }
         /// <summary>
@@ -331,7 +481,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? MaxStructure
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.MaxStructure)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure).Value; }
             set { SetIntProperty(PropertyInt.MaxStructure, value); }
         }
 
@@ -340,13 +490,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? Radar
         {
-            get { return (byte?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ShowableOnRadar)?.PropertyValue; }
+            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar).Value; }
             set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
         }
 
         public ushort? StackSize
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.StackSize)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.StackSize).Value; }
             set { SetIntProperty(PropertyInt.StackSize, value); }
         }
         /// <summary>
@@ -355,7 +505,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? Structure
         {
-            get { return (ushort?)AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Structure)?.PropertyValue; }
+            get { return (ushort?)GetIntProperty(PropertyInt.Structure).Value; }
             set { SetIntProperty(PropertyInt.Structure, value); }
         }
 
@@ -364,19 +514,19 @@ namespace ACE.Entity
         /// </summary>
         public uint? TargetTypeId
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.TargetType)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.TargetType).Value; }
             set { SetIntProperty(PropertyInt.TargetType, value); }
         }
 
         public uint? ItemUseable
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemUseable)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.ItemUseable).Value; }
             set { SetIntProperty(PropertyInt.ItemUseable, value); }
         }
 
         public float? UseRadius
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.UseRadius)?.PropertyValue; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius).Value; }
             set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
         }
 
@@ -386,13 +536,13 @@ namespace ACE.Entity
         /// </summary>
         public uint? ValidLocations
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ValidLocations)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.ValidLocations).Value; }
             set { SetIntProperty(PropertyInt.ValidLocations, value); }
         }
 
         public uint? Value
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.Value)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.Value).Value; }
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
@@ -421,37 +571,37 @@ namespace ACE.Entity
 
         private uint? ItemWorkmanship
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.ItemWorkmanship)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.ItemWorkmanship).Value; }
             set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
         }
 
         public float? PhysicsScriptIntensity
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.PhysicsScriptIntensity)?.PropertyValue; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity).Value; }
             set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
         }
 
         public float? Elasticity
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.Elasticity)?.PropertyValue; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity).Value; }
             set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
         }
 
         public float? Friction
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.Friction)?.PropertyValue; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Friction).Value; }
             set { SetDoubleProperty(PropertyDouble.Friction, value); }
         }
 
         public uint? CurrentWieldedLocation
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.CurrentWieldedLocation)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation).Value; }
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
         public float? DefaultScale
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.DefaultScale)?.PropertyValue; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale).Value; }
             set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
         }
 
@@ -460,13 +610,13 @@ namespace ACE.Entity
         /// </summary>
         public uint PhysicsState
         {
-            get { return AceObjectPropertiesInt.Find(x => x.IntPropertyId == (uint)PropertyInt.PhysicsState).PropertyValue; }
+            get { return GetIntProperty(PropertyInt.PhysicsState).Value; }
             set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
         public float? Translucency
         {
-            get { return (float?)AceObjectPropertiesDouble.Find(x => x.DblPropertyId == (short)PropertyDouble.Translucency)?.PropertyValue; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency).Value; }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
 
@@ -476,18 +626,19 @@ namespace ACE.Entity
 
         public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
 
-        public List<AceObjectPropertiesInt> AceObjectPropertiesInt { get; set; } = new List<AceObjectPropertiesInt>();
+        public List<AceObjectPropertiesInt> IntProperties { get; set; } = new List<AceObjectPropertiesInt>();
 
-        public List<AceObjectPropertiesBigInt> AceObjectPropertiesBigInt { get; set; } = new List<AceObjectPropertiesBigInt>();
+        public List<AceObjectPropertiesInt64> Int64Properties { get; set; } = new List<AceObjectPropertiesInt64>();
 
-        public List<AceObjectPropertiesDouble> AceObjectPropertiesDouble { get; set; } = new List<AceObjectPropertiesDouble>();
+        public List<AceObjectPropertiesDouble> DoubleProperties { get; set; } = new List<AceObjectPropertiesDouble>();
 
-        public List<AceObjectPropertiesBool> AceObjectPropertiesBool { get; set; } = new List<AceObjectPropertiesBool>();
+        public List<AceObjectPropertiesBool> BoolProperties { get; set; } = new List<AceObjectPropertiesBool>();
 
-        public List<AceObjectPropertiesDid> AceObjectPropertiesDid { get; set; } = new List<AceObjectPropertiesDid>();
+        public List<AceObjectPropertiesDataId> DataIdProperties { get; set; } = new List<AceObjectPropertiesDataId>();
 
-        public List<AceObjectPropertiesIid> AceObjectPropertiesIid { get; set; } = new List<AceObjectPropertiesIid>();
+        public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
 
-        public List<AceObjectPropertiesString> AceObjectPropertiesString { get; set; } = new List<AceObjectPropertiesString>();
+        public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
+
     }
 }

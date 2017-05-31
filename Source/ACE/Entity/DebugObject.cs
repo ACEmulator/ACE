@@ -49,7 +49,7 @@ namespace ACE.Entity
             CombatUse = (CombatUse?)baseAceObject.CombatUse;
             ContainerCapacity = baseAceObject.ContainersCapacity;
             Cooldown = baseAceObject.CooldownId;
-            CooldownDuration = (decimal?)baseAceObject.CooldownDuration;
+            CooldownDuration = baseAceObject.CooldownDuration;
             HookItemTypes = baseAceObject.HookItemTypes;
             HookType = baseAceObject.HookType;
             IconOverlay = baseAceObject.IconOverlayId;

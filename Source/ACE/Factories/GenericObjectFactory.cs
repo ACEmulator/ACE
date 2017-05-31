@@ -23,8 +23,7 @@ namespace ACE.Factories
                 }
                 if ((oDescFlag & ObjectDescriptionFlag.Portal) != 0)
                 {
-                   var acePO = DatabaseManager.World.GetPortalObjectsByAceObjectId(aceO.AceObjectId);
-                   results.Add(new Portal(acePO));
+                   results.Add(new Portal(aceO));
                    continue;
                 }
                 if ((oDescFlag & ObjectDescriptionFlag.Door) != 0)

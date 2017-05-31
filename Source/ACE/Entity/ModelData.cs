@@ -7,7 +7,8 @@ using System.Linq;
 namespace ACE.Entity
 {
     /// <summary>
-    /// Segment to Control AC Model / Palettes and Textures
+    /// Segment to Control AC Model / Palettes and Textures.
+    /// TODO: remove and read directly from WorldObject.AceObject
     /// </summary>
     public class ModelData
     {
