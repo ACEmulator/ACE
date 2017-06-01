@@ -16,6 +16,8 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly float MaxObjectTrackingRange = 20000f;
+
         public ObjectGuid Guid {
             get { return new ObjectGuid(AceObject.AceObjectId); }
             private set { AceObject.AceObjectId = value.Full; }
@@ -49,6 +51,11 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Should only be adjusted by LandblockManager -- default is null
+        /// </summary>
+        public Landblock CurrentLandblock { get; set; } = null;
+
+        /// <summary>
         /// tick-stamp for the last time this object changed in any way.
         /// </summary>
         public double LastUpdatedTicks { get; set; }
@@ -57,6 +64,9 @@ namespace ACE.Entity
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
+
+        private Position requestedMotion = null;
+        private Position requestedPosition = null;
 
         public virtual Position Location
         {
@@ -689,6 +699,18 @@ namespace ACE.Entity
 
         public virtual void Tick(double tickTime)
         {
+        }
+
+        public bool FakeDoMotion(double tickTime)
+        {
+            if (CurrentLandblock != null && requestedPosition != null)
+            {
+                PhysicsData.Position = requestedPosition;
+                CurrentLandblock.EnqueueBroadcast(PhysicsData.Position, MaxObjectTrackingRange, new GameMessageUpdatePosition(this));
+                return true;
+            }
+
+            return false;
         }
     }
 }

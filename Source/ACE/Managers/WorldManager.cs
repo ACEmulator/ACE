@@ -194,6 +194,12 @@ namespace ACE.Managers
 
         public static void StopWorld() { pendingWorldStop = true; }
 
+        /// <summary>
+        /// Manages updating all entities on the world.
+        ///  - Nerver-side command-line commands are handled in their own thread.
+        ///  - Network commands come from their own listener threads, and are queued in world objects
+        ///  - This thread does the rest of the work!
+        /// </summary>
         private static void UpdateWorld()
         {
             log.DebugFormat("Starting UpdateWorld thread");
@@ -204,6 +210,42 @@ namespace ACE.Managers
             {
                 worldTickTimer.Restart();
 
+                // FIXME(ddevec): Handle time-based timeouts here
+                // TimeoutManager.Act();
+
+                // Sequences of update thread:
+                // Update positions based on new tick
+                // TODO(ddevec): Physics here
+                IEnumerable<WorldObject> movedObjects = FakePhysics(PortalYearTicks);
+
+                // Transfer motions between landblocks
+                Parallel.ForEach(movedObjects, wo =>
+                {
+                    // If it was picked up, or moved
+                    if (wo.PhysicsData.Position.LandblockId != wo.CurrentLandblock.Id)
+                    {
+                        LandblockManager.RelocateObject(wo);
+                    }
+
+                    wo.CurrentLandblock.EnqueueActionBroadcast((Player p) => p.TrackObject(wo));
+                });
+
+                // Now, update actions within landblocks
+                //   This is responsible for updating all "actors" residing within the landblock. 
+                //   Objects and landblocks are "actors"
+                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
+                //   RULE: action functions CANNOT read/modify other objects 
+                //      -- unless they "own" the other object: e.g. in a container
+                //      -- action objects must send requests (actions) to other actor's action queues, and have them do modification
+                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
+                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
+                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
+                Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+                {
+                    landblock.UseTime(PortalYearTicks);
+                });
+
+                // XXX(ddevec): Should this be its own step in world-update thread?
                 sessionLock.EnterReadLock();
                 try
                 {
@@ -219,6 +261,24 @@ namespace ACE.Managers
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
             }
+        }
+
+        private static IEnumerable<WorldObject> FakePhysics(double timeTick)
+        {
+            List<WorldObject> movedObjects = new List<WorldObject>();
+            // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
+            Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+            {
+                foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+                {
+                    if (wo.FakeDoMotion(timeTick))
+                    {
+                        movedObjects.Add(wo);
+                    }
+                }
+            });
+
+            return movedObjects;
         }
     }
 }
