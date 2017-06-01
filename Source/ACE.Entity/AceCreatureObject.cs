@@ -40,21 +40,53 @@ namespace ACE.Entity
             set { abilities[Ability.Strength] = value; }
         }
 
-        public CreatureAbility EnduranceAbility { get; set; }
+        public CreatureAbility EnduranceAbility
+        {
+            get { return abilities[Ability.Endurance]; }
+            set { abilities[Ability.Endurance] = value; }
+        }
 
-        public CreatureAbility CoordinationAbility { get; set; }
+        public CreatureAbility CoordinationAbility
+        {
+            get { return abilities[Ability.Coordination]; }
+            set { abilities[Ability.Coordination] = value; }
+        }
 
-        public CreatureAbility QuicknessAbility { get; set; }
+        public CreatureAbility QuicknessAbility
+        {
+            get { return abilities[Ability.Quickness]; }
+            set { abilities[Ability.Quickness] = value; }
+        }
 
-        public CreatureAbility FocusAbility { get; set; }
+        public CreatureAbility FocusAbility
+        {
+            get { return abilities[Ability.Focus]; }
+            set { abilities[Ability.Focus] = value; }
+        }
 
-        public CreatureAbility SelfAbility { get; set; }
+        public CreatureAbility SelfAbility
+        {
+            get { return abilities[Ability.Self]; }
+            set { abilities[Ability.Self] = value; }
+        }
 
-        public CreatureAbility Health { get; set; }
+        public CreatureAbility Health
+        {
+            get { return abilities[Ability.Health]; }
+            set { abilities[Ability.Health] = value; }
+        }
 
-        public CreatureAbility Stamina { get; set; }
+        public CreatureAbility Stamina
+        {
+            get { return abilities[Ability.Stamina]; }
+            set { abilities[Ability.Stamina] = value; }
+        }
 
-        public CreatureAbility Mana { get; set; }
+        public CreatureAbility Mana
+        {
+            get { return abilities[Ability.Mana]; }
+            set { abilities[Ability.Mana] = value; }
+        }
 
         public uint Strength
         { get { return StrengthAbility.UnbuffedValue; } }
