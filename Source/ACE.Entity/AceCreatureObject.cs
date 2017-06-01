@@ -10,18 +10,22 @@ namespace ACE.Entity
     [DbGetList("vw_ace_creature_object", 42, "weenieClassId")]
     public class AceCreatureObject : AceObject, ICreatureStats
     {
+        protected Dictionary<Ability, CreatureAbility> abilities = new Dictionary<Ability, CreatureAbility>();
+
+        protected Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
+
         public AceCreatureObject()
         {
-            StrengthAbility = new CreatureAbility(this, Enum.Ability.Strength);
-            EnduranceAbility = new CreatureAbility(this, Enum.Ability.Endurance);
-            CoordinationAbility = new CreatureAbility(this, Enum.Ability.Coordination);
-            QuicknessAbility = new CreatureAbility(this, Enum.Ability.Quickness);
-            FocusAbility = new CreatureAbility(this, Enum.Ability.Focus);
-            SelfAbility = new CreatureAbility(this, Enum.Ability.Self);
+            abilities.Add(Ability.Strength, new CreatureAbility(this, Ability.Strength));
+            abilities.Add(Ability.Strength, new CreatureAbility(this, Ability.Endurance));
+            abilities.Add(Ability.Endurance, new CreatureAbility(this, Ability.Coordination));
+            abilities.Add(Ability.Quickness, new CreatureAbility(this, Ability.Quickness));
+            abilities.Add(Ability.Focus, new CreatureAbility(this, Ability.Focus));
+            abilities.Add(Ability.Self, new CreatureAbility(this, Ability.Self));
 
-            Health = new CreatureAbility(this, Enum.Ability.Health);
-            Stamina = new CreatureAbility(this, Enum.Ability.Stamina);
-            Mana = new CreatureAbility(this, Enum.Ability.Mana);
+            abilities.Add(Ability.Health, new CreatureAbility(this, Ability.Health));
+            abilities.Add(Ability.Stamina, new CreatureAbility(this, Ability.Stamina));
+            abilities.Add(Ability.Mana, new CreatureAbility(this, Ability.Mana));
         }
 
         [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
@@ -30,11 +34,11 @@ namespace ACE.Entity
         [DbField("baseAceObjectId", (int)MySqlDbType.UInt32)]
         public override uint AceObjectId { get; set; }
 
-        protected Dictionary<Ability, CreatureAbility> abilities = new Dictionary<Ability, CreatureAbility>();
-
-        protected Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
-
-        public CreatureAbility StrengthAbility { get; set; }
+        public CreatureAbility StrengthAbility
+        {
+            get { return abilities[Ability.Strength]; }
+            set { abilities[Ability.Strength] = value; }
+        }
 
         public CreatureAbility EnduranceAbility { get; set; }
 
@@ -87,5 +91,29 @@ namespace ACE.Entity
         public List<WeenieTextureMapOverride> WeenieTextureMapOverrides { get; set; } = new List<WeenieTextureMapOverride>();
 
         public List<WeenieAnimationOverride> WeenieAnimationOverrides { get; set; } = new List<WeenieAnimationOverride>();
+        
+        public CreatureAbility GetAbility(Ability ability)
+        {
+            if (abilities.ContainsKey(ability))
+                return abilities[ability];
+
+            return null;
+        }
+
+        public CreatureSkill GetSkill(Skill skill)
+        {
+            if (!skills.ContainsKey(skill))
+            {
+                skills.Add(skill, new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0));
+            }
+
+            return skills[skill];
+        }
+
+        public void LoadSkills(List<CreatureSkill> newSkills)
+        {
+            this.skills = new Dictionary<Skill, CreatureSkill>();
+            newSkills.ForEach(s => this.skills.Add(s.Skill, s));
+        }
     }
 }

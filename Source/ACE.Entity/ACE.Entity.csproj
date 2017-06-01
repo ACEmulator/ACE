@@ -129,6 +129,7 @@
     <Compile Include="LandblockId.cs" />
     <Compile Include="LevelingChart.cs" />
     <Compile Include="ObjectGuid.cs" />
+    <Compile Include="ObjectInfo.cs" />
     <Compile Include="PaletteOverride.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

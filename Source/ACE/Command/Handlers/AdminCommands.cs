@@ -418,9 +418,12 @@ namespace ACE.Command.Handlers
                             break;
                         }
                 }
+
+                Position p = session.Player.GetPosition(positionType);
+
                 // If we have the position, teleport the player
-                if (session.Player.Positions.ContainsKey(positionType)) {
-                    session.Player.Teleport(session.Player.Positions[positionType]);
+                if (p != null) {
+                    session.Player.Teleport(p);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -1320,7 +1323,7 @@ namespace ACE.Command.Handlers
             fixupOldName = parameters[0].Replace("+", "").Remove(1).ToUpper() + parameters[0].Replace("+", "").Substring(1);
             fixupNewName = parameters[1].Replace("+", "").Remove(1).ToUpper() + parameters[1].Replace("+", "").Substring(1);
 
-            uint charId = DatabaseManager.Character.RenameCharacter(fixupOldName, fixupNewName);
+            uint charId = DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName);
 
             string message = "";
 

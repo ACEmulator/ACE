@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -26,6 +26,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader;
 using ACE.Factories;
+using System.IO;
 
 namespace ACE.Entity
 {
@@ -70,10 +71,10 @@ namespace ACE.Entity
         /// </summary>
         public uint Level
         {
-            get { return character.Level; }
+            get { return Character.Level; }
         }
-
-        private Character character;
+        
+        private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
         private readonly object clientObjectMutex = new object();
 
@@ -94,77 +95,52 @@ namespace ACE.Entity
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
-            get { return character.CharacterOptions; }
+            get { return Character.CharacterOptions; }
         }
 
-        public ReadOnlyDictionary<PositionType, Position> Positions
+        public Position LastPortal
         {
-            get { return character.Positions; }
+            get { return Character.LastPortal; }
         }
 
         public ReadOnlyCollection<Friend> Friends
         {
-            get { return character.Friends; }
+            get { return Character.Friends; }
         }
 
         public bool IsAdmin
         {
-            get { return character.IsAdmin; }
-            set { character.IsAdmin = value; }
+            get { return Character.IsAdmin; }
+            set { Character.IsAdmin = value; }
         }
 
         public bool IsEnvoy
         {
-            get { return character.IsEnvoy; }
-            set { character.IsEnvoy = value; }
+            get { return Character.IsEnvoy; }
+            set { Character.IsEnvoy = value; }
         }
 
         public bool IsArch
         {
-            get { return character.IsArch; }
-            set { character.IsArch = value; }
+            get { return Character.IsArch; }
+            set { Character.IsArch = value; }
         }
 
         public bool IsPsr
         {
-            get { return character.IsPsr; }
-            set { character.IsPsr = value; }
+            get { return Character.IsPsr; }
+            set { Character.IsPsr = value; }
         }
-
-        public ReadOnlyDictionary<PropertyBool, bool> PropertiesBool
-        {
-            get { return character.PropertiesBool; }
-        }
-
-        public ReadOnlyDictionary<PropertyDouble, double> PropertiesDouble
-        {
-            get { return character.PropertiesDouble; }
-        }
-
-        public ReadOnlyDictionary<PropertyInt, uint> PropertiesInt
-        {
-            get { return character.PropertiesInt; }
-        }
-
-        public ReadOnlyDictionary<PropertyInt64, ulong> PropertiesInt64
-        {
-            get { return character.PropertiesInt64; }
-        }
-
-        public ReadOnlyDictionary<PropertyString, string> PropertiesString
-        {
-            get { return character.PropertiesString; }
-        }
-
-        public ReadOnlyDictionary<Skill, CreatureSkill> Skills
-        {
-            get { return new ReadOnlyDictionary<Skill, CreatureSkill>(character.Skills); }
-        }
+        
+        //public ReadOnlyDictionary<Skill, CreatureSkill> Skills
+        //{
+        //    get { return new ReadOnlyDictionary<Skill, CreatureSkill>(Character.Skills); }
+        //}
 
         public uint TotalLogins
         {
-            get { return character.TotalLogins; }
-            set { character.TotalLogins = value; }
+            get { return Character.TotalLogins; }
+            set { Character.TotalLogins = value; }
         }
 
         public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior, CharacterPositionExtensions.StartingPosition(session.CharacterRequested.Guid.Low))
@@ -221,20 +197,276 @@ namespace ACE.Entity
             }
         }
 
-        public async Task Load(Character preloadedCharacter = null)
+        public void OnCreateCharacter(BinaryReader reader, uint accountId)
         {
-            character = preloadedCharacter ?? await DatabaseManager.Character.LoadCharacter(Guid.Low);
+            // TODO: this needs a new server message to decode the data and THEN create a new AceCharacter object
 
-            Strength = character.StrengthAbility;
-            Endurance = character.EnduranceAbility;
-            Coordination = character.CoordinationAbility;
-            Quickness = character.QuicknessAbility;
-            Focus = character.FocusAbility;
-            Self = character.SelfAbility;
-            Health = character.Health;
-            Stamina = character.Stamina;
-            Mana = character.Mana;
+            //            Character character = new Character();
 
+            //            reader.Skip(4);   /* Unknown constant (1) */
+
+            //            character.Heritage = reader.ReadUInt32();
+            //            character.Gender = reader.ReadUInt32();
+            //            character.Appearance = Appearance.FromNetowrk(reader);
+            //            character.TemplateOption = reader.ReadUInt32();
+            //            character.StrengthAbility.Base = reader.ReadUInt32();
+            //            character.EnduranceAbility.Base = reader.ReadUInt32();
+            //            character.CoordinationAbility.Base = reader.ReadUInt32();
+            //            character.QuicknessAbility.Base = reader.ReadUInt32();
+            //            character.FocusAbility.Base = reader.ReadUInt32();
+            //            character.SelfAbility.Base = reader.ReadUInt32();
+            //            character.Slot = reader.ReadUInt32();
+            //            character.ClassId = reader.ReadUInt32();
+
+            //            // characters start with max vitals
+            //            character.Health.Current = character.Health.UnbuffedValue;
+            //            character.Stamina.Current = character.Stamina.UnbuffedValue;
+            //            character.Mana.Current = character.Mana.UnbuffedValue;
+
+            //            character.TotalSkillCredits = 52;
+            //            character.AvailableSkillCredits = 52;
+
+            //            uint numOfSkills = reader.ReadUInt32();
+            //            Skill skill;
+            //            SkillStatus skillStatus;
+            //            SkillCostAttribute skillCost;
+            //            for (uint i = 0; i < numOfSkills; i++)
+            //            {
+            //                skill = (Skill)i;
+            //                skillCost = skill.GetCost();
+            //                skillStatus = (SkillStatus)reader.ReadUInt32();
+            //                if (skillStatus == SkillStatus.Specialized)
+            //                    if (skillCost.TrainsFree)
+            //                        character.AvailableSkillCredits = character.AvailableSkillCredits - skillCost.SpecializationCost;
+            //                    else
+            //                        character.AvailableSkillCredits = character.AvailableSkillCredits - skillCost.SpecializationCost - skillCost.TrainingCost;
+            //                if (skillStatus == SkillStatus.Trained)
+            //                    if (!skillCost.TrainsFree)
+            //                        character.AvailableSkillCredits = character.AvailableSkillCredits - skillCost.TrainingCost;
+            //                character.AddSkill(skill, skillStatus, 0, 0);
+            //            }
+
+            //            character.Name = reader.ReadString16L();
+            //            character.StartArea = reader.ReadUInt32();
+            //            character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
+            //            character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
+            //            // character.TotalSkillPoints = reader.ReadUInt32();  // garbage ? 
+
+            //            return character;
+
+
+            // TODO: Move this all into Character Creation and store directly in the database.
+            //if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
+            //{
+            //    CharGen cg = CharGen.ReadFromDat();
+
+            //    int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
+            //    int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
+            //    SexCG sex = cg.HeritageGroups[h].SexList[s];
+            //    // Set the character basics
+            //    PhysicsData.MTableResourceId = sex.MotionTable;
+            //    PhysicsData.Stable = sex.SoundTable;
+            //    PhysicsData.Petable = sex.PhysicsTable;
+            //    PhysicsData.CSetup = sex.SetupID;
+            //    ModelData.PaletteGuid = sex.BasePalette;
+
+            //    // Check the character scale
+            //    if (sex.Scale != 100u)
+            //    {
+            //        // Set the PhysicsData flag to let it know we're changing the scale
+            //        PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
+            //        PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
+            //    }
+
+            //    // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+            //    HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
+            //    bool isBald = hairstyle.Bald;
+
+            //    // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+            //    if (hairstyle.AlternateSetup > 0)
+            //        PhysicsData.CSetup = hairstyle.AlternateSetup;
+
+            //    // Apply the hair models & texture changes
+            //    for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
+            //        ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
+            //    for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
+            //        ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
+
+            //    // Eyes only have Texture Changes - eye color is set seperately
+            //    ObjDesc eyes;
+            //    if (hairstyle.Bald)
+            //        eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDescBald;
+            //    else
+            //        eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
+            //    for (int i = 0; i < eyes.TextureChanges.Count; i++)
+            //        ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
+
+            //    // Nose only has Texture Changes
+            //    ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
+            //    for (int i = 0; i < nose.TextureChanges.Count; i++)
+            //        ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
+
+            //    // Mouth, suprise, only Texture Changes
+            //    ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
+            //    for (int i = 0; i < mouth.TextureChanges.Count; i++)
+            //        ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
+
+            //    // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            //    PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
+            //    ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
+            //    // Apply the skin palette...
+            //    ModelData.AddPalette(skinPal, 0x0, 0x18);
+
+            //    // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            //    PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]);
+            //    ushort hairPal = (ushort)hairPalSet.GetPaletteID(character.Appearance.HairHue);
+            //    ModelData.AddPalette(hairPal, 0x18, 0x8);
+
+            //    // Eye color palette
+            //    ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
+
+            //    // Get the character's startup gear.
+            //    // TODO: Load the proper inventory/equipment options once that system is created.
+            //    if (character.Appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
+            //    {
+            //        uint headgearTableID = sex.HeadgearList[Convert.ToInt32(character.Appearance.HeadgearStyle)].ClothingTable;
+            //        ClothingTable headCT = ClothingTable.ReadFromDat(headgearTableID);
+            //        if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //        {
+            //            // Add the model and texture(s)
+            //            ClothingBaseEffect headCBE = headCT.ClothingBaseEffects[sex.SetupID];
+            //            for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
+            //            {
+            //                byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
+            //                ModelData.AddModel((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].ModelId);
+
+            //                for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //                    ModelData.AddTexture((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+            //            }
+
+            //            // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //            CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[character.Appearance.HeadgearColor];
+            //            for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
+            //            {
+            //                PaletteSet headgearPalSet = PaletteSet.ReadFromDat(headSubPal.CloSubPalettes[i].PaletteSet);
+            //                ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(character.Appearance.HeadgearHue);
+
+            //                for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //                {
+            //                    uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //                    uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //                    ModelData.AddPalette(headgearPal, (ushort)palOffset, (ushort)numColors);
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    // Get the character's initial pants
+            //    uint pantsTableID = sex.PantsList[Convert.ToInt32(character.Appearance.PantsStyle)].ClothingTable;
+            //    ClothingTable pantsCT = ClothingTable.ReadFromDat(pantsTableID);
+            //    if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //    {
+            //        ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
+            //        for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
+            //        {
+            //            byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
+            //            ModelData.AddModel((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].ModelId);
+
+            //            for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //                ModelData.AddTexture((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+            //        }
+
+            //        // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //        CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[character.Appearance.PantsColor];
+            //        for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
+            //        {
+            //            PaletteSet pantsPalSet = PaletteSet.ReadFromDat(pantsSubPal.CloSubPalettes[i].PaletteSet);
+            //            ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(character.Appearance.PantsHue);
+
+            //            for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //            {
+            //                uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //                uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //                ModelData.AddPalette(pantsPal, (ushort)palOffset, (ushort)numColors);
+            //            }
+            //        }
+            //    } // end pants
+
+            //    // Get the character's initial shirt
+            //    uint shirtTableID = sex.ShirtList[Convert.ToInt32(character.Appearance.ShirtStyle)].ClothingTable;
+            //    ClothingTable shirtCT = ClothingTable.ReadFromDat(shirtTableID);
+            //    if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //    {
+            //        ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
+            //        for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
+            //        {
+            //            byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
+            //            ModelData.AddModel((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].ModelId);
+
+            //            for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //                ModelData.AddTexture((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+            //        }
+
+            //        // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+
+            //        if (shirtCT.ClothingSubPalEffects.ContainsKey(character.Appearance.ShirtColor))
+            //        {
+            //            CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[character.Appearance.ShirtColor];
+            //            for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
+            //            {
+            //                PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
+            //                ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(character.Appearance.ShirtHue);
+
+            //                if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
+            //                {
+            //                    for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //                    {
+            //                        uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //                        uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //                        ModelData.AddPalette(shirtPal, (ushort)palOffset, (ushort)numColors);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    // Get the character's initial footwear
+            //    uint footwearTableID = sex.FootwearList[Convert.ToInt32(character.Appearance.FootwearStyle)].ClothingTable;
+            //    ClothingTable footwearCT = ClothingTable.ReadFromDat(footwearTableID);
+            //    if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //    {
+            //        ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
+            //        for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
+            //        {
+            //            byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
+            //            ModelData.AddModel((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].ModelId);
+
+            //            for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //                ModelData.AddTexture((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+            //        }
+
+            //        // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //        CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[character.Appearance.FootwearColor];
+            //        for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
+            //        {
+            //            PaletteSet footwearPalSet = PaletteSet.ReadFromDat(footwearSubPal.CloSubPalettes[i].PaletteSet);
+            //            ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(character.Appearance.FootwearHue);
+
+            //            for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //            {
+            //                uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //                uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //                ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
+            //            }
+            //        }
+            //    } // end footwear
+            //}
+        }
+
+        public async Task Load(AceCharacter character)
+        {
+            AceObject = character;
+            
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -252,216 +484,10 @@ namespace ACE.Entity
 
             Location = character.Location;
 
-            // TODO: Move this all into Character Creation and store directly in the database.
-            if (DatManager.PortalDat.AllFiles.ContainsKey(0x0E000002))
-            {
-                CharGen cg = CharGen.ReadFromDat();
-
-                int h = Convert.ToInt32(character.PropertiesInt[PropertyInt.HeritageGroup]);
-                int s = Convert.ToInt32(character.PropertiesInt[PropertyInt.Gender]);
-                SexCG sex = cg.HeritageGroups[h].SexList[s];
-                // Set the character basics
-                PhysicsData.MTableResourceId = sex.MotionTable;
-                PhysicsData.Stable = sex.SoundTable;
-                PhysicsData.Petable = sex.PhysicsTable;
-                PhysicsData.CSetup = sex.SetupID;
-                ModelData.PaletteGuid = sex.BasePalette;
-
-                // Check the character scale
-                if (sex.Scale != 100u)
-                {
-                    // Set the PhysicsData flag to let it know we're changing the scale
-                    PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
-                    PhysicsData.ObjScale = sex.Scale / 100f; // Scale is stored as a percentage
-                }
-
-                // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-                HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(character.Appearance.HairStyle)];
-                bool isBald = hairstyle.Bald;
-
-                // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
-                if (hairstyle.AlternateSetup > 0)
-                    PhysicsData.CSetup = hairstyle.AlternateSetup;
-
-                // Apply the hair models & texture changes
-                for (int i = 0; i < hairstyle.ObjDesc.AnimPartChanges.Count; i++)
-                    ModelData.AddModel(hairstyle.ObjDesc.AnimPartChanges[i].PartIndex, hairstyle.ObjDesc.AnimPartChanges[i].PartID);
-                for (int i = 0; i < hairstyle.ObjDesc.TextureChanges.Count; i++)
-                    ModelData.AddTexture(hairstyle.ObjDesc.TextureChanges[i].PartIndex, hairstyle.ObjDesc.TextureChanges[i].OldTexture, hairstyle.ObjDesc.TextureChanges[i].NewTexture);
-
-                // Eyes only have Texture Changes - eye color is set seperately
-                ObjDesc eyes;
-                if (hairstyle.Bald)
-                    eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDescBald;
-                else
-                    eyes = sex.EyeStripList[Convert.ToInt32(character.Appearance.Eyes)].ObjDesc;
-                for (int i = 0; i < eyes.TextureChanges.Count; i++)
-                    ModelData.AddTexture(eyes.TextureChanges[i].PartIndex, eyes.TextureChanges[i].OldTexture, eyes.TextureChanges[i].NewTexture);
-
-                // Nose only has Texture Changes
-                ObjDesc nose = sex.NoseStripList[Convert.ToInt32(character.Appearance.Nose)].ObjDesc;
-                for (int i = 0; i < nose.TextureChanges.Count; i++)
-                    ModelData.AddTexture(nose.TextureChanges[i].PartIndex, nose.TextureChanges[i].OldTexture, nose.TextureChanges[i].NewTexture);
-
-                // Mouth, suprise, only Texture Changes
-                ObjDesc mouth = sex.MouthStripList[Convert.ToInt32(character.Appearance.Mouth)].ObjDesc;
-                for (int i = 0; i < mouth.TextureChanges.Count; i++)
-                    ModelData.AddTexture(mouth.TextureChanges[i].PartIndex, mouth.TextureChanges[i].OldTexture, mouth.TextureChanges[i].NewTexture);
-
-                // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
-                ushort skinPal = (ushort)skinPalSet.GetPaletteID(character.Appearance.SkinHue);
-                // Apply the skin palette...
-                ModelData.AddPalette(skinPal, 0x0, 0x18);
-
-                // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-                PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(character.Appearance.HairColor)]);
-                ushort hairPal = (ushort)hairPalSet.GetPaletteID(character.Appearance.HairHue);
-                ModelData.AddPalette(hairPal, 0x18, 0x8);
-
-                // Eye color palette
-                ModelData.AddPalette(sex.EyeColorList[Convert.ToInt32(character.Appearance.EyeColor)], 0x20, 0x8);
-
-                // Get the character's startup gear.
-                // TODO: Load the proper inventory/equipment options once that system is created.
-                if (character.Appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
-                {
-                    uint headgearTableID = sex.HeadgearList[Convert.ToInt32(character.Appearance.HeadgearStyle)].ClothingTable;
-                    ClothingTable headCT = ClothingTable.ReadFromDat(headgearTableID);
-                    if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-                    {
-                        // Add the model and texture(s)
-                        ClothingBaseEffect headCBE = headCT.ClothingBaseEffects[sex.SetupID];
-                        for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
-                        {
-                            byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
-                            ModelData.AddModel((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].ModelId);
-
-                            for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                                ModelData.AddTexture((byte)headCBE.CloObjectEffects[i].Index, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
-                        }
-
-                        // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                        CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[character.Appearance.HeadgearColor];
-                        for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
-                        {
-                            PaletteSet headgearPalSet = PaletteSet.ReadFromDat(headSubPal.CloSubPalettes[i].PaletteSet);
-                            ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(character.Appearance.HeadgearHue);
-
-                            for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                            {
-                                uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                                uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                ModelData.AddPalette(headgearPal, (ushort)palOffset, (ushort)numColors);
-                            }
-                        }
-                    }
-                }
-
-                // Get the character's initial pants
-                uint pantsTableID = sex.PantsList[Convert.ToInt32(character.Appearance.PantsStyle)].ClothingTable;
-                ClothingTable pantsCT = ClothingTable.ReadFromDat(pantsTableID);
-                if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-                {
-                    ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
-                    for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
-                    {
-                        byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
-                        ModelData.AddModel((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].ModelId);
-
-                        for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                            ModelData.AddTexture((byte)pantsCBE.CloObjectEffects[i].Index, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
-                    }
-
-                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                    CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[character.Appearance.PantsColor];
-                    for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
-                    {
-                        PaletteSet pantsPalSet = PaletteSet.ReadFromDat(pantsSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(character.Appearance.PantsHue);
-
-                        for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                        {
-                            uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                            uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            ModelData.AddPalette(pantsPal, (ushort)palOffset, (ushort)numColors);
-                        }
-                    }
-                } // end pants
-
-                // Get the character's initial shirt
-                uint shirtTableID = sex.ShirtList[Convert.ToInt32(character.Appearance.ShirtStyle)].ClothingTable;
-                ClothingTable shirtCT = ClothingTable.ReadFromDat(shirtTableID);
-                if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-                {
-                    ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
-                    for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
-                    {
-                        byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
-                        ModelData.AddModel((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].ModelId);
-
-                        for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                            ModelData.AddTexture((byte)shirtCBE.CloObjectEffects[i].Index, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
-                    }
-
-                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-
-                    if (shirtCT.ClothingSubPalEffects.ContainsKey(character.Appearance.ShirtColor))
-                    {
-                        CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[character.Appearance.ShirtColor];
-                        for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
-                        {
-                            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
-                            ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(character.Appearance.ShirtHue);
-
-                            if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
-                            {
-                                for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                                {
-                                    uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                                    uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                    ModelData.AddPalette(shirtPal, (ushort)palOffset, (ushort)numColors);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Get the character's initial footwear
-                uint footwearTableID = sex.FootwearList[Convert.ToInt32(character.Appearance.FootwearStyle)].ClothingTable;
-                ClothingTable footwearCT = ClothingTable.ReadFromDat(footwearTableID);
-                if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-                {
-                    ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
-                    for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
-                    {
-                        byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
-                        ModelData.AddModel((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].ModelId);
-
-                        for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                            ModelData.AddTexture((byte)footwearCBE.CloObjectEffects[i].Index, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
-                    }
-
-                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                    CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[character.Appearance.FootwearColor];
-                    for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
-                    {
-                        PaletteSet footwearPalSet = PaletteSet.ReadFromDat(footwearSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(character.Appearance.FootwearHue);
-
-                        for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                        {
-                            uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                            uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
-                        }
-                    }
-                } // end footwear
-            }
 
             IsOnline = true;
 
-            this.TotalLogins = this.character.TotalLogins = this.character.TotalLogins + 1;
+            this.TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
@@ -543,17 +569,17 @@ namespace ACE.Entity
             XpTable xpTable = XpTable.ReadFromDat();
             var chart = xpTable.LevelingXpChart;
             CharacterLevel maxLevel = chart.Levels.Last();
-            if (character.Level != maxLevel.Level)
+            if (Character.Level != maxLevel.Level)
             {
-                ulong amountLeftToEnd = maxLevel.TotalXp - character.TotalExperience;
+                ulong amountLeftToEnd = maxLevel.TotalXp - Character.TotalExperience;
                 if (amount > amountLeftToEnd)
                 {
                     amount = amountLeftToEnd;
                 }
-                character.GrantXp(amount);
+                Character.GrantXp(amount);
                 CheckForLevelup();
-                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, character.TotalExperience);
-                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, Character.TotalExperience);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
                 var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
             }
@@ -569,12 +595,14 @@ namespace ACE.Entity
         /// <param name="creditsSpent"></param>
         public void TrainSkill(Skill skill, uint creditsSpent)
         {
-            if (character.AvailableSkillCredits >= creditsSpent)
+            if (Character.AvailableSkillCredits >= creditsSpent)
             {
                 // attempt to train the specified skill
-                bool trainNewSkill = character.TrainSkill(skill, creditsSpent);
+                bool trainNewSkill = Character.TrainSkill(skill, creditsSpent);
+
                 // create an update to send to the client
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
+
                 // as long as the skill is sent, the train new triangle button on the client will not lock up.
                 // Sending Skill.None with status untrained worked in test
                 var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
@@ -586,11 +614,11 @@ namespace ACE.Entity
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
                     trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
-                    trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {Character.AvailableSkillCredits} credits available.";
                 }
                 else
                 {
-                    trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {Character.AvailableSkillCredits} credits available.";
                 }
 
                 // create the final game message and send to the client
@@ -613,52 +641,54 @@ namespace ACE.Entity
             //           GrantXp()
             //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
             //           XP Updates?
-            var startingLevel = character.Level;
+            var startingLevel = Character.Level;
             XpTable xpTable = XpTable.ReadFromDat();
             var chart = xpTable.LevelingXpChart;
             CharacterLevel maxLevel = chart.Levels.Last();
             bool creditEarned = false;
-            if (character.Level == maxLevel.Level) return;
+            if (Character.Level == maxLevel.Level) return;
 
             // increases until the correct level is found
-            while (chart.Levels[Convert.ToInt32(character.Level)].TotalXp <= character.TotalExperience)
+            while (chart.Levels[Convert.ToInt32(Character.Level)].TotalXp <= Character.TotalExperience)
             {
-                character.Level++;
-                CharacterLevel newLevel = chart.Levels.FirstOrDefault(item => item.Level == character.Level);
+                Character.Level++;
+                CharacterLevel newLevel = chart.Levels.FirstOrDefault(item => item.Level == Character.Level);
                 // increase the skill credits if the chart allows this level to grant a credit
                 if (newLevel.GrantsSkillPoint)
                 {
-                    character.AvailableSkillCredits++;
-                    character.TotalSkillCredits++;
+                    Character.AvailableSkillCredits++;
+                    Character.TotalSkillCredits++;
                     creditEarned = true;
                 }
                 // break if we reach max
-                if (character.Level == maxLevel.Level)
+                if (Character.Level == maxLevel.Level)
                 {
                     ActionApplyVisualEffect(Network.Enum.PlayScript.WeddingBliss, this.Guid);
                     break;
                 }
             }
 
-            if (character.Level > startingLevel)
+            if (Character.Level > startingLevel)
             {
-                string level = $"{character.Level}";
-                string skillCredits = $"{character.AvailableSkillCredits}";
-                string xpAvailable = $"{character.AvailableExperience:#,###0}";
-                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, character.Level);
-                string levelUpMessageText = (character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
+                string level = $"{Character.Level}";
+                string skillCredits = $"{Character.AvailableSkillCredits}";
+                string xpAvailable = $"{Character.AvailableExperience:#,###0}";
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, Character.Level);
+                string levelUpMessageText = (Character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
                 var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
-                string xpUpdateText = (character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes.";
+                string xpUpdateText = (Character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes.";
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, character.AvailableSkillCredits);
-                if (character.Level != maxLevel.Level && !creditEarned)
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
+                if (Character.Level != maxLevel.Level && !creditEarned)
                 {
-                    string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
+                    string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > Character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
                     var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 }
                 else
+                { 
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
+                }
                 // play level up effect
                 ActionApplyVisualEffect(Network.Enum.PlayScript.LevelUp, this.Guid);
             }
@@ -666,11 +696,12 @@ namespace ACE.Entity
 
         public void SpendXp(Enum.Ability ability, uint amount)
         {
-            uint baseValue = character.Abilities[ability].Base;
-            uint result = SpendAbilityXp(character.Abilities[ability], amount);
+            CreatureAbility creatureAbility = Character.GetAbility(ability);
+            uint baseValue = creatureAbility.Base;
+            uint result = SpendAbilityXp(creatureAbility, amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
-            uint ranks = character.Abilities[ability].Ranks;
-            uint newValue = character.Abilities[ability].UnbuffedValue;
+            uint ranks = creatureAbility.Ranks;
+            uint newValue = creatureAbility.UnbuffedValue;
             string messageText = "";
             if (result > 0u)
             {
@@ -681,7 +712,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, character.Abilities[ability].Current);
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureAbility.Current);
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
@@ -695,7 +726,7 @@ namespace ACE.Entity
                 {
                     messageText = $"Your base {ability} is now {newValue}!";
                 }
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
                 var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
 
@@ -784,7 +815,7 @@ namespace ACE.Entity
                 ability.Current += addToCurrentValue ? rankUps : 0u;
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
-                this.character.SpendXp(amount);
+                this.Character.SpendXp(amount);
                 result = ability.ExperienceSpent;
             }
 
@@ -837,12 +868,13 @@ namespace ACE.Entity
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
-            uint result = SpendSkillXp(character.Skills[skill], amount);
+            CreatureSkill creatureSkill = Character.GetSkill(skill);
+            uint result = SpendSkillXp(creatureSkill, amount);
 
-            uint ranks = character.Skills[skill].Ranks;
-            uint newValue = character.Skills[skill].UnbuffedValue;
-            var status = character.Skills[skill].Status;
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, character.AvailableExperience);
+            uint ranks = creatureSkill.Ranks;
+            uint newValue = creatureSkill.UnbuffedValue;
+            var status = creatureSkill.Status;
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
             var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
             string messageText = "";
@@ -889,11 +921,11 @@ namespace ACE.Entity
 
             IsAlive = false;
             Health.Current = 0; // Set the health to zero
-            character.NumDeaths++; // Increase the NumDeaths counter
-            character.DeathLevel++; // Increase the DeathLevel
+            Character.NumDeaths++; // Increase the NumDeaths counter
+            Character.DeathLevel++; // Increase the DeathLevel
 
             // TODO: Find correct vitae formula/value
-            character.VitaeCpPool = 0; // Set vitae
+            Character.VitaeCpPool = 0; // Set vitae
 
             // TODO: Generate a death message based on the damage type to pass in to each death message:
             string currentDeathMessage = $"died to {killerSession.Player.Name}.";
@@ -902,9 +934,9 @@ namespace ACE.Entity
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, character.NumDeaths);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, character.DeathLevel);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, character.VitaeCpPool);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, Character.NumDeaths);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, Character.DeathLevel);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, Character.VitaeCpPool);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
@@ -927,21 +959,14 @@ namespace ACE.Entity
             SetCharacterPosition(PositionType.LastOutsideDeath, Location);
 
             // teleport to sanctuary or best location
-            Position newPositon = new Position();
-
-            if (Positions.ContainsKey(PositionType.Sanctuary))
-                newPositon = Positions[PositionType.Sanctuary];
-            else if (Positions.ContainsKey(PositionType.LastPortal))
-                newPositon = Positions[PositionType.LastPortal];
-            else
-                newPositon = Positions[PositionType.Location];
+            Position newPositon = Character.Sanctuary ?? Character.LastPortal ?? Character.Location;
 
             // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
             // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
             // AddToActionQueue(addCorpse);
             // If the player is outside of the landblock we just died in, then reboadcast the death for
             // the players at the lifestone.
-            if (Positions[PositionType.LastOutsideDeath].Cell != newPositon.Cell)
+            if (Character.LastOutsideDeath.Cell != newPositon.Cell)
             {
                 ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
             }
@@ -1093,7 +1118,7 @@ namespace ACE.Entity
             {
                 skill.Ranks += rankUps;
                 skill.ExperienceSpent += amount;
-                this.character.SpendXp(amount);
+                this.Character.SpendXp(amount);
                 result = skill.ExperienceSpent;
             }
 
@@ -1129,25 +1154,25 @@ namespace ACE.Entity
                 return AddFriendResult.FriendWithSelf;
 
             // Check if friend exists
-            if (character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+            if (Character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
                 return AddFriendResult.AlreadyInList;
 
             // TODO: check if player is online first to avoid database hit??
             // Get character record from DB
-            Character friendCharacter = await DatabaseManager.Character.GetCharacterByName(friendName);
+            ObjectInfo friendInfo = await DatabaseManager.Shard.GetObjectInfoByName(friendName);
 
-            if (friendCharacter == null)
+            if (friendInfo == null)
                 return AddFriendResult.CharacterDoesNotExist;
 
             Friend newFriend = new Friend();
-            newFriend.Name = friendCharacter.Name;
-            newFriend.Id = new ObjectGuid(friendCharacter.Id, GuidType.Player);
+            newFriend.Name = friendInfo.Name;
+            newFriend.Id = new ObjectGuid(friendInfo.Guid, GuidType.Player);
 
             // Save to DB
-            await DatabaseManager.Character.AddFriend(Guid.Low, newFriend.Id.Low);
+            await DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low);
 
             // Add to character object
-            character.AddFriend(newFriend);
+            Character.AddFriend(newFriend);
 
             // Send packet
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
@@ -1161,17 +1186,17 @@ namespace ACE.Entity
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public async Task<RemoveFriendResult> RemoveFriend(ObjectGuid friendId)
         {
-            Friend friendToRemove = character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
+            Friend friendToRemove = Character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
 
             // Not in friend list
             if (friendToRemove == null)
                 return RemoveFriendResult.NotInFriendsList;
 
             // Remove from DB
-            await DatabaseManager.Character.DeleteFriend(Guid.Low, friendId.Low);
+            await DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low);
 
             // Remove from character object
-            character.RemoveFriend(friendId.Low);
+            Character.RemoveFriend(friendId.Low);
 
             // Send packet
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
@@ -1185,10 +1210,10 @@ namespace ACE.Entity
         public async void RemoveAllFriends()
         {
             // Remove all from DB
-            await DatabaseManager.Character.RemoveAllFriends(Guid.Low);
+            await DatabaseManager.Shard.RemoveAllFriends(Guid.Low);
 
             // Remove from character object
-            character.RemoveAllFriends();
+            Character.RemoveAllFriends();
         }
 
         /// <summary>
@@ -1205,7 +1230,7 @@ namespace ACE.Entity
         /// </summary>
         public void SetCharacterOption(CharacterOption option, bool value)
         {
-            character.SetCharacterOption(option, value);
+            Character.SetCharacterOption(option, value);
         }
 
         /// <summary>
@@ -1213,8 +1238,8 @@ namespace ACE.Entity
         /// </summary>
         public void SaveOptions()
         {
-            if (character != null)
-                DatabaseManager.Character.SaveCharacterOptions(character);
+            if (Character != null)
+                DatabaseManager.Shard.SaveCharacterOptions(Character);
 
             // TODO: Save other options as we implement them.
         }
@@ -1235,13 +1260,14 @@ namespace ACE.Entity
         {
             // Some positions come from outside of the Player and Character classes
             if (newPosition.CharacterId == 0) newPosition.CharacterId = Guid.Low;
+
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
             {
                 newPosition.LandblockId = new LandblockId(newPosition.Cell);
             }
-            character.SetCharacterPosition(newPosition);
-            DatabaseManager.Character.SaveCharacterPosition(character, newPosition);
+
+            Character.Location = newPosition;
         }
 
         /// <summary>
@@ -1258,11 +1284,11 @@ namespace ACE.Entity
         /// </summary>
         public void SaveCharacter()
         {
-            if (character != null)
+            if (Character != null)
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                DatabaseManager.Character.UpdateCharacter(character);
+                DatabaseManager.Shard.SaveObject(Character);
 #if DEBUG
                 if (Session.Player != null)
                 {
@@ -1274,15 +1300,15 @@ namespace ACE.Entity
 
         public void UpdateAge()
         {
-            if (character != null)
-                character.Age++;
+            if (Character != null)
+                Character.Age++;
         }
 
         public void SendAgeInt()
         {
             try
             {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, character.Age));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, Character.Age));
             }
             catch (NullReferenceException)
             {
@@ -1295,7 +1321,7 @@ namespace ACE.Entity
         /// </summary>
         public bool GetVirtualOnlineStatus()
         {
-            if (character.CharacterOptions[CharacterOption.AppearOffline] == true)
+            if (Character.CharacterOptions[CharacterOption.AppearOffline] == true)
                 return false;
 
             return IsOnline;
@@ -1341,23 +1367,34 @@ namespace ACE.Entity
                 SetPhysicalCharacterPosition();
             }
 
-            DelayedUpdatePosition(newPosition);
+            DelayedUpdateLocation(newPosition);
         }
 
-        public void UpdatePosition(Position newPosition)
+        public List<Position> GetAllPositions()
+        {
+            return Character.Positions.Select(kvp => kvp.Value).ToList();
+        }
+
+        public Position GetPosition(PositionType type)
+        {
+            if (Character.Positions.ContainsKey(type))
+                return Character.Positions[type];
+
+            return null;
+        }
+
+        public void UpdateLocation(Position newPosition)
         {
             this.Location = newPosition;
-            // character.SetCharacterPosition(newPosition);
             SendUpdatePosition();
         }
 
-        private void DelayedUpdatePosition(Position newPosition)
+        private void DelayedUpdateLocation(Position newPosition)
         {
             var t = new Thread(() =>
             {
                 Thread.Sleep(10);
                 this.Location = newPosition;
-                // character.SetCharacterPosition(newPosition);
                 SendUpdatePosition();
             });
             t.Start();

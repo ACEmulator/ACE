@@ -4,7 +4,7 @@ using ACE.Entity;
 
 namespace ACE.Database
 {
-    public class WorldDatabase : Database, IWorldDatabase
+    public class CommonDatabase : Database, ICommonDatabase
     {
         private enum WorldPreparedStatement
         {
@@ -95,7 +95,7 @@ namespace ACE.Database
                 ConstructedStatementType.GetList);
         }
 
-        public BaseAceObject GetRandomBaseAceObjectByTypeId(uint itemType)
+        public BaseAceObject GetRandomWeenieOfType(uint itemType)
         {
             var criteria = new Dictionary<string, object> { { "itemType", itemType } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, BaseAceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
@@ -346,6 +346,21 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInstanceId>(WorldPreparedStatement.GetAceObjectPropertiesIid, criteria);
             return objects;
+        }
+
+        public AceObject GetObject(uint aceObjectId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SaveObject(AceObject aceObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public BaseAceObject GetWeenie(uint weenieClassId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

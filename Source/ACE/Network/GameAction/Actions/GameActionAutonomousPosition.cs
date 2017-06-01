@@ -13,7 +13,7 @@ namespace ACE.Network.GameAction
             var teleportTimestamp = message.Payload.ReadUInt16();
             var forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
-            session.Player.UpdatePosition(position);
+            session.Player.UpdateLocation(position);
         }
     }
 }

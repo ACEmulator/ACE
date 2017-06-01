@@ -117,19 +117,20 @@ namespace ACE.Network.Handlers
             if (account != session.Account)
                 return;
 
-            Character character = Character.CreateFromClientFragment(message.Payload, session.Id);
+            // See Player.OnCreateCharacter and feel free to move it
+            // AceCharacter character = AceCharacter.CreateFromClientFragment(message.Payload, session.Id);
 
             // TODO: profanity filter
             // sendCharacterCreateResponse(session, 4);
 
-            bool isAvailable = DatabaseManager.Character.IsNameAvailable(character.Name);
+            bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
                 return;
             }
 
-            uint lowGuid = DatabaseManager.Character.GetMaxId();
+            uint lowGuid = DatabaseManager.Shard.GetNextCharacterId();
             character.Id = lowGuid;
             character.AccountId = session.Id;
 
@@ -150,7 +151,7 @@ namespace ACE.Network.Handlers
             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
         }
 
-        private static void CharacterCreateSetDefaultCharacterOptions(Character character)
+        private static void CharacterCreateSetDefaultCharacterOptions(AceCharacter character)
         {
             character.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
             character.SetCharacterOption(CharacterOption.Display3dTooltips, true);
@@ -170,9 +171,9 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
-        public static void CharacterCreateSetDefaultCharacterPositions(Character character)
+        public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character)
         {
-            character.SetCharacterPosition(CharacterPositionExtensions.StartingPosition(character.Id));
+            character.Location = CharacterPositionExtensions.StartingPosition(character.AceObjectId);
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

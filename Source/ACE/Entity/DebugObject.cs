@@ -88,7 +88,7 @@ namespace ACE.Entity
         public DebugObject(AceObject aceO)
             : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
-            Location = aceO.Position;
+            Location = aceO.Location;
             WeenieClassid = aceO.WeenieClassId;
             GameDataType = aceO.ItemType;
         }

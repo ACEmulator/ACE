@@ -6,6 +6,7 @@ using System;
 
 namespace ACE.Entity
 {
+    using Enum;
     using System.Linq;
     using System.Net.Mime;
 
@@ -640,5 +641,33 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+
+        public Position Destination
+        {
+            get { return GetPosition(PositionType.Destination); }
+            set { SetPosition(PositionType.Destination, value); }
+        }
+
+        public Position Location
+        {
+            get { return GetPosition(PositionType.Location); }
+            set { SetPosition(PositionType.Location, value); }
+        }
+        
+        protected Position GetPosition(PositionType positionType)
+        {
+            if (Positions.ContainsKey(positionType))
+            {
+                return Positions[positionType];
+            }
+
+            return null;
+        }
+
+        protected void SetPosition(PositionType positionType, Position position)
+        {
+            Positions[positionType] = position;
+        }
     }
 }
