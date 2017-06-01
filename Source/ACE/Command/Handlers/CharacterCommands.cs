@@ -28,7 +28,7 @@ namespace ACE.Command.Handlers
                     if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
                         accessLevel = AccessLevel.Player;
 
-            characterId = DatabaseManager.Character.SetCharacterAccessLevelByName(characterName.ToLower(), accessLevel);
+            characterId = DatabaseManager.Shard.SetCharacterAccessLevelByName(characterName.ToLower(), accessLevel);
 
             if (characterId > 0)
             {

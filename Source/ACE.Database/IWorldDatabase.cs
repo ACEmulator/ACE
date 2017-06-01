@@ -9,7 +9,7 @@ namespace ACE.Database
 {
     public interface IWorldDatabase : ICommonDatabase
     {
-        List<TeleportLocation> GetLocations();
+        List<TeleportLocation> GetPointsOfInterest();
 
         List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
 

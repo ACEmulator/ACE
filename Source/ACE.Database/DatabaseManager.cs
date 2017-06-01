@@ -8,7 +8,7 @@ namespace ACE.Database
 
         public static IShardDatabase Shard { get; set; }
 
-        public static ICommonDatabase World { get; set; }
+        public static IWorldDatabase World { get; set; }
 
         public static void Initialize()
         {

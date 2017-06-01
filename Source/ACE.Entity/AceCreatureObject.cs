@@ -3,6 +3,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -146,6 +147,11 @@ namespace ACE.Entity
         {
             this.skills = new Dictionary<Skill, CreatureSkill>();
             newSkills.ForEach(s => this.skills.Add(s.Skill, s));
+        }
+
+        public List<CreatureSkill> GetSkills()
+        {
+            return this.skills.Select(kvp => kvp.Value).ToList();
         }
     }
 }

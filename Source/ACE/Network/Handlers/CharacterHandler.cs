@@ -142,8 +142,8 @@ namespace ACE.Network.Handlers
 
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
-            DatabaseManager.Character.SaveCharacterOptions(character);
-            DatabaseManager.Character.InitCharacterPositions(character);
+            DatabaseManager.Shard.SaveCharacterOptions(character);
+            // DatabaseManager.Shard.InitCharacterPositions(character);
 
             var guid = new ObjectGuid(lowGuid, GuidType.Player);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));

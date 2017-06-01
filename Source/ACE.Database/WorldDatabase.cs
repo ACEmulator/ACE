@@ -4,7 +4,7 @@ using ACE.Entity;
 
 namespace ACE.Database
 {
-    public class CommonDatabase : Database, ICommonDatabase
+    public class WorldDatabase : Database, IWorldDatabase
     {
         private enum WorldPreparedStatement
         {
@@ -359,6 +359,11 @@ namespace ACE.Database
         }
 
         public BaseAceObject GetWeenie(uint weenieClassId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<TeleportLocation> GetPointsOfInterest()
         {
             throw new NotImplementedException();
         }

@@ -12,7 +12,7 @@ namespace ACE.Network.GameAction.Actions
         {
             var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            playerDOB = playerDOB.AddSeconds(session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.CreationTimestamp]).ToUniversalTime();
+            playerDOB = playerDOB.AddSeconds(session.Player.CreationTimestamp).ToUniversalTime();
 
             var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB.ToString("G")}.", ChatMessageType.Broadcast);
 

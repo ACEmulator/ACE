@@ -13,7 +13,7 @@ namespace ACE.Managers
 
         public static void Initialize()
         {
-            var locations = DatabaseManager.World.GetLocations();
+            var locations = DatabaseManager.World.GetPointsOfInterest();
             foreach (var loc in locations)
                 teleportLocations.Add(loc.Location, loc.Position);
         }

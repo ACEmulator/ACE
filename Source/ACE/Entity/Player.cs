@@ -197,6 +197,17 @@ namespace ACE.Entity
             }
         }
 
+        public uint Age
+        { get { return Character.Age; } }
+
+        public uint CreationTimestamp
+        { get { return Character.GetIntProperty(PropertyInt.CreationTimestamp) ?? 0; } }
+
+        public AceObject GetAceObject()
+        {
+            return Character;
+        }
+
         public void OnCreateCharacter(BinaryReader reader, uint accountId)
         {
             // TODO: this needs a new server message to decode the data and THEN create a new AceCharacter object
