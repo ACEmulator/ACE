@@ -96,6 +96,11 @@
     <Compile Include="Command\Handlers\ConsoleCommands.cs" />
     <Compile Include="Command\Handlers\DebugCommands.cs" />
     <Compile Include="Command\Handlers\HelpCommands.cs" />
+    <Compile Include="Entity\Actions\ActionEventDelegate.cs" />
+    <Compile Include="Entity\Actions\ActionQueue.cs" />
+    <Compile Include="Entity\Actions\IAction.cs" />
+    <Compile Include="Entity\Actions\IActor.cs" />
+    <Compile Include="Entity\Actions\NestedActionQueue.cs" />
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\BroadcastAction.cs" />
     <Compile Include="Entity\CollidableObject.cs" />

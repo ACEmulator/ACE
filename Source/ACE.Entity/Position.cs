@@ -224,7 +224,7 @@ namespace ACE.Entity
             return 200.0f;
         }
 
-        private uint GetCellFromBase(uint baseX, uint baseY)
+        private static uint GetCellFromBase(uint baseX, uint baseY)
         {
             byte blockX = (byte)(baseX >> 3);
             byte blockY = (byte)(baseY >> 3);
@@ -235,6 +235,17 @@ namespace ACE.Entity
             uint cell = (uint)((cellX << 3) | cellY);
 
             return (block << 16) | (cell + 1);
+        }
+
+        public static LandblockId XYToLandblock(float x, float y)
+        {
+            uint baseX = (uint)(x + 0x400);
+            uint baseY = (uint)(y + 0x400);
+
+            if (baseX < 0 || baseX >= 0x7F8 || baseY < 0 || baseY >= 0x7F8)
+                throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
+
+            return new LandblockId(GetCellFromBase(baseX, baseY));
         }
 
         /// <summary>

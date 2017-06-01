@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +10,7 @@ using ACE.Managers;
 using log4net;
 using ACE.Database;
 using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages;
 using ACE.Network.GameAction;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
@@ -25,7 +28,7 @@ namespace ACE.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    internal class Landblock
+    public class Landblock
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -42,6 +45,13 @@ namespace ACE.Entity
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
+        // Can be appeneded concurrently, will be sent serially
+        // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
+        //    -- Therefore broadcasting between landblocks doesn't require locking O_o
+        private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
+
+        private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
+
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
         // private byte cellGridMaxY = 8; // todo: load from cell.dat
 
@@ -50,7 +60,6 @@ namespace ACE.Entity
         // private Landcell[,] cellGrid; // todo: load from cell.dat
 
         public LandBlockStatus Status = new LandBlockStatus();
-        private bool running = false;
 
         public LandblockId Id
         {
@@ -162,13 +171,6 @@ namespace ACE.Entity
         {
             get { return adjacencies[Adjacency.NorthWest]; }
             set { adjacencies[Adjacency.NorthWest] = value; }
-        }
-
-        public void StartUseTime()
-        {
-            running = true;
-
-            new Thread(UseTime).Start();
         }
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
@@ -425,146 +427,129 @@ namespace ACE.Entity
         /// <summary>
         /// main game loop
         /// </summary>
-        public void UseTime()
+        public void UseTime(double tickTime)
         {
-            while (running)
+            // here we'd move server objects in motion (subject to landscape) and do physics collision detection
+
+            List<Player> allplayers = null;
+            List<Creature> allcreatures = null;
+            List<WorldObject> despawnObjects = null;
+            List<Creature> deadCreatures = null;
+            List<WorldObject> movedObjects = null;
+
+            var allworldobj = worldObjects.Values;
+
+            // all players on this land block
+            allplayers = allworldobj.OfType<Player>().ToList();
+            allcreatures = allworldobj.OfType<Creature>().ToList();
+
+            despawnObjects = allworldobj.ToList();
+            despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
+
+            deadCreatures = allworldobj.OfType<Creature>().ToList();
+            deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
+
+            movedObjects = allworldobj.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
+            movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
+
+            // Run the enqueued actions
+            while (!actionQueue.IsEmpty)
             {
-                // here we'd move server objects in motion (subject to landscape) and do physics collision detection
-
-                List<WorldObject> allworldobj = null;
-                List<Player> allplayers = null;
-                List<Creature> allcreatures = null;
-                List<WorldObject> movedObjects = null;
-                List<WorldObject> despawnObjects = null;
-                List<Creature> deadCreatures = null;
-
-                lock (objectCacheLocker)
+                Action actn;
+                bool success = actionQueue.TryDequeue(out actn);
+                if (!success)
                 {
-                    allworldobj = worldObjects.Values.ToList();
+                    break;
                 }
 
-                // all players on this land block
-                allplayers = allworldobj.OfType<Player>().ToList();
-                allcreatures = allworldobj.OfType<Creature>().ToList();
-
-                despawnObjects = allworldobj.ToList();
-                despawnObjects = despawnObjects.Where(x => x.DespawnTime > -1).ToList();
-
-                deadCreatures = allworldobj.OfType<Creature>().ToList();
-                deadCreatures = deadCreatures.Where(x => x.IsAlive == false).ToList();
-
-                // flag them as updated now in order to reduce chance of missing an update
-                // this is only for moving objects across landblocks.
-                movedObjects = allworldobj.ToList();
-                movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
-                movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
-
-                if (id.MapScope == Enum.MapScope.Outdoors)
-                {
-                    // check to see if a player or other mutable object "roamed" to an adjacent landblock
-                    var objectsToRelocate = movedObjects.Where(m => m.Location.LandblockId.IsAdjacentTo(id) && m.Location.LandblockId != id).ToList();
-
-                    // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
-                    // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
-                    // figure out how to treat it in adjacent landblocks.  if the player walks across the southern border, the north adjacency needs to remove
-                    // them, but the south is actually getting them.  we need to avoid sending Delete+Create to clients that already know about it, though.
-
-                    objectsToRelocate.ForEach(o => Log($"attempting to relocate object {o.Name} ({o.Guid.Full.ToString("X")})"));
-
-                    // RelocateObject will put them in the right landblock
-                    objectsToRelocate.ForEach(o => LandblockManager.RelocateObject(o));
-
-                    // Remove has logic to make sure it doesn't double up the delete+create when "true" is passed.
-                    objectsToRelocate.ForEach(o => RemoveWorldObject(o.Guid, true));
-                }
-
-                // for all players on landblock.
-                Parallel.ForEach(allplayers, player =>
-                {
-                    // Process Action Queue for player.
-                    QueuedGameAction action = player.ActionQueuePop();
-                    if (action != null)
-                        HandleGameAction(action, player);
-
-                    // Process Examination Queue for player
-                    QueuedGameAction examination = player.ExaminationQueuePop();
-                    if (examination != null)
-                        HandleGameAction(examination, player);
-                });
-                UpdateStatus(allplayers.Count);
-
-                double tickTime = WorldManager.PortalYearTicks;
-                // per-creature update on landblock.
-                Parallel.ForEach(allworldobj, wo =>
-                {
-                    // Process the creatures
-                    wo.Tick(tickTime);
-                });
-
-                // broadcast moving objects to the world..
-                // players and creatures can move.
-                Parallel.ForEach(movedObjects, mo =>
-                {
-                    // detect all world objects in ghost range
-                    List<WorldObject> woproxghost = new List<WorldObject>();
-                    woproxghost.AddRange(GetWorldObjectsInRange(mo, maxobjectGhostRange, true));
-
-                    // for all objects in rang of this moving object or in ghost range of moving object update them.
-                    Parallel.ForEach(woproxghost, wo =>
-                    {
-                        if (mo.Guid.IsPlayer())
-                        {
-                            // if world object is in active zone then.
-                            if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
-                            {
-                                // if world object is in active zone.
-                                if (!(mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
-                                    (mo as Player).TrackObject(wo);
-                            }
-                            // if world object is in ghost zone and outside of active zone
-                            else
-                                if ((mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
-                                (mo as Player).StopTrackingObject(wo, true);
-                        }
-                    });
-
-                    if (mo.Location.LandblockId == id)
-                    {
-                        // update if it's still here
-                        Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
-                    }
-                    else
-                    {
-                        // remove and readd if it's not
-                        RemoveWorldObject(mo.Guid, false);
-                        LandblockManager.AddObject(mo);
-                    }
-                });
-
-                // despawn objects
-                despawnObjects.ForEach(deo =>
-                {
-                    if (deo.DespawnTime < WorldManager.PortalYearTicks)
-                    {
-                        RemoveWorldObject(deo.Guid, false);
-                    }
-                });
-
-                // respawn creatures
-                deadCreatures.ForEach(dc =>
-                {
-                    if (dc.RespawnTime < WorldManager.PortalYearTicks)
-                    {
-                        dc.IsAlive = true;
-                        // HandleParticleEffectEvent(dc, PlayScript.Create);
-                        AddWorldObject(dc);
-                    }
-                });
-
-                Thread.Sleep(1);
+                actn();
             }
 
-            // TODO: release resources
+            // FIXME(ddevec): Players are objects -- "Actors" should call "Act" to do all needed updates
+            // for all players on landblock.
+            Parallel.ForEach(allplayers, player =>
+            {
+                // Process Action Queue for player.
+                QueuedGameAction action = player.ActionQueuePop();
+                if (action != null)
+                    HandleGameAction(action, player);
+
+                // Process Examination Queue for player
+                QueuedGameAction examination = player.ExaminationQueuePop();
+                if (examination != null)
+                    HandleGameAction(examination, player);
+            });
+            UpdateStatus(allplayers.Count);
+
+            // FIXME(ddevec): Objects should be "Actors" should call "Act" to do all needed updates
+            // per-creature update on landblock.
+            Parallel.ForEach(allworldobj, wo =>
+            {
+                // Process the creatures
+                wo.Tick(tickTime);
+            });
+
+            // FIXME(ddevec): Objects should be "Actors" should call "Act" to do all needed updates
+            Parallel.ForEach(movedObjects, mo =>
+            {
+                // detect all world objects in ghost range
+                List<WorldObject> woproxghost = new List<WorldObject>();
+                woproxghost.AddRange(GetWorldObjectsInRange(mo, maxobjectGhostRange, true));
+
+                // for all objects in rang of this moving object or in ghost range of moving object update them.
+                Parallel.ForEach(woproxghost, wo =>
+                {
+                    if (mo.Guid.IsPlayer())
+                    {
+                        // if world object is in active zone then.
+                        if (wo.Location.SquaredDistanceTo(mo.Location) <= maxobjectRange)
+                        {
+                            // if world object is in active zone.
+                            if (!(mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                                (mo as Player).TrackObject(wo);
+                        }
+                        // if world object is in ghost zone and outside of active zone
+                        else
+                            if ((mo as Player).GetTrackedObjectGuids().Contains(wo.Guid))
+                            (mo as Player).StopTrackingObject(wo, true);
+                    }
+                });
+
+                if (mo.Location.LandblockId == id)
+                {
+                    // update if it's still here
+                    Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
+                }
+                else
+                {
+                    // remove and read if it's not
+                    RemoveWorldObject(mo.Guid, false);
+                    LandblockManager.AddObject(mo);
+                }
+            });
+
+            // despawn objects
+            despawnObjects.ForEach(deo =>
+            {
+                if (deo.DespawnTime < WorldManager.PortalYearTicks)
+                {
+                    RemoveWorldObject(deo.Guid, false);
+                }
+            });
+
+            // respawn creatures
+            deadCreatures.ForEach(dc =>
+            {
+                if (dc.RespawnTime < WorldManager.PortalYearTicks)
+                {
+                    dc.IsAlive = true;
+                    // HandleParticleEffectEvent(dc, PlayScript.Create);
+                    AddWorldObject(dc);
+                }
+            });
+
+            // Handle broadcasts
+            SendBroadcasts();
         }
 
         private void HandleGameAction(QueuedGameAction action, Player player)
@@ -850,6 +835,15 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Intended only for use in physics.
+        /// TBD: Actual interface for this-- this is just a filler for now
+        /// </summary>
+        public IEnumerable<WorldObject> GetPhysicsWorldObjects()
+        {
+            return worldObjects.Values;
+        }
+
         private void UpdateStatus(LandBlockStatusFlag flag)
         {
             Status.LandBlockStatusFlag = flag;
@@ -869,6 +863,123 @@ namespace ACE.Entity
                 Status.LandBlockStatusFlag = LandBlockStatusFlag.IdleLoaded;
                 UpdateStatus(Status.LandBlockStatusFlag);
             }
+        }
+
+        private List<Landblock> GetLandblocksInRange(Position pos, float distance)
+        {
+            List<Landblock> inRange = new List<Landblock>();
+
+            inRange.Add(this);
+
+            float highX = pos.PositionX + distance;
+            float lowX = pos.PositionX - distance;
+            float highY = pos.PositionY + distance;
+            float lowY = pos.PositionY - distance;
+            // Check East
+            if (Position.XYToLandblock(highX, pos.PositionY) != Id)
+            {
+                inRange.Add(EastAdjacency);
+            }
+            // North East
+            if (Position.XYToLandblock(highX, highY) != Id)
+            {
+                inRange.Add(NorthEastAdjacency);
+            }
+
+            // North 
+            if (Position.XYToLandblock(pos.PositionX, highY) != Id)
+            {
+                inRange.Add(NorthAdjacency);
+            }
+
+            // North West
+            if (Position.XYToLandblock(lowX, highY) != Id)
+            {
+                inRange.Add(NorthWestAdjacency);
+            }
+
+            // West
+            if (Position.XYToLandblock(lowX, pos.PositionY) != Id)
+            {
+                inRange.Add(WestAdjacency);
+            }
+
+            // South West
+            if (Position.XYToLandblock(lowX, lowY) != Id)
+            {
+                inRange.Add(SouthWestAdjacency);
+            }
+
+            // South
+            if (Position.XYToLandblock(pos.PositionX, lowY) != Id)
+            {
+                inRange.Add(SouthAdjacency);
+            }
+
+            // South East
+            if (Position.XYToLandblock(highX, lowY) != Id)
+            {
+                inRange.Add(SouthEastAdjacency);
+            }
+
+            return inRange;
+        }
+
+        /// <summary>
+        /// Enqueues a message for broadcast, thread safe -- but cannot happen in parallel with 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="distance"></param>
+        /// <param name="msg"></param>
+        public void EnqueueBroadcast(Position pos, float distance, GameMessage msg)
+        {
+            broadcastQueue.Enqueue(new Tuple<Position, float, GameMessage>(pos, distance, msg));
+        }
+
+        /// <summary>
+        /// NOTE: Cannot be sent while objects are moving! depends on object positions not changing, and objects not moving between landblocks
+        ///   Last method called from Landblock::Act()  (FIXME(ddevec) UseTime instead of Act() for now)
+        /// </summary>
+        private void SendBroadcasts()
+        {
+            while (!broadcastQueue.IsEmpty)
+            {
+                Tuple<Position, float, GameMessage> tuple;
+                bool success = broadcastQueue.TryDequeue(out tuple);
+                if (!success)
+                {
+                    log.Error("Unexpected TryDequeue Failure!");
+                    break;
+                }
+                Position pos = tuple.Item1;
+                float distance = tuple.Item2;
+                GameMessage msg = tuple.Item3;
+
+                // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
+                // foreach player within range, do send
+
+                List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
+                foreach (Landblock lb in landblocksInRange)
+                {
+                    List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
+                    foreach (Player p in allPlayers)
+                    {
+                        if (p.PhysicsData.Position.SquaredDistanceTo(pos) < distance * distance)
+                        {
+                            p.Session.Network.EnqueueSend(msg);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void EnqueueAction(Action actn)
+        {
+            actionQueue.Enqueue(actn);
+        }
+
+        // FIXME(ddevec):  Build action system...
+        public void EnqueueActionBroadcast(Action<Player> delegateAction) {
         }
 
         private void Log(string message)
