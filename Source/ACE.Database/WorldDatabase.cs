@@ -43,7 +43,7 @@ namespace ACE.Database
                 "SELECT `name`, `landblock`, `posX`, `posY`, `posZ`, `qx`, `qy`, `qz`, `qw` FROM `vw_teleport_location`;");
             ConstructStatement(
                 WorldPreparedStatement.GetWeenieClass,
-                typeof(BaseAceObject),
+                typeof(AceObject),
                 ConstructedStatementType.Get);
 
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
@@ -71,7 +71,7 @@ namespace ACE.Database
             // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
             ConstructStatement(
                 WorldPreparedStatement.GetItemsByTypeId,
-                typeof(BaseAceObject),
+                typeof(AceObject),
                 ConstructedStatementType.GetList);
             ConstructStatement(
                 WorldPreparedStatement.GetAceObjectPropertiesInt,
@@ -95,10 +95,10 @@ namespace ACE.Database
                 ConstructedStatementType.GetList);
         }
 
-        public BaseAceObject GetRandomWeenieOfType(uint itemType)
+        public AceObject GetRandomWeenieOfType(uint itemType)
         {
             var criteria = new Dictionary<string, object> { { "itemType", itemType } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, BaseAceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
             if (objects.Count <= 0) return null;
             var rnd = new Random();
             var r = rnd.Next(objects.Count);
@@ -165,7 +165,7 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach(o => o.CreatureData = GetCreatureDataByWeenie(o.WeenieClassId));
+            objects.ForEach(o => o.WeenieObject = GetWeenie(o.WeenieClassId));
 
             return objects;
         }
@@ -224,25 +224,9 @@ namespace ACE.Database
             return objects;
         }
 
-        public AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId)
+        public AceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
         {
-            var aco = new AceCreatureObject();
-            var criteria = new Dictionary<string, object> { { "weenieClassId", weenieClassId } };
-            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), criteria, aco))
-            {
-                aco.WeeniePaletteOverrides = GetWeeniePalettes(aco.WeenieClassId);
-                aco.WeenieTextureMapOverrides = GetWeenieTextureMaps(aco.WeenieClassId);
-                aco.WeenieAnimationOverrides = GetWeenieAnimations(aco.WeenieClassId);
-
-                return aco;
-            }
-            else
-                return null;
-        }
-
-        public BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
-        {
-            var bao = new BaseAceObject();
+            var bao = new AceObject();
 
             // We can do this because aceObjectId = WeenieClassId for all baseAceObjects.
             // TODO: Ask Mogwai how would you query on a secondary key?
@@ -250,7 +234,7 @@ namespace ACE.Database
             if (
                 !ExecuteConstructedGetStatement(
                     WorldPreparedStatement.GetWeenieClass,
-                    typeof(BaseAceObject),
+                    typeof(AceObject),
                     criteria,
                     bao)) return null;
             bao.IntProperties = GetAceObjectPropertiesInt(bao.AceObjectId);
@@ -358,7 +342,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public BaseAceObject GetWeenie(uint weenieClassId)
+        public AceObject GetWeenie(uint weenieClassId)
         {
             throw new NotImplementedException();
         }

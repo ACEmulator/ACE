@@ -45,6 +45,6 @@ namespace ACE.Entity
         [DbField("qZ", (int)MySqlDbType.Float)]
         public float QZ { get; set; }
 
-        public AceCreatureObject CreatureData = new AceCreatureObject();
+        public AceObject WeenieObject { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace ACE.Entity
         {
         }
 
-        public DebugObject(ObjectGuid guid,  BaseAceObject baseAceObject)
+        public DebugObject(ObjectGuid guid,  AceObject baseAceObject)
             : base((ObjectType)baseAceObject.ItemType, guid)
         {
             Name = baseAceObject.Name ?? "NULL";

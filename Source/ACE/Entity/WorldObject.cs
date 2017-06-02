@@ -329,7 +329,7 @@ namespace ACE.Entity
         {
             // Kludge until I get everything refactored correctly Og II
             if (AceObject == null)
-                AceObject = new AceObject();
+                AceObject = new AceObject(guid.Full);
             Type = type;
             Guid = guid;
 

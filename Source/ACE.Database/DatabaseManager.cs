@@ -22,7 +22,7 @@ namespace ACE.Database
             //charDb.Initialize(config.Character.Host, config.Character.Port, config.Character.Username, config.Character.Password, config.Character.Database);
             //Character = charDb;
 
-            var worldDb = new CommonDatabase();
+            var worldDb = new WorldDatabase();
             worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database);
             World = worldDb;
         }

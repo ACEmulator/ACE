@@ -11,6 +11,9 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Managers;
+using ACE.Entity.Enum.Properties;
+using ACE.DatLoader.FileTypes;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Network.Handlers
 {
@@ -79,9 +82,9 @@ namespace ACE.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            DatabaseManager.Character.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
+            DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
 
-            var result = await DatabaseManager.Character.GetByAccount(session.Id);
+            var result = await DatabaseManager.Shard.GetCharacters(session.Id);
             session.UpdateCachedCharacters(result);
             session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
         }
@@ -95,14 +98,14 @@ namespace ACE.Network.Handlers
             if (cachedCharacter == null)
                 return;
 
-            bool isAvailable = DatabaseManager.Character.IsNameAvailable(cachedCharacter.Name);
+            bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name);
             if (!isAvailable)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);    /* Name already in use. */
                 return;
             }
 
-            DatabaseManager.Character.DeleteOrRestore(0, guid.Low);
+            DatabaseManager.Shard.DeleteOrRestore(0, guid.Low);
 
             session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
         }
@@ -110,19 +113,85 @@ namespace ACE.Network.Handlers
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
         public static async void CharacterCreate(ClientMessage message, Session session)
         {
-            // known issues:
-            // 1. getting the "next" character id is not thread-safe
-
             string account = message.Payload.ReadString16L();
             if (account != session.Account)
                 return;
 
-            // See Player.OnCreateCharacter and feel free to move it
-            // AceCharacter character = AceCharacter.CreateFromClientFragment(message.Payload, session.Id);
+            var reader = message.Payload;
+            Appearance appearance = Appearance.FromNetowrk(reader);
+            CharGen cg = CharGen.ReadFromDat();
+            AceCharacter character = new AceCharacter(DatabaseManager.Shard.GetNextCharacterId());
+            
+            reader.Skip(4);   /* Unknown constant (1) */
+            character.Heritage = reader.ReadUInt32();
+            character.Gender = reader.ReadUInt32();
 
-            // TODO: profanity filter
-            // sendCharacterCreateResponse(session, 4);
+            // pull character data from the dat file
+            SexCG sex = cg.HeritageGroups[(int)character.Heritage].SexList[(int)character.Gender];
+            
+            character.MotionTableId = sex.MotionTable;
+            character.SoundTableId = sex.SoundTable;
+            character.PhysicsTableId = sex.PhysicsTable;
+            character.ModelTableId = sex.SetupID;
+            character.PaletteId = sex.BasePalette;
+            character.CombatTableId = sex.CombatTable;
+            
+            // not sure how to set these.  Optim says they're in the dat
+            // character.SetDataIdProperty(PropertyDataId.EyesTexture, appearance.Nose);
+            // character.SetDataIdProperty(PropertyDataId.NoseTexture, appearance.Nose);
+            // character.SetDataIdProperty(PropertyDataId.MouthTexture, appearance.Mouth);
 
+            // character.SetDataIdProperty(PropertyDataId.HairPalette, appearance.HairColor);
+            // character.SetDataIdProperty(PropertyDataId.EyesPalette, appearance.EyeColor);
+            // character.SetDataIdProperty(PropertyDataId.SkinPalette, appearance.EyeColor);
+
+            // character.SetDataIdProperty(PropertyDataId.HeadObject, appearance.HairStyle);
+
+            // junk data point
+            var templateOption = reader.ReadUInt32();
+
+            // stats
+            character.StrengthAbility.Base = reader.ReadUInt32();
+            character.EnduranceAbility.Base = reader.ReadUInt32();
+            character.CoordinationAbility.Base = reader.ReadUInt32();
+            character.QuicknessAbility.Base = reader.ReadUInt32();
+            character.FocusAbility.Base = reader.ReadUInt32();
+            character.SelfAbility.Base = reader.ReadUInt32();
+            
+            // data we don't care about
+            uint characterSlot = reader.ReadUInt32();
+            uint classId = reader.ReadUInt32();
+
+            // characters start with max vitals
+            character.Health.Current = character.Health.UnbuffedValue;
+            character.Stamina.Current = character.Stamina.UnbuffedValue;
+            character.Mana.Current = character.Mana.UnbuffedValue;
+
+            character.TotalSkillCredits = 52;
+            character.AvailableSkillCredits = 52;
+
+            uint numOfSkills = reader.ReadUInt32();
+            Skill skill;
+            SkillStatus skillStatus;
+            SkillCostAttribute skillCost;
+            for (uint i = 0; i < numOfSkills; i++)
+            {
+                skill = (Skill)i;
+                skillCost = skill.GetCost();
+                skillStatus = (SkillStatus)reader.ReadUInt32();
+                character.TrainSkill(skill, skillCost.TrainingCost);
+                if (skillStatus == SkillStatus.Specialized)
+                    character.SpecializeSkill(skill, skillCost.SpecializationCost);
+            }
+
+            character.Name = reader.ReadString16L();
+            
+            // currently not used
+            uint startArea = reader.ReadUInt32();
+
+            character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
+            character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
+            
             bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
             {
@@ -131,10 +200,10 @@ namespace ACE.Network.Handlers
             }
 
             uint lowGuid = DatabaseManager.Shard.GetNextCharacterId();
-            character.Id = lowGuid;
+            character.AceObjectId = lowGuid;
             character.AccountId = session.Id;
 
-            if (!await DatabaseManager.Character.CreateCharacter(character))
+            if (!DatabaseManager.Shard.SaveObject(character))
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
                 return;

@@ -69,7 +69,6 @@
     <Compile Include="Account.cs" />
     <Compile Include="AceCreatureGeneratorData.cs" />
     <Compile Include="AceCreatureGeneratorLocation.cs" />
-    <Compile Include="AceCreatureObject.cs" />
     <Compile Include="AceCreatureStaticLocation.cs" />
     <Compile Include="AceObjectPropertiesInt64.cs" />
     <Compile Include="AceObjectPropertiesBool.cs" />
@@ -79,7 +78,6 @@
     <Compile Include="AceObjectPropertiesInt.cs" />
     <Compile Include="AceObjectPropertiesString.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
-    <Compile Include="AceObject.cs" />
     <Compile Include="AnimationOverride.cs" />
     <Compile Include="Appearance.cs" />
     <Compile Include="CharacterOptions1Attribute.cs" />
@@ -140,7 +138,7 @@
     <Compile Include="TeleportLocation.cs" />
     <Compile Include="TextureMapOverride.cs" />
     <Compile Include="TupleExtensions.cs" />
-    <Compile Include="BaseAceObject.cs" />
+    <Compile Include="AceObject.cs" />
     <Compile Include="Vector3.cs" />
     <Compile Include="Weenie.cs" />
     <Compile Include="AceCharacter.cs" />

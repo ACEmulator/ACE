@@ -10,7 +10,7 @@ namespace ACE.Entity
         {
         }
 
-        public UsableObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, BaseAceObject baseAceObject)
+        public UsableObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, AceObject baseAceObject)
            : base((ObjectType)baseAceObject.ItemType, guid)
         {
             Type = (ObjectType)baseAceObject.ItemType;

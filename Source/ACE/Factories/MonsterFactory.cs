@@ -17,7 +17,7 @@ namespace ACE.Factories
         /// <param name="saveAsStatic">If set to true, it saves the spawned creature in the DB as a static spawn</param>
         public static Creature SpawnCreature(uint weenieClassId, bool saveAsStatic, Position position)
         {
-            AceCreatureObject aco = DatabaseManager.World.GetCreatureDataByWeenie(weenieClassId);
+            AceObject aco = DatabaseManager.World.GetWeenie(weenieClassId);
             if (aco == null)
                 return null;
             
@@ -32,7 +32,7 @@ namespace ACE.Factories
             acsl.QX = position.RotationX;
             acsl.QY = position.RotationY;
             acsl.QZ = position.RotationZ;
-            acsl.CreatureData = aco;
+            acsl.WeenieObject = aco;
 
             Creature newCreature = new Creature(acsl);
 

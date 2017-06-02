@@ -37,5 +37,7 @@ namespace ACE.Database
         uint RenameCharacter(string currentName, string newName);
 
         uint GetNextCharacterId();
+
+        AceCharacter GetCharacter(uint id);
     }
 }

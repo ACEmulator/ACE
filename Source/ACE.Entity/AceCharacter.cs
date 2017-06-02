@@ -10,28 +10,43 @@ namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
     [DbGetList("vw_ace_character", 42, "guid")]
-    public class AceCharacter : AceCreatureObject
+    public class AceCharacter : AceObject
     {
         private List<Friend> friends;
 
-        public AceCharacter()
-            : base()
+        public AceCharacter(uint id)
+            : base(id)
         {
             friends = new List<Friend>();
             Friends = new ReadOnlyCollection<Friend>(friends);
-
+            AvailableSkillCredits = 52;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
-
-        [DbField("characterOptions1", (int)MySqlDbType.UInt16)]
-        public uint CharacterOptions1Mapping { get; set; }
-
-        [DbField("characterOptions2", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public uint CharacterOptions2Mapping { get; set; }
-
-        [DbField("totalLogins", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public uint TotalLogins { get; set; }
+        
+        public uint CharacterOptions1Mapping
+        {
+            get { return GetIntProperty(PropertyInt.CharacterOptions1) ?? 0; }
+            set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
+        }
+        
+        public uint CharacterOptions2Mapping
+        {
+            get { return GetIntProperty(PropertyInt.CharacterOptions2) ?? 0; }
+            set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
+        }
+        
+        public uint TotalLogins
+        {
+            get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
+            set { SetIntProperty(PropertyInt.TotalLogins, value); }
+        }
+        
+        public uint AccountId
+        {
+            get { return GetIntProperty(PropertyInt.AccountId) ?? 0; }
+            set { SetIntProperty(PropertyInt.AccountId, value); }
+        }
 
         public bool GetCharacterOptions1(CharacterOptions1 option)
         {
@@ -236,6 +251,27 @@ namespace ACE.Entity
                 if (AvailableSkillCredits >= creditsSpent)
                 {
                     skills[skill] = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    AvailableSkillCredits -= creditsSpent;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sets the skill to trained status for a character
+        /// </summary>
+        /// <param name="skill"></param>
+        public bool SpecializeSkill(Skill skill, uint creditsSpent)
+        {
+            CreatureSkill cs = GetSkill(skill);
+            if (cs.Status == SkillStatus.Trained)
+            {
+                if (AvailableSkillCredits >= creditsSpent)
+                {
+                    RefundXp(cs.ExperienceSpent);
+                    skills[skill] = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }

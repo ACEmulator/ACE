@@ -84,6 +84,7 @@ namespace ACE.Entity
         {
             this.creature = creature;
             Ability = ability;
+            Base = 10;
         }
     }
 }

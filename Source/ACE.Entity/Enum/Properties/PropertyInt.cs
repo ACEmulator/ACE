@@ -398,6 +398,13 @@
         Unknown389 = 389,
         Unknown390 = 390,
         Count = 391,
-        uk_DescriptionFlags = 392
+        uk_DescriptionFlags = 392,
+
+        // values over 9000 are ones that we have added and should not be sent to the client
+        AccountId = 9000,
+        TotalLogins = 9001,
+        CharacterOptions1 = 9002,
+        CharacterOptions2 = 9003,
+        LootTier = 9004
     }
 }
