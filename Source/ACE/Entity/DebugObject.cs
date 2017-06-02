@@ -98,7 +98,7 @@ namespace ACE.Entity
             GameDataType = aceO.ItemType;
         }
 
-        public override void OnCollide(Player player)
+        public override void OnCollide(ObjectGuid playerId)
         {
             // TODO: Implement
         }

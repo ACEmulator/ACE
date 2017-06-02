@@ -6,25 +6,19 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity.Actions
 {
-    public class ActionEventDelegate : IAction
+    public class ActionEventDelegate : ActionEventBase
     {
         private Action action;
-        private Tuple<IActor, IAction> nextAct;
 
-        public ActionEventDelegate(Action action)
+        public ActionEventDelegate(Action action) : base()
         {
             this.action = action;
-            nextAct = null;
         }
 
-        public Tuple<IActor, IAction> Act() {
+        public override Tuple<IActor, IAction> Act() {
             action();
-            return nextAct;
-        }
 
-        public void RunOnFinish(IActor nextActor, IAction nextAction)
-        {
-            nextAct = new Tuple<IActor, IAction>(nextActor, nextAction);
+            return base.Act();
         }
     }
 }

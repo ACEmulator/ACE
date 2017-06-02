@@ -11,6 +11,8 @@ namespace ACE.Entity
 
     public struct ObjectGuid
     {
+        public readonly static ObjectGuid Invalid = new ObjectGuid(0);
+
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
         public GuidType High => (GuidType)(Full >> 24);

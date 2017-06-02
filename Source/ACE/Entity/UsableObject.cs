@@ -96,7 +96,7 @@ namespace ACE.Entity
             WeenieClassid = weenieClassId;
         }
 
-        public virtual void OnUse(Player player)
+        public virtual void OnUse(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to pick it up off the ground
         }

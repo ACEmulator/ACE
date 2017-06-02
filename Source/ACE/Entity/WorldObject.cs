@@ -1,10 +1,14 @@
 using ACE.Entity.Enum;
-using ACE.Managers;
+using ACE.Entity.Actions;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
+using ACE.Network.GameMessages;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
+using System.Collections.Generic;
+using System.IO;
+using ACE.Managers;
 using log4net;
 using System.IO;
 using System;
@@ -12,7 +16,7 @@ using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    public abstract class WorldObject
+    public abstract class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -50,10 +54,20 @@ namespace ACE.Entity
             protected set { AceObject.Name = value; }
         }
 
+        public IActor CurrentParent { get; private set; }
+
+        public Position ForcedLocation { get; private set; }
+        public Position RequestedLocation { get; private set; }
+
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
         /// </summary>
-        public Landblock CurrentLandblock { get; set; } = null;
+        public Landblock CurrentLandblock {
+            get
+            {
+                return CurrentParent as Landblock;
+            }
+        }
 
         /// <summary>
         /// tick-stamp for the last time this object changed in any way.
@@ -65,8 +79,7 @@ namespace ACE.Entity
         /// </summary>
         public double DespawnTime { get; set; } = -1;
 
-        private Position requestedMotion = null;
-        private Position requestedPosition = null;
+        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
         public virtual Position Location
         {
@@ -425,6 +438,12 @@ namespace ACE.Entity
             p.Session.Network.EnqueueSend(updateMotion);
         }
 
+        public void Examine(Session examiner)
+        {
+            var identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
+            examiner.Network.EnqueueSend(identifyResponse);
+        }
+
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
@@ -697,20 +716,61 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
 
-        public virtual void Tick(double tickTime)
+        protected void ForceUpdatePosition(Position newPosition)
         {
+            ForcedLocation = newPosition;
         }
 
-        public bool FakeDoMotion(double tickTime)
+        /// FIXME(ddevec): We're probably ultimately only going to update velocity, not true position...
+        protected void PrepUpdatePosition(Position newPosition)
         {
-            if (CurrentLandblock != null && requestedPosition != null)
-            {
-                PhysicsData.Position = requestedPosition;
-                CurrentLandblock.EnqueueBroadcast(PhysicsData.Position, MaxObjectTrackingRange, new GameMessageUpdatePosition(this));
-                return true;
-            }
+            RequestedLocation = newPosition;
+            // character.SetCharacterPosition(newPosition);
+        }
 
-            return false;
+        protected virtual void SendUpdatePosition()
+        {
+            LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
+            GameMessage msg = new GameMessageUpdatePosition(this);
+            if (CurrentLandblock != null)
+            {
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, msg);
+            }
+        }
+
+        /// <summary>
+        /// FIXME(ddevec): Update this once we have real physics....
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void PhysicsUpdatePosition(Position newPosition)
+        {
+            PhysicsData.Position = newPosition;
+            SendUpdatePosition();
+
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+        public void SetParent(IActor parent)
+        {
+            CurrentParent = parent;
+            actionQueue.RemoveParent();
+            actionQueue.SetParent(parent);
+        }
+
+        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        {
+            return actionQueue.EnqueueAction(action);
+        }
+
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
+        }
+
+        public void RunActions()
+        {
+            actionQueue.RunActions();
         }
     }
 }

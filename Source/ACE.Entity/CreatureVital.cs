@@ -52,6 +52,17 @@ namespace ACE.Entity
         /// </summary>
         public uint Current { get; set; }
 
+        public double NextTickTime {
+            get
+            {
+                if (lastTick == double.NegativeInfinity)
+                {
+                    return double.NegativeInfinity;
+                }
+                return lastTick + RegenRate;
+            }
+        }
+
         /// <summary>
         /// Used to determine if health/stamina/mana updates need to be sent periodically
         /// Returns the "last time" the vitals were updated
@@ -82,6 +93,12 @@ namespace ACE.Entity
 
                 // Now, update our value
                 Current = System.Math.Min(MaxValue, Current + numTicks);
+
+                // Reset last tick, so when we resume we start ticking properly
+                if (Current == MaxValue)
+                {
+                    lastTick = double.NegativeInfinity;
+                }
             }
         }
 
