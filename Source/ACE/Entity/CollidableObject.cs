@@ -71,6 +71,6 @@ namespace ACE.Entity
             aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
-        public abstract void OnCollide(Player player);
+        public abstract void OnCollide(ObjectGuid playerId);
     }
 }

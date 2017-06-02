@@ -1,6 +1,7 @@
 ﻿using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Actions;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
@@ -140,7 +141,7 @@ namespace ACE.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.ActionApplySoundEffect(sound, session.Player.Guid);
+                        session.Player.HandleActionApplySoundEffect(sound);
                     }
                 }
 
@@ -179,7 +180,7 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
                         message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
-                        session.Player.ActionApplyVisualEffect(effect, session.Player.Guid);
+                        session.Player.HandleActionApplyVisualEffect(effect);
                     }
                 }
 
@@ -218,7 +219,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
-            session.Player.EnqueueMovementEvent(motion, session.Player.Guid);
+            session.Player.HandleActionMotion(motion);
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -247,12 +248,17 @@ namespace ACE.Command.Handlers
             ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
-            session.Player.TrackObject(loot);
-            var newMotion = new UniversalMotion(MotionStance.Standing, loot);
-            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
+            var loot = LootGenerationFactory.CreateTestWorldObject(trainingWandTarget);
+
+            ActionChain chain = new Entity.Actions.ActionChain();
+
+            // By chaining the spawn followed by the add pickup action, we ensure the item will be spawned before the player 
+            chain.AddChain(LootGenerationFactory.GetSpawnChain(loot, session.Player.Location.InFrontOf(distance)));
+
+            chain.AddAction(session.Player,
+                () => session.Player.HandleActionPutItemInContainer(loot.Guid, session.Player.Guid));
+
+            chain.EnqueueChain();
         }
         
         // This function 
@@ -277,22 +283,18 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            Entity.Enum.Ability ability;
             // Parse args...
             CreatureVital vital = null;
             if (paramVital == "health" || paramVital == "hp")
             {
-                ability = Entity.Enum.Ability.Health;
                 vital = session.Player.Health;
             }
             else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
             {
-                ability = Entity.Enum.Ability.Stamina;
                 vital = session.Player.Stamina;
             }
             else if (paramVital == "mana" || paramVital == "mp")
             {
-                ability = Entity.Enum.Ability.Mana;
                 vital = session.Player.Mana;
             }
             else
@@ -301,22 +303,14 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            long targetValue = 0;
-            if (relValue)
-                targetValue = vital.Current + value;
-            else
-                targetValue = value;
-
-            if (targetValue < 0 || targetValue > vital.MaxValue)
+            if (!relValue)
             {
-                ChatPacket.SendServerMessage(session, "setvital Error: Value over/underflow", ChatMessageType.Broadcast);
-                return;
+                session.Player.UpdateVital(vital, (uint)value);
             }
-
-            vital.Current = (uint)targetValue;
-
-            // Send an update packet
-            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, vital));
+            else
+            {
+                session.Player.DeltaVital(vital, value);
+            }
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
@@ -426,8 +420,7 @@ namespace ACE.Command.Handlers
                 // playerSession will be null when the character is not found
                 if (playerSession != null)
                 {
-                    // send session a usedone
-                    playerSession.Player.OnKill(playerSession);
+                    playerSession.Player.HandleActionKill(playerSession.Player.Guid);
                     return;
                 }
             }
@@ -491,21 +484,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("testcorpsedrop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void TestCorpse(Session session, params string[] parameters)
         {
-            if (session.Player.SelectedTarget != 0)
-            {
-                var target = new ObjectGuid(session.Player.SelectedTarget);
-                var wo = LandblockManager.GetWorldObject(session, target);
-
-                if (target.IsCreature())
-                {
-                    if (wo != null)
-                        (wo as Creature).OnKill(session);
-                }
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "No creature selected.", ChatMessageType.Broadcast);
-            }
+            session.Player.HandleActionTestCorpseDrop();
         }
 
         /// <summary>
