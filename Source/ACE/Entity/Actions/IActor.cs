@@ -11,6 +11,9 @@ namespace ACE.Entity.Actions
         void RunActions();
 
         // Returns the next action to be run
-        void EnqueueAction(IAction action);
+        LinkedListNode<IAction> EnqueueAction(IAction action);
+
+        // Not thread safe
+        void DequeueAction(LinkedListNode<IAction> node);
     }
 }

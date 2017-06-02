@@ -4,6 +4,7 @@ using ACE.Common;
 using System.Collections.Generic;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
@@ -42,6 +43,7 @@ namespace ACE.Managers
                 session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             }
             Landblock block = GetLandblock(c.Location.LandblockId, true);
+            // Must enqueue add world object -- this is called from a message handler context
             block.AddWorldObject(session.Player);
 
             session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
@@ -54,6 +56,12 @@ namespace ACE.Managers
         {
             var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
+        }
+
+        public static ActionChain GetAddObjectChain(WorldObject worldObject)
+        {
+            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
+            return block.GetAddWorldObjectChain(worldObject);
         }
 
         // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
@@ -71,15 +79,6 @@ namespace ACE.Managers
         {
             var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
-        }
-
-        /// <summary>
-        /// return wo in preparation to take it off the landblock and put it in a container.
-        /// </summary>
-        public static WorldObject GetWorldObject(Session source, ObjectGuid targetId)
-        {
-            var block = GetLandblock(source.Player.Location.LandblockId, true);
-            return block.GetWorldObject(targetId);
         }
 
         /// <summary>

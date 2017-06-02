@@ -243,7 +243,10 @@ namespace ACE.Entity
             uint baseY = (uint)(y + 0x400);
 
             if (baseX < 0 || baseX >= 0x7F8 || baseY < 0 || baseY >= 0x7F8)
-                throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
+            {
+                // log.Error("XYToLandblock: position out of range");
+                // throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
+            }
 
             return new LandblockId(GetCellFromBase(baseX, baseY));
         }

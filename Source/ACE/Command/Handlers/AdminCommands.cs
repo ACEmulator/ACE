@@ -700,39 +700,16 @@ namespace ACE.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    var creatureIds = session.Player.GetKnownCreatures();
-                    foreach (var cId in creatureIds)
-                    {
-                        var wo = LandblockManager.GetWorldObject(session, cId);
-                        if (wo != null)
-                            (wo as Creature).OnKill(session);
-                    }
+                    session.Player.HandleActionSmiteAllNearby();
                 }
                 else
+                {
                     ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
+                }
             }
             else
             {
-                if (session.Player.SelectedTarget != 0)
-                {
-                    var target = new ObjectGuid(session.Player.SelectedTarget);
-                    var wo = LandblockManager.GetWorldObject(session, target);
-
-                    if (target.IsCreature())
-                    {
-                        if (wo != null)
-                            (wo as Creature).OnKill(session);
-                    }
-                    if (target.IsPlayer())
-                    {
-                        if (wo != null)
-                            (wo as Player).OnKill(session);
-                    }
-                }
-                else
-                {
-                    ChatPacket.SendServerMessage(session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
-                }
+                session.Player.HandleActionSmiteSelected();
             }
         }
 
@@ -1009,7 +986,6 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-            session.Player.TrackObject(loot);
         }
 
         // ci wclassid (number)
@@ -1027,9 +1003,8 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            session.Player.AddToInventory(loot);
-            session.Player.TrackObject(loot);
+            var loot = LootGenerationFactory.CreateTestWorldObject(weenieId);
+            session.Player.HandleAddToInventory(loot);
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
@@ -1059,7 +1034,14 @@ namespace ACE.Command.Handlers
                     return;
                 }
             }
-            LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems);
+            for (byte b = 1; b <= numItems; b++)
+            {
+                var loot = LootGenerationFactory.CreateRandomTestWorldObject(typeId);
+                if (loot != null)
+                {
+                    session.Player.HandleAddToInventory(loot);
+                }
+            }
         }
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]

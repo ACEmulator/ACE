@@ -5,12 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using log4net;
+
 namespace ACE.Entity.Actions
 {
     public class ActionQueue : IActor
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected object queueLock = new object();
-        protected List<IAction> queue = new List<IAction>();
+        protected LinkedList<IAction> queue = new LinkedList<IAction>();
 
         public ActionQueue()
         {
@@ -18,26 +22,65 @@ namespace ACE.Entity.Actions
 
         public void RunActions()
         {
-            List<IAction> tmp;
+            LinkedList<IAction> tmp;
             lock (queueLock)
             {
                 tmp = queue;
-                queue = new List<IAction>();
+                queue = new LinkedList<IAction>();
             }
 
-            foreach (var next in queue)
+            foreach (var next in tmp)
             {
                 Tuple<IActor, IAction> enqueue = next.Act();
 
-                enqueue.Item1.EnqueueAction(enqueue.Item2);
+                if (enqueue != null)
+                {
+                    enqueue.Item1.EnqueueAction(enqueue.Item2);
+                }
             }
         }
 
-        public virtual void EnqueueAction(IAction action)
+        // Suppoorts running the actions in the queue in parallel
+        public void RunActionsParallel()
+        {
+            LinkedList<IAction> tmp;
+            lock (queueLock)
+            {
+                tmp = queue;
+                queue = new LinkedList<IAction>();
+            }
+
+            Parallel.ForEach(tmp, next =>
+            {
+                Tuple<IActor, IAction> enqueue = next.Act();
+
+                if (enqueue != null)
+                {
+                    enqueue.Item1.EnqueueAction(enqueue.Item2);
+                }
+            });
+        }
+
+        public virtual LinkedListNode<IAction> EnqueueAction(IAction action)
         {
             lock (queueLock)
             {
-                queue.Add(action);
+                return queue.AddLast(action);
+            }
+        }
+
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            lock (queueLock)
+            {
+                if (node.List == queue)
+                {
+                    queue.Remove(node);
+                }
+                else
+                {
+                    log.Warn("Unexpected dequeue of node not in queue?");
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -9,6 +10,8 @@ using System.Threading.Tasks;
 using ACE.Common;
 using ACE.Entity;
 using ACE.Network;
+
+using ACE.Entity.Actions;
 
 using log4net;
 
@@ -31,6 +34,12 @@ namespace ACE.Managers
         public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
 
         public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
+
+        public static readonly ActionQueue ActionQueue = new ActionQueue();
+        public static readonly ActionQueue MotionQueue = new ActionQueue();
+        public static readonly ActionQueue BroadcastQueue = new ActionQueue();
+
+        public static readonly DelayManager DelayManager = new DelayManager();
 
         public static void Initialize()
         {
@@ -211,15 +220,15 @@ namespace ACE.Managers
             {
                 worldTickTimer.Restart();
 
-                // FIXME(ddevec): Handle time-based timeouts here
-                // TimeoutManager.Act();
+                // Handle time-based timeouts
+                DelayManager.RunActions();
 
                 // Sequences of update thread:
                 // Update positions based on new tick
                 // TODO(ddevec): Physics here
                 IEnumerable<WorldObject> movedObjects = FakePhysics(PortalYearTicks);
 
-                // Transfer motions between landblocks
+                // Do any pre-calculated landblock transfers --
                 Parallel.ForEach(movedObjects, wo =>
                 {
                     // If it was picked up, or moved
@@ -227,9 +236,42 @@ namespace ACE.Managers
                     {
                         LandblockManager.RelocateObject(wo);
                     }
-
-                    wo.CurrentLandblock.EnqueueActionBroadcast((Player p) => p.TrackObject(wo));
                 });
+
+                // FIXME(ddevec): This O(n^2) tracking loop is a remenant of the old structure -- we should probably come up with a more efficient tracking scheme
+                Parallel.ForEach(movedObjects, mo =>
+                {
+                    // detect all world objects in ghost range
+                    List<WorldObject> woproxghost = new List<WorldObject>();
+                    woproxghost.AddRange(mo.CurrentLandblock.GetWorldObjectsInRangeForPhysics(mo, Landblock.maxobjectGhostRange));
+
+                    // for all objects in range of this moving object or in ghost range of moving object update them.
+                    Parallel.ForEach(woproxghost, gwo =>
+                    {
+                        if (mo.Guid.IsPlayer())
+                        {
+                            // if world object is in active zone then.
+                            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.maxobjectRange)
+                            {
+                                // if world object is in active zone.
+                                if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
+                                    (mo as Player).TrackObject(gwo);
+                            }
+                            // if world object is in ghost zone and outside of active zone
+                            else
+                            {
+                                if ((mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
+                                {
+                                    (mo as Player).StopTrackingObject(gwo, true);
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Process between landblock object motions sequentially -- for safety
+                // Currently only used for picking items up off a landblock
+                MotionQueue.RunActions();
 
                 // Now, update actions within landblocks
                 //   This is responsible for updating all "actors" residing within the landblock. 
@@ -241,10 +283,10 @@ namespace ACE.Managers
                 // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
                 // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
                 //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
-                {
-                    landblock.UseTime(PortalYearTicks);
-                });
+                ActionQueue.RunActionsParallel();
+
+                // Handles sending out all per-landblock broadcasts -- This may rework when we rework tracking -- tbd
+                BroadcastQueue.RunActionsParallel();
 
                 // XXX(ddevec): Should this be its own step in world-update thread?
                 sessionLock.EnterReadLock();
@@ -266,20 +308,37 @@ namespace ACE.Managers
 
         private static IEnumerable<WorldObject> FakePhysics(double timeTick)
         {
-            List<WorldObject> movedObjects = new List<WorldObject>();
+            ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
             // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
             Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
             {
                 foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                 {
-                    if (wo.FakeDoMotion(timeTick))
+                    Position newPosition = wo.Location;
+                    if (wo.ForcedLocation != null)
                     {
-                        movedObjects.Add(wo);
+                        newPosition = wo.ForcedLocation;
+                        movedObjects.Enqueue(wo);
+                    }
+                    else if (wo.RequestedLocation != null)
+                    {
+                        newPosition = wo.RequestedLocation;
+                        movedObjects.Enqueue(wo);
+                    }
+
+                    if (newPosition != wo.Location)
+                    {
+                        wo.PhysicsUpdatePosition(newPosition);
                     }
                 }
             });
 
             return movedObjects;
+        }
+
+        public static double SecondsToTicks(double elapsedTimeSeconds)
+        {
+            return elapsedTimeSeconds;
         }
     }
 }
