@@ -127,7 +127,10 @@
         AiAcquireHealth = 122,
         AiAcquireStamina = 123,
         AiAcquireMana = 124,
-        [PersistedProperty(true, typeof(Character), 1d)]
+
+        /// <summary>
+        /// this had a default of "1" - leaving comment to investigate potential options for defaulting these things
+        /// </summary>
         ResistHealthDrain = 125,
         LifestoneProtectionTimestamp = 126,
         AiCounteractEnchantment = 127,
@@ -174,16 +177,7 @@
         WeaponAuraOffense = 168,
         WeaponAuraDefense = 169,
         WeaponAuraElemental = 170,
-        [PersistedProperty(true, typeof(Character), 1d)]
         WeaponAuraManaConv = 171,
         Count = 172
-    }
-
-    public static class PropertyDoubleExtensions
-    {
-        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyDouble val)
-        {
-            return val.GetAttributeOfType<PersistedPropertyAttribute>();
-        }
     }
 }

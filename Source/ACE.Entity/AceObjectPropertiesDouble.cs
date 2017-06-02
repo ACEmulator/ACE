@@ -10,7 +10,7 @@ namespace ACE.Entity
         public uint AceObjectId { get; set; }
 
         [DbField("dblPropertyId", (int)MySqlDbType.UInt16)]
-        public short DblPropertyId { get; set; }
+        public ushort PropertyId { get; set; }
 
         [DbField("propertyValue", (int)MySqlDbType.Double)]
         public double PropertyValue { get; set; }

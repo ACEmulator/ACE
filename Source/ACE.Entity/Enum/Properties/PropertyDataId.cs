@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity.Enum.Properties
 {
-    public enum PropertiesDid : uint
+    public enum PropertyDataId : uint
     {
         Undef = 0,
         Setup = 1,

@@ -92,7 +92,7 @@ namespace ACE.Network.GameAction.Actions
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
 
-            session.Player.UpdatePosition(position);
+            session.Player.UpdateLocation(position);
         }
     }
 }

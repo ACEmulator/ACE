@@ -46,13 +46,9 @@
         ReportCollisionsAsEnvironment = 41,
         AllowEdgeSlide = 42,
         AdvocateQuest = 43,
-        [PersistedProperty(true, typeof(Character), false)]
         IsAdmin = 44,
-        [PersistedProperty(true, typeof(Character), false)]
         IsArch = 45,
-        [PersistedProperty(true, typeof(Character), false)]
         IsSentinel = 46,
-        [PersistedProperty(true, typeof(Character), false)]
         IsAdvocate = 47,
         CurrentlyPoweringUp = 48,
         GeneratorEnteredWorld = 49,
@@ -103,7 +99,6 @@
         AppraisalHasAllowedActivator = 94,
         ExistedBeforeAllegianceXpChanges = 95,
         IsDeaf = 96,
-        [PersistedProperty(true, typeof(Character), false)]
         IsPsr = 97,
         Invincible = 98,
         Ivoryable = 99,
@@ -111,7 +106,6 @@
         CanGenerateRare = 101,
         CorpseGeneratedRare = 102,
         NonProjectileMagicImmune = 103,
-        [PersistedProperty(true, typeof(Character), true)]
         ActdReceivedItems = 104,
         Unknown105 = 105,
         FirstEnterWorldDone = 106,
@@ -135,19 +129,10 @@
         NoHeldItemShown = 124,
         LoginAtLifestone = 125,
         OlthoiPk = 126,
-        [PersistedProperty(true, typeof(Character), false)]
         Account15Days = 127,
         HadNoVitae = 128,
         NoOlthoiTalk = 129,
         AutowieldLeft = 130,
         Count = 131
-    }
-
-    public static class PropertyBoolExtensions
-    {
-        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyBool val)
-        {
-            return val.GetAttributeOfType<PersistedPropertyAttribute>();
-        }
     }
 }

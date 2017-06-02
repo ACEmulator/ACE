@@ -149,16 +149,11 @@ namespace ACE.Command
 
             if (session != null)
             {
-                bool isAdvocate = false;
-                bool isSentinel = false;
-                bool isEnvoy = false;
-                bool isArch = false;
-                bool isAdmin = false;
-                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdvocate, out isAdvocate);
-                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsSentinel, out isSentinel);
-                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsPsr, out isEnvoy);
-                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsArch, out isArch);
-                session.Player.PropertiesBool.TryGetValue(PropertyBool.IsAdmin, out isAdmin);
+                bool isAdvocate = false; // we don't track/support this
+                bool isSentinel = session.Player.IsEnvoy; // we map this to envoy
+                bool isEnvoy = isSentinel;
+                bool isArch = session.Player.IsArch;
+                bool isAdmin = session.Player.IsAdmin;
 
                 if (commandInfo.Attribute.Access == AccessLevel.Advocate && !(isAdvocate || isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)
                     || commandInfo.Attribute.Access == AccessLevel.Sentinel && !(isSentinel || isEnvoy || isArch || isAdmin || isSUDOauthorized)

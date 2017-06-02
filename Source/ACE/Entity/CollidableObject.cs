@@ -25,7 +25,7 @@ namespace ACE.Entity
         {
             Name = aceO.Name;
             DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
-            Location = aceO.Position;
+            Location = aceO.Location;
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
@@ -43,7 +43,7 @@ namespace ACE.Entity
             CombatUse = (CombatUse?)aceO.CombatUse;
             ContainerCapacity = aceO.ContainersCapacity;
             Cooldown = aceO.CooldownId;
-            CooldownDuration = (decimal?)aceO.CooldownDuration;
+            CooldownDuration = aceO.CooldownDuration;
             HookItemTypes = aceO.HookItemTypes;
             HookType = aceO.HookType;
             IconOverlay = aceO.IconOverlayId;

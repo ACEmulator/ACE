@@ -60,7 +60,7 @@ namespace ACE.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            var result = await DatabaseManager.Character.GetByAccount(session.Id);
+            var result = await DatabaseManager.Shard.GetCharacters(session.Id);
 
             session.UpdateCachedCharacters(result);
 

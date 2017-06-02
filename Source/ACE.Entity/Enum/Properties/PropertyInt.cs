@@ -9,7 +9,6 @@
         ClothingPriority = 4,
         EncumbranceVal = 5,
         ItemsCapacity = 6,
-        [PersistedProperty(true, typeof(Character), 20u)]
         ContainersCapacity = 7,
         Mass = 8,
         ValidLocations = 9,
@@ -26,11 +25,8 @@
         CoinValue = 20,
         TotalExperience = 21,
         AvailableCharacter = 22,
-        [PersistedProperty(true, typeof(Character), 0u)]
         TotalSkillCredits = 23,
-        [PersistedProperty(true, typeof(Character), 0u)]
         AvailableSkillCredits = 24,
-        [PersistedProperty(true, typeof(Character), 1u)]
         Level = 25,
         AccountRequirements = 26,
         ArmorType = 27,
@@ -49,9 +45,7 @@
         CombatMode = 40,
         CurrentAttackHeight = 41,
         CombatCollisions = 42,
-        [PersistedProperty(true, typeof(Character), 0u)]
         NumDeaths = 43,
-        [PersistedProperty(true, typeof(Character), 0u)]
         Damage = 44,
         DamageType = 45,
         DefaultCombatStyle = 46,
@@ -133,7 +127,6 @@
         AiCpThreshold = 122,
         AiAdvancementStrategy = 123,
         Version = 124,
-        [PersistedProperty(true, typeof(Character), 1u)]
         Age = 125,
         VendorHappyMean = 126,
         VendorHappyVariance = 127,
@@ -143,13 +136,11 @@
         MaterialType = 131,
         NumAllegianceBreaks = 132,
         ShowableOnRadar = 133,
-        [PersistedProperty(true, typeof(Character), 2u)]
         PlayerKillerStatus = 134,
         VendorHappyMaxItems = 135,
         ScorePageNum = 136,
         ScoreConfigNum = 137,
         ScoreNumScores = 138,
-        [PersistedProperty(true, typeof(Character), 0u)]
         DeathLevel = 139,
         AiOptions = 140,
         OpenToEveryone = 141,
@@ -337,7 +328,10 @@
         HealingBoostRating = 323,
         HeritageSpecificArmor = 324,
         AlternateRacialSkills = 325,
-        [PersistedProperty(true, typeof(Character), 1u)] // because who doesn't like free buffs?
+
+        /// <summary>
+        /// why was this defaulted to 1?  leaving comment
+        /// </summary>
         AugmentationJackOfAllTrades = 326,
         AugmentationResistanceNether = 327,
         AugmentationInfusedVoidMagic = 328,
@@ -366,7 +360,6 @@
         LifeResistRating = 351,
         CloakWeaveProc = 352,
         WeaponType = 353,
-        [PersistedProperty(true, typeof(Character), 1u)]
         MeleeMastery = 354,
         RangedMastery = 355,
         SneakAttackRating = 356,
@@ -405,14 +398,13 @@
         Unknown389 = 389,
         Unknown390 = 390,
         Count = 391,
-        uk_DescriptionFlags = 392
-    }
+        uk_DescriptionFlags = 392,
 
-    public static class PropertyIntExtensions
-    {
-        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyInt val)
-        {
-            return val.GetAttributeOfType<PersistedPropertyAttribute>();
-        }
+        // values over 9000 are ones that we have added and should not be sent to the client
+        AccountId = 9000,
+        TotalLogins = 9001,
+        CharacterOptions1 = 9002,
+        CharacterOptions2 = 9003,
+        LootTier = 9004
     }
 }

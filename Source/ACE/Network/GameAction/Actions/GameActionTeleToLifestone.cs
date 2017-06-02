@@ -19,7 +19,8 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToLifestone)]
         public static void Handle(ClientMessage message, Session session)
         {
-            if (session.Player.Positions.ContainsKey(PositionType.Sanctuary)) {
+            var sanctuary = session.Player.GetPosition(PositionType.Sanctuary);
+            if (sanctuary != null) {
                 // session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
                 string msg = $"{session.Player.Name} is recalling to the lifestone.";
 
@@ -39,7 +40,7 @@ namespace ACE.Network.GameAction.Actions
                 session.Network.EnqueueSend(updatePlayersMana, updateCombatMode, sysChatMessage);
                 session.Player.EnqueueMovementEvent(motionLifestoneRecall, session.Player.Guid);
 
-                session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), session.Player.Positions[PositionType.Sanctuary]);
+                session.Player.SetDelayedTeleport(TimeSpan.FromSeconds(14), sanctuary);
             }
             else
             {

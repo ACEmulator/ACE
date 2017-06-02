@@ -12,7 +12,7 @@ namespace ACE.Network.GameAction.Actions
         {
             var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime();
-            playerDOB = playerDOB.AddSeconds(session.Player.PropertiesInt[Entity.Enum.Properties.PropertyInt.Age]);
+            playerDOB = playerDOB.AddSeconds(session.Player.Age);
             TimeSpan tsAge = playerDOB - new DateTime();
 
             string age = "";

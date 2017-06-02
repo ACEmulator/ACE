@@ -3,25 +3,16 @@ using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
     public sealed class Portal : CollidableObject
     {
         private readonly Position portalDestination;
-
-        private readonly uint portalMinLvl;
-
-        private readonly uint portalMaxLvl;
-
+        
         private byte portalSocietyId;
-
-        private bool portalIsTieable;
-
-        private readonly bool portalIsRecallable;
-
-        private bool portalIsSummonable;
-
+        
         private enum SpecialPortalWCID : ushort
         {
             /// <summary>
@@ -113,43 +104,55 @@ namespace ACE.Entity
         {
         }
 
-        public Portal(AcePortalObject aceO)
-            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
+        public Portal(AceObject aceO)
+            : base(aceO)
         {
-            Name = aceO.Name;
-            DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
-            Location = aceO.Position;
-            WeenieClassid = aceO.WeenieClassId;
-            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
+        }
 
-            PhysicsData.MTableResourceId = aceO.MotionTableId;
-            PhysicsData.Stable = aceO.SoundTableId;
-            PhysicsData.CSetup = aceO.ModelTableId;
-            PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
-            PhysicsData.ObjScale = aceO.DefaultScale;
+        public uint MinimumLevel
+        {
+            get { return AceObject.GetIntProperty(PropertyInt.MinLevel) ?? 0; }
+        }
 
-            // game data min required flags;
-            Icon = (ushort)aceO.IconId;
+        public uint MaximumLevel
+        {
+            get { return AceObject.GetIntProperty(PropertyInt.MaxLevel) ?? 0; }
+        }
 
-            Usable = (Usable?)aceO.ItemUseable;
-            RadarColor = (RadarColor?)aceO.BlipColor;
-            RadarBehavior = (RadarBehavior?)aceO.Radar;
-            UseRadius = aceO.UseRadius;
+        public uint SocietyId
+        {
+            get { return 0; }
+        }
 
-            aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
-            aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
-            aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+        public bool IsTieable
+        {
+            get { return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0; }
+            set
+            {
+                uint current = AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
+                current = (value ? (current & ~(uint)PortalBitmask.NoRecall) : current | (uint)PortalBitmask.NoRecall);
+                AceObject.SetIntProperty(PropertyInt.PortalBitmask, current);
+            }
+        }
 
-            portalDestination = aceO.DestPosition;
-            portalMinLvl = aceO.MinLvl;
-            portalMaxLvl = aceO.MaxLvl;
-            portalSocietyId = aceO.SocietyId;
-            portalIsTieable = Convert.ToBoolean(aceO.IsTieable);
-            portalIsRecallable = Convert.ToBoolean(aceO.IsRecallable);
-            portalIsSummonable = Convert.ToBoolean(aceO.IsSummonable);
-    }
+        public bool IsSummonable
+        {
+            get { return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0; }
+            set
+            {
+                uint current = AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
+                current = (value ? (current & ~(uint)PortalBitmask.NoSummon) : current | (uint)PortalBitmask.NoSummon);
+                AceObject.SetIntProperty(PropertyInt.PortalBitmask, current);
+            }
+        }
 
-    public override void OnCollide(Player player)
+        public bool IsRecallable
+        {
+            get { return IsTieable; }
+            set { IsTieable = value; }
+        }
+
+        public override void OnCollide(Player player)
         {
             // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
             var rangeCheck = 5.0f;
@@ -158,7 +161,7 @@ namespace ACE.Entity
             {
                 if (portalDestination != null)
                 {
-                    if ((player.Level >= portalMinLvl) && ((player.Level <= portalMaxLvl) || (portalMaxLvl == 0)))
+                    if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
                     {
                         var portalDest = portalDestination;
                         switch (WeenieClassid)
@@ -256,13 +259,13 @@ namespace ACE.Entity
 
                         // If the portal just used is able to be recalled to,
                         // save the destination coordinates to the LastPortal character position save table
-                        if (Convert.ToBoolean(portalIsRecallable) == true) player.SetCharacterPosition(PositionType.LastPortal, portalDest);
+                        if (Convert.ToBoolean(IsRecallable) == true) player.SetCharacterPosition(PositionType.LastPortal, portalDest);
 
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent);
                     }
-                    else if ((player.Level > portalMaxLvl) && (portalMaxLvl != 0))
+                    else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
                     {
                         // You are too powerful to interact with that portal!
                         var usePortalMessage = new GameEventDisplayStatusMessage(

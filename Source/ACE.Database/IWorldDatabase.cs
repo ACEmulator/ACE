@@ -1,27 +1,24 @@
-﻿using System.Collections.Generic;
-
-using ACE.Entity;
+﻿using ACE.Entity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ACE.Database
 {
-    public interface IWorldDatabase
+    public interface IWorldDatabase : ICommonDatabase
     {
-        List<TeleportLocation> GetLocations();
-
-        AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId);
-
-        List<AceObject> GetObjectsByLandblock(ushort landblock);
+        List<TeleportLocation> GetPointsOfInterest();
 
         List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
 
         List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock);
-
-        AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId);
-
-        BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId);
-
-        BaseAceObject GetRandomBaseAceObjectByTypeId(uint typeId);
-
+        
         bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl);
+
+        AceObject GetRandomWeenieOfType(uint typeId);
+
+        AceObject GetWeenie(uint weenieClassId);
     }
 }

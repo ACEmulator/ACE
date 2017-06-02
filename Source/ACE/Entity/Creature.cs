@@ -51,12 +51,12 @@ namespace ACE.Entity
         }
 
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.ItemType,
+            : base((ObjectType)aceC.WeenieObject.ItemType,
                   new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
-                  aceC.CreatureData.Name,
+                  aceC.WeenieObject.Name,
                   aceC.WeenieClassId,
-                  (ObjectDescriptionFlag)aceC.CreatureData.AceObjectDescriptionFlags,
-                  (WeenieHeaderFlag)aceC.CreatureData.WeenieHeaderFlags,
+                  (ObjectDescriptionFlag)aceC.WeenieObject.AceObjectDescriptionFlags,
+                  (WeenieHeaderFlag)aceC.WeenieObject.WeenieHeaderFlags,
                   aceC.Position)
         {
             if (aceC.WeenieClassId < 0x8000u)
@@ -64,11 +64,11 @@ namespace ACE.Entity
             else
                 this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
 
-            SetObjectData(aceC.CreatureData);
-            SetAbilities(aceC.CreatureData);
+            SetObjectData(aceC.WeenieObject);
+            SetAbilities(aceC.WeenieObject);
         }
 
-        private void SetObjectData(AceCreatureObject aco)
+        private void SetObjectData(AceObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = aco.MotionTableId;
@@ -90,13 +90,13 @@ namespace ACE.Entity
             RadarBehavior = (RadarBehavior?)aco.Radar;
             UseRadius = aco.UseRadius;
 
-            aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
-            aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = aco.PaletteId;
+            // aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
+            // aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            // aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            // ModelData.PaletteGuid = aco.PaletteId;
         }
 
-        private void SetAbilities(AceCreatureObject aco)
+        private void SetAbilities(AceObject aco)
         {
             Strength = new CreatureAbility(aco, Enum.Ability.Strength);
             Endurance = new CreatureAbility(aco, Enum.Ability.Endurance);
@@ -116,10 +116,11 @@ namespace ACE.Entity
             Focus.Base = aco.Focus;
             Self.Base = aco.Self;
 
+            // TODO: determine if this is necessary
             // recalculate the base value as the abilities end/will have an influence on those
-            Health.Base = aco.Health - Health.UnbuffedValue;
-            Stamina.Base = aco.Stamina - Stamina.UnbuffedValue;
-            Mana.Base = aco.Mana - Mana.UnbuffedValue;
+            // Health.Base = aco.Health - Health.UnbuffedValue;
+            // Stamina.Base = aco.Stamina - Stamina.UnbuffedValue;
+            // Mana.Base = aco.Mana - Mana.UnbuffedValue;
 
             Health.Current = Health.MaxValue;
             Stamina.Current = Stamina.MaxValue;

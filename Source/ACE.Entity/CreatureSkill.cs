@@ -2,12 +2,12 @@
 
 namespace ACE.Entity
 {
-    public class CharacterSkill
+    public class CreatureSkill
     {
         // because skill values are determined from stats, we need a reference to the character
         // so we can calculate.  this could be refactored into a better pattern, but it will
         // do for now.
-        private Character character;
+        private AceObject character;
 
         public Skill Skill { get; private set; }
 
@@ -61,7 +61,7 @@ namespace ACE.Entity
 
         public uint ExperienceSpent { get; set; }
 
-        public CharacterSkill(Character character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
+        public CreatureSkill(AceObject character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
         {
             this.character = character;
             Skill = skill;

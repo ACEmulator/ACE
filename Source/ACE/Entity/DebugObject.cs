@@ -12,7 +12,7 @@ namespace ACE.Entity
         {
         }
 
-        public DebugObject(ObjectGuid guid,  BaseAceObject baseAceObject)
+        public DebugObject(ObjectGuid guid,  AceObject baseAceObject)
             : base((ObjectType)baseAceObject.ItemType, guid)
         {
             Name = baseAceObject.Name ?? "NULL";
@@ -49,7 +49,7 @@ namespace ACE.Entity
             CombatUse = (CombatUse?)baseAceObject.CombatUse;
             ContainerCapacity = baseAceObject.ContainersCapacity;
             Cooldown = baseAceObject.CooldownId;
-            CooldownDuration = (decimal?)baseAceObject.CooldownDuration;
+            CooldownDuration = baseAceObject.CooldownDuration;
             HookItemTypes = baseAceObject.HookItemTypes;
             HookType = baseAceObject.HookType;
             IconOverlay = baseAceObject.IconOverlayId;
@@ -88,7 +88,7 @@ namespace ACE.Entity
         public DebugObject(AceObject aceO)
             : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
-            Location = aceO.Position;
+            Location = aceO.Location;
             WeenieClassid = aceO.WeenieClassId;
             GameDataType = aceO.ItemType;
         }

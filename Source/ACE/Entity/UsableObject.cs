@@ -10,7 +10,7 @@ namespace ACE.Entity
         {
         }
 
-        public UsableObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, BaseAceObject baseAceObject)
+        public UsableObject(ObjectGuid guid, ObjectDescriptionFlag descriptionFlag, AceObject baseAceObject)
            : base((ObjectType)baseAceObject.ItemType, guid)
         {
             Type = (ObjectType)baseAceObject.ItemType;
@@ -64,7 +64,7 @@ namespace ACE.Entity
             CombatUse = (CombatUse?)baseAceObject.CombatUse;
             ContainerCapacity = baseAceObject.ContainersCapacity;
             Cooldown = baseAceObject.CooldownId;
-            CooldownDuration = (decimal?)baseAceObject.CooldownDuration;
+            CooldownDuration = baseAceObject.CooldownDuration;
             HookItemTypes = baseAceObject.HookItemTypes;
             HookType = baseAceObject.HookType;
             IconOverlay = (ushort)baseAceObject.IconOverlayId;

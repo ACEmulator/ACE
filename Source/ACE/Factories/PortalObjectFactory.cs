@@ -10,7 +10,8 @@ namespace ACE.Factories
     public class PortalObjectFactory
     {
         /// <summary>
-        /// creates a portal at the position provided
+        /// creates a portal at the position provided.  TODO: load the weenie from the database and use a different
+        /// constructor on the Portal object.
         /// </summary>
         public static Portal CreatePortal(ushort weenieClassId, Position newPosition, string portalTitle, PortalType portalType)
         {
