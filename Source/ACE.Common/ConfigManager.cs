@@ -49,7 +49,7 @@ namespace ACE.Common
     {
         public ConfigMySqlDatabase Authentication { get; set; }
 
-        public ConfigMySqlDatabase Character { get; set; }
+        public ConfigMySqlDatabase Shard { get; set; }
 
         public ConfigMySqlDatabase World { get; set; }
     }

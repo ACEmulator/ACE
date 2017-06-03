@@ -8,7 +8,7 @@ namespace ACE.Database
     {
         private enum WorldPreparedStatement
         {
-            TeleportLocationSelect = 0,
+            GetPointsOfInterest = 0,
             GetWeenieClass = 1,
             GetObjectsByLandblock = 2,
             GetCreaturesByLandblock = 3,
@@ -37,17 +37,18 @@ namespace ACE.Database
 
         protected override void InitializePreparedStatements()
         {
-            // TODO: Og II - switch to constructed Statement
-            AddPreparedStatement(
-                WorldPreparedStatement.TeleportLocationSelect,
-                "SELECT `name`, `landblock`, `posX`, `posY`, `posZ`, `qx`, `qy`, `qz`, `qw` FROM `vw_teleport_location`;");
             ConstructStatement(
-                WorldPreparedStatement.GetWeenieClass,
-                typeof(AceObject),
-                ConstructedStatementType.Get);
+                WorldPreparedStatement.GetPointsOfInterest,
+                typeof(TeleportLocation),
+                ConstructedStatementType.GetList);
+
+            // ConstructStatement(
+            //     WorldPreparedStatement.GetWeenieClass,
+            //     typeof(AceObject),
+            //     ConstructedStatementType.Get);
 
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
@@ -69,10 +70,10 @@ namespace ACE.Database
             // ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
             // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
-            ConstructStatement(
-                WorldPreparedStatement.GetItemsByTypeId,
-                typeof(AceObject),
-                ConstructedStatementType.GetList);
+            // ConstructStatement(
+            //     WorldPreparedStatement.GetItemsByTypeId,
+            //     typeof(AceObject),
+            //     ConstructedStatementType.GetList);
             ConstructStatement(
                 WorldPreparedStatement.GetAceObjectPropertiesInt,
                 typeof(AceObjectPropertiesInt),
@@ -105,23 +106,23 @@ namespace ACE.Database
             return GetBaseAceObjectDataByWeenie(objects[r].WeenieClassId);
         }
 
-        public List<TeleportLocation> GetLocations()
-        {
-            var result = SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect);
-            var locations = new List<TeleportLocation>();
-
-            for (var i = 0u; i < result.Count; i++)
-            {
-                locations.Add(new TeleportLocation
-                {
-                    Location = result.Read<string>(i, "name"),
-                    Position = new Position(result.Read<uint>(i, "landblock"), result.Read<float>(i, "posX"), result.Read<float>(i, "posY"),
-                        result.Read<float>(i, "posZ"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
-                });
-            }
-
-            return locations;
-        }
+        // public List<TeleportLocation> GetLocations()
+        // {
+        //     var result = SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect);
+        //     var locations = new List<TeleportLocation>();
+        // 
+        //     for (var i = 0u; i < result.Count; i++)
+        //     {
+        //         locations.Add(new TeleportLocation
+        //         {
+        //             Location = result.Read<string>(i, "name"),
+        //             Position = new Position(result.Read<uint>(i, "landblock"), result.Read<float>(i, "posX"), result.Read<float>(i, "posY"),
+        //                 result.Read<float>(i, "posZ"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
+        //         });
+        //     }
+        // 
+        //     return locations;
+        // }
 
         //public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
         //{
@@ -349,7 +350,8 @@ namespace ACE.Database
 
         public List<TeleportLocation> GetPointsOfInterest()
         {
-            throw new NotImplementedException();
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TeleportLocation>(WorldPreparedStatement.GetPointsOfInterest, null);
+            return objects;
         }
     }
 }

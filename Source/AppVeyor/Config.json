@@ -20,7 +20,7 @@
             "Username": "root",
             "Password": "Password12!"
         },
-        "Character": {
+        "Shard": {
             "Host": "127.0.0.1",
             "Port": 3306,
             "Database": "ace_character",

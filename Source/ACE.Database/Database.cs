@@ -223,7 +223,10 @@ namespace ACE.Database
                 }
             }
 
-            string query = $"SELECT {selectList} FROM `{tableName}` WHERE {whereList}";
+            string query = $"SELECT {selectList} FROM `{tableName}`";
+
+            if (whereList != null)
+                query = query + $" WHERE {whereList}";
 
             PrepareStatement(statementId, query, types);
         }

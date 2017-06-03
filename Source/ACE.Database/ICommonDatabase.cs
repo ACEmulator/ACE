@@ -14,6 +14,5 @@ namespace ACE.Database
         AceObject GetObject(uint aceObjectId);
 
         bool SaveObject(AceObject aceObject);
-
     }
 }
