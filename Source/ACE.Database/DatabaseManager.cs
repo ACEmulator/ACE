@@ -18,9 +18,9 @@ namespace ACE.Database
             authDb.Initialize(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database);
             Authentication = authDb;
 
-            //var charDb = new CharacterDatabase();
-            //charDb.Initialize(config.Character.Host, config.Character.Port, config.Character.Username, config.Character.Password, config.Character.Database);
-            //Character = charDb;
+            var shardDb = new ShardDatabase();
+            shardDb.Initialize(config.Shard.Host, config.Shard.Port, config.Shard.Username, config.Shard.Password, config.Shard.Database);
+            Shard = shardDb;
 
             var worldDb = new WorldDatabase();
             worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database);

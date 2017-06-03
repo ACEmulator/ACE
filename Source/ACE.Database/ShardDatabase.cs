@@ -47,6 +47,14 @@ namespace ACE.Database
             // keep on going, you get the idea
         }
 
+        protected override void InitializePreparedStatements()
+        {
+            ConstructStatement(
+                ShardPreparedStatement.GetCharacters,
+                typeof(CachedCharacter),
+                ConstructedStatementType.GetList);
+        }
+
         public Task AddFriend(uint characterId, uint friendCharacterId)
         {
             throw new NotImplementedException();
@@ -67,9 +75,12 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public Task<List<CachedCharacter>> GetCharacters(uint accountId)
+        public async Task<List<CachedCharacter>> GetCharacters(uint accountId)
         {
-            throw new NotImplementedException();
+            var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
+
+            return objects; 
         }
         
         public uint GetNextCharacterId()
