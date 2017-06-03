@@ -1,5 +1,5 @@
-CREATE DATABASE  IF NOT EXISTS `ace_world` /*!40100 DEFAULT CHARACTER SET utf8 */;
-USE `ace_world`;
+CREATE DATABASE  IF NOT EXISTS `ace_shard` /*!40100 DEFAULT CHARACTER SET utf8 */;
+USE `ace_shard`;
 -- MySQL dump 10.13  Distrib 5.7.12, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ace_world
@@ -319,6 +319,25 @@ CREATE TABLE `ace_position` (
   KEY `idxPostionType` (`positionType`),
   CONSTRAINT `fk_ap_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=43247 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_friends`
+--
+
+DROP TABLE IF EXISTS `character_friends`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `character_friends` (
+  `id` int(10) unsigned NOT NULL,
+  `friendId` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`,`friendId`),
+  KEY `FK_character_friends_friendId_character_guid` (`friendId`)
+  /*
+  CONSTRAINT `FK_character_friends_friendId_character_guid` FOREIGN KEY (`friendId`) REFERENCES `character` (`guid`),
+  CONSTRAINT `FK_character_friends_id_character_guid` FOREIGN KEY (`id`) REFERENCES `character` (`guid`)
+  */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
