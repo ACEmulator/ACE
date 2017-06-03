@@ -328,6 +328,5 @@ namespace ACE.Entity
         {
             friends.Clear();
         }
-
     }
 }

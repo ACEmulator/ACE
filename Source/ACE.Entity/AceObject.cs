@@ -120,7 +120,6 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
         }
 
-
         public uint? SoundTableId
         {
             get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.SoundTable)?.PropertyValue; }
@@ -138,7 +137,6 @@ namespace ACE.Entity
             get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.UseUserAnimation)?.PropertyValue; }
             set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
         }
-
 
         public CreatureAbility StrengthAbility
         {
@@ -745,7 +743,6 @@ namespace ACE.Entity
                 }
             }
         }
-
 
         public List<PaletteOverride> PaletteOverrides { get; set; } = new List<PaletteOverride>();
 
