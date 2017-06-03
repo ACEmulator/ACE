@@ -124,25 +124,25 @@ namespace ACE.Database
         //     return locations;
         // }
 
-        //public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
-        //{
-        //    var apo = new AcePortalObject();
-        //    var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
-        //    if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
-        //    {
-        //        apo.IntProperties = GetAceObjectPropertiesInt(apo.AceObjectId);
-        //        apo.Int64Properties = GetAceObjectPropertiesBigInt(apo.AceObjectId);
-        //        apo.BoolProperties = GetAceObjectPropertiesBool(apo.AceObjectId);
-        //        apo.DoubleProperties = GetAceObjectPropertiesDouble(apo.AceObjectId);
-        //        apo.StringProperties = GetAceObjectPropertiesString(apo.AceObjectId);
-        //        apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
-        //        apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
-        //        apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);
+        ////public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
+        ////{
+        ////    var apo = new AcePortalObject();
+        ////    var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+        ////    if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
+        ////    {
+        ////        apo.IntProperties = GetAceObjectPropertiesInt(apo.AceObjectId);
+        ////        apo.Int64Properties = GetAceObjectPropertiesBigInt(apo.AceObjectId);
+        ////        apo.BoolProperties = GetAceObjectPropertiesBool(apo.AceObjectId);
+        ////        apo.DoubleProperties = GetAceObjectPropertiesDouble(apo.AceObjectId);
+        ////        apo.StringProperties = GetAceObjectPropertiesString(apo.AceObjectId);
+        ////        apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
+        ////        apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
+        ////        apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);
 
-        //        return apo;
-        //    }
-        //    return null;
-        //}
+        ////        return apo;
+        ////    }
+        ////    return null;
+        ////}
 
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
