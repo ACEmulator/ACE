@@ -9,10 +9,15 @@ namespace ACE.Entity
 {
     public sealed class Portal : CollidableObject
     {
-        private readonly Position portalDestination;
-        
-        private byte portalSocietyId;
-        
+        // private readonly Position portalDestination;
+
+        public Position Destination
+        {
+            get { return AceObject.Destination; }
+        }
+
+        // private byte portalSocietyId;
+
         private enum SpecialPortalWCID : ushort
         {
             /// <summary>
@@ -159,11 +164,11 @@ namespace ACE.Entity
 
             if (player.Location.SquaredDistanceTo(Location) < rangeCheck)
             {
-                if (portalDestination != null)
+                if (Destination != null)
                 {
                     if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
                     {
-                        var portalDest = portalDestination;
+                        var portalDest = Destination;
                         switch (WeenieClassid)
                         {
                             // Setup correct racial portal destination for the Central Courtyard in the Training Academy
@@ -198,13 +203,13 @@ namespace ACE.Entity
                                             }
                                     }
 
-                                    portalDest.PositionX = portalDestination.PositionX;
-                                    portalDest.PositionY = portalDestination.PositionY;
-                                    portalDest.PositionZ = portalDestination.PositionZ;
-                                    portalDest.RotationX = portalDestination.RotationX;
-                                    portalDest.RotationY = portalDestination.RotationY;
-                                    portalDest.RotationZ = portalDestination.RotationZ;
-                                    portalDest.RotationW = portalDestination.RotationW;
+                                    portalDest.PositionX = Destination.PositionX;
+                                    portalDest.PositionY = Destination.PositionY;
+                                    portalDest.PositionZ = Destination.PositionZ;
+                                    portalDest.RotationX = Destination.RotationX;
+                                    portalDest.RotationY = Destination.RotationY;
+                                    portalDest.RotationZ = Destination.RotationZ;
+                                    portalDest.RotationW = Destination.RotationW;
                                     break;
                                 }
                             // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
@@ -239,13 +244,13 @@ namespace ACE.Entity
                                             }
                                     }
 
-                                    portalDest.PositionX = portalDestination.PositionX;
-                                    portalDest.PositionY = portalDestination.PositionY;
-                                    portalDest.PositionZ = portalDestination.PositionZ;
-                                    portalDest.RotationX = portalDestination.RotationX;
-                                    portalDest.RotationY = portalDestination.RotationY;
-                                    portalDest.RotationZ = portalDestination.RotationZ;
-                                    portalDest.RotationW = portalDestination.RotationW;
+                                    portalDest.PositionX = Destination.PositionX;
+                                    portalDest.PositionY = Destination.PositionY;
+                                    portalDest.PositionZ = Destination.PositionZ;
+                                    portalDest.RotationX = Destination.RotationX;
+                                    portalDest.RotationY = Destination.RotationY;
+                                    portalDest.RotationZ = Destination.RotationZ;
+                                    portalDest.RotationW = Destination.RotationW;
                                     break;
                                 }
                             // All other portals don't need adjustments.
