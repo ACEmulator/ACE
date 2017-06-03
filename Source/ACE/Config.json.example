@@ -2,10 +2,10 @@
     "Server": {
         "WorldName": "ACEmulator",
         "Welcome": "Welcome to this ACE server!\nFor more information visit http://www.acemulator.org.",
-      "Network": {
-        "Host": "0.0.0.0",
-        "Port": 9000
-      },
+        "Network": {
+            "Host": "0.0.0.0",
+            "Port": 9000
+        },
         "Accounts": {
             "OverrideCharacterPermissions": true,
             "DefaultAccessLevel": 0
@@ -20,10 +20,10 @@
             "Username": "root",
             "Password": ""
         },
-        "Character": {
+        "Shard": {
             "Host": "127.0.0.1",
             "Port": 3306,
-            "Database": "ace_character",
+            "Database": "ace_shard",
             "Username": "root",
             "Password": ""
         },
