@@ -126,47 +126,47 @@ namespace ACE.Entity.Enum
         LinkedPortalTwo = 16,
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save1 = 17, // @save 1 | @home 1 | @recall 1
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save2 = 18, // @save 2 | @home 2 | @recall 2
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save3 = 19, // @save 3 | @home 3 | @recall 3
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save4 = 20, // @save 4 | @home 4 | @recall 4
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save5 = 21, // @save 5 | @home 5 | @recall 5
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save6 = 22, // @save 6 | @home 6 | @recall 6
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save7 = 23, // @save 7 | @home 7 | @recall 7
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save8 = 24, // @save 8 | @home 8 | @recall 8
 
         /// <summary>
-        /// Assuming these were setup for future use
+        /// Admin Quick Recall Positions
         /// </summary>
         Save9 = 25, // @save 9 | @home 9 | @recall 9
 
@@ -175,6 +175,5 @@ namespace ACE.Entity.Enum
         /// </summary>
         RelativeDestination = 26,
         TeleportedCharacter = 27,
-        PoiDestination = 28
     }
 }
