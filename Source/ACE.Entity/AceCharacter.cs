@@ -41,11 +41,17 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
-        
+
+        // public uint AccountId
+        // {
+        //    get { return GetIntProperty(PropertyInstanceId.Account) ?? 0; }
+        //    set { SetIntProperty(PropertyInt.AccountId, value); }
+        // }
+
         public uint AccountId
         {
-            get { return GetIntProperty(PropertyInt.AccountId) ?? 0; }
-            set { SetIntProperty(PropertyInt.AccountId, value); }
+            get { return (uint)InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account)?.PropertyValue; }
+            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
         }
 
         public bool GetCharacterOptions1(CharacterOptions1 option)
