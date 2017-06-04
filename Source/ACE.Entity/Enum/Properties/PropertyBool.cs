@@ -136,6 +136,6 @@
         Count = 131,
 
         // values over 9000 are ones that we have added and should not be sent to the client
-        IsDeleted = 132
+        IsDeleted = 9001
     }
 }
