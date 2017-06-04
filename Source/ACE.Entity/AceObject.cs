@@ -299,10 +299,16 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
+        // public uint? PaletteId
+        // {
+        //    get { return GetIntProperty(PropertyInt.PaletteTemplate).Value; }
+        //    set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
+        // }
+
         public uint? PaletteId
         {
-            get { return GetIntProperty(PropertyInt.PaletteTemplate).Value; }
-            set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
+            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.PaletteBase)?.PropertyValue; }
+            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
         }
 
         // TODO: Not sure if this enum is right.
