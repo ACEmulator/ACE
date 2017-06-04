@@ -400,7 +400,6 @@
         Count = 391,
 
         // values over 9000 are ones that we have added and should not be sent to the client
-        AccountId = 9000,
         TotalLogins = 9001,
         Deleted = 9002,
         DeletionTimestamp = 9003,
