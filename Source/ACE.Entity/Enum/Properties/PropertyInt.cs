@@ -401,10 +401,9 @@
 
         // values over 9000 are ones that we have added and should not be sent to the client
         TotalLogins = 9001,
-        Deleted = 9002,
-        DeletionTimestamp = 9003,
-        CharacterOptions1 = 9004,
-        CharacterOptions2 = 9005,
-        LootTier = 9006
+        DeletionTimestamp = 9002,
+        CharacterOptions1 = 9003,
+        CharacterOptions2 = 9004,
+        LootTier = 9005
     }
 }
