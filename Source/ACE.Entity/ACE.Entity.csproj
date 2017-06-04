@@ -90,6 +90,7 @@
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
+    <Compile Include="Enum\Channel.cs" />
     <Compile Include="Enum\CharacterOption.cs" />
     <Compile Include="Enum\CharacterOptions1.cs" />
     <Compile Include="Enum\CharacterOptions2.cs" />
@@ -109,6 +110,7 @@
     <Compile Include="Enum\PhysicsState.cs" />
     <Compile Include="Enum\Properties\PropertyDataId.cs" />
     <Compile Include="Enum\Properties\PropertyInstanceId.cs" />
+    <Compile Include="Enum\SecurityLevel.cs" />
     <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
