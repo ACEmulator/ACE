@@ -133,6 +133,9 @@
         HadNoVitae = 128,
         NoOlthoiTalk = 129,
         AutowieldLeft = 130,
-        Count = 131
+        Count = 131,
+
+        // values over 9000 are ones that we have added and should not be sent to the client
+        IsDeleted = 9001
     }
 }

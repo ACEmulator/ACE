@@ -51,6 +51,7 @@
         Count = 45,
 
         // values over 9000 are ones that we have added and should not be sent to the client
-        Friend = 9000
+        Account = 9001,
+        Friend = 9002        
     }
 }
