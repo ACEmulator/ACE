@@ -44,6 +44,7 @@ namespace ACE.Database
             DeleteAllFriends = 104,
 
             GetCharacters = 105,
+            GetNextCharacterId = 106
             // keep on going, you get the idea
         }
 
@@ -53,6 +54,10 @@ namespace ACE.Database
                 ShardPreparedStatement.GetCharacters,
                 typeof(CachedCharacter),
                 ConstructedStatementType.GetList);
+            ConstructStatement(
+                ShardPreparedStatement.GetNextCharacterId,
+                typeof(CachedCharacter),
+                ConstructedStatementType.GetAggregate);
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)
@@ -85,7 +90,10 @@ namespace ACE.Database
         
         public uint GetNextCharacterId()
         {
-            throw new NotImplementedException();
+            uint maxId = ExecuteConstructedGetAggregateStatement<ShardPreparedStatement, CachedCharacter, uint>(ShardPreparedStatement.GetNextCharacterId);
+
+            ObjectGuid nextGuid = new ObjectGuid(maxId + 1, GuidType.Player);
+            return nextGuid.Full;
         }
 
         public AceCharacter GetCharacter(uint id)
