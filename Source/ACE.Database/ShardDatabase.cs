@@ -50,7 +50,7 @@ namespace ACE.Database
         protected override void InitializePreparedStatements()
         {
             ConstructStatement(
-                ShardPreparedStatement.GetCharacters,
+               ShardPreparedStatement.GetCharacters,
                 typeof(CachedCharacter),
                 ConstructedStatementType.GetList);
         }
@@ -80,9 +80,9 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
 
-            return objects; 
+            return objects;
         }
-        
+
         public uint GetNextCharacterId()
         {
             throw new NotImplementedException();
@@ -127,7 +127,7 @@ namespace ACE.Database
         {
             throw new NotImplementedException();
         }
-        
+
         public bool IsCharacterNameAvailable(string name)
         {
             throw new NotImplementedException();
