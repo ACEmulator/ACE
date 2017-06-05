@@ -5,6 +5,7 @@ namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
     [DbGetList("vw_ace_character", 105, "accountId", "deleted")]
+    [DbGetAggregate("vw_ace_character", 106, "MAX", "guid")]
     public class CachedCharacter
     {
         [DbField("guid", (int)MySqlDbType.UInt32)]

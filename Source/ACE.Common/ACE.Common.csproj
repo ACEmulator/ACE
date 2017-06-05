@@ -62,6 +62,7 @@
     <Compile Include="Cryptography\Hash32.cs" />
     <Compile Include="Cryptography\ISAAC.cs" />
     <Compile Include="Cryptography\SHA2.cs" />
+    <Compile Include="DbGetAggregateAttribute.cs" />
     <Compile Include="DbTableAttribute.cs" />
     <Compile Include="DbGetListAttribute.cs" />
     <Compile Include="DerethDateTime.cs" />
