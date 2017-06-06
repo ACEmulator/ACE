@@ -1212,7 +1212,7 @@ namespace ACE.Entity
         public void SetCharacterPosition(Position newPosition)
         {
             // Some positions come from outside of the Player and Character classes
-            if (newPosition.CharacterId == 0) newPosition.CharacterId = Guid.Low;
+            if (newPosition.AceObjectId == 0) newPosition.AceObjectId = Guid.Low;
 
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)

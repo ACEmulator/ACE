@@ -55,7 +55,8 @@ namespace ACE.Database
                ShardPreparedStatement.GetCharacters,
                 typeof(CachedCharacter),
                 ConstructedStatementType.GetList);
-            ConstructStatement(
+
+			ConstructStatement(
                 ShardPreparedStatement.GetNextCharacterId,
                 typeof(CachedCharacter),
                 ConstructedStatementType.GetAggregate);
@@ -64,6 +65,40 @@ namespace ACE.Database
                 typeof(CachedCharacter),
                 ConstructedStatementType.Get);
 
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesInt,
+                typeof(AceObjectPropertiesInt),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesBigInt,
+                typeof(AceObjectPropertiesInt64),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesBool,
+                typeof(AceObjectPropertiesBool),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesDouble,
+                typeof(AceObjectPropertiesDouble),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesString,
+                typeof(AceObjectPropertiesString),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesIid,
+                typeof(AceObjectPropertiesInstanceId),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesDid,
+                typeof(AceObjectPropertiesDataId),
+                ConstructedStatementType.GetList);
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)
@@ -130,7 +165,88 @@ namespace ACE.Database
             // fetch primary attributes (need object)
             // fetch secondary attributes (need object)
             // fetch palette / animation / texture overrides
+            aceObject.IntProperties = GetAceObjectPropertiesInt(aceObject.AceObjectId);
+            aceObject.Int64Properties = GetAceObjectPropertiesBigInt(aceObject.AceObjectId);
+            aceObject.BoolProperties = GetAceObjectPropertiesBool(aceObject.AceObjectId);
+            aceObject.DoubleProperties = GetAceObjectPropertiesDouble(aceObject.AceObjectId);
+            aceObject.InstanceIdProperties = GetAceObjectPropertiesIid(aceObject.AceObjectId);
+            aceObject.DataIdProperties = GetAceObjectPropertiesDid(aceObject.AceObjectId);
+            aceObject.TextureOverrides = GetAceObjectTextureMaps(aceObject.AceObjectId);
+            aceObject.AnimationOverrides = GetAceObjectAnimations(aceObject.AceObjectId);
+            aceObject.PaletteOverrides = GetAceObjectPalettes(aceObject.AceObjectId);
+
         }
+
+        private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.GetAceObjectPropertiesInt, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesInt64> GetAceObjectPropertiesBigInt(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.GetAceObjectPropertiesBigInt, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesBool> GetAceObjectPropertiesBool(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.GetAceObjectPropertiesBool, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesDouble> GetAceObjectPropertiesDouble(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.GetAceObjectPropertiesDouble, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesString> GetAceObjectPropertiesString(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.GetAceObjectPropertiesString, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesDataId> GetAceObjectPropertiesDid(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.GetAceObjectPropertiesDid, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesInstanceId> GetAceObjectPropertiesIid(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.GetAceObjectPropertiesIid, criteria);
+            return objects;
+        }
+
+        private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, TextureMapOverride>(ShardPreparedStatement.GetTextureOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.GetPaletteOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<AnimationOverride> GetAceObjectAnimations(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AnimationOverride>(ShardPreparedStatement.GetAnimationOverridesByObject, criteria);
+            return objects;
+        }
+
 
         public Task<ObjectInfo> GetObjectInfoByName(string name)
         {

@@ -6,8 +6,8 @@
     using Common;
     using MySql.Data.MySqlClient;
 
-    [DbTable("character_position")]
-    [DbGetList("vw_character_positions", 23, "character_id")]
+    [DbTable("ace_position")]
+    [DbGetList("ace_position", 23, "aceObjectId")]
     public class Position
     {
         private LandblockId landblockId;
@@ -16,26 +16,23 @@
         {
             get
             {
-                // When the landblockId is not set, we will instantiate it when needed.
-                if (landblockId.Raw == 0 && Cell != 0)
-                    landblockId = new LandblockId(Cell);
-                return landblockId;
+                return new LandblockId(Cell);
             }
             set
             {
-                Cell = value.Raw;
                 landblockId = value;
             }
         }
 
-        [DbField("character_id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint CharacterId { get; set; }
+        [DbField("aceObjectid", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        public virtual uint AceObjectId { get; set; }
 
-        [DbField("cell", (int)MySqlDbType.UInt32)]
+        // TODO: This is just named wrong needs to be fixed. 
+        [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint Cell { get; set; }
 
-        [DbField("positionType", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint DbPositionType { get; set; }
+        [DbField("positionType", (int)MySqlDbType.UInt16, Update = false, IsCriteria = true)]
+        public virtual ushort DbPositionType { get; set; }
 
         public PositionType PositionType
         {
@@ -51,30 +48,33 @@
                 if ((uint)value >= System.Enum.GetValues(typeof(PositionType)).Length)
                     DbPositionType = 0;
                 else
-                    DbPositionType = (uint)value;
+                    DbPositionType = (ushort)value;
             }
         }
 
-        [DbField("positionX", (int)MySqlDbType.Float)]
+        [DbField("positionId", (int)MySqlDbType.UInt32)]
+        public uint positionId { get; set; }
+
+        [DbField("posX", (int)MySqlDbType.Float)]
         public float PositionX { get; set; }
 
-        [DbField("positionY", (int)MySqlDbType.Float)]
+        [DbField("posY", (int)MySqlDbType.Float)]
         public float PositionY { get; set; }
 
-        [DbField("positionZ", (int)MySqlDbType.Float)]
+        [DbField("posZ", (int)MySqlDbType.Float)]
         public float PositionZ { get; set; }
 
-        [DbField("rotationX", (int)MySqlDbType.Float)]
+        [DbField("qW", (int)MySqlDbType.Float)]
+        public float RotationW { get; set; }
+
+        [DbField("qX", (int)MySqlDbType.Float)]
         public float RotationX { get; set; }
 
-        [DbField("rotationY", (int)MySqlDbType.Float)]
+        [DbField("qY", (int)MySqlDbType.Float)]
         public float RotationY { get; set; }
 
-        [DbField("rotationZ", (int)MySqlDbType.Float)]
+        [DbField("qZ", (int)MySqlDbType.Float)]
         public float RotationZ { get; set; }
-
-        [DbField("rotationW", (int)MySqlDbType.Float)]
-        public float RotationW { get; set; }
 
         private const float xyMidPoint = 96f;
 
@@ -120,7 +120,7 @@
         public Position(uint characterId, PositionType type, uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
             LandblockId = new LandblockId(newCell);
-            CharacterId = characterId;
+            AceObjectId = characterId;
             PositionType = type;
             Cell = newCell;
             PositionX = newPositionX;

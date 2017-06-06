@@ -13,7 +13,7 @@ namespace ACE.Entity
         public static Position InvalidPosition(uint characterId, PositionType type)
         {
             var invalidPosition = new Position();
-            invalidPosition.CharacterId = characterId;
+            invalidPosition.AceObjectId = characterId;
             invalidPosition.PositionType = type;
             invalidPosition.LandblockId = new LandblockId();
             return invalidPosition;
