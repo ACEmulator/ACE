@@ -44,6 +44,8 @@ namespace ACE.Database
             DeleteAllFriends = 104,
 
             GetCharacters = 105,
+            GetNextCharacterId = 106,
+            IsCharacterNameAvailable = 107
             // keep on going, you get the idea
         }
 
@@ -53,6 +55,15 @@ namespace ACE.Database
                ShardPreparedStatement.GetCharacters,
                 typeof(CachedCharacter),
                 ConstructedStatementType.GetList);
+            ConstructStatement(
+                ShardPreparedStatement.GetNextCharacterId,
+                typeof(CachedCharacter),
+                ConstructedStatementType.GetAggregate);
+            ConstructStatement(
+                ShardPreparedStatement.IsCharacterNameAvailable,
+                typeof(CachedCharacter),
+                ConstructedStatementType.Get);
+
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)
@@ -85,7 +96,10 @@ namespace ACE.Database
 
         public uint GetNextCharacterId()
         {
-            throw new NotImplementedException();
+            uint maxId = ExecuteConstructedGetAggregateStatement<ShardPreparedStatement, CachedCharacter, uint>(ShardPreparedStatement.GetNextCharacterId);
+
+            ObjectGuid nextGuid = new ObjectGuid(maxId + 1, GuidType.Player);
+            return nextGuid.Full;
         }
 
         public AceCharacter GetCharacter(uint id)
@@ -130,7 +144,9 @@ namespace ACE.Database
 
         public bool IsCharacterNameAvailable(string name)
         {
-            throw new NotImplementedException();
+            var cc = new CachedCharacter();
+            var criteria = new Dictionary<string, object> { { "name", name } };
+            return !(ExecuteConstructedGetStatement(ShardPreparedStatement.IsCharacterNameAvailable, typeof(CachedCharacter), criteria, cc));
         }
 
         public uint RenameCharacter(string currentName, string newName)

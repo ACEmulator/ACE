@@ -25,8 +25,8 @@ namespace ACE.Entity
         public AceObject()
         {
             abilities.Add(Ability.Strength, new CreatureAbility(this, Ability.Strength));
-            abilities.Add(Ability.Strength, new CreatureAbility(this, Ability.Endurance));
-            abilities.Add(Ability.Endurance, new CreatureAbility(this, Ability.Coordination));
+            abilities.Add(Ability.Endurance, new CreatureAbility(this, Ability.Endurance));
+            abilities.Add(Ability.Coordination, new CreatureAbility(this, Ability.Coordination));
             abilities.Add(Ability.Quickness, new CreatureAbility(this, Ability.Quickness));
             abilities.Add(Ability.Focus, new CreatureAbility(this, Ability.Focus));
             abilities.Add(Ability.Self, new CreatureAbility(this, Ability.Self));

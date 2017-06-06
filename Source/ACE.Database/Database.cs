@@ -231,11 +231,50 @@ namespace ACE.Database
             PrepareStatement(statementId, query, types);
         }
 
+        private void ConstructGetAggregateStatement<T1>(T1 id, Type type)
+        {
+            uint statementId = Convert.ToUInt32(id);
+            DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
+            DbGetAggregateAttribute getAggregate = type.GetCustomAttributes(false)?.OfType<DbGetAggregateAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
+
+            if (dbTable == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            if (getAggregate == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            List<MySqlDbType> types = new List<MySqlDbType>();
+            var properties = GetPropertyCache(type);
+            string tableName = getAggregate.TableName;
+            string aggregatFunction = getAggregate.AggregatFunction;
+            string aggregateList = null;
+
+            foreach (var p in properties)
+            {
+                if (getAggregate.ParameterFields.Contains(p.Item2.DbFieldName))
+                {
+                    if (aggregateList != null)
+                        aggregateList += ", ";
+                    aggregateList += aggregatFunction + "(`" + p.Item2.DbFieldName + "`)";
+                    types.Add((MySqlDbType)p.Item2.DbFieldType);
+                }
+            }
+
+            string query = $"SELECT {aggregateList} FROM `{tableName}`";
+
+            PrepareStatement(statementId, query, types);
+        }
+
         public void ConstructStatement<T1>(T1 id, Type type, ConstructedStatementType statementType)
         {
             if (statementType == ConstructedStatementType.GetList)
             {
                 ConstructGetListStatement(id, type);
+                return;
+            }
+            if (statementType == ConstructedStatementType.GetAggregate)
+            {
+                ConstructGetAggregateStatement(id, type);
                 return;
             }
 
@@ -423,6 +462,47 @@ namespace ACE.Database
             }
 
             return results;
+        }
+
+        public T3 ExecuteConstructedGetAggregateStatement<T1, T2, T3>(T1 id)
+        {
+            uint statementId = Convert.ToUInt32(id);
+            
+            StoredPreparedStatement preparedStatement;
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                return default(T3);
+            }
+
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    using (var command = new MySqlCommand(preparedStatement.Query, connection))
+                    {
+                        connection.Open();
+                        using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                        {
+                            if (commandReader.Read())
+                            {
+                                // TODO: Extend this to read multiple Aggregate functions if/when there is a use case for this
+                                if (commandReader[0] == DBNull.Value)
+                                    return default(T3);
+                                else
+                                    return (T3)commandReader[0];
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySqlException exception)
+            {
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
+            }
+
+            return default(T3);
         }
 
         public bool ExecuteConstructedInsertStatement<T1>(T1 id, Type type, object instance)

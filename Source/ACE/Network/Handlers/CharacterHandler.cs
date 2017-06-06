@@ -118,13 +118,13 @@ namespace ACE.Network.Handlers
                 return;
 
             var reader = message.Payload;
-            Appearance appearance = Appearance.FromNetowrk(reader);
             CharGen cg = CharGen.ReadFromDat();
             AceCharacter character = new AceCharacter(DatabaseManager.Shard.GetNextCharacterId());
             
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
             character.Gender = reader.ReadUInt32();
+            Appearance appearance = Appearance.FromNetowrk(reader);
 
             // pull character data from the dat file
             SexCG sex = cg.HeritageGroups[(int)character.Heritage].SexList[(int)character.Gender];
@@ -179,9 +179,16 @@ namespace ACE.Network.Handlers
                 skill = (Skill)i;
                 skillCost = skill.GetCost();
                 skillStatus = (SkillStatus)reader.ReadUInt32();
-                character.TrainSkill(skill, skillCost.TrainingCost);
+                // character.TrainSkill(skill, skillCost.TrainingCost);
+                // if (skillStatus == SkillStatus.Specialized)
+                //     character.SpecializeSkill(skill, skillCost.SpecializationCost);
                 if (skillStatus == SkillStatus.Specialized)
+                {
+                    character.TrainSkill(skill, skillCost.TrainingCost);
                     character.SpecializeSkill(skill, skillCost.SpecializationCost);
+                }
+                if (skillStatus == SkillStatus.Trained)
+                    character.TrainSkill(skill, skillCost.TrainingCost);
             }
 
             character.Name = reader.ReadString16L();

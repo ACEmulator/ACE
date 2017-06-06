@@ -5,6 +5,7 @@ namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
     [DbGetList("vw_ace_character", 105, "accountId", "deleted")]
+    [DbGetAggregate("vw_ace_character", 106, "MAX", "guid")]
     public class CachedCharacter
     {
         [DbField("guid", (int)MySqlDbType.UInt32)]
@@ -18,13 +19,13 @@ namespace ACE.Entity
 
         public byte SlotId { get; }
 
-        [DbField("accountId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("accountId", (int)MySqlDbType.UInt32)]
         public uint AccountId { get; set; }
 
-        [DbField("name", (int)MySqlDbType.VarChar)]
+        [DbField("name", (int)MySqlDbType.VarChar, IsCriteria = true)]
         public string Name { get; set; }
 
-        [DbField("deleted", (int)MySqlDbType.UByte, Update = false, IsCriteria = true)]
+        [DbField("deleted", (int)MySqlDbType.UByte)]
         public byte Deleted { get; set; }
 
         [DbField("deleteTime", (int)MySqlDbType.UInt64)]
