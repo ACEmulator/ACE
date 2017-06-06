@@ -63,7 +63,6 @@ namespace ACE.Database
                 ShardPreparedStatement.IsCharacterNameAvailable,
                 typeof(CachedCharacter),
                 ConstructedStatementType.Get);
-
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)

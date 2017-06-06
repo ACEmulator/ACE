@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-06
+[OptimShi]
+* Read character creation values from client_portal.dat and assign to appropriate Character Properties.
+
 ### 2017-05-21
 [Og II]
 * Intital work done for new schema.   Rebased and removed update sql files.

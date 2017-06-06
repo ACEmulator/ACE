@@ -86,5 +86,13 @@ namespace ACE.DatLoader.FileTypes
                 return ct;
             }
         }
+
+        public uint GetIcon(uint palEffectIdx)
+        {
+            if (ClothingSubPalEffects.ContainsKey(palEffectIdx))
+                return (ClothingSubPalEffects[palEffectIdx].Icon);
+            else
+                return 0;
+        }
     }
 }
