@@ -1,7 +1,6 @@
 ﻿using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -23,19 +22,19 @@ namespace ACE.Entity
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
-        
+
         public uint CharacterOptions1Mapping
         {
             get { return GetIntProperty(PropertyInt.CharacterOptions1) ?? 0; }
             set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
         }
-        
+
         public uint CharacterOptions2Mapping
         {
             get { return GetIntProperty(PropertyInt.CharacterOptions2) ?? 0; }
             set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
         }
-        
+
         public uint TotalLogins
         {
             get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
@@ -218,7 +217,7 @@ namespace ACE.Entity
                 return new ReadOnlyDictionary<CharacterOption, bool>(allOptions);
             }
         }
-        
+
         public Position LastPortal
         {
             get { return GetPosition(PositionType.LastPortal); }
@@ -244,7 +243,7 @@ namespace ACE.Entity
             else
                 SetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
         }
-        
+
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
@@ -316,7 +315,7 @@ namespace ACE.Entity
         {
             AvailableExperience += amount;
         }
-        
+
         public void AddFriend(Friend friend)
         {
             friends.Add(friend);

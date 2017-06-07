@@ -783,7 +783,7 @@ namespace ACE.Entity
             get { return GetPosition(PositionType.Location); }
             set { SetPosition(PositionType.Location, value); }
         }
-        
+
         protected Position GetPosition(PositionType positionType)
         {
             if (Positions.ContainsKey(positionType))
