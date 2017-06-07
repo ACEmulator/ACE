@@ -518,43 +518,39 @@ SET character_set_client = @saved_cs_client;
 
 /*Table structure for table `vw_ace_character` */
 
-DROP TABLE IF EXISTS `vw_ace_character`;
-
-/*!50001 DROP VIEW IF EXISTS `vw_ace_character` */;
-/*!50001 DROP TABLE IF EXISTS `vw_ace_character` */;
-
-/*!50001 CREATE TABLE  `vw_ace_character`(
- `guid` int(10) unsigned ,
- `accountId` int(10) unsigned ,
- `NAME` text ,
- `deleted` tinyint(1) ,
- `deleteTime` bigint(20) unsigned ,
- `weenieClassId` int(10) unsigned ,
- `weenieClassDescription` text ,
- `aceObjectDescriptionFlags` int(10) unsigned ,
- `physicsDescriptionFlag` int(10) unsigned ,
- `weenieHeaderFlags` int(10) unsigned ,
- `itemType` int(10) unsigned ,
- `positionId` int(10) unsigned ,
- `positionType` smallint(5) unsigned ,
- `LandblockRaw` int(10) unsigned ,
- `posX` float ,
- `posY` float ,
- `posZ` float ,
- `qW` float ,
- `qX` float ,
- `qY` float ,
- `qZ` float 
-)*/;
-
-/*View structure for view vw_ace_character */
-
-/*!50001 DROP TABLE IF EXISTS `vw_ace_character` */;
-/*!50001 DROP VIEW IF EXISTS `vw_ace_character` */;
-
-/*!50001 CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vw_ace_character` AS (select `ao`.`aceObjectId` AS `guid`,`aopiidacc`.`propertyValue` AS `accountId`,`aops`.`propertyValue` AS `NAME`,`aopb`.`propertyValue` AS `deleted`,`aopbi`.`propertyValue` AS `deleteTime`,`ao`.`weenieClassId` AS `weenieClassId`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType`,`ap`.`positionId` AS `positionId`,`ap`.`positionType` AS `positionType`,`ap`.`landblockRaw` AS `LandblockRaw`,`ap`.`posX` AS `posX`,`ap`.`posY` AS `posY`,`ap`.`posZ` AS `posZ`,`ap`.`qW` AS `qW`,`ap`.`qX` AS `qX`,`ap`.`qY` AS `qY`,`ap`.`qZ` AS `qZ` from (((((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_bool` `aopb` on(((`ao`.`aceObjectId` = `aopb`.`aceObjectId`) and (`aopb`.`boolPropertyId` = 9001)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_object_properties_bigint` `aopbi` on(((`ao`.`aceObjectId` = `aopbi`.`aceObjectId`) and (`aopbi`.`bigIntPropertyId` = 9001)))) join `ace_position` `ap` on(((`ao`.`aceObjectId` = `ap`.`aceObjectId`) and (`ap`.`positionType` = 1)))) join `ace_object_properties_iid` `aopiidacc` on(((`ao`.`aceObjectId` = `aopiidacc`.`aceObjectId`) and (`aopiidacc`.`iidPropertyId` = 9001))))) */;
-
-
+DROP VIEW IF EXISTS vw_ace_character;
+CREATE VIEW vw_ace_character AS
+SELECT
+  ao.aceObjectId AS guid
+  , aopiidacc.propertyValue AS accountId
+  , aops.propertyValue AS NAME
+  , aopb.propertyValue AS deleted
+  , aopbi.propertyValue AS deleteTime
+  , ao.weenieClassId AS weenieClassId
+  , awc.weenieClassDescription AS weenieClassDescription
+  , ao.aceObjectDescriptionFlags AS aceObjectDescriptionFlags
+  , ao.physicsDescriptionFlag AS physicsDescriptionFlag
+  , ao.weenieHeaderFlags AS weenieHeaderFlags
+  , aopi.propertyValue AS itemType
+FROM
+  ace_object ao
+  JOIN ace_weenie_class awc
+    ON ao.weenieClassId = awc.weenieClassId
+  JOIN ace_object_properties_string aops
+    ON ao.aceObjectId = aops.aceObjectId
+    AND aops.strPropertyId = 1
+  JOIN ace_object_properties_bool aopb
+    ON ao.aceObjectId = aopb.aceObjectId
+    AND aopb.boolPropertyId = 9001
+  JOIN ace_object_properties_int aopi
+    ON ao.aceObjectId = aopi.aceObjectId
+    AND aopi.intPropertyId = 1
+  JOIN ace_object_properties_bigint aopbi
+    ON ao.aceObjectId = aopbi.aceObjectId
+    AND aopbi.bigIntPropertyId = 9001
+  JOIN ace_object_properties_iid aopiidacc
+    ON ao.aceObjectId = aopiidacc.aceObjectId
+    AND aopiidacc.iidPropertyId = 9001
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
