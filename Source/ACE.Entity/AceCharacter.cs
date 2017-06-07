@@ -182,6 +182,78 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Gender, value); }
         }
 
+        public uint EyesTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.EyesTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.EyesTexture, value); }
+        }
+
+        public uint DefaultEyesTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultEyesTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.DefaultEyesTexture, value); }
+        }
+
+        public uint NoseTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.NoseTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.NoseTexture, value); }
+        }
+
+        public uint DefaultNoseTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultNoseTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.DefaultNoseTexture, value); }
+        }
+
+        public uint MouthTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.MouthTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.MouthTexture, value); }
+        }
+
+        public uint DefaultMouthTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultMouthTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.DefaultMouthTexture, value); }
+        }
+
+        public uint HairTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.HairTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.HairTexture, value); }
+        }
+
+        public uint DefaultHairTexture
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultHairTexture) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.DefaultHairTexture, value); }
+        }
+
+        public uint HeadObject
+        {
+            get { return GetDataIdProperty(PropertyDataId.HeadObject) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.HeadObject, value); }
+        }
+
+        public uint SkinPalette
+        {
+            get { return GetDataIdProperty(PropertyDataId.SkinPalette) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.SkinPalette, value); }
+        }
+
+        public uint HairPalette
+        {
+            get { return GetDataIdProperty(PropertyDataId.HairPalette) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.HairPalette, value); }
+        }
+
+        public uint EyesPalette
+        {
+            get { return GetDataIdProperty(PropertyDataId.EyesPalette) ?? 0; }
+            set { SetDataIdProperty(PropertyDataId.EyesPalette, value); }
+        }
+
         private bool dirtyOptions = true;
 
         private Dictionary<CharacterOption, bool> allOptions = new Dictionary<CharacterOption, bool>();

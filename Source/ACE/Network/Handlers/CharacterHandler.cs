@@ -130,27 +130,16 @@ namespace ACE.Network.Handlers
             SexCG sex = cg.HeritageGroups[(int)character.Heritage].SexList[(int)character.Gender];
 
             character.MotionTableId = sex.MotionTable;
-            character.SetDataIdProperty(PropertyDataId.MotionTable, character.MotionTableId);
-
             character.SoundTableId = sex.SoundTable;
-            character.SetDataIdProperty(PropertyDataId.SoundTable, character.SoundTableId);
-
             character.PhysicsTableId = sex.PhysicsTable;
-            character.SetDataIdProperty(PropertyDataId.PhysicsEffectTable, character.PhysicsTableId);
-
             character.ModelTableId = sex.SetupID;
-            character.SetDataIdProperty(PropertyDataId.Setup, character.ModelTableId);
-
             character.PaletteId = sex.BasePalette;
-            character.SetDataIdProperty(PropertyDataId.PaletteBase, character.PaletteId);
-
             character.CombatTableId = sex.CombatTable;
-            character.SetDataIdProperty(PropertyDataId.CombatTable, character.CombatTableId);
 
             // Check the character scale
             if (sex.Scale != 100u)
             {
-                character.SetDoubleProperty(PropertyDouble.DefaultScale, (sex.Scale / 100f)); // Scale is stored as a percentage
+                character.DefaultScale = (sex.Scale / 100f); // Scale is stored as a percentage
             }
 
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
@@ -159,35 +148,32 @@ namespace ACE.Network.Handlers
 
             // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             if (hairstyle.AlternateSetup > 0)
-            {
                 character.ModelTableId = hairstyle.AlternateSetup;
-                character.SetDataIdProperty(PropertyDataId.Setup, character.ModelTableId);
-            }
 
-            character.SetDataIdProperty(PropertyDataId.EyesTexture, sex.GetEyeTexture(appearance.Eyes, isBald));
-            character.SetDataIdProperty(PropertyDataId.DefaultEyesTexture, sex.GetDefaultEyeTexture(appearance.Eyes, isBald));
-            character.SetDataIdProperty(PropertyDataId.NoseTexture, sex.GetNoseTexture(appearance.Nose));
-            character.SetDataIdProperty(PropertyDataId.DefaultNoseTexture, sex.GetDefaultNoseTexture(appearance.Nose));
-            character.SetDataIdProperty(PropertyDataId.MouthTexture, sex.GetMouthTexture(appearance.Mouth));
-            character.SetDataIdProperty(PropertyDataId.DefaultMouthTexture, sex.GetDefaultMouthTexture(appearance.Mouth));
-            character.SetDataIdProperty(PropertyDataId.HairTexture, sex.GetHairTexture(appearance.HairStyle));
-            character.SetDataIdProperty(PropertyDataId.DefaultHairTexture, sex.GetDefaultHairTexture(appearance.HairStyle));
-            character.SetDataIdProperty(PropertyDataId.HeadObject, sex.GetHairTexture(appearance.HairStyle));
+            character.EyesTexture = sex.GetEyeTexture(appearance.Eyes, isBald);
+            character.DefaultEyesTexture = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
+            character.NoseTexture = sex.GetNoseTexture(appearance.Nose);
+            character.DefaultNoseTexture = sex.GetDefaultNoseTexture(appearance.Nose);
+            character.MouthTexture = sex.GetMouthTexture(appearance.Mouth);
+            character.DefaultMouthTexture = sex.GetDefaultMouthTexture(appearance.Mouth);
+            character.HairTexture = sex.GetHairTexture(appearance.HairStyle);
+            character.DefaultHairTexture = sex.GetDefaultHairTexture(appearance.HairStyle);
+            character.HeadObject = sex.GetHairTexture(appearance.HairStyle);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
             ushort skinPal = (ushort)skinPalSet.GetPaletteID(appearance.SkinHue);
-            character.SetDataIdProperty(PropertyDataId.SkinPalette, skinPal);
+            character.SkinPalette = skinPal;
             // ModelData.AddPalette(skinPal, 0x0, 0x18); // for reference on how to apply
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairHue)]);
             ushort hairPal = (ushort)hairPalSet.GetPaletteID(appearance.HairColor);
-            character.SetDataIdProperty(PropertyDataId.HairPalette, hairPal);
+            character.HairPalette = hairPal;
             // ModelData.AddPalette(hairPal, 0x18, 0x8); // for reference on how to apply
 
             // Eye Color
-            character.SetDataIdProperty(PropertyDataId.EyesPalette, sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)]);
+            character.EyesPalette = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
             // ModelData.AddPalette(PropertyDataId.EyesPalette, 0x20, 0x8); // for reference on how to apply
 
             if (appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
