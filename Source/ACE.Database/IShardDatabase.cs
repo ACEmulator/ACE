@@ -16,7 +16,7 @@ namespace ACE.Database
         /// Loads an object by name.  Primary use case: characters.
         /// </summary>
         Task<ObjectInfo> GetObjectInfoByName(string name);
-        
+
         Task DeleteFriend(uint characterId, uint friendCharacterId);
 
         Task AddFriend(uint characterId, uint friendCharacterId);
