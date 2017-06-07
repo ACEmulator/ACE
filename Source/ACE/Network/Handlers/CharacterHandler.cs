@@ -124,33 +124,93 @@ namespace ACE.Network.Handlers
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
             character.Gender = reader.ReadUInt32();
-            Appearance appearance = Appearance.FromNetowrk(reader);
+            Appearance appearance = Appearance.FromNetwork(reader);
 
             // pull character data from the dat file
             SexCG sex = cg.HeritageGroups[(int)character.Heritage].SexList[(int)character.Gender];
-            
+
             character.MotionTableId = sex.MotionTable;
             character.SoundTableId = sex.SoundTable;
             character.PhysicsTableId = sex.PhysicsTable;
             character.ModelTableId = sex.SetupID;
             character.PaletteId = sex.BasePalette;
             character.CombatTableId = sex.CombatTable;
-            
-            // not sure how to set these.  Optim says they're in the dat
-            // character.SetDataIdProperty(PropertyDataId.EyesTexture, appearance.Nose);
-            // character.SetDataIdProperty(PropertyDataId.NoseTexture, appearance.Nose);
-            // character.SetDataIdProperty(PropertyDataId.MouthTexture, appearance.Mouth);
 
-            // character.SetDataIdProperty(PropertyDataId.HairPalette, appearance.HairColor);
-            // character.SetDataIdProperty(PropertyDataId.EyesPalette, appearance.EyeColor);
-            // character.SetDataIdProperty(PropertyDataId.SkinPalette, appearance.EyeColor);
+            // Check the character scale
+            if (sex.Scale != 100u)
+            {
+                character.DefaultScale = (sex.Scale / 100f); // Scale is stored as a percentage
+            }
 
-            // character.SetDataIdProperty(PropertyDataId.HeadObject, appearance.HairStyle);
+            // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+            HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
+            bool isBald = hairstyle.Bald;
 
-            // junk data point
-            var templateOption = reader.ReadUInt32();
+            // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+            if (hairstyle.AlternateSetup > 0)
+                character.ModelTableId = hairstyle.AlternateSetup;
+
+            character.EyesTexture = sex.GetEyeTexture(appearance.Eyes, isBald);
+            character.DefaultEyesTexture = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
+            character.NoseTexture = sex.GetNoseTexture(appearance.Nose);
+            character.DefaultNoseTexture = sex.GetDefaultNoseTexture(appearance.Nose);
+            character.MouthTexture = sex.GetMouthTexture(appearance.Mouth);
+            character.DefaultMouthTexture = sex.GetDefaultMouthTexture(appearance.Mouth);
+            character.HairTexture = sex.GetHairTexture(appearance.HairStyle);
+            character.DefaultHairTexture = sex.GetDefaultHairTexture(appearance.HairStyle);
+            character.HeadObject = sex.GetHairTexture(appearance.HairStyle);
+
+            // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
+            ushort skinPal = (ushort)skinPalSet.GetPaletteID(appearance.SkinHue);
+            character.SkinPalette = skinPal;
+            // ModelData.AddPalette(skinPal, 0x0, 0x18); // for reference on how to apply
+
+            // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairHue)]);
+            ushort hairPal = (ushort)hairPalSet.GetPaletteID(appearance.HairColor);
+            character.HairPalette = hairPal;
+            // ModelData.AddPalette(hairPal, 0x18, 0x8); // for reference on how to apply
+
+            // Eye Color
+            character.EyesPalette = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
+            // ModelData.AddPalette(PropertyDataId.EyesPalette, 0x20, 0x8); // for reference on how to apply
+
+            if (appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
+            {
+                // TODO - Create Inventory Item
+                uint headgearWeenie = sex.GetHeadgearWeenie(appearance.HeadgearStyle);
+                ClothingTable headCT = ClothingTable.ReadFromDat(sex.GetHeadgearClothingTable(appearance.HeadgearStyle));
+                uint headgearIconId = headCT.GetIcon(appearance.HeadgearColor);
+                // TODO - Apply the chosen color palette(s) (read from the ClothingTable)
+            }
+
+            // TODO - Create Inventory Item
+            uint shirtWeenie = sex.GetShirtWeenie(appearance.ShirtStyle);
+            ClothingTable shirtCT = ClothingTable.ReadFromDat(sex.GetShirtClothingTable(appearance.ShirtStyle));
+            uint shirtIconId = shirtCT.GetIcon(appearance.ShirtColor);
+            // TODO - Apply the chosen color palette(s) (read from the ClothingTable)
+
+            // TODO - Create Inventory Item
+            uint pantsWeenie = sex.GetPantsWeenie(appearance.PantsStyle);
+            ClothingTable pantsCT = ClothingTable.ReadFromDat(sex.GetPantsClothingTable(appearance.PantsStyle));
+            uint pantsIconId = pantsCT.GetIcon(appearance.PantsColor);
+            // TODO - Apply the chosen color palette(s) (read from the ClothingTable)
+
+            // TODO - Create Inventory Item
+            uint footwearWeenie = sex.GetFootwearWeenie(appearance.FootwearStyle);
+            ClothingTable footwearCT = ClothingTable.ReadFromDat(sex.GetFootwearClothingTable(appearance.FootwearStyle));
+            uint footwearIconId = footwearCT.GetIcon(appearance.FootwearColor);
+            // TODO - Apply the chosen color palette(s) (read from the ClothingTable)
+
+            // Profession (Adventurer, Bow Hunter, etc)
+            // TODO - Add this title to the available titles for this character.
+            var templateOption = reader.ReadInt32();
+            string templateName = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Name;
+            character.SetStringProperty(PropertyString.Title, templateName);
 
             // stats
+            // TODO - Validate this is equal to 330 (Total Attribute Credits)
             character.StrengthAbility.Base = reader.ReadUInt32();
             character.EnduranceAbility.Base = reader.ReadUInt32();
             character.CoordinationAbility.Base = reader.ReadUInt32();

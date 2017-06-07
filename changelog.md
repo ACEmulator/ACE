@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-06-06
+[OptimShi]
+* Read character creation values from client_portal.dat and assign to appropriate Character Properties.
+
 [Og II]
 * Intital work done for loading character from ace_shard.   Rebased and removed update sql files.
 * Tested up to position loading.   Made changes to position, but have not loaded the dictionary yet.
@@ -8,7 +11,6 @@
 * TODO items:
 *	Finish up loading positions then see what is left. 
 *	Work on saving as OptimShi - has character creation ready to go.   
-
 
 ### 2017-05-21
 [Og II]

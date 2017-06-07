@@ -7,7 +7,7 @@ namespace ACE.Entity
         /// <summary>
         /// This should be moved back to the ACE project when time permits.
         /// </summary>
-        public static Appearance FromNetowrk(BinaryReader reader)
+        public static Appearance FromNetwork(BinaryReader reader)
         {
             Appearance appearance = new Appearance()
             {

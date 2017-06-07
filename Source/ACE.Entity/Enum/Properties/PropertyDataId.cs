@@ -64,6 +64,10 @@
         YellowSurgeSpell = 59,
         RedSurgeSpell = 60,
         OlthoiDeathTreasureType = 61,
-        Count = 61
+        Count = 63,
+
+        // values over 9000 are ones that we have added and should not be sent to the client
+        HairTexture = 9001,
+        DefaultHairTexture = 9002,
     }
 }
