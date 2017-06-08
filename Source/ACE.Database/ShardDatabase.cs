@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -37,6 +36,11 @@ namespace ACE.Database
             GetAceObjectPropertiesString = 20,
             GetAceObjectPropertiesDid = 21,
             GetAceObjectPropertiesIid = 22,
+            GetAcePositions = 23,
+            GetAceAttributes = 24,
+            // ReSharper disable once InconsistentNaming
+            GetAceAttributes2nd = 25,
+            GetAceObjectPropertiesSkill = 26,
 
             AddFriend = 101,
             DeleteFriend = 102,
@@ -99,6 +103,41 @@ namespace ACE.Database
                 ShardPreparedStatement.GetAceObjectPropertiesDid,
                 typeof(AceObjectPropertiesDataId),
                 ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetTextureOverridesByObject,
+                typeof(TextureMapOverride),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetPaletteOverridesByObject,
+                typeof(PaletteOverride),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAnimationOverridesByObject,
+                typeof(AnimationOverride),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAcePositions,
+                typeof(Position),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceAttributes,
+                typeof(AceObjectPropertiesAttribute),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceAttributes2nd,
+                typeof(AceObjectPropertiesAttribute2nd),
+                ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.GetAceObjectPropertiesSkill,
+                typeof(AceObjectPropertiesSkill),
+                ConstructedStatementType.GetList);
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)
@@ -158,25 +197,51 @@ namespace ACE.Database
 
         private void LoadIntoObject(AceObject aceObject)
         {
-            // fetch all common data
-            // fetch the base object from ace_object - this has little/nothing more than a weenie id and some flags
-            // fetch all properties and load them in (use Properties object)
-            // fetch all positions, load them in (use Position object)
-            // fetch primary attributes (need object)
-            // fetch secondary attributes (need object)
-            // fetch palette / animation / texture overrides
+            // TODO: still to implement - load spells, friends, allegiance info, spell comps, spell bars
             aceObject.IntProperties = GetAceObjectPropertiesInt(aceObject.AceObjectId);
             aceObject.Int64Properties = GetAceObjectPropertiesBigInt(aceObject.AceObjectId);
             aceObject.BoolProperties = GetAceObjectPropertiesBool(aceObject.AceObjectId);
             aceObject.DoubleProperties = GetAceObjectPropertiesDouble(aceObject.AceObjectId);
+            aceObject.StringProperties = GetAceObjectPropertiesString(aceObject.AceObjectId);
             aceObject.InstanceIdProperties = GetAceObjectPropertiesIid(aceObject.AceObjectId);
             aceObject.DataIdProperties = GetAceObjectPropertiesDid(aceObject.AceObjectId);
             aceObject.TextureOverrides = GetAceObjectTextureMaps(aceObject.AceObjectId);
             aceObject.AnimationOverrides = GetAceObjectAnimations(aceObject.AceObjectId);
             aceObject.PaletteOverrides = GetAceObjectPalettes(aceObject.AceObjectId);
-
+            aceObject.Positions = GetAceObjectPostions(aceObject.AceObjectId);
+            aceObject.AceObjectPropertiesAttributes = GetAceObjectPropertiesAttribute(aceObject.AceObjectId);
+            aceObject.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(aceObject.AceObjectId);
+            aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId);
         }
 
+        private Dictionary<PositionType, Position> GetAceObjectPostions(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, Position>(ShardPreparedStatement.GetAcePositions, criteria);
+            return objects.ToDictionary(x => x.PositionType, x => x);
+        }
+
+        private List<AceObjectPropertiesSkill> GetAceObjectPropertiesSkill(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.GetAceObjectPropertiesSkill, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesAttribute> GetAceObjectPropertiesAttribute(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.GetAceAttributes, criteria);
+            return objects;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private List<AceObjectPropertiesAttribute2nd> GetAceObjectPropertiesAttribute2nd(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.GetAceAttributes2nd, criteria);
+            return objects;
+        }
         private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };

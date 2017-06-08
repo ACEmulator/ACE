@@ -9,7 +9,7 @@ namespace ACE.Entity
     using Enum;
     using System.Linq;
     using System.Net.Mime;
-    
+
     public class AceObject : ICreatureStats
     {
         protected Dictionary<Ability, CreatureAbility> abilities = new Dictionary<Ability, CreatureAbility>();
@@ -239,7 +239,7 @@ namespace ACE.Entity
         public List<WeenieTextureMapOverride> WeenieTextureMapOverrides { get; set; } = new List<WeenieTextureMapOverride>();
 
         public List<WeenieAnimationOverride> WeenieAnimationOverrides { get; set; } = new List<WeenieAnimationOverride>();
-        
+
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
@@ -506,7 +506,7 @@ namespace ACE.Entity
             get { return (float?)GetDoubleProperty(PropertyDouble.Translucency).Value; }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
-        
+
         public uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
@@ -524,7 +524,7 @@ namespace ACE.Entity
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesDataId { PropertyId = (uint)didPropertyId, PropertyValue = (uint)value };
+                    listItem = new AceObjectPropertiesDataId { PropertyId = (uint)didPropertyId, PropertyValue = (uint)value, AceObjectId = AceObjectId };
                     DataIdProperties.Add(listItem);
                 }
                 else
@@ -558,7 +558,7 @@ namespace ACE.Entity
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesBool { PropertyId = (uint)propertyId, PropertyValue = (bool)value };
+                    listItem = new AceObjectPropertiesBool { PropertyId = (uint)propertyId, PropertyValue = (bool)value, AceObjectId = AceObjectId };
                     BoolProperties.Add(listItem);
                 }
                 else
@@ -592,7 +592,7 @@ namespace ACE.Entity
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesInstanceId { PropertyId = (uint)iidPropertyId, PropertyValue = (uint)value };
+                    listItem = new AceObjectPropertiesInstanceId { PropertyId = (uint)iidPropertyId, PropertyValue = (uint)value, AceObjectId = AceObjectId };
                     InstanceIdProperties.Add(listItem);
                 }
                 else
@@ -626,7 +626,7 @@ namespace ACE.Entity
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesInt { PropertyId = (uint)intPropertyId, PropertyValue = (uint)value };
+                    listItem = new AceObjectPropertiesInt { PropertyId = (uint)intPropertyId, PropertyValue = (uint)value, AceObjectId = AceObjectId };
                     IntProperties.Add(listItem);
                 }
                 else
@@ -660,7 +660,7 @@ namespace ACE.Entity
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesInt64 { PropertyId = (uint)int64PropertyId, PropertyValue = (ulong)value };
+                    listItem = new AceObjectPropertiesInt64 { PropertyId = (uint)int64PropertyId, PropertyValue = (ulong)value, AceObjectId = AceObjectId };
                     Int64Properties.Add(listItem);
                 }
                 else
@@ -695,8 +695,10 @@ namespace ACE.Entity
                     listItem = new AceObjectPropertiesDouble()
                     {
                         PropertyId = (ushort)propertyId,
-                        PropertyValue = (double)value
+                        PropertyValue = (double)value,
+                        AceObjectId = AceObjectId
                     };
+
                     DoubleProperties.Add(listItem);
                 }
                 else
@@ -731,7 +733,8 @@ namespace ACE.Entity
                     listItem = new AceObjectPropertiesString()
                     {
                         PropertyId = (ushort)propertyId,
-                        PropertyValue = value
+                        PropertyValue = value,
+                        AceObjectId = AceObjectId
                     };
 
                     StringProperties.Add(listItem);
@@ -769,6 +772,13 @@ namespace ACE.Entity
         public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
+
+        public List<AceObjectPropertiesAttribute> AceObjectPropertiesAttributes { get; set; } = new List<AceObjectPropertiesAttribute>();
+
+        // ReSharper disable once InconsistentNaming
+        public List<AceObjectPropertiesAttribute2nd> AceObjectPropertiesAttributes2nd { get; set; } = new List<AceObjectPropertiesAttribute2nd>();
+
+        public List<AceObjectPropertiesSkill> AceObjectPropertiesSkills { get; set; } = new List<AceObjectPropertiesSkill>();
 
         public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
 

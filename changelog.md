@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-06-07
+[Og II]
+* Continued work loading character from ace_shard.   Rebased 
+* Added cascade delete to all child tables in ace_shard.
+* Completed and tested up to skillz loading.   Made a few changes on the db side for key consistancy.
+* TODO items:
+*	Finish up loading - spells, friends, allegiance info, spell comps, spell bars etc. etc....
+
 ### 2017-06-06
 [OptimShi]
 * Read character creation values from client_portal.dat and assign to appropriate Character Properties.

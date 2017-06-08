@@ -467,7 +467,7 @@ namespace ACE.Database
         public T3 ExecuteConstructedGetAggregateStatement<T1, T2, T3>(T1 id)
         {
             uint statementId = Convert.ToUInt32(id);
-            
+
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {
