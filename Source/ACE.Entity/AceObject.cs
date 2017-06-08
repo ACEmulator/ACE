@@ -773,6 +773,7 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        // TODO: use this for fast loading - needs to be reconciled with creature ability
         public List<AceObjectPropertiesAttribute> AceObjectPropertiesAttributes { get; set; } = new List<AceObjectPropertiesAttribute>();
 
         // ReSharper disable once InconsistentNaming
