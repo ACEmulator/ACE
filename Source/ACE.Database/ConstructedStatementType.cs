@@ -12,6 +12,8 @@ namespace ACE.Database
         Update,
         Get,
         GetList,
+        DeleteList,
+        InsertList,
         GetAggregate
     }
 }

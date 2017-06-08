@@ -45,6 +45,65 @@ namespace ACE.Database
                 queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
             }
 
+            public void AddPreparedDeleteListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
+            {
+                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                // Oh goody, its reflection time
+                var propertyInfo = GetPropertyCache(typeof(T2));
+
+                uint statementId = Convert.ToUInt32(id);
+
+                StoredPreparedStatement preparedStatement;
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                {
+                    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                    return;
+                }
+
+                List<object> objects = new List<object>();
+                foreach (var p in propertyInfo)
+                {
+                    if (p.Item2.IsCriteria)
+                    {
+                        object val;
+                        bool success = criteria.TryGetValue(p.Item2.DbFieldName, out val);
+                        Debug.Assert(success, "Criteria does not contain essential key");
+                        objects.Add(val);
+                    }
+                }
+
+                queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, objects.ToArray()));
+            }
+
+            public void AddPreparedInsertListStatement<T1, T2>(T1 id, List<T2> info)
+            {
+                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                // Oh goody, its reflection time
+                var propertyInfo = GetPropertyCache(typeof(T2));
+
+                uint statementId = Convert.ToUInt32(id);
+                DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 300 == statementId);
+
+                StoredPreparedStatement preparedStatement;
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                {
+                    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                    return;
+                }
+
+                foreach (var type in info)
+                {
+                    object[] parameters = new object[getList.ParameterFields.Count];
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        // Reflection (woot woot)
+                        parameters[i] = propertyInfo[i].Item1.GetValue(type);
+                    }
+
+                    queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
+                }
+            }
+
             public async Task<bool> Commit()
             {
                 if (queries.Count == 0)
@@ -231,6 +290,85 @@ namespace ACE.Database
             PrepareStatement(statementId, query, types);
         }
 
+        private void ConstructDeleteListStatement<T1>(T1 id, Type type)
+        {
+            uint statementId = Convert.ToUInt32(id);
+            DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
+
+            // XXX(ddevec): Slightly hacky -- I increment the DB field by 200... This elides the need for extra attributes
+            DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 200 == statementId);
+
+            if (dbTable == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            if (getList == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            List<MySqlDbType> types = new List<MySqlDbType>();
+            var properties = GetPropertyCache(type);
+            string tableName = getList.TableName;
+            string whereList = null;
+
+            foreach (var p in properties)
+            {
+                if (p.Item2.IsCriteria)
+                {
+                    if (whereList != null)
+                        whereList += " AND ";
+                    whereList += "`" + p.Item2.DbFieldName + "` = ?";
+                    types.Add((MySqlDbType)p.Item2.DbFieldType);
+                }
+            }
+
+            string query = $"DELETE FROM `{tableName}` WHERE {whereList}";
+
+            PrepareStatement(statementId, query, types);
+        }
+
+        private void ConstructInsertListStatement<T1>(T1 id, Type type)
+        {
+            uint statementId = Convert.ToUInt32(id);
+            DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
+
+            // XXX(ddevec): Slightly hacky -- I increment the DB field by 200... This elides the need for extra attributes
+            DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 300 == statementId);
+
+            if (dbTable == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            if (getList == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            List<MySqlDbType> types = new List<MySqlDbType>();
+            var properties = GetPropertyCache(type);
+            string tableName = getList.TableName;
+            string valueList = "";
+            string fieldList = "";
+            bool inserted = false;
+
+            foreach (var p in properties)
+            {
+                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                {
+                    if (inserted)
+                    {
+                        valueList += ", ";
+                        fieldList += ", ";
+                    }
+                    fieldList += "`" + p.Item2.DbFieldName + "`";
+
+                    valueList += "?";
+
+                    types.Add((MySqlDbType)p.Item2.DbFieldType);
+                    inserted = true;
+                }
+            }
+
+            string query = $"INSERT INTO `{tableName}` ( {fieldList} ) VALUES ( {valueList} )";
+
+            PrepareStatement(statementId, query, types);
+        }
+
         private void ConstructGetAggregateStatement<T1>(T1 id, Type type)
         {
             uint statementId = Convert.ToUInt32(id);
@@ -275,6 +413,16 @@ namespace ACE.Database
             if (statementType == ConstructedStatementType.GetAggregate)
             {
                 ConstructGetAggregateStatement(id, type);
+                return;
+            }
+            if (statementType == ConstructedStatementType.DeleteList)
+            {
+                ConstructDeleteListStatement(id, type);
+                return;
+            }
+            if (statementType == ConstructedStatementType.InsertList)
+            {
+                ConstructInsertListStatement(id, type);
                 return;
             }
 
