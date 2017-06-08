@@ -1,23 +1,20 @@
-﻿namespace ACE.Entity
-{
-    using System;
-    using System.IO;
-    using Enum;
-    using Common;
-    using MySql.Data.MySqlClient;
+﻿using System;
+using System.IO;
+using ACE.Entity.Enum;
+using ACE.Common;
+using MySql.Data.MySqlClient;
 
+namespace ACE.Entity
+{
     [DbTable("ace_position")]
     [DbGetList("ace_position", 23, "aceObjectId")]
-    public class Position
+    public sealed class Position
     {
         private LandblockId landblockId;
 
         public LandblockId LandblockId
         {
-            get
-            {
-                return new LandblockId(Cell);
-            }
+            get { return landblockId.Raw != 0 ? landblockId : new LandblockId(Cell); }
             set
             {
                 landblockId = value;
@@ -25,14 +22,17 @@
         }
 
         [DbField("aceObjectid", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint AceObjectId { get; set; }
+        public uint AceObjectId { get; set; }
 
-        // TODO: This is just named wrong needs to be fixed. 
+        // TODO: This is just named wrong needs to be fixed.
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint Cell { get; set; }
 
+        [DbField("landblock", (int)MySqlDbType.UInt16)]
+        public uint Landblock { get; set; }
+
         [DbField("positionType", (int)MySqlDbType.UInt16, Update = false, IsCriteria = true)]
-        public virtual ushort DbPositionType { get; set; }
+        public ushort DbPositionType { get; set; }
 
         public PositionType PositionType
         {
@@ -53,7 +53,7 @@
         }
 
         [DbField("positionId", (int)MySqlDbType.UInt32)]
-        public uint positionId { get; set; }
+        public uint PositionId { get; set; }
 
         [DbField("posX", (int)MySqlDbType.Float)]
         public float PositionX { get; set; }
@@ -172,13 +172,13 @@
             uint baseX = (uint)(eastWest + 0x400);
             uint baseY = (uint)(northSouth + 0x400);
 
-            if (baseX < 0 || baseX >= 0x7F8 || baseY < 0 || baseY >= 0x7F8)
+            if (baseX >= 0x7F8 || baseY >= 0x7F8)
                 throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
 
             float xOffset = ((baseX & 7) * 24.0f) + 12;
             float yOffset = ((baseY & 7) * 24.0f) + 12;
             // float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
-            float zOffset = 0.0f;
+            const float zOffset = 0.0f;
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
             // Offset
@@ -260,7 +260,7 @@
             }
         }
 
-        private float GetZFromCellXY(uint cell, float xOffset, float yOffset)
+        private float GetZFromCellXy(uint cell, float xOffset, float yOffset)
         {
             // TODO: Load correct z from file
             return 200.0f;
@@ -291,22 +291,20 @@
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-            else if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+
+            if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
             {
                 var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
                 var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-            else
-            {
-                return float.NaN;
-            }
+            return float.NaN;
         }
 
         public override string ToString()
         {
-            return $"{LandblockId.Landblock.ToString("X")}: {PositionX} {PositionY} {PositionZ}";
+            return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
         }
     }
 }

@@ -239,7 +239,7 @@ namespace ACE.Entity
         public List<WeenieTextureMapOverride> WeenieTextureMapOverrides { get; set; } = new List<WeenieTextureMapOverride>();
 
         public List<WeenieAnimationOverride> WeenieAnimationOverrides { get; set; } = new List<WeenieAnimationOverride>();
-        
+
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
@@ -506,7 +506,7 @@ namespace ACE.Entity
             get { return (float?)GetDoubleProperty(PropertyDouble.Translucency).Value; }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
-        
+
         public uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
@@ -769,6 +769,13 @@ namespace ACE.Entity
         public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
+
+        public List<AceObjectPropertiesAttribute> AceObjectPropertiesAttributes { get; set; } = new List<AceObjectPropertiesAttribute>();
+
+        // ReSharper disable once InconsistentNaming
+        public List<AceObjectPropertiesAttribute2nd> AceObjectPropertiesAttributes2nd { get; set; } = new List<AceObjectPropertiesAttribute2nd>();
+
+        public List<AceObjectPropertiesSkill> AceObjectPropertiesSkills { get; set; } = new List<AceObjectPropertiesSkill>();
 
         public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
 
