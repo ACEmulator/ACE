@@ -8,7 +8,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_position")]
     [DbGetList("ace_position", 23, "aceObjectId")]
-    public sealed class Position
+    public class Position
     {
         private LandblockId landblockId;
 
@@ -22,7 +22,7 @@ namespace ACE.Entity
         }
 
         [DbField("aceObjectid", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public uint AceObjectId { get; set; }
+        public virtual uint AceObjectId { get; set; }
 
         // TODO: This is just named wrong needs to be fixed.
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
