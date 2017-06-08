@@ -28,8 +28,7 @@ CREATE TABLE `ace_object` (
   `physicsDescriptionFlag` int(10) unsigned NOT NULL,
   `currentMotionState` text,
   PRIMARY KEY (`aceObjectId`),
-  KEY `idx_weenie` (`weenieClassId`),
-  CONSTRAINT `fk_weenie_ao` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`)
+  KEY `idx_weenie` (`weenieClassId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_animation_change` */

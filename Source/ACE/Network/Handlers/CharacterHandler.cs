@@ -266,8 +266,6 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            uint lowGuid = DatabaseManager.Shard.GetNextCharacterId();
-            character.AceObjectId = lowGuid;
             character.AccountId = session.Id;
 
             if (!DatabaseManager.Shard.SaveObject(character))
@@ -281,7 +279,7 @@ namespace ACE.Network.Handlers
             DatabaseManager.Shard.SaveCharacterOptions(character);
             // DatabaseManager.Shard.InitCharacterPositions(character);
 
-            var guid = new ObjectGuid(lowGuid, GuidType.Player);
+            var guid = new ObjectGuid(character.AceObjectId);
             session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);

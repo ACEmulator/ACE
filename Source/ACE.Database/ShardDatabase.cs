@@ -41,6 +41,14 @@ namespace ACE.Database
             // ReSharper disable once InconsistentNaming
             GetAceAttributes2nd = 25,
             GetAceObjectPropertiesSkill = 26,
+            SaveAceObject = 27,
+            SaveAceObjectPropertiesInt = 28,
+            SaveAceObjectPropertiesBigInt = 29,
+            SaveAceObjectPropertiesDouble = 30,
+            SaveAceObjectPropertiesBool = 31,
+            SaveAceObjectPropertiesString = 32,
+            SaveAceObjectPropertiesDid = 33,
+            SaveAceObjectPropertiesIid = 34,
 
             AddFriend = 101,
             DeleteFriend = 102,
@@ -138,6 +146,46 @@ namespace ACE.Database
                 ShardPreparedStatement.GetAceObjectPropertiesSkill,
                 typeof(AceObjectPropertiesSkill),
                 ConstructedStatementType.GetList);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObject,
+                typeof(AceObject),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesInt,
+                typeof(AceObjectPropertiesInt),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesBigInt,
+                typeof(AceObjectPropertiesInt64),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesBool,
+                typeof(AceObjectPropertiesBool),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesDouble,
+                typeof(AceObjectPropertiesDouble),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesString,
+                typeof(AceObjectPropertiesString),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesIid,
+                typeof(AceObjectPropertiesInstanceId),
+                ConstructedStatementType.Insert);
+
+            ConstructStatement(
+                ShardPreparedStatement.SaveAceObjectPropertiesDid,
+                typeof(AceObjectPropertiesDataId),
+                ConstructedStatementType.Insert);
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)
@@ -312,6 +360,15 @@ namespace ACE.Database
             return objects;
         }
 
+        private bool SaveAceObjectPropertiesInt(List<AceObjectPropertiesInt> propList)
+        {
+            foreach (var pl in propList)
+            {
+                if (!ExecuteConstructedInsertStatement(ShardPreparedStatement.SaveAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), pl))
+                    return false;
+            }
+            return true;
+        }
 
         public Task<ObjectInfo> GetObjectInfoByName(string name)
         {
@@ -342,7 +399,33 @@ namespace ACE.Database
 
         public bool SaveObject(AceObject aceObject)
         {
-            throw new NotImplementedException();
+            // delete + save object
+            if (!ExecuteConstructedInsertStatement(ShardPreparedStatement.SaveAceObject, typeof(AceObject), aceObject))
+                return false;
+
+            // delete properties first
+
+            // save properties
+            if (!SaveAceObjectPropertiesInt(aceObject.IntProperties))
+                return false;
+
+            // SaveAceObjectPropertiesBigInt(aceObject.Int64Properties);
+            // SAveAceObjectPropertiesBool(aceObject.BoolProperties);
+            // SaveAceObjectPropertiesDouble(aceObject.DoubleProperties);
+            // SaveAceObjectPropertiesString(aceObject.StringProperties);
+            // SaveAceObjectPropertiesIid(aceObject.InstanceIdProperties);
+            // SaveAceObjectPropertiesDid(aceObject.DataIdProperties);
+            // SaveAceObjectTextureMaps(aceObject.TextureOverrides);
+            // SaveAceObjectAnimations(aceObject.AnimationOverrides);
+            // SaveAceObjectPalettes(aceObject.PaletteOverrides);
+
+            // save positions, skills and attributes
+            // SaveAceObjectPostions(aceObject.Positions);
+            // SaveAceObjectPropertiesAttribute(aceObject.AceObjectPropertiesAttributes);
+            // SaveAceObjectPropertiesAttribute2nd(aceObject.AceObjectPropertiesAttributes2nd);
+            // SaveAceObjectPropertiesSkill(aceObject.AceObjectPropertiesSkills);
+
+            return true;
         }
 
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
