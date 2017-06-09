@@ -4,7 +4,13 @@ using System.Linq;
 
 namespace ACE.Common
 {
-    public class DbGetListAttribute : Attribute
+    /// <summary>
+    /// Attribute specifying the keys to identify all elements of a list within a database table
+    ///   That is --
+    ///     SELECT /Fields/ FROM {TableName} WHERE {ParameterFields} = /ObjectParameterFields/;
+    ///   returns an object list
+    /// </summary>
+    public class DbListAttribute : Attribute
     {
         public string TableName { get; private set; }
 
@@ -12,10 +18,10 @@ namespace ACE.Common
 
         public List<string> ParameterFields { get; private set; }
 
-        public DbGetListAttribute(string tableName, int statementId, params string[] fields)
+        public DbListAttribute(string tableName, /*int statementId,*/ params string[] fields)
         {
             this.TableName = tableName;
-            this.ConstructedStatementId = statementId;
+            // this.ConstructedStatementId = statementId;
             this.ParameterFields = fields?.ToList() ?? new List<string>();
         }
     }

@@ -21,6 +21,13 @@ namespace ACE.Database
 
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
 
+        private static DbListAttribute GetListAttr(Type t)
+        {
+            var dbListAttrs = t.GetCustomAttributes(false)?.OfType<DbListAttribute>();
+            Debug.Assert(dbListAttrs.Count() == 1, "ORM Currently only supports 1 DbList attribute per Class");
+            return dbListAttrs.FirstOrDefault();
+        }
+
         public class DatabaseTransaction
         {
             // This logging function will log specific db transactions - this class may be instantiated outside of the database namespace
@@ -52,7 +59,7 @@ namespace ACE.Database
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
-                DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 200 == statementId);
+                DbListAttribute getList = GetListAttr(typeof(T2));
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -83,7 +90,7 @@ namespace ACE.Database
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
-                DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 300 == statementId);
+                DbListAttribute getList = GetListAttr(typeof(T2));
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -276,7 +283,7 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
-            DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
+            DbListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbListAttribute>()?.FirstOrDefault(d => d.TableName == dbTable.DbTableName);
 
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
@@ -322,7 +329,7 @@ namespace ACE.Database
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
 
             // XXX(ddevec): Slightly hacky -- I increment the DB field by 200... This elides the need for extra attributes
-            DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 200 == statementId);
+            DbListAttribute getList = GetListAttr(type);
 
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
@@ -357,7 +364,7 @@ namespace ACE.Database
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
 
             // XXX(ddevec): Slightly hacky -- I increment the DB field by 200... This elides the need for extra attributes
-            DbGetListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 300 == statementId);
+            DbListAttribute getList = GetListAttr(type);
 
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
@@ -589,7 +596,7 @@ namespace ACE.Database
             var results = new List<T2>();
             // TODO: Object Overhaul - testing this now.
             uint statementId = Convert.ToUInt32(id);
-            DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId == statementId);
+            DbListAttribute getList = GetListAttr(typeof(T2));
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))

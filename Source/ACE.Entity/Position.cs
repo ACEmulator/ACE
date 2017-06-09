@@ -7,7 +7,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_position")]
-    [DbGetList("ace_position", 23, "aceObjectId")]
+    [DbList("ace_position", "aceObjectId")]
     public class Position
     {
         private LandblockId landblockId;

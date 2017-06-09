@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using ACE.Entity;
 
@@ -13,6 +14,6 @@ namespace ACE.Database
 
         AceObject GetObject(uint aceObjectId);
 
-        bool SaveObject(AceObject aceObject);
+        Task<bool> SaveObject(AceObject aceObject);
     }
 }

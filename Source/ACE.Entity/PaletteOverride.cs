@@ -10,7 +10,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_palette_change")]
-    [DbGetList("ace_object_palette_change", 7, "aceObjectId")]
+    [DbList("ace_object_palette_change", "aceObjectId")]
     public class PaletteOverride
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]

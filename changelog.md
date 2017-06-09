@@ -5,6 +5,7 @@
 * Implemented ShardDatabase.SaveObject
 * Added DatabaseTransaction functions for InsertList, DeleteList to handle object properties
 * Minor fixes to ORM attributes
+* Reworked DbGetList Attribute to DbList Attribute -- now specifies "keys" designating a list in the DB.
 
 ### 2017-06-07
 [Og II]

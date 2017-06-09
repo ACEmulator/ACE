@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using ACE.Entity;
 
@@ -338,7 +339,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public bool SaveObject(AceObject aceObject)
+        public async Task<bool> SaveObject(AceObject aceObject)
         {
             throw new NotImplementedException();
         }
