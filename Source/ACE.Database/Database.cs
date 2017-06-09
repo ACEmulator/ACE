@@ -93,7 +93,7 @@ namespace ACE.Database
 
                 foreach (var type in info)
                 {
-                    object[] parameters = new object[getList.ParameterFields.Count];
+                    object[] parameters = new object[propertyInfo.Count];
                     for (int i = 0; i < parameters.Length; i++)
                     {
                         // Reflection (woot woot)
@@ -102,6 +102,31 @@ namespace ACE.Database
 
                     queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
                 }
+            }
+
+            public void AddPreparedInsertStatement<T1, T2>(T1 id, object instance)
+            {
+                // Debug.Assert(typeof(T1) == preparedStatementType);
+
+                StoredPreparedStatement preparedStatement;
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                {
+                    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                    return;
+                }
+
+                var properties = GetPropertyCache(typeof(T2));
+
+                object[] parameters = new object[properties.Count];
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    // Reflection (woot woot)
+                    parameters[i] = properties[i].Item1.GetValue(instance);
+                }
+
+                queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
+
+                return;
             }
 
             public async Task<bool> Commit()
@@ -348,20 +373,17 @@ namespace ACE.Database
 
             foreach (var p in properties)
             {
-                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                if (inserted)
                 {
-                    if (inserted)
-                    {
-                        valueList += ", ";
-                        fieldList += ", ";
-                    }
-                    fieldList += "`" + p.Item2.DbFieldName + "`";
-
-                    valueList += "?";
-
-                    types.Add((MySqlDbType)p.Item2.DbFieldType);
-                    inserted = true;
+                    valueList += ", ";
+                    fieldList += ", ";
                 }
+                fieldList += "`" + p.Item2.DbFieldName + "`";
+
+                valueList += "?";
+
+                types.Add((MySqlDbType)p.Item2.DbFieldType);
+                inserted = true;
             }
 
             string query = $"INSERT INTO `{tableName}` ( {fieldList} ) VALUES ( {valueList} )";
@@ -615,7 +637,7 @@ namespace ACE.Database
         public T3 ExecuteConstructedGetAggregateStatement<T1, T2, T3>(T1 id)
         {
             uint statementId = Convert.ToUInt32(id);
-            
+
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
             {

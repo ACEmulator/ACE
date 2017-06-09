@@ -70,6 +70,9 @@
     <Compile Include="AceCreatureGeneratorData.cs" />
     <Compile Include="AceCreatureGeneratorLocation.cs" />
     <Compile Include="AceCreatureStaticLocation.cs" />
+    <Compile Include="AceObjectPropertiesSkill.cs" />
+    <Compile Include="AceObjectPropertiesAttribute2nd.cs" />
+    <Compile Include="AceObjectPropertiesAttribute.cs" />
     <Compile Include="AceObjectPropertiesInt64.cs" />
     <Compile Include="AceObjectPropertiesBool.cs" />
     <Compile Include="AceObjectPropertiesDataId.cs" />
