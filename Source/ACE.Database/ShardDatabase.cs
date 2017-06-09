@@ -413,21 +413,21 @@ namespace ACE.Database
 
         private Dictionary<PositionType, Position> GetAceObjectPostions(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, Position>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
             return objects.ToDictionary(x => x.PositionType, x => x);
         }
 
         private List<AceObjectPropertiesSkill> GetAceObjectPropertiesSkill(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.GetAceObjectPropertiesSkills, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesAttribute> GetAceObjectPropertiesAttribute(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.GetAceObjectPropertiesAttributes, criteria);
             return objects;
         }
@@ -435,7 +435,7 @@ namespace ACE.Database
         // ReSharper disable once InconsistentNaming
         private List<AceObjectPropertiesAttribute2nd> GetAceObjectPropertiesAttribute2nd(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, criteria);
             return objects;
         }
@@ -673,7 +673,7 @@ namespace ACE.Database
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, properties);
             return true;
         }
-        
+
         private bool SaveAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesAttribute2nd> properties)
         {
             var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId} };

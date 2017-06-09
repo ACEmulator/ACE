@@ -73,7 +73,7 @@ namespace ACE.Entity
         {
             get { return Character.Level; }
         }
-        
+
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
         private readonly object clientObjectMutex = new object();
@@ -131,7 +131,7 @@ namespace ACE.Entity
             get { return Character.IsPsr; }
             set { Character.IsPsr = value; }
         }
-        
+
         public uint TotalLogins
         {
             get { return Character.TotalLogins; }
@@ -413,14 +413,14 @@ namespace ACE.Entity
                             ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
-                } // end footwear 
+                } // end footwear
             } */
         }
 
         public async Task Load(AceCharacter character)
         {
             AceObject = character;
-            
+
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -639,7 +639,7 @@ namespace ACE.Entity
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 }
                 else
-                { 
+                {
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 }
                 // play level up effect
