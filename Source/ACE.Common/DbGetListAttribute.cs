@@ -18,10 +18,9 @@ namespace ACE.Common
 
         public List<string> ParameterFields { get; private set; }
 
-        public DbListAttribute(string tableName, /*int statementId,*/ params string[] fields)
+        public DbListAttribute(string tableName, params string[] fields)
         {
             this.TableName = tableName;
-            // this.ConstructedStatementId = statementId;
             this.ParameterFields = fields?.ToList() ?? new List<string>();
         }
     }
