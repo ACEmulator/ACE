@@ -327,8 +327,6 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
-
-            // XXX(ddevec): Slightly hacky -- I increment the DB field by 200... This elides the need for extra attributes
             DbListAttribute getList = GetListAttr(type);
 
             if (dbTable == null)
@@ -362,8 +360,6 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
-
-            // XXX(ddevec): Slightly hacky -- I increment the DB field by 200... This elides the need for extra attributes
             DbListAttribute getList = GetListAttr(type);
 
             if (dbTable == null)

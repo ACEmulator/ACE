@@ -108,6 +108,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Age, value); }
         }
 
+        public bool IsDeleted
+        {
+            get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }
+            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
+        }
+
+        public ulong DeletedTime
+        {
+            get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
+            set { SetInt64Property(PropertyInt64.DeleteTime, value); }
+        }
+
         public string DateOfBirth
         {
             get { return GetStringProperty(PropertyString.DateOfBirth); }

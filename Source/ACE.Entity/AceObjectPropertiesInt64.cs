@@ -3,10 +3,10 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_bigint")]
-    [DbList("ace_object_properties_bigint", "AceObjectId")]
+    [DbList("ace_object_properties_bigint", "aceObjectId")]
     public class AceObjectPropertiesInt64
     {
-        [DbField("AceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("bigIntPropertyId", (int)MySqlDbType.UInt16)]

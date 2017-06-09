@@ -22,7 +22,8 @@ namespace ACE.Managers
 
         public static async void PlayerEnterWorld(Session session)
         {
-            var c = DatabaseManager.Shard.GetObject(session.Player.Guid.Low) as AceCharacter;
+            // var c = DatabaseManager.Shard.GetObject(session.Player.Guid.Low) as AceCharacter;
+            AceCharacter c = DatabaseManager.Shard.GetCharacter(session.Player.Guid.Low);
 
             await Task.Run(() => session.Player.Load(c));
 

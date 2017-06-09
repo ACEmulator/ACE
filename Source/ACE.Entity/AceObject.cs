@@ -315,13 +315,13 @@ namespace ACE.Entity
         // TODO: Not sure if this enum is right.
         public uint? CooldownId
         {
-            get { return GetIntProperty(PropertyInt.SharedCooldown).Value; }
+            get { return GetIntProperty(PropertyInt.SharedCooldown); }
             set { SetIntProperty(PropertyInt.SharedCooldown, value); }
         }
 
         public uint? UiEffects
         {
-            get { return GetIntProperty(PropertyInt.UiEffects).Value; }
+            get { return GetIntProperty(PropertyInt.UiEffects); }
             set { SetIntProperty(PropertyInt.UiEffects, value); }
         }
 
@@ -330,7 +330,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? HookType
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookType).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.HookType); }
             set { SetIntProperty(PropertyInt.HookType, value); }
         }
 
@@ -339,13 +339,13 @@ namespace ACE.Entity
         /// </summary>
         public ushort? HookItemTypes
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType); }
             set { SetIntProperty(PropertyInt.HookItemType, value); }
         }
 
         public byte? ItemsCapacity
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity).Value; }
+            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity); }
             set { SetIntProperty(PropertyInt.ItemsCapacity, value); }
         }
 
@@ -354,13 +354,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? MaterialType
         {
-            get { return (byte?)GetIntProperty(PropertyInt.MaterialType).Value; }
+            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
             set { SetIntProperty(PropertyInt.MaterialType, value); }
         }
 
         public ushort? MaxStackSize
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
             set { SetIntProperty(PropertyInt.MaxStackSize, value); }
         }
         /// <summary>
@@ -369,7 +369,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? MaxStructure
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure); }
             set { SetIntProperty(PropertyInt.MaxStructure, value); }
         }
 
@@ -378,13 +378,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? Radar
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar).Value; }
+            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar); }
             set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
         }
 
         public ushort? StackSize
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.StackSize).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
             set { SetIntProperty(PropertyInt.StackSize, value); }
         }
         /// <summary>
@@ -393,7 +393,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? Structure
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.Structure).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.Structure); }
             set { SetIntProperty(PropertyInt.Structure, value); }
         }
 
@@ -402,19 +402,19 @@ namespace ACE.Entity
         /// </summary>
         public uint? TargetTypeId
         {
-            get { return GetIntProperty(PropertyInt.TargetType).Value; }
+            get { return GetIntProperty(PropertyInt.TargetType); }
             set { SetIntProperty(PropertyInt.TargetType, value); }
         }
 
         public uint? ItemUseable
         {
-            get { return GetIntProperty(PropertyInt.ItemUseable).Value; }
+            get { return GetIntProperty(PropertyInt.ItemUseable); }
             set { SetIntProperty(PropertyInt.ItemUseable, value); }
         }
 
         public float? UseRadius
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius); }
             set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
         }
 
@@ -424,13 +424,13 @@ namespace ACE.Entity
         /// </summary>
         public uint? ValidLocations
         {
-            get { return GetIntProperty(PropertyInt.ValidLocations).Value; }
+            get { return GetIntProperty(PropertyInt.ValidLocations); }
             set { SetIntProperty(PropertyInt.ValidLocations, value); }
         }
 
         public uint? Value
         {
-            get { return GetIntProperty(PropertyInt.Value).Value; }
+            get { return GetIntProperty(PropertyInt.Value); }
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
@@ -459,37 +459,37 @@ namespace ACE.Entity
 
         private uint? ItemWorkmanship
         {
-            get { return GetIntProperty(PropertyInt.ItemWorkmanship).Value; }
+            get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
             set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
         }
 
         public float? PhysicsScriptIntensity
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity); }
             set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
         }
 
         public float? Elasticity
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity); }
             set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
         }
 
         public float? Friction
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Friction).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Friction); }
             set { SetDoubleProperty(PropertyDouble.Friction, value); }
         }
 
         public uint? CurrentWieldedLocation
         {
-            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation).Value; }
+            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation); }
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
         public float? DefaultScale
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
             set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
         }
 
@@ -504,7 +504,7 @@ namespace ACE.Entity
 
         public float? Translucency
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency); }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
 

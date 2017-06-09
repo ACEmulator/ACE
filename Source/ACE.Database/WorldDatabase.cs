@@ -287,49 +287,49 @@ namespace ACE.Database
 
         private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInt>(WorldPreparedStatement.GetAceObjectPropertiesInt, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesInt64> GetAceObjectPropertiesBigInt(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInt64>(WorldPreparedStatement.GetAceObjectPropertiesBigInt, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesBool> GetAceObjectPropertiesBool(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesBool>(WorldPreparedStatement.GetAceObjectPropertiesBool, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesDouble> GetAceObjectPropertiesDouble(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDouble>(WorldPreparedStatement.GetAceObjectPropertiesDouble, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesString> GetAceObjectPropertiesString(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesString>(WorldPreparedStatement.GetAceObjectPropertiesString, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesDataId> GetAceObjectPropertiesDid(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDataId>(WorldPreparedStatement.GetAceObjectPropertiesDid, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesInstanceId> GetAceObjectPropertiesIid(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInstanceId>(WorldPreparedStatement.GetAceObjectPropertiesIid, criteria);
             return objects;
         }
