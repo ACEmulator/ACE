@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_attribute2nd")]
-    [DbGetList("ace_object_properties_attribute2nd", 25, "AceObjectId")]
+    [DbGetList("ace_object_properties_attribute2nd", 25, "aceObjectId")]
 
     public class AceObjectPropertiesAttribute2nd
     {

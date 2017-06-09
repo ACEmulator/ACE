@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-06-08
+[ddevec]
+* Implemented ShardDatabase.SaveObject
+* Added DatabaseTransaction functions for InsertList, DeleteList to handle object properties
+* Minor fixes to ORM attributes
+
 ### 2017-06-07
 [Og II]
 * Continued work loading character from ace_shard.   Rebased 

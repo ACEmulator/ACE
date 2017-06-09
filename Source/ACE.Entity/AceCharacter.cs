@@ -18,7 +18,6 @@ namespace ACE.Entity
         {
             friends = new List<Friend>();
             Friends = new ReadOnlyCollection<Friend>(friends);
-            AvailableSkillCredits = 52;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
