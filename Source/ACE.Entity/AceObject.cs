@@ -10,6 +10,7 @@ namespace ACE.Entity
     using System.Linq;
     using System.Net.Mime;
 
+    [DbTable("ace_object")]
     public class AceObject : ICreatureStats
     {
         protected Dictionary<Ability, CreatureAbility> abilities = new Dictionary<Ability, CreatureAbility>();
