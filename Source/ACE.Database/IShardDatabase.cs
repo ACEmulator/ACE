@@ -27,11 +27,6 @@ namespace ACE.Database
 
         void DeleteOrRestore(ulong unixTime, uint id);
 
-        /// <summary>
-        /// Saves character options (F11 tab)
-        /// </summary>
-        void SaveCharacterOptions(AceCharacter character);
-
         uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
 
         uint RenameCharacter(string currentName, string newName);
