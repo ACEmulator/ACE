@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     [DbTable("ace_object_animation_change")]
-    [DbGetList("ace_object_animation_change", 6, "aceObjectId")]
+    [DbList("ace_object_animation_change", "aceObjectId")]
     public class WeenieAnimationOverride
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]

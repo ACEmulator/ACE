@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
-    [DbGetList("vw_ace_character", 105, "accountId", "deleted")]
+    [DbList("vw_ace_character", "accountId", "deleted")]
     [DbGetAggregate("vw_ace_character", 106, "MAX", "guid")]
     public class CachedCharacter
     {

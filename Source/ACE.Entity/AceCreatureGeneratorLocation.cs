@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace ACE.Entity
 {
     [DbTable("ace_creature_generator_locations")]
-    [DbGetList("ace_creature_generator_locations", 12, "landblock")]
+    [DbList("ace_creature_generator_locations", "landblock")]
     public class AceCreatureGeneratorLocation
     {    
         [DbField("id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]

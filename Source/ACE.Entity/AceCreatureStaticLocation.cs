@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_creature_static_locations")]
-    [DbGetList("ace_creature_static_locations", 3, "landblock")]
+    [DbList("ace_creature_static_locations", "landblock")]
     public class AceCreatureStaticLocation
     {
         [DbField("id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]

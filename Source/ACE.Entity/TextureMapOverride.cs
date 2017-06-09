@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_texture_map_change")]
-    [DbGetList("ace_object_texture_map_change", 9, "aceObjectId")]
+    [DbList("ace_object_texture_map_change", "aceObjectId")]
     public class TextureMapOverride
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]

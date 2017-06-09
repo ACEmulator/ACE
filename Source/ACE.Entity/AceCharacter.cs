@@ -8,7 +8,7 @@ using System.Linq;
 namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
-    [DbGetList("vw_ace_character", 42, "guid")]
+    [DbList("vw_ace_character", "guid")]
     public class AceCharacter : AceObject
     {
         private List<Friend> friends;
