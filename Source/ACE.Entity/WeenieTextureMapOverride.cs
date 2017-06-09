@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ACE.Entity
 {
     [DbTable("ace_object_texture_map_change")]
-    [DbGetList("ace_object_texture_map_change", 5, "aceObjectId")]
+    [DbList("ace_object_texture_map_change", "aceObjectId")]
     public class WeenieTextureMapOverride
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]

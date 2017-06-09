@@ -417,7 +417,7 @@ namespace ACE.Entity
             } */
         }
 
-        public async Task Load(AceCharacter character)
+        public void Load(AceCharacter character)
         {
             AceObject = character;
 

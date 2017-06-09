@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -23,7 +24,7 @@ namespace ACE.Managers
         {
             AceCharacter c = DatabaseManager.Shard.GetCharacter(session.Player.Guid.Low);
 
-            await session.Player.Load(c);
+            await Task.Run(() => session.Player.Load(c));
 
             var block = GetLandblock(c.Location.LandblockId, true);
             block.AddWorldObject(session.Player);

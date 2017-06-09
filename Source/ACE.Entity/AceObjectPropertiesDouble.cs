@@ -3,7 +3,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_double")]
-    [DbGetList("ace_object_properties_double", 18, "AceObjectId")]
+    [DbList("ace_object_properties_double", "AceObjectId")]
     public class AceObjectPropertiesDouble
     {
         [DbField("AceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]

@@ -10,7 +10,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_animation_change")]
-    [DbGetList("ace_object_animation_change", 8, "aceObjectId")]
+    [DbList("ace_object_animation_change", "aceObjectId")]
     public class AnimationOverride
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]

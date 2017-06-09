@@ -271,7 +271,9 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
 
-            if (!DatabaseManager.Shard.SaveObject(character))
+            bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
+
+            if (!saveSuccess)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
                 return;
