@@ -1192,7 +1192,7 @@ namespace ACE.Entity
         public void SaveOptions()
         {
             if (Character != null)
-                DatabaseManager.Shard.SaveCharacterOptions(Character);
+                DatabaseManager.Shard.SaveObject(Character);
 
             // TODO: Save other options as we implement them.
         }

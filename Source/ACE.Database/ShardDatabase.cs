@@ -532,11 +532,6 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public void SaveCharacterOptions(AceCharacter character)
-        {
-            // throw new NotImplementedException();
-        }
-
         public bool SaveObject(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
@@ -544,7 +539,6 @@ namespace ACE.Database
             // Update the character table -- save the AceObject to ace_object.
             SaveAceObjectBase(transaction, aceObject);
 
-            //throw new NotImplementedException();
             SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
