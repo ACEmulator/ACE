@@ -52,6 +52,7 @@ namespace ACE.Database
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
+                DbGetListAttribute getList = typeof(T2).GetCustomAttributes(false)?.OfType<DbGetListAttribute>()?.FirstOrDefault(d => d.ConstructedStatementId + 200 == statementId);
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -63,7 +64,7 @@ namespace ACE.Database
                 List<object> objects = new List<object>();
                 foreach (var p in propertyInfo)
                 {
-                    if (p.Item2.IsCriteria)
+                    if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
                     {
                         object val;
                         bool success = criteria.TryGetValue(p.Item2.DbFieldName, out val);
@@ -336,7 +337,7 @@ namespace ACE.Database
 
             foreach (var p in properties)
             {
-                if (p.Item2.IsCriteria)
+                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
                 {
                     if (whereList != null)
                         whereList += " AND ";

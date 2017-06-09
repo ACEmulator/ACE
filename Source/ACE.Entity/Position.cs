@@ -21,15 +21,15 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("aceObjectid", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
         public virtual uint AceObjectId { get; set; }
 
         // TODO: This is just named wrong needs to be fixed.
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint Cell { get; set; }
 
-        [DbField("landblock", (int)MySqlDbType.UInt16)]
-        public uint Landblock { get; set; }
+        // [DbField("landblock", (int)MySqlDbType.UInt16)]
+        // public uint Landblock { get; set; }
 
         [DbField("positionType", (int)MySqlDbType.UInt16, Update = false, IsCriteria = true)]
         public ushort DbPositionType { get; set; }

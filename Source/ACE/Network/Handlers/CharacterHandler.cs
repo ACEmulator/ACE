@@ -268,15 +268,15 @@ namespace ACE.Network.Handlers
 
             character.AccountId = session.Id;
 
+            CharacterCreateSetDefaultCharacterOptions(character);
+            CharacterCreateSetDefaultCharacterPositions(character);
+
             if (!DatabaseManager.Shard.SaveObject(character))
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
                 return;
             }
-
-            CharacterCreateSetDefaultCharacterOptions(character);
-            CharacterCreateSetDefaultCharacterPositions(character);
-            DatabaseManager.Shard.SaveCharacterOptions(character);
+            // DatabaseManager.Shard.SaveCharacterOptions(character);
             // DatabaseManager.Shard.InitCharacterPositions(character);
 
             var guid = new ObjectGuid(character.AceObjectId);
