@@ -13,8 +13,8 @@ namespace ACE.Entity
 
         public ObjectGuid Guid
         {
-            get { return new ObjectGuid(LowGuid, GuidType.Player); }
-            set { LowGuid = Guid.Low; }
+            get { return new ObjectGuid(LowGuid, GuidType.Player); } 
+            set { LowGuid = value.Low; }
         }
 
         public byte SlotId { get; }
