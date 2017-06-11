@@ -447,6 +447,7 @@ namespace ACE.Entity
             SetAbilities(character);
 
             IsOnline = true;
+            /*
             Strength = new CreatureAbility(character, Enum.Ability.Strength);
             Endurance = new CreatureAbility(character, Enum.Ability.Endurance);
             Coordination = new CreatureAbility(character, Enum.Ability.Coordination);
@@ -457,6 +458,7 @@ namespace ACE.Entity
             Health = new CreatureAbility(character, Enum.Ability.Health);
             Stamina = new CreatureAbility(character, Enum.Ability.Stamina);
             Mana = new CreatureAbility(character, Enum.Ability.Mana);
+            */
 
             // Character.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             // Character.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));

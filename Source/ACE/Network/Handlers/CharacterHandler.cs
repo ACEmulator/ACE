@@ -229,6 +229,8 @@ namespace ACE.Network.Handlers
 
             character.TotalSkillCredits = 52;
             character.AvailableSkillCredits = 52;
+            character.TotalExperience = 0;
+            character.AvailableExperience = 0;
 
             uint numOfSkills = reader.ReadUInt32();
             Skill skill;
