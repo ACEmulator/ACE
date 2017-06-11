@@ -96,6 +96,14 @@ namespace ACE.Database
                 typeof(AceObjectPropertiesDouble),
                 ConstructedStatementType.GetList);
             ConstructStatement(
+                WorldPreparedStatement.GetAceObjectPropertiesDid,
+                typeof(AceObjectPropertiesDataId),
+                ConstructedStatementType.GetList);
+            ConstructStatement(
+                WorldPreparedStatement.GetAceObjectPropertiesIid,
+                typeof(AceObjectPropertiesInstanceId),
+                ConstructedStatementType.GetList);
+            ConstructStatement(
                 WorldPreparedStatement.GetAceObjectPropertiesString,
                 typeof(AceObjectPropertiesString),
                 ConstructedStatementType.GetList);
@@ -170,6 +178,8 @@ namespace ACE.Database
             {
 
                 var o = GetWorldObject(cwo.AceObjectId);
+                o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
+                o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
                 o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
                 o.Int64Properties = GetAceObjectPropertiesBigInt(o.AceObjectId);
                 o.BoolProperties = GetAceObjectPropertiesBool(o.AceObjectId);

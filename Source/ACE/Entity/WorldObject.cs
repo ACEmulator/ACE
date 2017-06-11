@@ -295,10 +295,10 @@ namespace ACE.Entity
         public uint CSetup;
 
         // apply default for back compat with player object
-        public PhysicsDescriptionFlag PhysicsDescriptionFlag;
-        public PhysicsState PhysicsState = 0;
+        // public PhysicsDescriptionFlag PhysicsDescriptionFlag;
+        // public PhysicsState PhysicsState = 0;
 
-        public Position Position;
+        // public Position Position;
 
         // these are all related
         public EquipMask? EquipperPhysicsDescriptionFlag;
