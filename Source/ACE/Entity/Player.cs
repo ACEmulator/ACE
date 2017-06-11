@@ -16,6 +16,7 @@ using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
+using ACE.Entity;
 using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
@@ -75,6 +76,8 @@ namespace ACE.Entity
         }
         
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
+
+        private Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
 
         private readonly object clientObjectMutex = new object();
 
@@ -438,6 +441,14 @@ namespace ACE.Entity
 
             Location = character.Location;
 
+            foreach (AceObjectPropertiesSkill skill in AceObject.GetSkills())
+            {
+                Skill skillId = (Skill)skill.SkillId;
+                skills[skillId] = new CreatureSkill(AceObject, skillId, (SkillStatus)skill.SkillStatus, skill.SkillPoints, skill.SkillXpSpent);
+            }
+
+            SetAbilities(character);
+
             IsOnline = true;
 
             this.TotalLogins++;
@@ -649,7 +660,7 @@ namespace ACE.Entity
 
         public void SpendXp(Enum.Ability ability, uint amount)
         {
-            CreatureAbility creatureAbility = Character.GetAbility(ability);
+            CreatureAbility creatureAbility = Abilities[ability];
             uint baseValue = creatureAbility.Base;
             uint result = SpendAbilityXp(creatureAbility, amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
@@ -821,7 +832,7 @@ namespace ACE.Entity
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
-            CreatureSkill creatureSkill = Character.GetSkill(skill);
+            CreatureSkill creatureSkill = skills[skill];
             uint result = SpendSkillXp(creatureSkill, amount);
 
             uint ranks = creatureSkill.Ranks;

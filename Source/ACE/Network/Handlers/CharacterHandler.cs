@@ -211,21 +211,21 @@ namespace ACE.Network.Handlers
 
             // stats
             // TODO - Validate this is equal to 330 (Total Attribute Credits)
-            character.StrengthAbility.Base = reader.ReadUInt32();
-            character.EnduranceAbility.Base = reader.ReadUInt32();
-            character.CoordinationAbility.Base = reader.ReadUInt32();
-            character.QuicknessAbility.Base = reader.ReadUInt32();
-            character.FocusAbility.Base = reader.ReadUInt32();
-            character.SelfAbility.Base = reader.ReadUInt32();
+            character.StrengthAbility.AttributeBase = (ushort)reader.ReadUInt32();
+            character.EnduranceAbility.AttributeBase = (ushort)reader.ReadUInt32();
+            character.CoordinationAbility.AttributeBase = (ushort)reader.ReadUInt32();
+            character.QuicknessAbility.AttributeBase = (ushort)reader.ReadUInt32();
+            character.FocusAbility.AttributeBase = (ushort)reader.ReadUInt32();
+            character.SelfAbility.AttributeBase = (ushort)reader.ReadUInt32();
             
             // data we don't care about
             uint characterSlot = reader.ReadUInt32();
             uint classId = reader.ReadUInt32();
 
             // characters start with max vitals
-            character.Health.Current = character.Health.UnbuffedValue;
-            character.Stamina.Current = character.Stamina.UnbuffedValue;
-            character.Mana.Current = character.Mana.UnbuffedValue;
+            character.Health.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
+            character.Stamina.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
+            character.Mana.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
 
             character.TotalSkillCredits = 52;
             character.AvailableSkillCredits = 52;

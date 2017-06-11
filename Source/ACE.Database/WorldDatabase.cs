@@ -95,6 +95,10 @@ namespace ACE.Database
                 WorldPreparedStatement.GetAceObjectPropertiesString,
                 typeof(AceObjectPropertiesString),
                 ConstructedStatementType.GetList);
+            ConstructStatement(
+                WorldPreparedStatement.GetObjectsByLandblock,
+                typeof(AceObject),
+                ConstructedStatementType.GetList);
         }
 
         public AceObject GetRandomWeenieOfType(uint itemType)

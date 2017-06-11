@@ -20,5 +20,13 @@ namespace ACE.Entity
 
         [DbField("attributeXpSpent", (int)MySqlDbType.UInt32)]
         public uint AttributeXpSpent { get; set; }
+
+        public uint ActiveValue
+        {
+            get
+            {
+                return (uint)AttributeBase + AttributeRanks;
+            }
+        }
     }
 }

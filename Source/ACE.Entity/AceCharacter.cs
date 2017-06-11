@@ -333,12 +333,18 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, uint creditsSpent)
         {
-            CreatureSkill cs = GetSkill(skill);
-            if (cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            AceObjectPropertiesSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.SkillStatus != (uint)SkillStatus.Trained && cs.SkillStatus != (uint)SkillStatus.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    skills[skill] = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    var newSkill = new AceObjectPropertiesSkill();
+                    newSkill.AceObjectId = AceObjectId;
+                    newSkill.SkillId = (ushort)skill;
+                    newSkill.SkillPoints = 0;
+                    newSkill.SkillStatus = (ushort)SkillStatus.Trained;
+                    newSkill.SkillXpSpent = 0;
+                    SetAceObjectPropertiesSkill(newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -353,13 +359,19 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool SpecializeSkill(Skill skill, uint creditsSpent)
         {
-            CreatureSkill cs = GetSkill(skill);
-            if (cs.Status == SkillStatus.Trained)
+            AceObjectPropertiesSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.SkillStatus == (uint)SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    RefundXp(cs.ExperienceSpent);
-                    skills[skill] = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
+                    RefundXp(cs.SkillXpSpent);
+                    var newSkill = new AceObjectPropertiesSkill();
+                    newSkill.AceObjectId = AceObjectId;
+                    newSkill.SkillId = (ushort)skill;
+                    newSkill.SkillPoints = 0;
+                    newSkill.SkillStatus = (ushort)SkillStatus.Specialized;
+                    newSkill.SkillXpSpent = 0;
+                    SetAceObjectPropertiesSkill(newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }

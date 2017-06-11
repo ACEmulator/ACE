@@ -621,7 +621,15 @@ namespace ACE.Database
                                 T2 o = Activator.CreateInstance<T2>();
                                 foreach (var p in properties)
                                 {
-                                    p.Item1.SetValue(o, commandReader[p.Item2.DbFieldName]);
+                                    var assignable = commandReader[p.Item2.DbFieldName];
+                                    if (assignable is System.DBNull)
+                                    {
+                                        p.Item1.SetValue(o, null);
+                                    }
+                                    else
+                                    {
+                                        p.Item1.SetValue(o, assignable);
+                                    }
                                 }
                                 results.Add(o);
                             }
