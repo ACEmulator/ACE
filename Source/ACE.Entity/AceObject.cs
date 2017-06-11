@@ -12,7 +12,7 @@ namespace ACE.Entity
 
     [DbTable("ace_object")]
     [DbList("ace_object", "landblock")]
-    public class AceObject : ICreatureStats
+    public class AceObject : ICreatureStats, ICloneable
     {
         public AceObject(uint id)
             : this()
@@ -701,6 +701,32 @@ namespace ACE.Entity
             return ret;
         }
 
+        public void SetSkillProperty(AceObjectPropertiesSkill skill)
+        {
+            AceObjectPropertiesSkill oldSkill = GetSkillProperty((Skill)skill.SkillId);
+            if (skill != null)
+            {
+                if (oldSkill != null)
+                {
+                    oldSkill.SkillId = skill.SkillId;
+                    oldSkill.SkillPoints = skill.SkillPoints;
+                    oldSkill.SkillStatus = skill.SkillStatus;
+                    oldSkill.SkillXpSpent = skill.SkillXpSpent;
+                }
+                else
+                {
+                    AceObjectPropertiesSkills.Add(skill);
+                }
+            }
+            else
+            {
+                if (oldSkill != null)
+                {
+                    AceObjectPropertiesSkills.Remove(skill);
+                }
+            }
+        }
+
         public List<AceObjectPropertiesSkill> GetSkills()
         {
             return AceObjectPropertiesSkills;
@@ -929,6 +955,45 @@ namespace ACE.Entity
         protected void SetPosition(PositionType positionType, Position position)
         {
             Positions[positionType] = position;
+        }
+
+        public object Clone()
+        {
+            AceObject ret = new AceObject();
+
+            ret.AceObjectId = AceObjectId;
+
+            ret.WeenieClassId = WeenieClassId;
+            ret.AceObjectDescriptionFlags = AceObjectDescriptionFlags;
+            ret.PhysicsDescriptionFlag = PhysicsDescriptionFlag;
+            ret.WeenieHeaderFlags = WeenieHeaderFlags;
+
+            // Then clone our properties
+            ret.PaletteOverrides = CloneList(PaletteOverrides);
+            ret.TextureOverrides = CloneList(TextureOverrides);
+            ret.AnimationOverrides = CloneList(AnimationOverrides);
+            ret.IntProperties = CloneList(IntProperties);
+            ret.Int64Properties = CloneList(Int64Properties);
+            ret.DoubleProperties = CloneList(DoubleProperties);
+            ret.BoolProperties = CloneList(BoolProperties);
+            ret.DataIdProperties = CloneList(DataIdProperties);
+            ret.InstanceIdProperties = CloneList(InstanceIdProperties);
+            ret.StringProperties = CloneList(StringProperties);
+            ret.AceObjectPropertiesAttributes = CloneList(AceObjectPropertiesAttributes);
+            ret.AceObjectPropertiesAttributes2nd = CloneList(AceObjectPropertiesAttributes2nd);
+            ret.AceObjectPropertiesSkills = CloneList(AceObjectPropertiesSkills);
+            var posList = CloneList(Positions.Values);
+            foreach (var pos in posList)
+            {
+                ret.Positions[pos.PositionType] = pos;
+            }
+
+            return ret;
+        }
+
+        private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
+        {
+            return toClone.Select(x => (T)x.Clone()).ToList();
         }
     }
 }

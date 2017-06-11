@@ -11,7 +11,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_object_palette_change")]
     [DbList("ace_object_palette_change", "aceObjectId")]
-    public class PaletteOverride
+    public class PaletteOverride : ICloneable
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
@@ -24,5 +24,10 @@ namespace ACE.Entity
 
         [DbField("length", (int)MySqlDbType.UInt16)]
         public ushort Length { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

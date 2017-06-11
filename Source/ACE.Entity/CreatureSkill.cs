@@ -51,5 +51,18 @@ namespace ACE.Entity
             Ranks = ranks;
             ExperienceSpent = xpSpent;
         }
+
+        public AceObjectPropertiesSkill GetAceObjectSkill(uint objId)
+        {
+            var ret = new AceObjectPropertiesSkill();
+
+            ret.AceObjectId = objId;
+            ret.SkillId = (ushort)Skill;
+            ret.SkillPoints = (ushort)Ranks;
+            ret.SkillStatus = (ushort)Status;
+            ret.SkillXpSpent = ExperienceSpent;
+
+            return ret;
+        }
     }
 }

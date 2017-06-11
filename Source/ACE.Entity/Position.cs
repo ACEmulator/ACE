@@ -8,7 +8,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_position")]
     [DbList("ace_position", "aceObjectId")]
-    public class Position
+    public class Position : ICloneable
     {
         private LandblockId landblockId;
 
@@ -305,6 +305,11 @@ namespace ACE.Entity
         public override string ToString()
         {
             return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }

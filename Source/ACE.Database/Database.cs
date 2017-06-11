@@ -137,14 +137,42 @@ namespace ACE.Database
                 return;
             }
 
+            public void AddPreparedDeleteStatement<T1, T2>(T1 id, object instance)
+            {
+                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                // Oh goody, its reflection time
+                var propertyInfo = GetPropertyCache(typeof(T2));
+
+                uint statementId = Convert.ToUInt32(id);
+                DbListAttribute getList = GetListAttr(typeof(T2));
+
+                StoredPreparedStatement preparedStatement;
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                {
+                    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                    return;
+                }
+
+                List<object> objects = new List<object>();
+                foreach (var p in propertyInfo)
+                {
+                    if (p.Item2.IsCriteria)
+                    {
+                        object val = p.Item1.GetValue(instance);
+                        objects.Add(val);
+                    }
+                }
+
+                queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, objects.ToArray()));
+            }
+
             public async Task<bool> Commit()
             {
                 if (queries.Count == 0)
                     return false;
 
-                MySqlConnection connection = new MySqlConnection(database.connectionString);
                 MySqlTransaction transaction = null;
-
+                MySqlConnection connection = new MySqlConnection(database.connectionString);
                 try
                 {
                     await connection.OpenAsync();
@@ -269,6 +297,7 @@ namespace ACE.Database
                         uint uintId = Convert.ToUInt32(id);
                         preparedStatements.Add(uintId, new StoredPreparedStatement(uintId, query, types));
                     }
+                    connection.Close();
                 }
             }
             catch (Exception exception)
@@ -352,6 +381,34 @@ namespace ACE.Database
             }
 
             string query = $"DELETE FROM `{tableName}` WHERE {whereList}";
+
+            PrepareStatement(statementId, query, types);
+        }
+
+        private void ConstructDeleteStatement<T1>(T1 id, Type type)
+        {
+            uint statementId = Convert.ToUInt32(id);
+            DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
+
+            if (dbTable == null)
+                Debug.Assert(false, $"Statement Construction failed for type {type}");
+
+            List<MySqlDbType> types = new List<MySqlDbType>();
+            var properties = GetPropertyCache(type);
+            string whereList = null;
+
+            foreach (var p in properties)
+            {
+                if (p.Item2.IsCriteria)
+                {
+                    if (whereList != null)
+                        whereList += " AND ";
+                    whereList += "`" + p.Item2.DbFieldName + "` = ?";
+                    types.Add((MySqlDbType)p.Item2.DbFieldType);
+                }
+            }
+
+            string query = $"DELETE FROM `{dbTable.DbTableName}` WHERE {whereList}";
 
             PrepareStatement(statementId, query, types);
         }
@@ -449,6 +506,12 @@ namespace ACE.Database
             if (statementType == ConstructedStatementType.InsertList)
             {
                 ConstructInsertListStatement(id, type);
+                return;
+            }
+
+            if (statementType == ConstructedStatementType.Delete)
+            {
+                ConstructDeleteStatement(id, type);
                 return;
             }
 

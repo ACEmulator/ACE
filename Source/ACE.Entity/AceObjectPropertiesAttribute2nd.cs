@@ -1,12 +1,14 @@
-﻿using ACE.Common;
+﻿using System;
+using ACE.Common;
 using MySql.Data.MySqlClient;
+
 // ReSharper disable InconsistentNaming
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_attribute2nd")]
     [DbList("ace_object_properties_attribute2nd", "aceObjectId")]
 
-    public class AceObjectPropertiesAttribute2nd
+    public class AceObjectPropertiesAttribute2nd : ICloneable
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
@@ -22,5 +24,10 @@ namespace ACE.Entity
 
         [DbField("attribute2ndXpSpent", (int)MySqlDbType.UInt32)]
         public uint Attribute2ndXpSpend { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

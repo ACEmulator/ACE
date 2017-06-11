@@ -1,5 +1,19 @@
 # ACEmulator Change Log
 
+### 2017-06-11
+[ddevec]
+* Somewhat cleaned up CreatureAbility and CreatureSkill in-game and backend separation
+* Cleaned up Position loading for players and objects
+* Now logs into game.
+* Landlbocks now load objects from the object view to load by landblock
+* Fixed several ORM data load issues
+* Fixed bugs with character updating
+* Fixed player position saving -- position updated on relogging
+* Known issues:
+*   Race in ShardDatabase gathering next character id (Commented)
+*   non-player WorldObjects do not appear on map.
+*   Player description packet not sent.
+
 ### 2017-06-10
 [Og II]
 * Continued work loading character from ace_shard.   Character reaches world now. 

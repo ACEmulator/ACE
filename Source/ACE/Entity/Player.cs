@@ -478,6 +478,42 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
+        public AceObject GetSavableCharacter()
+        {
+            // Clone Character
+            AceObject obj = (AceObject)Character.Clone();
+
+            // Copy in any data Character doesn't reflect...
+            // Bad stuff -- fix
+            // Attributes
+            obj.SetAttributeProperty(Strength.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Coordination.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Endurance.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Quickness.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Focus.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Self.GetAttribute(Character.AceObjectId));
+            // Vitals
+            obj.SetAttribute2ndProperty(Health.GetVital(Character.AceObjectId));
+            obj.SetAttribute2ndProperty(Stamina.GetVital(Character.AceObjectId));
+            obj.SetAttribute2ndProperty(Mana.GetVital(Character.AceObjectId));
+
+            // Skillz
+            foreach (var skill in skills.Values)
+            {
+                obj.SetSkillProperty(skill.GetAceObjectSkill(Character.AceObjectId));
+            }
+
+            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell. 
+            //   We should probably have a DB position that has this extra information separate from our used position
+            // Positions -- These are curently maintained internally...
+            foreach (var pos in obj.Positions.Values)
+            {
+                pos.AceObjectId = obj.AceObjectId;
+            }
+            
+            return obj;
+        }
+
         public void AddToActionQueue(QueuedGameAction action)
         {
             this.actionQueue.Enqueue(action);
@@ -1214,7 +1250,9 @@ namespace ACE.Entity
         public void SaveOptions()
         {
             if (Character != null)
-                DatabaseManager.Shard.SaveObject(Character);
+            {
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
+            }
 
             // TODO: Save other options as we implement them.
         }
@@ -1234,7 +1272,7 @@ namespace ACE.Entity
         public void SetCharacterPosition(Position newPosition)
         {
             // Some positions come from outside of the Player and Character classes
-            if (newPosition.AceObjectId == 0) newPosition.AceObjectId = Guid.Low;
+            if (newPosition.AceObjectId == 0) newPosition.AceObjectId = Guid.Full;
 
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
@@ -1263,7 +1301,7 @@ namespace ACE.Entity
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                DatabaseManager.Shard.SaveObject(Character);
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
 #if DEBUG
                 if (Session.Player != null)
                 {

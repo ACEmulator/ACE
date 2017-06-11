@@ -10,7 +10,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_object_texture_map_change")]
     [DbList("ace_object_texture_map_change", "aceObjectId")]
-    public class WeenieTextureMapOverride
+    public class WeenieTextureMapOverride : ICloneable
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
@@ -23,5 +23,10 @@ namespace ACE.Entity
 
         [DbField("newId", (int)MySqlDbType.UInt32)]
         public uint NewId { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

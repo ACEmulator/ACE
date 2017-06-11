@@ -2,6 +2,7 @@
 using ACE.Network.Enum;
 using ACE.Network.Motion;
 using System;
+using System.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -35,7 +36,7 @@ namespace ACE.Entity
             PhysicsData.Elasticity = baseAceObject.Elasticity;
             PhysicsData.EquipperPhysicsDescriptionFlag = (EquipMask?)baseAceObject.CurrentWieldedLocation;
             PhysicsData.Friction = baseAceObject.Friction;
-            if (baseAceObject.CurrentMotionState == "0")
+            if (baseAceObject.CurrentMotionState == "0" || baseAceObject.CurrentMotionState == null)
                 PhysicsData.CurrentMotionState = null;
             else
                 PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
@@ -89,6 +90,7 @@ namespace ACE.Entity
             : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
             Location = aceO.Location;
+            Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
             WeenieClassid = aceO.WeenieClassId;
             GameDataType = aceO.ItemType;
         }
