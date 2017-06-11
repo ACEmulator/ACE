@@ -1,6 +1,16 @@
 # ACEmulator Change Log
 
+
 ### 2017-06-11
+[Og II]
+* fixed issues with the weenieHeaderFlags setting method, fixed PhysicsDescriptionFlag setting issue as well.
+* cleaned up and rebased data scripts for WorldBase and ShardBase
+* Found issue in my data that was ETL to our new schema - had two flag fields Reversed - that is fixed but would be no issue
+* once we have Ripley's new data export.   I have shared out a link to the cleaned up data for use while we finish the new export.
+* https://www.dropbox.com/s/pohcruvalt9s38h/WorldandShardData.zip?dl=0
+* I put in a nasty hack - hard coded weenieClassId on character save - it was being set to 0 and I could not find it.   I marked with with a todo.
+* player.cs line 490
+
 [ddevec]
 * Somewhat cleaned up CreatureAbility and CreatureSkill in-game and backend separation
 * Cleaned up Position loading for players and objects
