@@ -20,12 +20,9 @@ using ACE.Entity;
 using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
-using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using ACE.DatLoader;
 using ACE.Factories;
 using System.IO;
 
@@ -74,7 +71,7 @@ namespace ACE.Entity
         {
             get { return Character.Level; }
         }
-        
+
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
         private Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
@@ -134,7 +131,7 @@ namespace ACE.Entity
             get { return Character.IsPsr; }
             set { Character.IsPsr = value; }
         }
-        
+
         public uint TotalLogins
         {
             get { return Character.TotalLogins; }
@@ -416,14 +413,14 @@ namespace ACE.Entity
                             ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
-                } // end footwear 
+                } // end footwear
             } */
         }
 
         public void Load(AceCharacter character)
         {
             AceObject = character;
-            
+
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -450,6 +447,20 @@ namespace ACE.Entity
             SetAbilities(character);
 
             IsOnline = true;
+            Strength = new CreatureAbility(character, Enum.Ability.Strength);
+            Endurance = new CreatureAbility(character, Enum.Ability.Endurance);
+            Coordination = new CreatureAbility(character, Enum.Ability.Coordination);
+            Quickness = new CreatureAbility(character, Enum.Ability.Quickness);
+            Focus = new CreatureAbility(character, Enum.Ability.Focus);
+            Self = new CreatureAbility(character, Enum.Ability.Self);
+
+            Health = new CreatureAbility(character, Enum.Ability.Health);
+            Stamina = new CreatureAbility(character, Enum.Ability.Stamina);
+            Mana = new CreatureAbility(character, Enum.Ability.Mana);
+
+            // Character.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
+            // Character.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            // Character.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
 
             this.TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
@@ -650,7 +661,7 @@ namespace ACE.Entity
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 }
                 else
-                { 
+                {
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 }
                 // play level up effect

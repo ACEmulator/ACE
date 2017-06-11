@@ -22,7 +22,7 @@ namespace ACE.Entity
         }
 
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint AceObjectId { get; set; }
+        public virtual uint? AceObjectId { get; set; }
 
         // TODO: This is just named wrong needs to be fixed.
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]

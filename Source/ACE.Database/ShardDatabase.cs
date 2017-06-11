@@ -662,7 +662,7 @@ namespace ACE.Database
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, properties);
             return true;
         }
-        
+
         private bool SaveAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesAttribute2nd> properties)
         {
             var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };

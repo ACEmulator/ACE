@@ -276,6 +276,10 @@ namespace ACE.Network.Handlers
             }
 
             character.AccountId = session.Id;
+            character.Deleted = false;
+            character.DeleteTime = 0;
+            character.WeenieClassId = 1;
+            character.ItemType = 1;
 
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);

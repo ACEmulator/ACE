@@ -48,8 +48,20 @@ namespace ACE.Entity
 
         public uint AccountId
         {
-            get { return (uint)InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account)?.PropertyValue; }
+            get { return InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account).PropertyValue; }
             set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
+        }
+
+        public bool Deleted
+        {
+            get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }
+            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
+        }
+
+        public ulong DeleteTime
+        {
+            get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
+            set { SetInt64Property(PropertyInt64.DeleteTime, value); }
         }
 
         public bool GetCharacterOptions1(CharacterOptions1 option)

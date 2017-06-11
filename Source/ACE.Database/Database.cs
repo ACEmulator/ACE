@@ -622,7 +622,7 @@ namespace ACE.Database
                                 foreach (var p in properties)
                                 {
                                     var assignable = commandReader[p.Item2.DbFieldName];
-                                    if (assignable is System.DBNull)
+                                    if (Convert.IsDBNull(assignable))
                                     {
                                         p.Item1.SetValue(o, null);
                                     }

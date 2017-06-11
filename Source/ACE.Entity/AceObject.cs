@@ -283,7 +283,7 @@ namespace ACE.Entity
         /// </summary>
         public uint ItemType
         {
-            get { return GetIntProperty(PropertyInt.ItemType).Value; }
+            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
@@ -485,7 +485,7 @@ namespace ACE.Entity
         /// </summary>
         public uint PhysicsState
         {
-            get { return GetIntProperty(PropertyInt.PhysicsState).Value; }
+            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.PhysicsState).PropertyValue; }
             set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
