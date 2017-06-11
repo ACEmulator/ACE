@@ -283,9 +283,14 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
+            // FIXME(ddevec): We have duplicated data everywhere.  There is an AceObject CharacterOption flag, and a Player.CharacterOptions...
+            //    Which one is right?  I have no idea.  Right now the aceObject works...  we should probably do a refactoring once we've restored functionality
             var optionFlags = DescriptionOptionFlag.CharacterOption2;
             Writer.Write((uint)optionFlags);
+            /*
             Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
+            */
+            Writer.Write(aceObj.CharacterOptions1Mapping);
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
@@ -312,7 +317,8 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                Writer.Write(aceObj.CharacterOptions2Mapping);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {
