@@ -651,7 +651,7 @@ namespace ACE.Entity
                 ret.Attribute2ndId = (ushort)ability;
                 ret.Attribute2ndValue = 0;
                 ret.Attribute2ndRanks = 0;
-                ret.Attribute2ndXpSpend = 0;
+                ret.Attribute2ndXpSpent = 0;
                 AceObjectPropertiesAttributes2nd.Add(ret);
             }
 
@@ -667,7 +667,7 @@ namespace ACE.Entity
                 {
                     oldAttribute.Attribute2ndValue = attribute.Attribute2ndValue;
                     oldAttribute.Attribute2ndRanks = attribute.Attribute2ndRanks;
-                    oldAttribute.Attribute2ndXpSpend = attribute.Attribute2ndXpSpend;
+                    oldAttribute.Attribute2ndXpSpent = attribute.Attribute2ndXpSpent;
                 }
                 else
                 {

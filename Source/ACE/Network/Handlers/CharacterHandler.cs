@@ -223,9 +223,9 @@ namespace ACE.Network.Handlers
             uint classId = reader.ReadUInt32();
 
             // characters start with max vitals
-            character.Health.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
-            character.Stamina.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
-            character.Mana.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
+            character.Health.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
+            character.Stamina.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
+            character.Mana.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
 
             character.TotalSkillCredits = 52;
             character.AvailableSkillCredits = 52;

@@ -106,9 +106,9 @@ namespace ACE.Entity
 
             ret.AceObjectId = objId;
             ret.Attribute2ndId = (ushort)Ability;
-            ret.Attribute2ndValue = (ushort)Current;
+            ret.Attribute2ndValue = Current;
             ret.Attribute2ndRanks = (ushort)Ranks;
-            ret.Attribute2ndXpSpend = ExperienceSpent;
+            ret.Attribute2ndXpSpent = ExperienceSpent;
 
             return ret;
         }

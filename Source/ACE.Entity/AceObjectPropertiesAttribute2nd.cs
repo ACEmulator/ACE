@@ -16,14 +16,14 @@ namespace ACE.Entity
         [DbField("attribute2ndid", (int)MySqlDbType.UInt16)]
         public ushort Attribute2ndId { get; set; }
 
-        [DbField("attribute2ndValue", (int)MySqlDbType.UInt16)]
-        public ushort Attribute2ndValue { get; set; }
+        [DbField("attribute2ndValue", (int)MySqlDbType.UInt24)]
+        public uint Attribute2ndValue { get; set; }
 
         [DbField("attribute2ndRanks", (int)MySqlDbType.UInt16)]
         public ushort Attribute2ndRanks { get; set; }
 
         [DbField("attribute2ndXpSpent", (int)MySqlDbType.UInt32)]
-        public uint Attribute2ndXpSpend { get; set; }
+        public uint Attribute2ndXpSpent { get; set; }
 
         public object Clone()
         {
