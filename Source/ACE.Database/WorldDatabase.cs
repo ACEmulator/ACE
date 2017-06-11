@@ -109,7 +109,7 @@ namespace ACE.Database
                 ConstructedStatementType.GetList);
             ConstructStatement(
                 WorldPreparedStatement.GetAceObjectPropertiesPosition,
-                typeof(Position),
+                typeof(AceObjectPropertiesPosition),
                 ConstructedStatementType.GetList);
             ConstructStatement(
                 WorldPreparedStatement.GetObjectsByLandblock,
@@ -176,7 +176,6 @@ namespace ACE.Database
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {
-
                 var o = GetWorldObject(cwo.AceObjectId);
                 o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
                 o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
@@ -196,7 +195,7 @@ namespace ACE.Database
 
         public AceObject GetWorldObject(uint objId)
         {
-            AceObject ret = new AceObject(); ;
+            AceObject ret = new AceObject();
             var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
             bool success = ExecuteConstructedGetStatement<WorldPreparedStatement>(WorldPreparedStatement.GetAceObject, typeof(AceObject), criteria, ret);
             if (!success)
@@ -255,11 +254,11 @@ namespace ACE.Database
             return objects;
         }
 
-        private Dictionary<PositionType, Position> GetAceObjectPositions(uint aceObjectId)
+        private List<AceObjectPropertiesPosition> GetAceObjectPositions(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, Position>(WorldPreparedStatement.GetAceObjectPropertiesPosition, criteria);
-            return objects.ToDictionary(x => x.PositionType, x => x);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesPosition>(WorldPreparedStatement.GetAceObjectPropertiesPosition, criteria);
+            return objects;
         }
 
         private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)

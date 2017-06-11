@@ -11,10 +11,7 @@ namespace ACE.Entity
     {
         // private readonly Position portalDestination;
 
-        public Position Destination
-        {
-            get { return AceObject.Destination; }
-        }
+        public Position Destination { get; private set; }
 
         // private byte portalSocietyId;
 
@@ -112,6 +109,7 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
+            Destination = new Position(aceO.Destination);
         }
 
         public uint MinimumLevel

@@ -89,7 +89,7 @@ namespace ACE.Entity
         public DebugObject(AceObject aceO)
             : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
-            Location = aceO.Location;
+            Location = new Position(aceO.Location);
             Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
             WeenieClassid = aceO.WeenieClassId;
             GameDataType = aceO.ItemType;

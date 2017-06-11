@@ -6,8 +6,6 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_position")]
-    [DbList("ace_position", "aceObjectId")]
     public class Position : ICloneable
     {
         private LandblockId landblockId;
@@ -21,59 +19,21 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint? AceObjectId { get; set; }
-
         // TODO: This is just named wrong needs to be fixed.
-        [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint Cell { get; set; }
 
-        // [DbField("landblock", (int)MySqlDbType.UInt16)]
-        // public uint Landblock { get; set; }
-
-        [DbField("positionType", (int)MySqlDbType.UInt16, Update = false, IsCriteria = true)]
-        public ushort DbPositionType { get; set; }
-
-        public PositionType PositionType
-        {
-            get
-            {
-                return (PositionType)DbPositionType;
-            }
-            set
-            {
-                // If the value is greater then the max enum, then we will finally save the value as an Undefined position type.
-                // This may cause bugs if you rely on the PortalType.Undef in the futre.
-                // The Undef Type is only intended work with the default database value and is only a type within the ACE server.
-                if ((uint)value >= System.Enum.GetValues(typeof(PositionType)).Length)
-                    DbPositionType = 0;
-                else
-                    DbPositionType = (ushort)value;
-            }
-        }
-
-        [DbField("positionId", (int)MySqlDbType.UInt32)]
-        public uint PositionId { get; set; }
-
-        [DbField("posX", (int)MySqlDbType.Float)]
         public float PositionX { get; set; }
 
-        [DbField("posY", (int)MySqlDbType.Float)]
         public float PositionY { get; set; }
 
-        [DbField("posZ", (int)MySqlDbType.Float)]
         public float PositionZ { get; set; }
 
-        [DbField("qW", (int)MySqlDbType.Float)]
         public float RotationW { get; set; }
 
-        [DbField("qX", (int)MySqlDbType.Float)]
         public float RotationX { get; set; }
 
-        [DbField("qY", (int)MySqlDbType.Float)]
         public float RotationY { get; set; }
 
-        [DbField("qZ", (int)MySqlDbType.Float)]
         public float RotationZ { get; set; }
 
         private const float xyMidPoint = 96f;
@@ -117,11 +77,9 @@ namespace ACE.Entity
         public Position() : base() {
         }
 
-        public Position(uint characterId, PositionType type, uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
+        public Position(uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
             LandblockId = new LandblockId(newCell);
-            AceObjectId = characterId;
-            PositionType = type;
             Cell = newCell;
             PositionX = newPositionX;
             PositionY = newPositionY;
@@ -130,19 +88,6 @@ namespace ACE.Entity
             RotationY = newRotationY;
             RotationZ = newRotationZ;
             RotationW = newRotationW;
-        }
-
-        public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
-        {
-            LandblockId = new LandblockId(landblock);
-            Cell = LandblockId.Raw;
-            PositionX = x;
-            PositionY = y;
-            PositionZ = z;
-            RotationX = qx;
-            RotationY = qy;
-            RotationZ = qz;
-            RotationW = qw;
         }
 
         public Position(BinaryReader payload)
@@ -190,6 +135,19 @@ namespace ACE.Entity
             RotationY = 0.0f;
             RotationZ = 0.0f;
             RotationW = 1.0f;
+        }
+
+        public Position(AceObjectPropertiesPosition aoPos)
+        {
+            Cell = aoPos.Cell;
+            LandblockId = new LandblockId(Cell);
+            PositionX = aoPos.PositionX;
+            PositionY = aoPos.PositionY;
+            PositionZ = aoPos.PositionZ;
+            RotationW = aoPos.RotationW;
+            RotationX = aoPos.RotationX;
+            RotationY = aoPos.RotationY;
+            RotationZ = aoPos.RotationZ;
         }
 
         public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
@@ -305,6 +263,29 @@ namespace ACE.Entity
         public override string ToString()
         {
             return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
+        }
+
+        public AceObjectPropertiesPosition GetAceObjectPosition(ObjectGuid guid, PositionType type)
+        {
+            return GetAceObjectPosition(guid.Full, type);
+        }
+
+        public AceObjectPropertiesPosition GetAceObjectPosition(uint guid, PositionType type)
+        {
+            AceObjectPropertiesPosition ret = new AceObjectPropertiesPosition();
+            ret.AceObjectId = guid;
+            ret.DbPositionType = (ushort)type;
+            ret.PositionId = 0;
+            ret.Cell = Cell;
+            ret.PositionX = PositionX;
+            ret.PositionY = PositionY;
+            ret.PositionZ = PositionZ;
+            ret.RotationW = RotationW;
+            ret.RotationX = RotationX;
+            ret.RotationY = RotationY;
+            ret.RotationZ = RotationZ;
+
+            return ret;
         }
 
         public object Clone()

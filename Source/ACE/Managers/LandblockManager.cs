@@ -26,7 +26,7 @@ namespace ACE.Managers
 
             await Task.Run(() => session.Player.Load(c));
 
-            var block = GetLandblock(c.Location.LandblockId, true);
+            var block = GetLandblock(session.Player.Location.LandblockId, true);
             block.AddWorldObject(session.Player);
 
             session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));

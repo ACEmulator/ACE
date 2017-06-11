@@ -25,7 +25,7 @@ namespace ACE.Entity
         {
             Name = aceO.Name;
             DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
-            Location = aceO.Location;
+            Location = new Position(aceO.Location);
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 

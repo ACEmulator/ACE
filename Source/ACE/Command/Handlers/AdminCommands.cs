@@ -591,68 +591,68 @@ namespace ACE.Command.Handlers
                 // parsedPositionInt value should be limited too a value from, 0-9
                 // Create a new position from the current player location
                 Position playerPosition = session.Player.Location;
+                PositionType positionType = PositionType.Sanctuary;
                 // Set the correct PositionType, based on the "Saved Positions" position type subset:
                 switch (parsedPositionInt)
                 {
                     case 0:
                         {
-                            playerPosition.PositionType = PositionType.Sanctuary;
+                            positionType = PositionType.Sanctuary;
                             break;
                         }
                     case 1:
                         {
-                            playerPosition.PositionType = PositionType.Save1;
+                            positionType = PositionType.Save1;
                             break;
                         }
                     case 2:
                         {
-                            playerPosition.PositionType = PositionType.Save2;
+                            positionType = PositionType.Save2;
                             break;
                         }
                     case 3:
                         {
-                            playerPosition.PositionType = PositionType.Save3;
+                            positionType = PositionType.Save3;
                             break;
                         }
                     case 4:
                         {
-                            playerPosition.PositionType = PositionType.Save4;
+                            positionType = PositionType.Save4;
                             break;
                         }
                     case 5:
                         {
-                            playerPosition.PositionType = PositionType.Save5;
+                            positionType = PositionType.Save5;
                             break;
                         }
                     case 6:
                         {
-                            playerPosition.PositionType = PositionType.Save6;
+                            positionType = PositionType.Save6;
                             break;
                         }
                     case 7:
                         {
-                            playerPosition.PositionType = PositionType.Save7;
+                            positionType = PositionType.Save7;
                             break;
                         }
                     case 8:
                         {
-                            playerPosition.PositionType = PositionType.Save8;
+                            positionType = PositionType.Save8;
                             break;
                         }
                     case 9:
                         {
-                            playerPosition.PositionType = PositionType.Save9;
+                            positionType = PositionType.Save9;
                             break;
                         }
                 }
 
                 // Save the position
-                session.Player.SetCharacterPosition(playerPosition);
+                session.Player.SetCharacterPosition(positionType, (Position)playerPosition.Clone());
                 // Report changes to client
-                var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
                 return;
-
             }
             // Error parsing the text input, from parameter[0]
             var positionErrorMessage = new GameMessageSystemChat($"Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);

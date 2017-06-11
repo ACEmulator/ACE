@@ -324,7 +324,7 @@ namespace ACE.Network.Handlers
 
         public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character)
         {
-            character.Location = CharacterPositionExtensions.StartingPosition(character.AceObjectId);
+            character.Location = CharacterPositionExtensions.StartingPosition().GetAceObjectPosition(character.AceObjectId, PositionType.Location);
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
