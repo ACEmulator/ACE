@@ -48,7 +48,7 @@ namespace ACE.Entity
 
         public uint AccountId
         {
-            get { return (uint)InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account)?.PropertyValue; }
+            get { return InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account).PropertyValue; }
             set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
         }
 

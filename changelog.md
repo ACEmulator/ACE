@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-06-10
+[Og II]
+* Continued work loading character from ace_shard.   Character reaches world now. 
+* Fixed a number of null exception errors
+* Outstanding issues:
+* has an orm data load error 
+* abilities and skills object issue not resolved
+* palette, textures not being read or sent
+
 ### 2017-06-08
 [ddevec]
 * Implemented ShardDatabase.SaveObject
