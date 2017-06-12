@@ -96,7 +96,7 @@ namespace ACE.Entity
             // ModelData.PaletteGuid = aco.PaletteId;
         }
 
-        private void SetAbilities(AceObject aco)
+        protected void SetAbilities(AceObject aco)
         {
             Strength = new CreatureAbility(aco, Enum.Ability.Strength);
             Endurance = new CreatureAbility(aco, Enum.Ability.Endurance);

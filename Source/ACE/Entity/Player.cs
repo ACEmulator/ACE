@@ -16,15 +16,13 @@ using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Entity.Events;
+using ACE.Entity;
 using log4net;
 using ACE.Network.Sequence;
 using System.Collections.Concurrent;
-using ACE.Network.GameAction.Actions;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using ACE.DatLoader;
 using ACE.Factories;
 using System.IO;
 
@@ -73,8 +71,10 @@ namespace ACE.Entity
         {
             get { return Character.Level; }
         }
-        
+
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
+
+        private Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
 
         private readonly object clientObjectMutex = new object();
 
@@ -131,7 +131,7 @@ namespace ACE.Entity
             get { return Character.IsPsr; }
             set { Character.IsPsr = value; }
         }
-        
+
         public uint TotalLogins
         {
             get { return Character.TotalLogins; }
@@ -413,14 +413,14 @@ namespace ACE.Entity
                             ModelData.AddPalette(footwearPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
-                } // end footwear 
+                } // end footwear
             } */
         }
 
         public void Load(AceCharacter character)
         {
             AceObject = character;
-            
+
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -438,7 +438,29 @@ namespace ACE.Entity
 
             Location = character.Location;
 
+            foreach (AceObjectPropertiesSkill skill in AceObject.GetSkills())
+            {
+                Skill skillId = (Skill)skill.SkillId;
+                skills[skillId] = new CreatureSkill(AceObject, skillId, (SkillStatus)skill.SkillStatus, skill.SkillPoints, skill.SkillXpSpent);
+            }
+
+            SetAbilities(character);
+
             IsOnline = true;
+            Strength = new CreatureAbility(character, Enum.Ability.Strength);
+            Endurance = new CreatureAbility(character, Enum.Ability.Endurance);
+            Coordination = new CreatureAbility(character, Enum.Ability.Coordination);
+            Quickness = new CreatureAbility(character, Enum.Ability.Quickness);
+            Focus = new CreatureAbility(character, Enum.Ability.Focus);
+            Self = new CreatureAbility(character, Enum.Ability.Self);
+
+            Health = new CreatureAbility(character, Enum.Ability.Health);
+            Stamina = new CreatureAbility(character, Enum.Ability.Stamina);
+            Mana = new CreatureAbility(character, Enum.Ability.Mana);
+
+            // Character.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
+            // Character.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            // Character.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
 
             this.TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
@@ -454,6 +476,42 @@ namespace ACE.Entity
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+        }
+
+        public AceObject GetSavableCharacter()
+        {
+            // Clone Character
+            AceObject obj = (AceObject)Character.Clone();
+
+            // Copy in any data Character doesn't reflect...
+            // Bad stuff -- fix
+            // Attributes
+            obj.SetAttributeProperty(Strength.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Coordination.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Endurance.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Quickness.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Focus.GetAttribute(Character.AceObjectId));
+            obj.SetAttributeProperty(Self.GetAttribute(Character.AceObjectId));
+            // Vitals
+            obj.SetAttribute2ndProperty(Health.GetVital(Character.AceObjectId));
+            obj.SetAttribute2ndProperty(Stamina.GetVital(Character.AceObjectId));
+            obj.SetAttribute2ndProperty(Mana.GetVital(Character.AceObjectId));
+
+            // Skillz
+            foreach (var skill in skills.Values)
+            {
+                obj.SetSkillProperty(skill.GetAceObjectSkill(Character.AceObjectId));
+            }
+
+            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell. 
+            //   We should probably have a DB position that has this extra information separate from our used position
+            // Positions -- These are curently maintained internally...
+            foreach (var pos in obj.Positions.Values)
+            {
+                pos.AceObjectId = obj.AceObjectId;
+            }
+            
+            return obj;
         }
 
         public void AddToActionQueue(QueuedGameAction action)
@@ -639,7 +697,7 @@ namespace ACE.Entity
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 }
                 else
-                { 
+                {
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 }
                 // play level up effect
@@ -649,7 +707,7 @@ namespace ACE.Entity
 
         public void SpendXp(Enum.Ability ability, uint amount)
         {
-            CreatureAbility creatureAbility = Character.GetAbility(ability);
+            CreatureAbility creatureAbility = Abilities[ability];
             uint baseValue = creatureAbility.Base;
             uint result = SpendAbilityXp(creatureAbility, amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
@@ -821,7 +879,7 @@ namespace ACE.Entity
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
-            CreatureSkill creatureSkill = Character.GetSkill(skill);
+            CreatureSkill creatureSkill = skills[skill];
             uint result = SpendSkillXp(creatureSkill, amount);
 
             uint ranks = creatureSkill.Ranks;
@@ -1192,7 +1250,9 @@ namespace ACE.Entity
         public void SaveOptions()
         {
             if (Character != null)
-                DatabaseManager.Shard.SaveObject(Character);
+            {
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
+            }
 
             // TODO: Save other options as we implement them.
         }
@@ -1212,7 +1272,7 @@ namespace ACE.Entity
         public void SetCharacterPosition(Position newPosition)
         {
             // Some positions come from outside of the Player and Character classes
-            if (newPosition.AceObjectId == 0) newPosition.AceObjectId = Guid.Low;
+            if (newPosition.AceObjectId == 0) newPosition.AceObjectId = Guid.Full;
 
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
@@ -1241,7 +1301,7 @@ namespace ACE.Entity
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                DatabaseManager.Shard.SaveObject(Character);
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
 #if DEBUG
                 if (Session.Player != null)
                 {

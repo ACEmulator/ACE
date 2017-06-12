@@ -37,7 +37,9 @@ namespace ACE.Factories
 #if DEBUG
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies
-                        results.Add(new DebugObject(aceO));
+                        // FIXME(ddevec): Some objects have null location.  This freaks out the landblock... ignore them?
+                        if (aceO.Location != null)
+                            results.Add(new DebugObject(aceO));
                         break;
 #endif
                 }

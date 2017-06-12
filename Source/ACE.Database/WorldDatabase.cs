@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
@@ -31,7 +33,9 @@ namespace ACE.Database
             GetAceObjectPropertiesBool = 19,
             GetAceObjectPropertiesString = 20,
             GetAceObjectPropertiesDid = 21,
-            GetAceObjectPropertiesIid = 22
+            GetAceObjectPropertiesIid = 22,
+            GetAceObject = 23,
+            GetAceObjectPropertiesPosition = 24,
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -95,6 +99,18 @@ namespace ACE.Database
                 WorldPreparedStatement.GetAceObjectPropertiesString,
                 typeof(AceObjectPropertiesString),
                 ConstructedStatementType.GetList);
+            ConstructStatement(
+                WorldPreparedStatement.GetAceObjectPropertiesPosition,
+                typeof(Position),
+                ConstructedStatementType.GetList);
+            ConstructStatement(
+                WorldPreparedStatement.GetObjectsByLandblock,
+                typeof(CachedWordObject),
+                ConstructedStatementType.GetList);
+            ConstructStatement(
+                WorldPreparedStatement.GetAceObject,
+                typeof(AceObject),
+                ConstructedStatementType.Get);
         }
 
         public AceObject GetRandomWeenieOfType(uint itemType)
@@ -148,9 +164,12 @@ namespace ACE.Database
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
-            objects.ForEach(o =>
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWordObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            List<AceObject> ret = new List<AceObject>();
+            objects.ForEach(cwo =>
             {
+
+                var o = GetWorldObject(cwo.AceObjectId);
                 o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
                 o.Int64Properties = GetAceObjectPropertiesBigInt(o.AceObjectId);
                 o.BoolProperties = GetAceObjectPropertiesBool(o.AceObjectId);
@@ -159,8 +178,22 @@ namespace ACE.Database
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
+                o.Positions = GetAceObjectPositions(o.AceObjectId);
+                ret.Add(o);
             });
-            return objects;
+            return ret;
+        }
+
+        public AceObject GetWorldObject(uint objId)
+        {
+            AceObject ret = new AceObject(); ;
+            var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
+            bool success = ExecuteConstructedGetStatement<WorldPreparedStatement>(WorldPreparedStatement.GetAceObject, typeof(AceObject), criteria, ret);
+            if (!success)
+            {
+                return null;
+            }
+            return ret;
         }
 
         public List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock)
@@ -188,11 +221,11 @@ namespace ACE.Database
         }
 
         private List<WeeniePaletteOverride> GetWeeniePalettes(uint aceObjectId)
-         {
-             var criteria = new Dictionary<string, object>();
-             criteria.Add("aceObjectId", aceObjectId);
-             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
-         }
+        {
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("aceObjectId", aceObjectId);
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
+        }
 
         private List<WeenieTextureMapOverride> GetWeenieTextureMaps(uint aceObjectId)
         {
@@ -210,6 +243,13 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetTextureOverridesByObject, criteria);
             return objects;
+        }
+
+        private Dictionary<PositionType, Position> GetAceObjectPositions(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, Position>(WorldPreparedStatement.GetAceObjectPropertiesPosition, criteria);
+            return objects.ToDictionary(x => x.PositionType, x => x);
         }
 
         private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
@@ -277,6 +317,7 @@ namespace ACE.Database
                                };
                 bao.AnimationOverrides.Add(oani);
             }
+
             return bao;
         }
 
@@ -287,49 +328,49 @@ namespace ACE.Database
 
         private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInt>(WorldPreparedStatement.GetAceObjectPropertiesInt, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesInt64> GetAceObjectPropertiesBigInt(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInt64>(WorldPreparedStatement.GetAceObjectPropertiesBigInt, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesBool> GetAceObjectPropertiesBool(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesBool>(WorldPreparedStatement.GetAceObjectPropertiesBool, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesDouble> GetAceObjectPropertiesDouble(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDouble>(WorldPreparedStatement.GetAceObjectPropertiesDouble, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesString> GetAceObjectPropertiesString(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesString>(WorldPreparedStatement.GetAceObjectPropertiesString, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesDataId> GetAceObjectPropertiesDid(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDataId>(WorldPreparedStatement.GetAceObjectPropertiesDid, criteria);
             return objects;
         }
 
         private List<AceObjectPropertiesInstanceId> GetAceObjectPropertiesIid(uint aceObjectId)
         {
-            var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInstanceId>(WorldPreparedStatement.GetAceObjectPropertiesIid, criteria);
             return objects;
         }

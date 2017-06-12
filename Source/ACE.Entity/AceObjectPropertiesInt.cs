@@ -1,12 +1,13 @@
-﻿using ACE.Common;
+﻿using System;
+using ACE.Common;
 using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_int")]
-    [DbList("ace_object_properties_int", "AceObjectId")]
-    public class AceObjectPropertiesInt
+    [DbList("ace_object_properties_int", "aceObjectId")]
+    public class AceObjectPropertiesInt : ICloneable
     {
-        [DbField("AceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("intPropertyId", (int)MySqlDbType.UInt16)]
@@ -14,5 +15,10 @@ namespace ACE.Entity
 
         [DbField("propertyValue", (int)MySqlDbType.UInt32)]
         public uint PropertyValue { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

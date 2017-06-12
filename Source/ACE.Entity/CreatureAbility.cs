@@ -86,5 +86,31 @@ namespace ACE.Entity
             Ability = ability;
             Base = 10;
         }
+
+        public AceObjectPropertiesAttribute GetAttribute(uint objId)
+        {
+            var ret = new AceObjectPropertiesAttribute();
+
+            ret.AceObjectId = objId;
+            ret.AttributeId = (ushort)Ability;
+            ret.AttributeBase = (ushort)Base;
+            ret.AttributeRanks = (ushort)Ranks;
+            ret.AttributeXpSpent = ExperienceSpent;
+
+            return ret;
+        }
+
+        public AceObjectPropertiesAttribute2nd GetVital(uint objId)
+        {
+            var ret = new AceObjectPropertiesAttribute2nd();
+
+            ret.AceObjectId = objId;
+            ret.Attribute2ndId = (ushort)Ability;
+            ret.Attribute2ndValue = (ushort)Current;
+            ret.Attribute2ndRanks = (ushort)Ranks;
+            ret.Attribute2ndXpSpend = ExperienceSpent;
+
+            return ret;
+        }
     }
 }

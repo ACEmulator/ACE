@@ -11,7 +11,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_object_animation_change")]
     [DbList("ace_object_animation_change", "aceObjectId")]
-    public class AnimationOverride
+    public class AnimationOverride : ICloneable
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
@@ -21,5 +21,10 @@ namespace ACE.Entity
 
         [DbField("animationId", (int)MySqlDbType.UInt32)]
         public uint AnimationId { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

@@ -8,7 +8,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_position")]
     [DbList("ace_position", "aceObjectId")]
-    public class Position
+    public class Position : ICloneable
     {
         private LandblockId landblockId;
 
@@ -22,7 +22,7 @@ namespace ACE.Entity
         }
 
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint AceObjectId { get; set; }
+        public virtual uint? AceObjectId { get; set; }
 
         // TODO: This is just named wrong needs to be fixed.
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
@@ -305,6 +305,11 @@ namespace ACE.Entity
         public override string ToString()
         {
             return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }

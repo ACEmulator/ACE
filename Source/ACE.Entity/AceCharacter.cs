@@ -18,6 +18,14 @@ namespace ACE.Entity
         {
             friends = new List<Friend>();
             Friends = new ReadOnlyCollection<Friend>(friends);
+
+            // Required default properties for character login
+            // FIXME(ddevec): Should we have constants for (some of) these things?
+            ItemType = (uint)ObjectType.Creature;
+            ItemsCapacity = 102;
+            WeenieClassId = 1;
+            Deleted = false;
+            DeleteTime = 0;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
@@ -48,7 +56,7 @@ namespace ACE.Entity
 
         public uint AccountId
         {
-            get { return (uint)InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account)?.PropertyValue; }
+            get { return InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account).PropertyValue; }
             set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
         }
 
@@ -118,6 +126,18 @@ namespace ACE.Entity
         {
             get { return GetIntProperty(PropertyInt.Age) ?? 0; }
             set { SetIntProperty(PropertyInt.Age, value); }
+        }
+
+        public bool IsDeleted
+        {
+            get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }
+            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
+        }
+
+        public ulong DeletedTime
+        {
+            get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
+            set { SetInt64Property(PropertyInt64.DeleteTime, value); }
         }
 
         public string DateOfBirth
@@ -333,12 +353,18 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, uint creditsSpent)
         {
-            CreatureSkill cs = GetSkill(skill);
-            if (cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            AceObjectPropertiesSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.SkillStatus != (uint)SkillStatus.Trained && cs.SkillStatus != (uint)SkillStatus.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    skills[skill] = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    var newSkill = new AceObjectPropertiesSkill();
+                    newSkill.AceObjectId = AceObjectId;
+                    newSkill.SkillId = (ushort)skill;
+                    newSkill.SkillPoints = 0;
+                    newSkill.SkillStatus = (ushort)SkillStatus.Trained;
+                    newSkill.SkillXpSpent = 0;
+                    SetAceObjectPropertiesSkill(newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -353,13 +379,19 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool SpecializeSkill(Skill skill, uint creditsSpent)
         {
-            CreatureSkill cs = GetSkill(skill);
-            if (cs.Status == SkillStatus.Trained)
+            AceObjectPropertiesSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.SkillStatus == (uint)SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    RefundXp(cs.ExperienceSpent);
-                    skills[skill] = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
+                    RefundXp(cs.SkillXpSpent);
+                    var newSkill = new AceObjectPropertiesSkill();
+                    newSkill.AceObjectId = AceObjectId;
+                    newSkill.SkillId = (ushort)skill;
+                    newSkill.SkillPoints = 0;
+                    newSkill.SkillStatus = (ushort)SkillStatus.Specialized;
+                    newSkill.SkillXpSpent = 0;
+                    SetAceObjectPropertiesSkill(newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }

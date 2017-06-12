@@ -245,9 +245,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
+                // FIXME(ddevec): This should be a property of the player -- the AceObject does not track buffs.
                 var skills = aceObj.GetSkills();
 
                 Writer.Write((ushort)skills.Count);
@@ -255,11 +255,11 @@ namespace ACE.Network.GameEvent.Events
 
                 foreach (var skill in skills)
                 {
-                    Writer.Write((uint)skill.Skill); // skill id
-                    Writer.Write((ushort)skill.Ranks); // points raised
+                    Writer.Write((uint)skill.SkillId); // skill id
+                    Writer.Write((ushort)skill.SkillPoints); // points raised
                     Writer.Write((ushort)0);
-                    Writer.Write((uint)skill.Status); // skill state
-                    Writer.Write((uint)skill.ExperienceSpent); // xp spent on this skill
+                    Writer.Write((uint)skill.SkillStatus); // skill state
+                    Writer.Write((uint)skill.SkillXpSpent); // xp spent on this skill
                     Writer.Write(0u); // current bonus points applied (buffs) - not implemented
                     Writer.Write(0u); // task difficulty
                     Writer.Write(0d);

@@ -11,12 +11,9 @@ namespace ACE.Entity
     using System.Net.Mime;
 
     [DbTable("ace_object")]
-    public class AceObject : ICreatureStats
+    [DbList("ace_object", "landblock")]
+    public class AceObject : ICreatureStats, ICloneable
     {
-        protected Dictionary<Ability, CreatureAbility> abilities = new Dictionary<Ability, CreatureAbility>();
-
-        protected Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
-
         public AceObject(uint id)
             : this()
         {
@@ -25,16 +22,6 @@ namespace ACE.Entity
 
         public AceObject()
         {
-            abilities.Add(Ability.Strength, new CreatureAbility(this, Ability.Strength));
-            abilities.Add(Ability.Endurance, new CreatureAbility(this, Ability.Endurance));
-            abilities.Add(Ability.Coordination, new CreatureAbility(this, Ability.Coordination));
-            abilities.Add(Ability.Quickness, new CreatureAbility(this, Ability.Quickness));
-            abilities.Add(Ability.Focus, new CreatureAbility(this, Ability.Focus));
-            abilities.Add(Ability.Self, new CreatureAbility(this, Ability.Self));
-
-            abilities.Add(Ability.Health, new CreatureAbility(this, Ability.Health));
-            abilities.Add(Ability.Stamina, new CreatureAbility(this, Ability.Stamina));
-            abilities.Add(Ability.Mana, new CreatureAbility(this, Ability.Mana));
         }
 
         /// <summary>
@@ -74,7 +61,7 @@ namespace ACE.Entity
         }
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
-        public string CurrentMotionState { get; set; }
+        public String CurrentMotionState { get; set; }
 
         public uint? IconId
         {
@@ -139,77 +126,77 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
         }
 
-        public CreatureAbility StrengthAbility
+        public AceObjectPropertiesAttribute StrengthAbility
         {
-            get { return abilities[Ability.Strength]; }
-            set { abilities[Ability.Strength] = value; }
+            get { return GetAttributeProperty(Ability.Strength); }
+            set { SetAttributeProperty(value); }
         }
 
-        public CreatureAbility EnduranceAbility
+        public AceObjectPropertiesAttribute EnduranceAbility
         {
-            get { return abilities[Ability.Endurance]; }
-            set { abilities[Ability.Endurance] = value; }
+            get { return GetAttributeProperty(Ability.Endurance); }
+            set { SetAttributeProperty(value); }
         }
 
-        public CreatureAbility CoordinationAbility
+        public AceObjectPropertiesAttribute CoordinationAbility
         {
-            get { return abilities[Ability.Coordination]; }
-            set { abilities[Ability.Coordination] = value; }
+            get { return GetAttributeProperty(Ability.Coordination); }
+            set { SetAttributeProperty(value); }
         }
 
-        public CreatureAbility QuicknessAbility
+        public AceObjectPropertiesAttribute QuicknessAbility
         {
-            get { return abilities[Ability.Quickness]; }
-            set { abilities[Ability.Quickness] = value; }
+            get { return GetAttributeProperty(Ability.Quickness); }
+            set { SetAttributeProperty(value); }
         }
 
-        public CreatureAbility FocusAbility
+        public AceObjectPropertiesAttribute FocusAbility
         {
-            get { return abilities[Ability.Focus]; }
-            set { abilities[Ability.Focus] = value; }
+            get { return GetAttributeProperty(Ability.Focus); }
+            set { SetAttributeProperty(value); }
         }
 
-        public CreatureAbility SelfAbility
+        public AceObjectPropertiesAttribute SelfAbility
         {
-            get { return abilities[Ability.Self]; }
-            set { abilities[Ability.Self] = value; }
+            get { return GetAttributeProperty(Ability.Self); }
+            set { SetAttributeProperty(value); }
         }
 
-        public CreatureAbility Health
+        public AceObjectPropertiesAttribute2nd Health
         {
-            get { return abilities[Ability.Health]; }
-            set { abilities[Ability.Health] = value; }
+            get { return GetAttribute2ndProperty(Ability.Health); }
+            set { SetAttribute2ndProperty(value); }
         }
 
-        public CreatureAbility Stamina
+        public AceObjectPropertiesAttribute2nd Stamina
         {
-            get { return abilities[Ability.Stamina]; }
-            set { abilities[Ability.Stamina] = value; }
+            get { return GetAttribute2ndProperty(Ability.Stamina); }
+            set { SetAttribute2ndProperty(value); }
         }
 
-        public CreatureAbility Mana
+        public AceObjectPropertiesAttribute2nd Mana
         {
-            get { return abilities[Ability.Mana]; }
-            set { abilities[Ability.Mana] = value; }
+            get { return GetAttribute2ndProperty(Ability.Mana); }
+            set { SetAttribute2ndProperty(value); }
         }
 
         public uint Strength
-        { get { return StrengthAbility.UnbuffedValue; } }
+        { get { return StrengthAbility.ActiveValue; } }
 
         public uint Endurance
-        { get { return EnduranceAbility.UnbuffedValue; } }
+        { get { return EnduranceAbility.ActiveValue; } }
 
         public uint Coordination
-        { get { return CoordinationAbility.UnbuffedValue; } }
+        { get { return CoordinationAbility.ActiveValue; } }
 
         public uint Quickness
-        { get { return QuicknessAbility.UnbuffedValue; } }
+        { get { return QuicknessAbility.ActiveValue; } }
 
         public uint Focus
-        { get { return FocusAbility.UnbuffedValue; } }
+        { get { return FocusAbility.ActiveValue; } }
 
         public uint Self
-        { get { return SelfAbility.UnbuffedValue; } }
+        { get { return SelfAbility.ActiveValue; } }
 
         public byte LuminanceAward
         {
@@ -296,7 +283,7 @@ namespace ACE.Entity
         /// </summary>
         public uint ItemType
         {
-            get { return GetIntProperty(PropertyInt.ItemType).Value; }
+            get { return GetIntProperty(PropertyInt.ItemType) ?? default(uint); }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
@@ -315,13 +302,13 @@ namespace ACE.Entity
         // TODO: Not sure if this enum is right.
         public uint? CooldownId
         {
-            get { return GetIntProperty(PropertyInt.SharedCooldown).Value; }
+            get { return GetIntProperty(PropertyInt.SharedCooldown); }
             set { SetIntProperty(PropertyInt.SharedCooldown, value); }
         }
 
         public uint? UiEffects
         {
-            get { return GetIntProperty(PropertyInt.UiEffects).Value; }
+            get { return GetIntProperty(PropertyInt.UiEffects); }
             set { SetIntProperty(PropertyInt.UiEffects, value); }
         }
 
@@ -330,7 +317,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? HookType
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookType).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.HookType); }
             set { SetIntProperty(PropertyInt.HookType, value); }
         }
 
@@ -339,13 +326,13 @@ namespace ACE.Entity
         /// </summary>
         public ushort? HookItemTypes
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType); }
             set { SetIntProperty(PropertyInt.HookItemType, value); }
         }
 
         public byte? ItemsCapacity
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity).Value; }
+            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity); }
             set { SetIntProperty(PropertyInt.ItemsCapacity, value); }
         }
 
@@ -354,13 +341,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? MaterialType
         {
-            get { return (byte?)GetIntProperty(PropertyInt.MaterialType).Value; }
+            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
             set { SetIntProperty(PropertyInt.MaterialType, value); }
         }
 
         public ushort? MaxStackSize
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
             set { SetIntProperty(PropertyInt.MaxStackSize, value); }
         }
         /// <summary>
@@ -369,7 +356,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? MaxStructure
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure); }
             set { SetIntProperty(PropertyInt.MaxStructure, value); }
         }
 
@@ -378,13 +365,13 @@ namespace ACE.Entity
         /// </summary>
         public byte? Radar
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar).Value; }
+            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar); }
             set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
         }
 
         public ushort? StackSize
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.StackSize).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
             set { SetIntProperty(PropertyInt.StackSize, value); }
         }
         /// <summary>
@@ -393,7 +380,7 @@ namespace ACE.Entity
         /// </summary>
         public ushort? Structure
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.Structure).Value; }
+            get { return (ushort?)GetIntProperty(PropertyInt.Structure); }
             set { SetIntProperty(PropertyInt.Structure, value); }
         }
 
@@ -402,19 +389,19 @@ namespace ACE.Entity
         /// </summary>
         public uint? TargetTypeId
         {
-            get { return GetIntProperty(PropertyInt.TargetType).Value; }
+            get { return GetIntProperty(PropertyInt.TargetType); }
             set { SetIntProperty(PropertyInt.TargetType, value); }
         }
 
         public uint? ItemUseable
         {
-            get { return GetIntProperty(PropertyInt.ItemUseable).Value; }
+            get { return GetIntProperty(PropertyInt.ItemUseable); }
             set { SetIntProperty(PropertyInt.ItemUseable, value); }
         }
 
         public float? UseRadius
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius); }
             set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
         }
 
@@ -424,13 +411,13 @@ namespace ACE.Entity
         /// </summary>
         public uint? ValidLocations
         {
-            get { return GetIntProperty(PropertyInt.ValidLocations).Value; }
+            get { return GetIntProperty(PropertyInt.ValidLocations); }
             set { SetIntProperty(PropertyInt.ValidLocations, value); }
         }
 
         public uint? Value
         {
-            get { return GetIntProperty(PropertyInt.Value).Value; }
+            get { return GetIntProperty(PropertyInt.Value); }
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
@@ -459,37 +446,37 @@ namespace ACE.Entity
 
         private uint? ItemWorkmanship
         {
-            get { return GetIntProperty(PropertyInt.ItemWorkmanship).Value; }
+            get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
             set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
         }
 
         public float? PhysicsScriptIntensity
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity); }
             set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
         }
 
         public float? Elasticity
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity); }
             set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
         }
 
         public float? Friction
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Friction).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Friction); }
             set { SetDoubleProperty(PropertyDouble.Friction, value); }
         }
 
         public uint? CurrentWieldedLocation
         {
-            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation).Value; }
+            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation); }
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
         public float? DefaultScale
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
             set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
         }
 
@@ -498,13 +485,13 @@ namespace ACE.Entity
         /// </summary>
         public uint PhysicsState
         {
-            get { return GetIntProperty(PropertyInt.PhysicsState).Value; }
+            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.PhysicsState).PropertyValue; }
             set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
         public float? Translucency
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency).Value; }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency); }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
 
@@ -606,6 +593,166 @@ namespace ACE.Entity
                 if (listItem != null)
                 {
                     InstanceIdProperties.Remove(listItem);
+                }
+            }
+        }
+
+        public AceObjectPropertiesAttribute GetAttributeProperty(Ability ability)
+        {
+            var ret = AceObjectPropertiesAttributes.FirstOrDefault(x => x.AttributeId == (uint)ability);
+
+            if (ret == null)
+            {
+                ret = new AceObjectPropertiesAttribute();
+                ret.AceObjectId = AceObjectId;
+                ret.AttributeId = (ushort)ability;
+                ret.AttributeBase = 0;
+                ret.AttributeRanks = 0;
+                ret.AttributeXpSpent = 0;
+                AceObjectPropertiesAttributes.Add(ret);
+            }
+
+            return ret;
+        }
+
+        public void SetAttributeProperty(AceObjectPropertiesAttribute attribute)
+        {
+            AceObjectPropertiesAttribute oldAttribute = GetAttributeProperty((Ability)attribute.AttributeId);
+            if (attribute != null)
+            {
+                if (oldAttribute != null)
+                {
+                    oldAttribute.AttributeBase = attribute.AttributeBase;
+                    oldAttribute.AttributeRanks = attribute.AttributeRanks;
+                    oldAttribute.AttributeXpSpent = attribute.AttributeXpSpent;
+                }
+                else
+                {
+                    AceObjectPropertiesAttributes.Add(attribute);
+                }
+            }
+            else
+            {
+                if (oldAttribute != null)
+                {
+                    AceObjectPropertiesAttributes.Remove(oldAttribute);
+                }
+            }
+        }
+
+        public AceObjectPropertiesAttribute2nd GetAttribute2ndProperty(Ability ability)
+        {
+            var ret = AceObjectPropertiesAttributes2nd.FirstOrDefault(x => x.Attribute2ndId == (uint)ability);
+
+            if (ret == null)
+            {
+                ret = new AceObjectPropertiesAttribute2nd();
+                ret.AceObjectId = AceObjectId;
+                ret.Attribute2ndId = (ushort)ability;
+                ret.Attribute2ndValue = 0;
+                ret.Attribute2ndRanks = 0;
+                ret.Attribute2ndXpSpend = 0;
+                AceObjectPropertiesAttributes2nd.Add(ret);
+            }
+
+            return ret;
+        }
+
+        public void SetAttribute2ndProperty(AceObjectPropertiesAttribute2nd attribute)
+        {
+            AceObjectPropertiesAttribute2nd oldAttribute = GetAttribute2ndProperty((Ability)attribute.Attribute2ndId);
+            if (attribute != null)
+            {
+                if (oldAttribute != null)
+                {
+                    oldAttribute.Attribute2ndValue = attribute.Attribute2ndValue;
+                    oldAttribute.Attribute2ndRanks = attribute.Attribute2ndRanks;
+                    oldAttribute.Attribute2ndXpSpend = attribute.Attribute2ndXpSpend;
+                }
+                else
+                {
+                    AceObjectPropertiesAttributes2nd.Add(attribute);
+                }
+            }
+            else
+            {
+                if (oldAttribute != null)
+                {
+                    AceObjectPropertiesAttributes2nd.Remove(oldAttribute);
+                }
+            }
+        }
+
+        public AceObjectPropertiesSkill GetSkillProperty(Skill skill)
+        {
+            var ret = AceObjectPropertiesSkills.FirstOrDefault(x => x.SkillId == (uint)skill);
+
+            if (ret == null)
+            {
+                ret = new AceObjectPropertiesSkill();
+                ret.AceObjectId = AceObjectId;
+                ret.SkillId = (ushort)skill;
+                ret.SkillPoints = 0;
+                ret.SkillStatus = (ushort)SkillStatus.Untrained;
+                ret.SkillXpSpent = 0;
+                AceObjectPropertiesSkills.Add(ret);
+            }
+
+            return ret;
+        }
+
+        public void SetSkillProperty(AceObjectPropertiesSkill skill)
+        {
+            AceObjectPropertiesSkill oldSkill = GetSkillProperty((Skill)skill.SkillId);
+            if (skill != null)
+            {
+                if (oldSkill != null)
+                {
+                    oldSkill.SkillId = skill.SkillId;
+                    oldSkill.SkillPoints = skill.SkillPoints;
+                    oldSkill.SkillStatus = skill.SkillStatus;
+                    oldSkill.SkillXpSpent = skill.SkillXpSpent;
+                }
+                else
+                {
+                    AceObjectPropertiesSkills.Add(skill);
+                }
+            }
+            else
+            {
+                if (oldSkill != null)
+                {
+                    AceObjectPropertiesSkills.Remove(skill);
+                }
+            }
+        }
+
+        public List<AceObjectPropertiesSkill> GetSkills()
+        {
+            return AceObjectPropertiesSkills;
+        }
+
+        public void SetAceObjectPropertiesSkill(AceObjectPropertiesSkill skill)
+        {
+            AceObjectPropertiesSkill oldSkill = GetSkillProperty((Skill)skill.SkillId);
+            if (skill != null)
+            {
+                if (oldSkill != null)
+                {
+                    oldSkill.SkillPoints = skill.SkillPoints;
+                    oldSkill.SkillStatus = skill.SkillStatus;
+                    oldSkill.SkillXpSpent = skill.SkillXpSpent;
+                }
+                else
+                {
+                    AceObjectPropertiesSkills.Add(skill);
+                }
+            }
+            else
+            {
+                if (oldSkill != null)
+                {
+                    AceObjectPropertiesSkills.Remove(oldSkill);
                 }
             }
         }
@@ -810,33 +957,43 @@ namespace ACE.Entity
             Positions[positionType] = position;
         }
 
-        public CreatureAbility GetAbility(Ability ability)
+        public object Clone()
         {
-            if (abilities.ContainsKey(ability))
-                return abilities[ability];
+            AceObject ret = new AceObject();
 
-            return null;
-        }
+            ret.AceObjectId = AceObjectId;
 
-        public CreatureSkill GetSkill(Skill skill)
-        {
-            if (!skills.ContainsKey(skill))
+            ret.WeenieClassId = WeenieClassId;
+            ret.AceObjectDescriptionFlags = AceObjectDescriptionFlags;
+            ret.PhysicsDescriptionFlag = PhysicsDescriptionFlag;
+            ret.WeenieHeaderFlags = WeenieHeaderFlags;
+
+            // Then clone our properties
+            ret.PaletteOverrides = CloneList(PaletteOverrides);
+            ret.TextureOverrides = CloneList(TextureOverrides);
+            ret.AnimationOverrides = CloneList(AnimationOverrides);
+            ret.IntProperties = CloneList(IntProperties);
+            ret.Int64Properties = CloneList(Int64Properties);
+            ret.DoubleProperties = CloneList(DoubleProperties);
+            ret.BoolProperties = CloneList(BoolProperties);
+            ret.DataIdProperties = CloneList(DataIdProperties);
+            ret.InstanceIdProperties = CloneList(InstanceIdProperties);
+            ret.StringProperties = CloneList(StringProperties);
+            ret.AceObjectPropertiesAttributes = CloneList(AceObjectPropertiesAttributes);
+            ret.AceObjectPropertiesAttributes2nd = CloneList(AceObjectPropertiesAttributes2nd);
+            ret.AceObjectPropertiesSkills = CloneList(AceObjectPropertiesSkills);
+            var posList = CloneList(Positions.Values);
+            foreach (var pos in posList)
             {
-                skills.Add(skill, new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0));
+                ret.Positions[pos.PositionType] = pos;
             }
 
-            return skills[skill];
+            return ret;
         }
 
-        public void LoadSkills(List<CreatureSkill> newSkills)
+        private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
         {
-            this.skills = new Dictionary<Skill, CreatureSkill>();
-            newSkills.ForEach(s => this.skills.Add(s.Skill, s));
-        }
-
-        public List<CreatureSkill> GetSkills()
-        {
-            return this.skills.Select(kvp => kvp.Value).ToList();
+            return toClone.Select(x => (T)x.Clone()).ToList();
         }
     }
 }

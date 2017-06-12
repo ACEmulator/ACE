@@ -168,7 +168,7 @@ DROP TABLE IF EXISTS `ace_object_properties_double`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ace_object_properties_double` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
-  `dblPropertyId` smallint(5) NOT NULL DEFAULT '0',
+  `dblPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
   `propertyValue` double NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_double_id` (`aceObjectId`,`dblPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
