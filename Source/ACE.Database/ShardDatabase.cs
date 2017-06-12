@@ -171,7 +171,7 @@ namespace ACE.Database
 
             ConstructStatement(
                 ShardPreparedStatement.GetAceObjectPropertiesPositions,
-                typeof(Position),
+                typeof(AceObjectPropertiesPosition),
                 ConstructedStatementType.GetList);
 
             ConstructStatement(
@@ -232,7 +232,7 @@ namespace ACE.Database
 
             ConstructStatement(
                 ShardPreparedStatement.DeleteAceObjectPropertiesPositions,
-                typeof(Position),
+                typeof(AceObjectPropertiesPosition),
                 ConstructedStatementType.DeleteList);
 
             ConstructStatement(
@@ -303,7 +303,7 @@ namespace ACE.Database
 
             ConstructStatement(
                 ShardPreparedStatement.InsertAceObjectPropertiesPositions,
-                typeof(Position),
+                typeof(AceObjectPropertiesPosition),
                 ConstructedStatementType.InsertList);
 
             ConstructStatement(
@@ -414,11 +414,11 @@ namespace ACE.Database
             aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId);
         }
 
-        private Dictionary<PositionType, Position> GetAceObjectPostions(uint aceObjectId)
+        private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, Position>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
-            return objects.ToDictionary(x => x.PositionType, x => x);
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
+            return objects;
         }
 
         private List<AceObjectPropertiesSkill> GetAceObjectPropertiesSkill(uint aceObjectId)
@@ -565,7 +565,7 @@ namespace ACE.Database
             DeleteAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
             DeleteAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
 
-            DeleteAceObjectPropertiesPositions(transaction, aceObject.AceObjectId, aceObject.Positions.Values.ToList());
+            DeleteAceObjectPropertiesPositions(transaction, aceObject.AceObjectId, aceObject.Positions);
             DeleteAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes);
             DeleteAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes2nd);
             DeleteAceObjectPropertiesSkill(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesSkills);
@@ -591,7 +591,7 @@ namespace ACE.Database
             SaveAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
             SaveAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
 
-            SaveAceObjectPropertiesPositions(transaction, aceObject.AceObjectId, aceObject.Positions.Values.ToList());
+            SaveAceObjectPropertiesPositions(transaction, aceObject.AceObjectId, aceObject.Positions);
             SaveAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes);
             SaveAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes2nd);
             SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesSkills);
@@ -666,9 +666,9 @@ namespace ACE.Database
             return true;
         }
 
-        private bool SaveAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId, List<Position> properties)
+        private bool SaveAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesPosition> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, Position>(ShardPreparedStatement.InsertAceObjectPropertiesPositions, properties);
+            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.InsertAceObjectPropertiesPositions, properties);
             return true;
         }
 
@@ -768,10 +768,10 @@ namespace ACE.Database
             return true;
         }
 
-        private bool DeleteAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId, List<Position> properties)
+        private bool DeleteAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesPosition> properties)
         {
             var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, Position>(ShardPreparedStatement.DeleteAceObjectPropertiesPositions, critera);
+            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.DeleteAceObjectPropertiesPositions, critera);
             return true;
         }
 

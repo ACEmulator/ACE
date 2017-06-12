@@ -283,7 +283,7 @@ namespace ACE.Entity
         /// </summary>
         public uint ItemType
         {
-            get { return GetIntProperty(PropertyInt.ItemType) ?? default(uint); }
+            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
@@ -651,7 +651,7 @@ namespace ACE.Entity
                 ret.Attribute2ndId = (ushort)ability;
                 ret.Attribute2ndValue = 0;
                 ret.Attribute2ndRanks = 0;
-                ret.Attribute2ndXpSpend = 0;
+                ret.Attribute2ndXpSpent = 0;
                 AceObjectPropertiesAttributes2nd.Add(ret);
             }
 
@@ -667,7 +667,7 @@ namespace ACE.Entity
                 {
                     oldAttribute.Attribute2ndValue = attribute.Attribute2ndValue;
                     oldAttribute.Attribute2ndRanks = attribute.Attribute2ndRanks;
-                    oldAttribute.Attribute2ndXpSpend = attribute.Attribute2ndXpSpend;
+                    oldAttribute.Attribute2ndXpSpent = attribute.Attribute2ndXpSpent;
                 }
                 else
                 {
@@ -928,33 +928,57 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesSkill> AceObjectPropertiesSkills { get; set; } = new List<AceObjectPropertiesSkill>();
 
-        public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+        // public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+        public List<AceObjectPropertiesPosition> Positions { get; set; } = new List<AceObjectPropertiesPosition>();
 
-        public Position Destination
+        public AceObjectPropertiesPosition Destination
         {
             get { return GetPosition(PositionType.Destination); }
             set { SetPosition(PositionType.Destination, value); }
         }
 
-        public Position Location
+        public AceObjectPropertiesPosition Location
         {
             get { return GetPosition(PositionType.Location); }
             set { SetPosition(PositionType.Location, value); }
         }
 
-        protected Position GetPosition(PositionType positionType)
+        protected AceObjectPropertiesPosition GetPosition(PositionType positionType)
         {
-            if (Positions.ContainsKey(positionType))
-            {
-                return Positions[positionType];
-            }
-
-            return null;
+            return Positions.FirstOrDefault(x => x.DbPositionType == (uint)positionType);
         }
 
-        protected void SetPosition(PositionType positionType, Position position)
+        protected void SetPosition(PositionType positionType, AceObjectPropertiesPosition value)
         {
-            Positions[positionType] = position;
+            AceObjectPropertiesPosition oldPosition = Positions.Find(x => x.DbPositionType == (ushort)value.DbPositionType);
+            if (value != null)
+            {
+                if (oldPosition == null)
+                {
+                    oldPosition = (AceObjectPropertiesPosition)value.Clone();
+
+                    Positions.Add(oldPosition);
+                }
+                else
+                {
+                    oldPosition.PositionId = value.PositionId;
+                    oldPosition.Cell = value.Cell;
+                    oldPosition.PositionX = value.PositionX;
+                    oldPosition.PositionY = value.PositionY;
+                    oldPosition.PositionZ = value.PositionZ;
+                    oldPosition.RotationW = value.RotationW;
+                    oldPosition.RotationX = value.RotationX;
+                    oldPosition.RotationY = value.RotationY;
+                    oldPosition.RotationZ = value.RotationZ;
+                }
+            }
+            else
+            {
+                if (oldPosition != null)
+                {
+                    Positions.Remove(oldPosition);
+                }
+            }
         }
 
         public object Clone()
@@ -982,11 +1006,7 @@ namespace ACE.Entity
             ret.AceObjectPropertiesAttributes = CloneList(AceObjectPropertiesAttributes);
             ret.AceObjectPropertiesAttributes2nd = CloneList(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneList(AceObjectPropertiesSkills);
-            var posList = CloneList(Positions.Values);
-            foreach (var pos in posList)
-            {
-                ret.Positions[pos.PositionType] = pos;
-            }
+            ret.Positions = CloneList(Positions);
 
             return ret;
         }

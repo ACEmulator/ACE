@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -80,7 +81,8 @@ namespace ACE.Network.GameEvent.Events
 
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
-            var propertiesInt = aceObj.IntProperties;
+            // < 9000 to filter out our custom properties
+            var propertiesInt = aceObj.IntProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
@@ -95,7 +97,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesInt64 = aceObj.Int64Properties;
+            var propertiesInt64 = aceObj.Int64Properties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
@@ -110,7 +112,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesBool = aceObj.BoolProperties;
+            var propertiesBool = aceObj.BoolProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
@@ -125,7 +127,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDouble = aceObj.DoubleProperties;
+            var propertiesDouble = aceObj.DoubleProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
@@ -140,7 +142,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesString = aceObj.StringProperties;
+            var propertiesString = aceObj.StringProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
@@ -281,9 +283,14 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
+            // FIXME(ddevec): We have duplicated data everywhere.  There is an AceObject CharacterOption flag, and a Player.CharacterOptions...
+            //    Which one is right?  I have no idea.  Right now the aceObject works...  we should probably do a refactoring once we've restored functionality
             var optionFlags = DescriptionOptionFlag.CharacterOption2;
             Writer.Write((uint)optionFlags);
+            /*
             Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
+            */
+            Writer.Write(aceObj.CharacterOptions1Mapping);
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
@@ -310,7 +317,8 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                Writer.Write(aceObj.CharacterOptions2Mapping);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {

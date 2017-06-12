@@ -223,12 +223,14 @@ namespace ACE.Network.Handlers
             uint classId = reader.ReadUInt32();
 
             // characters start with max vitals
-            character.Health.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
-            character.Stamina.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
-            character.Mana.Attribute2ndValue = (ushort)AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
+            character.Health.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
+            character.Stamina.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
+            character.Mana.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
 
             character.TotalSkillCredits = 52;
             character.AvailableSkillCredits = 52;
+            character.TotalExperience = 0;
+            character.AvailableExperience = 0;
 
             uint numOfSkills = reader.ReadUInt32();
             Skill skill;
@@ -258,6 +260,15 @@ namespace ACE.Network.Handlers
 
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
+
+            character.WeenieClassId = 1;
+
+            // Required default properties for character login
+            // FIXME(ddevec): Should we have constants for (some of) these things?
+            character.ItemType = (uint)ObjectType.Creature;
+            character.IsDeleted = false;
+            character.DeletedTime = 0;
+            character.ItemsCapacity = 102;
             
             bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
@@ -266,10 +277,14 @@ namespace ACE.Network.Handlers
                 return;
             }
 
+            character.AccountId = session.Id;
+            character.Deleted = false;
+            character.DeleteTime = 0;
+            character.WeenieClassId = 1;
+            character.ItemType = 1;
+
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
-
-            character.AccountId = session.Id;
 
             bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
 
@@ -309,7 +324,7 @@ namespace ACE.Network.Handlers
 
         public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character)
         {
-            character.Location = CharacterPositionExtensions.StartingPosition(character.AceObjectId);
+            character.Location = CharacterPositionExtensions.StartingPosition().GetAceObjectPosition(character.AceObjectId, PositionType.Location);
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

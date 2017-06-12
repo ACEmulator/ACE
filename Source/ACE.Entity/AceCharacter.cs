@@ -321,19 +321,19 @@ namespace ACE.Entity
             }
         }
 
-        public Position LastPortal
+        public AceObjectPropertiesPosition LastPortal
         {
             get { return GetPosition(PositionType.LastPortal); }
             set { SetPosition(PositionType.LastPortal, value); }
         }
 
-        public Position Sanctuary
+        public AceObjectPropertiesPosition Sanctuary
         {
             get { return GetPosition(PositionType.Sanctuary); }
             set { SetPosition(PositionType.Sanctuary, value); }
         }
 
-        public Position LastOutsideDeath
+        public AceObjectPropertiesPosition LastOutsideDeath
         {
             get { return GetPosition(PositionType.LastOutsideDeath); }
             set { SetPosition(PositionType.LastOutsideDeath, value); }

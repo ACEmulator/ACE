@@ -93,6 +93,30 @@ namespace ACE.Entity
         // dictionary for delaying further actions for an objectID
         private readonly Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
 
+        public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+
+        public Position PositionSanctuary {
+            get
+            {
+                return Positions[PositionType.Sanctuary];
+            }
+            set
+            {
+                Positions[PositionType.Sanctuary] = value;
+            }
+        }
+
+        public Position PositionLastPortal {
+            get
+            {
+                return Positions[PositionType.LastPortal];
+            }
+            set
+            {
+                Positions[PositionType.LastPortal] = value;
+            }
+        }
+
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
             get { return Character.CharacterOptions; }
@@ -100,7 +124,7 @@ namespace ACE.Entity
 
         public Position LastPortal
         {
-            get { return Character.LastPortal; }
+            get { return Positions[PositionType.LastPortal]; }
         }
 
         public ReadOnlyCollection<Friend> Friends
@@ -138,7 +162,7 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior, CharacterPositionExtensions.StartingPosition(session.CharacterRequested.Guid.Low))
+        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior, CharacterPositionExtensions.StartingPosition())
         {
             Session = session;
 
@@ -156,6 +180,7 @@ namespace ACE.Entity
 
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
+            WeenieClassid = 1; // Human
             GameDataType = (uint)ObjectType.Creature;
             ItemCapacity = 102;
             Burden = 0;
@@ -436,7 +461,7 @@ namespace ACE.Entity
                 //    character.IsAdvocate= true;
             }
 
-            Location = character.Location;
+            Location = new Position(character.Location);
 
             foreach (AceObjectPropertiesSkill skill in AceObject.GetSkills())
             {
@@ -447,16 +472,6 @@ namespace ACE.Entity
             SetAbilities(character);
 
             IsOnline = true;
-            Strength = new CreatureAbility(character, Enum.Ability.Strength);
-            Endurance = new CreatureAbility(character, Enum.Ability.Endurance);
-            Coordination = new CreatureAbility(character, Enum.Ability.Coordination);
-            Quickness = new CreatureAbility(character, Enum.Ability.Quickness);
-            Focus = new CreatureAbility(character, Enum.Ability.Focus);
-            Self = new CreatureAbility(character, Enum.Ability.Self);
-
-            Health = new CreatureAbility(character, Enum.Ability.Health);
-            Stamina = new CreatureAbility(character, Enum.Ability.Stamina);
-            Mana = new CreatureAbility(character, Enum.Ability.Mana);
 
             // Character.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
             // Character.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
@@ -482,6 +497,9 @@ namespace ACE.Entity
         {
             // Clone Character
             AceObject obj = (AceObject)Character.Clone();
+            // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
+            // this is crap and needs to be fixed.
+            obj.WeenieClassId = 1;
 
             // Copy in any data Character doesn't reflect...
             // Bad stuff -- fix
@@ -503,14 +521,14 @@ namespace ACE.Entity
                 obj.SetSkillProperty(skill.GetAceObjectSkill(Character.AceObjectId));
             }
 
-            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell. 
+            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell.
             //   We should probably have a DB position that has this extra information separate from our used position
             // Positions -- These are curently maintained internally...
-            foreach (var pos in obj.Positions.Values)
+            foreach (var pos in obj.Positions)
             {
                 pos.AceObjectId = obj.AceObjectId;
             }
-            
+
             return obj;
         }
 
@@ -970,7 +988,7 @@ namespace ACE.Entity
             SetCharacterPosition(PositionType.LastOutsideDeath, Location);
 
             // teleport to sanctuary or best location
-            Position newPositon = Character.Sanctuary ?? Character.LastPortal ?? Character.Location;
+            Position newPositon = PositionSanctuary ?? PositionLastPortal ?? Location;
 
             // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
             // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
@@ -1269,27 +1287,15 @@ namespace ACE.Entity
         /// <summary>
         /// Saves a CharacterPosition to the character position dictionary
         /// </summary>
-        public void SetCharacterPosition(Position newPosition)
+        public void SetCharacterPosition(PositionType type, Position newPosition)
         {
-            // Some positions come from outside of the Player and Character classes
-            if (newPosition.AceObjectId == 0) newPosition.AceObjectId = Guid.Full;
-
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
             {
                 newPosition.LandblockId = new LandblockId(newPosition.Cell);
             }
 
-            Character.Location = newPosition;
-        }
-
-        /// <summary>
-        /// Sets a position type and then Saves a CharacterPosition to the character position dictionary
-        /// </summary>
-        public void SetCharacterPosition(PositionType type, Position newPosition)
-        {
-            newPosition.PositionType = type;
-            SetCharacterPosition(newPosition);
+            Positions[type] = newPosition;
         }
 
         /// <summary>
@@ -1383,16 +1389,17 @@ namespace ACE.Entity
             DelayedUpdateLocation(newPosition);
         }
 
-        public List<Position> GetAllPositions()
+        public Dictionary<PositionType, Position> GetAllPositions()
         {
-            return Character.Positions.Select(kvp => kvp.Value).ToList();
+            return Positions;
         }
 
         public Position GetPosition(PositionType type)
         {
-            if (Character.Positions.ContainsKey(type))
-                return Character.Positions[type];
-
+            if (Positions.ContainsKey(type))
+            {
+                return Positions[type];
+            }
             return null;
         }
 

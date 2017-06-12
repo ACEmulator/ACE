@@ -486,13 +486,13 @@ namespace ACE.Command.Handlers
                     if (positionType != PositionType.Undef)
                     {
                         // Create a new position from the current player location
-                        Position playerPosition = session.Player.Location;
-                        // Change the position type
-                        playerPosition.PositionType = positionType;
+                        Position playerPosition = (Position)session.Player.Location.Clone();
+
                         // Save the position
-                        session.Player.SetCharacterPosition(playerPosition);
+                        session.Player.SetCharacterPosition(positionType, playerPosition);
+
                         // Report changes to client
-                        var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                        var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
                         session.Network.EnqueueSend(positionMessage);
                         return;
                     }
@@ -522,7 +522,7 @@ namespace ACE.Command.Handlers
                     if (playerPosition != null)
                     {
                         session.Player.Teleport(playerPosition);
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {playerPosition.ToString()}", ChatMessageType.Broadcast));
                     }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
@@ -540,14 +540,14 @@ namespace ACE.Command.Handlers
         {
             // Build a string message containing all available character positions and send as a System Chat message
             string message = $"Saved character positions:\n";
-            var positions = session.Player.GetAllPositions();
+            var posDict = session.Player.GetAllPositions();
 
-            foreach (var position in positions)
+            foreach (var posPair in posDict)
             {
-                message += "ID: " + (uint)position.PositionType + " Loc: " + position.ToString() + "\n";
+                message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value.ToString() + "\n";
             }
 
-            message += $"Total positions: " + positions.Count.ToString() + "\n";
+            message += $"Total positions: " + posDict.Count.ToString() + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }

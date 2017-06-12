@@ -25,7 +25,7 @@ namespace ACE.Entity
         {
             Name = aceO.Name;
             DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
-            Location = aceO.Location;
+            Location = new Position(aceO.Location);
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
@@ -55,7 +55,7 @@ namespace ACE.Entity
             RadarBehavior = (RadarBehavior?)aceO.Radar;
             RadarColor = (RadarColor?)aceO.BlipColor;
             UseRadius = aceO.UseRadius;
-            Spell = (Spell)aceO.SpellId;
+            Spell = (Spell?)aceO.SpellId;
             Script = aceO.PhysicsScript;
             ValidLocations = (EquipMask?)aceO.ValidLocations;
             StackSize = aceO.StackSize;
