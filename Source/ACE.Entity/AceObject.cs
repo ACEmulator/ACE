@@ -283,7 +283,7 @@ namespace ACE.Entity
         /// </summary>
         public uint ItemType
         {
-            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
+            get { return GetIntProperty(PropertyInt.ItemType) ?? default(uint); }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 

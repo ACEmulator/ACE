@@ -16,8 +16,8 @@ namespace ACE.Entity
         [DbField("attribute2ndid", (int)MySqlDbType.UInt16)]
         public ushort Attribute2ndId { get; set; }
 
-        [DbField("attribute2ndValue", (int)MySqlDbType.UInt16)]
-        public ushort Attribute2ndValue { get; set; }
+        [DbField("attribute2ndValue", (int)MySqlDbType.UInt24)]
+        public uint Attribute2ndValue { get; set; }
 
         [DbField("attribute2ndRanks", (int)MySqlDbType.UInt16)]
         public ushort Attribute2ndRanks { get; set; }

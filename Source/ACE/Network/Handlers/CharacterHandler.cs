@@ -258,15 +258,6 @@ namespace ACE.Network.Handlers
 
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
-
-            character.WeenieClassId = 1;
-
-            // Required default properties for character login
-            // FIXME(ddevec): Should we have constants for (some of) these things?
-            character.ItemType = (uint)ObjectType.Creature;
-            character.IsDeleted = false;
-            character.DeletedTime = 0;
-            character.ItemsCapacity = 102;
             
             bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
@@ -275,14 +266,10 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            character.AccountId = session.Id;
-            character.Deleted = false;
-            character.DeleteTime = 0;
-            character.WeenieClassId = 1;
-            character.ItemType = 1;
-
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
+
+            character.AccountId = session.Id;
 
             bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
 
