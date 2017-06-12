@@ -7,11 +7,11 @@ using ACE.Network.Motion;
 using ACE.Network.Sequence;
 using log4net;
 using System.IO;
+using System;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    using System.Collections.Generic;
-
     public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -455,17 +455,16 @@ namespace ACE.Entity
             if (RadarBehavior != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBehavior;
 
-            if (Script != 0u)
+            if ((Script != null) && (Script != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.Script;
 
             if ((uint)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
-            // This probably needs to be fixed.   Character was loading a null burden
-            // TODO: Fix this correctly.
-            weenieHeaderFlag |= WeenieHeaderFlag.Burden;
+            if (Burden != null)
+                weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
-            if (Spell != 0)
+            if ((Spell != null) && (Spell != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
             if (HouseOwner != null)
@@ -483,7 +482,7 @@ namespace ACE.Entity
             if (HookType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookType;
 
-            if (IconOverlay != 0)
+            if ((IconOverlay != null) && (IconOverlay != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
              if (Material != null)
@@ -496,13 +495,13 @@ namespace ACE.Entity
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
-            if (IconUnderlay != 0)
+            if ((IconUnderlay != null) && (IconUnderlay != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
             if ((Cooldown != null) && (Cooldown != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
 
-            if ((CooldownDuration != null) && (CooldownDuration != 0))
+            if ((CooldownDuration != null) && Math.Abs((float)CooldownDuration) >= 0.001)
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.CooldownDuration;
 
             if ((PetOwner != null) && (PetOwner != 0))
