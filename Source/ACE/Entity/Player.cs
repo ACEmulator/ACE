@@ -156,6 +156,7 @@ namespace ACE.Entity
 
             Name = session.CharacterRequested.Name;
             Icon = 0x1036;
+            WeenieClassid = 1; // Human
             GameDataType = (uint)ObjectType.Creature;
             ItemCapacity = 102;
             Burden = 0;
@@ -484,6 +485,9 @@ namespace ACE.Entity
         {
             // Clone Character
             AceObject obj = (AceObject)Character.Clone();
+            // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
+            // this is crap and needs to be fixed.
+            obj.WeenieClassId = 1;
 
             // Copy in any data Character doesn't reflect...
             // Bad stuff -- fix
@@ -505,14 +509,14 @@ namespace ACE.Entity
                 obj.SetSkillProperty(skill.GetAceObjectSkill(Character.AceObjectId));
             }
 
-            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell. 
+            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell.
             //   We should probably have a DB position that has this extra information separate from our used position
             // Positions -- These are curently maintained internally...
             foreach (var pos in obj.Positions.Values)
             {
                 pos.AceObjectId = obj.AceObjectId;
             }
-            
+
             return obj;
         }
 

@@ -55,7 +55,7 @@ namespace ACE.Entity
             RadarBehavior = (RadarBehavior?)aceO.Radar;
             RadarColor = (RadarColor?)aceO.BlipColor;
             UseRadius = aceO.UseRadius;
-            Spell = (Spell)aceO.SpellId;
+            Spell = (Spell?)aceO.SpellId;
             Script = aceO.PhysicsScript;
             ValidLocations = (EquipMask?)aceO.ValidLocations;
             StackSize = aceO.StackSize;

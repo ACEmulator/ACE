@@ -104,7 +104,7 @@ namespace ACE.Entity
             if (Elasticity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Elasticity;
 
-            if (Translucency != null)
+            if ((Translucency != null) && (Math.Abs((float)Translucency) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
 
             if (Velocity != null)
