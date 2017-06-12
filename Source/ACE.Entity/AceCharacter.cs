@@ -18,6 +18,14 @@ namespace ACE.Entity
         {
             friends = new List<Friend>();
             Friends = new ReadOnlyCollection<Friend>(friends);
+
+            // Required default properties for character login
+            // FIXME(ddevec): Should we have constants for (some of) these things?
+            ItemType = (uint)ObjectType.Creature;
+            ItemsCapacity = 102;
+            WeenieClassId = 1;
+            Deleted = false;
+            DeleteTime = 0;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
