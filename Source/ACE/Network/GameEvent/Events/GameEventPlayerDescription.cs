@@ -11,15 +11,15 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None = 0x0000,
-            PropertyInt32 = 0x0001,
-            PropertyBool = 0x0002,
+            None           = 0x0000,
+            PropertyInt32  = 0x0001,
+            PropertyBool   = 0x0002,
             PropertyDouble = 0x0004,
-            Link = 0x0008,
+            PropertyDid    = 0x0008,
             PropertyString = 0x0010,
-            Position = 0x0020,
-            Resource = 0x0040,
-            PropertyInt64 = 0x0080,
+            Position       = 0x0020,
+            PropertyIid    = 0x0040,
+            PropertyInt64  = 0x0080,
         }
 
         [Flags]
@@ -157,6 +157,35 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
+            var propertiesDid = aceObj.DataIdProperties.Where(x => x.PropertyId < 9000).ToList();
+            if (propertiesDid.Count != 0)
+            {
+                propertyFlags |= DescriptionPropertyFlag.PropertyDid;
+
+                Writer.Write((ushort)propertiesDid.Count);
+                Writer.Write((ushort)0x20);
+
+                foreach (var didProperty in propertiesDid)
+                {
+                    Writer.Write(didProperty.PropertyId);
+                    Writer.Write(didProperty.PropertyValue);
+                }
+            }
+
+            var propertiesIid = aceObj.InstanceIdProperties.Where(x => x.PropertyId < 9000).ToList();
+            if (propertiesIid.Count != 0)
+            {
+                propertyFlags |= DescriptionPropertyFlag.PropertyIid;
+
+                Writer.Write((ushort)propertiesIid.Count);
+                Writer.Write((ushort)0x20);
+
+                foreach (var iidProperty in propertiesIid)
+                {
+                    Writer.Write(iidProperty.PropertyId);
+                    Writer.Write(iidProperty.PropertyValue);
+                }
+            }
             /*if ((propertyFlags & DescriptionPropertyFlag.Resource) != 0)
             {
             }*/

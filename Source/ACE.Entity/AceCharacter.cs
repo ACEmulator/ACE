@@ -23,6 +23,7 @@ namespace ACE.Entity
             // FIXME(ddevec): Should we have constants for (some of) these things?
             ItemType = (uint)ObjectType.Creature;
             ItemsCapacity = 102;
+            ContainersCapacity = 7;
             WeenieClassId = 1;
             Deleted = false;
             DeleteTime = 0;

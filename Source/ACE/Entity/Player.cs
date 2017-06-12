@@ -264,6 +264,8 @@ namespace ACE.Entity
             PhysicsData.Petable = Character.PhysicsTableId;
             PhysicsData.CSetup = Character.ModelTableId;
 
+            ContainerCapacity = 7;
+
             if (Character.DefaultScale != null)
                 PhysicsData.ObjScale = Character.DefaultScale;
 
