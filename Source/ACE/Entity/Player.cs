@@ -524,7 +524,7 @@ namespace ACE.Entity
             // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell.
             //   We should probably have a DB position that has this extra information separate from our used position
             // Positions -- These are curently maintained internally...
-            foreach (var pos in obj.Positions.Values)
+            foreach (var pos in obj.Positions)
             {
                 pos.AceObjectId = obj.AceObjectId;
             }

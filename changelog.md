@@ -1,6 +1,5 @@
 # ACEmulator Change Log
 
-
 ### 2017-06-11
 [Og II]
 * fixed issues with the weenieHeaderFlags setting method, fixed PhysicsDescriptionFlag setting issue as well.
@@ -19,10 +18,9 @@
 * Fixed several ORM data load issues
 * Fixed bugs with character updating
 * Fixed player position saving -- position updated on relogging
+* Player description packet now being sent.
 * Known issues:
 *   Race in ShardDatabase gathering next character id (Commented)
-*   non-player WorldObjects do not appear on map.
-*   Player description packet not sent.
 
 ### 2017-06-10
 [Og II]
