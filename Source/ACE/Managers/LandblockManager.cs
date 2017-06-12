@@ -6,7 +6,6 @@ using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using log4net;
-using ACE.Common;
 
 namespace ACE.Managers
 {

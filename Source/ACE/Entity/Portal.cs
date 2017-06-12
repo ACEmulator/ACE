@@ -109,7 +109,8 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
-            Destination = new Position(aceO.Destination);
+            if (aceO.Destination != null)
+                Destination = new Position(aceO.Destination);
         }
 
         public uint MinimumLevel

@@ -84,9 +84,11 @@ namespace ACE.Entity
             // TODO: load objects from world database such as lifestones, doors, player corpses, NPCs, Vendors
             // TODO: Object Overhaul Og II uncomment once working
             var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
-            var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
-            factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
-
+            if (objects != null)
+            {
+                var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
+                factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
+            }
             // Load static creature spawns from DB
             // var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             // foreach (var c in creatures)
