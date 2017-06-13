@@ -120,7 +120,7 @@ namespace ACE.Network.Handlers
             var reader = message.Payload;
             CharGen cg = CharGen.ReadFromDat();
             AceCharacter character = new AceCharacter(DatabaseManager.Shard.GetNextCharacterId());
-            
+
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
             character.Gender = reader.ReadUInt32();
@@ -158,7 +158,7 @@ namespace ACE.Network.Handlers
             character.DefaultMouthTexture = sex.GetDefaultMouthTexture(appearance.Mouth);
             character.HairTexture = sex.GetHairTexture(appearance.HairStyle);
             character.DefaultHairTexture = sex.GetDefaultHairTexture(appearance.HairStyle);
-            character.HeadObject = sex.GetHairTexture(appearance.HairStyle);
+            character.HeadObject = sex.GetHeadObject(appearance.HairStyle);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
@@ -217,7 +217,7 @@ namespace ACE.Network.Handlers
             character.QuicknessAbility.AttributeBase = (ushort)reader.ReadUInt32();
             character.FocusAbility.AttributeBase = (ushort)reader.ReadUInt32();
             character.SelfAbility.AttributeBase = (ushort)reader.ReadUInt32();
-            
+
             // data we don't care about
             uint characterSlot = reader.ReadUInt32();
             uint classId = reader.ReadUInt32();
@@ -254,7 +254,7 @@ namespace ACE.Network.Handlers
             }
 
             character.Name = reader.ReadString16L();
-            
+
             // currently not used
             uint startArea = reader.ReadUInt32();
 
@@ -269,7 +269,7 @@ namespace ACE.Network.Handlers
             character.IsDeleted = false;
             character.DeletedTime = 0;
             character.ItemsCapacity = 102;
-            
+
             bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
             {
