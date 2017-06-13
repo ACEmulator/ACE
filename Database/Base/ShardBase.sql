@@ -1,5 +1,5 @@
 /*
-SQLyog Ultimate
+SQLyog Ultimate v12.4.2 (64 bit)
 MySQL - 10.2.6-MariaDB : Database - ace_shard
 *********************************************************************
 */
@@ -21,230 +21,230 @@ USE `ace_shard`;
 DROP TABLE IF EXISTS `ace_object`;
 
 CREATE TABLE `ace_object` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `aceObjectDescriptionFlags` INT(10) UNSIGNED NOT NULL,
-  `weenieClassId` INT(10) UNSIGNED NOT NULL,
-  `weenieHeaderFlags` INT(10) UNSIGNED NOT NULL,
-  `physicsDescriptionFlag` INT(10) UNSIGNED NOT NULL,
-  `currentMotionState` TEXT DEFAULT NULL,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `aceObjectDescriptionFlags` int(10) unsigned NOT NULL,
+  `weenieClassId` int(10) unsigned NOT NULL,
+  `weenieHeaderFlags` int(10) unsigned NOT NULL,
+  `physicsDescriptionFlag` int(10) unsigned NOT NULL,
+  `currentMotionState` text DEFAULT NULL,
   PRIMARY KEY (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_animation_change` */
 
 DROP TABLE IF EXISTS `ace_object_animation_change`;
 
 CREATE TABLE `ace_object_animation_change` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `index` TINYINT(3) UNSIGNED NOT NULL,
-  `animationId` INT(10) UNSIGNED NOT NULL,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `index` tinyint(3) unsigned NOT NULL,
+  `animationId` int(10) unsigned NOT NULL,
   PRIMARY KEY (`aceObjectId`,`index`),
   CONSTRAINT `FK_ace_object_animation_changes__baseAceObjectId` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_palette_change` */
 
 DROP TABLE IF EXISTS `ace_object_palette_change`;
 
 CREATE TABLE `ace_object_palette_change` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `subPaletteId` INT(10) UNSIGNED NOT NULL,
-  `offset` SMALLINT(5) UNSIGNED NOT NULL,
-  `length` SMALLINT(5) UNSIGNED ZEROFILL NOT NULL,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `subPaletteId` int(10) unsigned NOT NULL,
+  `offset` smallint(5) unsigned NOT NULL,
+  `length` smallint(5) unsigned zerofill NOT NULL,
   PRIMARY KEY (`aceObjectId`,`subPaletteId`,`offset`,`length`),
   CONSTRAINT `FK_ace_object_palette_data__baseAceObjectId` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_attribute` */
 
 DROP TABLE IF EXISTS `ace_object_properties_attribute`;
 
 CREATE TABLE `ace_object_properties_attribute` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `attributeId` SMALLINT(4) UNSIGNED NOT NULL,
-  `attributeBase` SMALLINT(4) UNSIGNED NOT NULL DEFAULT 0,
-  `attributeRanks` TINYINT(2) UNSIGNED NOT NULL DEFAULT 0,
-  `attributeXpSpent` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `attributeId` smallint(4) unsigned NOT NULL,
+  `attributeBase` smallint(4) unsigned NOT NULL DEFAULT 0,
+  `attributeRanks` tinyint(2) unsigned NOT NULL DEFAULT 0,
+  `attributeXpSpent` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`aceObjectId`,`attributeId`),
   UNIQUE KEY `ace_object__property_attribute_id` (`aceObjectId`,`attributeId`),
   CONSTRAINT `fk_Prop_Attribute_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_attribute2nd` */
 
 DROP TABLE IF EXISTS `ace_object_properties_attribute2nd`;
 
 CREATE TABLE `ace_object_properties_attribute2nd` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `attribute2ndId` SMALLINT(4) UNSIGNED NOT NULL,
-  `attribute2ndValue` MEDIUMINT(7) UNSIGNED NOT NULL DEFAULT 0,
-  `attribute2ndRanks` TINYINT(2) UNSIGNED NOT NULL DEFAULT 0,
-  `attribute2ndXpSpent` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `attribute2ndId` smallint(4) unsigned NOT NULL,
+  `attribute2ndValue` mediumint(7) unsigned NOT NULL DEFAULT 0,
+  `attribute2ndRanks` tinyint(2) unsigned NOT NULL DEFAULT 0,
+  `attribute2ndXpSpent` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`aceObjectId`,`attribute2ndId`),
   UNIQUE KEY `ace_object__property_attribute2nd_id` (`aceObjectId`,`attribute2ndId`),
   CONSTRAINT `fk_Prop_Attribute2nd_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_bigint` */
 
 DROP TABLE IF EXISTS `ace_object_properties_bigint`;
 
 CREATE TABLE `ace_object_properties_bigint` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `bigIntPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `bigIntPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` bigint(20) unsigned NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_bigint_id` (`aceObjectId`,`bigIntPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_BigInt_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_bool` */
 
 DROP TABLE IF EXISTS `ace_object_properties_bool`;
 
 CREATE TABLE `ace_object_properties_bool` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `boolPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` TINYINT(1) NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `boolPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` tinyint(1) NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_bool_id` (`aceObjectId`,`boolPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Bool_Ace_object` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_did` */
 
 DROP TABLE IF EXISTS `ace_object_properties_did`;
 
 CREATE TABLE `ace_object_properties_did` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `didPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `didPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` int(10) unsigned NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_did_id` (`aceObjectId`,`didPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Did_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_double` */
 
 DROP TABLE IF EXISTS `ace_object_properties_double`;
 
 CREATE TABLE `ace_object_properties_double` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `dblPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` DOUBLE NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `dblPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` double NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_double_id` (`aceObjectId`,`dblPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Dbl_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_iid` */
 
 DROP TABLE IF EXISTS `ace_object_properties_iid`;
 
 CREATE TABLE `ace_object_properties_iid` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `iidPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `iidPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` int(10) unsigned NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_iid_id` (`aceObjectId`,`iidPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Iid_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_int` */
 
 DROP TABLE IF EXISTS `ace_object_properties_int`;
 
 CREATE TABLE `ace_object_properties_int` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `intPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `intPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` int(10) unsigned NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_int_id` (`aceObjectId`,`intPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Int_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_skill` */
 
 DROP TABLE IF EXISTS `ace_object_properties_skill`;
 
 CREATE TABLE `ace_object_properties_skill` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `skillId` TINYINT(1) UNSIGNED NOT NULL,
-  `skillStatus` TINYINT(1) UNSIGNED NOT NULL,
-  `skillPoints` SMALLINT(2) UNSIGNED NOT NULL DEFAULT 0,
-  `skillXpSpent` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `skillId` tinyint(1) unsigned NOT NULL,
+  `skillStatus` tinyint(1) unsigned NOT NULL,
+  `skillPoints` smallint(2) unsigned NOT NULL DEFAULT 0,
+  `skillXpSpent` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`aceObjectId`,`skillId`),
   CONSTRAINT `fk_Prop_Skill_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_spell` */
 
 DROP TABLE IF EXISTS `ace_object_properties_spell`;
 
 CREATE TABLE `ace_object_properties_spell` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `spellId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `spellId` int(10) unsigned NOT NULL DEFAULT 0,
   UNIQUE KEY `ace_object__property_spell_id` (`spellId`,`aceObjectId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Spell_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_string` */
 
 DROP TABLE IF EXISTS `ace_object_properties_string`;
 
 CREATE TABLE `ace_object_properties_string` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
-  `strPropertyId` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
-  `propertyValue` TEXT NOT NULL,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT 0,
+  `strPropertyId` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `propertyValue` text NOT NULL,
   UNIQUE KEY `ace_object__property_string_id` (`aceObjectId`,`strPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Str_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_texture_map_change` */
 
 DROP TABLE IF EXISTS `ace_object_texture_map_change`;
 
 CREATE TABLE `ace_object_texture_map_change` (
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `index` TINYINT(3) UNSIGNED NOT NULL,
-  `oldId` INT(10) UNSIGNED NOT NULL,
-  `newId` INT(10) UNSIGNED NOT NULL,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `index` tinyint(3) unsigned NOT NULL,
+  `oldId` int(10) unsigned NOT NULL,
+  `newId` int(10) unsigned NOT NULL,
   PRIMARY KEY (`aceObjectId`,`index`,`oldId`),
   CONSTRAINT `FK_ace_object_texture_map_changes__baseAceObjectId` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_poi` */
 
 DROP TABLE IF EXISTS `ace_poi`;
 
 CREATE TABLE `ace_poi` (
-  `name` TEXT NOT NULL,
-  `positionId` INT(10) UNSIGNED NOT NULL,
+  `name` text NOT NULL,
+  `positionId` int(10) unsigned NOT NULL,
   PRIMARY KEY (`name`(100)),
   UNIQUE KEY `idx_poi` (`positionId`),
   CONSTRAINT `fk_poi_position` FOREIGN KEY (`positionId`) REFERENCES `ace_position` (`positionId`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_position` */
 
 DROP TABLE IF EXISTS `ace_position`;
 
 CREATE TABLE `ace_position` (
-  `positionId` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `aceObjectId` INT(10) UNSIGNED NOT NULL,
-  `positionType` SMALLINT(5) UNSIGNED NOT NULL,
-  `landblockRaw` INT(10) UNSIGNED NOT NULL,
-  `landblock` INT(5) UNSIGNED GENERATED ALWAYS AS (CONV(LEFT(HEX(`landblockRaw`),4),16,10)) STORED,
-  `cell` INT(5) UNSIGNED GENERATED ALWAYS AS (CONV(LPAD(SUBSTR(HEX(`landblockRaw`),5,4),4,'0'),16,10)) STORED,
-  `posX` FLOAT NOT NULL,
-  `posY` FLOAT NOT NULL,
-  `posZ` FLOAT NOT NULL,
-  `qW` FLOAT NOT NULL,
-  `qX` FLOAT NOT NULL,
-  `qY` FLOAT NOT NULL,
-  `qZ` FLOAT NOT NULL,
+  `positionId` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `positionType` smallint(5) unsigned NOT NULL,
+  `landblockRaw` int(10) unsigned NOT NULL,
+  `landblock` int(5) unsigned GENERATED ALWAYS AS (conv(left(hex(`landblockRaw`),4),16,10)) STORED,
+  `cell` int(5) unsigned GENERATED ALWAYS AS (conv(lpad(substr(hex(`landblockRaw`),5,4),4,'0'),16,10)) STORED,
+  `posX` float NOT NULL,
+  `posY` float NOT NULL,
+  `posZ` float NOT NULL,
+  `qW` float NOT NULL,
+  `qX` float NOT NULL,
+  `qY` float NOT NULL,
+  `qZ` float NOT NULL,
   PRIMARY KEY (`positionId`),
   KEY `idx_aceObjectId` (`aceObjectId`),
   KEY `idxPostionType` (`positionType`),
@@ -253,7 +253,7 @@ CREATE TABLE `ace_position` (
   KEY `idx_cell` (`cell`),
   CONSTRAINT `fk_ap_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`),
   CONSTRAINT `fk_position_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=43272 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_weenie_class` */
 

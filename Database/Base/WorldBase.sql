@@ -1,5 +1,5 @@
 /*
-SQLyog Ultimate
+SQLyog Ultimate v12.4.2 (64 bit)
 MySQL - 10.2.6-MariaDB : Database - ace_world
 *********************************************************************
 */
@@ -16,6 +16,18 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`ace_world` /*!40100 DEFAULT CHARACTER S
 
 USE `ace_world`;
 
+/*Table structure for table `ace_weenie_class` */
+
+DROP TABLE IF EXISTS `ace_weenie_class`;
+
+CREATE TABLE `ace_weenie_class` (
+  `weenieClassId` INT(10) UNSIGNED NOT NULL,
+  `weenieClassDescription` TEXT NOT NULL,
+  PRIMARY KEY (`weenieClassId`),
+  UNIQUE KEY `idx_weenieName` (`weenieClassDescription`(100))
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+
 /*Table structure for table `ace_object` */
 
 DROP TABLE IF EXISTS `ace_object`;
@@ -28,7 +40,8 @@ CREATE TABLE `ace_object` (
   `physicsDescriptionFlag` INT(10) UNSIGNED NOT NULL,
   `currentMotionState` TEXT DEFAULT NULL,
   PRIMARY KEY (`aceObjectId`),
-  KEY `idx_weenie` (`weenieClassId`)
+  KEY `idx_weenie` (`weenieClassId`),
+  CONSTRAINT `fk_weenie_ao` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_animation_change` */
@@ -54,6 +67,36 @@ CREATE TABLE `ace_object_palette_change` (
   `length` SMALLINT(5) UNSIGNED ZEROFILL NOT NULL,
   PRIMARY KEY (`aceObjectId`,`subPaletteId`,`offset`,`length`),
   CONSTRAINT `FK_ace_object_palette_data__baseAceObjectId` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `ace_object_properties_attribute` */
+
+DROP TABLE IF EXISTS `ace_object_properties_attribute`;
+
+CREATE TABLE `ace_object_properties_attribute` (
+  `aceObjectId` INT(10) UNSIGNED NOT NULL,
+  `attributeId` SMALLINT(4) UNSIGNED NOT NULL,
+  `attributeBase` SMALLINT(4) UNSIGNED NOT NULL DEFAULT 0,
+  `attributeRanks` TINYINT(2) UNSIGNED NOT NULL DEFAULT 0,
+  `attributeXpSpent` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`aceObjectId`,`attributeId`),
+  UNIQUE KEY `ace_object__property_attribute_id` (`aceObjectId`,`attributeId`),
+  CONSTRAINT `fk_Prop_Attribute_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `ace_object_properties_attribute2nd` */
+
+DROP TABLE IF EXISTS `ace_object_properties_attribute2nd`;
+
+CREATE TABLE `ace_object_properties_attribute2nd` (
+  `aceObjectId` INT(10) UNSIGNED NOT NULL,
+  `attribute2ndId` SMALLINT(4) UNSIGNED NOT NULL,
+  `attribute2ndValue` MEDIUMINT(7) UNSIGNED NOT NULL DEFAULT 0,
+  `attribute2ndRanks` TINYINT(2) UNSIGNED NOT NULL DEFAULT 0,
+  `attribute2ndXpSpent` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`aceObjectId`,`attribute2ndId`),
+  UNIQUE KEY `ace_object__property_attribute2nd_id` (`aceObjectId`,`attribute2ndId`),
+  CONSTRAINT `fk_Prop_Attribute2nd_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_object_properties_bigint` */
@@ -134,6 +177,18 @@ CREATE TABLE `ace_object_properties_int` (
   CONSTRAINT `fk_Prop_Int_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `ace_object_properties_spell` */
+
+DROP TABLE IF EXISTS `ace_object_properties_spell`;
+
+CREATE TABLE `ace_object_properties_spell` (
+  `aceObjectId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  `spellId` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+  UNIQUE KEY `ace_object__property_spell_id` (`spellId`,`aceObjectId`),
+  KEY `aceObjectId` (`aceObjectId`),
+  CONSTRAINT `fk_Prop_Spell_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
 /*Table structure for table `ace_object_properties_string` */
 
 DROP TABLE IF EXISTS `ace_object_properties_string`;
@@ -188,7 +243,7 @@ CREATE TABLE `ace_portal_object` (
   PRIMARY KEY (`aceObjectId`),
   KEY `FK_apo2po` (`positionId`),
   CONSTRAINT `FK_apo2ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`),
-  CONSTRAINT `FK_apo2po` FOREIGN KEY (`positionId`) REFERENCES `ace_position` (`positionId`)
+  CONSTRAINT `FK_apo2po` FOREIGN KEY (`positionId`) REFERENCES `ace_position` (`positionId`) ON DELETE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `ace_position` */
@@ -215,18 +270,7 @@ CREATE TABLE `ace_position` (
   KEY `idxPostionType` (`positionType`),
   CONSTRAINT `fk_ap_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`),
   CONSTRAINT `fk_position_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=INNODB AUTO_INCREMENT=43428 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `ace_weenie_class` */
-
-DROP TABLE IF EXISTS `ace_weenie_class`;
-
-CREATE TABLE `ace_weenie_class` (
-  `weenieClassId` int(10) unsigned NOT NULL,
-  `weenieClassDescription` text NOT NULL,
-  PRIMARY KEY (`weenieClassId`),
-  UNIQUE KEY `idx_weenieName` (`weenieClassDescription`(100))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB AUTO_INCREMENT=178436 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `vw_ace_object` */
 

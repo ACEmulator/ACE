@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-06-12
+[Og II]
+* fixed issue with null exception
+* Added OptimShi code to load the correct player apperiance 
+* Added sending the DataID and InstanceID fields on the player description event.
+* Fixed assorted bugs.
+
 ### 2017-06-11
 [Og II]
 * fixed issues with the weenieHeaderFlags setting method, fixed PhysicsDescriptionFlag setting issue as well.
