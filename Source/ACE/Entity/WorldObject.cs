@@ -177,10 +177,18 @@ namespace ACE.Entity
             set { AceObject.MaxStackSize = value; }
         }
 
-        public uint? ContainerId { get; set; }
+        public uint? ContainerId
+        {
+            get { return AceObject.ContainerId; }
+            set { AceObject.ContainerId = value; }
+        }
 
         // TODO: I think we need to store this in aceObject from pacps - example Paul's Axe (Blue Ox)
-        public uint? Wielder { get; set; }
+        public uint? Wielder
+        {
+            get { return AceObject.WielderId; }
+            set { AceObject.WielderId = value; }
+        }
 
         public EquipMask? ValidLocations
         {
@@ -351,7 +359,7 @@ namespace ACE.Entity
         }
 
         protected WorldObject(AceObject aceObject)
-            : this((ObjectType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
+                : this((ObjectType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
         {
             this.AceObject = aceObject;
         }
@@ -485,7 +493,7 @@ namespace ACE.Entity
             if ((IconOverlay != null) && (IconOverlay != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
-             if (Material != null)
+            if (Material != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Material;
 
             return weenieHeaderFlag;

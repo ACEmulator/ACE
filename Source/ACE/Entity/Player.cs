@@ -270,7 +270,9 @@ namespace ACE.Entity
                 PhysicsData.ObjScale = Character.DefaultScale;
 
             // Hair/head
-            ModelData.AddModel(0x10, Character.HeadObject);
+            // Not sure why, but talked to OgtimShi and we commented this out, seems to fix Lord buckethead.
+            // TODO: see if this is needed and just has a bug.
+            // ModelData.AddModel(0x10, Character.HeadObject);
             ModelData.AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
             ModelData.AddPalette(Character.HairPalette, 0x18, 0x8);
 
