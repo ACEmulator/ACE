@@ -236,7 +236,8 @@ namespace ACE.Database
             // We can do this because aceObjectId = WeenieClassId for all baseAceObjects.
             // TODO: Ask Mogwai how would you query on a secondary key?
             var criteria = new Dictionary<string, object> { { "aceObjectId", weenieClassId } };
-            if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), criteria, bao)) return null;
+            if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), criteria, bao))
+                return null;
             bao.DataIdProperties = GetAceObjectPropertiesDid(bao.AceObjectId);
             bao.InstanceIdProperties = GetAceObjectPropertiesIid(bao.AceObjectId);
             bao.IntProperties = GetAceObjectPropertiesInt(bao.AceObjectId);
