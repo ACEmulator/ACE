@@ -66,7 +66,7 @@ namespace ACE.Entity
             children.Add(newitem);
         }
 
-        public PhysicsDescriptionFlag SetPhysicsDescriptionFlag()
+        public PhysicsDescriptionFlag SetPhysicsDescriptionFlag(WorldObject wo)
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
@@ -76,7 +76,7 @@ namespace ACE.Entity
             if ((AnimationFrame != null) && (AnimationFrame != 0))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
-            if (Position != null)
+            if ((Position != null) && (wo.Wielder == null) && (wo.ContainerId == null))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
 
             // NOTE: While we fill with 0 the flag still has to reflect that we are not really making this entry for the client.
@@ -94,6 +94,9 @@ namespace ACE.Entity
 
             if (ItemsEquipedCount != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
+
+            if (Parent != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
             if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
@@ -127,7 +130,30 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(WorldObject wo, BinaryWriter writer)
         {
-            PhysicsDescriptionFlag = SetPhysicsDescriptionFlag();
+            // TODO: Remove this really ugly hack - POC on how equipted items (weapons and shields maybe other things)
+            // We do not have a way to save or load this data yet.   I am looking for Rand the humter in holtburg
+            // I am adding his spear as a child item.
+            if (wo.Guid.Full == 0xDBB12C7E)
+            {
+                var item = new EquippedItem(0xDBAC8105, EquipMask.MeleeWeapon);
+                wo.PhysicsData.children.Add(item);
+                ItemsEquipedCount = (uint)wo.PhysicsData.children.Count;
+            }
+
+            // Here I am looking for the spear and making Rand the parent.
+            // There is a squence here that we will need to figure out.   You only see this if you login, then log out
+            // and log back in.   I THINK we need have the landblock create an times that have a weilder_Id - I am not sure
+            // but either the spear must exist and have the holder assigned as it's parent or the holder has to exist first not sure
+            // which but there is some sequence.
+            // TODO: Remove this really ugly hack - POC on how equipted items (weapons and shields maybe other things)
+
+            if (wo.Guid.Full == 0xDBAC8105)
+            {
+                wo.EquipperPhysicsDescriptionFlag = EquipMask.MeleeWeapon;
+                wo.PhysicsData.Parent = 0xDBB12C7E;
+            }
+
+            PhysicsDescriptionFlag = SetPhysicsDescriptionFlag(wo);
 
             writer.Write((uint)PhysicsDescriptionFlag);
 
@@ -174,13 +200,22 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
                 writer.Write(CSetup ?? 0u);
 
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
+            {
+                writer.Write(Parent);
+                writer.Write((uint)EquipperPhysicsDescriptionFlag);
+            }
+
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
                 writer.Write(ItemsEquipedCount);
                 foreach (var child in children)
                 {
+                    // TODO : need to figure out the location (second value) to write - it is not the mask 1 is in left hand 3 look to be in right?
+                    // maybe some sort of slot enum?   We can probably find it in the client.
                     writer.Write(child.Guid);
-                    writer.Write((uint)child.EquipMask);
+                    // writer.Write((uint)child.EquipMask);  - this is not right.
+                    writer.Write(1u);
                 }
             }
 

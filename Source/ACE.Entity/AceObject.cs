@@ -350,6 +350,19 @@ namespace ACE.Entity
             get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
             set { SetIntProperty(PropertyInt.MaxStackSize, value); }
         }
+
+        public uint? WielderId
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+        }
+
+        public uint? ContainerId
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Container); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
+        }
+
         /// <summary>
         /// This is the Maximum an item can hold in the case of salvage 100
         /// everything else healing kits, lock picks etc it is the max number of uses.

@@ -43,7 +43,7 @@ namespace ACE.Entity
 
             // game data min required flags;
             Icon = baseAceObject.IconId;
-            PhysicsData.SetPhysicsDescriptionFlag();
+            PhysicsData.SetPhysicsDescriptionFlag(this);
 
             AmmoType = (AmmoType?)baseAceObject.AmmoType;
             Burden = baseAceObject.Burden;
@@ -58,6 +58,8 @@ namespace ACE.Entity
             ItemCapacity = baseAceObject.ItemsCapacity;
             Material = (Material?)baseAceObject.MaterialType;
             MaxStackSize = baseAceObject.MaxStackSize;
+            Wielder = baseAceObject.WielderId;
+            ContainerId = baseAceObject.ContainerId;
 
             // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address
 

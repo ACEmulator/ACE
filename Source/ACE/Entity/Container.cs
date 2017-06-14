@@ -49,7 +49,7 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQy
                                          | UpdatePositionFlag.ZeroQx;
 
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag();
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
             inventoryItem.ContainerId = null;
             inventoryItem.Wielder = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();

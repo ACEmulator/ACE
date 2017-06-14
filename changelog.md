@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-06-13
+[Og II]
+* Added getting and setting ContainerID and Wielder into AceObject and surfaced in worldObject
+* Put in a hack to show how equiped weapons and shields work.   We will need to establish a place to store this data.
+* I put in big TODO to indentify the hack - it is benign and will not impact anything else other than to demo the placement
+* of the spear in Rand the Game Hunters hand in Holtburg.
+* Modified SetPhysicsDescriptionFlags so it can be container and weilder aware.
+* Worked with OptimShi and we put in a fix for Lord BucketHead.
+
 ### 2017-06-12
 [Og II]
 * fixed issue with null exception
