@@ -167,8 +167,9 @@ namespace ACE.Network.Handlers
             // ModelData.AddPalette(skinPal, 0x0, 0x18); // for reference on how to apply
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairHue)]);
-            ushort hairPal = (ushort)hairPalSet.GetPaletteID(appearance.HairColor);
+            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
+            ushort hairPal = (ushort)hairPalSet.GetPaletteID(appearance.HairHue);
+            
             character.HairPalette = hairPal;
             // ModelData.AddPalette(hairPal, 0x18, 0x8); // for reference on how to apply
 

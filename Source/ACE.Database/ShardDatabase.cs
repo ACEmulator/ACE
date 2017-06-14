@@ -6,6 +6,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 
 using log4net;
+// ReSharper disable InconsistentNaming
 
 namespace ACE.Database
 {
@@ -21,9 +22,6 @@ namespace ACE.Database
             GetWeenieClass = 1,
             GetObjectsByLandblock = 2,
             GetCreaturesByLandblock = 3,
-            GetWeeniePalettes = 4,
-            GetWeenieTextureMaps = 5,
-            GetWeenieAnimations = 6,
             GetPaletteOverridesByObject = 7,
             GetAnimationOverridesByObject = 8,
             GetTextureOverridesByObject = 9,
@@ -47,6 +45,7 @@ namespace ACE.Database
 
             SaveAceObject = 27,
             DeleteAceObject = 28,
+            GetAceObject = 29,
 
             AddFriend = 101,
             DeleteFriend = 102,
@@ -98,243 +97,65 @@ namespace ACE.Database
 
         protected override void InitializePreparedStatements()
         {
-            ConstructStatement(
-               ShardPreparedStatement.GetCharacters,
-                typeof(CachedCharacter),
-                ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetNextCharacterId, typeof(CachedCharacter), ConstructedStatementType.GetAggregate);
+            ConstructStatement(ShardPreparedStatement.IsCharacterNameAvailable, typeof(CachedCharacter), ConstructedStatementType.Get);
 
-            ConstructStatement(
-                ShardPreparedStatement.GetNextCharacterId,
-                typeof(CachedCharacter),
-                ConstructedStatementType.GetAggregate);
-
-            ConstructStatement(
-                ShardPreparedStatement.IsCharacterNameAvailable,
-                typeof(CachedCharacter),
-                ConstructedStatementType.Get);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObject,
-                typeof(AceObject),
-                ConstructedStatementType.Delete);
-
-            ConstructStatement(
-                ShardPreparedStatement.SaveAceObject,
-                typeof(AceObject),
-                ConstructedStatementType.Insert);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObject, typeof(AceObject), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.SaveAceObject, typeof(AceObject), ConstructedStatementType.Insert);
+            ConstructStatement(ShardPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
             // Get lists
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesBigInt,
-                typeof(AceObjectPropertiesInt64),
-                ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
 
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesBool,
-                typeof(AceObjectPropertiesBool),
-                ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDouble, typeof(AceObjectPropertiesDouble), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
 
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesDouble,
-                typeof(AceObjectPropertiesDouble),
-                ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
 
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesString,
-                typeof(AceObjectPropertiesString),
-                ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesPositions, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
 
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesIid,
-                typeof(AceObjectPropertiesInstanceId),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesDid,
-                typeof(AceObjectPropertiesDataId),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetTextureOverridesByObject,
-                typeof(TextureMapOverride),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetPaletteOverridesByObject,
-                typeof(PaletteOverride),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAnimationOverridesByObject,
-                typeof(AnimationOverride),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesPositions,
-                typeof(AceObjectPropertiesPosition),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesAttributes,
-                typeof(AceObjectPropertiesAttribute),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd,
-                typeof(AceObjectPropertiesAttribute2nd),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesSkills,
-                typeof(AceObjectPropertiesSkill),
-                ConstructedStatementType.GetList);
-
-            ConstructStatement(
-                ShardPreparedStatement.GetAceObjectPropertiesInt,
-                typeof(AceObjectPropertiesInt),
-                ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesAttributes, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.GetList);
 
             // Delete statements
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesInt,
-                typeof(AceObjectPropertiesInt),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesBigInt,
-                typeof(AceObjectPropertiesInt64),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesBool,
-                typeof(AceObjectPropertiesBool),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesDouble,
-                typeof(AceObjectPropertiesDouble),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesString,
-                typeof(AceObjectPropertiesString),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesIid,
-                typeof(AceObjectPropertiesInstanceId),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesDid,
-                typeof(AceObjectPropertiesDataId),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesPositions,
-                typeof(AceObjectPropertiesPosition),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesSkills,
-                typeof(AceObjectPropertiesSkill),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesAttributes,
-                typeof(AceObjectPropertiesAttribute),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAceObjectPropertiesAttributes2nd,
-                typeof(AceObjectPropertiesAttribute2nd),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteTextureOverridesByObject,
-                typeof(TextureMapOverride),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeletePaletteOverridesByObject,
-                typeof(PaletteOverride),
-                ConstructedStatementType.DeleteList);
-
-            ConstructStatement(
-                ShardPreparedStatement.DeleteAnimationOverridesByObject,
-                typeof(AnimationOverride),
-                ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesDouble, typeof(AceObjectPropertiesDouble), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesPositions, typeof(AceObjectPropertiesPosition), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesAttributes, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesAttributes2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeletePaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.DeleteList);
 
             // Insert statements
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesInt,
-                typeof(AceObjectPropertiesInt),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesBigInt,
-                typeof(AceObjectPropertiesInt64),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesBool,
-                typeof(AceObjectPropertiesBool),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesDouble,
-                typeof(AceObjectPropertiesDouble),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesString,
-                typeof(AceObjectPropertiesString),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesIid,
-                typeof(AceObjectPropertiesInstanceId),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesDid,
-                typeof(AceObjectPropertiesDataId),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesPositions,
-                typeof(AceObjectPropertiesPosition),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesSkills,
-                typeof(AceObjectPropertiesSkill),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesAttributes,
-                typeof(AceObjectPropertiesAttribute),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAceObjectPropertiesAttributes2nd,
-                typeof(AceObjectPropertiesAttribute2nd),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertTextureOverridesByObject,
-                typeof(TextureMapOverride),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertPaletteOverridesByObject,
-                typeof(PaletteOverride),
-                ConstructedStatementType.InsertList);
-
-            ConstructStatement(
-                ShardPreparedStatement.InsertAnimationOverridesByObject,
-                typeof(AnimationOverride),
-                ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesDouble, typeof(AceObjectPropertiesDouble), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesPositions, typeof(AceObjectPropertiesPosition), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesAttributes2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
         }
 
         public Task AddFriend(uint characterId, uint friendCharacterId)
@@ -517,9 +338,48 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
+        public AceObject GetWorldObject(uint objId)
+        {
+            AceObject ret = new AceObject();
+            var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
+            bool success = ExecuteConstructedGetStatement<ShardPreparedStatement>(ShardPreparedStatement.GetAceObject, typeof(AceObject), criteria, ret);
+            if (!success)
+            {
+                return null;
+            }
+            return ret;
+        }
+
+        private List<AceObjectPropertiesPosition> GetAceObjectPropertiesPositions(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
+            return objects;
+        }
+
+
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
-            throw new NotImplementedException();
+            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWordObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
+            List<AceObject> ret = new List<AceObject>();
+            objects.ForEach(cwo =>
+            {
+                var o = GetWorldObject(cwo.AceObjectId);
+                o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
+                o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
+                o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
+                o.Int64Properties = GetAceObjectPropertiesBigInt(o.AceObjectId);
+                o.BoolProperties = GetAceObjectPropertiesBool(o.AceObjectId);
+                o.DoubleProperties = GetAceObjectPropertiesDouble(o.AceObjectId);
+                o.StringProperties = GetAceObjectPropertiesString(o.AceObjectId);
+                o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
+                o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
+                o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
+                o.Positions = GetAceObjectPropertiesPositions(o.AceObjectId);
+                ret.Add(o);
+            });
+            return ret;
         }
 
         public bool IsCharacterNameAvailable(string name)
@@ -539,6 +399,9 @@ namespace ACE.Database
             DatabaseTransaction transaction = BeginTransaction();
 
             // For now we're just going to go simple and wipe and re-run this sucker -- make sure our inserst/updates work
+
+            // TODO : this never completes as far as I can tell.   I think this is why positions are not saving.   Og II
+            // I can't see any commit or any database updates taking place.   Nor any errors that I can see.
 
             DeleteObjectInternal(transaction, aceObject);
             SaveObjectInternal(transaction, aceObject);

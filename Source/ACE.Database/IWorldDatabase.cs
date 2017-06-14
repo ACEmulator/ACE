@@ -14,11 +14,11 @@ namespace ACE.Database
         List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
 
         List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock);
-        
+
         bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl);
 
         AceObject GetRandomWeenieOfType(uint typeId);
 
-        AceObject GetWeenie(uint weenieClassId);
+        AceObject GetBaseAceObjectDataByWeenie (uint weenieClassId);
     }
 }
