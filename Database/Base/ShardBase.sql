@@ -28,9 +28,9 @@ CREATE TABLE `ace_object` (
   `aceObjectId` int(10) unsigned NOT NULL,
   `aceObjectDescriptionFlags` int(10) unsigned NOT NULL,
   `weenieClassId` int(10) unsigned NOT NULL,
-  `weenieHeaderFlags` int(10) unsigned NOT NULL,
-  `physicsDescriptionFlag` int(10) unsigned NOT NULL,
-  `currentMotionState` text,
+  `weenieHeaderFlags` int(10) unsigned DEFAULT NULL,
+  `physicsDescriptionFlag` int(10) unsigned DEFAULT NULL,
+  `currentMotionState` text DEFAULT NULL,
   PRIMARY KEY (`aceObjectId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
