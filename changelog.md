@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-14
+[ddevec]
+* Fixed Position saving bug.
+
 ### 2017-06-13
 [Og II]
 * Added getting and setting ContainerID and Wielder into AceObject and surfaced in worldObject
