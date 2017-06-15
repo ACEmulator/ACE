@@ -329,13 +329,8 @@ namespace ACE.Entity
                 obj.SetSkillProperty(skill.GetAceObjectSkill(Character.AceObjectId));
             }
 
-            // FIXME(ddevec): Position shouldn't have a guid.  This is a code smell.
-            //   We should probably have a DB position that has this extra information separate from our used position
             // Positions -- These are curently maintained internally...
-            foreach (var pos in obj.Positions)
-            {
-                pos.AceObjectId = obj.AceObjectId;
-            }
+            obj.Positions = Positions.Select(x => x.Value.GetAceObjectPosition(Guid, x.Key)).ToList();
 
             return obj;
         }

@@ -1,6 +1,13 @@
 # ACEmulator Change Log
 
 ### 2017-06-14
+
+[ddevec]
+* Fixed Position saving bug.
+* Added intial Level, TotalExperience, and AvailiableExperience to AceCharacter
+*    Fixes level ??? bug.
+* Fixing Attributes2nd (health/stam/mana) intentionally delayed until merge with master -- master includes needed restructuring
+
 [Og II]
 * Trello card - General code clean up - look at all the TODO's -  add the most critical ones here
 * Removed unused and replace weenie code that was deprecated with Object-Overhaul
