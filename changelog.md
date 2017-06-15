@@ -1,11 +1,23 @@
 # ACEmulator Change Log
 
 ### 2017-06-14
+
 [ddevec]
 * Fixed Position saving bug.
 * Added intial Level, TotalExperience, and AvailiableExperience to AceCharacter
 *    Fixes level ??? bug.
 * Fixing Attributes2nd (health/stam/mana) intentionally delayed until merge with master -- master includes needed restructuring
+
+[Og II]
+* Trello card - General code clean up - look at all the TODO's -  add the most critical ones here
+* Removed unused and replace weenie code that was deprecated with Object-Overhaul
+* Fixed hair color bug with code from OptimShi - this should conclude our issues with character appearance.
+* Removed unused files related to weenie.
+* I spent about an hour trying to debug the position not saving.   None of the character save is working.   It does not error,
+* but nothing is changed in the DB.    That is still to-do.
+* Updated Trello board.
+* I cleaned up the shard base script but I have left it out due to the contentious nature of the discussion in the apply named discord ;)
+* Added first part of equip item.
 
 ### 2017-06-13
 [Og II]

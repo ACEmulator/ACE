@@ -89,11 +89,6 @@ namespace ACE.Entity
             RadarColor = (RadarColor?)aco.BlipColor;
             RadarBehavior = (RadarBehavior?)aco.Radar;
             UseRadius = aco.UseRadius;
-
-            // aco.WeenieAnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, ao.AnimationId));
-            // aco.WeenieTextureMapOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            // aco.WeeniePaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            // ModelData.PaletteGuid = aco.PaletteId;
         }
 
         protected void SetAbilities(AceObject aco)

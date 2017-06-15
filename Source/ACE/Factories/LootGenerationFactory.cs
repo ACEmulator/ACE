@@ -19,7 +19,7 @@ namespace ACE.Factories
 
         public static WorldObject CreateTestWorldObject(Player player, ushort weenieId)
         {
-            var aceObject = DatabaseManager.World.GetWeenie(weenieId);
+            var aceObject = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieId);
             var wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
             return wo;
         }
