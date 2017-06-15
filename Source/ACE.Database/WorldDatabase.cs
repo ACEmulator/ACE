@@ -91,7 +91,7 @@ namespace ACE.Database
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
-                o.Positions = GetAceObjectPositions(o.AceObjectId);
+                o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
                 ret.Add(o);
             });
             return ret;
@@ -180,7 +180,7 @@ namespace ACE.Database
             bao.TextureOverrides = GetAceObjectTextureMaps(bao.AceObjectId);
             bao.AnimationOverrides = GetAceObjectAnimations(bao.AceObjectId);
             bao.PaletteOverrides = GetAceObjectPalettes(bao.AceObjectId);
-            bao.Positions = GetAceObjectPositions(bao.AceObjectId);
+            bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
             return bao;
         }
 

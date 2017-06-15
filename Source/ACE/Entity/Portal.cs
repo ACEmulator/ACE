@@ -109,8 +109,9 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
+            // FIXME(ddevec): Should be inhereted from aceO, not extend it...
             if (aceO.Destination != null)
-                Destination = new Position(aceO.Destination);
+                Destination = aceO.Destination;
         }
 
         public uint MinimumLevel

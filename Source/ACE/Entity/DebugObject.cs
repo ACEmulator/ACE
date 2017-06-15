@@ -91,7 +91,8 @@ namespace ACE.Entity
         public DebugObject(AceObject aceO)
             : this(new ObjectGuid(aceO.AceObjectId), aceO)
         {
-            Location = new Position(aceO.Location);
+            // FIXME(ddevec): These should be inhereted from aceO, not copied
+            Location = aceO.Location;
             Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
             WeenieClassid = aceO.WeenieClassId;
             GameDataType = aceO.ItemType;

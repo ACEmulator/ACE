@@ -1,9 +1,10 @@
-﻿using ACE.Entity.Enum;
+﻿using System;
+using ACE.Entity.Enum;
 using ACE.Entity;
 
 namespace ACE.Entity
 {
-    public class CreatureSkill
+    public class CreatureSkill : ICloneable
     {
         // because skill values are determined from stats, we need a reference to the character
         // so we can calculate.  this could be refactored into a better pattern, but it will
@@ -52,6 +53,15 @@ namespace ACE.Entity
             ExperienceSpent = xpSpent;
         }
 
+        public CreatureSkill(ICreatureStats character, AceObjectPropertiesSkill skill)
+        {
+            this.character = character;
+            Skill = (Skill)skill.SkillId;
+            Status = (SkillStatus)skill.SkillStatus;
+            Ranks = skill.SkillPoints;
+            ExperienceSpent = skill.SkillXpSpent;
+        }
+
         public AceObjectPropertiesSkill GetAceObjectSkill(uint objId)
         {
             var ret = new AceObjectPropertiesSkill();
@@ -63,6 +73,11 @@ namespace ACE.Entity
             ret.SkillXpSpent = ExperienceSpent;
 
             return ret;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }
