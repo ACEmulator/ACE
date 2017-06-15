@@ -10,6 +10,7 @@
 * but nothing is changed in the DB.    That is still to-do.
 * Updated Trello board.
 * I cleaned up the shard base script but I have left it out due to the contentious nature of the discussion in the apply named discord ;)
+* Added first part of equip item.
 
 ### 2017-06-13
 [Og II]
