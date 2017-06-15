@@ -121,6 +121,11 @@ namespace ACE.Network.Handlers
             CharGen cg = CharGen.ReadFromDat();
             AceCharacter character = new AceCharacter(DatabaseManager.Shard.GetNextCharacterId());
 
+            // FIXME(ddevec): These should go in AceCharacter constructor, but the Network enum is not available there
+            character.Radar = (byte)Network.Enum.RadarBehavior.ShowAlways;
+            character.BlipColor = (byte)Network.Enum.RadarColor.White;
+            character.ItemUseable = (uint)Network.Enum.Usable.UsableObjectSelf;
+
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
             character.Gender = reader.ReadUInt32();

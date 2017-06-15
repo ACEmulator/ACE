@@ -99,6 +99,12 @@ namespace ACE.Entity
             SetAbilities(aceC.WeenieObject);
         }
 
+        public Creature(AceObject baseObject) : base(baseObject)
+        {
+            // FIXME(ddevec): Once physics data has been refactored this shouldn't be needed...
+            SetObjectData(baseObject);
+        }
+
         private void SetObjectData(AceObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
@@ -108,18 +114,6 @@ namespace ACE.Entity
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.DefaultScale;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
-
-            // game data min required flags;
-            Icon = aco.IconId;
-
-            ContainerCapacity = aco.ContainersCapacity;
-            ItemCapacity = aco.ItemsCapacity;
-            Usable = (Usable?)aco.ItemUseable;
-            // intersting finding: the radar color is influenced over the weenieClassId and NOT the blipcolor
-            // the blipcolor in DB is 0 whereas the enum suggests it should be 2
-            RadarColor = (RadarColor?)aco.BlipColor;
-            RadarBehavior = (RadarBehavior?)aco.Radar;
-            UseRadius = aco.UseRadius;
         }
 
         protected void SetAbilities(AceObject aco)

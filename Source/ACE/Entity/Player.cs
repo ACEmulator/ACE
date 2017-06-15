@@ -184,25 +184,14 @@ namespace ACE.Entity
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
-            Name = session.CharacterRequested.Name;
-            Icon = 0x1036;
-            WeenieClassid = 1; // Human
-            GameDataType = (uint)ObjectType.Creature;
-            ItemCapacity = 102;
-            Burden = 0;
-            this.Spell = 0;
-            // this.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            ContainerCapacity = 7;
-            RadarBehavior = Network.Enum.RadarBehavior.ShowAlways;
-            RadarColor = Network.Enum.RadarColor.White;
-            Usable = Network.Enum.Usable.UsableObjectSelf;
-
+            // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;

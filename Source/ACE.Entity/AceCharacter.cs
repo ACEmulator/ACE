@@ -30,6 +30,12 @@ namespace ACE.Entity
             Level = 1;
             AvailableExperience = 0;
             TotalExperience = 0;
+
+            IconId = 0x1036;
+            WeenieClassId = 1; // Human
+            //GameDataType = (uint)ObjectType.Creature;
+            Burden = 0;
+            SpellId = 0;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }

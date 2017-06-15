@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-06-15
+[ddevec]
+* Refactor of AceObject
+* Player/Creature/WorldObject persistent attirbutes now forward to AceObject
+* Fixed Attribute2nd initailization error in the process.
+
 ### 2017-06-14
 
 [ddevec]
