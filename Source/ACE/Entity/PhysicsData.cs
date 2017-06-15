@@ -135,6 +135,12 @@ namespace ACE.Entity
             // I am adding his spear as a child item.
             if (wo.Guid.Full == 0xDBB12C7E)
             {
+                // this is implementation for children mapping to equipMask is  wrong.
+                // Just made an interesting discovery.PhysicsData.Children is never greater than 2 in any of the 4 million create objects.
+                // Maybe everyone knew this but It looks like that is only used for items that can be selected when wielded.weapon caster
+                // or shield in either hand.that is represented as id (the item you are wielding) and a location_id
+                // we currently have that mapped to equipedmask but that is not correct.There are only 2 values I can find 1 or 3.
+                // 1 seems to be your weapon or caster while 3 is shield.I don't see any enums that map to that.
                 var item = new EquippedItem(0xDBAC8105, EquipMask.MeleeWeapon);
                 wo.PhysicsData.children.Add(item);
                 ItemsEquipedCount = (uint)wo.PhysicsData.children.Count;
@@ -149,7 +155,8 @@ namespace ACE.Entity
 
             if (wo.Guid.Full == 0xDBAC8105)
             {
-                wo.EquipperPhysicsDescriptionFlag = EquipMask.MeleeWeapon;
+                wo.ValidLocations = EquipMask.BraceletRight;
+                wo.CurrentWieldedLocation = EquipMask.BraceletRight;
                 wo.PhysicsData.Parent = 0xDBB12C7E;
             }
 

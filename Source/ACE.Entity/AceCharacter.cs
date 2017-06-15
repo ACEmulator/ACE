@@ -30,6 +30,8 @@ namespace ACE.Entity
             Level = 1;
             AvailableExperience = 0;
             TotalExperience = 0;
+            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable |
+                                        ObjectDescriptionFlag.Player);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
