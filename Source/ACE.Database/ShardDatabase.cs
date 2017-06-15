@@ -354,11 +354,11 @@ namespace ACE.Database
             return ret;
         }
 
-        private List<AceObjectPropertiesPosition> GetAceObjectPropertiesPositions(uint aceObjectId)
+        private Dictionary<PositionType, Position> GetAceObjectPropertiesPositions(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
-            return objects;
+            return objects.ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
         }
 
 
@@ -380,7 +380,7 @@ namespace ACE.Database
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
-                o.Positions = GetAceObjectPropertiesPositions(o.AceObjectId);
+                o.AceObjectPropertiesPositions = GetAceObjectPropertiesPositions(o.AceObjectId);
                 ret.Add(o);
             });
             return ret;

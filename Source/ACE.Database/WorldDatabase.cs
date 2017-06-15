@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
@@ -13,6 +15,9 @@ namespace ACE.Database
             GetWeenieClass = 1,
             GetObjectsByLandblock = 2,
             GetCreaturesByLandblock = 3,
+            GetWeeniePalettes = 4,
+            GetWeenieTextureMaps = 5,
+            GetWeenieAnimations = 6,
             GetPaletteOverridesByObject = 7,
             GetAnimationOverridesByObject = 8,
             GetTextureOverridesByObject = 9,
@@ -40,8 +45,12 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetPointsOfInterest, typeof(TeleportLocation), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), ConstructedStatementType.Get);
 
+            // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
@@ -50,7 +59,10 @@ namespace ACE.Database
             // ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
             // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
-            // ConstructStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(AceObject), ConstructedStatementType.GetList);
+            // ConstructStatement(
+            //     WorldPreparedStatement.GetItemsByTypeId,
+            //     typeof(AceObject),
+            //     ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.GetList);
@@ -72,6 +84,44 @@ namespace ACE.Database
             var r = rnd.Next(objects.Count);
             return GetBaseAceObjectDataByWeenie(objects[r].WeenieClassId);
         }
+
+        // public List<TeleportLocation> GetLocations()
+        // {
+        //     var result = SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect);
+        //     var locations = new List<TeleportLocation>();
+        //
+        //     for (var i = 0u; i < result.Count; i++)
+        //     {
+        //         locations.Add(new TeleportLocation
+        //         {
+        //             Location = result.Read<string>(i, "name"),
+        //             Position = new Position(result.Read<uint>(i, "landblock"), result.Read<float>(i, "posX"), result.Read<float>(i, "posY"),
+        //                 result.Read<float>(i, "posZ"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
+        //         });
+        //     }
+        //
+        //     return locations;
+        // }
+
+        ////public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
+        ////{
+        ////    var apo = new AcePortalObject();
+        ////    var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+        ////    if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
+        ////    {
+        ////        apo.IntProperties = GetAceObjectPropertiesInt(apo.AceObjectId);
+        ////        apo.Int64Properties = GetAceObjectPropertiesBigInt(apo.AceObjectId);
+        ////        apo.BoolProperties = GetAceObjectPropertiesBool(apo.AceObjectId);
+        ////        apo.DoubleProperties = GetAceObjectPropertiesDouble(apo.AceObjectId);
+        ////        apo.StringProperties = GetAceObjectPropertiesString(apo.AceObjectId);
+        ////        apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
+        ////        apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
+        ////        apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);
+
+        ////        return apo;
+        ////    }
+        ////    return null;
+        ////}
 
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
@@ -113,7 +163,7 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach(o => o.WeenieObject = GetBaseAceObjectDataByWeenie(o.WeenieClassId));
+            objects.ForEach(o => o.WeenieObject = GetWeenie(o.WeenieClassId));
 
             return objects;
         }
@@ -133,6 +183,24 @@ namespace ACE.Database
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorData>(WorldPreparedStatement.GetCreatureGeneratorData, criteria);
         }
 
+        private List<PaletteOverride> GetWeeniePalettes(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("aceObjectId", aceObjectId);
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, PaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
+        }
+
+        private List<TextureMapOverride> GetWeenieTextureMaps(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetWeenieTextureMaps, criteria);
+        }
+
+        private List<AnimationOverride> GetWeenieAnimations(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetWeenieAnimations, criteria);
+        }
         private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
@@ -246,6 +314,12 @@ namespace ACE.Database
         public async Task<bool> SaveObject(AceObject aceObject)
         {
             throw new NotImplementedException();
+        }
+
+        // TODO: this needs to be refactored to just replace all calls to GetWeenie with the other method which should be renamed.
+        public AceObject GetWeenie(uint weenieClassId)
+        {
+            return GetBaseAceObjectDataByWeenie(weenieClassId);
         }
 
         public List<TeleportLocation> GetPointsOfInterest()

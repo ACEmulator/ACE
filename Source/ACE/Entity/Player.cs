@@ -500,8 +500,11 @@ namespace ACE.Entity
             {
                 success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out creatureAbility);
                 // Invalid ability
-                log.Error("Invalid ability passed to Player.SpendXp");
-                return;
+                if (!success)
+                {
+                    log.Error("Invalid ability passed to Player.SpendXp");
+                    return;
+                }
             }
             uint baseValue = creatureAbility.Base;
             uint result = SpendAbilityXp(creatureAbility, amount);
