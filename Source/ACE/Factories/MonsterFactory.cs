@@ -14,13 +14,15 @@ namespace ACE.Factories
         /// <summary>
         /// Create a new creature at the specified position
         /// </summary>
+        /// <param name="weenieClassId"></param>
         /// <param name="saveAsStatic">If set to true, it saves the spawned creature in the DB as a static spawn</param>
+        /// <param name="position"></param>
         public static Creature SpawnCreature(uint weenieClassId, bool saveAsStatic, Position position)
         {
-            AceObject aco = DatabaseManager.World.GetWeenie(weenieClassId);
+            AceObject aco = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieClassId);
             if (aco == null)
                 return null;
-            
+
             AceCreatureStaticLocation acsl = new AceCreatureStaticLocation();
             acsl.WeenieClassId = (ushort)weenieClassId;
             acsl.Landblock = (ushort)position.LandblockId.Landblock;

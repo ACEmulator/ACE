@@ -54,6 +54,7 @@ namespace ACE.Entity
         [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
         public uint WeenieHeaderFlags { get; set; }
 
+
         public uint? AnimationFrameId
         {
             get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.PlacementPosition)?.PropertyValue; }
@@ -221,13 +222,7 @@ namespace ACE.Entity
             get { return GetDataIdProperty(PropertyDataId.CombatTable) ?? 0; }
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
-
-        public List<WeeniePaletteOverride> WeeniePaletteOverrides { get; set; } = new List<WeeniePaletteOverride>();
-
-        public List<WeenieTextureMapOverride> WeenieTextureMapOverrides { get; set; } = new List<WeenieTextureMapOverride>();
-
-        public List<WeenieAnimationOverride> WeenieAnimationOverrides { get; set; } = new List<WeenieAnimationOverride>();
-
+        
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
