@@ -27,6 +27,9 @@ namespace ACE.Entity
             WeenieClassId = 1;
             Deleted = false;
             DeleteTime = 0;
+            Level = 1;
+            AvailableExperience = 0;
+            TotalExperience = 0;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }

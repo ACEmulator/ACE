@@ -3,6 +3,9 @@
 ### 2017-06-14
 [ddevec]
 * Fixed Position saving bug.
+* Added intial Level, TotalExperience, and AvailiableExperience to AceCharacter
+*    Fixes level ??? bug.
+* Fixing Attributes2nd (health/stam/mana) intentionally delayed until merge with master -- master includes needed restructuring
 
 ### 2017-06-13
 [Og II]
