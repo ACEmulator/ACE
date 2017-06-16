@@ -1,6 +1,7 @@
 ﻿namespace ACE.Network.GameAction.Actions
 {
     using global::ACE.Entity;
+    using global::ACE.Network.GameAction.QueuedGameActions;
 
     public static class GameActionPutItemInContainer
     {
@@ -9,7 +10,7 @@
         {
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            QueuedGameAction action = new QueuedGameAction(containerGuid.Full, itemGuid.Full, GameActionType.PutItemInContainer);
+            QueuedGameAction action = new QueuedGameActionPutItemInContainer(containerGuid.Full, itemGuid.Full, session.Player.Location.LandblockId);
             session.Player.AddToActionQueue(action);
         }
     }

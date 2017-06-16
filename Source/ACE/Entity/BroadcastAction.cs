@@ -14,6 +14,8 @@
 
         MovementEvent,
 
-        BroadcastDeath
+        BroadcastDeath,
+
+        UpdateTick
     }
 }

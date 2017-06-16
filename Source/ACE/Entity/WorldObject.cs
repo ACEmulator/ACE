@@ -1,26 +1,20 @@
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 using ACE.Network.Sequence;
 using System.IO;
+using ACE.Managers;
+using log4net;
+using ACE.Network.Motion;
+using ACE.InGameManager;
 
 namespace ACE.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Remoting.Messaging;
-
-    using global::ACE.Entity.Enum.Properties;
-    using global::ACE.Managers;
-    using Network.Motion;
-    using log4net;
-
-    public abstract class WorldObject
+    public class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private ObjectType none;
 
         public ObjectGuid Guid { get; }
 
@@ -58,6 +52,16 @@ namespace ACE.Entity
                 PhysicsData.Position = value;
             }
         }
+
+        // zones around world object
+        public virtual LandblockId LandBlockIdWest { get; set; }
+        public virtual LandblockId LandBlockIdEast { get; set; }
+        public virtual LandblockId LandBlockIdNorth { get; set; }
+        public virtual LandblockId LandBlockIdNorthEast { get; set; }
+        public virtual LandblockId LandBlockIdNorthWest { get; set; }
+        public virtual LandblockId LandBlockIdSouth { get; set; }
+        public virtual LandblockId LandBlockIdSouthEast { get; set; }
+        public virtual LandblockId LandBlockIdSouthWest { get; set; }
 
         /// <summary>
         /// tick-stamp for the last time a movement update was sent
@@ -115,6 +119,11 @@ namespace ACE.Entity
             PhysicsData = new PhysicsData(Sequences);
         }
 
+        public WorldObject(ObjectType none)
+        {
+            this.none = none;
+        }
+
         public void SetCombatMode(CombatMode newCombatMode)
         {
             log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);
@@ -137,7 +146,8 @@ namespace ACE.Entity
         {
             Player p = (Player)this;
             PhysicsData.CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            var updateMotion = new GameMessageUpdateMotion(p.Guid,
+                p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), p.Sequences, motionState);
             p.Session.Network.EnqueueSend(updateMotion);
         }
 
@@ -285,6 +295,10 @@ namespace ACE.Entity
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+        }
+
+        public virtual void Tick(double tickTime)
+        {
         }
     }
 }

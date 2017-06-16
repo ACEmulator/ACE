@@ -5,16 +5,13 @@ using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using System;
+using ACE.StateMachines.Rules;
+using ACE.StateMachines;
+using ACE.StateMachines.Enum;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using ACE.Network.GameAction.QueuedGameActions;
 
 namespace ACE.Entity
 {
@@ -36,11 +33,27 @@ namespace ACE.Entity
 
         public CreatureAbility Self { get; set; }
 
-        public CreatureAbility Health { get; set; }
+        public CreatureVital Health { get; set; }
 
-        public CreatureAbility Stamina { get; set; }
+        public CreatureVital Stamina { get; set; }
 
-        public CreatureAbility Mana { get; set; }
+        public CreatureVital Mana { get; set; }
+
+        /// <summary>
+        /// This is used to allow us to queue up game actions that we are out of range to preform
+        /// </summary>
+        public QueuedGameAction BlockedGameAction { get; set; }
+
+        /// <summary>
+        /// If we need to move, where do we need to go?   This may be replaced by a property that Mogwai was discussing
+        /// </summary>
+        // TODO: Revisit to see if still needed
+        public Position MoveToPosition { get; set; }
+
+        /// <summary>
+        /// What is the square of the sum of use radius plus csphear
+        /// </summary>
+        public float ArrivedRadiusSquared { get; set; }
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
@@ -52,14 +65,26 @@ namespace ACE.Entity
         /// </summary>
         public double RespawnTime { get; set; }
 
+        /// <summary>
+        /// Track state of creature if their current action is blocked.   Either until they are no longer blocked or the action is abandoned.
+        /// </summary>
+        private readonly StateMachine movementStateMachine = new StateMachine();
+
+        public MovementStates CreatureMovementStates
+        { 
+          get { return (MovementStates)movementStateMachine.CurrentState; }
+          set { movementStateMachine.ChangeState((int)value); }
+        }
+
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
         {
+            this.movementStateMachine.Initialize(MovementRules.GetRules(), MovementRules.GetInitState());
         }
 
         public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.CreatureData.TypeId, 
-                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature), 
+            : base((ObjectType)aceC.CreatureData.TypeId,
+                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
                   aceC.CreatureData.Name,
                   aceC.WeenieClassId,
                   (ObjectDescriptionFlag)aceC.CreatureData.WdescBitField,
@@ -75,6 +100,18 @@ namespace ACE.Entity
             SetAbilities(aceC.CreatureData);
         }
 
+        public void SetDestinationInformation(Position position, float arrivedRadiusSquared)
+        {
+            MoveToPosition = position;
+            ArrivedRadiusSquared = arrivedRadiusSquared;
+        }
+
+        public void ClearDestinationInformation()
+        {
+            MoveToPosition = null;
+            ArrivedRadiusSquared = 0.0f;
+        }
+
         private void SetObjectData(AceCreatureObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
@@ -83,7 +120,7 @@ namespace ACE.Entity
             PhysicsData.CSetup = aco.ModelTableId;
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.ObjectScale;
-            
+
             // this should probably be determined based on the presence of data.
             PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aco.PhysicsBitField;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
@@ -108,16 +145,17 @@ namespace ACE.Entity
 
         private void SetAbilities(AceCreatureObject aco)
         {
-            Strength = new CreatureAbility(aco, Enum.Ability.Strength);
-            Endurance = new CreatureAbility(aco, Enum.Ability.Endurance);
-            Coordination = new CreatureAbility(aco, Enum.Ability.Coordination);
-            Quickness = new CreatureAbility(aco, Enum.Ability.Quickness);
-            Focus = new CreatureAbility(aco, Enum.Ability.Focus);
-            Self = new CreatureAbility(aco, Enum.Ability.Self);
+            Strength = new CreatureAbility(Enum.Ability.Strength);
+            Endurance = new CreatureAbility(Enum.Ability.Endurance);
+            Coordination = new CreatureAbility(Enum.Ability.Coordination);
+            Quickness = new CreatureAbility(Enum.Ability.Quickness);
+            Focus = new CreatureAbility(Enum.Ability.Focus);
+            Self = new CreatureAbility(Enum.Ability.Self);
 
-            Health = new CreatureAbility(aco, Enum.Ability.Health);
-            Stamina = new CreatureAbility(aco, Enum.Ability.Stamina);
-            Mana = new CreatureAbility(aco, Enum.Ability.Mana);
+            // TODO: Real regen rates?
+            Health = new CreatureVital(aco, Enum.Ability.Health, .5);
+            Stamina = new CreatureVital(aco, Enum.Ability.Stamina, 1.0);
+            Mana = new CreatureVital(aco, Enum.Ability.Mana, .7);
 
             Strength.Base = aco.Strength;
             Endurance.Base = aco.Endurance;
@@ -170,9 +208,9 @@ namespace ACE.Entity
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
+            QueuedGameAction actionDeath = new QueuedGameActionMovementEvent(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent, Location.LandblockId);
             session.Player.AddToActionQueue(actionDeath);
-            
+
             // Create Corspe and set a location on the ground
             // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
             var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
@@ -183,16 +221,28 @@ namespace ACE.Entity
             // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
             corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
 
-            // If the object is a creature, Remove it from from Landblock 
+            // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
+                QueuedGameAction removeCreature = new QueuedGameActionDeleteObject(this.Guid.Full, this, true, true, Location.LandblockId);
                 session.Player.AddToActionQueue(removeCreature);
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            QueuedGameAction addCorpse = new QueuedGameActionCreateObject(this.Guid.Full, corpse, true, Location.LandblockId);
             session.Player.AddToActionQueue(addCorpse);
+        }
+
+        /// <summary>
+        /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
+        /// </summary>
+        // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
+        override public void Tick(double tickTime)
+        {
+            // TODO: Realistic rates && adjusting rates for spells...
+            Health.Tick(tickTime);
+            Stamina.Tick(tickTime);
+            Mana.Tick(tickTime);
         }
     }
 }

@@ -30,6 +30,7 @@ namespace ACE
             SocketManager.Initialize();
             WorldManager.Initialize();
             CommandManager.Initialize();
+            InGameManager.InGameManager.Initialize();
         }
 
         private static void OnProcessExit(object sender, EventArgs e)

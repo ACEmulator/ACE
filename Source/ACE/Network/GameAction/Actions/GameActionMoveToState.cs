@@ -1,6 +1,6 @@
 ﻿using System;
-
 using ACE.Entity;
+using ACE.StateMachines.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -91,8 +91,9 @@ namespace ACE.Network.GameAction.Actions
             teleportTimestamp = message.Payload.ReadUInt16();
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
-
-            session.Player.UpdatePosition(position);
+            if (session.Player.CreatureMovementStates == MovementStates.Moving)
+                session.Player.UpdateAutonomousMove();
+            // session.Player.UpdatePosition(position);
         }
     }
 }

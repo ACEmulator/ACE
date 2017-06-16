@@ -74,6 +74,18 @@ namespace ACE.Entity.Events
             };
         }
 
+        public static BroadcastEventArgs CreateTickEvent(WorldObject sender, double tick)
+        {
+            return new BroadcastEventArgs()
+            {
+                ActionType = BroadcastAction.UpdateTick,
+                Sender = sender,
+                Tick = tick
+            };
+        }
+
+        public double Tick { get; private set; }
+
         public BroadcastAction ActionType { get; private set; }
 
         public WorldObject Sender { get; private set; }

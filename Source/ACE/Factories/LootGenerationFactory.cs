@@ -26,17 +26,17 @@
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
             inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            LandblockManager.AddObject(inventoryItem);
+            // LandManager.OpenWorld.Register(inventoryItem);
         }
 
-        public static WorldObject CreateTestWorldObject(Player player, ushort weenieId)
+        public static WorldObject CreateTestWorldObject(ushort weenieId)
         {
             var aceObject = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieId);
-            var wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
+            WorldObject wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
             return wo;
         }
 
-        public static WorldObject CreateRandomTestWorldObject(Player player, uint typeId)
+        public static WorldObject CreateRandomTestWorldObject(uint typeId)
         {
             var aceObject = DatabaseManager.World.GetRandomBaseAceObjectByTypeId(typeId);
             if (aceObject == null) return null;

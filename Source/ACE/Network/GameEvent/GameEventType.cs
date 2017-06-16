@@ -9,7 +9,7 @@
         InventoryPutObjInContainer          = 0x0022,
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
-
+        ApproachVendor                      = 0x0062,
         IdentifyObjectResponse              = 0x00C9,
 
         ChannelBroadcast                    = 0x0147,
@@ -32,6 +32,8 @@
         DisplayParameterizedStatusMessage   = 0x028B,
         SetTurbineChatChannels              = 0x0295,
         Tell                                = 0x02BD,
+
+        MagicUpdateSpell                    = 0x02C1, // Add spell to player spellbook
 
         PurgeAllEnchantments                = 0x02C6 // Silent upon death
     }

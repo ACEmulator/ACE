@@ -4,14 +4,11 @@ using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
 using ACE.Network.Motion;
-using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
 
@@ -237,9 +234,13 @@ namespace ACE.Command.Handlers
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                        session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                        session.Player.Sequences, movement));
             movement = new UniversalMotion(MotionStance.Standing);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                        session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                        session.Player.Sequences, movement));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -253,12 +254,79 @@ namespace ACE.Command.Handlers
             ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
+            var loot = LootGenerationFactory.CreateTestWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
             session.Player.TrackObject(loot);
-            var newMotion = new UniversalMotion(MotionStance.Standing, loot);
+            var newMotion = new UniversalMotion(MotionStance.Standing, loot.PhysicsData.Position, loot.Guid);
+            newMotion.MovementTypes = MovementTypes.MoveToObject;
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                        session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                        session.Player.Sequences, newMotion));
+        }
+        
+        // This function 
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+             "Sets the specified vital to a specified value",
+            "Usage: @setvital <vital> <value>\n" +
+            "<vital> is one of the following strings:\n" +
+            "    health, hp\n" +
+            "    stamina, stam, sp\n" +
+            "    mana, mp\n" +
+            "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
+        public static void SetVital(Session session, params string[] parameters)
+        {
+            string paramVital = parameters[0].ToLower();
+            string paramValue = parameters[1];
+
+            bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
+            int value = int.MaxValue;
+
+            if (!int.TryParse(paramValue, out value)) {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
+                return;
+            }
+
+            Entity.Enum.Ability ability;
+            // Parse args...
+            CreatureVital vital = null;
+            if (paramVital == "health" || paramVital == "hp")
+            {
+                ability = Entity.Enum.Ability.Health;
+                vital = session.Player.Health;
+            }
+            else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
+            {
+                ability = Entity.Enum.Ability.Stamina;
+                vital = session.Player.Stamina;
+            }
+            else if (paramVital == "mana" || paramVital == "mp")
+            {
+                ability = Entity.Enum.Ability.Mana;
+                vital = session.Player.Mana;
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
+                return;
+            }
+
+            long targetValue = 0;
+            if (relValue)
+                targetValue = vital.Current + value;
+            else
+                targetValue = value;
+
+            if (targetValue < 0 || targetValue > vital.MaxValue)
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Value over/underflow", ChatMessageType.Broadcast);
+                return;
+            }
+
+            vital.Current = (uint)targetValue;
+
+            // Send an update packet
+            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, vital));
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
@@ -273,14 +341,14 @@ namespace ACE.Command.Handlers
             "Creates a lifestone in front of you.")]
         public static void CreateLifeStone(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
-        }
+            // LandManager.OpenWorld.Register(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
+       }
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+            // LandManager.OpenWorld.Register(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
         }
 
         /// <summary>
@@ -332,7 +400,7 @@ namespace ACE.Command.Handlers
             }
 
             AceVector3 velocity = new AceVector3(x, y, z);
-            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
+            // LandManager.OpenWorld.Register(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
         // Kill a player - equivalent to legal virtual murder, by admin
@@ -418,7 +486,7 @@ namespace ACE.Command.Handlers
             {
                 ChatPacket.SendServerMessage(session, $"Now spawning {newC.Name}.",
                     ChatMessageType.Broadcast);
-                LandblockManager.AddObject(newC);
+                // LandManager.OpenWorld.Register(newC);
             }
             else
             {
@@ -436,12 +504,12 @@ namespace ACE.Command.Handlers
             if (session.Player.SelectedTarget != 0)
             {
                 var target = new ObjectGuid(session.Player.SelectedTarget);
-                var wo = LandblockManager.GetWorldObject(session, target);
+                // var wo = LandManager.OpenWorld.ReadOnlyClone(target);
 
                 if (target.IsCreature())
                 {
-                    if (wo != null)
-                        (wo as Creature).OnKill(session);
+                    // if (wo != null)
+                    //    (wo as Creature).OnKill(session);
                 }
             }
             else
@@ -552,6 +620,69 @@ namespace ACE.Command.Handlers
             message += $"Total positions: " + session.Player.Positions.Count.ToString() + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
+        }
+
+        /// <summary>
+        /// Debug command to learn a spell.
+        /// </summary>
+        /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
+        [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
+            "@learnspell")]
+        public static void HandleLearnSpell(Session session, params string[] parameters)
+        {
+            if (parameters?.Length > 0)
+            {
+                uint spellId = (uint)int.Parse(parameters[0]);
+
+                SpellTable spells = SpellTable.ReadFromDat();
+                if (!spells.Spells.ContainsKey(spellId))
+                {
+                    var errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(errorMessage);
+                }
+                else
+                {
+                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, spellId);
+                    session.Network.EnqueueSend(updateSpellEvent);
+
+                    // Always seems to be this SkillUpPurple effect
+                    session.Player.ActionApplyVisualEffect(PlayScript.SkillUpPurple, session.Player.Guid);
+
+                    string spellName = spells.Spells[spellId].Name;
+                    // TODO Lookup the spell in the spell table.
+                    string message = "You learn the " + spellName + " spell.\n";
+                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(learnMessage);
+                }
+            }
+            else
+            {
+                string message = "Invalid Syntax\n";
+                var errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(errorMessage);
+            }
+        }
+
+        /// <summary>
+        /// Debug command to print out all of the active players connected too the server.
+        /// </summary>
+        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Displays all of the active players connected too the serve.",
+            "@players")]
+        public static void HandleListPlayers(Session session, params string[] parameters)
+        {
+            uint playerCounter = 0;
+            // Build a string message containing all available characters and send as a System Chat message
+            string message = "";
+            foreach (Session playerSession in WorldManager.GetAll(false))
+            {
+                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
+                playerCounter++;
+            }
+            message += $"Total connected Players: {playerCounter}\n";
+            var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(listPlayersMessage);
         }
     }
 }

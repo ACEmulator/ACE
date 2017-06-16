@@ -1,12 +1,12 @@
 ﻿namespace ACE.Network.Enum
 {
     /// <summary>
-    /// These are used with various movement related messages.   
+    /// These are used with various movement related messages.
     /// 0 & 6-9 are used with F74C Animation
     /// </summary>
     public enum MovementTypes
     {
-        General                       = 0x0, 
+        General                       = 0x0,
         RawCommand                    = 0x1,
         InterpretedCommand            = 0x2,
         StopRawCommand                = 0x3,

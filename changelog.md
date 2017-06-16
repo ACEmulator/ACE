@@ -1,4 +1,49 @@
-# ACEmulator Change Log
+﻿# ACEmulator Change Log
+
+### 2017-05-17
+[ddevec]
+* Added "Tick" functionality to WorldObjects.
+* CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
+* Creatures now update their vitals on Tick.
+* Players notify their client session on vital changes.
+
+[StackOverflow]
+* Major Code Refractoring, added handlers for QueuedGameAction, converted all spec que logic to QueuedGameActions handlers.
+
+### 2017-05-23
+[OptimShi]
+* Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event.
+
+### 2017-05-21
+[OptimShi]
+* Finished parsing the client_cell.dat file with the CLandblockInfo type (xxyyFFFE files), along with supporting classes. This makes the client_cell.dat reading complete.
+
+### 2017-05-19
+[fantoms]
+* Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
+* Added `MaximumAllowedSessions` to the `ConfigManager` and the `Config.json.example` file.
+* Began using the variable in the `WorldManager.cs` server initalization step, allowing usersr to configure the max allowed sessions.
+
+### 2017-05-17
+[fantoms]
+* Added the debug command `listplayers`, that will list all players currently connected too the server.
+
+[ddevec]
+* Added "Tick" functionality to WorldObjects.
+* CreatureVital separated from CreatureAbility.  CreatureVital supports time-based regeneration.
+* Creatures now update their vitals on Tick.
+* Players notify their client session on vital changes.
+
+### 2017-05-15
+[StackOverflow]
+* Added basic Vendors, walk up to any vendor to enjoy some warm apple pies.
+
+### 2017-05-09
+[Og II]
+* Major rip and replace to stop reaching into landblock and passing out WorldObjects.   I tested all of my stuff and as many items as I could
+* think of and they all appear to work.   May want to have others test their stuff.   I think this is worth merging even if it did break stuff,
+* it is much cleaner and less confusing I think.
+* Fixed bug from 05/04 Og II update.
 
 ### 2017-05-06
 [Og II]
@@ -10,6 +55,18 @@
 * Added caching to all portal/cell.dat items.
 * Added EnvCell decoding from the cell.dat (dungeon cells/indoor locations)
 * Changed the cell-export console command to properly use datReader. If you had used this command previous, your exported files are incorrect.
+
+### 2017-05-04
+[Og II]
+* Move to object
+* Move to position
+* Turn to object
+* Turn to Position
+* State Machine
+* Currently one last bug to be addressed but wanted to get this in.
+
+[Ripley]
+* Cleaned up project and solution files.
 
 ### 2017-05-03
 [Jyrus]
