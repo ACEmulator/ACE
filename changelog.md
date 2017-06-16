@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-06-16
+[Og II]
+* Trello card task - delete character crashes server.   Fixed this issue.
+* Added event code for database to do the actual house keeping to flip the flag once the hour restore period has expired.
+* Minor code cleanup.
+* Removed update directory for old character database.
+
 ### 2017-06-15
 [ddevec]
 * Refactor of AceObject
