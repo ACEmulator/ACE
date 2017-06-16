@@ -12,6 +12,7 @@ using ACE.Network;
 
 using log4net;
 using ACE.Database;
+using System.Collections.Concurrent;
 
 namespace ACE.Managers
 {
@@ -19,15 +20,11 @@ namespace ACE.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static bool running = false;
-        private static Queue<AceObject> saveObjectsQue = new Queue<AceObject>();
-        private static readonly object saveObjectsCacheLocker = new object();
+        private static BlockingCollection<AceObject> saveObjects = new BlockingCollection<AceObject>();
 
         public static void SaveObject(AceObject ao)
         {
-            lock (saveObjectsCacheLocker)
-            {
-                saveObjectsQue.Enqueue(ao);
-            }
+            saveObjects.Add(ao);
         }
 
         public static void Initialize()
@@ -43,24 +40,11 @@ namespace ACE.Managers
             {
                 Thread.Sleep(1);
 
-                AceObject aceobj;
-
-                lock (saveObjectsCacheLocker)
+                foreach (AceObject ao in saveObjects.GetConsumingEnumerable())
                 {
-                    if (saveObjectsQue.Count > 0)
-                    {
-                        aceobj = saveObjectsQue.Dequeue();
-                        TickAsync(aceobj);
-                    }
+                    DatabaseManager.Shard.SaveObject(ao);
                 }
             }
-        }
-
-        private static async Task<bool> TickAsync(AceObject aceobj)
-        {
-            bool saveSuccess = await DatabaseManager.Shard.SaveObject(aceobj);
-            /// todo: report error.
-            return saveSuccess;
         }
     }
 }
