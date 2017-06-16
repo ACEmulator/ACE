@@ -9,11 +9,11 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object_animation_changes")]
-    [DbGetList("ace_object_animation_changes", 8, "baseAceObjectId")]
-    public class AnimationOverride
+    [DbTable("ace_object_animation_change")]
+    [DbList("ace_object_animation_change", "aceObjectId")]
+    public class AnimationOverride : ICloneable
     {
-        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("index", (int)MySqlDbType.UByte)]
@@ -21,5 +21,10 @@ namespace ACE.Entity
 
         [DbField("animationId", (int)MySqlDbType.UInt32)]
         public uint AnimationId { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

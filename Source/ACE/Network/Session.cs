@@ -211,7 +211,7 @@ namespace ACE.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            var result = await DatabaseManager.Character.GetByAccount(Id);
+            var result = await DatabaseManager.Shard.GetCharacters(Id);
             UpdateCachedCharacters(result);
             Network.EnqueueSend(new GameMessageCharacterList(result, Account));
 

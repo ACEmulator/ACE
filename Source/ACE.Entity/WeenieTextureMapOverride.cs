@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    [DbTable("weenie_texture_map_changes")]
-    [DbGetList("weenie_texture_map_changes", 5, "weenieClassId")]
-    public class WeenieTextureMapOverride
+    [DbTable("ace_object_texture_map_change")]
+    [DbList("ace_object_texture_map_change", "aceObjectId")]
+    public class WeenieTextureMapOverride : ICloneable
     {
-        [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public ushort WeenieClassId { get; set; }
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        public uint AceObjectId { get; set; }
 
         [DbField("index", (int)MySqlDbType.UByte)]
         public byte Index { get; set; }
@@ -23,5 +23,10 @@ namespace ACE.Entity
 
         [DbField("newId", (int)MySqlDbType.UInt32)]
         public uint NewId { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

@@ -1,10 +1,6 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -14,15 +10,32 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
+        /// <summary>
+        /// Load from template
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="guid"></param>
+        /// <param name="name"></param>
+        /// <param name="weenieClassId"></param>
+        /// <param name="descriptionFlag"></param>
+        /// <param name="weenieFlag"></param>
+        /// <param name="position"></param>
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
-            this.Name = name;
-            this.DescriptionFlags = descriptionFlag;
-            this.WeenieFlags = weenieFlag;
-            this.Location = position;
-            this.WeenieClassid = weenieClassId;
+            Name = name;
+            DescriptionFlags = descriptionFlag;
+            WeenieFlags = weenieFlag;
+            Location = position;
+            WeenieClassid = weenieClassId;
         }
+
+        /// <summary>
+        /// Load from saved object
+        /// </summary>
+        /// <param name="baseObject"></param>
+        public Container(AceObject baseObject)
+            : base(baseObject) { }
 
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem)
@@ -34,31 +47,34 @@ namespace ACE.Entity
                     inventory.Add(inventoryItem.Guid, inventoryItem);
                 }
 
-                GameData.Burden += inventoryItem.GameData.Burden;
-                inventoryItem.GameData.ContainerId = Guid.Full;
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-                inventoryItem.PositionFlag = UpdatePositionFlag.None;
+                Burden += inventoryItem.Burden;
+                inventoryItem.ContainerId = Guid.Full;
                 inventoryItem.PhysicsData.Position = null;
+                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
             }
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
-            GameData.Burden -= inventoryItem.GameData.Burden;
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                           | UpdatePositionFlag.Placement
-                                           | UpdatePositionFlag.ZeroQy
-                                           | UpdatePositionFlag.ZeroQx;
+            Burden -= inventoryItem.Burden;
+
             inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
-            inventoryItem.GameData.ContainerId = 0;
-            inventoryItem.GameData.Wielder = 0;
+            // TODO: Write a method to set this based on data.
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
+
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+            inventoryItem.ContainerId = null;
+            inventoryItem.Wielder = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
 
             lock (inventoryMutex)
             {
-                if (this.inventory.ContainsKey(inventoryItemGuid))
-                    this.inventory.Remove(inventoryItemGuid);
+                if (inventory.ContainsKey(inventoryItemGuid))
+                    inventory.Remove(inventoryItemGuid);
             }
         }
 
@@ -66,10 +82,9 @@ namespace ACE.Entity
         {
             lock (inventoryMutex)
             {
-                if (this.inventory.ContainsKey(objectGuid))
-                    return this.inventory[objectGuid];
-                else
-                    return null;
+                if (inventory.ContainsKey(objectGuid))
+                    return inventory[objectGuid];
+                return null;
             }
         }
     }

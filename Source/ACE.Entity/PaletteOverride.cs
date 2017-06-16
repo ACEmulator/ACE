@@ -9,11 +9,11 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object_palette_changes")]
-    [DbGetList("ace_object_palette_changes", 7, "baseAceObjectId")]
-    public class PaletteOverride
+    [DbTable("ace_object_palette_change")]
+    [DbList("ace_object_palette_change", "aceObjectId")]
+    public class PaletteOverride : ICloneable
     {
-        [DbField("baseAceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("subPaletteId", (int)MySqlDbType.UInt32)]
@@ -24,5 +24,10 @@ namespace ACE.Entity
 
         [DbField("length", (int)MySqlDbType.UInt16)]
         public ushort Length { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }

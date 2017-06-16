@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Common
 {
-    public class DbGetListAttribute : Attribute
+    public class DbGetAggregateAttribute : Attribute
     {
         public string TableName { get; private set; }
 
         public int ConstructedStatementId { get; private set; }
 
+        public string AggregatFunction { get; private set; }
+
         public List<string> ParameterFields { get; private set; }
 
-        public DbGetListAttribute(string tableName, int statementId, params string[] fields)
+        public DbGetAggregateAttribute(string tableName, int statementId, string aggregatfunction, params string[] fields)
         {
             this.TableName = tableName;
             this.ConstructedStatementId = statementId;
+            this.AggregatFunction = aggregatfunction;
             this.ParameterFields = fields?.ToList() ?? new List<string>();
         }
     }

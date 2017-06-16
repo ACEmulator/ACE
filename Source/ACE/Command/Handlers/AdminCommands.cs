@@ -14,6 +14,8 @@ using log4net;
 
 namespace ACE.Command.Handlers
 {
+    using System.Linq;
+
     public static class AdminCommands
     {
         // // commandname parameters
@@ -416,9 +418,12 @@ namespace ACE.Command.Handlers
                             break;
                         }
                 }
+
+                Position p = session.Player.GetPosition(positionType);
+
                 // If we have the position, teleport the player
-                if (session.Player.Positions.ContainsKey(positionType)) {
-                    session.Player.Teleport(session.Player.Positions[positionType]);
+                if (p != null) {
+                    session.Player.Teleport(p);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -586,68 +591,68 @@ namespace ACE.Command.Handlers
                 // parsedPositionInt value should be limited too a value from, 0-9
                 // Create a new position from the current player location
                 Position playerPosition = session.Player.Location;
+                PositionType positionType = PositionType.Sanctuary;
                 // Set the correct PositionType, based on the "Saved Positions" position type subset:
                 switch (parsedPositionInt)
                 {
                     case 0:
                         {
-                            playerPosition.PositionType = PositionType.Sanctuary;
+                            positionType = PositionType.Sanctuary;
                             break;
                         }
                     case 1:
                         {
-                            playerPosition.PositionType = PositionType.Save1;
+                            positionType = PositionType.Save1;
                             break;
                         }
                     case 2:
                         {
-                            playerPosition.PositionType = PositionType.Save2;
+                            positionType = PositionType.Save2;
                             break;
                         }
                     case 3:
                         {
-                            playerPosition.PositionType = PositionType.Save3;
+                            positionType = PositionType.Save3;
                             break;
                         }
                     case 4:
                         {
-                            playerPosition.PositionType = PositionType.Save4;
+                            positionType = PositionType.Save4;
                             break;
                         }
                     case 5:
                         {
-                            playerPosition.PositionType = PositionType.Save5;
+                            positionType = PositionType.Save5;
                             break;
                         }
                     case 6:
                         {
-                            playerPosition.PositionType = PositionType.Save6;
+                            positionType = PositionType.Save6;
                             break;
                         }
                     case 7:
                         {
-                            playerPosition.PositionType = PositionType.Save7;
+                            positionType = PositionType.Save7;
                             break;
                         }
                     case 8:
                         {
-                            playerPosition.PositionType = PositionType.Save8;
+                            positionType = PositionType.Save8;
                             break;
                         }
                     case 9:
                         {
-                            playerPosition.PositionType = PositionType.Save9;
+                            positionType = PositionType.Save9;
                             break;
                         }
                 }
 
                 // Save the position
-                session.Player.SetCharacterPosition(playerPosition);
+                session.Player.SetCharacterPosition(positionType, (Position)playerPosition.Clone());
                 // Report changes to client
-                var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
                 return;
-
             }
             // Error parsing the text input, from parameter[0]
             var positionErrorMessage = new GameMessageSystemChat($"Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
@@ -1023,16 +1028,16 @@ namespace ACE.Command.Handlers
                 return;
             }
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            LootGenerationFactory.AddToContainer(loot, session.Player);
+            session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
         }
 
-        // ci wclassid (number)
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an random object in your inventory.", "typeId (number)")]
+            "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
         {
             uint typeId;
+            byte numItems = 10;
             try
             {
                 typeId = Convert.ToUInt32(parameters[0]);
@@ -1042,10 +1047,23 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
-            if (loot != null)
+            if (parameters.Length == 2)
             {
-                LootGenerationFactory.AddToContainer(loot, session.Player);
+                try
+                {
+                    numItems = Convert.ToByte(parameters[1]);
+                }
+                catch (Exception)
+                {
+                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 0 - 50", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            for (byte b = 1; b <= numItems; b++)
+            {
+                var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
+                if (loot == null)  return;
+                session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
             }
         }
@@ -1305,7 +1323,7 @@ namespace ACE.Command.Handlers
             fixupOldName = parameters[0].Replace("+", "").Remove(1).ToUpper() + parameters[0].Replace("+", "").Substring(1);
             fixupNewName = parameters[1].Replace("+", "").Remove(1).ToUpper() + parameters[1].Replace("+", "").Substring(1);
 
-            uint charId = DatabaseManager.Character.RenameCharacter(fixupOldName, fixupNewName);
+            uint charId = DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName);
 
             string message = "";
 

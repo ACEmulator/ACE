@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using log4net;
-using ACE.Common;
 
 namespace ACE.Managers
 {
@@ -21,13 +21,11 @@ namespace ACE.Managers
 
         public static async void PlayerEnterWorld(Session session)
         {
-            var task = DatabaseManager.Character.LoadCharacter(session.Player.Guid.Low);
-            task.Wait();
-            Character c = task.Result;
+            AceCharacter c = DatabaseManager.Shard.GetCharacter(session.Player.Guid.Full);
 
-            await session.Player.Load(c);
+            await Task.Run(() => session.Player.Load(c));
 
-            Landblock block = GetLandblock(c.Location.LandblockId, true);
+            var block = GetLandblock(session.Player.Location.LandblockId, true);
             block.AddWorldObject(session.Player);
 
             session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
@@ -38,7 +36,7 @@ namespace ACE.Managers
 
         public static void AddObject(WorldObject worldObject)
         {
-            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
+            var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
         }
 
@@ -46,7 +44,7 @@ namespace ACE.Managers
 
         public static void RemoveObject(WorldObject worldObject)
         {
-            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
+            var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.RemoveWorldObject(worldObject.Guid, false);
         }
 
@@ -72,7 +70,7 @@ namespace ACE.Managers
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
-        private static Landblock GetLandblock(LandblockId landblockId, bool propogate)
+        private static Landblock GetLandblock(LandblockId landblockId, bool propagate)
         {
             int x = landblockId.LandblockX;
             int y = landblockId.LandblockY;
@@ -85,10 +83,10 @@ namespace ACE.Managers
                     if (landblocks[x, y] == null)
                     {
                         // load up this landblock
-                        Landblock block = new Landblock(landblockId);
+                        var block = new Landblock(landblockId);
 
                         landblocks[x, y] = block;
-                        bool autoLoad = propogate && landblockId.MapScope == Entity.Enum.MapScope.Outdoors;
+                        var autoLoad = propagate && landblockId.MapScope == Entity.Enum.MapScope.Outdoors;
 
                         if (x > 0)
                         {
@@ -144,8 +142,8 @@ namespace ACE.Managers
             if (landblock1.MapScope != Entity.Enum.MapScope.Outdoors || landblock2.MapScope != Entity.Enum.MapScope.Outdoors)
                 return;
 
-            Landblock lb1 = landblocks[landblock1.LandblockX, landblock1.LandblockY];
-            Landblock lb2 = landblocks[landblock2.LandblockX, landblock2.LandblockY];
+            var lb1 = landblocks[landblock1.LandblockX, landblock1.LandblockY];
+            var lb2 = landblocks[landblock2.LandblockX, landblock2.LandblockY];
 
             if (autoLoad && lb2 == null)
                 lb2 = GetLandblock(landblock2, false);
@@ -154,8 +152,8 @@ namespace ACE.Managers
 
             if (lb2 != null)
             {
-                int inverse = (((int)adjacency) + 4) % 8; // go halfway around the horn (+4) and mod 8 to wrap around
-                Adjacency inverseAdjacency = (Adjacency)Enum.ToObject(typeof(Adjacency), inverse);
+                var inverse = (((int)adjacency) + 4) % 8; // go halfway around the horn (+4) and mod 8 to wrap around
+                var inverseAdjacency = (Adjacency)Enum.ToObject(typeof(Adjacency), inverse);
                 lb2.SetAdjacency(inverseAdjacency, lb1);
             }
         }

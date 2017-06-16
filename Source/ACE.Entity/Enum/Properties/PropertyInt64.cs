@@ -2,27 +2,16 @@
 {
     public enum PropertyInt64 : ushort
     {
-        Undef,
-        [PersistedProperty(true, typeof(Character), (ulong)0)]
-        TotalExperience,
-        [PersistedProperty(true, typeof(Character), (ulong)0)]
-        AvailableExperience,
-        AugmentationCost,
-        ItemTotalXp,
-        ItemBaseXp,
-        [PersistedProperty(true, typeof(Character), (ulong)0)]
-        AvailableLuminance,
-        [PersistedProperty(true, typeof(Character), null)]
-        MaximumLuminance,
-        InteractionReqs,
-        Count
-    }
-
-    public static class PropertyInt64Extensions
-    {
-        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyInt64 val)
-        {
-            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
-        }
+        Undef = 0,
+        TotalExperience = 1,
+        AvailableExperience = 2,
+        AugmentationCost = 3,
+        ItemTotalXp = 4,
+        ItemBaseXp = 5,
+        AvailableLuminance = 6,
+        MaximumLuminance = 7,
+        InteractionReqs = 8,
+        DeleteTime = 9001,
+        Count = 10
     }
 }

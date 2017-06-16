@@ -7,6 +7,7 @@
         AllegianceUpdate                    = 0x0020,
         FriendsListUpdate                   = 0x0021,
         InventoryPutObjInContainer          = 0x0022,
+        WieldObject                         = 0x0023,
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
 

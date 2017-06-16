@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
@@ -8,123 +11,166 @@ namespace ACE.Database
     {
         private enum WorldPreparedStatement
         {
-            TeleportLocationSelect,
-            GetWeenieClass,
-            GetObjectsByLandblock,
-            GetCreaturesByLandblock,
-            GetWeeniePalettes,
-            GetWeenieTextureMaps,
-            GetWeenieAnimations,
-            GetPaletteOverridesByObject,
-            GetAnimationOverridesByObject,
-            GetTextureOverridesByObject,
-            GetCreatureDataByWeenie,
-            InsertCreatureStaticLocation,
-            GetCreatureGeneratorByLandblock,
-            GetCreatureGeneratorData,
-            GetPortalObjectsByAceObjectId,
-            GetItemsByTypeId
+            GetPointsOfInterest = 0,
+            GetWeenieClass = 1,
+            GetObjectsByLandblock = 2,
+            GetCreaturesByLandblock = 3,
+            GetWeeniePalettes = 4,
+            GetWeenieTextureMaps = 5,
+            GetWeenieAnimations = 6,
+            GetPaletteOverridesByObject = 7,
+            GetAnimationOverridesByObject = 8,
+            GetTextureOverridesByObject = 9,
+            GetCreatureDataByWeenie = 10,
+            InsertCreatureStaticLocation = 11,
+            GetCreatureGeneratorByLandblock = 12,
+            GetCreatureGeneratorData = 13,
+            GetPortalObjectsByAceObjectId = 14,
+            GetItemsByTypeId = 15,
+            GetAceObjectPropertiesInt = 16,
+            GetAceObjectPropertiesBigInt = 17,
+            GetAceObjectPropertiesDouble = 18,
+            GetAceObjectPropertiesBool = 19,
+            GetAceObjectPropertiesString = 20,
+            GetAceObjectPropertiesDid = 21,
+            GetAceObjectPropertiesIid = 22,
+            GetAceObject = 23,
+            GetAceObjectPropertiesPosition = 24,
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
 
         protected override void InitializePreparedStatements()
         {
-            AddPreparedStatement(WorldPreparedStatement.TeleportLocationSelect, "SELECT `location`, `cell`, `x`, `y`, `z`, `qx`, `qy`, `qz`, `qw` FROM `teleport_location`;");
-            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetPointsOfInterest, typeof(TeleportLocation), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), ConstructedStatementType.Get);
+
+            // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
+            // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
-            ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
-            ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(BaseAceObject), ConstructedStatementType.GetList);
+
+            // ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
+            // ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
+            // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
+            // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
+            // ConstructStatement(
+            //     WorldPreparedStatement.GetItemsByTypeId,
+            //     typeof(AceObject),
+            //     ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesDouble, typeof(AceObjectPropertiesDouble), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWordObject), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
         }
 
-        public BaseAceObject GetRandomBaseAceObjectByTypeId(uint typeId)
+        public AceObject GetRandomWeenieOfType(uint itemType)
         {
-            // TODO: Og II - pick up here
-            var criteria = new Dictionary<string, object> { { "typeId", typeId } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, BaseAceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
-            if (objects.Count > 0)
-            {
-                var rnd = new Random();
-                var r = rnd.Next(objects.Count);
-                return objects[r];
-            }
-            return null;
+            var criteria = new Dictionary<string, object> { { "itemType", itemType } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
+            if (objects.Count <= 0) return null;
+            var rnd = new Random();
+            var r = rnd.Next(objects.Count);
+            return GetBaseAceObjectDataByWeenie(objects[r].WeenieClassId);
         }
 
-        public List<TeleportLocation> GetLocations()
-        {
-            var result = SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect);
-            List<TeleportLocation> locations = new List<TeleportLocation>();
+        // public List<TeleportLocation> GetLocations()
+        // {
+        //     var result = SelectPreparedStatement(WorldPreparedStatement.TeleportLocationSelect);
+        //     var locations = new List<TeleportLocation>();
+        //
+        //     for (var i = 0u; i < result.Count; i++)
+        //     {
+        //         locations.Add(new TeleportLocation
+        //         {
+        //             Location = result.Read<string>(i, "name"),
+        //             Position = new Position(result.Read<uint>(i, "landblock"), result.Read<float>(i, "posX"), result.Read<float>(i, "posY"),
+        //                 result.Read<float>(i, "posZ"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
+        //         });
+        //     }
+        //
+        //     return locations;
+        // }
 
-            for (uint i = 0u; i < result.Count; i++)
-            {
-                locations.Add(new TeleportLocation
-                {
-                    Location = result.Read<string>(i, "location"),
-                    Position = new Position(result.Read<uint>(i, "cell"), result.Read<float>(i, "x"), result.Read<float>(i, "y"),
-                        result.Read<float>(i, "z"), result.Read<float>(i, "qx"), result.Read<float>(i, "qy"), result.Read<float>(i, "qz"), result.Read<float>(i, "qw"))
-                });
-            }
+        ////public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
+        ////{
+        ////    var apo = new AcePortalObject();
+        ////    var criteria = new Dictionary<string, object> { { "AceObjectId", aceObjectId } };
+        ////    if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
+        ////    {
+        ////        apo.IntProperties = GetAceObjectPropertiesInt(apo.AceObjectId);
+        ////        apo.Int64Properties = GetAceObjectPropertiesBigInt(apo.AceObjectId);
+        ////        apo.BoolProperties = GetAceObjectPropertiesBool(apo.AceObjectId);
+        ////        apo.DoubleProperties = GetAceObjectPropertiesDouble(apo.AceObjectId);
+        ////        apo.StringProperties = GetAceObjectPropertiesString(apo.AceObjectId);
+        ////        apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
+        ////        apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
+        ////        apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);
 
-            return locations;
-        }
-
-        public AcePortalObject GetPortalObjectsByAceObjectId(uint aceObjectId)
-        {
-            AcePortalObject apo = new AcePortalObject();
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
-            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), criteria, apo))
-            {
-                apo.TextureOverrides = GetAceObjectTextureMaps(apo.AceObjectId);
-                apo.AnimationOverrides = GetAceObjectAnimations(apo.AceObjectId);
-                apo.PaletteOverrides = GetAceObjectPalettes(apo.AceObjectId);
-
-                return apo;
-            }
-            else
-                return null;
-        }
+        ////        return apo;
+        ////    }
+        ////    return null;
+        ////}
 
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("landblock", landblock);
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
-            objects.ForEach(o =>
+            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWordObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            List<AceObject> ret = new List<AceObject>();
+            objects.ForEach(cwo =>
             {
+                var o = GetWorldObject(cwo.AceObjectId);
+                o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
+                o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
+                o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
+                o.Int64Properties = GetAceObjectPropertiesBigInt(o.AceObjectId);
+                o.BoolProperties = GetAceObjectPropertiesBool(o.AceObjectId);
+                o.DoubleProperties = GetAceObjectPropertiesDouble(o.AceObjectId);
+                o.StringProperties = GetAceObjectPropertiesString(o.AceObjectId);
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
+                o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                ret.Add(o);
             });
-            return objects;
+            return ret;
+        }
+
+        public AceObject GetWorldObject(uint objId)
+        {
+            AceObject ret = new AceObject();
+            var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
+            bool success = ExecuteConstructedGetStatement<WorldPreparedStatement>(WorldPreparedStatement.GetAceObject, typeof(AceObject), criteria, ret);
+            if (!success)
+            {
+                return null;
+            }
+            return ret;
         }
 
         public List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("landblock", landblock);
+            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach(o => o.CreatureData = GetCreatureDataByWeenie(o.WeenieClassId));
+            objects.ForEach(o => o.WeenieObject = GetWeenie(o.WeenieClassId));
 
             return objects;
         }
 
         public List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("landblock", landblock);
+            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorLocation>(WorldPreparedStatement.GetCreatureGeneratorByLandblock, criteria);
             objects.ForEach(o => o.CreatureGeneratorData = GetCreatureGeneratorData(o.GeneratorId));
 
@@ -133,117 +179,153 @@ namespace ACE.Database
 
         private List<AceCreatureGeneratorData> GetCreatureGeneratorData(uint generatorId)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("generatorId", generatorId);
+            var criteria = new Dictionary<string, object> { { "generatorId", generatorId } };
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorData>(WorldPreparedStatement.GetCreatureGeneratorData, criteria);
         }
 
-        private List<WeeniePaletteOverride> GetWeeniePalettes(uint weenieClassId)
-         {
-             Dictionary<string, object> criteria = new Dictionary<string, object>();
-             criteria.Add("weenieClassId", weenieClassId);
-             return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeeniePaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
-         }
-
-        private List<WeenieTextureMapOverride> GetWeenieTextureMaps(uint weenieClassId)
+        private List<PaletteOverride> GetWeeniePalettes(uint aceObjectId)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("weenieClassId", weenieClassId);
-            return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieTextureMapOverride>(WorldPreparedStatement.GetWeenieTextureMaps, criteria);
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("aceObjectId", aceObjectId);
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, PaletteOverride>(WorldPreparedStatement.GetWeeniePalettes, criteria);
         }
 
-        private List<WeenieAnimationOverride> GetWeenieAnimations(uint weenieClassId)
+        private List<TextureMapOverride> GetWeenieTextureMaps(uint aceObjectId)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("weenieClassId", weenieClassId);
-            return ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieAnimationOverride>(WorldPreparedStatement.GetWeenieAnimations, criteria);
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetWeenieTextureMaps, criteria);
+        }
+
+        private List<AnimationOverride> GetWeenieAnimations(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetWeenieAnimations, criteria);
         }
         private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TextureMapOverride>(WorldPreparedStatement.GetTextureOverridesByObject, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesPosition> GetAceObjectPositions(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesPosition>(WorldPreparedStatement.GetAceObjectPropertiesPosition, criteria);
             return objects;
         }
 
         private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, PaletteOverride>(WorldPreparedStatement.GetPaletteOverridesByObject, criteria);
             return objects;
         }
 
         private List<AnimationOverride> GetAceObjectAnimations(uint aceObjectId)
         {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("baseAceObjectId", aceObjectId);
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetAnimationOverridesByObject, criteria);
             return objects;
         }
 
-        public AceCreatureObject GetCreatureDataByWeenie(uint weenieClassId)
+        public AceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
         {
-            AceCreatureObject aco = new AceCreatureObject();
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            criteria.Add("weenieClassId", weenieClassId);
-            if (ExecuteConstructedGetStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), criteria, aco))
-            {
-                aco.WeeniePaletteOverrides = GetWeeniePalettes(aco.WeenieClassId);
-                aco.WeenieTextureMapOverrides = GetWeenieTextureMaps(aco.WeenieClassId);
-                aco.WeenieAnimationOverrides = GetWeenieAnimations(aco.WeenieClassId);
+            var bao = new AceObject();
 
-                return aco;
-            }
-            else
+            // We can do this because aceObjectId = WeenieClassId for all baseAceObjects.
+            // TODO: Ask Mogwai how would you query on a secondary key?
+            var criteria = new Dictionary<string, object> { { "aceObjectId", weenieClassId } };
+            if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), criteria, bao))
                 return null;
-        }
-
-        public BaseAceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
-        {
-            var bao = new BaseAceObject();
-            var criteria = new Dictionary<string, object> { { "baseAceObjectId", weenieClassId } };
-            if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(BaseAceObject), criteria, bao))
-                return null;
-
-            foreach (var pal in GetWeeniePalettes(weenieClassId))
-            {
-                var opal = new PaletteOverride
-                             {
-                                 AceObjectId = pal.WeenieClassId,
-                                 Length = pal.Length,
-                                 Offset = pal.Offset,
-                                 SubPaletteId = pal.SubPaletteId
-                             };
-                bao.PaletteOverrides.Add(opal);
-            }
-            foreach (var tex in GetWeenieTextureMaps(weenieClassId))
-            {
-                var otex = new TextureMapOverride
-                               {
-                                   AceObjectId = tex.WeenieClassId,
-                                   Index = tex.Index,
-                                   NewId = tex.NewId,
-                                   OldId = tex.OldId
-                               };
-                bao.TextureOverrides.Add(otex);
-            }
-            foreach (var ani in GetWeenieAnimations(weenieClassId))
-            {
-                var oani = new AnimationOverride
-                               {
-                                   AceObjectId = ani.WeenieClassId,
-                                   AnimationId = ani.AnimationId,
-                                   Index = ani.Index
-                               };
-                bao.AnimationOverrides.Add(oani);
-            }
+            bao.DataIdProperties = GetAceObjectPropertiesDid(bao.AceObjectId);
+            bao.InstanceIdProperties = GetAceObjectPropertiesIid(bao.AceObjectId);
+            bao.IntProperties = GetAceObjectPropertiesInt(bao.AceObjectId);
+            bao.Int64Properties = GetAceObjectPropertiesBigInt(bao.AceObjectId);
+            bao.BoolProperties = GetAceObjectPropertiesBool(bao.AceObjectId);
+            bao.DoubleProperties = GetAceObjectPropertiesDouble(bao.AceObjectId);
+            bao.StringProperties = GetAceObjectPropertiesString(bao.AceObjectId);
+            bao.TextureOverrides = GetAceObjectTextureMaps(bao.AceObjectId);
+            bao.AnimationOverrides = GetAceObjectAnimations(bao.AceObjectId);
+            bao.PaletteOverrides = GetAceObjectPalettes(bao.AceObjectId);
+            bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
             return bao;
         }
 
         public bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl)
         {
             return ExecuteConstructedInsertStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), acsl);
+        }
+
+        private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInt>(WorldPreparedStatement.GetAceObjectPropertiesInt, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesInt64> GetAceObjectPropertiesBigInt(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInt64>(WorldPreparedStatement.GetAceObjectPropertiesBigInt, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesBool> GetAceObjectPropertiesBool(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesBool>(WorldPreparedStatement.GetAceObjectPropertiesBool, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesDouble> GetAceObjectPropertiesDouble(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDouble>(WorldPreparedStatement.GetAceObjectPropertiesDouble, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesString> GetAceObjectPropertiesString(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesString>(WorldPreparedStatement.GetAceObjectPropertiesString, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesDataId> GetAceObjectPropertiesDid(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesDataId>(WorldPreparedStatement.GetAceObjectPropertiesDid, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesInstanceId> GetAceObjectPropertiesIid(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInstanceId>(WorldPreparedStatement.GetAceObjectPropertiesIid, criteria);
+            return objects;
+        }
+
+        public AceObject GetObject(uint aceObjectId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> SaveObject(AceObject aceObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        // TODO: this needs to be refactored to just replace all calls to GetWeenie with the other method which should be renamed.
+        public AceObject GetWeenie(uint weenieClassId)
+        {
+            return GetBaseAceObjectDataByWeenie(weenieClassId);
+        }
+
+        public List<TeleportLocation> GetPointsOfInterest()
+        {
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TeleportLocation>(WorldPreparedStatement.GetPointsOfInterest, null);
+            return objects;
         }
     }
 }

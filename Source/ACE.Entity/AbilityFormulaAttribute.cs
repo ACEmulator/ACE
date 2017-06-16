@@ -27,5 +27,36 @@ namespace ACE.Entity
             Abilities = abilities;
             Divisor = divisor;
         }
+
+        public uint CalcBase(ICreatureStats stats)
+        {
+            uint sum = 0;
+            if (((uint)Abilities & (uint)Ability.Coordination) != 0)
+            {
+                sum += stats.Coordination;
+            }
+            if (((uint)Abilities & (uint)Ability.Endurance) != 0)
+            {
+                sum += stats.Endurance;
+            }
+            if (((uint)Abilities & (uint)Ability.Focus) != 0)
+            {
+                sum += stats.Focus;
+            }
+            if (((uint)Abilities & (uint)Ability.Quickness) != 0)
+            {
+                sum += stats.Quickness;
+            }
+            if (((uint)Abilities & (uint)Ability.Self) != 0)
+            {
+                sum += stats.Self;
+            }
+            if (((uint)Abilities & (uint)Ability.Strength) != 0)
+            {
+                sum += stats.Strength;
+            }
+
+            return (sum * AbilityMultiplier) / Divisor;
+        }
     }
 }

@@ -82,8 +82,6 @@ namespace ACE.Network.GameAction.Actions
                 turn.Speed = message.Payload.ReadSingle();
 
             position = new Position(message.Payload);
-            position.CharacterId = session.Player.Guid.Low;
-            position.PositionType = Entity.Enum.PositionType.Location;
             position.LandblockId = new LandblockId(position.Cell);
 
             instanceTimestamp = message.Payload.ReadUInt16();
@@ -92,7 +90,7 @@ namespace ACE.Network.GameAction.Actions
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
 
-            session.Player.UpdatePosition(position);
+            session.Player.UpdateLocation(position);
         }
     }
 }

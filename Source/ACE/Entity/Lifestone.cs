@@ -15,50 +15,50 @@ namespace ACE.Entity
         }
 
         public Lifestone(AceObject aceO)
-            : base((ObjectType)aceO.TypeId, new ObjectGuid(aceO.AceObjectId))
+            : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
-            this.Name = aceO.Name;
-            this.DescriptionFlags = (ObjectDescriptionFlag)aceO.WdescBitField;
-            this.Location = aceO.Position;
-            this.WeenieClassid = aceO.WeenieClassId;
-            this.WeenieFlags = (WeenieHeaderFlag)aceO.WeenieFlags;
+            // FIXME(ddevec): These should be inhereted frome aceO not copied...
+            Name = aceO.Name;
+            DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
+            Location = aceO.Location;
+            WeenieClassid = aceO.WeenieClassId;
+            WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 
-            this.PhysicsData.MTableResourceId = aceO.MotionTableId;
-            this.PhysicsData.Stable = aceO.SoundTableId;
-            this.PhysicsData.CSetup = aceO.ModelTableId;
-
-            // this should probably be determined based on the presence of data.
-            this.PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)aceO.PhysicsBitField;
-            this.PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
+            PhysicsData.MTableResourceId = aceO.MotionTableId;
+            PhysicsData.Stable = aceO.SoundTableId;
+            PhysicsData.CSetup = aceO.ModelTableId;
+            PhysicsData.PhysicsState = (PhysicsState)aceO.PhysicsState;
 
             // game data min required flags;
-            this.Icon = aceO.IconId;
+            Icon = aceO.IconId;
 
-            this.GameData.Usable = (Usable)aceO.Usability;
-            this.GameData.RadarColour = (RadarColor)aceO.BlipColor;
-            this.GameData.RadarBehavior = (RadarBehavior)aceO.Radar;
-            this.GameData.UseRadius = aceO.UseRadius;
+            Usable = (Usable?)aceO.ItemUseable;
+            RadarColor = (RadarColor?)aceO.BlipColor;
+            RadarBehavior = (RadarBehavior?)aceO.Radar;
+            UseRadius = aceO.UseRadius;
 
-            aceO.AnimationOverrides.ForEach(ao => this.ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
-            aceO.TextureOverrides.ForEach(to => this.ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
-            aceO.PaletteOverrides.ForEach(po => this.ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
+            aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
+            aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
         public override void OnUse(Player player)
         {
             string serverMessage = null;
+
             // validate within use range, taking into account the radius of the model itself, as well
-            SetupModel csetup = SetupModel.ReadFromDat(this.PhysicsData.CSetup);
-            float radiusSquared = (this.GameData.UseRadius + csetup.Radius) * (this.GameData.UseRadius + csetup.Radius);
+            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup ?? 0u);
+            var radiusSquared = ((UseRadius ?? 0.00f) + csetup.Radius)
+                                * ((UseRadius ?? 0.00f) + csetup.Radius);
 
             var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
             var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
 
             // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-            var soundEvent = new GameMessageSound(this.Guid, Sound.LifestoneOn, 1);
+            var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);
 
-            if (player.Location.SquaredDistanceTo(this.Location) >= radiusSquared)
+            if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
             {
                 serverMessage = "You wandered too far to attune with the Lifestone!";
             }
@@ -73,6 +73,7 @@ namespace ACE.Entity
             }
 
             var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
+
             // always send useDone event
             var sendUseDoneEvent = new GameEventUseDone(player.Session);
             player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);

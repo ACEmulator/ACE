@@ -7,17 +7,18 @@ using System.Linq;
 namespace ACE.Entity
 {
     /// <summary>
-    /// Segment to Control AC Model / Palettes and Textures
+    /// Segment to Control AC Model / Palettes and Textures.
+    /// TODO: remove and read directly from WorldObject.AceObject
     /// </summary>
     public class ModelData
     {
-        public uint PaletteGuid { get; set; } = 0;
+        public uint? PaletteGuid { get; set; } = 0;
 
-        private List<ModelPalette> modelPalettes = new List<ModelPalette>();
+        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
-        private List<ModelTexture> modelTextures = new List<ModelTexture>();
+        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
 
-        private List<Model> models = new List<Model>();
+        private readonly List<Model> models = new List<Model>();
 
         public List<ModelPalette> GetPalettes
         {
@@ -48,7 +49,7 @@ namespace ACE.Entity
 
         public void AddModel(byte index, uint modelresourceid)
         {
-            Model newmodel = new Model(index, modelresourceid);
+            var newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);
         }
 
@@ -60,23 +61,23 @@ namespace ACE.Entity
             writer.Write((byte)modelTextures.Count);
             writer.Write((byte)models.Count);
 
-            if (modelPalettes.Count > 0)
-                writer.WritePackedDwordOfKnownType(PaletteGuid, 0x4000000);
-            foreach (ModelPalette palette in modelPalettes)
+            if ((modelPalettes.Count > 0) && (PaletteGuid != null))
+                writer.WritePackedDwordOfKnownType((uint)PaletteGuid, 0x4000000);
+            foreach (var palette in modelPalettes)
             {
                 writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);
                 writer.Write((byte)palette.Offset);
                 writer.Write((byte)palette.Length);
             }
 
-            foreach (ModelTexture texture in modelTextures)
+            foreach (var texture in modelTextures)
             {
                 writer.Write((byte)texture.Index);
                 writer.WritePackedDwordOfKnownType(texture.OldTexture, 0x5000000);
                 writer.WritePackedDwordOfKnownType(texture.NewTexture, 0x5000000);
             }
 
-            foreach (Model model in models)
+            foreach (var model in models)
             {
                 writer.Write((byte)model.Index);
                 writer.WritePackedDwordOfKnownType(model.ModelID, 0x1000000);

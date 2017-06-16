@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    [DbTable("weenie_animation_changes")]
-    [DbGetList("weenie_animation_changes", 6, "weenieClassId")]
+    [DbTable("ace_object_animation_change")]
+    [DbList("ace_object_animation_change", "aceObjectId")]
     public class WeenieAnimationOverride
     {
-        [DbField("weenieClassId", (int)MySqlDbType.UInt16, IsCriteria = true)]
-        public ushort WeenieClassId { get; set; }
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        public uint AceObjectId { get; set; }
 
         [DbField("index", (int)MySqlDbType.UByte)]
         public byte Index { get; set; }

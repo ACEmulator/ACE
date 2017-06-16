@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace ACE.Entity
 {
     [DbTable("ace_creature_generator_data")]
-    [DbGetList("ace_creature_generator_data", 13, "generatorId")]
+    [DbList("ace_creature_generator_data", "generatorId")]
     public class AceCreatureGeneratorData
     {
         [DbField("generatorId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]

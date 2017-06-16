@@ -35,7 +35,7 @@ namespace ACE.Entity
             this.Location = position;
             this.WeenieClassid = weenieClassId;
 
-            this.GameData.Spell = spellId;
+            this.Spell = spellId;
             this.PhysicsData.CSetup = modelId;
             this.PhysicsData.Stable = soundTableId;
             this.PhysicsData.Petable = physicsTableId;

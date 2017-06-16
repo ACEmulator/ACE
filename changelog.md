@@ -1,5 +1,148 @@
 # ACEmulator Change Log
 
+### 2017-06-15
+[ddevec]
+* Refactor of AceObject
+* Player/Creature/WorldObject persistent attirbutes now forward to AceObject
+* Fixed Attribute2nd initailization error in the process.
+
+### 2017-06-14
+
+[ddevec]
+* Fixed Position saving bug.
+* Added intial Level, TotalExperience, and AvailiableExperience to AceCharacter
+*    Fixes level ??? bug.
+* Fixing Attributes2nd (health/stam/mana) intentionally delayed until merge with master -- master includes needed restructuring
+
+[Og II]
+* Trello card - General code clean up - look at all the TODO's -  add the most critical ones here
+* Removed unused and replace weenie code that was deprecated with Object-Overhaul
+* Fixed hair color bug with code from OptimShi - this should conclude our issues with character appearance.
+* Removed unused files related to weenie.
+* I spent about an hour trying to debug the position not saving.   None of the character save is working.   It does not error,
+* but nothing is changed in the DB.    That is still to-do.
+* Updated Trello board.
+* I cleaned up the shard base script but I have left it out due to the contentious nature of the discussion in the apply named discord ;)
+* Added first part of equip item.
+
+### 2017-06-13
+[Og II]
+* Added getting and setting ContainerID and Wielder into AceObject and surfaced in worldObject
+* Put in a hack to show how equiped weapons and shields work.   We will need to establish a place to store this data.
+* I put in big TODO to indentify the hack - it is benign and will not impact anything else other than to demo the placement
+* of the spear in Rand the Game Hunters hand in Holtburg.
+* Modified SetPhysicsDescriptionFlags so it can be container and weilder aware.
+* Worked with OptimShi and we put in a fix for Lord BucketHead.
+
+### 2017-06-12
+[Og II]
+* fixed issue with null exception
+* Added OptimShi code to load the correct player apperiance 
+* Added sending the DataID and InstanceID fields on the player description event.
+* Fixed assorted bugs.
+
+### 2017-06-11
+[Og II]
+* fixed issues with the weenieHeaderFlags setting method, fixed PhysicsDescriptionFlag setting issue as well.
+* cleaned up and rebased data scripts for WorldBase and ShardBase
+* Found issue in my data that was ETL to our new schema - had two flag fields Reversed - that is fixed but would be no issue
+* once we have Ripley's new data export.   I have shared out a link to the cleaned up data for use while we finish the new export.
+* https://www.dropbox.com/s/pohcruvalt9s38h/WorldandShardData.zip?dl=0
+* I put in a nasty hack - hard coded weenieClassId on character save - it was being set to 0 and I could not find it.   I marked with with a todo.
+* player.cs line 490
+
+[ddevec]
+* Somewhat cleaned up CreatureAbility and CreatureSkill in-game and backend separation
+* Cleaned up Position loading for players and objects
+* Now logs into game.
+* Landlbocks now load objects from the object view to load by landblock
+* Fixed several ORM data load issues
+* Fixed bugs with character updating
+* Fixed player position saving -- position updated on relogging
+* Player description packet now being sent.
+* Known issues:
+*   Race in ShardDatabase gathering next character id (Commented)
+
+### 2017-06-10
+[Og II]
+* Continued work loading character from ace_shard.   Character reaches world now. 
+* Fixed a number of null exception errors
+* Outstanding issues:
+* has an orm data load error 
+* abilities and skills object issue not resolved
+* palette, textures not being read or sent
+
+### 2017-06-08
+[ddevec]
+* Implemented ShardDatabase.SaveObject
+* Added DatabaseTransaction functions for InsertList, DeleteList to handle object properties
+* Minor fixes to ORM attributes
+* Reworked DbGetList Attribute to DbList Attribute -- now specifies "keys" designating a list in the DB.
+
+### 2017-06-07
+[Og II]
+* Continued work loading character from ace_shard.   Rebased 
+* Added cascade delete to all child tables in ace_shard.
+* Completed and tested up to skillz loading.   Made a few changes on the db side for key consistancy.
+* TODO items:
+*	Finish up loading - spells, friends, allegiance info, spell comps, spell bars etc. etc....
+
+### 2017-06-06
+[OptimShi]
+* Read character creation values from client_portal.dat and assign to appropriate Character Properties.
+
+[Og II]
+* Intital work done for loading character from ace_shard.   Rebased and removed update sql files.
+* Tested up to position loading.   Made changes to position, but have not loaded the dictionary yet.
+* Fixed a few bugs - attribute loading had a few.
+* TODO items:
+*	Finish up loading positions then see what is left. 
+*	Work on saving as OptimShi - has character creation ready to go.   
+
+### 2017-05-21
+[Og II]
+* Intital work done for new schema.   Rebased and removed update sql files.
+* Tested and the auto setting of Physics and Weenie Header Flags looks really solid.   Side note, the values we have
+* in the database for weenieHeaderFlags and PhysicsDescriptionFlag should probably be dropped we don't read them or use them now.
+* Doors, portals NPC's and signs are all back in the world now.
+* I would suggest we remearge with the main branch sooner rather than later - we can create another branch to introduce these
+* changes into the character side.
+* TODO items:
+*	Creature spawns need to be refactored - I left them commented out.   We need to ditch seperate tables that we have now, I think all 
+*	creature can use what we have now, plus maybe two additional world tables.   Everything else fits into the current schema.
+*	Test Ripley data and update ACE_World.   
+*	Refactor portals - I just left the old way in and faked it out with a view.  
+*	Once this looks good and stable and we fix any found bugs - we need to clone this over to the character database and start refactoring
+*	That will get us to persisted inventory.   
+
+### 2017-05-21
+[Og II]
+* Continued work on Overhaul 
+* re-enabled more constructed statements
+* Most of the work to use existance of data to set flags for both phyics and weenieHeaderFlags - some cleanup remains - either logic issues or bad data
+* modifed cirand to take an optional second parameter to spawn X items at a time.   This speeds up testing.   I set a default to 10 if you ommit the second parameter.
+* base_ace_object and ace_object both seem to be loading.
+* updated or created several views.
+* have not tested with Ripley's new data export - I did not want to add a second variable to testing.   
+* Next steps - use Ripley's data, create needed views, re-enable door, portal, NPC --- all the world things.
+
+### 2017-05-17
+[Og II]
+* Continued work on Overhaul 
+* Created mapping cross reference file to faciltate docuatation and cleaning up names - work in progress https://goo.gl/eaaNQb
+* Created new database schema for world_object - modified mysqlinstall.bat to refect new baseline
+* created script to ETL old schema to new schema.   I have not included it as we will be refactoring the initial data load to use the new
+* schema according to Ripley.   I have the script tested and posted on my dropbox if anyone wants it.   I also have a complete data dump that
+* zips down to a manageable size.
+* BaseAceObject is now using the new schema
+* I re-hooked up telepoi to use the new schema.   Still to do, convert to constructed statement
+* Next steps - refactor AceObject and make sure world objects load again.
+* Once that is complete - start same process using clone of this schema for character as discussed.
+
+### 2017-05-12
+[Og II]
+* Started object Overhaul - added explicit values to properties enums.   Minor cleanup.  
+
 ### 2017-05-06
 [Og II]
 * I fixed both admin functions, ci and create.   I added some logic to leave, NPC's, portals and creatures with the same code as prior to my fix.

@@ -1,11 +1,10 @@
 ﻿using ACE.Common;
 using MySql.Data.MySqlClient;
-using System.Collections.Generic;
 
 namespace ACE.Entity
 {
     [DbTable("ace_creature_static_locations")]
-    [DbGetList("ace_creature_static_locations", 3, "landblock")]
+    [DbList("ace_creature_static_locations", "landblock")]
     public class AceCreatureStaticLocation
     {
         [DbField("id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
@@ -46,6 +45,6 @@ namespace ACE.Entity
         [DbField("qZ", (int)MySqlDbType.Float)]
         public float QZ { get; set; }
 
-        public AceCreatureObject CreatureData = new AceCreatureObject();
+        public AceObject WeenieObject { get; set; }
     }
 }

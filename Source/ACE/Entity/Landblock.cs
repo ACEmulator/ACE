@@ -16,7 +16,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
-using ACE.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -65,14 +64,14 @@ namespace ACE.Entity
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
             // initialize adjacency array
-            this.adjacencies.Add(Adjacency.North, null);
-            this.adjacencies.Add(Adjacency.NorthEast, null);
-            this.adjacencies.Add(Adjacency.East, null);
-            this.adjacencies.Add(Adjacency.SouthEast, null);
-            this.adjacencies.Add(Adjacency.South, null);
-            this.adjacencies.Add(Adjacency.SouthWest, null);
-            this.adjacencies.Add(Adjacency.West, null);
-            this.adjacencies.Add(Adjacency.NorthWest, null);
+            adjacencies.Add(Adjacency.North, null);
+            adjacencies.Add(Adjacency.NorthEast, null);
+            adjacencies.Add(Adjacency.East, null);
+            adjacencies.Add(Adjacency.SouthEast, null);
+            adjacencies.Add(Adjacency.South, null);
+            adjacencies.Add(Adjacency.SouthWest, null);
+            adjacencies.Add(Adjacency.West, null);
+            adjacencies.Add(Adjacency.NorthWest, null);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
@@ -83,28 +82,31 @@ namespace ACE.Entity
             // TODO: Load spawn data
 
             // TODO: load objects from world database such as lifestones, doors, player corpses, NPCs, Vendors
+            // TODO: Object Overhaul Og II uncomment once working
             var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
-            var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
-            factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
-
+            if (objects != null)
+            {
+                var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
+                factoryObjects.ForEach(fo => worldObjects.Add(fo.Guid, fo));
+            }
             // Load static creature spawns from DB
-            var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
-            foreach (var c in creatures)
-            {
-                Creature cwo = new Creature(c);
-                worldObjects.Add(cwo.Guid, cwo);
-            }
+            // var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
+            // foreach (var c in creatures)
+            // {
+            //    Creature cwo = new Creature(c);
+            //    worldObjects.Add(cwo.Guid, cwo);
+            // }
 
-            // Load generator creature spawns from DB
-            var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
-            foreach (var cg in creatureGenerators)
-            {
-                List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
-                foreach (var c in creatureList)
-                {
-                    worldObjects.Add(c.Guid, c);
-                }
-            }
+            //// Load generator creature spawns from DB
+            // var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
+            // foreach (var cg in creatureGenerators)
+            // {
+            //    List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
+            //    foreach (var c in creatureList)
+            //    {
+            //        worldObjects.Add(c.Guid, c);
+            //    }
+            // }
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
         }
@@ -202,13 +204,10 @@ namespace ACE.Entity
 
         public void AddWorldObject(WorldObject wo)
         {
-            List<WorldObject> allObjects;
-
-            Log($"adding {wo.Guid.Full.ToString("X")}");
+            Log($"adding {wo.Guid.Full:X}");
 
             lock (objectCacheLocker)
             {
-                allObjects = worldObjects.Values.ToList();
                 if (!worldObjects.ContainsKey(wo.Guid))
                     worldObjects[wo.Guid] = wo;
             }
@@ -221,7 +220,7 @@ namespace ACE.Entity
             {
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, maxobjectRange, true);
-                AddPlayerTracking(wolist, (wo as Player));
+                AddPlayerTracking(wolist, ((Player)wo));
             }
         }
 
@@ -229,22 +228,22 @@ namespace ACE.Entity
         {
             WorldObject wo = null;
 
-            Log($"removing {objectId.Full.ToString("X")}");
+            Log($"removing {objectId.Full:X}");
 
             lock (objectCacheLocker)
             {
-                if (this.worldObjects.ContainsKey(objectId))
+                if (worldObjects.ContainsKey(objectId))
                 {
-                    wo = this.worldObjects[objectId];
+                    wo = worldObjects[objectId];
                     if (!objectId.IsCreature())
-                        this.worldObjects.Remove(objectId);
+                        worldObjects.Remove(objectId);
                 }
             }
 
             // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
             // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
             // close enough.
-            if (!adjacencyMove && this.id.MapScope == Enum.MapScope.Outdoors && wo != null)
+            if (!adjacencyMove && id.MapScope == Enum.MapScope.Outdoors && wo != null)
             {
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
@@ -253,11 +252,11 @@ namespace ACE.Entity
 
         public List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float maxrange, bool neighbors)
         {
-            List<WorldObject> allworldobj = new List<WorldObject>();
+            List<WorldObject> allworldobj;
 
             lock (objectCacheLocker)
             {
-                allworldobj = this.worldObjects.Values.ToList();
+                allworldobj = worldObjects.Values.ToList();
             }
             allworldobj = allworldobj.Where(o => o.Location.SquaredDistanceTo(wo.Location) < maxrange).ToList();
 
@@ -278,14 +277,14 @@ namespace ACE.Entity
 
         public List<WorldObject> GetWorldObjectsByGuid(ObjectGuid objectguid, bool neighbors)
         {
-            List<WorldObject> allworldobj = new List<WorldObject>();
+            List<WorldObject> allworldobj;
             lock (objectCacheLocker)
             {
-                allworldobj = this.worldObjects.Values.ToList();
+                allworldobj = worldObjects.Values.ToList();
             }
             allworldobj = allworldobj.Where(o => o.Guid == objectguid).ToList();
 
-            // todo: verify if a object can only exsist on one landblock at a time..
+            // todo: verify if a object can only exist on one landblock at a time..
             // if so then we can stop right here, we found it, for now we will resume and assume the worst.
             // a object can be on any landblock around you.
 
@@ -295,8 +294,7 @@ namespace ACE.Entity
                 {
                     if (block.Value != null)
                     {
-                        List<WorldObject> wol = null;
-                        wol = block.Value.GetWorldObjectsByGuid(objectguid, false);
+                        var wol = block.Value.GetWorldObjectsByGuid(objectguid, false);
                         allworldobj.AddRange(wol);
                     }
                 }
@@ -310,7 +308,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                return this.worldObjects.ContainsKey(objectId) ? this.worldObjects[objectId] : null;
+                return worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             }
         }
 
@@ -339,7 +337,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                players = this.worldObjects.Values.OfType<Player>().ToList();
+                players = worldObjects.Values.OfType<Player>().ToList();
             }
 
             BroadcastEventArgs args = BroadcastEventArgs.CreateChatAction(sender, chatMessage);
@@ -355,7 +353,7 @@ namespace ACE.Entity
         /// <summary>
         /// handles broadcasting an event to the players in this landblock and to the proper adjacencies
         /// </summary>
-        private void Broadcast(BroadcastEventArgs args, bool propogate, Quadrant quadrant)
+        private void Broadcast(BroadcastEventArgs args, bool propagate, Quadrant quadrant)
         {
             WorldObject wo = args.Sender;
             List<Player> players = null;
@@ -364,7 +362,7 @@ namespace ACE.Entity
 
             lock (objectCacheLocker)
             {
-                players = this.worldObjects.Values.OfType<Player>().ToList();
+                players = worldObjects.Values.OfType<Player>().ToList();
             }
 
             switch (args.ActionType)
@@ -441,7 +439,7 @@ namespace ACE.Entity
 
                 lock (objectCacheLocker)
                 {
-                    allworldobj = this.worldObjects.Values.ToList();
+                    allworldobj = worldObjects.Values.ToList();
                 }
 
                 // all players on this land block
@@ -459,10 +457,10 @@ namespace ACE.Entity
                 movedObjects = movedObjects.Where(p => p.LastUpdatedTicks >= p.LastMovementBroadcastTicks).ToList();
                 movedObjects.ForEach(m => m.LastMovementBroadcastTicks = WorldManager.PortalYearTicks);
 
-                if (this.id.MapScope == Enum.MapScope.Outdoors)
+                if (id.MapScope == Enum.MapScope.Outdoors)
                 {
                     // check to see if a player or other mutable object "roamed" to an adjacent landblock
-                    var objectsToRelocate = movedObjects.Where(m => m.Location.LandblockId.IsAdjacentTo(this.id) && m.Location.LandblockId != this.id).ToList();
+                    var objectsToRelocate = movedObjects.Where(m => m.Location.LandblockId.IsAdjacentTo(id) && m.Location.LandblockId != id).ToList();
 
                     // so, these objects moved to an adjacent block.  they could have recalled to that block, died and bounced to a lifestone on that block, or
                     // just simply walked accross the border line.  in any case, we won't delete them, we'll just transfer them.  the trick, though, is to
@@ -520,7 +518,7 @@ namespace ACE.Entity
                         }
                     });
 
-                    if (mo.Location.LandblockId == this.id)
+                    if (mo.Location.LandblockId == id)
                     {
                         // update if it's still here
                         Broadcast(BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, mo), true, Quadrant.All);
@@ -528,7 +526,7 @@ namespace ACE.Entity
                     else
                     {
                         // remove and readd if it's not
-                        this.RemoveWorldObject(mo.Guid, false);
+                        RemoveWorldObject(mo.Guid, false);
                         LandblockManager.AddObject(mo);
                     }
                 });
@@ -538,7 +536,7 @@ namespace ACE.Entity
                 {
                     if (deo.DespawnTime < WorldManager.PortalYearTicks)
                     {
-                        this.RemoveWorldObject(deo.Guid, false);
+                        RemoveWorldObject(deo.Guid, false);
                     }
                 });
 
@@ -549,7 +547,7 @@ namespace ACE.Entity
                     {
                         dc.IsAlive = true;
                         // HandleParticleEffectEvent(dc, PlayScript.Create);
-                        this.AddWorldObject(dc);
+                        AddWorldObject(dc);
                     }
                 });
 
@@ -641,7 +639,7 @@ namespace ACE.Entity
                             if ((aPlayer != null) && (inventoryItem != null))
                             {
                                 if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow(inventoryItem.GameData.UseRadius, 2))
+                                    > Math.Pow((inventoryItem.UseRadius ?? 0.00), 2))
                                 {
                                     // This is where I need to hook in the move to object code.
                                     // TODO: Og II work on this soon.
@@ -658,8 +656,8 @@ namespace ACE.Entity
 
                                 motion = new UniversalMotion(MotionStance.Standing);
                                 aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
-                                       PropertyInt.EncumbVal,
-                                       aPlayer.GameData.Burden),
+                                       PropertyInt.EncumbranceVal,
+                                       (aPlayer.Burden ?? 0)),
                                        new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
                                        new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
                                        new GameMessageUpdateInstanceId(inventoryId, playerId),
@@ -699,8 +697,8 @@ namespace ACE.Entity
                                     aPlayer.Session.Network.EnqueueSend(
                                         new GameMessagePrivateUpdatePropertyInt(
                                             aPlayer.Session,
-                                            PropertyInt.EncumbVal,
-                                            (uint)aPlayer.Session.Player.GameData.Burden));
+                                            PropertyInt.EncumbranceVal,
+                                            (uint)aPlayer.Session.Player.Burden));
 
                                     var motion = new UniversalMotion(MotionStance.Standing);
                                     motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
@@ -744,12 +742,12 @@ namespace ACE.Entity
                     }
                 case GameActionType.ObjectCreate:
                     {
-                        this.AddWorldObject(action.WorldObject);
+                        AddWorldObject(action.WorldObject);
                         break;
                     }
                 case GameActionType.ObjectDelete:
                     {
-                        this.RemoveWorldObject(action.WorldObject.Guid, false);
+                        RemoveWorldObject(action.WorldObject.Guid, false);
                         break;
                     }
                 case GameActionType.QueryHealth:
@@ -771,8 +769,8 @@ namespace ACE.Entity
                         //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
                         if (targetId.IsPlayer() || targetId.IsCreature())
                         {
-                            if (this.worldObjects.ContainsKey(targetId))
-                                target = this.worldObjects[targetId];
+                            if (worldObjects.ContainsKey(targetId))
+                                target = worldObjects[targetId];
 
                             if (target == null)
                             {

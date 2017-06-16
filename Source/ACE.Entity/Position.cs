@@ -1,80 +1,40 @@
-﻿namespace ACE.Entity
-{
-    using System;
-    using System.IO;
-    using Enum;
-    using Common;
-    using MySql.Data.MySqlClient;
+﻿using System;
+using System.IO;
+using ACE.Entity.Enum;
+using ACE.Common;
+using MySql.Data.MySqlClient;
 
-    [DbTable("character_position")]
-    [DbGetList("vw_character_positions", 23, "character_id")]
-    public class Position
+namespace ACE.Entity
+{
+    public class Position : ICloneable
     {
         private LandblockId landblockId;
 
         public LandblockId LandblockId
         {
-            get
-            {
-                // When the landblockId is not set, we will instantiate it when needed.
-                if (landblockId.Raw == 0 && Cell != 0)
-                    landblockId = new LandblockId(Cell);
-                return landblockId;
-            }
+            get { return landblockId.Raw != 0 ? landblockId : new LandblockId(Cell); }
             set
             {
-                Cell = value.Raw;
                 landblockId = value;
             }
         }
 
-        [DbField("character_id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint CharacterId { get; set; }
-
-        [DbField("cell", (int)MySqlDbType.UInt32)]
+        // TODO: This is just named wrong needs to be fixed.
         public uint Cell { get; set; }
 
-        [DbField("positionType", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
-        public virtual uint DbPositionType { get; set; }
-
-        public PositionType PositionType
-        {
-            get
-            {
-                return (PositionType)DbPositionType;
-            }
-            set
-            {
-                // If the value is greater then the max enum, then we will finally save the value as an Undefined position type.
-                // This may cause bugs if you rely on the PortalType.Undef in the futre.
-                // The Undef Type is only intended work with the default database value and is only a type within the ACE server.
-                if ((uint)value >= System.Enum.GetValues(typeof(PositionType)).Length)
-                    DbPositionType = 0;
-                else
-                    DbPositionType = (uint)value;
-            }
-        }
-
-        [DbField("positionX", (int)MySqlDbType.Float)]
         public float PositionX { get; set; }
 
-        [DbField("positionY", (int)MySqlDbType.Float)]
         public float PositionY { get; set; }
 
-        [DbField("positionZ", (int)MySqlDbType.Float)]
         public float PositionZ { get; set; }
 
-        [DbField("rotationX", (int)MySqlDbType.Float)]
+        public float RotationW { get; set; }
+
         public float RotationX { get; set; }
 
-        [DbField("rotationY", (int)MySqlDbType.Float)]
         public float RotationY { get; set; }
 
-        [DbField("rotationZ", (int)MySqlDbType.Float)]
         public float RotationZ { get; set; }
-
-        [DbField("rotationW", (int)MySqlDbType.Float)]
-        public float RotationW { get; set; }
 
         private const float xyMidPoint = 96f;
 
@@ -117,11 +77,9 @@
         public Position() : base() {
         }
 
-        public Position(uint characterId, PositionType type, uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
+        public Position(uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
             LandblockId = new LandblockId(newCell);
-            CharacterId = characterId;
-            PositionType = type;
             Cell = newCell;
             PositionX = newPositionX;
             PositionY = newPositionY;
@@ -130,19 +88,6 @@
             RotationY = newRotationY;
             RotationZ = newRotationZ;
             RotationW = newRotationW;
-        }
-
-        public Position(uint landblock, float x, float y, float z, float qx = 0.0f, float qy = 0.0f, float qz = 0.0f, float qw = 0.0f)
-        {
-            LandblockId = new LandblockId(landblock);
-            Cell = LandblockId.Raw;
-            PositionX = x;
-            PositionY = y;
-            PositionZ = z;
-            RotationX = qx;
-            RotationY = qy;
-            RotationZ = qz;
-            RotationW = qw;
         }
 
         public Position(BinaryReader payload)
@@ -172,13 +117,13 @@
             uint baseX = (uint)(eastWest + 0x400);
             uint baseY = (uint)(northSouth + 0x400);
 
-            if (baseX < 0 || baseX >= 0x7F8 || baseY < 0 || baseY >= 0x7F8)
+            if (baseX >= 0x7F8 || baseY >= 0x7F8)
                 throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
 
             float xOffset = ((baseX & 7) * 24.0f) + 12;
             float yOffset = ((baseY & 7) * 24.0f) + 12;
             // float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
-            float zOffset = 0.0f;
+            const float zOffset = 0.0f;
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
             // Offset
@@ -190,6 +135,19 @@
             RotationY = 0.0f;
             RotationZ = 0.0f;
             RotationW = 1.0f;
+        }
+
+        public Position(AceObjectPropertiesPosition aoPos)
+        {
+            Cell = aoPos.Cell;
+            LandblockId = new LandblockId(Cell);
+            PositionX = aoPos.PositionX;
+            PositionY = aoPos.PositionY;
+            PositionZ = aoPos.PositionZ;
+            RotationW = aoPos.RotationW;
+            RotationX = aoPos.RotationX;
+            RotationY = aoPos.RotationY;
+            RotationZ = aoPos.RotationZ;
         }
 
         public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
@@ -260,7 +218,7 @@
             }
         }
 
-        private float GetZFromCellXY(uint cell, float xOffset, float yOffset)
+        private float GetZFromCellXy(uint cell, float xOffset, float yOffset)
         {
             // TODO: Load correct z from file
             return 200.0f;
@@ -291,22 +249,48 @@
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-            else if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+
+            if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
             {
                 var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
                 var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-            else
-            {
-                return float.NaN;
-            }
+            return float.NaN;
         }
 
         public override string ToString()
         {
-            return $"{LandblockId.Landblock.ToString("X")}: {PositionX} {PositionY} {PositionZ}";
+            return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
+        }
+
+        public AceObjectPropertiesPosition GetAceObjectPosition(ObjectGuid guid, PositionType type)
+        {
+            return GetAceObjectPosition(guid.Full, type);
+        }
+
+        public AceObjectPropertiesPosition GetAceObjectPosition(uint guid, PositionType type)
+        {
+            AceObjectPropertiesPosition ret = new AceObjectPropertiesPosition();
+            ret.AceObjectId = guid;
+            ret.DbPositionType = (ushort)type;
+            ret.PositionId = 0;
+            ret.Cell = Cell;
+            ret.PositionX = PositionX;
+            ret.PositionY = PositionY;
+            ret.PositionZ = PositionZ;
+            ret.RotationW = RotationW;
+            ret.RotationX = RotationX;
+            ret.RotationY = RotationY;
+            ret.RotationZ = RotationZ;
+
+            return ret;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }

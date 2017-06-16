@@ -1,0 +1,12 @@
+﻿namespace ACE.Network.GameEvent.Events
+{
+    public class GameEventWieldItem : GameEventMessage
+    {
+        public GameEventWieldItem(Session session, uint objectId, uint newLocation)
+            : base(GameEventType.WieldObject, GameMessageGroup.Group09, session)
+        {
+            Writer.Write(objectId);
+            Writer.Write(newLocation);
+        }
+    }
+}

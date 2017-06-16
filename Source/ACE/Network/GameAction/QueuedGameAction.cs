@@ -22,7 +22,15 @@ namespace ACE.Network.GameAction
             this.StartTime = WorldManager.PortalYearTicks;
             this.EndTime = this.StartTime;
         }
-
+        public QueuedGameAction(uint objectId, uint secondaryObjectId, uint location, GameActionType actionType)
+        {
+            this.ObjectId = objectId;
+            this.SecondaryObjectId = secondaryObjectId;
+            this.Location = location;
+            this.ActionType = actionType;
+            this.StartTime = WorldManager.PortalYearTicks;
+            this.EndTime = this.StartTime;
+        }
         public QueuedGameAction(uint objectId, UniversalMotion motion, GameActionType actionType)
         {
             this.ObjectId = objectId;
@@ -92,6 +100,8 @@ namespace ACE.Network.GameAction
         public uint ObjectId { get; private set; }
 
         public uint SecondaryObjectId { get; private set; }
+
+        public uint Location { get; private set; }
 
         public WorldObject WorldObject { get; private set; }
 

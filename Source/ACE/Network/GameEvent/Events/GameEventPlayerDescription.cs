@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -10,15 +11,15 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None = 0x0000,
-            PropertyInt32 = 0x0001,
-            PropertyBool = 0x0002,
+            None           = 0x0000,
+            PropertyInt32  = 0x0001,
+            PropertyBool   = 0x0002,
             PropertyDouble = 0x0004,
-            Link = 0x0008,
+            PropertyDid    = 0x0008,
             PropertyString = 0x0010,
-            Position = 0x0020,
-            Resource = 0x0040,
-            PropertyInt64 = 0x0080,
+            Position       = 0x0020,
+            PropertyIid    = 0x0040,
+            PropertyInt64  = 0x0080,
         }
 
         [Flags]
@@ -68,6 +69,9 @@ namespace ACE.Network.GameEvent.Events
             WriteEventBody();
         }
 
+        /// <summary>
+        /// TODO: convert this to serialize AceCharacter rather than do all this session.Player garbage
+        /// </summary>
         private void WriteEventBody()
         {
             var propertyFlags = DescriptionPropertyFlag.None;
@@ -75,7 +79,10 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write(0x0Au);
 
-            var propertiesInt = Session.Player.PropertiesInt;
+            var aceObj = Session.Player.GetAceObject() as AceCharacter;
+
+            // < 9000 to filter out our custom properties
+            var propertiesInt = aceObj.IntProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
@@ -85,12 +92,12 @@ namespace ACE.Network.GameEvent.Events
 
                 foreach (var uintProperty in propertiesInt)
                 {
-                    Writer.Write((uint)uintProperty.Key);
-                    Writer.Write(uintProperty.Value);
+                    Writer.Write((uint)uintProperty.PropertyId);
+                    Writer.Write(uintProperty.PropertyValue);
                 }
             }
 
-            var propertiesInt64 = Session.Player.PropertiesInt64;
+            var propertiesInt64 = aceObj.Int64Properties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
@@ -100,12 +107,12 @@ namespace ACE.Network.GameEvent.Events
 
                 foreach (var uint64Property in propertiesInt64)
                 {
-                    Writer.Write((uint)uint64Property.Key);
-                    Writer.Write(uint64Property.Value);
+                    Writer.Write((uint)uint64Property.PropertyId);
+                    Writer.Write(uint64Property.PropertyValue);
                 }
             }
 
-            var propertiesBool = Session.Player.PropertiesBool;
+            var propertiesBool = aceObj.BoolProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
@@ -115,12 +122,12 @@ namespace ACE.Network.GameEvent.Events
 
                 foreach (var boolProperty in propertiesBool)
                 {
-                    Writer.Write((uint)boolProperty.Key);
-                    Writer.Write(Convert.ToUInt32(boolProperty.Value)); // just as fast as inlining
+                    Writer.Write((uint)boolProperty.PropertyId);
+                    Writer.Write(Convert.ToUInt32(boolProperty.PropertyValue)); // just as fast as inlining
                 }
             }
 
-            var propertiesDouble = Session.Player.PropertiesDouble;
+            var propertiesDouble = aceObj.DoubleProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
@@ -130,12 +137,12 @@ namespace ACE.Network.GameEvent.Events
 
                 foreach (var doubleProperty in propertiesDouble)
                 {
-                    Writer.Write((uint)doubleProperty.Key);
-                    Writer.Write(doubleProperty.Value);
+                    Writer.Write((uint)doubleProperty.PropertyId);
+                    Writer.Write(doubleProperty.PropertyValue);
                 }
             }
 
-            var propertiesString = Session.Player.PropertiesString;
+            var propertiesString = aceObj.StringProperties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
@@ -145,11 +152,40 @@ namespace ACE.Network.GameEvent.Events
 
                 foreach (var stringProperty in propertiesString)
                 {
-                    Writer.Write((uint)stringProperty.Key);
-                    Writer.WriteString16L(stringProperty.Value);
+                    Writer.Write((uint)stringProperty.PropertyId);
+                    Writer.WriteString16L(stringProperty.PropertyValue);
                 }
             }
 
+            var propertiesDid = aceObj.DataIdProperties.Where(x => x.PropertyId < 9000).ToList();
+            if (propertiesDid.Count != 0)
+            {
+                propertyFlags |= DescriptionPropertyFlag.PropertyDid;
+
+                Writer.Write((ushort)propertiesDid.Count);
+                Writer.Write((ushort)0x20);
+
+                foreach (var didProperty in propertiesDid)
+                {
+                    Writer.Write(didProperty.PropertyId);
+                    Writer.Write(didProperty.PropertyValue);
+                }
+            }
+
+            var propertiesIid = aceObj.InstanceIdProperties.Where(x => x.PropertyId < 9000).ToList();
+            if (propertiesIid.Count != 0)
+            {
+                propertyFlags |= DescriptionPropertyFlag.PropertyIid;
+
+                Writer.Write((ushort)propertiesIid.Count);
+                Writer.Write((ushort)0x20);
+
+                foreach (var iidProperty in propertiesIid)
+                {
+                    Writer.Write(iidProperty.PropertyId);
+                    Writer.Write(iidProperty.PropertyValue);
+                }
+            }
             /*if ((propertyFlags & DescriptionPropertyFlag.Resource) != 0)
             {
             }*/
@@ -240,21 +276,21 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            // TODO: need DB support for this
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                var skills = this.Session.Player.Skills;
+                // FIXME(ddevec): This should be a property of the player -- the AceObject does not track buffs.
+                var skills = aceObj.GetSkills();
 
                 Writer.Write((ushort)skills.Count);
                 Writer.Write((ushort)0x20); // unknown
 
                 foreach (var skill in skills)
                 {
-                    Writer.Write((uint)skill.Key); // skill id
-                    Writer.Write((ushort)skill.Value.Ranks); // points raised
+                    Writer.Write((uint)skill.Skill); // skill id
+                    Writer.Write((ushort)skill.Ranks); // points raised
                     Writer.Write((ushort)0);
-                    Writer.Write((uint)skill.Value.Status); // skill state
-                    Writer.Write((uint)skill.Value.ExperienceSpent); // xp spent on this skill
+                    Writer.Write((uint)skill.Status); // skill state
+                    Writer.Write((uint)skill.ExperienceSpent); // xp spent on this skill
                     Writer.Write(0u); // current bonus points applied (buffs) - not implemented
                     Writer.Write(0u); // task difficulty
                     Writer.Write(0d);
@@ -276,9 +312,14 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
+            // FIXME(ddevec): We have duplicated data everywhere.  There is an AceObject CharacterOption flag, and a Player.CharacterOptions...
+            //    Which one is right?  I have no idea.  Right now the aceObject works...  we should probably do a refactoring once we've restored functionality
             var optionFlags = DescriptionOptionFlag.CharacterOption2;
             Writer.Write((uint)optionFlags);
+            /*
             Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
+            */
+            Writer.Write(aceObj.CharacterOptions1Mapping);
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
@@ -305,7 +346,8 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
-                Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
+                Writer.Write(aceObj.CharacterOptions2Mapping);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {

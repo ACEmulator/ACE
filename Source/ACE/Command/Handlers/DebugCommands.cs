@@ -4,22 +4,17 @@ using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Factories;
 using System.Globalization;
 using ACE.Network.Motion;
-using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ACE.Command.Handlers
 {
-    using global::ACE.Database;
-    using System.Collections.Generic;
-
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
@@ -82,10 +77,9 @@ namespace ACE.Command.Handlers
             "Recalls the last portal used.")]
         public static void HandleDebugPortalRecall(Session session, params string[] parameters)
         {
-            Position lastPortalUsed = null;
-            if (session.Player.Positions.TryGetValue(PositionType.LastPortal, out lastPortalUsed))
+            if (session.Player.LastPortal != null)
             {
-                session.Player.Teleport(lastPortalUsed);
+                session.Player.Teleport(session.Player.LastPortal);
             }
             else
             {
@@ -324,7 +318,7 @@ namespace ACE.Command.Handlers
                 z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
                 friction = float.Parse(parameters[4], CultureInfo.InvariantCulture.NumberFormat);
                 electicity = float.Parse(parameters[5], CultureInfo.InvariantCulture.NumberFormat);
-           }
+            }
             catch (Exception)
             {
                 ChatPacket.SendServerMessage(session, $"Invalid Spell Parameters", ChatMessageType.Broadcast);
@@ -460,7 +454,8 @@ namespace ACE.Command.Handlers
             var generators = GeneratorTable.ReadFromDat();
 
             // Example for accessing the tree with nodes of type Generator
-            generators.ReadItems().Where(node => node.Name == "Drudges").ToList().ForEach(gen => {
+            generators.ReadItems().Where(node => node.Name == "Drudges").ToList().ForEach(gen =>
+            {
                 Console.WriteLine($"{gen.Id:X8} {gen.Count:X8} {gen.Name}");
                 if (gen.Count > 0)
                 {
@@ -491,13 +486,13 @@ namespace ACE.Command.Handlers
                     if (positionType != PositionType.Undef)
                     {
                         // Create a new position from the current player location
-                        Position playerPosition = session.Player.Location;
-                        // Change the position type
-                        playerPosition.PositionType = positionType;
+                        Position playerPosition = (Position)session.Player.Location.Clone();
+
                         // Save the position
-                        session.Player.SetCharacterPosition(playerPosition);
+                        session.Player.SetCharacterPosition(positionType, playerPosition);
+
                         // Report changes to client
-                        var positionMessage = new GameMessageSystemChat($"Set: {playerPosition.PositionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                        var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
                         session.Network.EnqueueSend(positionMessage);
                         return;
                     }
@@ -523,11 +518,11 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parsePositionString, out positionType))
                 {
-                    Position playerPosition = new Position();
-                    if (session.Player.Positions.TryGetValue(positionType, out playerPosition))
+                    Position playerPosition = session.Player.GetPosition(positionType);
+                    if (playerPosition != null)
                     {
                         session.Player.Teleport(playerPosition);
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{playerPosition.PositionType} {playerPosition.ToString()}", ChatMessageType.Broadcast));
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {playerPosition.ToString()}", ChatMessageType.Broadcast));
                     }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
@@ -545,11 +540,14 @@ namespace ACE.Command.Handlers
         {
             // Build a string message containing all available character positions and send as a System Chat message
             string message = $"Saved character positions:\n";
-            foreach (KeyValuePair<PositionType, Position> kvPositions in session.Player.Positions)
+            var posDict = session.Player.GetAllPositions();
+
+            foreach (var posPair in posDict)
             {
-                message += "ID: " + (uint)kvPositions.Key + " Type: " + kvPositions.Key.ToString() + " Loc: " + kvPositions.Value.ToString() + "\n";
+                message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value.ToString() + "\n";
             }
-            message += $"Total positions: " + session.Player.Positions.Count.ToString() + "\n";
+
+            message += $"Total positions: " + posDict.Count.ToString() + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }

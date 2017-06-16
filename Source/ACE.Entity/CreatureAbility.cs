@@ -1,8 +1,9 @@
-﻿using ACE.Entity.Enum;
+﻿using System;
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
-    public class CreatureAbility
+    public class CreatureAbility : ICloneable
     {
         // because health/stam/mana values are determined from stats, we need a reference to the WeenieCreatureData
         // so we can calculate.  this could be refactored into a better pattern, but it will do for now.
@@ -84,6 +85,57 @@ namespace ACE.Entity
         {
             this.creature = creature;
             Ability = ability;
+            Base = 10;
+        }
+
+        public CreatureAbility(ICreatureStats stats, AceObjectPropertiesAttribute attrib)
+        {
+            this.creature = stats;
+            Ability = (Ability)attrib.AttributeId;
+            Ranks = attrib.AttributeRanks;
+            Base = attrib.AttributeBase;
+            ExperienceSpent = attrib.AttributeXpSpent;
+        }
+
+        public CreatureAbility(ICreatureStats stats, AceObjectPropertiesAttribute2nd vital)
+        {
+            this.creature = stats;
+            Ability = (Ability)vital.Attribute2ndId;
+            Ranks = vital.Attribute2ndRanks;
+            Current = vital.Attribute2ndValue;
+            ExperienceSpent = vital.Attribute2ndXpSpent;
+            Base = 0;
+        }
+
+        public AceObjectPropertiesAttribute GetAttribute(uint objId)
+        {
+            var ret = new AceObjectPropertiesAttribute();
+
+            ret.AceObjectId = objId;
+            ret.AttributeId = (ushort)Ability;
+            ret.AttributeBase = (ushort)Base;
+            ret.AttributeRanks = (ushort)Ranks;
+            ret.AttributeXpSpent = ExperienceSpent;
+
+            return ret;
+        }
+
+        public AceObjectPropertiesAttribute2nd GetVital(uint objId)
+        {
+            var ret = new AceObjectPropertiesAttribute2nd();
+
+            ret.AceObjectId = objId;
+            ret.Attribute2ndId = (ushort)Ability;
+            ret.Attribute2ndValue = Current;
+            ret.Attribute2ndRanks = (ushort)Ranks;
+            ret.Attribute2ndXpSpent = ExperienceSpent;
+
+            return ret;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }
