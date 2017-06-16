@@ -24,7 +24,7 @@ namespace ACE.Managers
 
         public static void SaveObject(AceObject ao)
         {
-            saveObjects.Add(ao);
+                saveObjects.Add(ao);
         }
 
         public static void Initialize()
@@ -38,8 +38,6 @@ namespace ACE.Managers
         {
             while (running)
             {
-                Thread.Sleep(1);
-
                 foreach (AceObject ao in saveObjects.GetConsumingEnumerable())
                 {
                     DatabaseManager.Shard.SaveObject(ao);
