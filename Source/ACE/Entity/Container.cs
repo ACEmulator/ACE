@@ -10,6 +10,16 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
+        /// <summary>
+        /// Load from template
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="guid"></param>
+        /// <param name="name"></param>
+        /// <param name="weenieClassId"></param>
+        /// <param name="descriptionFlag"></param>
+        /// <param name="weenieFlag"></param>
+        /// <param name="position"></param>
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
@@ -19,6 +29,13 @@ namespace ACE.Entity
             Location = position;
             WeenieClassid = weenieClassId;
         }
+
+        /// <summary>
+        /// Load from saved object
+        /// </summary>
+        /// <param name="baseObject"></param>
+        public Container(AceObject baseObject)
+            : base(baseObject) { }
 
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem)

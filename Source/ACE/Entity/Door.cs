@@ -21,8 +21,9 @@ namespace ACE.Entity
         {
             Name = aceO.Name;
 
+            // FIXME(ddevec): These should be inhereted from aceO, not copied?
             DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
-            Location = new Position(aceO.Location);
+            Location = aceO.Location;
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 

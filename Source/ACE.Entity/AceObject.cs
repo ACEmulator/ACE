@@ -57,7 +57,7 @@ namespace ACE.Entity
 
         public uint? AnimationFrameId
         {
-            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.PlacementPosition)?.PropertyValue; }
+            get { return GetIntProperty(PropertyInt.PlacementPosition); }
             set { SetIntProperty(PropertyInt.PlacementPosition, value); }
         }
 
@@ -66,19 +66,19 @@ namespace ACE.Entity
 
         public uint? IconId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.Icon)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.Icon); }
             set { SetDataIdProperty(PropertyDataId.Icon, value); }
         }
 
         public uint? IconOverlayId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.IconOverlay)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
             set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
         }
 
         public uint? IconUnderlayId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.IconUnderlay)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
             set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
         }
 
@@ -87,117 +87,117 @@ namespace ACE.Entity
         /// </summary>
         public uint? ModelTableId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.Setup)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.Setup); }
             set { SetDataIdProperty(PropertyDataId.Setup, value); }
         }
 
         public uint? MotionTableId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.MotionTable)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
             set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
         }
 
         public ushort? PhysicsScript
         {
-            get { return (ushort?)DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.PhysicsScript)?.PropertyValue; }
+            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
             set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
         }
 
         public uint? PhysicsTableId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.PhysicsEffectTable)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
             set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
         }
 
         public uint? SoundTableId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.SoundTable)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
             set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
         }
 
         public ushort? SpellId
         {
-            get { return (ushort?)DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.Spell)?.PropertyValue; }
+            get { return (ushort?)GetDataIdProperty(PropertyDataId.Spell); }
             set { SetDataIdProperty(PropertyDataId.Spell, value); }
         }
 
         public uint? DefaultScript
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.UseUserAnimation)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.UseUserAnimation); }
             set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
         }
 
-        public AceObjectPropertiesAttribute StrengthAbility
+        public CreatureAbility StrengthAbility
         {
             get { return GetAttributeProperty(Ability.Strength); }
-            set { SetAttributeProperty(value); }
+            set { SetAttributeProperty(Ability.Strength, value); }
         }
 
-        public AceObjectPropertiesAttribute EnduranceAbility
+        public CreatureAbility EnduranceAbility
         {
             get { return GetAttributeProperty(Ability.Endurance); }
-            set { SetAttributeProperty(value); }
+            set { SetAttributeProperty(Ability.Endurance, value); }
         }
 
-        public AceObjectPropertiesAttribute CoordinationAbility
+        public CreatureAbility CoordinationAbility
         {
             get { return GetAttributeProperty(Ability.Coordination); }
-            set { SetAttributeProperty(value); }
+            set { SetAttributeProperty(Ability.Coordination, value); }
         }
 
-        public AceObjectPropertiesAttribute QuicknessAbility
+        public CreatureAbility QuicknessAbility
         {
             get { return GetAttributeProperty(Ability.Quickness); }
-            set { SetAttributeProperty(value); }
+            set { SetAttributeProperty(Ability.Quickness, value); }
         }
 
-        public AceObjectPropertiesAttribute FocusAbility
+        public CreatureAbility FocusAbility
         {
             get { return GetAttributeProperty(Ability.Focus); }
-            set { SetAttributeProperty(value); }
+            set { SetAttributeProperty(Ability.Focus, value); }
         }
 
-        public AceObjectPropertiesAttribute SelfAbility
+        public CreatureAbility SelfAbility
         {
             get { return GetAttributeProperty(Ability.Self); }
-            set { SetAttributeProperty(value); }
+            set { SetAttributeProperty(Ability.Self, value); }
         }
 
-        public AceObjectPropertiesAttribute2nd Health
+        public CreatureAbility Health
         {
             get { return GetAttribute2ndProperty(Ability.Health); }
-            set { SetAttribute2ndProperty(value); }
+            set { SetAttribute2ndProperty(Ability.Health, value); }
         }
 
-        public AceObjectPropertiesAttribute2nd Stamina
+        public CreatureAbility Stamina
         {
             get { return GetAttribute2ndProperty(Ability.Stamina); }
-            set { SetAttribute2ndProperty(value); }
+            set { SetAttribute2ndProperty(Ability.Stamina, value); }
         }
 
-        public AceObjectPropertiesAttribute2nd Mana
+        public CreatureAbility Mana
         {
             get { return GetAttribute2ndProperty(Ability.Mana); }
-            set { SetAttribute2ndProperty(value); }
+            set { SetAttribute2ndProperty(Ability.Mana, value); }
         }
 
         public uint Strength
-        { get { return StrengthAbility.ActiveValue; } }
+        { get { return StrengthAbility.MaxValue; } }
 
         public uint Endurance
-        { get { return EnduranceAbility.ActiveValue; } }
+        { get { return EnduranceAbility.MaxValue; } }
 
         public uint Coordination
-        { get { return CoordinationAbility.ActiveValue; } }
+        { get { return CoordinationAbility.MaxValue; } }
 
         public uint Quickness
-        { get { return QuicknessAbility.ActiveValue; } }
+        { get { return QuicknessAbility.MaxValue; } }
 
         public uint Focus
-        { get { return FocusAbility.ActiveValue; } }
+        { get { return FocusAbility.MaxValue; } }
 
         public uint Self
-        { get { return SelfAbility.ActiveValue; } }
+        { get { return SelfAbility.MaxValue; } }
 
         public byte LuminanceAward
         {
@@ -290,7 +290,7 @@ namespace ACE.Entity
 
         public uint? PaletteId
         {
-            get { return DataIdProperties.Find(x => x.PropertyId == (uint)PropertyDataId.PaletteBase)?.PropertyValue; }
+            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
             set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
         }
 
@@ -493,7 +493,7 @@ namespace ACE.Entity
         /// </summary>
         public uint PhysicsState
         {
-            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.PhysicsState).PropertyValue; }
+            get { return GetIntProperty(PropertyInt.PhysicsState) ?? default(int); }
             set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
@@ -605,164 +605,77 @@ namespace ACE.Entity
             }
         }
 
-        public AceObjectPropertiesAttribute GetAttributeProperty(Ability ability)
+        public CreatureAbility GetAttributeProperty(Ability ability)
         {
-            var ret = AceObjectPropertiesAttributes.FirstOrDefault(x => x.AttributeId == (uint)ability);
+            CreatureAbility ret;
+            bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out ret);
 
-            if (ret == null)
+            if (!success || ret == null)
             {
-                ret = new AceObjectPropertiesAttribute();
-                ret.AceObjectId = AceObjectId;
-                ret.AttributeId = (ushort)ability;
-                ret.AttributeBase = 0;
-                ret.AttributeRanks = 0;
-                ret.AttributeXpSpent = 0;
-                AceObjectPropertiesAttributes.Add(ret);
+                ret = new CreatureAbility(this, ability);
+                AceObjectPropertiesAttributes.Add(ability, ret);
             }
 
             return ret;
         }
 
-        public void SetAttributeProperty(AceObjectPropertiesAttribute attribute)
-        {
-            AceObjectPropertiesAttribute oldAttribute = GetAttributeProperty((Ability)attribute.AttributeId);
-            if (attribute != null)
+        private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value) {
+            if (dict.ContainsKey(key))
             {
-                if (oldAttribute != null)
-                {
-                    oldAttribute.AttributeBase = attribute.AttributeBase;
-                    oldAttribute.AttributeRanks = attribute.AttributeRanks;
-                    oldAttribute.AttributeXpSpent = attribute.AttributeXpSpent;
-                }
-                else
-                {
-                    AceObjectPropertiesAttributes.Add(attribute);
-                }
+                dict[key] = value;
             }
             else
             {
-                if (oldAttribute != null)
-                {
-                    AceObjectPropertiesAttributes.Remove(oldAttribute);
-                }
+                dict.Add(key, value);
             }
         }
 
-        public AceObjectPropertiesAttribute2nd GetAttribute2ndProperty(Ability ability)
+        public void SetAttributeProperty(Ability ability, CreatureAbility value)
         {
-            var ret = AceObjectPropertiesAttributes2nd.FirstOrDefault(x => x.Attribute2ndId == (uint)ability);
+            SetProperty(AceObjectPropertiesAttributes, ability, value);
+        }
 
-            if (ret == null)
+        public CreatureAbility GetAttribute2ndProperty(Ability ability)
+        {
+            CreatureAbility ret;
+            bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out ret);
+
+            if (!success || ret == null)
             {
-                ret = new AceObjectPropertiesAttribute2nd();
-                ret.AceObjectId = AceObjectId;
-                ret.Attribute2ndId = (ushort)ability;
-                ret.Attribute2ndValue = 0;
-                ret.Attribute2ndRanks = 0;
-                ret.Attribute2ndXpSpent = 0;
-                AceObjectPropertiesAttributes2nd.Add(ret);
+                ret = new CreatureAbility(this, ability);
+                AceObjectPropertiesAttributes2nd.Add(ability, ret);
             }
 
             return ret;
         }
 
-        public void SetAttribute2ndProperty(AceObjectPropertiesAttribute2nd attribute)
+        public void SetAttribute2ndProperty(Ability ability, CreatureAbility value)
         {
-            AceObjectPropertiesAttribute2nd oldAttribute = GetAttribute2ndProperty((Ability)attribute.Attribute2ndId);
-            if (attribute != null)
-            {
-                if (oldAttribute != null)
-                {
-                    oldAttribute.Attribute2ndValue = attribute.Attribute2ndValue;
-                    oldAttribute.Attribute2ndRanks = attribute.Attribute2ndRanks;
-                    oldAttribute.Attribute2ndXpSpent = attribute.Attribute2ndXpSpent;
-                }
-                else
-                {
-                    AceObjectPropertiesAttributes2nd.Add(attribute);
-                }
-            }
-            else
-            {
-                if (oldAttribute != null)
-                {
-                    AceObjectPropertiesAttributes2nd.Remove(oldAttribute);
-                }
-            }
+            SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
         }
 
-        public AceObjectPropertiesSkill GetSkillProperty(Skill skill)
+        public CreatureSkill GetSkillProperty(Skill skill)
         {
-            var ret = AceObjectPropertiesSkills.FirstOrDefault(x => x.SkillId == (uint)skill);
+            CreatureSkill ret;
+            bool success = AceObjectPropertiesSkills.TryGetValue(skill, out ret);
 
-            if (ret == null)
+            if (!success || ret == null)
             {
-                ret = new AceObjectPropertiesSkill();
-                ret.AceObjectId = AceObjectId;
-                ret.SkillId = (ushort)skill;
-                ret.SkillPoints = 0;
-                ret.SkillStatus = (ushort)SkillStatus.Untrained;
-                ret.SkillXpSpent = 0;
-                AceObjectPropertiesSkills.Add(ret);
+                ret = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                AceObjectPropertiesSkills.Add(skill, ret);
             }
 
             return ret;
         }
 
-        public void SetSkillProperty(AceObjectPropertiesSkill skill)
+        public void SetSkillProperty(Skill skill, CreatureSkill value)
         {
-            AceObjectPropertiesSkill oldSkill = GetSkillProperty((Skill)skill.SkillId);
-            if (skill != null)
-            {
-                if (oldSkill != null)
-                {
-                    oldSkill.SkillId = skill.SkillId;
-                    oldSkill.SkillPoints = skill.SkillPoints;
-                    oldSkill.SkillStatus = skill.SkillStatus;
-                    oldSkill.SkillXpSpent = skill.SkillXpSpent;
-                }
-                else
-                {
-                    AceObjectPropertiesSkills.Add(skill);
-                }
-            }
-            else
-            {
-                if (oldSkill != null)
-                {
-                    AceObjectPropertiesSkills.Remove(skill);
-                }
-            }
+            SetProperty(AceObjectPropertiesSkills, skill, value);
         }
 
-        public List<AceObjectPropertiesSkill> GetSkills()
+        public List<CreatureSkill> GetSkills()
         {
-            return AceObjectPropertiesSkills;
-        }
-
-        public void SetAceObjectPropertiesSkill(AceObjectPropertiesSkill skill)
-        {
-            AceObjectPropertiesSkill oldSkill = GetSkillProperty((Skill)skill.SkillId);
-            if (skill != null)
-            {
-                if (oldSkill != null)
-                {
-                    oldSkill.SkillPoints = skill.SkillPoints;
-                    oldSkill.SkillStatus = skill.SkillStatus;
-                    oldSkill.SkillXpSpent = skill.SkillXpSpent;
-                }
-                else
-                {
-                    AceObjectPropertiesSkills.Add(skill);
-                }
-            }
-            else
-            {
-                if (oldSkill != null)
-                {
-                    AceObjectPropertiesSkills.Remove(oldSkill);
-                }
-            }
+            return AceObjectPropertiesSkills.Values.ToList();
         }
 
         public uint? GetIntProperty(PropertyInt property)
@@ -929,64 +842,47 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
-        public List<AceObjectPropertiesAttribute> AceObjectPropertiesAttributes { get; set; } = new List<AceObjectPropertiesAttribute>();
+        // public List<AceObjectPropertiesAttribute> AceObjectPropertiesAttributes { get; set; } = new List<AceObjectPropertiesAttribute>();
+        public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
 
         // ReSharper disable once InconsistentNaming
-        public List<AceObjectPropertiesAttribute2nd> AceObjectPropertiesAttributes2nd { get; set; } = new List<AceObjectPropertiesAttribute2nd>();
+        // public List<AceObjectPropertiesAttribute2nd> AceObjectPropertiesAttributes2nd { get; set; } = new List<AceObjectPropertiesAttribute2nd>();
+        // FIXME(ddevec): Once we merge into mainline -- replace this with a CreatureVital
+        public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes2nd { get; set; } = new Dictionary<Ability, CreatureAbility>();
 
-        public List<AceObjectPropertiesSkill> AceObjectPropertiesSkills { get; set; } = new List<AceObjectPropertiesSkill>();
+        // public List<AceObjectPropertiesSkill> AceObjectPropertiesSkills { get; set; } = new List<AceObjectPropertiesSkill>();
+        public Dictionary<Skill, CreatureSkill> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkill>();
 
-        // public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
-        public List<AceObjectPropertiesPosition> Positions { get; set; } = new List<AceObjectPropertiesPosition>();
+        public Dictionary<PositionType, Position> AceObjectPropertiesPositions { get; set; } = new Dictionary<PositionType, Position>();
+        // public List<AceObjectPropertiesPosition> Positions { get; set; } = new List<AceObjectPropertiesPosition>();
 
-        public AceObjectPropertiesPosition Destination
+        public Position Destination
         {
             get { return GetPosition(PositionType.Destination); }
             set { SetPosition(PositionType.Destination, value); }
         }
 
-        public AceObjectPropertiesPosition Location
+        public Position Location
         {
             get { return GetPosition(PositionType.Location); }
             set { SetPosition(PositionType.Location, value); }
         }
 
-        protected AceObjectPropertiesPosition GetPosition(PositionType positionType)
+        protected Position GetPosition(PositionType positionType)
         {
-            return Positions.FirstOrDefault(x => x.DbPositionType == (uint)positionType);
+            Position ret;
+            bool success = AceObjectPropertiesPositions.TryGetValue(positionType, out ret);
+
+            if (!success)
+            {
+                return null;
+            }
+            return ret;
         }
 
-        protected void SetPosition(PositionType positionType, AceObjectPropertiesPosition value)
+        protected void SetPosition(PositionType positionType, Position value)
         {
-            AceObjectPropertiesPosition oldPosition = Positions.Find(x => x.DbPositionType == (ushort)value.DbPositionType);
-            if (value != null)
-            {
-                if (oldPosition == null)
-                {
-                    oldPosition = (AceObjectPropertiesPosition)value.Clone();
-
-                    Positions.Add(oldPosition);
-                }
-                else
-                {
-                    oldPosition.PositionId = value.PositionId;
-                    oldPosition.Cell = value.Cell;
-                    oldPosition.PositionX = value.PositionX;
-                    oldPosition.PositionY = value.PositionY;
-                    oldPosition.PositionZ = value.PositionZ;
-                    oldPosition.RotationW = value.RotationW;
-                    oldPosition.RotationX = value.RotationX;
-                    oldPosition.RotationY = value.RotationY;
-                    oldPosition.RotationZ = value.RotationZ;
-                }
-            }
-            else
-            {
-                if (oldPosition != null)
-                {
-                    Positions.Remove(oldPosition);
-                }
-            }
+            SetProperty(AceObjectPropertiesPositions, positionType, value);
         }
 
         public object Clone()
@@ -1011,10 +907,10 @@ namespace ACE.Entity
             ret.DataIdProperties = CloneList(DataIdProperties);
             ret.InstanceIdProperties = CloneList(InstanceIdProperties);
             ret.StringProperties = CloneList(StringProperties);
-            ret.AceObjectPropertiesAttributes = CloneList(AceObjectPropertiesAttributes);
-            ret.AceObjectPropertiesAttributes2nd = CloneList(AceObjectPropertiesAttributes2nd);
-            ret.AceObjectPropertiesSkills = CloneList(AceObjectPropertiesSkills);
-            ret.Positions = CloneList(Positions);
+            ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
+            ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
+            ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
+            ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
 
             return ret;
         }
@@ -1022,6 +918,11 @@ namespace ACE.Entity
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
         {
             return toClone.Select(x => (T)x.Clone()).ToList();
+        }
+
+        private static Dictionary<K,V> CloneDict<K,V>(Dictionary<K,V> toClone) where V : ICloneable
+        {
+            return toClone.ToDictionary(x => x.Key, x => (V)x.Value.Clone());
         }
     }
 }

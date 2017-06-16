@@ -30,6 +30,12 @@ namespace ACE.Entity
             Level = 1;
             AvailableExperience = 0;
             TotalExperience = 0;
+
+            IconId = 0x1036;
+            WeenieClassId = 1; // Human
+            //GameDataType = (uint)ObjectType.Creature;
+            Burden = 0;
+            SpellId = 0;
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
@@ -325,19 +331,19 @@ namespace ACE.Entity
             }
         }
 
-        public AceObjectPropertiesPosition LastPortal
+        public Position LastPortal
         {
             get { return GetPosition(PositionType.LastPortal); }
             set { SetPosition(PositionType.LastPortal, value); }
         }
 
-        public AceObjectPropertiesPosition Sanctuary
+        public Position Sanctuary
         {
             get { return GetPosition(PositionType.Sanctuary); }
             set { SetPosition(PositionType.Sanctuary, value); }
         }
 
-        public AceObjectPropertiesPosition LastOutsideDeath
+        public Position LastOutsideDeath
         {
             get { return GetPosition(PositionType.LastOutsideDeath); }
             set { SetPosition(PositionType.LastOutsideDeath, value); }
@@ -357,18 +363,13 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, uint creditsSpent)
         {
-            AceObjectPropertiesSkill cs = GetSkillProperty(skill);
-            if (cs != null && cs.SkillStatus != (uint)SkillStatus.Trained && cs.SkillStatus != (uint)SkillStatus.Specialized)
+            CreatureSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    var newSkill = new AceObjectPropertiesSkill();
-                    newSkill.AceObjectId = AceObjectId;
-                    newSkill.SkillId = (ushort)skill;
-                    newSkill.SkillPoints = 0;
-                    newSkill.SkillStatus = (ushort)SkillStatus.Trained;
-                    newSkill.SkillXpSpent = 0;
-                    SetAceObjectPropertiesSkill(newSkill);
+                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    SetSkillProperty(skill, newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -383,19 +384,14 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool SpecializeSkill(Skill skill, uint creditsSpent)
         {
-            AceObjectPropertiesSkill cs = GetSkillProperty(skill);
-            if (cs != null && cs.SkillStatus == (uint)SkillStatus.Trained)
+            CreatureSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    RefundXp(cs.SkillXpSpent);
-                    var newSkill = new AceObjectPropertiesSkill();
-                    newSkill.AceObjectId = AceObjectId;
-                    newSkill.SkillId = (ushort)skill;
-                    newSkill.SkillPoints = 0;
-                    newSkill.SkillStatus = (ushort)SkillStatus.Specialized;
-                    newSkill.SkillXpSpent = 0;
-                    SetAceObjectPropertiesSkill(newSkill);
+                    RefundXp(cs.ExperienceSpent);
+                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
+                    SetSkillProperty(skill, newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }

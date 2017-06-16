@@ -121,6 +121,11 @@ namespace ACE.Network.Handlers
             CharGen cg = CharGen.ReadFromDat();
             AceCharacter character = new AceCharacter(DatabaseManager.Shard.GetNextCharacterId());
 
+            // FIXME(ddevec): These should go in AceCharacter constructor, but the Network enum is not available there
+            character.Radar = (byte)Network.Enum.RadarBehavior.ShowAlways;
+            character.BlipColor = (byte)Network.Enum.RadarColor.White;
+            character.ItemUseable = (uint)Network.Enum.Usable.UsableObjectSelf;
+
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
             character.Gender = reader.ReadUInt32();
@@ -212,21 +217,21 @@ namespace ACE.Network.Handlers
 
             // stats
             // TODO - Validate this is equal to 330 (Total Attribute Credits)
-            character.StrengthAbility.AttributeBase = (ushort)reader.ReadUInt32();
-            character.EnduranceAbility.AttributeBase = (ushort)reader.ReadUInt32();
-            character.CoordinationAbility.AttributeBase = (ushort)reader.ReadUInt32();
-            character.QuicknessAbility.AttributeBase = (ushort)reader.ReadUInt32();
-            character.FocusAbility.AttributeBase = (ushort)reader.ReadUInt32();
-            character.SelfAbility.AttributeBase = (ushort)reader.ReadUInt32();
+            character.StrengthAbility.Base = (ushort)reader.ReadUInt32();
+            character.EnduranceAbility.Base = (ushort)reader.ReadUInt32();
+            character.CoordinationAbility.Base = (ushort)reader.ReadUInt32();
+            character.QuicknessAbility.Base = (ushort)reader.ReadUInt32();
+            character.FocusAbility.Base = (ushort)reader.ReadUInt32();
+            character.SelfAbility.Base = (ushort)reader.ReadUInt32();
 
             // data we don't care about
             uint characterSlot = reader.ReadUInt32();
             uint classId = reader.ReadUInt32();
 
             // characters start with max vitals
-            character.Health.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
-            character.Stamina.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
-            character.Mana.Attribute2ndValue = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
+            character.Health.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
+            character.Stamina.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
+            character.Mana.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
 
             character.TotalSkillCredits = 52;
             character.AvailableSkillCredits = 52;
@@ -325,7 +330,7 @@ namespace ACE.Network.Handlers
 
         public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character)
         {
-            character.Location = CharacterPositionExtensions.StartingPosition().GetAceObjectPosition(character.AceObjectId, PositionType.Location);
+            character.Location = CharacterPositionExtensions.StartingPosition();
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
