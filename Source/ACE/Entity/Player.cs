@@ -74,7 +74,10 @@ namespace ACE.Entity
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
-        private Dictionary<Skill, CreatureSkill> skills = new Dictionary<Skill, CreatureSkill>();
+        private Dictionary<Skill, CreatureSkill> Skills
+        {
+            get { return AceObject.AceObjectPropertiesSkills; }
+        }
 
         private readonly object clientObjectMutex = new object();
 
@@ -93,7 +96,10 @@ namespace ACE.Entity
         // dictionary for delaying further actions for an objectID
         private readonly Dictionary<uint, double> delayedActions = new Dictionary<uint, double>();
 
-        public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+        public Dictionary<PositionType, Position> Positions
+        {
+            get { return AceObject.AceObjectPropertiesPositions; }
+        }
 
         public Position PositionSanctuary {
             get
@@ -178,25 +184,14 @@ namespace ACE.Entity
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
-            Name = session.CharacterRequested.Name;
-            Icon = 0x1036;
-            WeenieClassid = 1; // Human
-            GameDataType = (uint)ObjectType.Creature;
-            ItemCapacity = 102;
-            Burden = 0;
-            this.Spell = 0;
-            // this.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            ContainerCapacity = 7;
-            RadarBehavior = Network.Enum.RadarBehavior.ShowAlways;
-            RadarColor = Network.Enum.RadarColor.White;
-            Usable = Network.Enum.Usable.UsableObjectSelf;
-
+            // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
             PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+
             PhysicsData.MTableResourceId = 0x09000001u;
             PhysicsData.Stable = 0x20000001u;
             PhysicsData.Petable = 0x34000004u;
@@ -247,13 +242,7 @@ namespace ACE.Entity
                 //    character.IsAdvocate= true;
             }
 
-            Location = new Position(character.Location);
-
-            foreach (AceObjectPropertiesSkill skill in AceObject.GetSkills())
-            {
-                Skill skillId = (Skill)skill.SkillId;
-                skills[skillId] = new CreatureSkill(AceObject, skillId, (SkillStatus)skill.SkillStatus, skill.SkillPoints, skill.SkillXpSpent);
-            }
+            Location = character.Location;
 
             SetAbilities(character);
 
@@ -308,29 +297,6 @@ namespace ACE.Entity
             // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
             // this is crap and needs to be fixed.
             obj.WeenieClassId = 1;
-
-            // Copy in any data Character doesn't reflect...
-            // Bad stuff -- fix
-            // Attributes
-            obj.SetAttributeProperty(Strength.GetAttribute(Character.AceObjectId));
-            obj.SetAttributeProperty(Coordination.GetAttribute(Character.AceObjectId));
-            obj.SetAttributeProperty(Endurance.GetAttribute(Character.AceObjectId));
-            obj.SetAttributeProperty(Quickness.GetAttribute(Character.AceObjectId));
-            obj.SetAttributeProperty(Focus.GetAttribute(Character.AceObjectId));
-            obj.SetAttributeProperty(Self.GetAttribute(Character.AceObjectId));
-            // Vitals
-            obj.SetAttribute2ndProperty(Health.GetVital(Character.AceObjectId));
-            obj.SetAttribute2ndProperty(Stamina.GetVital(Character.AceObjectId));
-            obj.SetAttribute2ndProperty(Mana.GetVital(Character.AceObjectId));
-
-            // Skillz
-            foreach (var skill in skills.Values)
-            {
-                obj.SetSkillProperty(skill.GetAceObjectSkill(Character.AceObjectId));
-            }
-
-            // Positions -- These are curently maintained internally...
-            obj.Positions = Positions.Select(x => x.Value.GetAceObjectPosition(Guid, x.Key)).ToList();
 
             return obj;
         }
@@ -528,7 +494,18 @@ namespace ACE.Entity
 
         public void SpendXp(Enum.Ability ability, uint amount)
         {
-            CreatureAbility creatureAbility = Abilities[ability];
+            CreatureAbility creatureAbility;
+            bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
+            if (!success)
+            {
+                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out creatureAbility);
+                // Invalid ability
+                if (!success)
+                {
+                    log.Error("Invalid ability passed to Player.SpendXp");
+                    return;
+                }
+            }
             uint baseValue = creatureAbility.Base;
             uint result = SpendAbilityXp(creatureAbility, amount);
             bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
@@ -700,7 +677,7 @@ namespace ACE.Entity
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
-            CreatureSkill creatureSkill = skills[skill];
+            CreatureSkill creatureSkill = Skills[skill];
             uint result = SpendSkillXp(creatureSkill, amount);
 
             uint ranks = creatureSkill.Ranks;

@@ -17,9 +17,10 @@ namespace ACE.Entity
         public Lifestone(AceObject aceO)
             : base((ObjectType)aceO.ItemType, new ObjectGuid(aceO.AceObjectId))
         {
+            // FIXME(ddevec): These should be inhereted frome aceO not copied...
             Name = aceO.Name;
             DescriptionFlags = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
-            Location = new Position(aceO.Location);
+            Location = aceO.Location;
             WeenieClassid = aceO.WeenieClassId;
             WeenieFlags = (WeenieHeaderFlag)aceO.WeenieHeaderFlags;
 

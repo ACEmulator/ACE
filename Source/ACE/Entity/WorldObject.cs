@@ -43,14 +43,18 @@ namespace ACE.Entity
 
         public virtual Position Location
         {
-            get { return PhysicsData.Position; }
+            get { return AceObject.Location; }
             protected set
             {
-                if (PhysicsData.Position != null)
-                    LastUpdatedTicks = WorldManager.PortalYearTicks;
-
+                /*
                 log.Debug($"{Name} moved to {PhysicsData.Position}");
 
+                PhysicsData.Position = value;
+                */
+                if (AceObject.Location != null)
+                    LastUpdatedTicks = WorldManager.PortalYearTicks;
+                AceObject.Location = value;
+                // FIXME(ddevec): When PhysicsData is factored out this can be deleted
                 PhysicsData.Position = value;
             }
         }
