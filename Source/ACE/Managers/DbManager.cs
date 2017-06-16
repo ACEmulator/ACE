@@ -18,7 +18,7 @@ namespace ACE.Managers
     public static class DbManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static bool running = false;
         private static Queue<AceObject> saveObjectsQue = new Queue<AceObject>();
         private static readonly object saveObjectsCacheLocker = new object();
 
@@ -30,17 +30,30 @@ namespace ACE.Managers
             }
         }
 
+        public static void Initialize()
+        {
+            // starts game loop.
+            running = true;
+            new Thread(Tick).Start();
+        }
+
         private static void Tick()
         {
-            AceObject aceobj;
-            lock (saveObjectsCacheLocker)
+            while (running)
             {
-                if (saveObjectsQue.Count > 0)
-                    aceobj = saveObjectsQue.Dequeue();
-                else
-                    return;
+                Thread.Sleep(1);
+
+                AceObject aceobj;
+
+                lock (saveObjectsCacheLocker)
+                {
+                    if (saveObjectsQue.Count > 0)
+                    {
+                        aceobj = saveObjectsQue.Dequeue();
+                        TickAsync(aceobj);
+                    }
+                }
             }
-            TickAsync(aceobj);
         }
 
         private static async Task<bool> TickAsync(AceObject aceobj)

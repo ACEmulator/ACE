@@ -1049,7 +1049,8 @@ namespace ACE.Entity
         {
             if (Character != null)
             {
-                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
+                // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
+                DbManager.SaveObject(GetSavableCharacter());
             }
 
             // TODO: Save other options as we implement them.
@@ -1087,7 +1088,8 @@ namespace ACE.Entity
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
+                // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
+                DbManager.SaveObject(GetSavableCharacter());
 #if DEBUG
                 if (Session.Player != null)
                 {

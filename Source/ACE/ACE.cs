@@ -24,6 +24,7 @@ namespace ACE
 
             ConfigManager.Initialize();
             DatabaseManager.Initialize();
+            DbManager.Initialize();
             AssetManager.Initialize();
             InboundMessageManager.Initialize();
             DatManager.Initialize();
