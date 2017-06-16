@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Enum;
-
+using ACE.Entity.Enum.Properties;
 using log4net;
 // ReSharper disable InconsistentNaming
 
@@ -46,6 +46,7 @@ namespace ACE.Database
             SaveAceObject = 27,
             DeleteAceObject = 28,
             GetAceObject = 29,
+            UpdateAceObject = 30,
 
             AddFriend = 101,
             DeleteFriend = 102,
@@ -173,9 +174,15 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public void DeleteOrRestore(ulong unixTime, uint id)
+        public async Task<bool> DeleteOrRestore(ulong unixTime, uint aceObjectId)
         {
-            throw new NotImplementedException();
+            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
+            LoadIntoObject(aceCharacter);
+            aceCharacter.DeleteTime = unixTime;
+
+            // aceCharacter.Deleted = true;  This is just a reminder - the DB will set this 1 hour after deletion.
+
+            return await SaveObject(aceCharacter);
         }
 
         public async Task<List<CachedCharacter>> GetCharacters(uint accountId)
