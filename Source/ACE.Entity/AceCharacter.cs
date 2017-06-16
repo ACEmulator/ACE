@@ -30,12 +30,13 @@ namespace ACE.Entity
             Level = 1;
             AvailableExperience = 0;
             TotalExperience = 0;
-
             IconId = 0x1036;
-            WeenieClassId = 1; // Human
-            //GameDataType = (uint)ObjectType.Creature;
+            WeenieClassId = 1;
             Burden = 0;
             SpellId = 0;
+            
+            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable |
+                                        ObjectDescriptionFlag.Player);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
@@ -57,12 +58,6 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
-
-        // public uint AccountId
-        // {
-        //    get { return GetIntProperty(PropertyInstanceId.Account) ?? 0; }
-        //    set { SetIntProperty(PropertyInt.AccountId, value); }
-        // }
 
         public uint AccountId
         {

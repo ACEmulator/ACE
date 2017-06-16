@@ -1,5 +1,8 @@
 ﻿namespace ACE.Network.Enum
 {
+    /// <summary>
+    /// This data is sent as loc in the player discription message F7B0 -0013
+    /// </summary>
     public enum EquipMask : uint
     {
         Head                = 0x00000001,
