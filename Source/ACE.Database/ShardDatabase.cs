@@ -368,7 +368,6 @@ namespace ACE.Database
             return objects.ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
         }
 
-
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };

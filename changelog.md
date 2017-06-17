@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
 ### 2017-06-16
+[OptimShi]
+* Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event. (Added back in after OO merge)
+* Finished parsing the client_cell.dat file with the CLandblockInfo type (xxyyFFFE files), along with supporting classes. This makes the client_cell.dat reading complete. (Added back in after OO merge)
+* Fixed a bug in the DatLoader.FileType.PaletteSet where loading a cached palette set could crash.
+
 [Og II]
 * Trello card task - delete character crashes server.   Fixed this issue.
 * Added event code for database to do the actual house keeping to flip the flag once the hour restore period has expired.

@@ -107,6 +107,13 @@ namespace ACE.DatLoader
             return data;
         }
 
+        public double ReadDouble()
+        {
+            double data = BitConverter.ToDouble(Buffer, Offset);
+            Offset += 8;
+            return data;
+        }
+
         /// <summary>
         /// Returns a string as defined by the first byte's length
         /// </summary>
