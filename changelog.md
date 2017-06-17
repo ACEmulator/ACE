@@ -2,7 +2,7 @@
 
 ### 2017-06-17
 [OptimShi]
-* Added functionality for the GameMessageObjDescEvent message (fired when a model changes, like when equipping new items). Also included a debug command "equiptest" to expose the new functions which will cosmetically equip your character with a single piece of armor/clothing (only cosmetic, no acutal "equipping" is being done at this time)
+* Added functionality for the GameMessageObjDescEvent message (fired when a model changes, like when equipping new items). Also included a debug command "@equiptest" to expose the new functions which will cosmetically equip your character with a single piece of armor/clothing (only cosmetic, no actual "equipping" is being done at this time)
 
 ### 2017-06-15
 [ddevec]
