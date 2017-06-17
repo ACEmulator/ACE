@@ -36,14 +36,13 @@ namespace ACE.Entity
                 inventory.Add(inventoryItem.Guid, inventoryItem);
             }
 
-                GameData.Burden += inventoryItem.GameData.Burden;
-                inventoryItem.GameData.ContainerId = Guid.Full;
-                if (inventoryItem.Location != null)
-                    LandblockManager.RemoveObject(inventoryItem);
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-                inventoryItem.PositionFlag = UpdatePositionFlag.None;
-                inventoryItem.PhysicsData.Position = null;
-            }
+            Burden += inventoryItem.Burden;
+            inventoryItem.ContainerId = Guid.Full;
+            if (inventoryItem.Location != null)
+                LandblockManager.RemoveObject(inventoryItem);
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.Location = null;
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
@@ -51,7 +50,8 @@ namespace ACE.Entity
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
             Burden -= inventoryItem.Burden;
 
-            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
+            // FIXME(ddevec): RemoveFromInventory should only be responsible for removing the item from the inventory, not placing it on the world!
+            inventoryItem.Location = Location.InFrontOf(1.0f);
             // TODO: Write a method to set this based on data.
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
                                          | UpdatePositionFlag.Placement

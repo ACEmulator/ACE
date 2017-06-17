@@ -7,9 +7,6 @@ using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
-using ACE.StateMachines.Rules;
-using ACE.StateMachines;
-using ACE.StateMachines.Enum;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -87,20 +84,6 @@ namespace ACE.Entity
         /// </summary>
         public bool IsAlive { get; set; }
 
-        /// <summary>
-        /// Time after Creature dies until it respawns
-        /// </summary>
-        /// <summary>
-        /// Track state of creature if their current action is blocked.   Either until they are no longer blocked or the action is abandoned.
-        /// </summary>
-        private readonly StateMachine movementStateMachine = new StateMachine();
-
-        public MovementStates CreatureMovementStates
-        { 
-          get { return (MovementStates)movementStateMachine.CurrentState; }
-          set { movementStateMachine.ChangeState((int)value); }
-        }
-
         public double RespawnTime { get; set; }
 
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
@@ -122,7 +105,7 @@ namespace ACE.Entity
             else
                 this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
 
-            SetObjectData(aceC.CreatureData);
+            SetObjectData(AceObject);
             IsAlive = true;
             SetupVitals();
         }
@@ -164,7 +147,7 @@ namespace ACE.Entity
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.DefaultScale;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
-            PhysicsData.Position = aco.Location;
+            Location = aco.Location;
         }
 
         public virtual ActionChain GetOnKillChain(Session killerSession)
@@ -191,8 +174,8 @@ namespace ACE.Entity
                 // Create Corspe and set a location on the ground
                 // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
                 var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                corpse.Location.PositionY -= corpse.PhysicsData.ObjScale;
-                corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale / 2;
+                corpse.Location.PositionY -= corpse.PhysicsData.ObjScale.Value;
+                corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale.Value / 2;
 
                 // Corpses stay on the ground for 5 * player level but minimum 1 hour
                 // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live

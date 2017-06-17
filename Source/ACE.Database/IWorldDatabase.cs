@@ -19,6 +19,6 @@ namespace ACE.Database
 
         AceObject GetRandomWeenieOfType(uint typeId);
 
-        AceObject GetBaseAceObjectDataByWeenie (uint weenieClassId);
+        AceObject GetBaseAceObjectDataByWeenie(uint weenieClassId);
     }
 }

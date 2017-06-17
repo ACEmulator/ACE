@@ -170,7 +170,7 @@ namespace ACE.Entity
             {
                 if (currentMotionState != null)
                 {
-                    var movementData = currentMotionState.GetPayload(wo);
+                    var movementData = currentMotionState.GetPayload(wo.Guid, wo.Sequences);
                     writer.Write(movementData.Length); // number of bytes in movement object
                     writer.Write(movementData);
                     uint autonomous = currentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
@@ -179,7 +179,7 @@ namespace ACE.Entity
                 else // create a new current motion state and send it.
                 {
                     currentMotionState = new UniversalMotion(MotionStance.Standing);
-                    var movementData = currentMotionState.GetPayload(wo);
+                    var movementData = currentMotionState.GetPayload(wo.Guid, wo.Sequences);
                     writer.Write(movementData.Length);
                     writer.Write(movementData);
                     uint autonomous = currentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;

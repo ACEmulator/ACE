@@ -232,9 +232,15 @@ namespace ACE.Command.Handlers
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                                                    session.Player.Sequences,
+                                                                    movement));
             movement = new UniversalMotion(MotionStance.Standing);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                                                    session.Player.Sequences,
+                                                                    movement));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -248,7 +254,7 @@ namespace ACE.Command.Handlers
             ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTestWorldObject(trainingWandTarget);
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
 
             ActionChain chain = new Entity.Actions.ActionChain();
 
@@ -561,14 +567,22 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parsePositionString, out positionType))
                 {
-                    Position playerPosition = session.Player.GetPosition(positionType);
-                    if (playerPosition != null)
+                    bool success = true;
+                    ActionChain teleChain = session.Player.GetTeleToPositionChain(positionType, () => {
+                        success = false;
+                    });
+                    teleChain.AddAction(session.Player, () =>
                     {
-                        session.Player.Teleport(playerPosition);
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {playerPosition.ToString()}", ChatMessageType.Broadcast));
-                    }
-                    else
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
+                        if (success)
+                        {
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location.ToString()}", ChatMessageType.Broadcast));
+                        }
+                        else
+                        {
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
+                        }
+                    });
+                    teleChain.EnqueueChain();
                 }
             }
         }
@@ -583,7 +597,7 @@ namespace ACE.Command.Handlers
         {
             // Build a string message containing all available character positions and send as a System Chat message
             string message = $"Saved character positions:\n";
-            var posDict = session.Player.GetAllPositions();
+            var posDict = session.Player.Positions;
 
             foreach (var posPair in posDict)
             {
@@ -595,6 +609,8 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(positionMessage);
         }
 
+        // FIXME(ddevec): Reintroduce once spelltables are merged back in
+        /*
         /// <summary>
         /// Debug command to learn a spell.
         /// </summary>
@@ -620,7 +636,7 @@ namespace ACE.Command.Handlers
                     session.Network.EnqueueSend(updateSpellEvent);
 
                     // Always seems to be this SkillUpPurple effect
-                    session.Player.ActionApplyVisualEffect(PlayScript.SkillUpPurple, session.Player.Guid);
+                    session.Player.HandleActionApplyVisualEffect(PlayScript.SkillUpPurple);
 
                     string spellName = spells.Spells[spellId].Name;
                     // TODO Lookup the spell in the spell table.
@@ -636,6 +652,7 @@ namespace ACE.Command.Handlers
                 session.Network.EnqueueSend(errorMessage);
             }
         }
+        */
 
         /// <summary>
         /// Debug command to print out all of the active players connected too the server.

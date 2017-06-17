@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    class AbilityRegenAttribute : Attribute
+    public class AbilityRegenAttribute : Attribute
     {
         public double Rate { get; set; }
 

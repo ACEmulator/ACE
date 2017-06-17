@@ -12,7 +12,7 @@ namespace ACE.Network.Motion
     {
         public bool IsAutonomous { get; set; }
 
-        public virtual byte[] GetPayload(WorldObject animationTarget, float distanceFromObject = 0.6f)
+        public virtual byte[] GetPayload(ObjectGuid guid, Sequence.SequenceManager sequence)
         {
             return null;
         }        

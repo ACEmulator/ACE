@@ -231,7 +231,7 @@ namespace ACE.Managers
                 Parallel.ForEach(movedObjects, wo =>
                 {
                     // If it was picked up, or moved
-                    if (wo.PhysicsData.Position.LandblockId != wo.CurrentLandblock.Id)
+                    if (wo.Location.LandblockId != wo.CurrentLandblock.Id)
                     {
                         LandblockManager.RelocateObject(wo);
                     }
