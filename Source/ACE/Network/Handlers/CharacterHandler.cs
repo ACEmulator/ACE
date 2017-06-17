@@ -50,13 +50,7 @@ namespace ACE.Network.Handlers
 
             session.State = SessionState.WorldConnected;
 
-            // check the value of the welcome message. Only display it if it is not empty
-            if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-            {
-                session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-            }
-
-            LandblockManager.PlayerEnterWorld(session);
+            LandblockManager.PlayerEnterWorld(session, cachedCharacter.Guid);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
@@ -233,11 +227,6 @@ namespace ACE.Network.Handlers
             character.Stamina.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
             character.Mana.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
 
-            character.TotalSkillCredits = 52;
-            character.AvailableSkillCredits = 52;
-            character.TotalExperience = 0;
-            character.AvailableExperience = 0;
-
             uint numOfSkills = reader.ReadUInt32();
             Skill skill;
             SkillStatus skillStatus;
@@ -269,13 +258,6 @@ namespace ACE.Network.Handlers
 
             character.WeenieClassId = 1;
 
-            // Required default properties for character login
-            // FIXME(ddevec): Should we have constants for (some of) these things?
-            character.ItemType = (uint)ObjectType.Creature;
-            character.IsDeleted = false;
-            character.DeletedTime = 0;
-            character.ItemsCapacity = 102;
-
             bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
             {
@@ -284,10 +266,6 @@ namespace ACE.Network.Handlers
             }
 
             character.AccountId = session.Id;
-            character.Deleted = false;
-            character.DeleteTime = 0;
-            character.WeenieClassId = 1;
-            character.ItemType = 1;
 
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);

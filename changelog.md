@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-06-17
+[ddevec]
+* Cleaned up player creation.
+* Fixed naming issue on player creation.
+* Fixed saving/loading of several AceObject properties.
+
 ### 2017-06-15
 [ddevec]
 * Refactor of AceObject

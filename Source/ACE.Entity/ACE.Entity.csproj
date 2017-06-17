@@ -117,6 +117,7 @@
     <Compile Include="Enum\Properties\PropertyDataId.cs" />
     <Compile Include="Enum\Properties\PropertyInstanceId.cs" />
     <Compile Include="Enum\SecurityLevel.cs" />
+    <Compile Include="Enum\WeenieHeaderFlags.cs" />
     <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />

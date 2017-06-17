@@ -51,7 +51,6 @@ namespace ACE.Network
 
         public void InitSessionForWorldLogin()
         {
-            Player = new Player(this);
             CharacterRequested = null;
 
             lastSaveTime = DateTime.MinValue;

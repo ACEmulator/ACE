@@ -168,7 +168,7 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior, CharacterPositionExtensions.StartingPosition())
+        public Player(Session session, AceCharacter character) : base(character)
         {
             Session = session;
 
@@ -225,7 +225,7 @@ namespace ACE.Entity
 
         public void Load(AceCharacter character)
         {
-            AceObject = character;
+            // AceObject = character;
 
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -242,9 +242,9 @@ namespace ACE.Entity
                 //    character.IsAdvocate= true;
             }
 
-            Location = character.Location;
+            // Location = character.Location;
 
-            SetAbilities(character);
+            // SetAbilities(character);
 
             IsOnline = true;
 
