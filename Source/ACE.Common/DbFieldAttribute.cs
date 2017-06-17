@@ -19,6 +19,10 @@ namespace ACE.Common
 
         public bool Get { get; set; } = true;
 
+        public bool ListGet { get; set; } = false;
+
+        public bool ListDelete { get; set; } = false;
+
         public bool IsCriteria { get; set; } = false;
 
         public DbFieldAttribute(string fieldName, int fieldType)

@@ -10,10 +10,9 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_palette_change")]
-    [DbList("ace_object_palette_change", "aceObjectId")]
     public class PaletteOverride : ICloneable
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("subPaletteId", (int)MySqlDbType.UInt32)]

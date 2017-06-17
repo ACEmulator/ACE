@@ -5,7 +5,6 @@ using System.Collections.Generic;
 namespace ACE.Entity
 {
     [DbTable("ace_creature_generator_locations")]
-    [DbList("ace_creature_generator_locations", "landblock")]
     public class AceCreatureGeneratorLocation
     {    
         [DbField("id", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
@@ -22,7 +21,7 @@ namespace ACE.Entity
             get { return new Position((((uint)Landblock) << 16) + Cell, PosX, PosY, PosZ, QX, QY, QZ, QW); }
         }
 
-        [DbField("landblock", (int)MySqlDbType.UInt16)]
+        [DbField("landblock", (int)MySqlDbType.UInt16, ListGet = true)]
         public ushort Landblock { get; set; }
 
         [DbField("cell", (int)MySqlDbType.UInt16)]

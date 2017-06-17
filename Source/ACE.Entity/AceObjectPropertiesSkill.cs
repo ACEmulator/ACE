@@ -4,10 +4,9 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_skill")]
-    [DbList("ace_object_properties_skill", "aceObjectId")]
     public class AceObjectPropertiesSkill : ICloneable
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("skillId", (int)MySqlDbType.UInt16)]

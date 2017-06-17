@@ -11,7 +11,6 @@ namespace ACE.Entity
     using System.Net.Mime;
 
     [DbTable("ace_object")]
-    [DbList("ace_object", "landblock")]
     public class AceObject : ICreatureStats, ICloneable
     {
         public AceObject(uint id)
@@ -27,7 +26,7 @@ namespace ACE.Entity
         /// <summary>
         /// Table field Primary Key
         /// </summary>
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
         public virtual uint AceObjectId { get; set; }
 
         /// <summary>

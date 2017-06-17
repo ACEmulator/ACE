@@ -324,7 +324,8 @@ namespace ACE.Database
 
         public List<TeleportLocation> GetPointsOfInterest()
         {
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TeleportLocation>(WorldPreparedStatement.GetPointsOfInterest, null);
+            Dictionary<string, object> criteria = new Dictionary<string, object>();
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TeleportLocation>(WorldPreparedStatement.GetPointsOfInterest, criteria);
             return objects;
         }
     }

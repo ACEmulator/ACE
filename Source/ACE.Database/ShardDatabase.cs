@@ -84,7 +84,11 @@ namespace ACE.Database
             InsertAceObjectPropertiesPositions = 132,
             InsertAceObjectPropertiesAttributes = 133,
             InsertAceObjectPropertiesAttributes2nd = 134,
-            InsertAceObjectPropertiesSkills = 135
+            InsertAceObjectPropertiesSkills = 135,
+            // XXX(ddevec): Og. Delete this after you've figured out how it works
+            /*
+            GetListTest = 136
+            */
         }
 
         protected override Type PreparedStatementType
@@ -105,7 +109,12 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
             // Get lists
+            // XXX(ddevec): Og -- This is how you define a "non-standard" GetList
+            /*
+            HashSet<string> criteria1 = new HashSet<string> { "guid", "name", "deleted" };
+            ConstructGetListStatement(ShardPreparedStatement.GetListTest, typeof(CachedCharacter), criteria1);
             ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
+            */
 
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.GetList);

@@ -64,7 +64,6 @@
     <Compile Include="Cryptography\SHA2.cs" />
     <Compile Include="DbGetAggregateAttribute.cs" />
     <Compile Include="DbTableAttribute.cs" />
-    <Compile Include="DbGetAttribute.cs" />
     <Compile Include="DerethDateTime.cs" />
     <Compile Include="Extensions\BinaryReaderExtensions.cs" />
     <Compile Include="DbFieldAttribute.cs" />

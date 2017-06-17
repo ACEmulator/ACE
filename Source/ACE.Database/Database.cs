@@ -21,13 +21,6 @@ namespace ACE.Database
 
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
 
-        private static DbListAttribute GetListAttr(Type t)
-        {
-            var dbListAttrs = t.GetCustomAttributes(false)?.OfType<DbListAttribute>();
-            Debug.Assert(dbListAttrs.Count() == 1, "ORM Currently only supports 1 DbList attribute per Class");
-            return dbListAttrs.FirstOrDefault();
-        }
-
         public class DatabaseTransaction
         {
             // This logging function will log specific db transactions - this class may be instantiated outside of the database namespace
@@ -59,7 +52,6 @@ namespace ACE.Database
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
-                DbListAttribute getList = GetListAttr(typeof(T2));
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -71,7 +63,7 @@ namespace ACE.Database
                 List<object> objects = new List<object>();
                 foreach (var p in propertyInfo)
                 {
-                    if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                    if (p.Item2.ListDelete)
                     {
                         object val;
                         bool success = criteria.TryGetValue(p.Item2.DbFieldName, out val);
@@ -90,7 +82,6 @@ namespace ACE.Database
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
-                DbListAttribute getList = GetListAttr(typeof(T2));
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -144,7 +135,6 @@ namespace ACE.Database
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
-                DbListAttribute getList = GetListAttr(typeof(T2));
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -310,19 +300,25 @@ namespace ACE.Database
 
         private void ConstructGetListStatement<T1>(T1 id, Type type)
         {
+            var properties = GetPropertyCache(type);
+
+            // ColumnNames
+            var criteria = new HashSet<string>(properties.Where(x => x.Item2.ListGet).Select(x => x.Item2.DbFieldName));
+
+            ConstructGetListStatement<T1>(id, type, criteria);
+        }
+
+        public void ConstructGetListStatement<T1>(T1 id, Type type, HashSet<string> columnNames)
+        {
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
-            DbListAttribute getList = type.GetCustomAttributes(false)?.OfType<DbListAttribute>()?.FirstOrDefault(d => d.TableName == dbTable.DbTableName);
 
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
 
-            if (getList == null)
-                Debug.Assert(false, $"Statement Construction failed for type {type}");
-
             List<MySqlDbType> types = new List<MySqlDbType>();
             var properties = GetPropertyCache(type);
-            string tableName = getList.TableName;
+            string tableName = dbTable.DbTableName;
             string selectList = null;
             string whereList = null;
 
@@ -335,11 +331,11 @@ namespace ACE.Database
                     selectList += "`" + p.Item2.DbFieldName + "`";
                 }
 
-                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                if (columnNames.Contains(p.Item2.DbFieldName))
                 {
                     if (whereList != null)
                         whereList += " AND ";
-                    whereList += "`" + p.Item2.DbFieldName + "` = ?";
+                    whereList += $"`{p.Item2.DbFieldName}` = ?";
                     types.Add((MySqlDbType)p.Item2.DbFieldType);
                 }
             }
@@ -356,22 +352,18 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
-            DbListAttribute getList = GetListAttr(type);
 
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
 
-            if (getList == null)
-                Debug.Assert(false, $"Statement Construction failed for type {type}");
-
             List<MySqlDbType> types = new List<MySqlDbType>();
             var properties = GetPropertyCache(type);
-            string tableName = getList.TableName;
+            string tableName = dbTable.DbTableName;
             string whereList = null;
 
             foreach (var p in properties)
             {
-                if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                if (p.Item2.ListDelete)
                 {
                     if (whereList != null)
                         whereList += " AND ";
@@ -417,17 +409,13 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
             DbTableAttribute dbTable = type.GetCustomAttributes(false)?.OfType<DbTableAttribute>()?.FirstOrDefault();
-            DbListAttribute getList = GetListAttr(type);
 
             if (dbTable == null)
                 Debug.Assert(false, $"Statement Construction failed for type {type}");
 
-            if (getList == null)
-                Debug.Assert(false, $"Statement Construction failed for type {type}");
-
             List<MySqlDbType> types = new List<MySqlDbType>();
             var properties = GetPropertyCache(type);
-            string tableName = getList.TableName;
+            string tableName = dbTable.DbTableName;
             string valueList = "";
             string fieldList = "";
             bool inserted = false;
@@ -655,7 +643,6 @@ namespace ACE.Database
             var results = new List<T2>();
             // TODO: Object Overhaul - testing this now.
             uint statementId = Convert.ToUInt32(id);
-            DbListAttribute getList = GetListAttr(typeof(T2));
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -673,8 +660,11 @@ namespace ACE.Database
                         var properties = GetPropertyCache(typeof(T2));
                         foreach (var p in properties)
                         {
-                            if (getList.ParameterFields.Contains(p.Item2.DbFieldName))
+                            // Add field name and value parameters
+                            if (criteria.ContainsKey(p.Item2.DbFieldName))
+                            {
                                 command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName];
+                            }
                         }
                         connection.Open();
                         using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
