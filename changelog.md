@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-06-17
+[ddevec]
+* Reintroudce CreatureVital patch from pre-overhaul-master
+* Adds setvital helper function
+* Adds Tick function to handle vital regeneration (will hopefully be removed with core restructure)
+* Separates CreatureVital from CreatureAbility.
+
 ### 2017-06-15
 [ddevec]
 * Refactor of AceObject
