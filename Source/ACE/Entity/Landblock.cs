@@ -17,12 +17,9 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Network.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Network.Sequence;
 using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
-using ACE.Network.GameMessages.Messages;
-using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
 
 namespace ACE.Entity
@@ -111,14 +108,6 @@ namespace ACE.Entity
                 fo.SetParent(this);
             });
 
-            // Load static creature spawns from DB
-            var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
-            foreach (var c in creatures)
-            {
-                Creature cwo = new Creature(c);
-                worldObjects.Add(cwo.Guid, cwo);
-                cwo.SetParent(this);
-            }
             // Load static creature spawns from DB
             // var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
             // foreach (var c in creatures)
@@ -215,21 +204,6 @@ namespace ACE.Entity
                 {
                     player.TrackObject(o);
                 }
-            });
-        }
-
-        private void RemovePlayerTracking(List<ObjectGuid> wolist, Player player)
-        {
-            Parallel.ForEach(wolist, (o) =>
-            {
-                // Find What Landblock Controls this object because we have to ref it
-                // to find its sequance id..
-                List<WorldObject> foundwo = new List<WorldObject>();
-                foundwo = GetWorldObjectsByGuid(o, true);
-                Parallel.ForEach(foundwo, (f) =>
-                {
-                    player.StopTrackingObject(f, false);
-                });
             });
         }
 
@@ -350,7 +324,7 @@ namespace ACE.Entity
         {
             Log($"Getting WorldObject Position {objectId.Full:X}");
 
-            return worldObjects.ContainsKey(objectId) ? worldObjects[objectId].PhysicsData.Position : null;
+            return worldObjects.ContainsKey(objectId) ? worldObjects[objectId].Location : null;
         }
 
         public float GetWorldObjectEffectiveUseRadius(ObjectGuid objectId)
@@ -361,8 +335,8 @@ namespace ACE.Entity
             wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             if (wo != null)
             {
-                var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup);
-                return (float)Math.Pow((wo.GameData.UseRadius + csetup.Radius + 1.5), 2);
+                var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup.Value);
+                return (float)Math.Pow((wo.UseRadius.Value + csetup.Radius + 1.5), 2);
             }
             return 0.00f;
         }
@@ -540,7 +514,7 @@ namespace ACE.Entity
                 log.Error("ERROR: Broadcasting motion from object not on our landblock");
             }
 
-            EnqueueBroadcast(wo.PhysicsData.Position, maxobjectRange,
+            EnqueueBroadcast(wo.Location, maxobjectRange,
                 new GameMessageUpdateMotion(wo.Guid,
                         wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                         wo.Sequences, motion));
@@ -573,7 +547,7 @@ namespace ACE.Entity
                     List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
                     foreach (Player p in allPlayers)
                     {
-                        if (p.PhysicsData.Position.SquaredDistanceTo(pos) < distance * distance)
+                        if (p.Location.SquaredDistanceTo(pos) < distance * distance)
                         {
                             p.Session.Network.EnqueueSend(msg);
                         }
@@ -618,7 +592,7 @@ namespace ACE.Entity
                 List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
                 foreach (Player p in allPlayers)
                 {
-                    if (p.PhysicsData.Position.SquaredDistanceTo(pos) < distance * distance)
+                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
                     {
                         p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
                     }
@@ -697,7 +671,7 @@ namespace ACE.Entity
             {
                 return null;
             }
-            return lb.worldObjects[guid].PhysicsData.Position;
+            return lb.worldObjects[guid].Location;
         }
 
         public void ChainOnObject(ActionChain chain, ObjectGuid woGuid, Action<WorldObject> action)

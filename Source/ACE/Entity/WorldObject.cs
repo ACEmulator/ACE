@@ -6,13 +6,12 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
+using ACE.Network.Motion;
 using System.Collections.Generic;
 using System.IO;
 using ACE.Managers;
 using log4net;
-using System.IO;
 using System;
-using System.Collections.Generic;
 
 namespace ACE.Entity
 {
@@ -171,6 +170,7 @@ namespace ACE.Entity
             set { AceObject.ItemUseable = (uint?)value; }
         }
 
+        // FIXME(ddevec): Defaults to 25, so is unnecessarily sent always w/ weenieheaderflags.
         public float? UseRadius
         {
             get { return AceObject.UseRadius ?? 0.25f; }
@@ -434,7 +434,9 @@ namespace ACE.Entity
         {
             var p = (Player)this;
             PhysicsData.CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            var updateMotion = new GameMessageUpdateMotion(p.Guid,
+                                                           p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                           p.Sequences, motionState);
             p.Session.Network.EnqueueSend(updateMotion);
         }
 
@@ -756,7 +758,7 @@ namespace ACE.Entity
         /// <param name="newPosition"></param>
         public void PhysicsUpdatePosition(Position newPosition)
         {
-            PhysicsData.Position = newPosition;
+            Location = newPosition;
             SendUpdatePosition();
 
             ForcedLocation = null;

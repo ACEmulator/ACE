@@ -21,7 +21,7 @@ namespace ACE.Factories
         {
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            inventoryItem.PhysicsData.Position = position.InFrontOf(1.00f);
+            inventoryItem.Location = position.InFrontOf(1.00f);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             return LandblockManager.GetAddObjectChain(inventoryItem);
         }
