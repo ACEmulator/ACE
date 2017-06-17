@@ -1,6 +1,6 @@
 DELIMITER $$
 
-CREATE DEFINER=`root`@`localhost` EVENT `SetCharacterDeletedFlag` ON SCHEDULE EVERY 15 MINUTE STARTS '2017-06-16 16:15:35' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+CREATE DEFINER=`root`@`localhost` EVENT `SetCharacterDeletedFlag` ON SCHEDULE EVERY 1 MINUTE STARTS '2017-06-16 16:15:35' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
  UPDATE
       ace_object_properties_bool aopb
       INNER JOIN ace_object_properties_bigint aopbi
