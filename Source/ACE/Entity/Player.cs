@@ -1363,32 +1363,8 @@ namespace ACE.Entity
             DelayedTeleportTime = DateTime.MinValue;
             WaitingForDelayedTeleport = false;
         }
-
-        public override void Tick(double tickTime)
-        {
-            uint oldHealth = Health.Current;
-            uint oldStamina = Stamina.Current;
-            uint oldMana = Mana.Current;
-
-            base.Tick(tickTime);
-
-            // If the game loop changed a vital -- send an update message to the client
-            if (Health.Current != oldHealth)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current));
-            }
-
-            if (Stamina.Current != oldStamina)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Stamina, Stamina.Current));
-            }
-
-            if (Mana.Current != oldMana)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current));
-            }
-        }
         
+
         public void TestEquipItem(Session session, uint modelId, int palOption)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm

@@ -160,17 +160,5 @@ namespace ACE.Entity
             QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
             session.Player.AddToActionQueue(addCorpse);
         }
-
-        /// <summary>
-        /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
-        /// </summary>
-        // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
-        override public void Tick(double tickTime)
-        {
-            // TODO: Realistic rates && adjusting rates for spells...
-            Health.Tick(tickTime);
-            Stamina.Tick(tickTime);
-            Mana.Tick(tickTime);
-        }
     }
 }
