@@ -180,7 +180,7 @@ namespace ACE.Database
             LoadIntoObject(aceCharacter);
             aceCharacter.DeleteTime = unixTime;
 
-            // aceCharacter.Deleted = true;  This is just a reminder - the DB will set this 1 hour after deletion.
+            aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
 
             return await SaveObject(aceCharacter);
         }
