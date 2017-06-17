@@ -175,12 +175,12 @@ namespace ACE.Entity
                 // NOTE: Must use CurrentLandblock.GetPosition() for the portal's position...
                 if (CurrentLandblock.GetPosition(Guid).SquaredDistanceTo(player.Location) < rangeCheck)
                 {
-                    if (portalDestination != null)
+                    if (Destination != null)
                     {
                         // Check player level -- requires remote query to player (ugh)...
-                        if ((player.Level >= portalMinLvl) && ((player.Level <= portalMaxLvl) || (portalMaxLvl == 0)))
+                        if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
                         {
-                            Position portalDest = portalDestination;
+                            Position portalDest = Destination;
                             switch (WeenieClassid)
                             {
                                 /// <summary>
@@ -213,13 +213,13 @@ namespace ACE.Entity
                                                 }
                                         }
 
-                                        portalDest.PositionX = portalDestination.PositionX;
-                                        portalDest.PositionY = portalDestination.PositionY;
-                                        portalDest.PositionZ = portalDestination.PositionZ;
-                                        portalDest.RotationX = portalDestination.RotationX;
-                                        portalDest.RotationY = portalDestination.RotationY;
-                                        portalDest.RotationZ = portalDestination.RotationZ;
-                                        portalDest.RotationW = portalDestination.RotationW;
+                                        portalDest.PositionX = Destination.PositionX;
+                                        portalDest.PositionY = Destination.PositionY;
+                                        portalDest.PositionZ = Destination.PositionZ;
+                                        portalDest.RotationX = Destination.RotationX;
+                                        portalDest.RotationY = Destination.RotationY;
+                                        portalDest.RotationZ = Destination.RotationZ;
+                                        portalDest.RotationW = Destination.RotationW;
                                         break;
                                     }
                                 /// <summary>
@@ -252,13 +252,13 @@ namespace ACE.Entity
                                                 }
                                         }
 
-                                        portalDest.PositionX = portalDestination.PositionX;
-                                        portalDest.PositionY = portalDestination.PositionY;
-                                        portalDest.PositionZ = portalDestination.PositionZ;
-                                        portalDest.RotationX = portalDestination.RotationX;
-                                        portalDest.RotationY = portalDestination.RotationY;
-                                        portalDest.RotationZ = portalDestination.RotationZ;
-                                        portalDest.RotationW = portalDestination.RotationW;
+                                        portalDest.PositionX = Destination.PositionX;
+                                        portalDest.PositionY = Destination.PositionY;
+                                        portalDest.PositionZ = Destination.PositionZ;
+                                        portalDest.RotationX = Destination.RotationX;
+                                        portalDest.RotationY = Destination.RotationY;
+                                        portalDest.RotationZ = Destination.RotationZ;
+                                        portalDest.RotationW = Destination.RotationW;
                                         break;
                                     }
                                 /// <summary>
@@ -273,13 +273,13 @@ namespace ACE.Entity
                             player.Session.Player.Teleport(portalDest);
                             // If the portal just used is able to be recalled to,
                             // save the destination coordinates to the LastPortal character position save table
-                            if (Convert.ToBoolean(portalIsRecallable) == true)
+                            if (Convert.ToBoolean(IsRecallable) == true)
                                 player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                             // always send useDone event
                             var sendUseDoneEvent = new GameEventUseDone(player.Session);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent);
                         }
-                        else if ((player.Level > portalMaxLvl) && (portalMaxLvl != 0))
+                        else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
                         {
                             // You are too powerful to interact with that portal!
                             var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);

@@ -419,11 +419,9 @@ namespace ACE.Command.Handlers
                         }
                 }
 
-                Position p = session.Player.GetPosition(positionType);
-
                 // If we have the position, teleport the player
-                if (p != null) {
-                    session.Player.Teleport(p);
+                if (session.Player.Positions.ContainsKey(positionType)) {
+                    session.Player.HandleActionTeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -1003,7 +1001,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(weenieId);
+            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
             session.Player.HandleAddToInventory(loot);
         }
 
@@ -1036,7 +1034,7 @@ namespace ACE.Command.Handlers
             }
             for (byte b = 1; b <= numItems; b++)
             {
-                var loot = LootGenerationFactory.CreateRandomTestWorldObject(typeId);
+                var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
                 if (loot != null)
                 {
                     session.Player.HandleAddToInventory(loot);

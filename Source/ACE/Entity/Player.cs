@@ -165,6 +165,23 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
+        /// <summary>
+        /// This signature services MoveToObject and TurnToObject
+        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
+        /// </summary>
+        /// <param name="worldObjectPosition"></param>
+        /// <param name="sequence"></param>
+        /// <param name="movementType"></param>
+        /// <returns>MovementStates</returns>
+        public void OnAutonomousMove(Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
+        {
+            var newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
+            newMotion.DistanceFrom = 0.60f;
+            newMotion.MovementTypes = MovementTypes.MoveToObject;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, new GameMessageUpdatePosition(this));
+            CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
+        }
+
         public Player(Session session, AceCharacter character) : base(character)
         {
             Session = session;
@@ -315,61 +332,6 @@ namespace ACE.Entity
             obj.WeenieClassId = 1;
 
             return obj;
-        }
-        public void AddToActionQueue(QueuedGameAction action)
-        {
-            actionQueue.Enqueue(action);
-        }
-
-        public void AddToExaminationQueue(QueuedGameAction action)
-        {
-            examinationQueue.Enqueue(action);
-        }
-
-        public QueuedGameAction ActionQueuePop()
-        {
-            QueuedGameAction action = null;
-            if (actionQueue.TryDequeue(out action))
-            {
-                lock (delayedActionsMutex)
-                {
-                    if (action.RespectDelay && delayedActions.ContainsKey(action.ObjectId))
-                    {
-                        double endTime = delayedActions[action.ObjectId];
-                        if (action.StartTime > endTime)
-                        {
-                            // the new action starts after the old one is complete, so remove the old one
-                            delayedActions.Remove(action.ObjectId);
-                        }
-                        else
-                        {
-                            // the new action should start before the old one is complete, so enqueue the new one again
-                            action.StartTime = WorldManager.PortalYearTicks;
-                            actionQueue.Enqueue(action);
-                            return null;
-                        }
-                    }
-
-                    // This is an action e.g. animation that takes time to complete
-                    // Remember this object to delay further actions queued for the same object
-                    if (action.EndTime > WorldManager.PortalYearTicks)
-                    {
-                        delayedActions.Add(action.ObjectId, action.EndTime);
-                    }
-                }
-                return action;
-            }
-            else
-                return null;
-        }
-
-        public QueuedGameAction ExaminationQueuePop()
-        {
-            QueuedGameAction action = null;
-            if (examinationQueue.TryDequeue(out action))
-                return action;
-            else
-                return null;
         }
 
         /// <summary>
@@ -801,12 +763,11 @@ namespace ACE.Entity
             */
 
             // teleport to sanctuary or best location
-            Position newPositon = PositionSanctuary ?? PositionLastPortal ?? Location;
+            Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
 
             // Enqueue a teleport action, followed by Stand-up
             // Queue the teleport to lifestone
             ActionChain teleportChain = GetTeleportChain(newPosition);
-            //ActionQueuedTeleport(newPositon, Guid, GameActionType.TeleToLifestone);
 
             teleportChain.AddAction(this, () =>
             {
@@ -903,6 +864,8 @@ namespace ACE.Entity
             chain.EnqueueChain();
         }
 
+        // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
+        /* 
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
             new ActionChain(this, () =>
@@ -952,6 +915,7 @@ namespace ACE.Entity
                 }
             }).EnqueueChain();
         }
+        */
 
         public void HandleAddToInventory(WorldObject wo)
         {
@@ -1272,7 +1236,6 @@ namespace ACE.Entity
 
             if (packet)
             {
-                //Session.Network.EnqueueSend(new GameMessageSetState(this, state));
                 // TODO: this should be broadcast
                 if (CurrentLandblock != null)
                 {
@@ -1315,10 +1278,6 @@ namespace ACE.Entity
             {
                 clientObjectList.Clear();
             }
-
-            // Handle landblock change --
-            // Location = newPosition;
-            //SetPhysicalCharacterPosition();
         }
 
         public void RequestUpdatePosition(Position pos)
@@ -1420,7 +1379,9 @@ namespace ACE.Entity
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
-                Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, Session, logout));
+                Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
+                                                                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                                        Sequences, logout));
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 
@@ -1459,6 +1420,32 @@ namespace ACE.Entity
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
 
+        public void HandleActionTeleToPosition(PositionType position, Action onError = null)
+        {
+            GetTeleToPositionChain(position, onError).EnqueueChain();
+        }
+
+        public ActionChain GetTeleToPositionChain(PositionType position, Action onError)
+        {
+            ActionChain teleChain = new ActionChain();
+            teleChain.AddAction(this, () =>
+            {
+                if (Positions.ContainsKey(position))
+                {
+                    Position dest = Positions[position];
+                    Teleport(dest);
+                }
+                else
+                {
+                    if (onError != null)
+                    {
+                        onError();
+                    }
+                }
+            });
+            return teleChain;
+        }
+
         public void HandleActionTeleToLifestone()
         {
             ActionChain lifestoneChain = new ActionChain();
@@ -1477,10 +1464,8 @@ namespace ACE.Entity
 
                 var sysChatMessage = new GameMessageSystemChat(msg, ChatMessageType.Recall);
 
-                //Mana.Current = Mana.Current / 2;
                 // FIXME(ddevec): I should probably make a better interface for this
                 UpdateVitalInternal(Mana, Mana.Current / 2);
-                //var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current);
 
                 var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
 
@@ -1592,7 +1577,7 @@ namespace ACE.Entity
             {
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                CurrentLandblock.EnqueueBroadcast(PhysicsData.Position, Landblock.maxobjectRange,
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange,
                     new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid,
                                                 Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
@@ -1602,7 +1587,7 @@ namespace ACE.Entity
             putItemInContainerChain.AddDelaySeconds(2);
 
             // Ask landblock to transfer item
-            //putItemInContainerChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
+            // putItemInContainerChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
             CurrentLandblock.ScheduleItemTransfer(putItemInContainerChain, itemGuid, containerGuid);
 
             // Finish pickup animation
@@ -1617,11 +1602,11 @@ namespace ACE.Entity
                     // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
                     var motion = new UniversalMotion(MotionStance.Standing);
                     Session.Network.EnqueueSend(
-                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal, GameData.Burden),
+                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden),
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessagePutObjectInContainer(Session, this, itemGuid));
 
-                    CurrentLandblock.EnqueueBroadcast(PhysicsData.Position, Landblock.maxobjectRange,
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange,
                             new GameMessageUpdateMotion(Guid,
                                                         Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                         Sequences, motion),
@@ -1636,14 +1621,13 @@ namespace ACE.Entity
                 {
                     var motion = new UniversalMotion(MotionStance.Standing);
 
-                    CurrentLandblock.EnqueueBroadcast(PhysicsData.Position, Landblock.maxobjectRange,
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange,
                             new GameMessageUpdateMotion(Guid,
                                                         Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                         Sequences, motion));
                     // CurrentLandblock.EnqueueBroadcast(self shame);
                 }
             });
-
 
             // Set chain to run
             putItemInContainerChain.EnqueueChain();
@@ -1662,7 +1646,7 @@ namespace ACE.Entity
                     return;
 
                 RemoveFromInventory(itemGuid);
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbVal, GameData.Burden));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden));
 
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
@@ -1685,7 +1669,7 @@ namespace ACE.Entity
                 chain.AddAction(this, () =>
                 {
                     // The item is at my location now
-                    inventoryItem.PhysicsData.Position = Location;
+                    inventoryItem.Location = Location;
 
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock.EnqueueBroadcastMotion(this, motion);

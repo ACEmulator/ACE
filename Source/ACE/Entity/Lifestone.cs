@@ -52,8 +52,8 @@ namespace ACE.Entity
                 Player player = wo as Player;
                 string serverMessage = null;
                 // validate within use range, taking into account the radius of the model itself, as well
-                SetupModel csetup = SetupModel.ReadFromDat(PhysicsData.CSetup);
-                float radiusSquared = (GameData.UseRadius + csetup.Radius) * (GameData.UseRadius + csetup.Radius);
+                SetupModel csetup = SetupModel.ReadFromDat(PhysicsData.CSetup.Value);
+                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
 
                 // Run this animation...
                 // Player Enqueue: 
