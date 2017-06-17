@@ -71,9 +71,12 @@ namespace ACE.Network
         public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
             AccountCharacters.Clear();
+            byte slot = 0;
             foreach (var character in characters)
             {
+                character.SlotId = slot;
                 AccountCharacters.Add(character);
+                slot++;
             }
         }
 
