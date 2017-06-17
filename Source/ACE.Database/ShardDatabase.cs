@@ -113,8 +113,9 @@ namespace ACE.Database
             /*
             HashSet<string> criteria1 = new HashSet<string> { "guid", "name", "deleted" };
             ConstructGetListStatement(ShardPreparedStatement.GetListTest, typeof(CachedCharacter), criteria1);
-            ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
             */
+
+            ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.GetList);
