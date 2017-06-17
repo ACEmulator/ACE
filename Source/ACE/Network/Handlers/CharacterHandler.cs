@@ -256,8 +256,6 @@ namespace ACE.Network.Handlers
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
 
-            character.WeenieClassId = 1;
-
             bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
             if (!isAvailable)
             {

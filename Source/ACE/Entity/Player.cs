@@ -223,10 +223,9 @@ namespace ACE.Entity
             return Character;
         }
 
+        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
         public void Load(AceCharacter character)
         {
-            // AceObject = character;
-
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -241,10 +240,6 @@ namespace ACE.Entity
                 // if (Session.AccessLevel == AccessLevel.Advocate)
                 //    character.IsAdvocate= true;
             }
-
-            // Location = character.Location;
-
-            // SetAbilities(character);
 
             IsOnline = true;
 
