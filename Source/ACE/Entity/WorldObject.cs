@@ -656,6 +656,18 @@ namespace ACE.Entity
             writer.Align();
         }
 
+        /// <summary>
+        /// This is the function used for the GameMessage.ObjDescEvent
+        /// </summary>
+        /// <param name="writer">Passed from the GameMessageEvent</param>
+        public virtual void SerializeUpdateModelData(BinaryWriter writer)
+        {
+            writer.WriteGuid(Guid);
+            ModelData.Serialize(writer);
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
+        }
+
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
