@@ -13,12 +13,15 @@ namespace ACE.Entity.Enum
         Focus           = 16,
         Self            = 32,
 
+        [AbilityRegen(0.5)]
         [AbilityFormula(Endurance, 2)]
         Health          = 64,
 
+        [AbilityRegen(1.0)]
         [AbilityFormula(Endurance)]
         Stamina         = 128,
 
+        [AbilityRegen(0.7)]
         [AbilityFormula(Self)]
         Mana            = 256
     }
@@ -28,6 +31,12 @@ namespace ACE.Entity.Enum
         public static AbilityFormulaAttribute GetFormula(this Ability ability)
         {
             return Enum.EnumHelper.GetAttributeOfType<AbilityFormulaAttribute>(ability);
+        }
+
+        // FIXME(ddevec): This will eventually be a formula...
+        public static double GetRegenRate(this Ability ability)
+        {
+            return Enum.EnumHelper.GetAttributeOfType<AbilityRegenAttribute>(ability).Rate;
         }
     }
 }
