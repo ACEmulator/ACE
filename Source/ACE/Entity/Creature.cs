@@ -174,8 +174,9 @@ namespace ACE.Entity
                 // Create Corspe and set a location on the ground
                 // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
                 var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                corpse.Location.PositionY -= corpse.PhysicsData.ObjScale.Value;
-                corpse.Location.PositionZ -= corpse.PhysicsData.ObjScale.Value / 2;
+                // FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
+                corpse.Location.PositionY -= (corpse.PhysicsData.ObjScale ?? 0);
+                corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
 
                 // Corpses stay on the ground for 5 * player level but minimum 1 hour
                 // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
