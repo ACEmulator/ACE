@@ -53,6 +53,13 @@ namespace ACE.Entity
             models.Add(newmodel);
         }
 
+        public void Clear()
+        {
+            modelPalettes.Clear();
+            modelTextures.Clear();
+            models.Clear();
+        }
+
         // todo: render object network code
         public void Serialize(BinaryWriter writer)
         {

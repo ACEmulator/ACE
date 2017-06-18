@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-17
+[OptimShi]
+* Added functionality for the GameMessageObjDescEvent message (fired when a model changes, like when equipping new items). Also included a debug command "@equiptest" to expose the new functions which will cosmetically equip your character with a single piece of armor/clothing (only cosmetic, no actual "equipping" is being done at this time)
+
 ### 2017-06-16
 [OptimShi]
 * Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event. (Added back in after OO merge)
@@ -12,6 +16,7 @@
 * Minor code cleanup.
 * Removed update directory for old character database.
 * Fixed pickup and drop item.   Location was protected and not able to be set for loot (WorldObjects)   I temp set this allow set.   Once we refactor physicsData out this can go away.
+
 
 ### 2017-06-15
 [ddevec]
