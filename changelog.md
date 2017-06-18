@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-06-18
+[Ripley]
+* Made changes to AceObject, PhysicsData, DebugObject and UsableObject to make wielded items in database work better.
+* Note that PhysicsData.Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
+
 ### 2017-06-17
 [Ripley]
 * Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
