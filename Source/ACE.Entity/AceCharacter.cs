@@ -33,7 +33,6 @@ namespace ACE.Entity
             WeenieClassId = 1;
             Burden = 0;
             SpellId = 0;
-            
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable |
                                         ObjectDescriptionFlag.Player);
         }

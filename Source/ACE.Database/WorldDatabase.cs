@@ -44,7 +44,10 @@ namespace ACE.Database
         {
             ConstructStatement(WorldPreparedStatement.GetPointsOfInterest, typeof(TeleportLocation), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), ConstructedStatementType.Get);
-
+            HashSet<string> criteria1 = new HashSet<string> { "itemType" };
+            ConstructGetListStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(CachedWordObject), criteria1);
+            criteria1 = new HashSet<string> { "landblock" };
+            ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWordObject), criteria1);
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
@@ -71,7 +74,6 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWordObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
         }
 

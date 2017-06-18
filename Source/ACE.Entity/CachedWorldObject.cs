@@ -11,5 +11,8 @@ namespace ACE.Entity
 
         [DbField("landblock", (int)MySqlDbType.UInt16, ListGet = true)]
         public ushort Landblock { get; set; }
+
+        [DbField("itemType", (int)MySqlDbType.UInt32, ListGet = true)]
+        public uint ItemType { get; set; }
     }
 }
