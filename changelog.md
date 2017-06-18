@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-06-17
+[fantoms]
+* Added the debug command `listplayers`, that will list all players currently connected too the server.
+
 [Ripley]
 * Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
 * Changed CachedWordObject to CachedWorldObject.
