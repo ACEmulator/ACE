@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
 ### 2017-06-17
+[fantoms]
+* Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
+* Added `MaximumAllowedSessions` to the `ConfigManager` and the `Config.json.example` file.
+* Began using the variable in the `WorldManager.cs` server initalization step, allowing usersr to configure the max allowed sessions.
+
 [Ripley]
 * Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
 * Changed CachedWordObject to CachedWorldObject.
