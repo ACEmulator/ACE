@@ -34,8 +34,6 @@ namespace ACE.Entity
             PhysicsData.DefaultScript = baseAceObject.DefaultScript;
             PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
             PhysicsData.Elasticity = baseAceObject.Elasticity;
-            // PhysicsData.EquipperPhysicsDescriptionFlag = (EquipMask?)baseAceObject.CurrentWieldedLocation; // what is going on here?
-            // PhysicsData.EquipperPhysicsDescriptionFlag = baseAceObject.ParentLocation;
             PhysicsData.Parent = baseAceObject.Parent;
             PhysicsData.ParentLocation = baseAceObject.ParentLocation;
             PhysicsData.Friction = baseAceObject.Friction;
