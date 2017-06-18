@@ -481,6 +481,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
+        public uint? Parent
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+        }
+
+        public uint? ParentLocation
+        {
+            get { return GetIntProperty(PropertyInt.ParentLocation); }
+            set { SetIntProperty(PropertyInt.ParentLocation, value); }
+        }
+
         public float? DefaultScale
         {
             get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
