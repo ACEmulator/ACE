@@ -71,7 +71,7 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWordObject), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
         }
 
@@ -126,7 +126,7 @@ namespace ACE.Database
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWordObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWorldObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {
