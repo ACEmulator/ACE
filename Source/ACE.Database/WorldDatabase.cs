@@ -80,11 +80,11 @@ namespace ACE.Database
         public AceObject GetRandomWeenieOfType(uint itemType)
         {
             var criteria = new Dictionary<string, object> { { "itemType", itemType } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWordObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
             if (objects.Count <= 0) return null;
             var rnd = new Random();
             var r = rnd.Next(objects.Count);
-            return GetBaseAceObjectDataByWeenie(objects[r].WeenieClassId);
+            return GetBaseAceObjectDataByWeenie(objects[r].AceObjectId);
         }
 
         // public List<TeleportLocation> GetLocations()
