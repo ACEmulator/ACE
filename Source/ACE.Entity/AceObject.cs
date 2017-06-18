@@ -53,7 +53,6 @@ namespace ACE.Entity
         [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
         public uint WeenieHeaderFlags { get; set; }
 
-
         public uint? AnimationFrameId
         {
             get { return GetIntProperty(PropertyInt.PlacementPosition); }
@@ -919,7 +918,7 @@ namespace ACE.Entity
             return toClone.Select(x => (T)x.Clone()).ToList();
         }
 
-        private static Dictionary<K,V> CloneDict<K,V>(Dictionary<K,V> toClone) where V : ICloneable
+        private static Dictionary<K, V> CloneDict<K, V>(Dictionary<K, V> toClone) where V : ICloneable
         {
             return toClone.ToDictionary(x => x.Key, x => (V)x.Value.Clone());
         }

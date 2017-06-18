@@ -16,7 +16,7 @@ namespace ACE.Entity
             set { LowGuid = value.Low; }
         }
 
-        public byte SlotId { get; }
+        public byte SlotId { get; set; }
 
         [DbField("accountId", (int)MySqlDbType.UInt32, ListGet = true)]
         public uint AccountId { get; set; }

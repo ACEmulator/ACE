@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Enum;
-
+using ACE.Entity.Enum.Properties;
 using log4net;
 // ReSharper disable InconsistentNaming
 
@@ -46,6 +46,7 @@ namespace ACE.Database
             SaveAceObject = 27,
             DeleteAceObject = 28,
             GetAceObject = 29,
+            UpdateAceObject = 30,
 
             AddFriend = 101,
             DeleteFriend = 102,
@@ -183,9 +184,15 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public void DeleteOrRestore(ulong unixTime, uint id)
+        public async Task<bool> DeleteOrRestore(ulong unixTime, uint aceObjectId)
         {
-            throw new NotImplementedException();
+            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
+            LoadIntoObject(aceCharacter);
+            aceCharacter.DeleteTime = unixTime;
+
+            aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
+
+            return await SaveObject(aceCharacter);
         }
 
         public async Task<List<CachedCharacter>> GetCharacters(uint accountId)
@@ -371,11 +378,10 @@ namespace ACE.Database
             return objects.ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
         }
 
-
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWordObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWorldObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {

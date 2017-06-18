@@ -50,6 +50,7 @@ namespace ACE.Entity
                 Burden += inventoryItem.Burden;
                 inventoryItem.ContainerId = Guid.Full;
                 inventoryItem.PhysicsData.Position = null;
+                inventoryItem.Location = null;
                 inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
             }
         }
@@ -57,9 +58,10 @@ namespace ACE.Entity
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
-            Burden -= inventoryItem.Burden;
+            if (Burden >= inventoryItem.Burden)
+                Burden -= inventoryItem.Burden;
 
-            inventoryItem.PhysicsData.Position = PhysicsData.Position.InFrontOf(1.0f);
+            inventoryItem.Location = Location.InFrontOf(1.0f);
             // TODO: Write a method to set this based on data.
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
                                          | UpdatePositionFlag.Placement

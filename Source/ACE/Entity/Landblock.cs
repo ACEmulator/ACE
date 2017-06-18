@@ -666,7 +666,7 @@ namespace ACE.Entity
                                 aPlayer.TrackObject(inventoryItem);
                                 // This may not be needed when we fix landblock update object -
                                 // TODO: Og II - check this later to see if it is still required.
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
+                                // aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                             }
                         }
                         break;

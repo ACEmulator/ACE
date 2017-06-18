@@ -10,7 +10,7 @@ namespace ACE.Entity
     [DbTable("vw_ace_character")]
     public class AceCharacter : AceObject
     {
-        private List<Friend> friends;
+        private readonly List<Friend> friends;
 
         public AceCharacter(uint id)
             : base(id)
@@ -38,6 +38,8 @@ namespace ACE.Entity
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
+
+        public uint CharacterSlot { get; set; }
 
         public uint CharacterOptions1Mapping
         {

@@ -15,9 +15,9 @@ namespace ACE.DatLoader.FileTypes
         public static PaletteSet ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000018))
+            if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
             {
-                return (PaletteSet)DatManager.PortalDat.FileCache[0x0E000018];
+                return (PaletteSet)DatManager.PortalDat.FileCache[fileId];
             }
             else
             {
