@@ -11,7 +11,7 @@ namespace ACE.Entity
     [DbList("vw_ace_character", "guid")]
     public class AceCharacter : AceObject
     {
-        private List<Friend> friends;
+        private readonly List<Friend> friends;
 
         public AceCharacter(uint id)
             : base(id)
@@ -36,12 +36,13 @@ namespace ACE.Entity
             WeenieClassId = 1;
             Burden = 0;
             SpellId = 0;
-            
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable |
                                         ObjectDescriptionFlag.Player);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
+
+        public uint CharacterSlot { get; set; }
 
         public uint CharacterOptions1Mapping
         {

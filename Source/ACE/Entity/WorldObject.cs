@@ -61,7 +61,7 @@ namespace ACE.Entity
         public virtual Position Location
         {
             get { return AceObject.Location; }
-            protected set
+            set
             {
                 /*
                 log.Debug($"{Name} moved to {PhysicsData.Position}");
