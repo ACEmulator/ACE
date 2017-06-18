@@ -6,6 +6,7 @@
 * Changed CachedWordObject to CachedWorldObject.
 * Changed CachedWorldObject.Landblock from ushort to int.
 * Changed CharacterBase and ace_character references to ShardBase and ace_shard in README.
+* Altered AppVeyor SQL install batch file to execute proper scripts.
 
 [OptimShi]
 * Added functionality for the GameMessageObjDescEvent message (fired when a model changes, like when equipping new items). Also included a debug command "@equiptest" to expose the new functions which will cosmetically equip your character with a single piece of armor/clothing (only cosmetic, no actual "equipping" is being done at this time)
