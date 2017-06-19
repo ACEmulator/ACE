@@ -5,12 +5,12 @@ namespace ACE.Entity
 {
     [DbTable("vw_ace_object")]
     [DbList("vw_ace_object", "landblock")]
-    public class CachedWordObject
+    public class CachedWorldObject
     {
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("landblock", (int)MySqlDbType.UInt16)]
-        public ushort Landblock { get; set; }
+        public int Landblock { get; set; }
     }
 }

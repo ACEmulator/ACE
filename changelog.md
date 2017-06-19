@@ -1,10 +1,21 @@
 # ACEmulator Change Log
 
 ### 2017-06-17
+
 [ddevec]
 * Cleaned up player creation.
 * Fixed naming issue on player creation.
 * Fixed saving/loading of several AceObject properties.
+
+[Ripley]
+* Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
+* Changed CachedWordObject to CachedWorldObject.
+* Changed CachedWorldObject.Landblock from ushort to int.
+* Changed CharacterBase and ace_character references to ShardBase and ace_shard in README.
+* Altered AppVeyor SQL install batch file to execute proper scripts.
+
+[OptimShi]
+* Added functionality for the GameMessageObjDescEvent message (fired when a model changes, like when equipping new items). Also included a debug command "@equiptest" to expose the new functions which will cosmetically equip your character with a single piece of armor/clothing (only cosmetic, no actual "equipping" is being done at this time)
 
 ### 2017-06-16
 [OptimShi]
@@ -27,7 +38,6 @@
 * Fixed Attribute2nd initailization error in the process.
 
 ### 2017-06-14
-
 [ddevec]
 * Fixed Position saving bug.
 * Added intial Level, TotalExperience, and AvailiableExperience to AceCharacter
