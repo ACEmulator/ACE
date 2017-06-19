@@ -371,7 +371,7 @@ namespace ACE.Database
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWordObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWorldObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {
