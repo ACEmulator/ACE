@@ -203,7 +203,6 @@
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Network\Enum\PhysicsDescriptionFlag.cs" />
-    <Compile Include="Network\Enum\WeenieHeaderFlags.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="Entity\WorldObject.cs" />
     <Compile Include="Managers\WorldManager.cs" />

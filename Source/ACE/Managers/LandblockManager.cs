@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.GameEvent.Events;
 using log4net;
 
 namespace ACE.Managers
@@ -19,11 +21,18 @@ namespace ACE.Managers
         // and get rid of the 2D array shenanigans
         private static readonly Landblock[,] landblocks = new Landblock[256, 256];
 
-        public static async void PlayerEnterWorld(Session session)
+        public static async void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
-            AceCharacter c = DatabaseManager.Shard.GetCharacter(session.Player.Guid.Full);
+            AceCharacter c = DatabaseManager.Shard.GetCharacter(guid.Full);
 
+            session.Player = new Player(session, c);
             await Task.Run(() => session.Player.Load(c));
+
+            // check the value of the welcome message. Only display it if it is not empty
+            if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+            }
 
             var block = GetLandblock(session.Player.Location.LandblockId, true);
             block.AddWorldObject(session.Player);

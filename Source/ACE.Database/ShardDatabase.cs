@@ -239,9 +239,9 @@ namespace ACE.Database
             aceObject.AceObjectPropertiesPositions = GetAceObjectPostions(aceObject.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType,
                 x => new Position(x));
             aceObject.AceObjectPropertiesAttributes = GetAceObjectPropertiesAttribute(aceObject.AceObjectId).ToDictionary(x => (Ability)x.AttributeId,
-                x => new CreatureAbility(aceObject, x));
+                x => new CreatureAbility(x));
             aceObject.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(aceObject.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId,
-                x => new CreatureAbility(aceObject, x));
+                x => new CreatureVital(aceObject, x));
             aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
                 x => new CreatureSkill(aceObject, x));
         }

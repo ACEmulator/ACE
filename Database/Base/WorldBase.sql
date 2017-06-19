@@ -272,7 +272,7 @@ CREATE TABLE `ace_poi` (
   `weenieClassId` int(10) unsigned NOT NULL,
   PRIMARY KEY (`name`(100)),
   KEY `fk_poi_weenie_ao_idx` (`weenieClassId`),
-  CONSTRAINT `fk_poi_weenie_ao` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`)
+  CONSTRAINT `fk_poi_weenie_ao` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
