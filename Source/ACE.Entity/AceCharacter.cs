@@ -11,7 +11,7 @@ namespace ACE.Entity
     [DbList("vw_ace_character", "guid")]
     public class AceCharacter : AceObject
     {
-        private List<Friend> friends;
+        private readonly List<Friend> friends;
 
         public AceCharacter(uint id)
             : base(id)
@@ -22,6 +22,8 @@ namespace ACE.Entity
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
             ItemType = (uint)ObjectType.Creature;
+            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
+            WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior);
             ItemsCapacity = 102;
             ContainersCapacity = 7;
             WeenieClassId = 1;
@@ -34,12 +36,13 @@ namespace ACE.Entity
             WeenieClassId = 1;
             Burden = 0;
             SpellId = 0;
-            
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable |
                                         ObjectDescriptionFlag.Player);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
+
+        public uint CharacterSlot { get; set; }
 
         public uint CharacterOptions1Mapping
         {

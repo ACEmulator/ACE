@@ -23,6 +23,7 @@ using System.Collections.Concurrent;
 using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
+using ACE.DatLoader.Entity;
 using ACE.Factories;
 using System.IO;
 
@@ -168,7 +169,7 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior, CharacterPositionExtensions.StartingPosition())
+        public Player(Session session, AceCharacter character) : base(character)
         {
             Session = session;
 
@@ -223,10 +224,9 @@ namespace ACE.Entity
             return Character;
         }
 
+        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
         public void Load(AceCharacter character)
         {
-            AceObject = character;
-
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -243,9 +243,7 @@ namespace ACE.Entity
             }
 
             Location = character.Location;
-
-            SetAbilities(character);
-
+            IsAlive = true;
             IsOnline = true;
 
             PhysicsData.MTableResourceId = Character.MotionTableId;
@@ -258,6 +256,26 @@ namespace ACE.Entity
             if (Character.DefaultScale != null)
                 PhysicsData.ObjScale = Character.DefaultScale;
 
+            AddCharacterBaseModelData();
+
+            this.TotalLogins++;
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
+
+            // SendSelf will trigger the entrance into portal space
+            SendSelf();
+            SendFriendStatusUpdates();
+
+            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
+            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
+            var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "General");
+            var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
+            var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
+            var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
+            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+        }
+
+        private void AddCharacterBaseModelData()
+        {
             // Hair/head
             ModelData.AddModel(0x10, Character.HeadObject);
             ModelData.AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
@@ -274,20 +292,6 @@ namespace ACE.Entity
             // Nose & Mouth
             ModelData.AddTexture(0x10, Character.DefaultNoseTexture, Character.NoseTexture);
             ModelData.AddTexture(0x10, Character.DefaultMouthTexture, Character.MouthTexture);
-            this.TotalLogins++;
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
-
-            // SendSelf will trigger the entrance into portal space
-            SendSelf();
-            SendFriendStatusUpdates();
-
-            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
-            var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "General");
-            var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
-            var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
-            var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
         }
 
         public AceObject GetSavableCharacter()
@@ -494,21 +498,24 @@ namespace ACE.Entity
 
         public void SpendXp(Enum.Ability ability, uint amount)
         {
+            bool isSecondary = false;
             CreatureAbility creatureAbility;
             bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
             if (!success)
             {
-                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out creatureAbility);
+                CreatureVital v;
+                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out v);
                 // Invalid ability
                 if (!success)
                 {
                     log.Error("Invalid ability passed to Player.SpendXp");
                     return;
                 }
+                creatureAbility = v;
+                isSecondary = true;
             }
             uint baseValue = creatureAbility.Base;
             uint result = SpendAbilityXp(creatureAbility, amount);
-            bool isSecondary = (ability == Enum.Ability.Health || ability == Enum.Ability.Stamina || ability == Enum.Ability.Mana);
             uint ranks = creatureAbility.Ranks;
             uint newValue = creatureAbility.UnbuffedValue;
             string messageText = "";
@@ -521,7 +528,8 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureAbility.Current);
+                    CreatureVital vital = creatureAbility as CreatureVital;
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, vital.Current);
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
@@ -621,7 +629,12 @@ namespace ACE.Entity
 
             if (rankUps > 0)
             {
-                ability.Current += addToCurrentValue ? rankUps : 0u;
+                // FIXME(ddevec): This needs to be done for vitals only? Someone verify -- 
+                //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
+                CreatureVital vital = ability as CreatureVital;
+                if (vital != null) {
+                    vital.Current += addToCurrentValue ? rankUps : 0u;
+                }
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
                 this.Character.SpendXp(amount);
@@ -1340,6 +1353,109 @@ namespace ACE.Entity
             DelayedTeleportDestination = null;
             DelayedTeleportTime = DateTime.MinValue;
             WaitingForDelayedTeleport = false;
+        }
+
+        public override void Tick(double tickTime)
+        {
+            uint oldHealth = Health.Current;
+            uint oldStamina = Stamina.Current;
+            uint oldMana = Mana.Current;
+
+            base.Tick(tickTime);
+
+            // If the game loop changed a vital -- send an update message to the client
+            if (Health.Current != oldHealth)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current));
+            }
+
+            if (Stamina.Current != oldStamina)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Stamina, Stamina.Current));
+            }
+
+            if (Mana.Current != oldMana)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current));
+            }
+        }
+        
+        public void TestEquipItem(Session session, uint modelId, int palOption)
+        {
+            // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
+            // ClothingTable item = ClothingTable.ReadFromDat(0x10000867); // Cloak
+            // ClothingTable item = ClothingTable.ReadFromDat(0x10000008); // Gloves
+            // ClothingTable item = ClothingTable.ReadFromDat(0x100000AD); // Heaume
+            ClothingTable item = ClothingTable.ReadFromDat(modelId);
+
+            int palCount = 0;
+
+            List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
+            ModelData.Clear();
+            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+
+            if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+            {
+                // Add the model and texture(s)
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
+                {
+                    byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
+                    ModelData.AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
+                    coverage.Add(partNum);
+                    for (int j = 0; j < clothingBaseEffec.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                        ModelData.AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                }
+
+                // Apply an appropriate palette. We'll just pick a random one if not specificed--it's a surprise every time!
+                // For actual equipment, these should just be stored in the ace_object palette_change table and loaded from there
+                if (item.ClothingSubPalEffects.Count > 0)
+                {
+                    List<CloSubPalEffect> values = Enumerable.ToList(item.ClothingSubPalEffects.Values);
+                    int size = item.ClothingSubPalEffects.Count;
+                    palCount = size;
+
+                    // Generate a random index if one isn't provided
+                    if (palOption < 0)
+                    {
+                        Random rand = new Random();
+                        palOption = rand.Next(size);
+                    }
+                    if (palOption > size)
+                        palOption = size - 1;
+
+                    CloSubPalEffect itemSubPal = values[palOption];
+                    for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(0);
+
+                        for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ModelData.AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                }
+
+                // Add the "naked" body parts. These are the ones not already covered.
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+                {
+                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
+                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                }
+
+                var objDescEvent = new GameMessageObjDescEvent(this);
+                session.Network.EnqueueSend(objDescEvent);
+                ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") + ", Applying palette index " + palOption.ToString() + " of " + palCount.ToString() + ".", ChatMessageType.Broadcast);
+            }
+            else
+            {
+                // Alert about the failure
+                ChatPacket.SendServerMessage(session, "Could not match that item to your character model.", ChatMessageType.Broadcast);
+            }
         }
     }
 }

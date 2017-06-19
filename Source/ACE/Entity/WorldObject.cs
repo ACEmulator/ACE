@@ -16,20 +16,37 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public ObjectGuid Guid { get; }
+        public ObjectGuid Guid {
+            get { return new ObjectGuid(AceObject.AceObjectId); }
+            private set { AceObject.AceObjectId = value.Full; }
+        }
 
         protected AceObject AceObject { get; set; }
 
-        public ObjectType Type { get; protected set; }
+        public ObjectType Type
+        {
+            get { return (ObjectType)AceObject.ItemType; }
+            protected set { AceObject.ItemType = (uint)value; }
+        }
 
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public uint WeenieClassid { get; protected set; }
+        public uint WeenieClassid {
+            get { return AceObject.WeenieClassId; }
+            protected set { AceObject.WeenieClassId = value; }
+        }
 
-        public uint? Icon { get; set; }
+        public uint? Icon {
+            get { return AceObject.IconId; }
+            set { AceObject.IconId = value; }
+        }
 
-        public string Name { get; protected set; }
+        public string Name
+        {
+            get { return AceObject.Name; }
+            protected set { AceObject.Name = value; }
+        }
 
         /// <summary>
         /// tick-stamp for the last time this object changed in any way.
@@ -44,7 +61,7 @@ namespace ACE.Entity
         public virtual Position Location
         {
             get { return AceObject.Location; }
-            protected set
+            set
             {
                 /*
                 log.Debug($"{Name} moved to {PhysicsData.Position}");
@@ -72,7 +89,11 @@ namespace ACE.Entity
 
         public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
 
-        public WeenieHeaderFlag WeenieFlags { get; protected internal set; }
+        public WeenieHeaderFlag WeenieFlags
+        {
+            get { return (WeenieHeaderFlag)AceObject.WeenieHeaderFlags; }
+            protected internal set { AceObject.WeenieHeaderFlags = (uint)value; }
+        }
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
@@ -656,6 +677,18 @@ namespace ACE.Entity
             writer.Align();
         }
 
+        /// <summary>
+        /// This is the function used for the GameMessage.ObjDescEvent
+        /// </summary>
+        /// <param name="writer">Passed from the GameMessageEvent</param>
+        public virtual void SerializeUpdateModelData(BinaryWriter writer)
+        {
+            writer.WriteGuid(Guid);
+            ModelData.Serialize(writer);
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
+        }
+
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
@@ -664,6 +697,10 @@ namespace ACE.Entity
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+        }
+
+        public virtual void Tick(double tickTime)
+        {
         }
     }
 }

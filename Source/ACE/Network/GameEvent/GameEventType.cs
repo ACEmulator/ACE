@@ -34,6 +34,8 @@
         SetTurbineChatChannels              = 0x0295,
         Tell                                = 0x02BD,
 
+        MagicUpdateSpell                    = 0x02C1, // Add spell to player spellbook
+
         PurgeAllEnchantments                = 0x02C6 // Silent upon death
     }
 }

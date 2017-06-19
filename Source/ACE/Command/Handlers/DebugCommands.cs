@@ -254,6 +254,70 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
         }
+        
+        // This function 
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+             "Sets the specified vital to a specified value",
+            "Usage: @setvital <vital> <value>\n" +
+            "<vital> is one of the following strings:\n" +
+            "    health, hp\n" +
+            "    stamina, stam, sp\n" +
+            "    mana, mp\n" +
+            "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
+        public static void SetVital(Session session, params string[] parameters)
+        {
+            string paramVital = parameters[0].ToLower();
+            string paramValue = parameters[1];
+
+            bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
+            int value = int.MaxValue;
+
+            if (!int.TryParse(paramValue, out value)) {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
+                return;
+            }
+
+            Entity.Enum.Ability ability;
+            // Parse args...
+            CreatureVital vital = null;
+            if (paramVital == "health" || paramVital == "hp")
+            {
+                ability = Entity.Enum.Ability.Health;
+                vital = session.Player.Health;
+            }
+            else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
+            {
+                ability = Entity.Enum.Ability.Stamina;
+                vital = session.Player.Stamina;
+            }
+            else if (paramVital == "mana" || paramVital == "mp")
+            {
+                ability = Entity.Enum.Ability.Mana;
+                vital = session.Player.Mana;
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
+                return;
+            }
+
+            long targetValue = 0;
+            if (relValue)
+                targetValue = vital.Current + value;
+            else
+                targetValue = value;
+
+            if (targetValue < 0 || targetValue > vital.MaxValue)
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Value over/underflow", ChatMessageType.Broadcast);
+                return;
+            }
+
+            vital.Current = (uint)targetValue;
+
+            // Send an update packet
+            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, vital));
+        }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Teleports you to current position with PositionZ set to +8000.")]
@@ -550,6 +614,114 @@ namespace ACE.Command.Handlers
             message += $"Total positions: " + posDict.Count.ToString() + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
+        }
+
+        /// <summary>
+        /// Debug command to test the ObjDescEvent message. 
+        /// </summary>
+        [CommandHandler("equiptest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Simulates equipping a new item to your character, replacing all other items.")]
+        public static void EquipTest(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0))
+            {
+                ChatPacket.SendServerMessage(session, "Usage: @equiptest (hex)clothingTableId [palette_index].\neg '@equiptest 0x100005fd'",
+                    ChatMessageType.Broadcast);
+                return;
+            }
+
+            uint modelId;
+            try
+            {
+                if (parameters[0].StartsWith("0x"))
+                {
+                    string strippedmodelid = parameters[0].Substring(2);
+                    modelId = UInt32.Parse(strippedmodelid, System.Globalization.NumberStyles.HexNumber);
+                }
+                else
+                    modelId = UInt32.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber);
+
+                int palOption = -1;
+                if (parameters.Length > 1)
+                    palOption = Int32.Parse(parameters[1]);
+
+                if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
+                    session.Player.TestEquipItem(session, modelId, palOption);
+                else
+                    ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
+                        ChatMessageType.Broadcast);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
+            }
+        }
+
+        /// <summary>
+        /// Debug command to learn a spell.
+        /// </summary>
+        /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
+        [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
+            "@learnspell")]
+        public static void HandleLearnSpell(Session session, params string[] parameters)
+        {
+            if (parameters?.Length > 0)
+            {
+                uint spellId = (uint)int.Parse(parameters[0]);
+
+                SpellTable spells = SpellTable.ReadFromDat();
+                if (!spells.Spells.ContainsKey(spellId))
+                {
+                    var errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(errorMessage);
+                }
+                else
+                {
+                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, spellId);
+                    session.Network.EnqueueSend(updateSpellEvent);
+
+                    // Always seems to be this SkillUpPurple effect
+                    session.Player.ActionApplyVisualEffect(PlayScript.SkillUpPurple, session.Player.Guid);
+
+                    string spellName = spells.Spells[spellId].Name;
+                    // TODO Lookup the spell in the spell table.
+                    string message = "You learn the " + spellName + " spell.\n";
+                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(learnMessage);
+                }
+            }
+            else
+            {
+                string message = "Invalid Syntax\n";
+                var errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(errorMessage);
+            }
+        }
+
+        /// <summary>
+        /// Debug command to print out all of the active players connected too the server.
+        /// </summary>
+        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0,
+            "Displays all of the active players connected too the serve.",
+            "@players")]
+        public static void HandleListPlayers(Session session, params string[] parameters)
+        {
+            uint playerCounter = 0;
+            // Build a string message containing all available characters and send as a System Chat message
+            string message = "";
+            foreach (Session playerSession in WorldManager.GetAll(false))
+            {
+                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
+                playerCounter++;
+            }
+            message += $"Total connected Players: {playerCounter}\n";
+            if (session != null)
+            {
+                var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(listPlayersMessage);
+            } else
+                Console.WriteLine(message);
         }
     }
 }

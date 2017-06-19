@@ -10,6 +10,16 @@ namespace ACE.Common
         public string Host { get; set; }
 
         public uint Port { get; set; }
+
+        /// <summary>
+        /// Increasing this setting will allow more Accounts to connect with this server.
+        /// </summary>
+        /// <remarks>
+        /// WARNING: Must be greater then 0 to allow users to connect.
+        /// </remarks>
+        [System.ComponentModel.DefaultValue(128)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public uint MaximumAllowedSessions { get; set; }
     }
 
     public struct ConfigAccountDefaults
