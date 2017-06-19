@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbilityFormulaAttribute.cs" />
+    <Compile Include="AbilityRegenAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="AceCreatureGeneratorData.cs" />
     <Compile Include="AceCreatureGeneratorLocation.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="CharacterLevel.cs" />
     <Compile Include="CreatureSkill.cs" />
     <Compile Include="CreatureAbility.cs" />
+    <Compile Include="CreatureVital.cs" />
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="Enum\Properties\PropertyDataId.cs" />
     <Compile Include="Enum\Properties\PropertyInstanceId.cs" />
     <Compile Include="Enum\SecurityLevel.cs" />
+    <Compile Include="Enum\WeenieHeaderFlags.cs" />
     <Compile Include="Enum\SpellType.cs" />
     <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
