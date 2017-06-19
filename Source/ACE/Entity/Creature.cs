@@ -114,6 +114,7 @@ namespace ACE.Entity
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.DefaultScale;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
+            PhysicsData.Position = aco.Location;
         }
 
         public virtual void OnKill(Session session)

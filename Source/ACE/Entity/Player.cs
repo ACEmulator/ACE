@@ -169,7 +169,7 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
-        public Player(Session session) : base(ObjectType.Creature, session.CharacterRequested.Guid, "Player", 1, ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable, WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior, CharacterPositionExtensions.StartingPosition())
+        public Player(Session session, AceCharacter character) : base(character)
         {
             Session = session;
 
@@ -224,10 +224,9 @@ namespace ACE.Entity
             return Character;
         }
 
+        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
         public void Load(AceCharacter character)
         {
-            AceObject = character;
-
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
@@ -244,7 +243,6 @@ namespace ACE.Entity
             }
 
             Location = character.Location;
-
             IsAlive = true;
             IsOnline = true;
 
