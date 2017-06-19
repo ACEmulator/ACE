@@ -1,6 +1,12 @@
 # ACEmulator Change Log
 
 ### 2017-06-17
+
+[ddevec]
+* Cleaned up player creation.
+* Fixed naming issue on player creation.
+* Fixed saving/loading of several AceObject properties.
+
 [Ripley]
 * Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
 * Changed CachedWordObject to CachedWorldObject.
@@ -23,6 +29,7 @@
 * Minor code cleanup.
 * Removed update directory for old character database.
 * Fixed pickup and drop item.   Location was protected and not able to be set for loot (WorldObjects)   I temp set this allow set.   Once we refactor physicsData out this can go away.
+
 
 ### 2017-06-15
 [ddevec]

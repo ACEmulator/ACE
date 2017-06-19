@@ -90,7 +90,9 @@ namespace ACE.Network.GameAction.Actions
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
 
-            session.Player.UpdateLocation(position);
+            // FIXME(ddevec): The game sends invalid positions sometimes... when in portal space.  Ignore?
+            if (position.Cell != 0)
+                session.Player.UpdateLocation(position);
         }
     }
 }
