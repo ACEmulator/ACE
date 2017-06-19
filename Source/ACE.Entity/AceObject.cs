@@ -161,19 +161,19 @@ namespace ACE.Entity
             set { SetAttributeProperty(Ability.Self, value); }
         }
 
-        public CreatureAbility Health
+        public CreatureVital Health
         {
             get { return GetAttribute2ndProperty(Ability.Health); }
             set { SetAttribute2ndProperty(Ability.Health, value); }
         }
 
-        public CreatureAbility Stamina
+        public CreatureVital Stamina
         {
             get { return GetAttribute2ndProperty(Ability.Stamina); }
             set { SetAttribute2ndProperty(Ability.Stamina, value); }
         }
 
-        public CreatureAbility Mana
+        public CreatureVital Mana
         {
             get { return GetAttribute2ndProperty(Ability.Mana); }
             set { SetAttribute2ndProperty(Ability.Mana, value); }
@@ -480,6 +480,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
+        public uint? Parent
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+        }
+
+        public uint? ParentLocation
+        {
+            get { return GetIntProperty(PropertyInt.ParentLocation); }
+            set { SetIntProperty(PropertyInt.ParentLocation, value); }
+        }
+
         public float? DefaultScale
         {
             get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
@@ -610,7 +622,7 @@ namespace ACE.Entity
 
             if (!success || ret == null)
             {
-                ret = new CreatureAbility(this, ability);
+                ret = new CreatureAbility(ability);
                 AceObjectPropertiesAttributes.Add(ability, ret);
             }
 
@@ -633,21 +645,21 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesAttributes, ability, value);
         }
 
-        public CreatureAbility GetAttribute2ndProperty(Ability ability)
+        public CreatureVital GetAttribute2ndProperty(Ability ability)
         {
-            CreatureAbility ret;
+            CreatureVital ret;
             bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out ret);
 
             if (!success || ret == null)
             {
-                ret = new CreatureAbility(this, ability);
+                ret = new CreatureVital(this, ability, ability.GetRegenRate());
                 AceObjectPropertiesAttributes2nd.Add(ability, ret);
             }
 
             return ret;
         }
 
-        public void SetAttribute2ndProperty(Ability ability, CreatureAbility value)
+        public void SetAttribute2ndProperty(Ability ability, CreatureVital value)
         {
             SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
         }
@@ -840,19 +852,14 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
-        // public List<AceObjectPropertiesAttribute> AceObjectPropertiesAttributes { get; set; } = new List<AceObjectPropertiesAttribute>();
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
 
         // ReSharper disable once InconsistentNaming
-        // public List<AceObjectPropertiesAttribute2nd> AceObjectPropertiesAttributes2nd { get; set; } = new List<AceObjectPropertiesAttribute2nd>();
-        // FIXME(ddevec): Once we merge into mainline -- replace this with a CreatureVital
-        public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes2nd { get; set; } = new Dictionary<Ability, CreatureAbility>();
+        public Dictionary<Ability, CreatureVital> AceObjectPropertiesAttributes2nd { get; set; } = new Dictionary<Ability, CreatureVital>();
 
-        // public List<AceObjectPropertiesSkill> AceObjectPropertiesSkills { get; set; } = new List<AceObjectPropertiesSkill>();
         public Dictionary<Skill, CreatureSkill> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkill>();
 
         public Dictionary<PositionType, Position> AceObjectPropertiesPositions { get; set; } = new Dictionary<PositionType, Position>();
-        // public List<AceObjectPropertiesPosition> Positions { get; set; } = new List<AceObjectPropertiesPosition>();
 
         public Position Destination
         {

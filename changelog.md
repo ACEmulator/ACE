@@ -1,6 +1,28 @@
 # ACEmulator Change Log
 
+### 2017-06-18
+[Ripley]
+* Made changes to AceObject, PhysicsData, DebugObject and UsableObject to make wielded items in database work better.
+* Note that PhysicsData.Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
+
 ### 2017-06-17
+[fantoms]
+* Added the debug command `listplayers`, that will list all players currently connected too the server.
+* Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
+* Added `MaximumAllowedSessions` to the `ConfigManager` and the `Config.json.example` file.
+* Began using the variable in the `WorldManager.cs` server initalization step, allowing usersr to configure the max allowed sessions.
+
+[ddevec]
+* Reintroduced CreatureVital patch from pre-overhaul-master
+* Adds setvital helper function
+* Adds Tick function to handle vital regeneration (will hopefully be removed with core restructure)
+* Separates CreatureVital from CreatureAbility.
+
+[ddevec]
+* Cleaned up player creation.
+* Fixed naming issue on player creation.
+* Fixed saving/loading of several AceObject properties.
+
 [Ripley]
 * Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
 * Changed CachedWordObject to CachedWorldObject.
@@ -23,6 +45,7 @@
 * Minor code cleanup.
 * Removed update directory for old character database.
 * Fixed pickup and drop item.   Location was protected and not able to be set for loot (WorldObjects)   I temp set this allow set.   Once we refactor physicsData out this can go away.
+
 
 ### 2017-06-15
 [ddevec]

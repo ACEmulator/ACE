@@ -4,7 +4,8 @@
         "Welcome": "Welcome to this ACE server!\nFor more information visit http://www.acemulator.org.",
         "Network": {
             "Host": "0.0.0.0",
-            "Port": 9000
+            "Port": 9000,
+            "MaximumAllowedSessions" : 128
         },
         "Accounts": {
             "OverrideCharacterPermissions": true,
