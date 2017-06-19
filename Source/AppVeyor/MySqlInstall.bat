@@ -8,5 +8,5 @@ REM execute Base Scripts
 
 REM execute Update Scripts
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\01-06-19-2017-SetCharacterDeletedFlag.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\shard\01-06-16-2017-alterPostionTable.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\shard\01-06-16-2017-vw_weenie_class.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\01-06-16-2017-alterPostionTable.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\01-06-16-2017-vw_weenie_class.sql
