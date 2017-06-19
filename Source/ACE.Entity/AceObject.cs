@@ -59,6 +59,12 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.PlacementPosition, value); }
         }
 
+        public uint? Priority
+        {
+            get { return GetIntProperty(PropertyInt.ClothingPriority); }
+            set { SetIntProperty(PropertyInt.ClothingPriority, value); }
+        }
+
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
         public String CurrentMotionState { get; set; }
 

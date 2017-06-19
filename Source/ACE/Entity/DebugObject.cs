@@ -59,7 +59,7 @@ namespace ACE.Entity
 
             // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address
 
-            // Priority = (CoverageMask?)baseAceObject.CurrentWieldedLocation ?? 0;
+            Priority = (CoverageMask?)baseAceObject.Priority;
             RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
             RadarColor = (RadarColor?)baseAceObject.BlipColor;
             Script = baseAceObject.PhysicsScript;

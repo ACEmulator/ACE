@@ -16,7 +16,8 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public ObjectGuid Guid {
+        public ObjectGuid Guid
+        {
             get { return new ObjectGuid(AceObject.AceObjectId); }
             private set { AceObject.AceObjectId = value.Full; }
         }
@@ -32,12 +33,14 @@ namespace ACE.Entity
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public uint WeenieClassid {
+        public uint WeenieClassid
+        {
             get { return AceObject.WeenieClassId; }
             protected set { AceObject.WeenieClassId = value; }
         }
 
-        public uint? Icon {
+        public uint? Icon
+        {
             get { return AceObject.IconId; }
             set { AceObject.IconId = value; }
         }
@@ -230,8 +233,11 @@ namespace ACE.Entity
             set { AceObject.CurrentWieldedLocation = (uint?)value; }
         }
 
-        // TODO: This needs to be saved in the pcaps and in AceObject - we don't capture it yet.
-        public CoverageMask? Priority { get; set; }
+        public CoverageMask? Priority
+        {
+            get { return (CoverageMask?)AceObject.Priority; }
+            set { AceObject.Priority = (uint?)value; }
+        }
 
         public RadarColor? RadarColor
         {
@@ -654,7 +660,7 @@ namespace ACE.Entity
                 writer.Write(Monarch ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.HookType) != 0)
-                writer.Write(HookType ?? 0u);
+                writer.Write(HookType ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
                 writer.WritePackedDwordOfKnownType((IconOverlay ?? 0), 0x6000000);
