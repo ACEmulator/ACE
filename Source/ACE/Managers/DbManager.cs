@@ -22,11 +22,6 @@ namespace ACE.Managers
         private static bool running = false;
         private static BlockingCollection<AceObject> saveObjects = new BlockingCollection<AceObject>();
 
-        public static void SaveObject(AceObject ao)
-        {
-                saveObjects.Add(ao);
-        }
-
         public static void Initialize()
         {
             // starts game loop.
@@ -34,14 +29,36 @@ namespace ACE.Managers
             new Thread(Tick).Start();
         }
 
+        /// <summary>
+        /// Saves AceObject to database, does not pause execution of main game thread.
+        /// </summary>
+        /// <param name="ao"></param>
+        public static void SaveObject(AceObject ao)
+        {
+                saveObjects.Add(ao);
+        }
+
+        /// <summary>
+        /// Shutdowns DB Saver Manager Safely
+        /// </summary>
+        public static void ShutDown()
+        {
+            running = false;
+            ProcessQue();
+        }
+
         private static void Tick()
         {
             while (running)
             {
-                foreach (AceObject ao in saveObjects.GetConsumingEnumerable())
-                {
-                    DatabaseManager.Shard.SaveObject(ao);
-                }
+                ProcessQue();
+            }
+        }
+        private static void ProcessQue()
+        {
+            foreach (AceObject ao in saveObjects.GetConsumingEnumerable())
+            {
+                DatabaseManager.Shard.SaveObjectAsync(ao);
             }
         }
     }

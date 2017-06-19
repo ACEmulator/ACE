@@ -420,6 +420,35 @@ namespace ACE.Database
             return await transaction.Commit();
         }
 
+        public async Task<bool> SaveObjectAsync(AceObject aceObject)
+        {
+            bool result = false;
+            try
+            {
+                result = true;
+                DatabaseTransaction transaction = BeginTransaction();
+                DeleteObjectInternal(transaction, aceObject);
+                SaveObjectInternal(transaction, aceObject);
+                await transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                log.Error($"An exception occured while saving ace object");
+                log.Error($"Exception: {e.Message}");
+                UnableToSaveObject(aceObject);
+                result = false;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Hooking into this interface will catch a saveobject error.
+        /// </summary>
+        public void UnableToSaveObject(AceObject ao)
+        {
+            log.Error($"Unable too save ace object {ao.AceObjectId}");
+        }
+
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
         {
             throw new NotImplementedException();
