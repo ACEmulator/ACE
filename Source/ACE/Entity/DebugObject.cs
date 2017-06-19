@@ -34,7 +34,8 @@ namespace ACE.Entity
             PhysicsData.DefaultScript = baseAceObject.DefaultScript;
             PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
             PhysicsData.Elasticity = baseAceObject.Elasticity;
-            PhysicsData.EquipperPhysicsDescriptionFlag = (EquipMask?)baseAceObject.CurrentWieldedLocation;
+            PhysicsData.Parent = baseAceObject.Parent;
+            PhysicsData.ParentLocation = baseAceObject.ParentLocation;
             PhysicsData.Friction = baseAceObject.Friction;
             if (baseAceObject.CurrentMotionState == "0" || baseAceObject.CurrentMotionState == null)
                 PhysicsData.CurrentMotionState = null;
@@ -60,6 +61,7 @@ namespace ACE.Entity
             MaxStackSize = baseAceObject.MaxStackSize;
             Wielder = baseAceObject.WielderId;
             ContainerId = baseAceObject.ContainerId;
+            CurrentWieldedLocation = (EquipMask?)baseAceObject.CurrentWieldedLocation;
 
             // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address
 
