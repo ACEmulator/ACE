@@ -698,5 +698,9 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
+
+        public virtual void Tick(double tickTime)
+        {
+        }
     }
 }
