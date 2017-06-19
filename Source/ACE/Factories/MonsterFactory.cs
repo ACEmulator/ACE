@@ -19,7 +19,7 @@ namespace ACE.Factories
         /// <param name="position"></param>
         public static Creature SpawnCreature(uint weenieClassId, bool saveAsStatic, Position position)
         {
-            AceObject aco = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieClassId);
+            AceObject aco = DatabaseManager.World.GetAceObjectByWeenie(weenieClassId);
             if (aco == null)
                 return null;
 

@@ -45,9 +45,9 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetPointsOfInterest, typeof(TeleportLocation), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), ConstructedStatementType.Get);
             HashSet<string> criteria1 = new HashSet<string> { "itemType" };
-            ConstructGetListStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(CachedWordObject), criteria1);
-            criteria1 = new HashSet<string> { "landblock" };
-            ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWordObject), criteria1);
+            ConstructGetListStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(CachedWeenieClass), criteria1);
+            HashSet<string> criteria2 = new HashSet<string> { "landblock" };
+            ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
@@ -75,18 +75,23 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
 
-            ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
         }
 
-        public AceObject GetRandomWeenieOfType(uint itemType)
+        public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
         {
             var criteria = new Dictionary<string, object> { { "itemType", itemType } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWordObject>(WorldPreparedStatement.GetItemsByTypeId, criteria);
-            if (objects.Count <= 0) return null;
-            var rnd = new Random();
-            var r = rnd.Next(objects.Count);
-            return GetBaseAceObjectDataByWeenie(objects[r].AceObjectId);
+            var weenieList = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWeenieClass>(WorldPreparedStatement.GetItemsByTypeId, criteria);
+            if (weenieList.Count <= 0) return null;
+            Random rnd = new Random();
+            int r = rnd.Next(weenieList.Count);
+            var randomWeenieList = new List<CachedWeenieClass>();
+            for (int i = 0; i < numWeenies; i++)
+            {
+                randomWeenieList.Add(weenieList[r]);
+                r = rnd.Next(weenieList.Count);
+            }
+            return randomWeenieList;
         }
 
         // public List<TeleportLocation> GetLocations()
@@ -233,7 +238,7 @@ namespace ACE.Database
             return objects;
         }
 
-        public AceObject GetBaseAceObjectDataByWeenie(uint weenieClassId)
+        public AceObject GetAceObjectByWeenie(uint weenieClassId)
         {
             var bao = new AceObject();
 
@@ -323,7 +328,7 @@ namespace ACE.Database
         // TODO: this needs to be refactored to just replace all calls to GetWeenie with the other method which should be renamed.
         public AceObject GetWeenie(uint weenieClassId)
         {
-            return GetBaseAceObjectDataByWeenie(weenieClassId);
+            return GetAceObjectByWeenie(weenieClassId);
         }
 
         public List<TeleportLocation> GetPointsOfInterest()

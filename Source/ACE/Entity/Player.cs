@@ -1230,6 +1230,15 @@ namespace ACE.Entity
             }
         }
 
+        public void UpdatePlayerBurden()
+        {
+            Session.Player.Burden = UpdateBurden();
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(
+                                            Session,
+                                            PropertyInt.EncumbranceVal,
+                                            Session.Player.Burden ?? 0u));
+        }
+
         /// <summary>
         /// forces either an update or a create object to be sent to the client
         /// </summary>
