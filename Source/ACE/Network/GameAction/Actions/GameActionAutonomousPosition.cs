@@ -13,7 +13,11 @@ namespace ACE.Network.GameAction
             var teleportTimestamp = message.Payload.ReadUInt16();
             var forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
-            session.Player.UpdateLocation(position);
+            session.Player.RequestUpdatePosition(position);
+            /*
+            if (session.Player.CreatureMovementStates == MovementStates.Moving)
+                session.Player.UpdateAutonomousMove();
+            */
         }
     }
 }

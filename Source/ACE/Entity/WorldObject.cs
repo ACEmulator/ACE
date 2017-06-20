@@ -1,20 +1,25 @@
 using ACE.Entity.Enum;
-using ACE.Managers;
+using ACE.Entity.Actions;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
+using ACE.Network.GameMessages;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
-using log4net;
-using System.IO;
-using System;
+using ACE.Network.Motion;
 using System.Collections.Generic;
+using System.IO;
+using ACE.Managers;
+using log4net;
+using System;
 
 namespace ACE.Entity
 {
-    public abstract class WorldObject
+    public abstract class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static readonly float MaxObjectTrackingRange = 20000f;
 
         public ObjectGuid Guid {
             get { return new ObjectGuid(AceObject.AceObjectId); }
@@ -48,6 +53,21 @@ namespace ACE.Entity
             protected set { AceObject.Name = value; }
         }
 
+        public IActor CurrentParent { get; private set; }
+
+        public Position ForcedLocation { get; private set; }
+        public Position RequestedLocation { get; private set; }
+
+        /// <summary>
+        /// Should only be adjusted by LandblockManager -- default is null
+        /// </summary>
+        public Landblock CurrentLandblock {
+            get
+            {
+                return CurrentParent as Landblock;
+            }
+        }
+
         /// <summary>
         /// tick-stamp for the last time this object changed in any way.
         /// </summary>
@@ -57,6 +77,8 @@ namespace ACE.Entity
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
+
+        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
         public virtual Position Location
         {
@@ -148,6 +170,7 @@ namespace ACE.Entity
             set { AceObject.ItemUseable = (uint?)value; }
         }
 
+        // FIXME(ddevec): Defaults to 25, so is unnecessarily sent always w/ weenieheaderflags.
         public float? UseRadius
         {
             get { return AceObject.UseRadius ?? 0.25f; }
@@ -411,8 +434,16 @@ namespace ACE.Entity
         {
             var p = (Player)this;
             PhysicsData.CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            var updateMotion = new GameMessageUpdateMotion(p.Guid,
+                                                           p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                           p.Sequences, motionState);
             p.Session.Network.EnqueueSend(updateMotion);
+        }
+
+        public void Examine(Session examiner)
+        {
+            var identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
+            examiner.Network.EnqueueSend(identifyResponse);
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -699,8 +730,61 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
 
-        public virtual void Tick(double tickTime)
+        protected void ForceUpdatePosition(Position newPosition)
         {
+            ForcedLocation = newPosition;
+        }
+
+        /// FIXME(ddevec): We're probably ultimately only going to update velocity, not true position...
+        protected void PrepUpdatePosition(Position newPosition)
+        {
+            RequestedLocation = newPosition;
+            // character.SetCharacterPosition(newPosition);
+        }
+
+        protected virtual void SendUpdatePosition()
+        {
+            LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
+            GameMessage msg = new GameMessageUpdatePosition(this);
+            if (CurrentLandblock != null)
+            {
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, msg);
+            }
+        }
+
+        /// <summary>
+        /// FIXME(ddevec): Update this once we have real physics....
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void PhysicsUpdatePosition(Position newPosition)
+        {
+            Location = newPosition;
+            SendUpdatePosition();
+
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+        public void SetParent(IActor parent)
+        {
+            CurrentParent = parent;
+            actionQueue.RemoveParent();
+            actionQueue.SetParent(parent);
+        }
+
+        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        {
+            return actionQueue.EnqueueAction(action);
+        }
+
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
+        }
+
+        public void RunActions()
+        {
+            actionQueue.RunActions();
         }
     }
 }

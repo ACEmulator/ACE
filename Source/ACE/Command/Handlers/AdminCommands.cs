@@ -419,11 +419,9 @@ namespace ACE.Command.Handlers
                         }
                 }
 
-                Position p = session.Player.GetPosition(positionType);
-
                 // If we have the position, teleport the player
-                if (p != null) {
-                    session.Player.Teleport(p);
+                if (session.Player.Positions.ContainsKey(positionType)) {
+                    session.Player.HandleActionTeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -700,39 +698,16 @@ namespace ACE.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    var creatureIds = session.Player.GetKnownCreatures();
-                    foreach (var cId in creatureIds)
-                    {
-                        var wo = LandblockManager.GetWorldObject(session, cId);
-                        if (wo != null)
-                            (wo as Creature).OnKill(session);
-                    }
+                    session.Player.HandleActionSmiteAllNearby();
                 }
                 else
+                {
                     ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
+                }
             }
             else
             {
-                if (session.Player.SelectedTarget != 0)
-                {
-                    var target = new ObjectGuid(session.Player.SelectedTarget);
-                    var wo = LandblockManager.GetWorldObject(session, target);
-
-                    if (target.IsCreature())
-                    {
-                        if (wo != null)
-                            (wo as Creature).OnKill(session);
-                    }
-                    if (target.IsPlayer())
-                    {
-                        if (wo != null)
-                            (wo as Player).OnKill(session);
-                    }
-                }
-                else
-                {
-                    ChatPacket.SendServerMessage(session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
-                }
+                session.Player.HandleActionSmiteSelected();
             }
         }
 
@@ -1009,7 +984,6 @@ namespace ACE.Command.Handlers
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-            session.Player.TrackObject(loot);
         }
 
         // ci wclassid (number)
@@ -1028,8 +1002,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            session.Player.AddToInventory(loot);
-            session.Player.TrackObject(loot);
+            session.Player.HandleAddToInventory(loot);
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
@@ -1062,9 +1035,10 @@ namespace ACE.Command.Handlers
             for (byte b = 1; b <= numItems; b++)
             {
                 var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
-                if (loot == null)  return;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
+                if (loot != null)
+                {
+                    session.Player.HandleAddToInventory(loot);
+                }
             }
         }
         // cm <material type> <quantity> <ave. workmanship>

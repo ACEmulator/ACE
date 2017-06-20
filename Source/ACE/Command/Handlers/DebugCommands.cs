@@ -1,6 +1,7 @@
 ﻿using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Actions;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
@@ -140,7 +141,7 @@ namespace ACE.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.ActionApplySoundEffect(sound, session.Player.Guid);
+                        session.Player.HandleActionApplySoundEffect(sound);
                     }
                 }
 
@@ -179,7 +180,7 @@ namespace ACE.Command.Handlers
                     if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
                     {
                         message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
-                        session.Player.ActionApplyVisualEffect(effect, session.Player.Guid);
+                        session.Player.HandleActionApplyVisualEffect(effect);
                     }
                 }
 
@@ -218,7 +219,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
-            session.Player.EnqueueMovementEvent(motion, session.Player.Guid);
+            session.Player.HandleActionMotion(motion);
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -231,9 +232,15 @@ namespace ACE.Command.Handlers
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
             var movement = new UniversalMotion(MotionStance.Standing);
             movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                                                    session.Player.Sequences,
+                                                                    movement));
             movement = new UniversalMotion(MotionStance.Standing);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, session, movement));
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
+                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                                                    session.Player.Sequences,
+                                                                    movement));
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
@@ -248,11 +255,16 @@ namespace ACE.Command.Handlers
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
             var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
-            session.Player.TrackObject(loot);
-            var newMotion = new UniversalMotion(MotionStance.Standing, loot);
-            session.Network.EnqueueSend(new GameMessageUpdatePosition(session.Player));
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, loot, newMotion, MovementTypes.MoveToObject));
+
+            ActionChain chain = new Entity.Actions.ActionChain();
+
+            // By chaining the spawn followed by the add pickup action, we ensure the item will be spawned before the player 
+            chain.AddChain(LootGenerationFactory.GetSpawnChain(loot, session.Player.Location.InFrontOf(distance)));
+
+            chain.AddAction(session.Player,
+                () => session.Player.HandleActionPutItemInContainer(loot.Guid, session.Player.Guid));
+
+            chain.EnqueueChain();
         }
         
         // This function 
@@ -277,22 +289,18 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            Entity.Enum.Ability ability;
             // Parse args...
             CreatureVital vital = null;
             if (paramVital == "health" || paramVital == "hp")
             {
-                ability = Entity.Enum.Ability.Health;
                 vital = session.Player.Health;
             }
             else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
             {
-                ability = Entity.Enum.Ability.Stamina;
                 vital = session.Player.Stamina;
             }
             else if (paramVital == "mana" || paramVital == "mp")
             {
-                ability = Entity.Enum.Ability.Mana;
                 vital = session.Player.Mana;
             }
             else
@@ -301,22 +309,14 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            long targetValue = 0;
-            if (relValue)
-                targetValue = vital.Current + value;
-            else
-                targetValue = value;
-
-            if (targetValue < 0 || targetValue > vital.MaxValue)
+            if (!relValue)
             {
-                ChatPacket.SendServerMessage(session, "setvital Error: Value over/underflow", ChatMessageType.Broadcast);
-                return;
+                session.Player.UpdateVital(vital, (uint)value);
             }
-
-            vital.Current = (uint)targetValue;
-
-            // Send an update packet
-            session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session, ability, vital));
+            else
+            {
+                session.Player.DeltaVital(vital, value);
+            }
         }
 
         [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
@@ -426,8 +426,7 @@ namespace ACE.Command.Handlers
                 // playerSession will be null when the character is not found
                 if (playerSession != null)
                 {
-                    // send session a usedone
-                    playerSession.Player.OnKill(playerSession);
+                    playerSession.Player.HandleActionKill(playerSession.Player.Guid);
                     return;
                 }
             }
@@ -491,21 +490,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("testcorpsedrop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void TestCorpse(Session session, params string[] parameters)
         {
-            if (session.Player.SelectedTarget != 0)
-            {
-                var target = new ObjectGuid(session.Player.SelectedTarget);
-                var wo = LandblockManager.GetWorldObject(session, target);
-
-                if (target.IsCreature())
-                {
-                    if (wo != null)
-                        (wo as Creature).OnKill(session);
-                }
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "No creature selected.", ChatMessageType.Broadcast);
-            }
+            session.Player.HandleActionTestCorpseDrop();
         }
 
         /// <summary>
@@ -604,7 +589,7 @@ namespace ACE.Command.Handlers
         {
             // Build a string message containing all available character positions and send as a System Chat message
             string message = $"Saved character positions:\n";
-            var posDict = session.Player.GetAllPositions();
+            var posDict = session.Player.Positions;
 
             foreach (var posPair in posDict)
             {
@@ -614,114 +599,6 @@ namespace ACE.Command.Handlers
             message += $"Total positions: " + posDict.Count.ToString() + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
-        }
-
-        /// <summary>
-        /// Debug command to test the ObjDescEvent message. 
-        /// </summary>
-        [CommandHandler("equiptest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Simulates equipping a new item to your character, replacing all other items.")]
-        public static void EquipTest(Session session, params string[] parameters)
-        {
-            if (!(parameters?.Length > 0))
-            {
-                ChatPacket.SendServerMessage(session, "Usage: @equiptest (hex)clothingTableId [palette_index].\neg '@equiptest 0x100005fd'",
-                    ChatMessageType.Broadcast);
-                return;
-            }
-
-            uint modelId;
-            try
-            {
-                if (parameters[0].StartsWith("0x"))
-                {
-                    string strippedmodelid = parameters[0].Substring(2);
-                    modelId = UInt32.Parse(strippedmodelid, System.Globalization.NumberStyles.HexNumber);
-                }
-                else
-                    modelId = UInt32.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber);
-
-                int palOption = -1;
-                if (parameters.Length > 1)
-                    palOption = Int32.Parse(parameters[1]);
-
-                if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
-                    session.Player.TestEquipItem(session, modelId, palOption);
-                else
-                    ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
-                        ChatMessageType.Broadcast);
-            }
-            catch (Exception)
-            {
-                ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
-            }
-        }
-
-        /// <summary>
-        /// Debug command to learn a spell.
-        /// </summary>
-        /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
-        [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
-            "@learnspell")]
-        public static void HandleLearnSpell(Session session, params string[] parameters)
-        {
-            if (parameters?.Length > 0)
-            {
-                uint spellId = (uint)int.Parse(parameters[0]);
-
-                SpellTable spells = SpellTable.ReadFromDat();
-                if (!spells.Spells.ContainsKey(spellId))
-                {
-                    var errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(errorMessage);
-                }
-                else
-                {
-                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, spellId);
-                    session.Network.EnqueueSend(updateSpellEvent);
-
-                    // Always seems to be this SkillUpPurple effect
-                    session.Player.ActionApplyVisualEffect(PlayScript.SkillUpPurple, session.Player.Guid);
-
-                    string spellName = spells.Spells[spellId].Name;
-                    // TODO Lookup the spell in the spell table.
-                    string message = "You learn the " + spellName + " spell.\n";
-                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(learnMessage);
-                }
-            }
-            else
-            {
-                string message = "Invalid Syntax\n";
-                var errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(errorMessage);
-            }
-        }
-
-        /// <summary>
-        /// Debug command to print out all of the active players connected too the server.
-        /// </summary>
-        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0,
-            "Displays all of the active players connected too the serve.",
-            "@players")]
-        public static void HandleListPlayers(Session session, params string[] parameters)
-        {
-            uint playerCounter = 0;
-            // Build a string message containing all available characters and send as a System Chat message
-            string message = "";
-            foreach (Session playerSession in WorldManager.GetAll(false))
-            {
-                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
-                playerCounter++;
-            }
-            message += $"Total connected Players: {playerCounter}\n";
-            if (session != null)
-            {
-                var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(listPlayersMessage);
-            } else
-                Console.WriteLine(message);
         }
     }
 }

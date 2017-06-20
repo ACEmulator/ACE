@@ -1,4 +1,5 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Entity.Actions;
 using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
@@ -6,6 +7,7 @@ using ACE.Network.Enum;
 using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -67,13 +69,21 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// If we need to move, where do we need to go?   This may be replaced by a property that Mogwai was discussing
+        /// </summary>
+        // TODO: Revisit to see if still needed
+        public Position MoveToPosition { get; set; }
+
+        /// <summary>
+        /// What is the square of the sum of use radius plus csphear
+        /// </summary>
+        public float ArrivedRadiusSquared { get; set; }
+
+        /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
         public bool IsAlive { get; set; }
 
-        /// <summary>
-        /// Time after Creature dies until it respawns
-        /// </summary>
         public double RespawnTime { get; set; }
 
         public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
@@ -95,8 +105,31 @@ namespace ACE.Entity
             else
                 this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
 
-            SetObjectData(aceC.WeenieObject);
+            SetObjectData(AceObject);
             IsAlive = true;
+            SetupVitals();
+        }
+
+        private void SetupVitals()
+        {
+            if (Health.Current != Health.MaxValue)
+            {
+                VitalTick(Health);
+            }
+            if (Stamina.Current != Stamina.MaxValue)
+            {
+                VitalTick(Stamina);
+            }
+            if (Mana.Current != Mana.MaxValue)
+            {
+                VitalTick(Mana);
+            }
+        }
+
+        public void SetDestinationInformation(Position position, float arrivedRadiusSquared)
+        {
+            MoveToPosition = position;
+            ArrivedRadiusSquared = arrivedRadiusSquared;
         }
 
         public Creature(AceObject baseObject) : base(baseObject)
@@ -114,16 +147,59 @@ namespace ACE.Entity
             PhysicsData.Petable = aco.PhysicsTableId;
             PhysicsData.ObjScale = aco.DefaultScale;
             PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
-            PhysicsData.Position = aco.Location;
+            Location = aco.Location;
         }
 
-        public virtual void OnKill(Session session)
+        public virtual ActionChain GetOnKillChain(Session killerSession)
+        {
+            ActionChain onKillChain = new ActionChain();
+            /*
+            // Wait to respawn
+            onKillChain.AddDelayTicks(10);
+            */
+
+            // Will start death animation
+            onKillChain.AddAction(this, () => OnKill(killerSession));
+            // Wait for kill animation
+            onKillChain.AddDelaySeconds(2);
+            onKillChain.AddChain(GetCreateCorpseChain());
+
+            return onKillChain;
+        }
+
+        public ActionChain GetCreateCorpseChain()
+        {
+            ActionChain createCorpseChain = new ActionChain(this, () =>
+            {
+                // Create Corspe and set a location on the ground
+                // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
+                var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+                // FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
+                corpse.Location.PositionY -= (corpse.PhysicsData.ObjScale ?? 0);
+                corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
+
+                // Corpses stay on the ground for 5 * player level but minimum 1 hour
+                // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+                // corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+                float despawnTime = 10;
+
+                // Create corpse
+                CurrentLandblock.AddWorldObject(corpse);
+                // Create corpse decay
+                ActionChain despawnChain = new ActionChain();
+                despawnChain.AddDelaySeconds(despawnTime);
+                despawnChain.AddAction(CurrentLandblock, () => CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
+                despawnChain.EnqueueChain();
+            });
+
+            return createCorpseChain;
+        }
+
+        private void OnKill(Session session)
         {
             IsAlive = false;
             // This will determine if the derived type is a player
             var isDerivedPlayer = Guid.IsPlayer();
-            // TODO: Implement some proper respawn timers, check the generators for that
-            RespawnTime = WorldManager.PortalYearTicks + 10;
 
             if (!isDerivedPlayer)
             {
@@ -136,41 +212,106 @@ namespace ACE.Entity
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            QueuedGameAction actionDeath = new QueuedGameAction(this.Guid.Full, motionDeath, 2.0f, true, GameActionType.MovementEvent);
-            session.Player.AddToActionQueue(actionDeath);
-
-            // Create Corspe and set a location on the ground
-            // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
-            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
-
-            // Corpses stay on the ground for 5 * player level but minimum 1 hour
-            // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-            corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+            CurrentLandblock.EnqueueBroadcastMotion(this, motionDeath);
 
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
+                /*
                 QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
                 session.Player.AddToActionQueue(removeCreature);
+                */
+                CurrentLandblock.RemoveWorldObject(Guid, false);
             }
 
             // Add Corpse in that location via the ActionQueue to honor the motion delays
+            /*
             QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
             session.Player.AddToActionQueue(addCorpse);
+            */
         }
 
         /// <summary>
-        /// Called on the main loop of the Landblock, intended to do time-based maintenance of creatures
+        /// Updates a vital, returns true if vital is now < max
         /// </summary>
-        // FIXME(ddevec): Perhaps world-objects should have this and this should be an override?
-        override public void Tick(double tickTime)
+        /// <param name="vital"></param>
+        /// <param name="quantity"></param>
+        /// <returns></returns>
+        public void UpdateVital(CreatureVital vital, uint newVal)
         {
-            // TODO: Realistic rates && adjusting rates for spells...
-            Health.Tick(tickTime);
-            Stamina.Tick(tickTime);
-            Mana.Tick(tickTime);
+            EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
+        }
+
+        public void DeltaVital(CreatureVital vital, long delta)
+        {
+            EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
+        }
+
+        private void DeltaVitalInternal(CreatureVital vital, long delta)
+        {
+            uint absVal;
+
+            if (delta < 0 && Math.Abs(delta) > vital.Current)
+            {
+                absVal = (uint)(-1 * vital.Current);
+            }
+            else if (delta + vital.Current > vital.MaxValue)
+            {
+                absVal = (uint)(vital.MaxValue - vital.Current);
+            }
+            else
+            {
+                absVal = (uint)(vital.Current + delta);
+            }
+
+            UpdateVitalInternal(vital, absVal);
+        }
+
+        private void VitalTick(CreatureVital vital)
+        {
+            double tickTime = vital.NextTickTime;
+            if (tickTime == double.NegativeInfinity)
+            {
+                tickTime = vital.RegenRate;
+            }
+            else
+            {
+                tickTime -= WorldManager.PortalYearTicks;
+            }
+
+            // Set up our next tick
+            ActionChain tickChain = new ActionChain();
+            tickChain.AddDelayTicks(tickTime);
+            tickChain.AddAction(this, () => VitalTickInternal(vital));
+            tickChain.EnqueueChain();
+        }
+
+        protected virtual void VitalTickInternal(CreatureVital vital)
+        {
+            vital.Tick(WorldManager.PortalYearTicks);
+            if (vital.Current != vital.MaxValue)
+            {
+                VitalTick(vital);
+            }
+        }
+
+        protected virtual void UpdateVitalInternal(CreatureVital vital, uint newVal)
+        {
+            uint old = vital.Current;
+
+            if (newVal > vital.MaxValue)
+            {
+                newVal = (vital.MaxValue - vital.Current);
+            }
+
+            vital.Current = newVal;
+
+            // Check for amount
+            if (old == vital.MaxValue && vital.Current != vital.MaxValue)
+            {
+                // Start up a vital ticker
+                new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
+            }
         }
     }
 }
