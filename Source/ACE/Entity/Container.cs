@@ -100,10 +100,20 @@ namespace ACE.Entity
 
         public void UpdateWieldedItem(uint itemId)
         {
+            // TODO: need to make pack aware - just coding for main pack now.
             ObjectGuid itemGuid = new ObjectGuid(itemId);
             WorldObject inventoryItem = GetInventoryItem(itemGuid);
-            inventoryItem.ContainerId = null;
-            inventoryItem.Wielder = Guid.Full;
+            switch (inventoryItem.ContainerId)
+            {
+                case null:
+                    inventoryItem.ContainerId = Guid.Full;
+                    inventoryItem.Wielder = null;
+                    break;
+                default:
+                    inventoryItem.ContainerId = null;
+                    inventoryItem.Wielder = Guid.Full;
+                    break;
+            }
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
@@ -119,9 +129,8 @@ namespace ACE.Entity
         {
             lock (inventoryMutex)
             {
-                if (inventory.ContainsKey(objectGuid))
-                    return inventory[objectGuid];
-                return null;
+                if (!inventory.ContainsKey(objectGuid)) return null;
+                return inventory[objectGuid];
             }
         }
     }

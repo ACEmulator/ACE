@@ -1392,7 +1392,7 @@ namespace ACE.Entity
             }
         }
 
-        public void EquipItem(uint itemId, uint slot)
+        public void EquipUnequipItem(uint itemId, uint slot)
         {
             UpdateWieldedItem(itemId);
             ModelData.Clear();
@@ -1429,18 +1429,17 @@ namespace ACE.Entity
                     foreach (ModelPalette p in wo.ModelData.GetPalettes)
                         ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
-
-                // Add the "naked" body parts. These are the ones not already covered.
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
-                for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
-                {
-                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
-                }
-
-                var objDescEvent = new GameMessageObjDescEvent(this);
-                Session.Network.EnqueueSend(objDescEvent);
             }
+            // Add the "naked" body parts. These are the ones not already covered.
+            SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+            for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+            {
+                if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                    ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+            }
+
+            var objDescEvent = new GameMessageObjDescEvent(this);
+            Session.Network.EnqueueSend(objDescEvent);
         }
 
         public void TestEquipItem(Session session, uint modelId, int palOption)
