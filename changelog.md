@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-06-20
+[StackOverflow]
+* Moved Saving operations outside of primary game loop to prevent db operations from slowing down primary game loop.
+* Please call DbManager.SaveObject() now instead of DatabaseManager.Shard.SaveObject()
 
 ### 2017-06-18
 [Ripley]
