@@ -42,13 +42,16 @@ namespace ACE.Entity
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.PhysicsData.Position = null;
             inventoryItem.Location = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
             var inventoryItem = GetInventoryItem(inventoryItemGuid);
-            Burden -= inventoryItem.Burden;
+            if (Burden >= inventoryItem.Burden)
+                Burden -= inventoryItem.Burden;
 
             // FIXME(ddevec): RemoveFromInventory should only be responsible for removing the item from the inventory, not placing it on the world!
             inventoryItem.Location = Location.InFrontOf(1.0f);

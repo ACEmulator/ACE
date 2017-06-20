@@ -76,15 +76,18 @@ namespace ACE.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Low);
-
-            var result = await DatabaseManager.Shard.GetCharacters(session.Id);
-            session.UpdateCachedCharacters(result);
-            session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+            if (await DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full))
+            {
+                var result = await DatabaseManager.Shard.GetCharacters(session.Id);
+                session.UpdateCachedCharacters(result);
+                session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+                return;
+            }
+            session.SendCharacterError(CharacterError.Delete);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static void CharacterRestore(ClientMessage message, Session session)
+        public static async void CharacterRestore(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -99,9 +102,12 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            DatabaseManager.Shard.DeleteOrRestore(0, guid.Low);
-
-            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
+            if (await DatabaseManager.Shard.DeleteOrRestore(0, guid.Full))
+            {
+                session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
+                return;
+            }
+            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
@@ -168,7 +174,7 @@ namespace ACE.Network.Handlers
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
             ushort hairPal = (ushort)hairPalSet.GetPaletteID(appearance.HairHue);
-            
+
             character.HairPalette = hairPal;
             // ModelData.AddPalette(hairPal, 0x18, 0x8); // for reference on how to apply
 

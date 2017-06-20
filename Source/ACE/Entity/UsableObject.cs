@@ -39,7 +39,6 @@ namespace ACE.Entity
             PhysicsData.DefaultScript = baseAceObject.DefaultScript;
             PhysicsData.DefaultScriptIntensity = baseAceObject.PhysicsScriptIntensity;
             PhysicsData.Elasticity = baseAceObject.Elasticity;
-            PhysicsData.EquipperPhysicsDescriptionFlag = EquipMask.Wand;
             PhysicsData.Friction = baseAceObject.Friction;
             PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             PhysicsData.ObjScale = baseAceObject.DefaultScale;

@@ -1,0 +1,3 @@
+6/17/2017
+--------
+- Added 01-06-16-2017-SetCharacterDeletedFlag - this creates an event that does the house keeping to set the deleted flag once your hour restore period has expired.

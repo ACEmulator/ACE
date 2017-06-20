@@ -1,17 +1,51 @@
 # ACEmulator Change Log
 
+### 2017-06-18
+[Ripley]
+* Made changes to AceObject, PhysicsData, DebugObject and UsableObject to make wielded items in database work better.
+* Note that PhysicsData.Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
+
 ### 2017-06-17
+[fantoms]
+* Added the debug command `listplayers`, that will list all players currently connected too the server.
+* Created a `DefaultValue` attribute for `MaximumAllowedSessions` of 128.
+* Added `MaximumAllowedSessions` to the `ConfigManager` and the `Config.json.example` file.
+* Began using the variable in the `WorldManager.cs` server initalization step, allowing usersr to configure the max allowed sessions.
+
 [ddevec]
-* Reintroudce CreatureVital patch from pre-overhaul-master
+* Reintroduced CreatureVital patch from pre-overhaul-master
 * Adds setvital helper function
 * Adds Tick function to handle vital regeneration (will hopefully be removed with core restructure)
 * Separates CreatureVital from CreatureAbility.
 
-### 2017-06-17
 [ddevec]
 * Cleaned up player creation.
 * Fixed naming issue on player creation.
 * Fixed saving/loading of several AceObject properties.
+
+[Ripley]
+* Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
+* Changed CachedWordObject to CachedWorldObject.
+* Changed CachedWorldObject.Landblock from ushort to int.
+* Changed CharacterBase and ace_character references to ShardBase and ace_shard in README.
+* Altered AppVeyor SQL install batch file to execute proper scripts.
+
+[OptimShi]
+* Added functionality for the GameMessageObjDescEvent message (fired when a model changes, like when equipping new items). Also included a debug command "@equiptest" to expose the new functions which will cosmetically equip your character with a single piece of armor/clothing (only cosmetic, no actual "equipping" is being done at this time)
+
+### 2017-06-16
+[OptimShi]
+* Added SpellTable/SpellComponent parsing from portal.dat. Also added "@learnspell" debug command and corresponding UpdateSpell Event. (Added back in after OO merge)
+* Finished parsing the client_cell.dat file with the CLandblockInfo type (xxyyFFFE files), along with supporting classes. This makes the client_cell.dat reading complete. (Added back in after OO merge)
+* Fixed a bug in the DatLoader.FileType.PaletteSet where loading a cached palette set could crash.
+
+[Og II]
+* Trello card task - delete character crashes server.   Fixed this issue.
+* Added event code for database to do the actual house keeping to flip the flag once the hour restore period has expired.
+* Minor code cleanup.
+* Removed update directory for old character database.
+* Fixed pickup and drop item.   Location was protected and not able to be set for loot (WorldObjects)   I temp set this allow set.   Once we refactor physicsData out this can go away.
+
 
 ### 2017-06-15
 [ddevec]
@@ -20,7 +54,6 @@
 * Fixed Attribute2nd initailization error in the process.
 
 ### 2017-06-14
-
 [ddevec]
 * Fixed Position saving bug.
 * Added intial Level, TotalExperience, and AvailiableExperience to AceCharacter
