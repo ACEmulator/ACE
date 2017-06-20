@@ -1,4 +1,4 @@
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
@@ -23,6 +23,11 @@ namespace ACE.Entity
         }
 
         protected AceObject AceObject { get; set; }
+
+        public AceObject AceObjectClone()
+        {
+            return AceObject.Clone() as AceObject;
+        }
 
         public ObjectType Type
         {

@@ -1,6 +1,8 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -79,6 +81,25 @@ namespace ACE.Entity
             {
                 if (inventory.ContainsKey(inventoryItemGuid))
                     inventory.Remove(inventoryItemGuid);
+            }
+        }
+
+        /// <summary>
+        /// SaveInventory
+        /// </summary>
+        public virtual void SaveInventory()
+        {
+            List<KeyValuePair<ObjectGuid, WorldObject>> invlist = new List<KeyValuePair<ObjectGuid, WorldObject>>();
+
+            lock (inventoryMutex)
+            {
+                invlist = inventory.ToList();
+            }
+
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in invlist)
+            {
+                AceObject aobj = wo.Value.AceObjectClone();
+                DbManager.SaveObject(aobj);
             }
         }
 

@@ -140,6 +140,7 @@ namespace ACE.Network
             {
                 this.Player.SaveOptions();
                 this.Player.SaveCharacter();
+                this.Player.SaveInventory();
             }
         }
 
