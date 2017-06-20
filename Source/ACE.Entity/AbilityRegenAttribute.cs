@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
-    class AbilityRegenAttribute : Attribute
+    public class AbilityRegenAttribute : Attribute
     {
         public double Rate { get; set; }
 
