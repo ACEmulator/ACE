@@ -155,7 +155,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO: Set other options from the packet
 
             // Save the options
-            session.Player.SaveOptions();
+            session.Player.SaveCharacter();
 
             return;
         }
