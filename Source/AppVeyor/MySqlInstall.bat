@@ -1,4 +1,4 @@
-REM create databases
+﻿REM create databases
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! mysql < database\Create\create_mysql.sql
 
 REM execute Base Scripts
@@ -8,3 +8,5 @@ REM execute Base Scripts
 
 REM execute Update Scripts
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\01-06-16-2017-SetCharacterDeletedFlag.sql
+
+REM APP VOYER TEST
