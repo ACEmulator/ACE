@@ -1,20 +1,19 @@
 # ACEmulator Change Log
 ### 2017-06-20
+
+[Og II]
+* Added the ability to equip items and have it also update your visual appearance.
+* We have some data work to do - to add clothing table did values, but we have added 30 or so for testing out of 150+ needed.
+* I am adding the script to load those testing values - they are the perminate solution just incomplete.   However, it properly goes 
+* in ace world.   The pre-requisit to running the script is to have data loaded.   If you do it out of order, no harm, it just will not work.
+
 [StackOverflow]
 * Moved Saving operations outside of primary game loop to prevent db operations from slowing down primary game loop.
 * Please call DbManager.SaveObject() now instead of DatabaseManager.Shard.SaveObject()
 
-### 2017-06-19
-* Trello card task - Extend ORM code to support multiple getLists or implement another method to query by alternate keys - re-implement cirand
-* Many thanks to ddevec - he did the work on the ORM code revision.   I just tested and implemented for my use.
-* Fixed undiscovered alignment bug at hooktype we were sending as dword and it is a word.   That was shifting everything below it.
-* Added priority to aceObject and set the aceObject priority field as a backing object for worldObject priority.
-* Created function to calculate container burden.
-* added view to world database that was needed for cirand and will be used in loot generation.
-* updated position table to have a faster function for location per discord discussion.
-* Updated trello board to refect current project status.
 
 ### 2017-06-19
+[Og II]
 * Trello card task - Extend ORM code to support multiple getLists or implement another method to query by alternate keys - re-implement cirand
 * Many thanks to ddevec - he did the work on the ORM code revision.   I just tested and implemented for my use.
 * Fixed undiscovered alignment bug at hooktype we were sending as dword and it is a word.   That was shifting everything below it.

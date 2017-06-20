@@ -94,6 +94,7 @@ namespace ACE.Entity
                 {
                     calculatedBurden += entry.Value.Burden ?? 0;
                 }
+            }
             return calculatedBurden;
         }
 
