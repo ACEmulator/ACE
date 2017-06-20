@@ -86,9 +86,11 @@ namespace ACE.Entity
         {
             ushort calculatedBurden = 0;
             lock (inventoryMutex)
-            foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
             {
-                calculatedBurden += entry.Value.Burden ?? 0;
+                foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
+                {
+                    calculatedBurden += entry.Value.Burden ?? 0;
+                }
             }
             return calculatedBurden;
         }
