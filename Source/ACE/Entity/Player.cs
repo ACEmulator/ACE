@@ -1815,7 +1815,6 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
         
-
         public void TestEquipItem(Session session, uint modelId, int palOption)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm

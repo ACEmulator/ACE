@@ -36,8 +36,8 @@ namespace ACE.Entity
                 inventory.Add(inventoryItem.Guid, inventoryItem);
             }
 
-            GameData.Burden += inventoryItem.GameData.Burden;
-            inventoryItem.GameData.ContainerId = Guid.Full;
+            Burden += inventoryItem.Burden;
+            inventoryItem.ContainerId = Guid.Full;
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
