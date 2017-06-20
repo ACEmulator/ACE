@@ -69,17 +69,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// If we need to move, where do we need to go?   This may be replaced by a property that Mogwai was discussing
-        /// </summary>
-        // TODO: Revisit to see if still needed
-        public Position MoveToPosition { get; set; }
-
-        /// <summary>
-        /// What is the square of the sum of use radius plus csphear
-        /// </summary>
-        public float ArrivedRadiusSquared { get; set; }
-
-        /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
         public bool IsAlive { get; set; }
@@ -124,12 +113,6 @@ namespace ACE.Entity
             {
                 VitalTick(Mana);
             }
-        }
-
-        public void SetDestinationInformation(Position position, float arrivedRadiusSquared)
-        {
-            MoveToPosition = position;
-            ArrivedRadiusSquared = arrivedRadiusSquared;
         }
 
         public Creature(AceObject baseObject) : base(baseObject)

@@ -30,16 +30,16 @@ namespace ACE.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    public class Landblock : IActor 
+    public class Landblock : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const float adjacencyLoadRange = 96f;
-        public const float outDoorChatRange = 75f;
-        public const float indoorChatRange = 25f;
-        public const float maxXY = 192f;
-        public const float maxobjectRange = 192f;
-        public const float maxobjectGhostRange = 250f;
+        public static float AdjacencyLoadRange { get; } = 96f;
+        public static float OutdoorChatRange { get; } = 75f;
+        public static float IndoorChatRange { get; } = 25f;
+        public static float MaxXY { get; } = 192f;
+        public static float MaxObjectRange { get; } = 192f;
+        public static float MaxObjectGhostRange { get; } = 250f;
 
         private LandblockId id;
 
@@ -229,13 +229,13 @@ namespace ACE.Entity
             // var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
             // Broadcast(args, true, Quadrant.All);
             // Alert all nearby players of the object
-            EnqueueActionBroadcast(wo.Location, maxobjectRange, (Player p) => p.TrackObject(wo));
+            EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.TrackObject(wo));
 
             // if this is a player, tell them about everything else we have in range of them.
             if (wo is Player)
             {
                 List<WorldObject> wolist = null;
-                wolist = GetWorldObjectsInRange(wo, maxobjectRange);
+                wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
                 AddPlayerTracking(wolist, (wo as Player));
             }
         }
@@ -293,7 +293,7 @@ namespace ACE.Entity
                 var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
                 Broadcast(args, true, Quadrant.All);
                 */
-                EnqueueActionBroadcast(wo.Location, maxobjectRange, (Player p) => p.StopTrackingObject(wo, true));
+                EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
             }
         }
 
@@ -396,26 +396,44 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Gets all landblocks in range of a position.  (for indoors positions that is just this landblock)
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         private List<Landblock> GetLandblocksInRange(Position pos, float distance)
         {
             List<Landblock> inRange = new List<Landblock>();
 
             inRange.Add(this);
 
+            if (pos.Indoors)
+            {
+                return inRange;
+            }
+
             float highX = pos.PositionX + distance;
             float lowX = pos.PositionX - distance;
             float highY = pos.PositionY + distance;
             float lowY = pos.PositionY - distance;
+
+            bool highXInLandblock = (highX < MaxXY);
+            bool highYInLandblock = (highY < MaxXY);
+            bool lowXInLandblock = (lowX > 0);
+            bool lowYInLandblock = (lowY > 0);
+
             // Check East
-            if (Position.XYToLandblock(highX, pos.PositionY) != Id)
+            if (!highXInLandblock)
             {
                 if (EastAdjacency != null)
                 {
                     inRange.Add(EastAdjacency);
                 }
             }
+
             // North East
-            if (Position.XYToLandblock(highX, highY) != Id)
+            if (!highXInLandblock && !highYInLandblock)
             {
                 if (NorthEastAdjacency != null)
                 {
@@ -424,7 +442,7 @@ namespace ACE.Entity
             }
 
             // North 
-            if (Position.XYToLandblock(pos.PositionX, highY) != Id)
+            if (!highYInLandblock)
             {
                 if (NorthAdjacency != null)
                 {
@@ -433,7 +451,7 @@ namespace ACE.Entity
             }
 
             // North West
-            if (Position.XYToLandblock(lowX, highY) != Id)
+            if (!lowXInLandblock && !highYInLandblock)
             {
                 if (NorthWestAdjacency != null)
                 {
@@ -442,7 +460,7 @@ namespace ACE.Entity
             }
 
             // West
-            if (Position.XYToLandblock(lowX, pos.PositionY) != Id)
+            if (!lowXInLandblock)
             {
                 if (WestAdjacency != null)
                 {
@@ -451,7 +469,7 @@ namespace ACE.Entity
             }
 
             // South West
-            if (Position.XYToLandblock(lowX, lowY) != Id)
+            if (!lowXInLandblock && !lowYInLandblock)
             {
                 if (SouthWestAdjacency != null)
                 {
@@ -460,7 +478,7 @@ namespace ACE.Entity
             }
 
             // South
-            if (Position.XYToLandblock(pos.PositionX, lowY) != Id)
+            if (!lowYInLandblock)
             {
                 if (SouthAdjacency != null)
                 {
@@ -469,7 +487,7 @@ namespace ACE.Entity
             }
 
             // South East
-            if (Position.XYToLandblock(highX, lowY) != Id)
+            if (!highXInLandblock && !lowYInLandblock)
             {
                 if (SouthEastAdjacency != null)
                 {
@@ -514,7 +532,7 @@ namespace ACE.Entity
                 log.Error("ERROR: Broadcasting motion from object not on our landblock");
             }
 
-            EnqueueBroadcast(wo.Location, maxobjectRange,
+            EnqueueBroadcast(wo.Location, MaxObjectRange,
                 new GameMessageUpdateMotion(wo.Guid,
                         wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                         wo.Sequences, motion));

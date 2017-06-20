@@ -243,7 +243,7 @@ namespace ACE.Managers
                 {
                     // detect all world objects in ghost range
                     List<WorldObject> woproxghost = new List<WorldObject>();
-                    woproxghost.AddRange(mo.CurrentLandblock.GetWorldObjectsInRangeForPhysics(mo, Landblock.maxobjectGhostRange));
+                    woproxghost.AddRange(mo.CurrentLandblock.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
 
                     // for all objects in range of this moving object or in ghost range of moving object update them.
                     Parallel.ForEach(woproxghost, gwo =>
@@ -251,7 +251,7 @@ namespace ACE.Managers
                         if (mo.Guid.IsPlayer())
                         {
                             // if world object is in active zone then.
-                            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.maxobjectRange * Landblock.maxobjectRange)
+                            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.MaxObjectRange * Landblock.MaxObjectRange)
                             {
                                 // if world object is in active zone.
                                 if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
