@@ -53,7 +53,7 @@ namespace ACE.Entity
         /// <summary>
         /// ObjectId of the currently selected Target (only players and creatures)
         /// </summary>
-        private ObjectGuid SelectedTarget { get; set; }
+        private ObjectGuid selectedTarget = ObjectGuid.Invalid;
 
         /// <summary>
         /// Amount of times this character has left a portal this session
@@ -178,7 +178,7 @@ namespace ACE.Entity
             var newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
             newMotion.DistanceFrom = 0.60f;
             newMotion.MovementTypes = MovementTypes.MoveToObject;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, new GameMessageUpdatePosition(this));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
             CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
         }
 
@@ -825,12 +825,12 @@ namespace ACE.Entity
                 if (queryId.Full == 0)
                 {
                     // Deselect the formerly selected Target
-                    SelectedTarget = ObjectGuid.Invalid;
+                    selectedTarget = ObjectGuid.Invalid;
                     return;
                 }
 
                 // Remember the selected Target
-                SelectedTarget = queryId;
+                selectedTarget = queryId;
 
                 // TODO: once items are implemented check if there are items that can trigger
                 //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
@@ -939,7 +939,7 @@ namespace ACE.Entity
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.outDoorChatRange, deathBroadcast);
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
         }
 
         // Play a sound
@@ -954,7 +954,7 @@ namespace ACE.Entity
             if (CurrentLandblock != null)
             {
                 var effectEvent = new GameMessageScript(targetId, effectId);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, effectEvent);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
             }
         }
 
@@ -1238,7 +1238,7 @@ namespace ACE.Entity
                 if (CurrentLandblock != null)
                 {
                     GameMessage msg = new GameMessageSetState(this, state);
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, msg);
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
                 }
             }
         }
@@ -1570,7 +1570,7 @@ namespace ACE.Entity
             {
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange,
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                     new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid,
                                                 Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
@@ -1599,7 +1599,7 @@ namespace ACE.Entity
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessagePutObjectInContainer(Session, this, itemGuid));
 
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange,
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                             new GameMessageUpdateMotion(Guid,
                                                         Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                         Sequences, motion),
@@ -1614,7 +1614,7 @@ namespace ACE.Entity
                 {
                     var motion = new UniversalMotion(MotionStance.Standing);
 
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange,
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                             new GameMessageUpdateMotion(Guid,
                                                         Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                         Sequences, motion));
@@ -1716,13 +1716,11 @@ namespace ACE.Entity
 
         public void HandleActionApplySoundEffect(Network.Enum.Sound sound)
         {
-            // ddevec: Could use ActionChain for this, but this is cleaner to code and has same effect
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }
 
         public void HandleActionApplyVisualEffect(Network.Enum.PlayScript effect)
         {
-            // ddevec: Could use ActionChain for this, but this is cleaner to code and has same effect
             new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
         }
 
@@ -1793,9 +1791,9 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (SelectedTarget != ObjectGuid.Invalid)
+                if (selectedTarget != ObjectGuid.Invalid)
                 {
-                    var target = SelectedTarget;
+                    var target = selectedTarget;
                     if (target.IsCreature() || target.IsPlayer())
                     {
                         HandleActionKill(target);
@@ -1890,10 +1888,10 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (SelectedTarget != ObjectGuid.Invalid)
+                if (selectedTarget != ObjectGuid.Invalid)
                 {
                     // FIXME(ddevec): This is wrong
-                    var target = SelectedTarget;
+                    var target = selectedTarget;
 
                     if (target.IsCreature())
                     {

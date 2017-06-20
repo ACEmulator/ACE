@@ -730,30 +730,40 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
 
+        /// <summary>
+        /// Records some game-logic based desired position update (e.g. teleport), for use by physics engine
+        /// </summary>
+        /// <param name="newPosition"></param>
         protected void ForceUpdatePosition(Position newPosition)
         {
             ForcedLocation = newPosition;
         }
 
-        /// FIXME(ddevec): We're probably ultimately only going to update velocity, not true position...
+        /// <summary>
+        /// Records where the client thinks we are, for use by physics engine later
+        /// </summary>
+        /// <param name="newPosition"></param>
         protected void PrepUpdatePosition(Position newPosition)
         {
             RequestedLocation = newPosition;
-            // character.SetCharacterPosition(newPosition);
         }
 
+        /// <summary>
+        /// Alerts clients of change in position
+        /// </summary>
         protected virtual void SendUpdatePosition()
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
             GameMessage msg = new GameMessageUpdatePosition(this);
             if (CurrentLandblock != null)
             {
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.maxobjectRange, msg);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
 
         /// <summary>
-        /// FIXME(ddevec): Update this once we have real physics....
+        /// Used by physics engine to actually update the entities position
+        /// Automatically notifies clients of updated position
         /// </summary>
         /// <param name="newPosition"></param>
         public void PhysicsUpdatePosition(Position newPosition)
@@ -765,6 +775,10 @@ namespace ACE.Entity
             RequestedLocation = null;
         }
 
+        /// <summary>
+        /// Manages action/broadcast infrastructure
+        /// </summary>
+        /// <param name="parent"></param>
         public void SetParent(IActor parent)
         {
             CurrentParent = parent;
@@ -772,16 +786,28 @@ namespace ACE.Entity
             actionQueue.SetParent(parent);
         }
 
+        /// <summary>
+        /// Prepare new action to run on this object
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public LinkedListNode<IAction> EnqueueAction(IAction action)
         {
             return actionQueue.EnqueueAction(action);
         }
 
+        /// <summary>
+        /// Satisfies action interface
+        /// </summary>
+        /// <param name="node"></param>
         public void DequeueAction(LinkedListNode<IAction> node)
         {
             actionQueue.DequeueAction(node);
         }
 
+        /// <summary>
+        /// Runs all actions pending on this WorldObject
+        /// </summary>
         public void RunActions()
         {
             actionQueue.RunActions();
