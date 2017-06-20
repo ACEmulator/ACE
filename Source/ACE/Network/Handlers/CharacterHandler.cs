@@ -274,13 +274,14 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
 
-            bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
+            // bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
+            DbManager.SaveObject(character);
 
-            if (!saveSuccess)
-            {
-                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
-                return;
-            }
+            // if (!saveSuccess)
+            // {
+            //    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
+            //    return;
+            // }
             // DatabaseManager.Shard.SaveCharacterOptions(character);
             // DatabaseManager.Shard.InitCharacterPositions(character);
 
