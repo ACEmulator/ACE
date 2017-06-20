@@ -34,8 +34,5 @@ namespace ACE.Database
         uint GetNextCharacterId();
 
         AceCharacter GetCharacter(uint id);
-
-        // call back error interfaces
-        void UnableToSaveObject(AceObject ao);
     }
 }

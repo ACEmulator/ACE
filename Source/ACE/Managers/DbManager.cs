@@ -50,16 +50,12 @@ namespace ACE.Managers
         private static void Tick()
         {
             while (running)
-            {
                 ProcessQue();
-            }
         }
         private static void ProcessQue()
         {
             foreach (AceObject ao in saveObjects.GetConsumingEnumerable())
-            {
                 DatabaseManager.Shard.SaveObjectAsync(ao);
-            }
         }
     }
 }

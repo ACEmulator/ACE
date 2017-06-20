@@ -435,18 +435,9 @@ namespace ACE.Database
             {
                 log.Error($"An exception occured while saving ace object");
                 log.Error($"Exception: {e.Message}");
-                UnableToSaveObject(aceObject);
                 result = false;
             }
             return result;
-        }
-
-        /// <summary>
-        /// Hooking into this interface will catch a saveobject error.
-        /// </summary>
-        public void UnableToSaveObject(AceObject ao)
-        {
-            log.Error($"Unable too save ace object {ao.AceObjectId}");
         }
 
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
