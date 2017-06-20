@@ -1257,7 +1257,11 @@ namespace ACE.Entity
 
             teleportChain.AddDelaySeconds(10);
             // Use ForceUpdate b/c it overrides physics motions
-            teleportChain.AddAction(this, () => ForceUpdatePosition(newPosition));
+            teleportChain.AddAction(this, () => 
+            {
+                InWorld = true;
+                ForceUpdatePosition(newPosition);
+            });
 
             return teleportChain;
         }
