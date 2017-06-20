@@ -1,4 +1,18 @@
 # ACEmulator Change Log
+### 2017-06-20
+[StackOverflow]
+* Moved Saving operations outside of primary game loop to prevent db operations from slowing down primary game loop.
+* Please call DbManager.SaveObject() now instead of DatabaseManager.Shard.SaveObject()
+
+### 2017-06-19
+* Trello card task - Extend ORM code to support multiple getLists or implement another method to query by alternate keys - re-implement cirand
+* Many thanks to ddevec - he did the work on the ORM code revision.   I just tested and implemented for my use.
+* Fixed undiscovered alignment bug at hooktype we were sending as dword and it is a word.   That was shifting everything below it.
+* Added priority to aceObject and set the aceObject priority field as a backing object for worldObject priority.
+* Created function to calculate container burden.
+* added view to world database that was needed for cirand and will be used in loot generation.
+* updated position table to have a faster function for location per discord discussion.
+* Updated trello board to refect current project status.
 
 ### 2017-06-19
 * Trello card task - Extend ORM code to support multiple getLists or implement another method to query by alternate keys - re-implement cirand

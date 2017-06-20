@@ -320,11 +320,6 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public async Task<bool> SaveObject(AceObject aceObject)
-        {
-            throw new NotImplementedException();
-        }
-
         // TODO: this needs to be refactored to just replace all calls to GetWeenie with the other method which should be renamed.
         public AceObject GetWeenie(uint weenieClassId)
         {
@@ -336,6 +331,16 @@ namespace ACE.Database
             Dictionary<string, object> criteria = new Dictionary<string, object>();
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TeleportLocation>(WorldPreparedStatement.GetPointsOfInterest, criteria);
             return objects;
+        }
+
+        public async Task<bool> SaveObject(AceObject aceObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> SaveObjectAsync(AceObject aceObject)
+        {
+            throw new NotImplementedException();
         }
     }
 }

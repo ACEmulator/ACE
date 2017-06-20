@@ -419,6 +419,26 @@ namespace ACE.Database
             return await transaction.Commit();
         }
 
+        public async Task<bool> SaveObjectAsync(AceObject aceObject)
+        {
+            bool result = false;
+            try
+            {
+                result = true;
+                DatabaseTransaction transaction = BeginTransaction();
+                DeleteObjectInternal(transaction, aceObject);
+                SaveObjectInternal(transaction, aceObject);
+                await transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                log.Error($"An exception occured while saving ace object");
+                log.Error($"Exception: {e.Message}");
+                result = false;
+            }
+            return result;
+        }
+
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
         {
             throw new NotImplementedException();
