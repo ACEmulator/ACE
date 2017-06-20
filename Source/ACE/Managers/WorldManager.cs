@@ -251,7 +251,7 @@ namespace ACE.Managers
                         if (mo.Guid.IsPlayer())
                         {
                             // if world object is in active zone then.
-                            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.maxobjectRange)
+                            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.maxobjectRange * Landblock.maxobjectRange)
                             {
                                 // if world object is in active zone.
                                 if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))

@@ -38,8 +38,8 @@ namespace ACE.Entity
         public const float outDoorChatRange = 75f;
         public const float indoorChatRange = 25f;
         public const float maxXY = 192f;
-        public const float maxobjectRange = 2000;
-        public const float maxobjectGhostRange = 2500;
+        public const float maxobjectRange = 192f;
+        public const float maxobjectGhostRange = 250f;
 
         private LandblockId id;
 
@@ -606,7 +606,7 @@ namespace ACE.Entity
             List<WorldObject> ret = new List<WorldObject>();
             foreach (Landblock lb in landblocksInRange)
             {
-                ret.AddRange(lb.worldObjects.Values.OfType<WorldObject>().ToList());
+                ret.AddRange(lb.worldObjects.Values.Where(x => x.Location.SquaredDistanceTo(pos) < distance * distance).ToList());
             }
 
             return ret;
