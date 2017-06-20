@@ -19,10 +19,6 @@ namespace ACE.Entity
             Name = baseAceObject.Name ?? "NULL";
             DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
             WeenieClassid = baseAceObject.WeenieClassId;
-            WeenieFlags = (WeenieHeaderFlag)baseAceObject.WeenieHeaderFlags;
-
-            // this should probably be determined based on the presence of data.
-            PhysicsData.PhysicsDescriptionFlag = (PhysicsDescriptionFlag)baseAceObject.PhysicsDescriptionFlag;
             PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             PhysicsData.Stable = baseAceObject.SoundTableId;
             PhysicsData.CSetup = baseAceObject.ModelTableId;
@@ -44,8 +40,6 @@ namespace ACE.Entity
 
             // game data min required flags;
             Icon = baseAceObject.IconId;
-            PhysicsData.SetPhysicsDescriptionFlag(this);
-
             AmmoType = (AmmoType?)baseAceObject.AmmoType;
             Burden = baseAceObject.Burden;
             CombatUse = (CombatUse?)baseAceObject.CombatUse;
@@ -65,7 +59,7 @@ namespace ACE.Entity
 
             // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address
 
-            // Priority = baseAceObject.Priority;
+            Priority = (CoverageMask?)baseAceObject.Priority;
             RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
             RadarColor = (RadarColor?)baseAceObject.BlipColor;
             Script = baseAceObject.PhysicsScript;
@@ -81,6 +75,7 @@ namespace ACE.Entity
             Value = baseAceObject.Value;
             Workmanship = baseAceObject.Workmanship;
 
+            PhysicsData.SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
 

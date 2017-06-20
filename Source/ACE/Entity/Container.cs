@@ -52,14 +52,17 @@ namespace ACE.Entity
                 inventoryItem.PhysicsData.Position = null;
                 inventoryItem.Location = null;
                 inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+                inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
             }
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
-            var inventoryItem = GetInventoryItem(inventoryItemGuid);
+            WorldObject inventoryItem = GetInventoryItem(inventoryItemGuid);
             if (Burden >= inventoryItem.Burden)
                 Burden -= inventoryItem.Burden;
+            else
+                Burden = 0;
 
             inventoryItem.Location = Location.InFrontOf(1.0f);
             // TODO: Write a method to set this based on data.
@@ -72,12 +75,24 @@ namespace ACE.Entity
             inventoryItem.ContainerId = null;
             inventoryItem.Wielder = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
-
             lock (inventoryMutex)
             {
                 if (inventory.ContainsKey(inventoryItemGuid))
                     inventory.Remove(inventoryItemGuid);
             }
+        }
+
+        public ushort UpdateBurden()
+        {
+            ushort calculatedBurden = 0;
+            lock (inventoryMutex)
+            {
+                foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
+                {
+                    calculatedBurden += entry.Value.Burden ?? 0;
+                }
+            }
+            return calculatedBurden;
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)

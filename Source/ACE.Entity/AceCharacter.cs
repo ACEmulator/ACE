@@ -8,7 +8,6 @@ using System.Linq;
 namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
-    [DbList("vw_ace_character", "guid")]
     public class AceCharacter : AceObject
     {
         private readonly List<Friend> friends;

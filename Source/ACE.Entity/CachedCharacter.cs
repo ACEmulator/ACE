@@ -4,7 +4,6 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
-    [DbList("vw_ace_character", "accountId", "deleted")]
     [DbGetAggregate("vw_ace_character", 106, "MAX", "guid")]
     public class CachedCharacter
     {
@@ -19,13 +18,13 @@ namespace ACE.Entity
 
         public byte SlotId { get; set; }
 
-        [DbField("accountId", (int)MySqlDbType.UInt32)]
+        [DbField("accountId", (int)MySqlDbType.UInt32, ListGet = true)]
         public uint AccountId { get; set; }
 
         [DbField("name", (int)MySqlDbType.VarChar, IsCriteria = true)]
         public string Name { get; set; }
 
-        [DbField("deleted", (int)MySqlDbType.Bit)]
+        [DbField("deleted", (int)MySqlDbType.Bit, ListGet = true)]
         public bool Deleted { get; set; }
 
         [DbField("deleteTime", (int)MySqlDbType.UInt64)]

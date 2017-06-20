@@ -4,7 +4,6 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("vw_teleport_location")]
-    [DbList("vw_teleport_location")]
     public class TeleportLocation
     {
         [DbField("name", (int)MySqlDbType.Text)]

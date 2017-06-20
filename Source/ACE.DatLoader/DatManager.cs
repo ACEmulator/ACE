@@ -22,7 +22,7 @@ namespace ACE.DatLoader
         public static CellDatDatabase CellDat { get { return cellDat; } }
 
         public static PortalDatDatabase PortalDat { get { return portalDat; } }
-        
+
         public static void Initialize()
         {
             var datDir = Path.GetFullPath(Path.Combine(ConfigManager.Config.Server.DatFilesDirectory));

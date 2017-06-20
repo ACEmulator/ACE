@@ -82,6 +82,7 @@
     <Compile Include="AceObjectPropertiesInt.cs" />
     <Compile Include="AceObjectPropertiesString.cs" />
     <Compile Include="AceObjectPropertiesPosition.cs" />
+    <Compile Include="CachedWeenieClass.cs" />
     <Compile Include="CachedWorldObject.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
     <Compile Include="AnimationOverride.cs" />

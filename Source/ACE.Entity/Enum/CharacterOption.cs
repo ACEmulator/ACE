@@ -5,9 +5,9 @@ using System.Linq;
 namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// This is a combination of the CharacterOption1 and CharacterOption2 enums. For the client, these are split into two groups because they can't be contained in a single uint field.<para /> 
-    /// Only some of these have values, which is intentional.<para />  
-    /// Used with F7B1 0005: GameAction -> Set Single Character Option - Only those that have values will trigger that GameAction.    
+    /// This is a combination of the CharacterOption1 and CharacterOption2 enums. For the client, these are split into two groups because they can't be contained in a single uint field.<para />
+    /// Only some of these have values, which is intentional.<para />
+    /// Used with F7B1 0005: GameAction -> Set Single Character Option - Only those that have values will trigger that GameAction.
     /// </summary>
     public enum CharacterOption
     {
@@ -103,7 +103,7 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions1(CharacterOptions1.IgnoreAllTradeRequests)]
         IgnoreAllTradeRequests,
-        
+
         [CharacterOptions1(CharacterOptions1.SideBySideVitals)]
         SideBySideVitals,
 
@@ -121,7 +121,7 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions1(CharacterOptions1.ShowAllegianceLogons)]
         ShowAllegianceLogons,
-        
+
         [CharacterOptions1(CharacterOptions1.UseCraftingChangeOfSuccessDialog)]
         UseCraftingChangeOfSuccessDialog,
 
@@ -148,19 +148,19 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions2(CharacterOptions2.SalvageMultipleMaterialsAtOnce)]
         SalvageMultipleMaterialsAtOnce,
-        
+
         [CharacterOptions2(CharacterOptions2.AllowOthersToSeeYourNumberOfTitles)]
         AllowOthersToSeeYourNumberOfTitles,
 
         [CharacterOptions2(CharacterOptions2.UseMainPackAsDefaultForPickingUpItems)]
         UseMainPackAsDefaultForPickingUpItems,
-        
+
         [CharacterOptions2(CharacterOptions2.FilterLanguage)]
         FilterLanguage,
 
         [CharacterOptions2(CharacterOptions2.ConfirmUseOfRareGems)]
         ConfirmUseOfRareGems,
-        
+
         [CharacterOptions2(CharacterOptions2.DisableDistanceFog)]
         DisableDistanceFog,
 
@@ -175,21 +175,21 @@ namespace ACE.Entity.Enum
     {
         public static CharacterOptions1Attribute GetCharacterOptions1Attribute(this CharacterOption val)
         {
-            return Enum.EnumHelper.GetAttributeOfType<CharacterOptions1Attribute>(val);
+            return val.GetAttributeOfType<CharacterOptions1Attribute>();
         }
 
         public static CharacterOptions2Attribute GetCharacterOptions2Attribute(this CharacterOption val)
         {
-            return Enum.EnumHelper.GetAttributeOfType<CharacterOptions2Attribute>(val);
+            return val.GetAttributeOfType<CharacterOptions2Attribute>();
         }
 
         public static uint GetCharacterOptions1Flag(this ReadOnlyDictionary<CharacterOption, bool> options)
         {
-            return GetCharacterOptions1Flag(options.ToDictionary(k => k.Key, v => v.Value));            
+            return GetCharacterOptions1Flag(options.ToDictionary(k => k.Key, v => v.Value));
         }
 
         public static uint GetCharacterOptions1Flag(this Dictionary<CharacterOption, bool> options)
-        {   
+        {
             uint flags = 0;
             foreach (var option in options.Where(o => o.Key.GetCharacterOptions1Attribute() != null))
             {
@@ -202,7 +202,7 @@ namespace ACE.Entity.Enum
 
         public static uint GetCharacterOptions2Flag(this ReadOnlyDictionary<CharacterOption, bool> options)
         {
-            return GetCharacterOptions2Flag(options.ToDictionary(k => k.Key, v => v.Value));            
+            return GetCharacterOptions2Flag(options.ToDictionary(k => k.Key, v => v.Value));
         }
 
         public static uint GetCharacterOptions2Flag(this Dictionary<CharacterOption, bool> options)

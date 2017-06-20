@@ -20,7 +20,7 @@ namespace ACE
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             log.Info("Starting ACEmulator...");
-            Console.Title = "ACEmulator";
+            Console.Title = @"ACEmulator";
 
             ConfigManager.Initialize();
             DatabaseManager.Initialize();

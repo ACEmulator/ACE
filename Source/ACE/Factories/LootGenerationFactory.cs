@@ -17,19 +17,23 @@ namespace ACE.Factories
             LandblockManager.AddObject(inventoryItem);
         }
 
-        public static WorldObject CreateTestWorldObject(Player player, ushort weenieId)
+        public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
         {
-            var aceObject = DatabaseManager.World.GetBaseAceObjectDataByWeenie(weenieId);
-            var wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
+            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
+            DebugObject wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
             return wo;
         }
 
-        public static WorldObject CreateRandomTestWorldObject(Player player, uint typeId)
+        public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)
         {
-            var aceObject = DatabaseManager.World.GetRandomWeenieOfType(typeId);
-            if (aceObject == null) return null;
-            var wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
-            return wo;
+            var weenieList = DatabaseManager.World.GetRandomWeeniesOfType(typeId, numItems);
+            for (int i = 0; i < numItems; i++)
+            {
+                WorldObject wo = CreateTestWorldObject(player, weenieList[i].WeenieClassId);
+                player.AddToInventory(wo);
+                player.TrackObject(wo);
+            }
+            player.UpdatePlayerBurden();
         }
     }
 }

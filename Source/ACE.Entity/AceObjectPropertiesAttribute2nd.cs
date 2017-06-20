@@ -6,11 +6,9 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_attribute2nd")]
-    [DbList("ace_object_properties_attribute2nd", "aceObjectId")]
-
     public class AceObjectPropertiesAttribute2nd : ICloneable
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("attribute2ndid", (int)MySqlDbType.UInt16)]

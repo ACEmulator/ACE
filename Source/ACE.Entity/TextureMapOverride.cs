@@ -5,10 +5,9 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_texture_map_change")]
-    [DbList("ace_object_texture_map_change", "aceObjectId")]
     public class TextureMapOverride : ICloneable
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true)]
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("index", (int)MySqlDbType.UByte)]
