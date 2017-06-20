@@ -93,6 +93,15 @@ namespace ACE.Entity
             return calculatedBurden;
         }
 
+        public void UpdateWieldedItem(uint itemId)
+        {
+            ObjectGuid itemGuid = new ObjectGuid(itemId);
+            WorldObject inventoryItem = GetInventoryItem(itemGuid);
+            inventoryItem.ContainerId = null;
+            inventoryItem.Wielder = Guid.Full;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             lock (inventoryMutex)

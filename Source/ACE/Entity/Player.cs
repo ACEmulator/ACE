@@ -102,7 +102,8 @@ namespace ACE.Entity
             get { return AceObject.AceObjectPropertiesPositions; }
         }
 
-        public Position PositionSanctuary {
+        public Position PositionSanctuary
+        {
             get
             {
                 return Positions[PositionType.Sanctuary];
@@ -113,7 +114,8 @@ namespace ACE.Entity
             }
         }
 
-        public Position PositionLastPortal {
+        public Position PositionLastPortal
+        {
             get
             {
                 return Positions[PositionType.LastPortal];
@@ -629,10 +631,11 @@ namespace ACE.Entity
 
             if (rankUps > 0)
             {
-                // FIXME(ddevec): This needs to be done for vitals only? Someone verify -- 
+                // FIXME(ddevec): This needs to be done for vitals only? Someone verify --
                 //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
                 CreatureVital vital = ability as CreatureVital;
-                if (vital != null) {
+                if (vital != null)
+                {
                     vital.Current += addToCurrentValue ? rankUps : 0u;
                 }
                 ability.Ranks += rankUps;
@@ -1386,7 +1389,41 @@ namespace ACE.Entity
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current));
             }
         }
-        
+
+        public void EquipItem(uint itemId, uint slot)
+        {
+            UpdateWieldedItem(itemId);
+            ObjectGuid itemGuid = new ObjectGuid(itemId);
+            WorldObject wo = GetInventoryItem(itemGuid);
+            List<Model> modelsList = wo.ModelData.GetModels;
+            ModelData.Clear();
+            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+            var coverage = new List<uint>();
+            foreach (Model t in modelsList)
+            {
+                ModelData.AddModel(t.Index, t.ModelID);
+                coverage.Add(t.Index);
+            }
+
+            PhysicsData.ItemsEquipedCount += 1;
+            foreach (ModelTexture t in wo.ModelData.GetTextures)
+                ModelData.AddTexture(t.Index, t.OldTexture, t.NewTexture);
+            foreach (ModelPalette p in wo.ModelData.GetPalettes)
+            {
+                ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+            }
+            // Add the "naked" body parts. These are the ones not already covered.
+             SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+             for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+             {
+                if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
+                    ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+             }
+
+            var objDescEvent = new GameMessageObjDescEvent(this);
+            Session.Network.EnqueueSend(objDescEvent);
+        }
+
         public void TestEquipItem(Session session, uint modelId, int palOption)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
