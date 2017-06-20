@@ -1393,35 +1393,52 @@ namespace ACE.Entity
         public void EquipItem(uint itemId, uint slot)
         {
             UpdateWieldedItem(itemId);
-            ObjectGuid itemGuid = new ObjectGuid(itemId);
-            WorldObject wo = GetInventoryItem(itemGuid);
-            List<Model> modelsList = wo.ModelData.GetModels;
             ModelData.Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+            var wieldeditems = GetCurrentlyWieldedItems();
             var coverage = new List<uint>();
-            foreach (Model t in modelsList)
-            {
-                ModelData.AddModel(t.Index, t.ModelID);
-                coverage.Add(t.Index);
-            }
 
-            PhysicsData.ItemsEquipedCount += 1;
-            foreach (ModelTexture t in wo.ModelData.GetTextures)
-                ModelData.AddTexture(t.Index, t.OldTexture, t.NewTexture);
-            foreach (ModelPalette p in wo.ModelData.GetPalettes)
+            foreach (var w in wieldeditems)
             {
-                ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
-            }
-            // Add the "naked" body parts. These are the ones not already covered.
-             SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
-             for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
-             {
-                if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
-                    ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
-             }
+                var wo = w.Value;
+                ClothingTable item;
+                if (wo.ClothingBase != null)
+                    item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
+                else
+                    item = ClothingTable.ReadFromDat(0x10000002);
+                // If I don't find a match, for now you are pants!
+                // TODO: this needs to go as soon as we get all the clothing base did in
 
-            var objDescEvent = new GameMessageObjDescEvent(this);
-            Session.Network.EnqueueSend(objDescEvent);
+                if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+                // Check if the player model has data. Gear Knights, this is usually you.
+                {
+                    // Add the model and texture(s)
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                    foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                    {
+                        byte partNum = (byte)t.Index;
+                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
+                        coverage.Add(partNum);
+                        foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                    }
+
+                    PhysicsData.ItemsEquipedCount += 1;
+                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
+                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+                }
+
+                // Add the "naked" body parts. These are the ones not already covered.
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+                {
+                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                }
+
+                var objDescEvent = new GameMessageObjDescEvent(this);
+                Session.Network.EnqueueSend(objDescEvent);
+            }
         }
 
         public void TestEquipItem(Session session, uint modelId, int palOption)

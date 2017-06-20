@@ -14,6 +14,8 @@ namespace ACE.Entity
     {
         public uint? PaletteGuid { get; set; } = 0;
 
+        public uint? ClothingBase { get; set; } = 0;
+
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
         private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();

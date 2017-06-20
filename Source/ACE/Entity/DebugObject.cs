@@ -55,6 +55,7 @@ namespace ACE.Entity
             MaxStackSize = baseAceObject.MaxStackSize;
             Wielder = baseAceObject.WielderId;
             ContainerId = baseAceObject.ContainerId;
+            ClothingBase = baseAceObject.ClothingBase;
             CurrentWieldedLocation = (EquipMask?)baseAceObject.CurrentWieldedLocation;
 
             // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address

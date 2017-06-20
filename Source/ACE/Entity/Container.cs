@@ -1,6 +1,9 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using StyleCop;
 
 namespace ACE.Entity
 {
@@ -86,10 +89,10 @@ namespace ACE.Entity
         {
             ushort calculatedBurden = 0;
             lock (inventoryMutex)
-            foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
-            {
-                calculatedBurden += entry.Value.Burden ?? 0;
-            }
+                foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
+                {
+                    calculatedBurden += entry.Value.Burden ?? 0;
+                }
             return calculatedBurden;
         }
 
@@ -100,6 +103,14 @@ namespace ACE.Entity
             inventoryItem.ContainerId = null;
             inventoryItem.Wielder = Guid.Full;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
+        {
+            lock (inventoryMutex)
+            {
+                return inventory.Where(wo => wo.Value.Wielder != null).ToList();
+            }
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
