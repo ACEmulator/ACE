@@ -651,6 +651,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
             }
         }
+        */
 
         /// <summary>
         /// Debug command to learn a spell.
@@ -693,7 +694,6 @@ namespace ACE.Command.Handlers
                 session.Network.EnqueueSend(errorMessage);
             }
         }
-        */
 
         /// <summary>
         /// Debug command to print out all of the active players connected too the server.

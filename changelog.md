@@ -4,6 +4,7 @@
 [ddevec]
 * Fix logoff crash in core/landblock restrucutre due to nulliing a location then
       moving an object
+* Also reintroduced learnspell       
 
 ### 2017-06-21
 [ddevec]
