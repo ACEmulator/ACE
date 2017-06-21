@@ -694,7 +694,7 @@ namespace ACE.Entity
                         {
                             lock (objectCacheLocker)
                             {
-                                // either to player from ground else to player from weilded item
+                                // either to player from ground else to player from wielded item
                                 // TODO: Need to account for pack to pack or pack to main pack moves
                                 if (worldObjects.ContainsKey(inventoryId))
                                     inventoryItem = worldObjects[inventoryId];

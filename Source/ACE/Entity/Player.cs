@@ -1437,9 +1437,8 @@ namespace ACE.Entity
                 if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
                     ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
             }
-
-            var objDescEvent = new GameMessageObjDescEvent(this);
-            Session.Network.EnqueueSend(objDescEvent);
+            
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0), new GameMessageObjDescEvent(this));
         }
 
         public void TestEquipItem(Session session, uint modelId, int palOption)
