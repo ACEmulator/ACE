@@ -1274,8 +1274,9 @@ namespace ACE.Entity
             if (!InWorld)
                 return;
 
-            InWorld = false;
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
+            ExternalUpdatePosition(newPosition);
+            InWorld = false;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
