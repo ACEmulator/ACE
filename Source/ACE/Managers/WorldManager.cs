@@ -262,7 +262,7 @@ namespace ACE.Managers
                             {
                                 if ((mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
                                 {
-                                    (mo as Player).StopTrackingObject(gwo, true);
+                                    (mo as Player).StopTrackingObject(gwo, false);
                                 }
                             }
                         }

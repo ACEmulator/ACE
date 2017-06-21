@@ -39,10 +39,8 @@ namespace ACE.Factories
             for (int i = 0; i < numItems; i++)
             {
                 WorldObject wo = CreateTestWorldObject(player, weenieList[i].WeenieClassId);
-                player.AddToInventory(wo);
-                player.TrackObject(wo);
+                player.HandleAddToInventory(wo);
             }
-            player.UpdatePlayerBurden();
         }
     }
 }

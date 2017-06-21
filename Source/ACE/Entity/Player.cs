@@ -923,6 +923,7 @@ namespace ACE.Entity
             {
                 AddToInventory(wo);
                 TrackObject(wo);
+                UpdatePlayerBurden();
             }).EnqueueChain();
         }
 

@@ -19,8 +19,7 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static readonly float MaxObjectTrackingRange { get; } = 20000f;
-
+        public static float MaxObjectTrackingRange { get; } = 20000f;
 
         public ObjectGuid Guid
         {
