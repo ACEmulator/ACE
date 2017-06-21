@@ -138,7 +138,6 @@ namespace ACE.Network
         {
             if (this.Player != null)
             {
-                this.Player.SaveOptions();
                 this.Player.SaveCharacter();
             }
         }

@@ -1056,20 +1056,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Saves options to the database.  Options include things like spell tabs, settings (F11), chat windows, etc.
-        /// </summary>
-        public void SaveOptions()
-        {
-            if (Character != null)
-            {
-                // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
-                DbManager.SaveObject(GetSavableCharacter());
-            }
-
-            // TODO: Save other options as we implement them.
-        }
-
-        /// <summary>
         /// Set the currenly position of the character, to later save in the database.
         /// </summary>
         public void SetPhysicalCharacterPosition()
