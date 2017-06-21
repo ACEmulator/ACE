@@ -600,7 +600,8 @@ namespace ACE.Entity
         private static void HandleUnequip(Player player, WorldObject item)
         {
             player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, player, item.Guid),
-                                               new GameMessageUpdateInstanceId(item.Guid, player.Guid));
+                                               new GameMessageUpdateInstanceId(item.Guid, player.Guid),
+                                               new GameMessageSound(player.Guid, Sound.UnwieldObject, (float)1.0));
             // TODO: Need to start sending slot - set for 0 for now.
             player.EquipUnequipItem(item.Guid.Full, 0);
         }
