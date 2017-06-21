@@ -1,7 +1,16 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Entity.Actions;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
+using ACE.Network.Sequence;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -59,31 +68,45 @@ namespace ACE.Entity
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
         }
 
-        public override void OnUse(Player player)
+        public override void OnUse(ObjectGuid playerId)
         {
             // TODO: implement auto close timer, check if door is locked, send locked soundfx if locked and fail to open.
 
-            if (PhysicsData.CurrentMotionState == motionStateClosed)
-                Open(player);
+            if (this.PhysicsData.CurrentMotionState == motionStateClosed)
+            {
+                Open();
+            }
             else
-                Close(player);
+            {
+                Close();
+            }
 
-            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+            {
+                Player player = wo as Player;
+                if (player == null)
+                {
+                    return;
+                }
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            });
+            chain.EnqueueChain();
         }
 
-        private void Open(Player player)
+        private void Open()
         {
-            player.EnqueueMovementEvent(motionOpen, Guid);
-            PhysicsData.CurrentMotionState = motionStateOpen;
-            PhysicsData.PhysicsState |= PhysicsState.Ethereal;
+            CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
+            this.PhysicsData.CurrentMotionState = motionStateOpen;
+            this.PhysicsData.PhysicsState |= PhysicsState.Ethereal;
         }
 
-        private void Close(Player player)
+        private void Close()
         {
-            player.EnqueueMovementEvent(motionClosed, Guid);
-            PhysicsData.CurrentMotionState = motionStateClosed;
-            PhysicsData.PhysicsState ^= PhysicsState.Ethereal;
+            CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
+            this.PhysicsData.CurrentMotionState = motionStateClosed;
+            this.PhysicsData.PhysicsState ^= PhysicsState.Ethereal;
         }
     }
 }

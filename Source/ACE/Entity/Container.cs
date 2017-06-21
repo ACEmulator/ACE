@@ -1,4 +1,5 @@
 ﻿using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
 using System.Collections.Generic;
 
@@ -10,16 +11,6 @@ namespace ACE.Entity
 
         private readonly object inventoryMutex = new object();
 
-        /// <summary>
-        /// Load from template
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="guid"></param>
-        /// <param name="name"></param>
-        /// <param name="weenieClassId"></param>
-        /// <param name="descriptionFlag"></param>
-        /// <param name="weenieFlag"></param>
-        /// <param name="position"></param>
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
@@ -40,20 +31,20 @@ namespace ACE.Entity
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
-            lock (inventoryMutex)
+            if (!inventory.ContainsKey(inventoryItem.Guid))
             {
-                if (!inventory.ContainsKey(inventoryItem.Guid))
-                {
-                    inventory.Add(inventoryItem.Guid, inventoryItem);
-                }
-
-                Burden += inventoryItem.Burden;
-                inventoryItem.ContainerId = Guid.Full;
-                inventoryItem.PhysicsData.Position = null;
-                inventoryItem.Location = null;
-                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
-                inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+                inventory.Add(inventoryItem.Guid, inventoryItem);
             }
+
+            Burden += inventoryItem.Burden;
+            inventoryItem.ContainerId = Guid.Full;
+            if (inventoryItem.Location != null)
+                LandblockManager.RemoveObject(inventoryItem);
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.PhysicsData.Position = null;
+            inventoryItem.Location = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
@@ -64,6 +55,7 @@ namespace ACE.Entity
             else
                 Burden = 0;
 
+            // FIXME(ddevec): RemoveFromInventory should only be responsible for removing the item from the inventory, not placing it on the world!
             inventoryItem.Location = Location.InFrontOf(1.0f);
             // TODO: Write a method to set this based on data.
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
@@ -75,10 +67,9 @@ namespace ACE.Entity
             inventoryItem.ContainerId = null;
             inventoryItem.Wielder = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
-            lock (inventoryMutex)
+            if (inventory.ContainsKey(inventoryItemGuid))
             {
-                if (inventory.ContainsKey(inventoryItemGuid))
-                    inventory.Remove(inventoryItemGuid);
+                inventory.Remove(inventoryItemGuid);
             }
         }
 
@@ -97,12 +88,10 @@ namespace ACE.Entity
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
-            lock (inventoryMutex)
-            {
-                if (inventory.ContainsKey(objectGuid))
-                    return inventory[objectGuid];
+            if (this.inventory.ContainsKey(objectGuid))
+                return this.inventory[objectGuid];
+            else
                 return null;
-            }
         }
     }
 }

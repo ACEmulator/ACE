@@ -38,6 +38,11 @@ namespace ACE.Entity
 
         private const float xyMidPoint = 96f;
 
+        public bool Indoors
+        {
+            get { return landblockId.MapScope != MapScope.Outdoors; }
+        }
+
         public bool IsInQuadrant(Quadrant q)
         {
             // check for easy short circuit

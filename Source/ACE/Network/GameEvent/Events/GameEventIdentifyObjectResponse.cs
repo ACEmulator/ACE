@@ -5,11 +5,11 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventIdentifyObjectResponse : GameEventMessage
     {
-        public GameEventIdentifyObjectResponse(Session session, uint objectId, WorldObject obj)
+        public GameEventIdentifyObjectResponse(Session session, ObjectGuid objectId, WorldObject obj)
             : base(GameEventType.IdentifyObjectResponse, GameMessageGroup.Group09, session)
         {
             // TODO - Send Actual Properties
-            Writer.Write(objectId);
+            Writer.Write(objectId.Full);
 
             // Check if item is WorldObject or a DebugObject
             System.Type type = obj.GetType();
@@ -25,7 +25,7 @@ namespace ACE.Network.GameEvent.Events
                 // Write a simple debug strings. Thanks to Pea for this idea.
                 Writer.Write(1u + (1 << 16)); // One String, + table size
                 Writer.Write(16u); // Long Description String
-                string debugOutput = "baseAceObjectId: " + objectId.ToString() + " (0x" + objectId.ToString("X") + ")";
+                string debugOutput = "baseAceObjectId: " + objectId.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
                 debugOutput += "\n" + "weenieClassId: " + obj.WeenieClassid.ToString() + " (0x" + obj.WeenieClassid.ToString("X") + ")";
                 Writer.WriteString16L(debugOutput);
             }

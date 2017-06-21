@@ -1,20 +1,25 @@
 using ACE.Entity.Enum;
-using ACE.Managers;
+using ACE.Entity.Actions;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
+using ACE.Network.GameMessages;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
-using log4net;
-using System.IO;
-using System;
+using ACE.Network.Motion;
 using System.Collections.Generic;
+using System.IO;
+using ACE.Managers;
+using log4net;
+using System;
 
 namespace ACE.Entity
 {
-    public abstract class WorldObject
+    public abstract class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static float MaxObjectTrackingRange { get; } = 20000f;
 
         public ObjectGuid Guid
         {
@@ -51,6 +56,21 @@ namespace ACE.Entity
             protected set { AceObject.Name = value; }
         }
 
+        public IActor CurrentParent { get; private set; }
+
+        public Position ForcedLocation { get; private set; }
+        public Position RequestedLocation { get; private set; }
+
+        /// <summary>
+        /// Should only be adjusted by LandblockManager -- default is null
+        /// </summary>
+        public Landblock CurrentLandblock {
+            get
+            {
+                return CurrentParent as Landblock;
+            }
+        }
+
         /// <summary>
         /// tick-stamp for the last time this object changed in any way.
         /// </summary>
@@ -60,6 +80,8 @@ namespace ACE.Entity
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
+
+        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
         public virtual Position Location
         {
@@ -151,6 +173,7 @@ namespace ACE.Entity
             set { AceObject.ItemUseable = (uint?)value; }
         }
 
+        // FIXME(ddevec): Defaults to 25, so is unnecessarily sent always w/ weenieheaderflags.
         public float? UseRadius
         {
             get { return AceObject.UseRadius ?? 0.25f; }
@@ -417,8 +440,16 @@ namespace ACE.Entity
         {
             var p = (Player)this;
             PhysicsData.CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(this, p.Session, motionState);
+            var updateMotion = new GameMessageUpdateMotion(p.Guid,
+                                                           p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                           p.Sequences, motionState);
             p.Session.Network.EnqueueSend(updateMotion);
+        }
+
+        public void Examine(Session examiner)
+        {
+            var identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
+            examiner.Network.EnqueueSend(identifyResponse);
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)
@@ -705,8 +736,87 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
         }
 
-        public virtual void Tick(double tickTime)
+        /// <summary>
+        /// Records some game-logic based desired position update (e.g. teleport), for use by physics engine
+        /// </summary>
+        /// <param name="newPosition"></param>
+        protected void ForceUpdatePosition(Position newPosition)
         {
+            ForcedLocation = newPosition;
+        }
+
+        /// <summary>
+        /// Records where the client thinks we are, for use by physics engine later
+        /// </summary>
+        /// <param name="newPosition"></param>
+        protected void PrepUpdatePosition(Position newPosition)
+        {
+            RequestedLocation = newPosition;
+        }
+
+        /// <summary>
+        /// Alerts clients of change in position
+        /// </summary>
+        protected virtual void SendUpdatePosition()
+        {
+            LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
+            GameMessage msg = new GameMessageUpdatePosition(this);
+            if (CurrentLandblock != null)
+            {
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            }
+        }
+
+        /// <summary>
+        /// Used by physics engine to actually update the entities position
+        /// Automatically notifies clients of updated position
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void PhysicsUpdatePosition(Position newPosition)
+        {
+            Location = newPosition;
+            SendUpdatePosition();
+
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+        /// <summary>
+        /// Manages action/broadcast infrastructure
+        /// </summary>
+        /// <param name="parent"></param>
+        public void SetParent(IActor parent)
+        {
+            CurrentParent = parent;
+            actionQueue.RemoveParent();
+            actionQueue.SetParent(parent);
+        }
+
+        /// <summary>
+        /// Prepare new action to run on this object
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        {
+            return actionQueue.EnqueueAction(action);
+        }
+
+        /// <summary>
+        /// Satisfies action interface
+        /// </summary>
+        /// <param name="node"></param>
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
+        }
+
+        /// <summary>
+        /// Runs all actions pending on this WorldObject
+        /// </summary>
+        public void RunActions()
+        {
+            actionQueue.RunActions();
         }
     }
 }
