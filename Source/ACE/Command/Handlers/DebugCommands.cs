@@ -609,7 +609,6 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(positionMessage);
         }
 
-        // FIXME(ddevec): Reintroduce once spelltables are merged back in
         /*
         /// <summary>
         /// Debug command to test the ObjDescEvent message. 

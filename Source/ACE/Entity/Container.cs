@@ -9,8 +9,6 @@ namespace ACE.Entity
     {
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
-        private readonly object inventoryMutex = new object();
-
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
@@ -76,12 +74,9 @@ namespace ACE.Entity
         public ushort UpdateBurden()
         {
             ushort calculatedBurden = 0;
-            lock (inventoryMutex)
+            foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
             {
-                foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
-                {
-                    calculatedBurden += entry.Value.Burden ?? 0;
-                }
+                calculatedBurden += entry.Value.Burden ?? 0;
             }
             return calculatedBurden;
         }
