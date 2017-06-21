@@ -232,7 +232,8 @@ namespace ACE.Managers
                 Parallel.ForEach(movedObjects, wo =>
                 {
                     // If it was picked up, or moved
-                    if (wo.Location.LandblockId != wo.CurrentLandblock.Id)
+                    // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                    if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock.Id)
                     {
                         LandblockManager.RelocateObject(wo);
                     }

@@ -1156,10 +1156,23 @@ namespace ACE.Entity
             Positions[type] = newPosition;
         }
 
+        // Just preps the character to save
+        public void HandleActionSaveCharacter()
+        {
+            GetSaveChain().EnqueueChain();
+        }
+
+        // Gets the ActionChain to save a character
+        public ActionChain GetSaveChain()
+        {
+            return new ActionChain(this, SaveCharacter);
+        }
+
         /// <summary>
+        /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
         /// </summary>
-        public void SaveCharacter()
+        private void SaveCharacter()
         {
             if (Character != null)
             {
@@ -1351,11 +1364,29 @@ namespace ACE.Entity
             }
         }
 
+        public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
+        {
+            GetLogoutChain().EnqueueChain();
+        }
+
+        public ActionChain GetLogoutChain(bool clientSessionTerminatedAbruptly = false)
+        {
+            ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
+
+            // FIXME(ddevec): Constant time here for animation...
+            logoutChain.AddDelaySeconds(2);
+
+            // remove the player from landblock management -- after the animation has run
+            logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
+
+            return logoutChain;
+        }
+
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        public void Logout(bool clientSessionTerminatedAbruptly = false)
+        private void LogoutInternal(bool clientSessionTerminatedAbruptly)
         {
             if (!IsOnline)
                 return;
@@ -1365,15 +1396,10 @@ namespace ACE.Entity
 
             SendFriendStatusUpdates();
 
-            // remove the player from landblock management
-            LandblockManager.RemoveObject(this);
-
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
-                Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
-                                                                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                                        Sequences, logout));
+                CurrentLandblock.EnqueueBroadcastMotion(this, logout);
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 
