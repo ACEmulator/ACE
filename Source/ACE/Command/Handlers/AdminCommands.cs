@@ -1032,6 +1032,13 @@ namespace ACE.Command.Handlers
                     return;
                 }
             }
+            for (byte b = 1; b <= numItems; b++)
+            {
+                var loot = LootGenerationFactory.CreateRandomTestWorldObject(session.Player, typeId);
+                if (loot == null)  return;
+                session.Player.AddToInventory(loot);
+                session.Player.TrackObject(loot);
+            }
             LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems);
         }
         // cm <material type> <quantity> <ave. workmanship>
