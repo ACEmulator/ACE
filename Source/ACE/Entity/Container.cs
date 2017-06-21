@@ -1,6 +1,9 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using StyleCop;
 
 namespace ACE.Entity
 {
@@ -95,13 +98,39 @@ namespace ACE.Entity
             return calculatedBurden;
         }
 
+        public void UpdateWieldedItem(uint itemId)
+        {
+            // TODO: need to make pack aware - just coding for main pack now.
+            ObjectGuid itemGuid = new ObjectGuid(itemId);
+            WorldObject inventoryItem = GetInventoryItem(itemGuid);
+            switch (inventoryItem.ContainerId)
+            {
+                case null:
+                    inventoryItem.ContainerId = Guid.Full;
+                    inventoryItem.Wielder = null;
+                    break;
+                default:
+                    inventoryItem.ContainerId = null;
+                    inventoryItem.Wielder = Guid.Full;
+                    break;
+            }
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
+        {
+            lock (inventoryMutex)
+            {
+                return inventory.Where(wo => wo.Value.Wielder != null).ToList();
+            }
+        }
+
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             lock (inventoryMutex)
             {
-                if (inventory.ContainsKey(objectGuid))
-                    return inventory[objectGuid];
-                return null;
+                if (!inventory.ContainsKey(objectGuid)) return null;
+                return inventory[objectGuid];
             }
         }
     }

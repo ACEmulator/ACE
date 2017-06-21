@@ -567,6 +567,54 @@ namespace ACE.Entity
             // TODO: release resources
         }
 
+        private void HandlePickup(Player player, WorldObject item)
+        {
+            if ((player == null) || (item == null)) return;
+            if (player.PhysicsData.Position.SquaredDistanceTo(item.PhysicsData.Position)
+                > Math.Pow((item.UseRadius ?? 0.00), 2))
+            {
+                // This is where I need to hook in the move to object code.
+                // TODO: Og II work on this soon.
+            }
+            var motion = new UniversalMotion(MotionStance.Standing);
+            motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
+            player.Session.Network.EnqueueSend(new GameMessageUpdatePosition(player),
+                new GameMessageUpdateMotion(player, player.Session, motion),
+                new GameMessageSound(player.Guid, Sound.PickUpItem, (float)1.0));
+
+            // Add to the inventory list.
+            LandblockManager.RemoveObject(item);
+            player.AddToInventory(item);
+
+            motion = new UniversalMotion(MotionStance.Standing);
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player.Session,
+                    PropertyInt.EncumbranceVal,
+                    (player.Burden ?? 0)),
+                new GameMessagePutObjectInContainer(player.Session, player, item.Guid),
+                new GameMessageUpdateMotion(player, player.Session, motion),
+                new GameMessageUpdateInstanceId(item.Guid, player.Guid),
+                new GameMessagePickupEvent(player.Session, item));
+
+            player.TrackObject(item);
+        }
+        private static void HandleUnequip(Player player, WorldObject item)
+        {
+            player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, player, item.Guid),
+                                               new GameMessageUpdateInstanceId(item.Guid, player.Guid),
+                                               new GameMessageSound(player.Guid, Sound.UnwieldObject, (float)1.0));
+            // TODO: Need to start sending slot - set for 0 for now.
+            player.EquipUnequipItem(item.Guid.Full, 0);
+        }
+
+        private void HandleMove(Player player, WorldObject item, WorldObject container)
+        {
+            item.Wielder = null;
+            // TODO:  This is a hack we need to put this in the correct pack.   it will not always be the main pack
+            item.ContainerId = container.Guid.Full;
+            player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, container, item.Guid),
+                new GameMessageUpdateInstanceId(item.Guid, container.Guid));
+        }
+
         private void HandleGameAction(QueuedGameAction action, Player player)
         {
             switch (action.ActionType)
@@ -633,51 +681,57 @@ namespace ACE.Entity
                     }
                 case GameActionType.PutItemInContainer:
                     {
-                        var playerId = new ObjectGuid(action.ObjectId);
-                        var inventoryId = new ObjectGuid(action.SecondaryObjectId);
-                        if (playerId.IsPlayer())
+                        ObjectGuid containerId = new ObjectGuid(action.ObjectId);
+                        ObjectGuid inventoryId = new ObjectGuid(action.SecondaryObjectId);
+                        WorldObject inventoryItem = null;
+                        Container container = null;
+                        // Let's see what type of put this is
+                        // 1 container to container
+                        // 2 ground to container
+                        // 3 equipped slot to container.
+
+                        if (containerId.IsPlayer())
                         {
-                            Player aPlayer = null;
-                            WorldObject inventoryItem = null;
-
-                            if (worldObjects.ContainsKey(playerId) && worldObjects.ContainsKey(inventoryId))
+                            lock (objectCacheLocker)
                             {
-                                aPlayer = (Player)worldObjects[playerId];
-                                inventoryItem = worldObjects[inventoryId];
+                                // either to player from ground else to player from wielded item
+                                // TODO: Need to account for pack to pack or pack to main pack moves
+                                if (worldObjects.ContainsKey(inventoryId))
+                                    inventoryItem = worldObjects[inventoryId];
+                                else
+                                    inventoryItem = player.GetInventoryItem(inventoryId);
                             }
-
-                            if ((aPlayer != null) && (inventoryItem != null))
+                        }
+                        else
+                        {
+                            // is this a container (player pack?)
+                            container = (Container)player.GetInventoryItem(containerId);
+                            inventoryItem = container.GetInventoryItem(inventoryId);
+                            if (inventoryItem == null)
                             {
-                                if (aPlayer.PhysicsData.Position.SquaredDistanceTo(inventoryItem.PhysicsData.Position)
-                                    > Math.Pow((inventoryItem.UseRadius ?? 0.00), 2))
+                                // ok let's see if we are going into a world object container like a chest.
+                                lock (objectCacheLocker)
                                 {
-                                    // This is where I need to hook in the move to object code.
-                                    // TODO: Og II work on this soon.
+                                    inventoryItem = worldObjects[inventoryId];
                                 }
-                                var motion = new UniversalMotion(MotionStance.Standing);
-                                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-                                aPlayer.Session.Network.EnqueueSend(new GameMessageUpdatePosition(aPlayer),
-                                    new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                    new GameMessageSound(aPlayer.Guid, Sound.PickUpItem, (float)1.0));
-
-                                // Add to the inventory list.
-                                LandblockManager.RemoveObject(inventoryItem);
-                                aPlayer.AddToInventory(inventoryItem);
-
-                                motion = new UniversalMotion(MotionStance.Standing);
-                                aPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(aPlayer.Session,
-                                       PropertyInt.EncumbranceVal,
-                                       (aPlayer.Burden ?? 0)),
-                                       new GameMessagePutObjectInContainer(aPlayer.Session, aPlayer, inventoryId),
-                                       new GameMessageUpdateMotion(aPlayer, aPlayer.Session, motion),
-                                       new GameMessageUpdateInstanceId(inventoryId, playerId),
-                                       new GameMessagePickupEvent(aPlayer.Session, inventoryItem));
-
-                                aPlayer.TrackObject(inventoryItem);
-                                // This may not be needed when we fix landblock update object -
-                                // TODO: Og II - check this later to see if it is still required.
-                                // aPlayer.Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                             }
+                        }
+
+                        if (container == null)
+                        {
+                            if (inventoryItem?.Wielder != null && inventoryItem.Wielder == player.Guid.Full)
+                            {
+                                HandleUnequip(player, inventoryItem);
+                            }
+                            else
+                            {
+                                HandlePickup(player, inventoryItem);
+                            }
+                        }
+                        else
+                        {
+                            // this needs to do a pack pack or main pack move.
+                            HandleMove(player, inventoryItem, container);
                         }
                         break;
                     }

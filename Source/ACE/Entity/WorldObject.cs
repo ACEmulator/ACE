@@ -274,6 +274,11 @@ namespace ACE.Entity
             get { return (Spell?)AceObject.SpellId; }
             set { this.AceObject.SpellId = (ushort?)value; }
         }
+        public uint? ClothingBase
+        {
+            get { return AceObject.ClothingBase; }
+            set { AceObject.ClothingBase = value; }
+        }
 
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data

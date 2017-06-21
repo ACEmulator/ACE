@@ -298,6 +298,12 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
         }
 
+        public uint? ClothingBase
+        {
+            get { return GetDataIdProperty(PropertyDataId.Clothingbase); }
+            set { SetDataIdProperty(PropertyDataId.Clothingbase, value); }
+        }
+
         // TODO: Not sure if this enum is right.
         public uint? CooldownId
         {

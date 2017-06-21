@@ -102,7 +102,8 @@ namespace ACE.Entity
             get { return AceObject.AceObjectPropertiesPositions; }
         }
 
-        public Position PositionSanctuary {
+        public Position PositionSanctuary
+        {
             get
             {
                 return Positions[PositionType.Sanctuary];
@@ -113,7 +114,8 @@ namespace ACE.Entity
             }
         }
 
-        public Position PositionLastPortal {
+        public Position PositionLastPortal
+        {
             get
             {
                 return Positions[PositionType.LastPortal];
@@ -629,10 +631,11 @@ namespace ACE.Entity
 
             if (rankUps > 0)
             {
-                // FIXME(ddevec): This needs to be done for vitals only? Someone verify -- 
+                // FIXME(ddevec): This needs to be done for vitals only? Someone verify --
                 //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
                 CreatureVital vital = ability as CreatureVital;
-                if (vital != null) {
+                if (vital != null)
+                {
                     vital.Current += addToCurrentValue ? rankUps : 0u;
                 }
                 ability.Ranks += rankUps;
@@ -1374,7 +1377,56 @@ namespace ACE.Entity
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Mana, Mana.Current));
             }
         }
-        
+
+        public void EquipUnequipItem(uint itemId, uint slot)
+        {
+            UpdateWieldedItem(itemId);
+            ModelData.Clear();
+            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+            var wieldeditems = GetCurrentlyWieldedItems();
+            var coverage = new List<uint>();
+
+            foreach (var w in wieldeditems)
+            {
+                var wo = w.Value;
+                ClothingTable item;
+                if (wo.ClothingBase != null)
+                    item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
+                else
+                    item = ClothingTable.ReadFromDat(0x10000002);
+                // If I don't find a match, for now you are pants!
+                // TODO: this needs to go as soon as we get all the clothing base did in
+
+                if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+                // Check if the player model has data. Gear Knights, this is usually you.
+                {
+                    // Add the model and texture(s)
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                    foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                    {
+                        byte partNum = (byte)t.Index;
+                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
+                        coverage.Add(partNum);
+                        foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                    }
+
+                    PhysicsData.ItemsEquipedCount += 1;
+                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
+                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+                }
+            }
+            // Add the "naked" body parts. These are the ones not already covered.
+            SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+            for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+            {
+                if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                    ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+            }
+            
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0), new GameMessageObjDescEvent(this));
+        }
+
         public void TestEquipItem(Session session, uint modelId, int palOption)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
