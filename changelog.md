@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+
+### 2017-06-21
+[ddevec]
+* Forced character creation to wait for DbManager.SaveObject() to finish saving the character to avoid a race condition on character creation causing crashing
+* Changed DbManager functionality to more cleanly allow shutdown.
+
 ### 2017-06-20
 [StackOverflow]
 * Moved Saving operations outside of primary game loop to prevent db operations from slowing down primary game loop.
