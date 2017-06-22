@@ -1,4 +1,20 @@
 # ACEmulator Change Log
+
+### 2017-06-21
+[ddevec]
+* Fix logoff crash in core/landblock restrucutre due to nulliing a location then
+      moving an object
+* Also reintroduced learnspell       
+* Major overhaul to core/landblock structure.  Details can be found: (https://github.com/ACEmulator/ACE/pull/398#partial-pull-merging)
+* Added actor/action interface
+* Restrucutred parallelism in WorldManager
+* Added broadcast system
+* Added plugins for what will hopefully one day be a physics system
+* Minor fixups to player tracking
+* Forced character creation to wait for DbManager.SaveObject() to finish saving the character to avoid a race condition on character creation causing crashing
+* Changed DbManager functionality to more cleanly allow shutdown.
+* KNOWN BUG: On-death player often doesn't emerge from portal space
+
 ### 2017-06-20
 [StackOverflow]
 * Moved Saving operations outside of primary game loop to prevent db operations from slowing down primary game loop.

@@ -28,8 +28,11 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 
 ## Contributions
 
+* Contributions in the form of issues and pull requests are welcomed and encouraged.
 * The preferred way to contribute is to fork the repo and submit a pull request on GitHub.
 * Code style information can be found on the [Wiki](https://github.com/ACEmulator/ACE/wiki/Code-Style).
+
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/ACEmulator/ACE/blob/master/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## Bug Reports
 

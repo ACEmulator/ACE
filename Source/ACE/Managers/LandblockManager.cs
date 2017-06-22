@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ACE.Common;
+using System.Collections.Generic;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
@@ -17,9 +19,16 @@ namespace ACE.Managers
 
         private static readonly object landblockMutex = new object();
 
-        // debating during this into a dictionary keyed on LandblockId.  would be functionally equivalent
-        // and get rid of the 2D array shenanigans
-        private static readonly Landblock[,] landblocks = new Landblock[256, 256];
+        // FIXME(ddevec): Does making this volatile really make double-check locking safe?
+        private volatile static Landblock[,] landblocks = new Landblock[256, 256];
+
+        /// <summary>
+        /// This list of all currently active landblocks may only be accessed externally from locations in which the landblocks /CANNOT/ be concurrently modified
+        ///   e.g. -- the WorldManager update loop
+        /// Landblocks should not be directly accessed by world objects, or world-object associated handlers.
+        ///   Instead use: FIXME(ddevec): TBD, interface a work in progress
+        /// </summary>
+        public static List<Landblock> ActiveLandblocks { get; } = new List<Landblock>();
 
         public static async void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
@@ -33,8 +42,8 @@ namespace ACE.Managers
             {
                 session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
             }
-
-            var block = GetLandblock(session.Player.Location.LandblockId, true);
+            Landblock block = GetLandblock(c.Location.LandblockId, true);
+            // Must enqueue add world object -- this is called from a message handler context
             block.AddWorldObject(session.Player);
 
             session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
@@ -47,6 +56,12 @@ namespace ACE.Managers
         {
             var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
+        }
+
+        public static ActionChain GetAddObjectChain(WorldObject worldObject)
+        {
+            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
+            return block.GetAddWorldObjectChain(worldObject);
         }
 
         // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
@@ -64,15 +79,6 @@ namespace ACE.Managers
         {
             var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
-        }
-
-        /// <summary>
-        /// return wo in preparation to take it off the landblock and put it in a container.
-        /// </summary>
-        public static WorldObject GetWorldObject(Session source, ObjectGuid targetId)
-        {
-            var block = GetLandblock(source.Player.Location.LandblockId, true);
-            return block.GetWorldObject(targetId);
         }
 
         /// <summary>
@@ -126,7 +132,8 @@ namespace ACE.Managers
                             SetAdjacency(landblockId, landblockId.North, Adjacency.North, autoLoad);
 
                         // kick off the landblock use time thread
-                        block.StartUseTime();
+                        // block.StartUseTime();
+                        ActiveLandblocks.Add(landblocks[x, y]);
                     }
                 }
             }

@@ -19,23 +19,25 @@ namespace ACE.Managers
     public static class DbManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static bool running = false;
-        private static BlockingCollection<AceObject> saveObjects = new BlockingCollection<AceObject>();
+        private static BlockingCollection<Task<bool>> saveObjects = new BlockingCollection<Task<bool>>();
+        private static Thread taskCleanThread;
 
         public static void Initialize()
         {
             // starts game loop.
-            running = true;
-            new Thread(Tick).Start();
+            taskCleanThread = new Thread(Tick);
+            taskCleanThread.Start();
         }
 
         /// <summary>
         /// Saves AceObject to database, does not pause execution of main game thread.
         /// </summary>
         /// <param name="ao"></param>
-        public static void SaveObject(AceObject ao)
+        public static Task<bool> SaveObject(AceObject ao)
         {
-                saveObjects.Add(ao);
+            Task<bool> ret = DatabaseManager.Shard.SaveObject(ao);
+            saveObjects.Add(ret);
+            return ret;
         }
 
         /// <summary>
@@ -43,19 +45,21 @@ namespace ACE.Managers
         /// </summary>
         public static void ShutDown()
         {
-            running = false;
-            ProcessQue();
+            saveObjects.CompleteAdding();
+
+            // Wait for all the tasks to finish
+            taskCleanThread.Join();
         }
 
         private static void Tick()
         {
-            while (running)
-                ProcessQue();
-        }
-        private static void ProcessQue()
-        {
-            foreach (AceObject ao in saveObjects.GetConsumingEnumerable())
-                DatabaseManager.Shard.SaveObjectAsync(ao);
+            // Stops us from shutting down before all the saves are done
+            while (!saveObjects.IsCompleted)
+            {
+                Task<bool> saveTask = saveObjects.Take();
+
+                saveTask.Wait();
+            }
         }
     }
 }

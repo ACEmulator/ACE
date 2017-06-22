@@ -5,6 +5,7 @@ using System.Net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
@@ -83,6 +84,8 @@ namespace ACE.Network
         {
             Network.Update(lastTick);
 
+            // FIXME(ddevec): Most of the following work can probably be integrated into the player's action queue, or an action queue strucutre
+
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
@@ -121,16 +124,6 @@ namespace ACE.Network
                     Player.SendAgeInt();
                     lastSendAgeIntUpdateTime = DateTime.UtcNow;
                 }
-
-                if (Player.WaitingForDelayedTeleport && DateTime.UtcNow >= Player.DelayedTeleportTime)
-                {
-                    // TODO: Check for movement from position at which player started the delayed teleport
-                    //       if wandered to far, cancel teleport and send error msg to player.
-
-                    Player.WaitingForDelayedTeleport = false;
-                    Player.Teleport(Player.DelayedTeleportDestination);
-                    Player.ClearDelayedTeleport();
-                }
             }
         }
 
@@ -138,9 +131,7 @@ namespace ACE.Network
         {
             if (this.Player != null)
             {
-                this.Player.SaveOptions();
-                this.Player.SaveCharacter();
-                this.Player.SaveInventory();
+                this.Player.HandleActionSaveCharacter();
             }
         }
 
@@ -192,7 +183,7 @@ namespace ACE.Network
             if (Player != null)
             {
                 SaveSession();
-                Player.Logout(true);
+                Player.HandleActionLogout(true);
             }
 
             WorldManager.RemoveSession(this);
@@ -200,8 +191,12 @@ namespace ACE.Network
 
         public void LogOffPlayer()
         {
-            SaveSession();
-            Player.Logout();
+            // First save, then logout
+            ActionChain logoutChain = new ActionChain();
+            logoutChain.AddChain(Player.GetSaveChain());
+            logoutChain.AddChain(Player.GetLogoutChain());
+            logoutChain.EnqueueChain();
+
             logOffRequestTime = DateTime.UtcNow;
         }
 

@@ -13,7 +13,7 @@ namespace ACE.Entity
         {
         }
 
-        public override void OnUse(Player player)
+        public override void OnUse(ObjectGuid playerId)
         {
             // TODO: Implement
         }

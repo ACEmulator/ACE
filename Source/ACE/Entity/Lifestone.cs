@@ -2,6 +2,7 @@
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Entity.Enum;
+using ACE.Entity.Actions;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 
@@ -42,41 +43,49 @@ namespace ACE.Entity
             aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
-        public override void OnUse(Player player)
+        public override void OnUse(ObjectGuid playerId)
         {
-            string serverMessage = null;
-
-            // validate within use range, taking into account the radius of the model itself, as well
-            var csetup = SetupModel.ReadFromDat(PhysicsData.CSetup ?? 0u);
-            var radiusSquared = ((UseRadius ?? 0.00f) + csetup.Radius)
-                                * ((UseRadius ?? 0.00f) + csetup.Radius);
-
-            var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
-
-            var animationEvent = new GameMessageUpdateMotion(player, player.Session, motionSanctuary);
-
-            // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-            var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);
-
-            if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
+            // All data on a lifestone is constant -- therefore we just run in context of player
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
             {
-                serverMessage = "You wandered too far to attune with the Lifestone!";
-            }
-            else
-            {
-                player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+                Player player = wo as Player;
+                string serverMessage = null;
+                // validate within use range, taking into account the radius of the model itself, as well
+                SetupModel csetup = SetupModel.ReadFromDat(PhysicsData.CSetup.Value);
+                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
 
-                // create the outbound server message
-                serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                player.EnqueueMovementEvent(motionSanctuary, player.Guid);
-                player.Session.Network.EnqueueSend(soundEvent);
-            }
+                // Run this animation...
+                // Player Enqueue: 
+                var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
-            var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
+                var animationEvent = new GameMessageUpdateMotion(player.Guid,
+                                                                 player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
+                                                                 player.Sequences, motionSanctuary);
+                
+                // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
+                var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);
 
-            // always send useDone event
-            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
+                if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
+                {
+                    serverMessage = "You wandered too far to attune with the Lifestone!";
+                }
+                else
+                {
+                    player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+
+                    // create the outbound server message
+                    serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
+                    player.HandleActionMotion(motionSanctuary);
+                    player.Session.Network.EnqueueSend(soundEvent);
+                }
+
+                var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
+                // always send useDone event
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
+            });
+            chain.EnqueueChain();
         }
     }
 }
