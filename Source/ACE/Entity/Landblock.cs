@@ -590,7 +590,7 @@ namespace ACE.Entity
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player.Session,
                     PropertyInt.EncumbranceVal,
                     (player.Burden ?? 0)),
-                new GameMessagePutObjectInContainer(player.Session, player, item.Guid),
+                new GameMessagePutObjectInContainer(player.Session, player, item),
                 new GameMessageUpdateMotion(player, player.Session, motion),
                 new GameMessageUpdateInstanceId(item.Guid, player.Guid),
                 new GameMessagePickupEvent(player.Session, item));
@@ -599,7 +599,7 @@ namespace ACE.Entity
         }
         private static void HandleUnequip(Player player, WorldObject item)
         {
-            player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, player, item.Guid),
+            player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, player, item),
                                                new GameMessageUpdateInstanceId(item.Guid, player.Guid),
                                                new GameMessageSound(player.Guid, Sound.UnwieldObject, (float)1.0));
             // TODO: Need to start sending slot - set for 0 for now.
@@ -611,7 +611,7 @@ namespace ACE.Entity
             item.Wielder = null;
             // TODO:  This is a hack we need to put this in the correct pack.   it will not always be the main pack
             item.ContainerId = container.Guid.Full;
-            player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, container, item.Guid),
+            player.Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(player.Session, container, item),
                 new GameMessageUpdateInstanceId(item.Guid, container.Guid));
         }
 

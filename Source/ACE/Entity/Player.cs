@@ -1273,7 +1273,7 @@ namespace ACE.Entity
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
 
-            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
+            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
 
             if (sendUpdate)
             {
@@ -1282,7 +1282,9 @@ namespace ACE.Entity
                 // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
             }
             else
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject),
+                                            new GameMessagePutObjectInContainer(Session, this, worldObject));
+            // TODO: this is still not right Og II
         }
 
         /// <summary>
@@ -1437,7 +1439,7 @@ namespace ACE.Entity
                 if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
                     ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
             }
-            
+
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0), new GameMessageObjDescEvent(this));
         }
 
