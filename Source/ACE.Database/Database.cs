@@ -169,12 +169,6 @@ namespace ACE.Database
 
                     return await Task.Run(() =>
                     {
-
-                        int status = 0;
-                        while (status < 10)
-                        {
-                            try
-                            {
                                 transaction = connection.BeginTransaction();
                                 foreach (var query in queries)
                                 {
@@ -193,22 +187,7 @@ namespace ACE.Database
                                         command.ExecuteNonQuery();
                                     }
                                 }
-
-                                transaction.Commit();
-                                status = 20; //success
-                            }
-                            catch (Exception e)
-                            {
-                                status++;
-                                Thread.Sleep(100);
-                            }
-                        }
-
-                        if (status == 20)
-                            return true;
-                        else
-                            return false;
-
+                        return true;
                     });
                 }
                 catch (MySqlException transactionException)
