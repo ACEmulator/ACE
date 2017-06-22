@@ -5,6 +5,7 @@ using System.Net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
@@ -130,7 +131,7 @@ namespace ACE.Network
         {
             if (this.Player != null)
             {
-                this.Player.SaveCharacter();
+                this.Player.HandleActionSaveCharacter();
             }
         }
 
@@ -182,7 +183,7 @@ namespace ACE.Network
             if (Player != null)
             {
                 SaveSession();
-                Player.Logout(true);
+                Player.HandleActionLogout(true);
             }
 
             WorldManager.RemoveSession(this);
@@ -190,8 +191,12 @@ namespace ACE.Network
 
         public void LogOffPlayer()
         {
-            SaveSession();
-            Player.Logout();
+            // First save, then logout
+            ActionChain logoutChain = new ActionChain();
+            logoutChain.AddChain(Player.GetSaveChain());
+            logoutChain.AddChain(Player.GetLogoutChain());
+            logoutChain.EnqueueChain();
+
             logOffRequestTime = DateTime.UtcNow;
         }
 

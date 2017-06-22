@@ -98,10 +98,14 @@ namespace ACE.Entity
             get { return AceObject.AceObjectPropertiesPositions; }
         }
 
-        public Position PositionSanctuary {
+        private Position PositionSanctuary {
             get
             {
-                return Positions[PositionType.Sanctuary];
+                if (Positions.ContainsKey(PositionType.Sanctuary))
+                {
+                    return Positions[PositionType.Sanctuary];
+                }
+                return null;
             }
             set
             {
@@ -109,10 +113,14 @@ namespace ACE.Entity
             }
         }
 
-        public Position PositionLastPortal {
+        private Position PositionLastPortal {
             get
             {
-                return Positions[PositionType.LastPortal];
+                if (Positions.ContainsKey(PositionType.LastPortal))
+                {
+                    return Positions[PositionType.LastPortal];
+                }
+                return null;
             }
             set
             {
@@ -123,11 +131,6 @@ namespace ACE.Entity
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
             get { return Character.CharacterOptions; }
-        }
-
-        public Position LastPortal
-        {
-            get { return Positions[PositionType.LastPortal]; }
         }
 
         public ReadOnlyCollection<Friend> Friends
@@ -700,8 +703,40 @@ namespace ACE.Entity
         public override ActionChain GetOnKillChain(Session killerSession)
         {
             // First do on-kill
-            ActionChain onKillChain = base.GetOnKillChain(killerSession);
-            onKillChain.AddAction(this, () => OnKill(killerSession));
+            ActionChain onKillChain = new ActionChain(this, () => OnKill(killerSession));
+            onKillChain.AddChain(base.GetOnKillChain(killerSession));
+
+            // Send the teleport out
+            onKillChain.AddAction(this, () =>
+            {
+                // teleport to sanctuary or best location
+                Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
+
+                // Enqueue a teleport action, followed by Stand-up
+                // Queue the teleport to lifestone
+                ActionChain teleportChain = GetTeleportChain(newPosition);
+
+                teleportChain.AddAction(this, () =>
+                {
+                    // Regenerate/ressurect?
+                    UpdateVitalInternal(Health, 5);
+
+                    // Stand back up
+                    DoMotion(new UniversalMotion(MotionStance.Standing));
+
+                    // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
+                    // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+                    // AddToActionQueue(addCorpse);
+                    // If the player is outside of the landblock we just died in, then reboadcast the death for
+                    // the players at the lifestone.
+                    if (Positions.ContainsKey(PositionType.LastOutsideDeath) && Positions[PositionType.LastOutsideDeath].Cell != newPosition.Cell)
+                    {
+                        string currentDeathMessage = $"died to {killerSession.Player.Name}.";
+                        ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerSession.Player.Guid);
+                    }
+                });
+                teleportChain.EnqueueChain();
+            });
 
             return onKillChain;
         }
@@ -747,47 +782,6 @@ namespace ACE.Entity
 
             // Broadcast the 019E: Player Killed GameMessage
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
-
-            /* ddevec -- handled by Creature::OnKill
-            // create corpse at location
-            var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-            corpse.Location.PositionY -= corpse.PhysicsData.ObjScale ?? 0;
-            corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
-
-            // Corpses stay on the ground for 5 * player level but minimum 1 hour
-            // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-            corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-
-            // Save character's last death position - for the time being, we will use any position
-            SetCharacterPosition(PositionType.LastOutsideDeath, Location);
-            */
-
-            // teleport to sanctuary or best location
-            Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
-
-            // Enqueue a teleport action, followed by Stand-up
-            // Queue the teleport to lifestone
-            ActionChain teleportChain = GetTeleportChain(newPosition);
-
-            teleportChain.AddAction(this, () =>
-            {
-                // Regenerate/ressurect?
-                UpdateVitalInternal(Health, 5);
-
-                // Stand back up
-                DoMotion(new UniversalMotion(MotionStance.Standing));
-
-                // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
-                // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-                // AddToActionQueue(addCorpse);
-                // If the player is outside of the landblock we just died in, then reboadcast the death for
-                // the players at the lifestone.
-                if (Positions.ContainsKey(PositionType.LastOutsideDeath) && Positions[PositionType.LastOutsideDeath].Cell != newPosition.Cell)
-                {
-                    ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
-                }
-            });
-            teleportChain.EnqueueChain();
         }
 
         public void HandleActionExamination(ObjectGuid examinationId)
@@ -1156,10 +1150,23 @@ namespace ACE.Entity
             Positions[type] = newPosition;
         }
 
+        // Just preps the character to save
+        public void HandleActionSaveCharacter()
+        {
+            GetSaveChain().EnqueueChain();
+        }
+
+        // Gets the ActionChain to save a character
+        public ActionChain GetSaveChain()
+        {
+            return new ActionChain(this, SaveCharacter);
+        }
+
         /// <summary>
+        /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
         /// </summary>
-        public void SaveCharacter()
+        private void SaveCharacter()
         {
             if (Character != null)
             {
@@ -1351,11 +1358,29 @@ namespace ACE.Entity
             }
         }
 
+        public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
+        {
+            GetLogoutChain().EnqueueChain();
+        }
+
+        public ActionChain GetLogoutChain(bool clientSessionTerminatedAbruptly = false)
+        {
+            ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
+
+            // FIXME(ddevec): Constant time here for animation...
+            logoutChain.AddDelaySeconds(2);
+
+            // remove the player from landblock management -- after the animation has run
+            logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
+
+            return logoutChain;
+        }
+
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        public void Logout(bool clientSessionTerminatedAbruptly = false)
+        private void LogoutInternal(bool clientSessionTerminatedAbruptly)
         {
             if (!IsOnline)
                 return;
@@ -1365,15 +1390,10 @@ namespace ACE.Entity
 
             SendFriendStatusUpdates();
 
-            // remove the player from landblock management
-            LandblockManager.RemoveObject(this);
-
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
-                Session.Network.EnqueueSend(new GameMessageUpdateMotion(Guid,
-                                                                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                                        Sequences, logout));
+                CurrentLandblock.EnqueueBroadcastMotion(this, logout);
 
                 SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
 

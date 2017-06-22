@@ -78,16 +78,13 @@ namespace ACE.Command.Handlers
             "Recalls the last portal used.")]
         public static void HandleDebugPortalRecall(Session session, params string[] parameters)
         {
-            if (session.Player.LastPortal != null)
-            {
-                session.Player.Teleport(session.Player.LastPortal);
-            }
-            else
+            session.Player.HandleActionTeleToPosition(PositionType.LastPortal, () =>
+            // On error
             {
                 // You are too powerful to interact with that portal!
                 var portalRecallMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.Enum_04A3);
                 session.Network.EnqueueSend(portalRecallMessage);
-            }
+            });
         }
 
         // grantxp ulong
@@ -609,7 +606,6 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(positionMessage);
         }
 
-        // FIXME(ddevec): Reintroduce once spelltables are merged back in
         /*
         /// <summary>
         /// Debug command to test the ObjDescEvent message. 
@@ -651,6 +647,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
             }
         }
+        */
 
         /// <summary>
         /// Debug command to learn a spell.
@@ -693,7 +690,6 @@ namespace ACE.Command.Handlers
                 session.Network.EnqueueSend(errorMessage);
             }
         }
-        */
 
         /// <summary>
         /// Debug command to print out all of the active players connected too the server.
