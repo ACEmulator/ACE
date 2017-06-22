@@ -13,6 +13,7 @@
 * Minor fixups to player tracking
 * Forced character creation to wait for DbManager.SaveObject() to finish saving the character to avoid a race condition on character creation causing crashing
 * Changed DbManager functionality to more cleanly allow shutdown.
+* KNOWN BUG: On-death player often doesn't emerge from portal space
 
 ### 2017-06-20
 [StackOverflow]

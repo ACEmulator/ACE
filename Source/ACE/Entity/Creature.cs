@@ -150,6 +150,11 @@ namespace ACE.Entity
             return onKillChain;
         }
 
+        virtual protected float GetCorpseSpawnTime()
+        {
+            return 60;
+        }
+
         public ActionChain GetCreateCorpseChain()
         {
             ActionChain createCorpseChain = new ActionChain(this, () =>
@@ -164,14 +169,14 @@ namespace ACE.Entity
                 // Corpses stay on the ground for 5 * player level but minimum 1 hour
                 // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
                 // corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-                float despawnTime = 10;
+                float despawnTime = GetCorpseSpawnTime();
 
                 // Create corpse
                 CurrentLandblock.AddWorldObject(corpse);
                 // Create corpse decay
                 ActionChain despawnChain = new ActionChain();
                 despawnChain.AddDelaySeconds(despawnTime);
-                despawnChain.AddAction(CurrentLandblock, () => CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
+                despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
                 despawnChain.EnqueueChain();
             });
 
@@ -200,18 +205,8 @@ namespace ACE.Entity
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                /*
-                QueuedGameAction removeCreature = new QueuedGameAction(this.Guid.Full, this, true, true, GameActionType.ObjectDelete);
-                session.Player.AddToActionQueue(removeCreature);
-                */
                 CurrentLandblock.RemoveWorldObject(Guid, false);
             }
-
-            // Add Corpse in that location via the ActionQueue to honor the motion delays
-            /*
-            QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-            session.Player.AddToActionQueue(addCorpse);
-            */
         }
 
         /// <summary>
