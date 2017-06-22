@@ -1174,6 +1174,7 @@ namespace ACE.Entity
                 SetPhysicalCharacterPosition();
                 // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
                 DbManager.SaveObject(GetSavableCharacter());
+                SaveInventory();
 #if DEBUG
                 if (Session.Player != null)
                 {

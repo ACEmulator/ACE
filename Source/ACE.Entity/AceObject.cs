@@ -921,9 +921,13 @@ namespace ACE.Entity
             ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
             ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
-            ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
 
-            return ret;
+            // todo: StackOverflow - this need to be fixed somewhere else.. there a null value for items causing issues
+            // here.. @ddevec has some ideas  to proper fixing this.. I think it may be loot generator
+            if (AceObjectPropertiesPositions[PositionType.Location] != null)
+                ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
+
+            return ret; 
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
