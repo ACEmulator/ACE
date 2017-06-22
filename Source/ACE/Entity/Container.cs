@@ -78,11 +78,7 @@ namespace ACE.Entity
         public virtual void SaveInventory()
         {
             List<KeyValuePair<ObjectGuid, WorldObject>> invlist = new List<KeyValuePair<ObjectGuid, WorldObject>>();
-
-            lock (inventoryMutex)
-            {
-                invlist = inventory.ToList();
-            }
+            invlist = inventory.ToList();
 
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in invlist)
             {

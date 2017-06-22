@@ -57,7 +57,6 @@ namespace ACE.Managers
             while (!saveObjects.IsCompleted)
             {
                 Task<bool> saveTask = saveObjects.Take();
-
                 saveTask.Wait();
             }
         }

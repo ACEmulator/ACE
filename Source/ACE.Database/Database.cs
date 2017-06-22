@@ -166,29 +166,49 @@ namespace ACE.Database
                 try
                 {
                     await connection.OpenAsync();
+
                     return await Task.Run(() =>
                     {
-                        transaction = connection.BeginTransaction();
-                        foreach (var query in queries)
+
+                        int status = 0;
+                        while (status < 10)
                         {
-                            using (var command = new MySqlCommand(query.Item1.Query, connection, transaction))
+                            try
                             {
-                                for (int i = 0; i < query.Item2.Length; i++)
+                                transaction = connection.BeginTransaction();
+                                foreach (var query in queries)
                                 {
-                                    command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
-#if DBDEBUG
-                                    foreach (MySqlParameter p in command.Parameters)
+                                    using (var command = new MySqlCommand(query.Item1.Query, connection, transaction))
                                     {
-                                        log.Debug(p.Value);
-                                    }
+                                        for (int i = 0; i < query.Item2.Length; i++)
+                                        {
+                                            command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
+#if DBDEBUG
+                                            foreach (MySqlParameter p in command.Parameters)
+                                            {
+                                                log.Debug(p.Value);
+                                            }
 #endif
+                                        }
+                                        command.ExecuteNonQuery();
+                                    }
                                 }
-                                command.ExecuteNonQuery();
+
+                                transaction.Commit();
+                                status = 20; //success
+                            }
+                            catch (Exception e)
+                            {
+                                status++;
+                                Thread.Sleep(100);
                             }
                         }
 
-                        transaction.Commit();
-                        return true;
+                        if (status == 20)
+                            return true;
+                        else
+                            return false;
+
                     });
                 }
                 catch (MySqlException transactionException)
