@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-06-22
+[ddevec]
+* Serialize saves to remove database conflict errors.
+* Added caching layer to DbManager to resolve issues loading while saving an object
+* Added character save testing throughput/quantity debug funciton save-lots
+* FIXME: Should merge DbManager and ShardDatabase
+
 ### 2017-06-21
 [ddevec]
 * Fix logoff crash in core/landblock restrucutre due to nulliing a location then

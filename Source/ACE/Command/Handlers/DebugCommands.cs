@@ -349,6 +349,34 @@ namespace ACE.Command.Handlers
             session.SaveSession();
         }
 
+        [CommandHandler("save-lots", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Saves your session.")]
+        public static void HandleSaveLots(Session session, params string[] parameters)
+        {
+            int numSaves = 100;
+            if (parameters.Length >= 1)
+            {
+                bool success = int.TryParse(parameters[0], out numSaves);
+                if (!success)
+                {
+                    string message = "You didn't input a number as arg1";
+                    var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(positionMessage);
+                }
+            }
+            else
+            {
+                string message = $"no number given, saving {numSaves} times";
+                var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(positionMessage);
+            }
+
+            for (int i = 0; i < numSaves; i++)
+            {
+                session.SaveSession();
+            }
+        }
+
         /// <summary>
         /// Returns the Player's GUID
         /// </summary>
