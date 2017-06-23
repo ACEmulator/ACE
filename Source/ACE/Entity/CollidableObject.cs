@@ -66,6 +66,8 @@ namespace ACE.Entity
             TargetType = aceO.TargetTypeId;
             Usable = (Usable?)aceO.ItemUseable;
 
+            Type = (ObjectType)aceO.ItemType;
+
             aceO.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, (ushort)ao.AnimationId));
             aceO.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, (ushort)to.OldId, (ushort)to.NewId));
             aceO.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));

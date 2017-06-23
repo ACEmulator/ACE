@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-06-23
+[Ripley]
+* Added code to set ObjectType stored in database on CollidableObjects
+* Added code provided by @ogmage78 to WorldDatabase to link position data of a weenie to its many instances.
+* The above change re-enables double click use of portals that have destination data in ACE-World. Happy portalling!
+
 ### 2017-06-21
 [ddevec]
 * Fix logoff crash in core/landblock restrucutre due to nulliing a location then
