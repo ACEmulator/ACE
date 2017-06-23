@@ -1251,12 +1251,11 @@ namespace ACE.Entity
 
             teleportChain.AddAction(this, () => TeleportInternal(newPosition));
 
-            teleportChain.AddDelaySeconds(10);
-            // Use ForceUpdate b/c it overrides physics motions
+            teleportChain.AddDelaySeconds(3);
+            // Once back in world we can start listening to the game's request for positions
             teleportChain.AddAction(this, () => 
             {
                 InWorld = true;
-                ForceUpdatePosition(newPosition);
             });
 
             return teleportChain;

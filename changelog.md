@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-06-23
+[ddevec]
+* Fix to teleport freezing characters in place (Wasn't clearing requested location)
+* Fix to occasional crash when moving long distances (Wasn't properly handling landblock transferring)
+* Fix to glitch in movement when exiting teleport (was setting position when I shouldn't have been)
+
 ### 2017-06-22
 [fantoms]
 * Added `@set-shutdown-interval` command, to change the delay on the fly.
