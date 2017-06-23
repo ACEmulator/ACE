@@ -27,7 +27,8 @@ namespace ACE.Managers
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
-        private static bool pendingWorldStop;
+        private static volatile bool pendingWorldStop;
+        public static bool WorldActive { get; private set; }
 
         public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
 
@@ -111,6 +112,10 @@ namespace ACE.Managers
             return session;
         }
 
+        /// <summary>
+        /// Removes a player or worldobject from the active world.
+        /// </summary>
+        /// <param name="session"></param>
         public static void RemoveSession(Session session)
         {
             sessionLock.EnterWriteLock();
@@ -186,6 +191,11 @@ namespace ACE.Managers
             }
         }
 
+        /// <summary>
+        /// Returns a list of all players currently online
+        /// </summary>
+        /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
+        /// <returns>List<> of all online players on the server</returns>
         public static List<Session> GetAll(bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();
@@ -202,11 +212,14 @@ namespace ACE.Managers
             }
         }
 
+        /// <summary>
+        /// Function to begin ending the operations inside of an active world.
+        /// </summary>
         public static void StopWorld() { pendingWorldStop = true; }
 
         /// <summary>
         /// Manages updating all entities on the world.
-        ///  - Nerver-side command-line commands are handled in their own thread.
+        ///  - Server-side command-line commands are handled in their own thread.
         ///  - Network commands come from their own listener threads, and are queued in world objects
         ///  - This thread does the rest of the work!
         /// </summary>
@@ -214,7 +227,7 @@ namespace ACE.Managers
         {
             log.DebugFormat("Starting UpdateWorld thread");
             double lastTick = 0d;
-
+            WorldActive = true;
             var worldTickTimer = new Stopwatch();
             while (!pendingWorldStop)
             {
@@ -306,6 +319,8 @@ namespace ACE.Managers
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
             }
+            // World has finished operations and concedes the thread to garbage collection
+            WorldActive = false;
         }
 
         private static IEnumerable<WorldObject> FakePhysics(double timeTick)
