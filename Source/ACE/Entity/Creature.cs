@@ -80,25 +80,6 @@ namespace ACE.Entity
         {
         }
 
-        public Creature(AceCreatureStaticLocation aceC)
-            : base((ObjectType)aceC.WeenieObject.ItemType,
-                  new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.Creature),
-                  aceC.WeenieObject.Name,
-                  aceC.WeenieClassId,
-                  (ObjectDescriptionFlag)aceC.WeenieObject.AceObjectDescriptionFlags,
-                  (WeenieHeaderFlag)aceC.WeenieObject.WeenieHeaderFlags,
-                  aceC.Position)
-        {
-            if (aceC.WeenieClassId < 0x8000u)
-                this.WeenieClassid = aceC.WeenieClassId;
-            else
-                this.WeenieClassid = (ushort)(aceC.WeenieClassId - 0x8000);
-
-            SetObjectData(AceObject);
-            IsAlive = true;
-            SetupVitals();
-        }
-
         protected void SetupVitals()
         {
             if (Health.Current != Health.MaxValue)

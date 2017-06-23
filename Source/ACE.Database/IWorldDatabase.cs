@@ -11,12 +11,6 @@ namespace ACE.Database
     {
         List<TeleportLocation> GetPointsOfInterest();
 
-        List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock);
-
-        List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock);
-
-        bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl);
-
         List<CachedWeenieClass> GetRandomWeeniesOfType(uint typeId, uint numWeenies);
 
         AceObject GetAceObjectByWeenie(uint weenieClassId);
