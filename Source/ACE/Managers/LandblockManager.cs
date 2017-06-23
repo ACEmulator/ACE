@@ -73,12 +73,19 @@ namespace ACE.Managers
         }
 
         /// <summary>
-        /// Relocates an object to the appropriate landblock
+        /// Relocates an object to the appropriate landblock -- Should only be called from physics/worldmanager -- not player!
         /// </summary>
-        public static void RelocateObject(WorldObject worldObject)
+        public static void RelocateObjectForPhysics(WorldObject worldObject)
         {
-            var block = GetLandblock(worldObject.Location.LandblockId, true);
-            block.AddWorldObject(worldObject);
+            var oldBlock = worldObject.CurrentLandblock;
+            var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
+            // Remove from the old landblock -- force
+            if (oldBlock != null)
+            {
+                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, true);
+            }
+            // Add to the new landblock
+            newBlock.AddWorldObjectForPhysics(worldObject);
         }
 
         /// <summary>

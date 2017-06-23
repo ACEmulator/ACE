@@ -754,6 +754,12 @@ namespace ACE.Entity
             RequestedLocation = newPosition;
         }
 
+        public void ClearRequestedPositions()
+        {
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
         /// <summary>
         /// Alerts clients of change in position
         /// </summary>

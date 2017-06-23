@@ -229,15 +229,16 @@ namespace ACE.Managers
                 IEnumerable<WorldObject> movedObjects = FakePhysics(PortalYearTicks);
 
                 // Do any pre-calculated landblock transfers --
-                Parallel.ForEach(movedObjects, wo =>
+                foreach (WorldObject wo in movedObjects)
                 {
                     // If it was picked up, or moved
                     // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
                     if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock.Id)
                     {
-                        LandblockManager.RelocateObject(wo);
+                        // NOTE: We are moving the objects on behalf of the physics 
+                        LandblockManager.RelocateObjectForPhysics(wo);
                     }
-                });
+                }
 
                 // FIXME(ddevec): This O(n^2) tracking loop is a remenant of the old structure -- we should probably come up with a more efficient tracking scheme
                 Parallel.ForEach(movedObjects, mo =>
@@ -331,6 +332,8 @@ namespace ACE.Managers
                     {
                         wo.PhysicsUpdatePosition(newPosition);
                     }
+
+                    wo.ClearRequestedPositions();
                 }
             });
 

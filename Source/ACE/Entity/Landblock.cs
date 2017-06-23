@@ -217,6 +217,11 @@ namespace ACE.Entity
             return new Actions.ActionChain(this, () => AddWorldObjectInternal(wo));
         }
 
+        public void AddWorldObjectForPhysics(WorldObject wo)
+        {
+            AddWorldObjectInternal(wo);
+        }
+
         private void AddWorldObjectInternal(WorldObject wo)
         {
             Log($"adding {wo.Guid.Full.ToString("X")}");
@@ -260,6 +265,11 @@ namespace ACE.Entity
             return null;
         }
 
+        /// <summary>
+        /// Should only be called by physics/relocation engines -- not from player
+        /// </summary>
+        /// <param name="objectId"></param>
+        /// <param name="adjacencyMove"></param>
         public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
