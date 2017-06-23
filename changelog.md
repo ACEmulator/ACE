@@ -5,6 +5,7 @@
 * Serialize saves to remove database conflict errors.
 * Added caching layer to DbManager to resolve issues loading while saving an object
 * Added character save testing throughput/quantity debug funciton save-lots
+* Fixed bug on shutdown in DbManager.Tick
 * FIXME: Should merge DbManager and ShardDatabase
 
 ### 2017-06-21

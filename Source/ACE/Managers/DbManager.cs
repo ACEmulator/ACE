@@ -127,25 +127,34 @@ namespace ACE.Managers
             // Stops us from shutting down before all the saves are done
             while (!saveObjects.IsCompleted)
             {
-                var saveTuple = saveObjects.Take();
-                Task<bool> saveTask = saveTuple.Item1;
-                ObjectGuid guid = saveTuple.Item2;
-                long version = saveTuple.Item3;
-
-                saveTask.Start();
-                saveTask.Wait();
-
-                lock (cacheLock)
+                try
                 {
-                    // NOTE(ddevec): The item MUST exist in the cache if we just ran it, no need to check key
-                    var cacheTup = saveCache[guid];
-                    long cachedVersion = cacheTup.Item2;
-                    if (cachedVersion == version)
+                    var saveTuple = saveObjects.Take();
+                    Task<bool> saveTask = saveTuple.Item1;
+                    ObjectGuid guid = saveTuple.Item2;
+                    long version = saveTuple.Item3;
+
+                    saveTask.Start();
+                    saveTask.Wait();
+
+                    lock (cacheLock)
                     {
-                        saveCache.Remove(guid);
+                        // NOTE(ddevec): The item MUST exist in the cache if we just ran it, no need to check key
+                        var cacheTup = saveCache[guid];
+                        long cachedVersion = cacheTup.Item2;
+                        if (cachedVersion == version)
+                        {
+                            saveCache.Remove(guid);
+                        }
                     }
+                }
+                catch (InvalidOperationException)
+                {
+                    // Note(ddevec): This can only happen if we're calling "Take()" when we're getting ready to shut down
+                    //    Just ignore that instance
                 }
             }
         }
     }
+}
 }
