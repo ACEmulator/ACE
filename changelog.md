@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-06-23
+[ddevec]
+* Serialize saves to remove database conflict errors.
+* Added caching layer to DbManager to resolve issues loading while saving an object
+* Added character save testing throughput/quantity debug funciton save-lots
+* Fixed bug on shutdown in DbManager.Tick
+* Cleaned up ShardDatabase
+* Moved DbManager Functionality/new caching layer into ShardDatabase
+
 ### 2017-06-22
 [fantoms]
 * Added `@set-shutdown-interval` command, to change the delay on the fly.

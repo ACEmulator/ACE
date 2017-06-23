@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using ACE.Entity;
@@ -13,6 +15,14 @@ namespace ACE.Database
     public class ShardDatabase : Database, IShardDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static BlockingCollection<Tuple<Task<bool>, uint, long>> saveObjects = new BlockingCollection<Tuple<Task<bool>, uint, long>>();
+        private static Thread taskCleanThread;
+
+        private static long cacheVersion = 0;
+        // NOTE: long in tuple (and cacheVersion) are there so if an item is queued for save multiple times, we don't remove it from the cache prematurely
+        private static Dictionary<uint, Tuple<AceObject, long>> saveCache = new Dictionary<uint, Tuple<AceObject, long>>();
+        private static object cacheLock = new object();
 
         private enum ShardPreparedStatement
         {
@@ -96,6 +106,26 @@ namespace ACE.Database
             }
         }
 
+        public override void Initialize(string host, uint port, string user, string password, string database)
+        {
+            base.Initialize(host, port, user, password, database);
+
+            // Set-up our save-thread here
+            taskCleanThread = new Thread(SaveBackgroundTask);
+            taskCleanThread.Start();
+        }
+
+        /// <summary>
+        /// Shuts Down Safely
+        /// </summary>
+        public static void ShutDown()
+        {
+            saveObjects.CompleteAdding();
+
+            // Wait for all the tasks to finish
+            taskCleanThread.Join();
+        }
+
         protected override void InitializePreparedStatements()
         {
             ConstructStatement(ShardPreparedStatement.GetNextCharacterId, typeof(CachedCharacter), ConstructedStatementType.GetAggregate);
@@ -173,7 +203,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public async Task<bool> DeleteOrRestore(ulong unixTime, uint aceObjectId)
+        public Task<bool> DeleteOrRestore(ulong unixTime, uint aceObjectId)
         {
             AceCharacter aceCharacter = new AceCharacter(aceObjectId);
             LoadIntoObject(aceCharacter);
@@ -181,7 +211,7 @@ namespace ACE.Database
 
             aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
 
-            return await SaveObject(aceCharacter);
+            return SaveObject(aceCharacter);
         }
 
         public async Task<List<CachedCharacter>> GetCharacters(uint accountId)
@@ -203,143 +233,104 @@ namespace ACE.Database
             return nextGuid.Full;
         }
 
-        public AceCharacter GetCharacter(uint id)
+        /// <summary>
+        /// FIXME(ddevec): Should not be called directly -- isntead use DbManager()...
+        /// </summary>
+        /// <param name="aceObjectId"></param>
+        /// <returns></returns>
+        public AceCharacter GetCharacter(uint aceObjectId)
         {
-            AceCharacter character = new AceCharacter(id);
+            AceCharacter ret = null;
 
-            // load common stuff here
-            LoadIntoObject(character);
+            // check cache
+            lock (cacheLock)
+            {
+                if (saveCache.ContainsKey(aceObjectId))
+                {
+                    ret = saveCache[aceObjectId].Item1 as AceCharacter;
+                    if (ret == null)
+                    {
+                        log.Error($"Guid: {aceObjectId} attempting to be loaded as character, but saved as object");
+                    }
+                }
+            }
 
-            // fetch common stuff here (is there any?)
+            if (ret == null)
+            {
+                ret = new AceCharacter(aceObjectId);
+                // load common stuff here
+                LoadIntoCharacter(ret);
+            }
 
-            return character;
+            return ret;
         }
 
+        /// <summary>
+        /// FIXME(ddevec): Should not be called directly -- instead use DbManager()...
+        /// </summary>
+        /// <param name="aceObjectId"></param>
+        /// <returns></returns>
         public AceObject GetObject(uint aceObjectId)
         {
-            AceObject aceObject = new AceObject(aceObjectId);
-            LoadIntoObject(aceObject);
-            return aceObject;
+            AceObject ret = null;
+            lock (cacheLock)
+            {
+                if (saveCache.ContainsKey(aceObjectId))
+                {
+                    ret = saveCache[aceObjectId].Item1 as AceObject;
+                }
+            }
+
+            if (ret == null)
+            {
+                ret = new AceObject(aceObjectId);
+                LoadIntoObject(ret);
+            }
+
+            return ret;
         }
 
+        /// <summary>
+        /// Does the back-end (non-cached) loading
+        /// </summary>
+        /// <param name="aceCharacter"></param>
+        private void LoadIntoCharacter(AceCharacter aceCharacter)
+        {
+            // Right now this just forwards to loadobject -- hopefully we keep it that way for simplicity...
+            LoadIntoObject(aceCharacter);
+        }
+
+        /// <summary>
+        /// Does the backend (non-cached) loading
+        /// </summary>
+        /// <param name="aceObject"></param>
         private void LoadIntoObject(AceObject aceObject)
         {
             // TODO: still to implement - load spells, friends, allegiance info, spell comps, spell bars
-            aceObject.IntProperties = GetAceObjectPropertiesInt(aceObject.AceObjectId);
-            aceObject.Int64Properties = GetAceObjectPropertiesBigInt(aceObject.AceObjectId);
-            aceObject.BoolProperties = GetAceObjectPropertiesBool(aceObject.AceObjectId);
-            aceObject.DoubleProperties = GetAceObjectPropertiesDouble(aceObject.AceObjectId);
-            aceObject.StringProperties = GetAceObjectPropertiesString(aceObject.AceObjectId);
-            aceObject.InstanceIdProperties = GetAceObjectPropertiesIid(aceObject.AceObjectId);
-            aceObject.DataIdProperties = GetAceObjectPropertiesDid(aceObject.AceObjectId);
-            aceObject.TextureOverrides = GetAceObjectTextureMaps(aceObject.AceObjectId);
-            aceObject.AnimationOverrides = GetAceObjectAnimations(aceObject.AceObjectId);
-            aceObject.PaletteOverrides = GetAceObjectPalettes(aceObject.AceObjectId);
-            aceObject.AceObjectPropertiesPositions = GetAceObjectPostions(aceObject.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType,
+            aceObject.IntProperties = LoadAceTable<AceObjectPropertiesInt>(ShardPreparedStatement.GetAceObjectPropertiesInt, aceObject.AceObjectId);
+            aceObject.Int64Properties = LoadAceTable<AceObjectPropertiesInt64>(ShardPreparedStatement.GetAceObjectPropertiesBigInt, aceObject.AceObjectId);
+            aceObject.BoolProperties = LoadAceTable<AceObjectPropertiesBool>(ShardPreparedStatement.GetAceObjectPropertiesBool, aceObject.AceObjectId);
+            aceObject.DoubleProperties = LoadAceTable<AceObjectPropertiesDouble>(ShardPreparedStatement.GetAceObjectPropertiesDouble, aceObject.AceObjectId);
+            aceObject.StringProperties = LoadAceTable<AceObjectPropertiesString>(ShardPreparedStatement.GetAceObjectPropertiesString, aceObject.AceObjectId);
+            aceObject.InstanceIdProperties = LoadAceTable<AceObjectPropertiesInstanceId>(ShardPreparedStatement.GetAceObjectPropertiesIid, aceObject.AceObjectId);
+            aceObject.DataIdProperties = LoadAceTable<AceObjectPropertiesDataId>(ShardPreparedStatement.GetAceObjectPropertiesDid, aceObject.AceObjectId);
+            aceObject.TextureOverrides = LoadAceTable<TextureMapOverride>(ShardPreparedStatement.GetTextureOverridesByObject, aceObject.AceObjectId);
+            aceObject.AnimationOverrides = LoadAceTable<AnimationOverride>(ShardPreparedStatement.GetAnimationOverridesByObject, aceObject.AceObjectId);
+            aceObject.PaletteOverrides = LoadAceTable<PaletteOverride>(ShardPreparedStatement.GetPaletteOverridesByObject, aceObject.AceObjectId);
+            aceObject.AceObjectPropertiesPositions = LoadAceTable<AceObjectPropertiesPosition>(ShardPreparedStatement.GetAceObjectPropertiesPositions, aceObject.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType,
                 x => new Position(x));
-            aceObject.AceObjectPropertiesAttributes = GetAceObjectPropertiesAttribute(aceObject.AceObjectId).ToDictionary(x => (Ability)x.AttributeId,
+            aceObject.AceObjectPropertiesAttributes = LoadAceTable<AceObjectPropertiesAttribute>(ShardPreparedStatement.GetAceObjectPropertiesAttributes, aceObject.AceObjectId).ToDictionary(x => (Ability)x.AttributeId,
                 x => new CreatureAbility(x));
-            aceObject.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(aceObject.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId,
+            aceObject.AceObjectPropertiesAttributes2nd = LoadAceTable<AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, aceObject.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId,
                 x => new CreatureVital(aceObject, x));
-            aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
+            aceObject.AceObjectPropertiesSkills = LoadAceTable<AceObjectPropertiesSkill>(ShardPreparedStatement.GetAceObjectPropertiesSkills, aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
                 x => new CreatureSkill(aceObject, x));
         }
 
-        private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
+        private List<T1> LoadAceTable<T1>(ShardPreparedStatement statement, uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesSkill> GetAceObjectPropertiesSkill(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.GetAceObjectPropertiesSkills, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesAttribute> GetAceObjectPropertiesAttribute(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.GetAceObjectPropertiesAttributes, criteria);
-            return objects;
-        }
-
-        // ReSharper disable once InconsistentNaming
-        private List<AceObjectPropertiesAttribute2nd> GetAceObjectPropertiesAttribute2nd(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, criteria);
-            return objects;
-        }
-        private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.GetAceObjectPropertiesInt, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesInt64> GetAceObjectPropertiesBigInt(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.GetAceObjectPropertiesBigInt, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesBool> GetAceObjectPropertiesBool(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.GetAceObjectPropertiesBool, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesDouble> GetAceObjectPropertiesDouble(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.GetAceObjectPropertiesDouble, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesString> GetAceObjectPropertiesString(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.GetAceObjectPropertiesString, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesDataId> GetAceObjectPropertiesDid(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.GetAceObjectPropertiesDid, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesInstanceId> GetAceObjectPropertiesIid(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.GetAceObjectPropertiesIid, criteria);
-            return objects;
-        }
-
-        private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, TextureMapOverride>(ShardPreparedStatement.GetTextureOverridesByObject, criteria);
-            return objects;
-        }
-
-        private List<PaletteOverride> GetAceObjectPalettes(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.GetPaletteOverridesByObject, criteria);
-            return objects;
-        }
-
-        private List<AnimationOverride> GetAceObjectAnimations(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AnimationOverride>(ShardPreparedStatement.GetAnimationOverridesByObject, criteria);
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, T1>(statement, criteria);
             return objects;
         }
 
@@ -348,7 +339,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public AceObject GetWorldObject(uint objId)
+        private AceObject GetWorldObject(uint objId)
         {
             AceObject ret = new AceObject();
             var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
@@ -374,19 +365,8 @@ namespace ACE.Database
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {
-                var o = GetWorldObject(cwo.AceObjectId);
-                o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
-                o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
-                o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
-                o.Int64Properties = GetAceObjectPropertiesBigInt(o.AceObjectId);
-                o.BoolProperties = GetAceObjectPropertiesBool(o.AceObjectId);
-                o.DoubleProperties = GetAceObjectPropertiesDouble(o.AceObjectId);
-                o.StringProperties = GetAceObjectPropertiesString(o.AceObjectId);
-                o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
-                o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
-                o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
-                o.AceObjectPropertiesPositions = GetAceObjectPropertiesPositions(o.AceObjectId);
-                ret.Add(o);
+                // Note(ddevec): Use GetObject to go through the cache (in case objects are saving)
+                ret.Add(GetObject(cwo.AceObjectId));
             });
             return ret;
         }
@@ -403,7 +383,37 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public async Task<bool> SaveObject(AceObject aceObject)
+        public Task<bool> SaveObject(AceObject aceObject)
+        {
+            long saveVersion;
+            lock (cacheLock)
+            {
+                uint key = aceObject.AceObjectId;
+                var valueTuple = new Tuple<AceObject, long>(aceObject, cacheVersion);
+                saveVersion = cacheVersion;
+                cacheVersion++;
+
+                if (saveCache.ContainsKey(key))
+                {
+                    saveCache[key] = valueTuple;
+                }
+                else
+                {
+                    saveCache.Add(key, valueTuple);
+                }
+            }
+            Task<bool> ret = new Task<bool>(() => SaveObjectInternal(aceObject));
+            saveObjects.Add(new Tuple<Task<bool>, uint, long>(ret, aceObject.AceObjectId, saveVersion));
+            return ret;
+        }
+
+        /// <summary>
+        /// Backend save task, run by background thread.  Should only be invoked from BackgroundSaveTask though tasks passed to it.
+        /// All other saving should be done by SaveObject instead
+        /// </summary>
+        /// <param name="aceObject"></param>
+        /// <returns></returns>
+        private bool SaveObjectInternal(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
 
@@ -416,27 +426,10 @@ namespace ACE.Database
             SaveObjectInternal(transaction, aceObject);
 
             // FIXME(ddevec): Should we wait on this TXN?  I have no idea.
-            return await transaction.Commit();
-        }
+            Task<bool> txn = transaction.Commit();
+            txn.Wait();
 
-        public async Task<bool> SaveObjectAsync(AceObject aceObject)
-        {
-            bool result = false;
-            try
-            {
-                result = true;
-                DatabaseTransaction transaction = BeginTransaction();
-                DeleteObjectInternal(transaction, aceObject);
-                SaveObjectInternal(transaction, aceObject);
-                await transaction.Commit();
-            }
-            catch (Exception e)
-            {
-                log.Error($"An exception occured while saving ace object");
-                log.Error($"Exception: {e.Message}");
-                result = false;
-            }
-            return result;
+            return txn.Result;
         }
 
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
@@ -446,21 +439,22 @@ namespace ACE.Database
 
         private bool DeleteObjectInternal(DatabaseTransaction transaction, AceObject aceObject)
         {
-            DeleteAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
-            DeleteAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
-            DeleteAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
-            DeleteAceObjectPropertiesDouble(transaction, aceObject.AceObjectId, aceObject.DoubleProperties);
-            DeleteAceObjectPropertiesString(transaction, aceObject.AceObjectId, aceObject.StringProperties);
-            DeleteAceObjectPropertiesIid(transaction, aceObject.AceObjectId, aceObject.InstanceIdProperties);
-            DeleteAceObjectPropertiesDid(transaction, aceObject.AceObjectId, aceObject.DataIdProperties);
-            DeleteAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
-            DeleteAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
-            DeleteAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
+            ListDeletePreparedStatement<AceObjectPropertiesInt>(ShardPreparedStatement.DeleteAceObjectPropertiesInt, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesInt64>(ShardPreparedStatement.DeleteAceObjectPropertiesBigInt, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesBool>(ShardPreparedStatement.DeleteAceObjectPropertiesBool, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesDouble>(ShardPreparedStatement.DeleteAceObjectPropertiesDouble, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesString>(ShardPreparedStatement.DeleteAceObjectPropertiesString, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertiesIid, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertiesDid, transaction, aceObject.AceObjectId);
 
-            DeleteAceObjectPropertiesPositions(transaction, aceObject.AceObjectId);
-            DeleteAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId);
-            DeleteAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId);
-            DeleteAceObjectPropertiesSkill(transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<TextureMapOverride>(ShardPreparedStatement.DeleteTextureOverridesByObject, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AnimationOverride>(ShardPreparedStatement.DeleteAnimationOverridesByObject, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<PaletteOverride>(ShardPreparedStatement.DeletePaletteOverridesByObject, transaction, aceObject.AceObjectId);
+
+            ListDeletePreparedStatement<AceObjectPropertiesPosition>(ShardPreparedStatement.DeleteAceObjectPropertiesPositions, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesAttribute>(ShardPreparedStatement.DeleteAceObjectPropertiesAttributes, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.DeleteAceObjectPropertiesAttributes2nd, transaction, aceObject.AceObjectId);
+            ListDeletePreparedStatement<AceObjectPropertiesSkill>(ShardPreparedStatement.DeleteAceObjectPropertiesSkills, transaction, aceObject.AceObjectId);
 
             DeleteAceObjectBase(transaction, aceObject);
 
@@ -470,227 +464,97 @@ namespace ACE.Database
         private bool SaveObjectInternal(DatabaseTransaction transaction, AceObject aceObject)
         {
             // Update the character table -- save the AceObject to ace_object.
-            SaveAceObjectBase(transaction, aceObject);
 
-            SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
-            SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
-            SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
-            SaveAceObjectPropertiesDouble(transaction, aceObject.AceObjectId, aceObject.DoubleProperties);
-            SaveAceObjectPropertiesString(transaction, aceObject.AceObjectId, aceObject.StringProperties);
-            SaveAceObjectPropertiesIid(transaction, aceObject.AceObjectId, aceObject.InstanceIdProperties);
-            SaveAceObjectPropertiesDid(transaction, aceObject.AceObjectId, aceObject.DataIdProperties);
-            SaveAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
-            SaveAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
-            SaveAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
+            SavePreparedStatement<AceObject>(ShardPreparedStatement.SaveAceObject, transaction, aceObject);
 
-            SaveAceObjectPropertiesPositions(transaction, aceObject.AceObjectId,
+            ListSavePreparedStatement<AceObjectPropertiesInt>(ShardPreparedStatement.InsertAceObjectPropertiesInt, transaction, aceObject.IntProperties);
+            ListSavePreparedStatement<AceObjectPropertiesInt64>(ShardPreparedStatement.InsertAceObjectPropertiesBigInt, transaction, aceObject.Int64Properties);
+            ListSavePreparedStatement<AceObjectPropertiesBool>(ShardPreparedStatement.InsertAceObjectPropertiesBool, transaction, aceObject.BoolProperties);
+            ListSavePreparedStatement<AceObjectPropertiesDouble>(ShardPreparedStatement.InsertAceObjectPropertiesDouble, transaction, aceObject.DoubleProperties);
+            ListSavePreparedStatement<AceObjectPropertiesString>(ShardPreparedStatement.InsertAceObjectPropertiesString, transaction, aceObject.StringProperties);
+            ListSavePreparedStatement<AceObjectPropertiesInstanceId>(ShardPreparedStatement.InsertAceObjectPropertiesIid, transaction, aceObject.InstanceIdProperties);
+            ListSavePreparedStatement<AceObjectPropertiesDataId>(ShardPreparedStatement.InsertAceObjectPropertiesDid, transaction, aceObject.DataIdProperties);
+            ListSavePreparedStatement<TextureMapOverride>(ShardPreparedStatement.InsertTextureOverridesByObject, transaction, aceObject.TextureOverrides);
+            ListSavePreparedStatement<AnimationOverride>(ShardPreparedStatement.InsertAnimationOverridesByObject, transaction, aceObject.AnimationOverrides);
+            ListSavePreparedStatement<PaletteOverride>(ShardPreparedStatement.InsertPaletteOverridesByObject, transaction, aceObject.PaletteOverrides);
+
+            ListSavePreparedStatement<AceObjectPropertiesPosition>(ShardPreparedStatement.InsertAceObjectPropertiesPositions, transaction,
                 aceObject.AceObjectPropertiesPositions.Select(x => x.Value.GetAceObjectPosition(aceObject.AceObjectId, x.Key)).ToList());
-            SaveAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId,
+            ListSavePreparedStatement<AceObjectPropertiesAttribute>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, transaction,
                 aceObject.AceObjectPropertiesAttributes.Select(x => x.Value.GetAttribute(aceObject.AceObjectId)).ToList());
-            SaveAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId,
+            ListSavePreparedStatement<AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes2nd, transaction,
                 aceObject.AceObjectPropertiesAttributes2nd.Select(x => x.Value.GetVital(aceObject.AceObjectId)).ToList());
-            SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId,
+            ListSavePreparedStatement<AceObjectPropertiesSkill>(ShardPreparedStatement.InsertAceObjectPropertiesSkills, transaction,
                 aceObject.AceObjectPropertiesSkills.Select(x => x.Value.GetAceObjectSkill(aceObject.AceObjectId)).ToList());
 
             return true;
         }
 
-        private bool SaveAceObjectBase(DatabaseTransaction transaction, AceObject obj)
+        private void SavePreparedStatement<T1>(ShardPreparedStatement statement, DatabaseTransaction transaction, T1 obj)
         {
-            transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.SaveAceObject, obj);
-            return true;
+            transaction.AddPreparedInsertStatement<ShardPreparedStatement, T1>(statement, obj);
         }
 
-        // FIXME(ddevec): These are a lot of functions that essentially do the same thing... but the SharedPreparedStatement.--- makes them a pain to tempalte/reduce
-        private bool SaveAceObjectPropertiesInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt> properties)
+        private void ListSavePreparedStatement<T1>(ShardPreparedStatement statement, DatabaseTransaction transaction, List<T1> obj)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.InsertAceObjectPropertiesInt, properties);
-            return true;
+            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, T1>(statement, obj);
         }
 
-        private bool SaveAceObjectPropertiesBigInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt64> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.InsertAceObjectPropertiesBigInt, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesBool(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesBool> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.InsertAceObjectPropertiesBool, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesDouble(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesDouble> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.InsertAceObjectPropertiesDouble, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesString(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesString> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.InsertAceObjectPropertiesString, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesDid(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesDataId> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.InsertAceObjectPropertiesDid, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesIid(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInstanceId> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.InsertAceObjectPropertiesIid, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectTextureMaps(DatabaseTransaction transaction, uint aceObjectId, List<TextureMapOverride> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, TextureMapOverride>(ShardPreparedStatement.InsertTextureOverridesByObject, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPalettes(DatabaseTransaction transaction, uint aceObjectId, List<PaletteOverride> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.InsertPaletteOverridesByObject, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectAnimations(DatabaseTransaction transaction, uint aceObjectId, List<AnimationOverride> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AnimationOverride>(ShardPreparedStatement.InsertAnimationOverridesByObject, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesPosition> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.InsertAceObjectPropertiesPositions, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesAttributes(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesAttribute> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesAttribute2nd> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes2nd, properties);
-            return true;
-        }
-
-        // SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectPropertiesSkills);
-        private bool SaveAceObjectPropertiesSkill(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesSkill> properties)
-        {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.InsertAceObjectPropertiesSkills, properties);
-            return true;
-        }
-
-        private bool DeleteAceObjectBase(DatabaseTransaction transaction, AceObject obj)
+        private void DeleteAceObjectBase(DatabaseTransaction transaction, AceObject obj)
         {
             transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.DeleteAceObject, obj);
-            return true;
         }
 
-        // FIXME(ddevec): These are a lot of functions that essentially do the same thing... but the SharedPreparedStatement.--- makes them a pain to tempalte/reduce
-        private bool DeleteAceObjectPropertiesInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt> properties)
+        private void ListDeletePreparedStatement<T1>(ShardPreparedStatement statement, DatabaseTransaction transaction, uint aceObjectId)
         {
             var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.DeleteAceObjectPropertiesInt, critera);
-            return true;
+            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, T1>(statement, critera);
         }
 
-        private bool DeleteAceObjectPropertiesBigInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt64> properties)
+        /// <summary>
+        /// Shuts down the background saving thread
+        /// </summary>
+        public void Shutdown()
         {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.DeleteAceObjectPropertiesBigInt, critera);
-            return true;
-        }
+            saveObjects.CompleteAdding();
+            taskCleanThread.Join();
+        } 
 
-        private bool DeleteAceObjectPropertiesBool(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesBool> properties)
+        /// <summary>
+        /// Background task for sending saves off to Db when needed, and maintaining our internal cache
+        /// </summary>
+        private static void SaveBackgroundTask()
         {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.DeleteAceObjectPropertiesBool, critera);
-            return true;
-        }
+            // Stops us from shutting down before all the saves are done
+            while (!saveObjects.IsCompleted)
+            {
+                try
+                {
+                    var saveTuple = saveObjects.Take();
+                    Task<bool> saveTask = saveTuple.Item1;
+                    uint guid = saveTuple.Item2;
+                    long version = saveTuple.Item3;
 
-        private bool DeleteAceObjectPropertiesDouble(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesDouble> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.DeleteAceObjectPropertiesDouble, critera);
-            return true;
-        }
+                    saveTask.Start();
+                    saveTask.Wait();
 
-        private bool DeleteAceObjectPropertiesString(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesString> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.DeleteAceObjectPropertiesString, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectPropertiesDid(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesDataId> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertiesDid, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectPropertiesIid(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInstanceId> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertiesIid, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectTextureMaps(DatabaseTransaction transaction, uint aceObjectId, List<TextureMapOverride> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, TextureMapOverride>(ShardPreparedStatement.DeleteTextureOverridesByObject, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectPalettes(DatabaseTransaction transaction, uint aceObjectId, List<PaletteOverride> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.DeletePaletteOverridesByObject, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectAnimations(DatabaseTransaction transaction, uint aceObjectId, List<AnimationOverride> properties)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AnimationOverride>(ShardPreparedStatement.DeleteAnimationOverridesByObject, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.DeleteAceObjectPropertiesPositions, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectPropertiesAttributes(DatabaseTransaction transaction, uint aceObjectId)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.DeleteAceObjectPropertiesAttributes, critera);
-            return true;
-        }
-
-        private bool DeleteAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.DeleteAceObjectPropertiesAttributes2nd, critera);
-            return true;
-        }
-
-        // SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectPropertiesSkills);
-        private bool DeleteAceObjectPropertiesSkill(DatabaseTransaction transaction, uint aceObjectId)
-        {
-            var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.DeleteAceObjectPropertiesSkills, critera);
-            return true;
+                    lock (cacheLock)
+                    {
+                        // NOTE(ddevec): The item MUST exist in the cache if we just ran it, no need to check key
+                        var cacheTup = saveCache[guid];
+                        long cachedVersion = cacheTup.Item2;
+                        if (cachedVersion == version)
+                        {
+                            saveCache.Remove(guid);
+                        }
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    // Note(ddevec): This can only happen if we're calling "Take()" when we're getting ready to shut down
+                    //    Just ignore that instance
+                }
+            }
         }
     }
 }

@@ -25,7 +25,6 @@ namespace ACE
             ConfigManager.Initialize();
             ServerManager.Initialize();
             DatabaseManager.Initialize();
-            DbManager.Initialize();
             AssetManager.Initialize();
             InboundMessageManager.Initialize();
             DatManager.Initialize();
@@ -36,7 +35,7 @@ namespace ACE
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            DbManager.ShutDown();
+            DatabaseManager.Shard.Shutdown();
             Diagnostics.Diagnostics.LandBlockDiag = false;
         }
     }

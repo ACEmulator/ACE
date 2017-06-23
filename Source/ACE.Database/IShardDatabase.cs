@@ -34,5 +34,7 @@ namespace ACE.Database
         uint GetNextCharacterId();
 
         AceCharacter GetCharacter(uint id);
+
+        void Shutdown();
     }
 }

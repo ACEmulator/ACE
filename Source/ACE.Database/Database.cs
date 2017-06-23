@@ -226,7 +226,7 @@ namespace ACE.Database
 
         protected virtual Type PreparedStatementType { get; }
 
-        public void Initialize(string host, uint port, string user, string password, string database)
+        virtual public void Initialize(string host, uint port, string user, string password, string database)
         {
             var connectionBuilder = new MySqlConnectionStringBuilder()
             {

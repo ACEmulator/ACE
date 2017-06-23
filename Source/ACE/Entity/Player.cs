@@ -329,7 +329,7 @@ namespace ACE.Entity
         public AceObject GetSavableCharacter()
         {
             // Clone Character
-            AceObject obj = (AceObject)Character.Clone();
+            AceCharacter obj = (AceCharacter)Character.Clone();
             // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
             // this is crap and needs to be fixed.
             obj.WeenieClassId = 1;
@@ -1173,7 +1173,7 @@ namespace ACE.Entity
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
                 // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
-                DbManager.SaveObject(GetSavableCharacter());
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
 #if DEBUG
                 if (Session.Player != null)
                 {

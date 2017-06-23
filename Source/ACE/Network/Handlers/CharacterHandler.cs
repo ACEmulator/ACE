@@ -274,8 +274,9 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterOptions(character);
             CharacterCreateSetDefaultCharacterPositions(character);
 
-            // We must await here -- 
-            bool saveSuccess = await DbManager.SaveObject(character);
+            // We no longer have to await here -- because of ShardObject caching 
+            //    -- this is async, so we do so anyway to get return
+            bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
 
             if (!saveSuccess)
             {

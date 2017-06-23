@@ -333,12 +333,7 @@ namespace ACE.Database
             return objects;
         }
 
-        public async Task<bool> SaveObject(AceObject aceObject)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> SaveObjectAsync(AceObject aceObject)
+        public Task<bool> SaveObject(AceObject aceObject)
         {
             throw new NotImplementedException();
         }
