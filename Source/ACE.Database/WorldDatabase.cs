@@ -150,7 +150,11 @@ namespace ACE.Database
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
-                o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                // o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                // The following three lines is code drafted by Og II for the purpose of linking a weenie's position data to an instance's position data.
+                Dictionary<PositionType, Position> instancePositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                Dictionary<PositionType, Position> weeniePositions = GetAceObjectPositions(o.WeenieClassId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                o.AceObjectPropertiesPositions = instancePositions.Union(instancePositions).Union(weeniePositions).ToDictionary(k => k.Key, v => v.Value); // not deduped ?
                 ret.Add(o);
             });
             return ret;
