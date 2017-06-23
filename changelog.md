@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-06-24
+[Lidefeath]
+* Remove old creature spawning and generator stuff
+* Implement creature spawning from generator objects, nested or hierarchical generators are still to do
+
 ### 2017-06-23
 [ddevec]
 * Fix to teleport freezing characters in place (Wasn't clearing requested location)
