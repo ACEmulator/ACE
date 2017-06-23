@@ -99,7 +99,7 @@ namespace ACE.Entity
             SetupVitals();
         }
 
-        private void SetupVitals()
+        protected void SetupVitals()
         {
             if (Health.Current != Health.MaxValue)
             {
@@ -121,7 +121,7 @@ namespace ACE.Entity
             SetObjectData(baseObject);
         }
 
-        private void SetObjectData(AceObject aco)
+        protected void SetObjectData(AceObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
             PhysicsData.MTableResourceId = aco.MotionTableId;

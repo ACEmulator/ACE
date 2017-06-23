@@ -108,27 +108,6 @@ namespace ACE.Entity
                 fo.SetParent(this);
             });
 
-            // Load static creature spawns from DB
-            // var creatures = DatabaseManager.World.GetCreaturesByLandblock(this.id.Landblock);
-            // foreach (var c in creatures)
-            // {
-            //    Creature cwo = new Creature(c);
-            //    worldObjects.Add(cwo.Guid, cwo);
-            // }
-
-            // FIXME(ddevec): This was not commented out in old master, but was in new master -- commenting it out now
-            // // Load generator creature spawns from DB
-            // var creatureGenerators = DatabaseManager.World.GetCreatureGeneratorsByLandblock(this.id.Landblock);
-            // foreach (var cg in creatureGenerators)
-            // {
-            //     List<Creature> creatureList = MonsterFactory.SpawnCreaturesFromGenerator(cg);
-            //     foreach (var c in creatureList)
-            //     {
-            //         worldObjects.Add(c.Guid, c);
-            //         c.SetParent(this);
-            //     }
-            // }
-
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);

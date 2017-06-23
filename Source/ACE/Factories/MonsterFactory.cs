@@ -12,6 +12,17 @@ namespace ACE.Factories
     public class MonsterFactory
     {
         /// <summary>
+        /// Create a new monster at the specified position
+        /// </summary>
+        public static Monster SpawnMonster(AceObject aceO, Position position)
+        {
+            aceO.Location = position;
+            Monster newMonster = new Monster(aceO);
+
+            return newMonster;
+        }
+
+        /// <summary>
         /// Create a new creature at the specified position
         /// </summary>
         /// <param name="weenieClassId"></param>
