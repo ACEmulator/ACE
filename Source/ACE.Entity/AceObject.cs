@@ -896,10 +896,15 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesPositions, positionType, value);
         }
 
-        public object Clone()
+        public virtual object Clone()
         {
             AceObject ret = new AceObject();
+            CloneInto(ret);
+            return ret;
+        }
 
+        public virtual void CloneInto(AceObject ret)
+        {
             ret.AceObjectId = AceObjectId;
 
             ret.WeenieClassId = WeenieClassId;
@@ -922,8 +927,6 @@ namespace ACE.Entity
             ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
-
-            return ret;
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable

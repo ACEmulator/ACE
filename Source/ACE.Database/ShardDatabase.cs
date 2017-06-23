@@ -173,7 +173,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public async Task<bool> DeleteOrRestore(ulong unixTime, uint aceObjectId)
+        public bool DeleteOrRestore(ulong unixTime, uint aceObjectId)
         {
             AceCharacter aceCharacter = new AceCharacter(aceObjectId);
             LoadIntoObject(aceCharacter);
@@ -181,7 +181,7 @@ namespace ACE.Database
 
             aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
 
-            return await SaveObject(aceCharacter);
+            return SaveObject(aceCharacter);
         }
 
         public async Task<List<CachedCharacter>> GetCharacters(uint accountId)
@@ -203,6 +203,11 @@ namespace ACE.Database
             return nextGuid.Full;
         }
 
+        /// <summary>
+        /// FIXME(ddevec): Should not be called directly -- isntead use DbManager()...
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public AceCharacter GetCharacter(uint id)
         {
             AceCharacter character = new AceCharacter(id);
@@ -215,6 +220,11 @@ namespace ACE.Database
             return character;
         }
 
+        /// <summary>
+        /// FIXME(ddevec): Should not be called directly -- instead use DbManager()...
+        /// </summary>
+        /// <param name="aceObjectId"></param>
+        /// <returns></returns>
         public AceObject GetObject(uint aceObjectId)
         {
             AceObject aceObject = new AceObject(aceObjectId);
@@ -403,7 +413,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public async Task<bool> SaveObject(AceObject aceObject)
+        public bool SaveObject(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
 
@@ -416,27 +426,10 @@ namespace ACE.Database
             SaveObjectInternal(transaction, aceObject);
 
             // FIXME(ddevec): Should we wait on this TXN?  I have no idea.
-            return await transaction.Commit();
-        }
+            Task<bool> txn = transaction.Commit();
+            txn.Wait();
 
-        public async Task<bool> SaveObjectAsync(AceObject aceObject)
-        {
-            bool result = false;
-            try
-            {
-                result = true;
-                DatabaseTransaction transaction = BeginTransaction();
-                DeleteObjectInternal(transaction, aceObject);
-                SaveObjectInternal(transaction, aceObject);
-                await transaction.Commit();
-            }
-            catch (Exception e)
-            {
-                log.Error($"An exception occured while saving ace object");
-                log.Error($"Exception: {e.Message}");
-                result = false;
-            }
-            return result;
+            return txn.Result;
         }
 
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)

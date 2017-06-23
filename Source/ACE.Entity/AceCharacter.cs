@@ -445,5 +445,13 @@ namespace ACE.Entity
         {
             friends.Clear();
         }
+
+        public override object Clone()
+        {
+            AceCharacter ret = new AceCharacter(0);
+            CloneInto(ret);
+            return ret;
+        }
+
     }
 }

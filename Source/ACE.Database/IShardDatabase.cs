@@ -25,7 +25,7 @@ namespace ACE.Database
 
         bool IsCharacterNameAvailable(string name);
 
-        Task<bool> DeleteOrRestore(ulong unixTime, uint id);
+        bool DeleteOrRestore(ulong unixTime, uint id);
 
         uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
 

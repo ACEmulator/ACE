@@ -76,7 +76,7 @@ namespace ACE.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            if (await DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full))
+            if (DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full))
             {
                 var result = await DatabaseManager.Shard.GetCharacters(session.Id);
                 session.UpdateCachedCharacters(result);
@@ -87,7 +87,7 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static async void CharacterRestore(ClientMessage message, Session session)
+        public static void CharacterRestore(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -102,7 +102,7 @@ namespace ACE.Network.Handlers
                 return;
             }
 
-            if (await DatabaseManager.Shard.DeleteOrRestore(0, guid.Full))
+            if (DatabaseManager.Shard.DeleteOrRestore(0, guid.Full))
             {
                 session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
                 return;
@@ -275,7 +275,7 @@ namespace ACE.Network.Handlers
             CharacterCreateSetDefaultCharacterPositions(character);
 
             // We must await here -- 
-            bool saveSuccess = await DbManager.SaveObject(character);
+            bool saveSuccess = await DbManager.SaveShardObject(character);
 
             if (!saveSuccess)
             {
