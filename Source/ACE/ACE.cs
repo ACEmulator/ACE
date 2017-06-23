@@ -23,6 +23,7 @@ namespace ACE
             Console.Title = @"ACEmulator";
 
             ConfigManager.Initialize();
+            ServerManager.Initialize();
             DatabaseManager.Initialize();
             DbManager.Initialize();
             AssetManager.Initialize();
