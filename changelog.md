@@ -9,6 +9,18 @@
 * Cleaned up ShardDatabase
 * Moved DbManager Functionality/new caching layer into ShardDatabase
 
+### 2017-06-22
+[fantoms]
+* Added `@set-shutdown-interval` command, to change the delay on the fly.
+* Added `@shutdown`, `@stop-now`, and `@cancel-shutdown` commands.
+* Added server shutdown command for admins - needed in consoles.
+* Added shutdown text, logoff, admin shutdown message.
+* Added `ShutdownInterval` to the `ConfigManager` Server Section, with a default of 60 seconds.
+* Added `ShutdownInterval` to the example config
+* Added some logging and moved the final exit too `ServerManager`.
+* Added a message broadcast through Session, to announce server broadcast messages from `WorldManager`.
+* Changed the case of the Config.json in the project build events, to match a Linux use case requirement for opening the Config file.
+
 ### 2017-06-21
 [ddevec]
 * Fix logoff crash in core/landblock restrucutre due to nulliing a location then

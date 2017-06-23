@@ -228,5 +228,14 @@ namespace ACE.Network
             // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
             Network.EnqueueSend(new GameMessageBootAccount(this));
         }
+        /// <summary>
+        /// Sends a broadcast message to the player
+        /// </summary>
+        /// <param name="broadcastMessage"></param>
+        public void WorldBroadcast(string broadcastMessage)
+        {
+            var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
+            Network.EnqueueSend(worldBroadcastMessage);
+        }
     }
 }

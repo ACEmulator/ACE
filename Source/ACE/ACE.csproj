@@ -143,6 +143,7 @@
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
+    <Compile Include="Managers\ServerManager.cs" />
     <Compile Include="Network\ChatPacket.cs" />
     <Compile Include="Network\ClientMessage.cs" />
     <Compile Include="Network\ClientPacket.cs" />
@@ -377,7 +378,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>copy "$(ProjectDir)config.json" "$(TargetDir)config.json"</PreBuildEvent>
+    <PreBuildEvent>copy "$(ProjectDir)Config.json" "$(TargetDir)Config.json"</PreBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\StyleCop.MSBuild.5.0.0-beta01\build\StyleCop.MSBuild.targets" />
 </Project>

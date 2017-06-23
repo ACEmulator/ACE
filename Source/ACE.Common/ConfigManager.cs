@@ -40,6 +40,13 @@ namespace ACE.Common
         public ConfigAccountDefaults Accounts { get; set; }
 
         public string DatFilesDirectory { get; set; }
+
+        /// <summary>
+        /// The ammount of seconds to wait before turning off the server. Default value is 60 (for 1 minute).
+        /// </summary>
+        [System.ComponentModel.DefaultValue(60)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public uint ShutdownInterval { get; set; }
     }
 
     public struct ConfigMySqlDatabase
