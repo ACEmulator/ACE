@@ -452,6 +452,5 @@ namespace ACE.Entity
             CloneInto(ret);
             return ret;
         }
-
     }
 }

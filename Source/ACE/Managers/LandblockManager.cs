@@ -32,7 +32,7 @@ namespace ACE.Managers
 
         public static async void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
-            AceCharacter c = DbManager.LoadShardCharacter(guid);
+            AceCharacter c = DatabaseManager.Shard.GetCharacter(guid.Full);
 
             session.Player = new Player(session, c);
             await Task.Run(() => session.Player.Load(c));

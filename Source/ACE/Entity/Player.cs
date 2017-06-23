@@ -1173,7 +1173,7 @@ namespace ACE.Entity
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
                 // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
-                DbManager.SaveShardObject(GetSavableCharacter());
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter());
 #if DEBUG
                 if (Session.Player != null)
                 {

@@ -10,10 +10,10 @@ namespace ACE.Database
     /// </summary>
     public interface ICommonDatabase
     {
-        List<AceObject> GetObjectsByLandblock(ushort landblock);
-
         AceObject GetObject(uint aceObjectId);
 
-        bool SaveObject(AceObject aceObject);
+        Task<bool> SaveObject(AceObject aceObject);
+
+        List<AceObject> GetObjectsByLandblock(ushort landblock);
     }
 }
