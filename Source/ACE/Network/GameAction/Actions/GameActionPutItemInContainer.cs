@@ -1,7 +1,6 @@
-﻿namespace ACE.Network.GameAction.Actions
+﻿using ACE.Entity;
+namespace ACE.Network.GameAction.Actions
 {
-    using global::ACE.Entity;
-
     public static class GameActionPutItemInContainer
     {
         [GameAction(GameActionType.PutItemInContainer)]
@@ -9,8 +8,8 @@
         {
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
-
-            session.Player.HandleActionPutItemInContainer(itemGuid, containerGuid);
+            var loc = message.Payload.ReadUInt32();
+            session.Player.HandleActionPutItemInContainer(itemGuid, containerGuid, loc);
         }
     }
 }

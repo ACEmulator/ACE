@@ -451,7 +451,7 @@ namespace ACE.Entity
                 }
             }
 
-            // North 
+            // North
             if (!highYInLandblock)
             {
                 if (NorthAdjacency != null)
@@ -544,8 +544,8 @@ namespace ACE.Entity
 
             EnqueueBroadcast(wo.Location, MaxObjectRange,
                 new GameMessageUpdateMotion(wo.Guid,
-                        wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                        wo.Sequences, motion));
+                    wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                    wo.Sequences, motion));
         }
 
         /// <summary>
@@ -612,7 +612,8 @@ namespace ACE.Entity
         /// <param name="pos"></param>
         /// <param name="distance"></param>
         /// <param name="delegateAction"></param>
-        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> delegateAction) {
+        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> delegateAction)
+        {
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
 
             foreach (Landblock lb in landblocksInRange)
@@ -628,7 +629,8 @@ namespace ACE.Entity
             }
         }
 
-        private List<WorldObject> GetWorldObjectsInRange(Position pos, float distance) {
+        private List<WorldObject> GetWorldObjectsInRange(Position pos, float distance)
+        {
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
 
             List<WorldObject> ret = new List<WorldObject>();
@@ -640,7 +642,8 @@ namespace ACE.Entity
             return ret;
         }
 
-        private List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float distance) {
+        private List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float distance)
+        {
             return GetWorldObjectsInRange(wo.Location, distance);
         }
 
@@ -650,7 +653,8 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance) {
+        public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance)
+        {
             return GetWorldObjectsInRange(wo, distance);
         }
 
@@ -727,6 +731,13 @@ namespace ACE.Entity
                 // I find some of our debug commands have races between create and use -- This warning will trigger then
                 log.Warn("Schedule transfer to item that doesn't exist -- ignoring");
             }
+        }
+
+        public bool ItemExistsInWorld(ObjectGuid wo)
+        {
+            // Find owner of wo and let us know if it exists
+            Landblock lb = GetOwner(wo);
+            return lb != null;
         }
 
         private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid)

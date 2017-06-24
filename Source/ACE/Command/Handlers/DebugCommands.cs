@@ -12,7 +12,6 @@ using System.Globalization;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace ACE.Command.Handlers
 {
@@ -255,7 +254,7 @@ namespace ACE.Command.Handlers
 
             ActionChain chain = new Entity.Actions.ActionChain();
 
-            // By chaining the spawn followed by the add pickup action, we ensure the item will be spawned before the player 
+            // By chaining the spawn followed by the add pickup action, we ensure the item will be spawned before the player
             chain.AddChain(LootGenerationFactory.GetSpawnChain(loot, session.Player.Location.InFrontOf(distance)));
 
             chain.AddAction(session.Player,
@@ -263,8 +262,8 @@ namespace ACE.Command.Handlers
 
             chain.EnqueueChain();
         }
-        
-        // This function 
+
+        // This function
         [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
              "Sets the specified vital to a specified value",
             "Usage: @setvital <vital> <value>\n" +
@@ -608,7 +607,7 @@ namespace ACE.Command.Handlers
 
         /*
         /// <summary>
-        /// Debug command to test the ObjDescEvent message. 
+        /// Debug command to test the ObjDescEvent message.
         /// </summary>
         [CommandHandler("equiptest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Simulates equipping a new item to your character, replacing all other items.")]

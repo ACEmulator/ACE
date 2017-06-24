@@ -98,7 +98,8 @@ namespace ACE.Entity
             get { return AceObject.AceObjectPropertiesPositions; }
         }
 
-        private Position PositionSanctuary {
+        private Position PositionSanctuary
+        {
             get
             {
                 if (Positions.ContainsKey(PositionType.Sanctuary))
@@ -113,7 +114,8 @@ namespace ACE.Entity
             }
         }
 
-        private Position PositionLastPortal {
+        private Position PositionLastPortal
+        {
             get
             {
                 if (Positions.ContainsKey(PositionType.LastPortal))
@@ -266,7 +268,7 @@ namespace ACE.Entity
             PhysicsData.Stable = Character.SoundTableId;
             PhysicsData.Petable = Character.PhysicsTableId;
             PhysicsData.CSetup = Character.ModelTableId;
-            
+
             // Start vital ticking, if they need it
             if (Health.Current != Health.MaxValue)
             {
@@ -605,10 +607,11 @@ namespace ACE.Entity
 
             if (rankUps > 0)
             {
-                // FIXME(ddevec): This needs to be done for vitals only? Someone verify -- 
+                // FIXME(ddevec): This needs to be done for vitals only? Someone verify --
                 //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
                 CreatureVital vital = ability as CreatureVital;
-                if (vital != null) {
+                if (vital != null)
+                {
                     vital.Current += addToCurrentValue ? rankUps : 0u;
                 }
                 ability.Ranks += rankUps;
@@ -859,7 +862,7 @@ namespace ACE.Entity
         }
 
         // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
-        /* 
+        /*
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
             new ActionChain(this, () =>
@@ -1253,7 +1256,7 @@ namespace ACE.Entity
 
             teleportChain.AddDelaySeconds(3);
             // Once back in world we can start listening to the game's request for positions
-            teleportChain.AddAction(this, () => 
+            teleportChain.AddAction(this, () =>
             {
                 InWorld = true;
             });
@@ -1343,7 +1346,7 @@ namespace ACE.Entity
                 }
             }
 
-            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full.ToString("X")}");
+            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
 
             if (sendUpdate)
             {
@@ -1469,7 +1472,8 @@ namespace ACE.Entity
 
         private void HandleActionTeleToLifestoneInternal()
         {
-            if (Positions.ContainsKey(PositionType.Sanctuary)) {
+            if (Positions.ContainsKey(PositionType.Sanctuary))
+            {
                 // session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
                 string msg = $"{Name} is recalling to the lifestone.";
 
@@ -1547,7 +1551,8 @@ namespace ACE.Entity
             }
         }
 
-        private void DoMotion(UniversalMotion motion) {
+        private void DoMotion(UniversalMotion motion)
+        {
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
 
@@ -1558,7 +1563,37 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid)
+        private void HandleUnequip(WorldObject item, uint location)
+        {
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, this, item, location),
+                new GameMessageUpdateInstanceId(item.Guid, Guid),
+                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
+            // TODO: Need to start sending slot - set for 0 for now.
+            EquipUnequipItem(item.Guid.Full, 0);
+        }
+
+        private void HandleMove(WorldObject item, Container container, uint location)
+        {
+            item.Wielder = null;
+            // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
+            if (item.ContainerId != container.Guid.Full)
+            {
+                Container previousContainer;
+                var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
+                if (previousContainerGuid == Guid)
+                    previousContainer = this;
+                else
+                {
+                    previousContainer = (Container)GetInventoryItem(previousContainerGuid);
+                }
+                previousContainer.RemoveFromInventory(item.Guid);
+                container.AddToInventory(item);
+            }
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container, item, location),
+                new GameMessageUpdateInstanceId(item.Guid, container.Guid));
+        }
+
+        private void HandlePickup(ObjectGuid containerGuid, ObjectGuid itemGuid, uint location)
         {
             // Logical operations:
             // !! FIXME: How to handle repeat on condition?
@@ -1568,14 +1603,6 @@ namespace ACE.Entity
             // Try acquire from landblock
             // if acquire successful:
             //   add to container
-
-            // Has to be a player so need to check before I make the cast.
-            // If he is not a player, something is bad wrong. Og II
-            if (!containerGuid.IsPlayer())
-            {
-                log.Error("We don't currently support storing to non-player containers!");
-                return;
-            }
 
             ActionChain putItemInContainerChain = new ActionChain();
 
@@ -1591,11 +1618,11 @@ namespace ACE.Entity
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                     new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid,
-                                                Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                Sequences, motion));
+                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                        Sequences, motion));
             });
             // Wait for animation to progress
-            putItemInContainerChain.AddDelaySeconds(2);
+            putItemInContainerChain.AddDelaySeconds(0.75);
 
             // Ask landblock to transfer item
             // putItemInContainerChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
@@ -1610,19 +1637,20 @@ namespace ACE.Entity
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
+                    UpdateInventory(false, item);
                     // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
                     var motion = new UniversalMotion(MotionStance.Standing);
                     Session.Network.EnqueueSend(
-                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden),
-                            new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
-                            new GameMessagePutObjectInContainer(Session, this, itemGuid));
+                        new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden),
+                        new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                        new GameMessagePutObjectInContainer(Session, this, item, location));
 
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                            new GameMessageUpdateMotion(Guid,
-                                                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                        Sequences, motion),
-                            new GameMessageUpdateInstanceId(itemGuid, Guid),
-                            new GameMessagePickupEvent(Session, item));
+                        new GameMessageUpdateMotion(Guid,
+                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                            Sequences, motion),
+                        new GameMessageUpdateInstanceId(itemGuid, Guid),
+                        new GameMessagePickupEvent(Session, item));
 
                     // TODO: Og II - check this later to see if it is still required.
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
@@ -1633,9 +1661,9 @@ namespace ACE.Entity
                     var motion = new UniversalMotion(MotionStance.Standing);
 
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                            new GameMessageUpdateMotion(Guid,
-                                                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                        Sequences, motion));
+                        new GameMessageUpdateMotion(Guid,
+                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                            Sequences, motion));
                     // CurrentLandblock.EnqueueBroadcast(self shame);
                 }
             });
@@ -1644,9 +1672,78 @@ namespace ACE.Entity
             putItemInContainerChain.EnqueueChain();
         }
 
+        private void UpdateInventory(bool intoWorld, WorldObject inventoryItem)
+        {
+            if (intoWorld)
+            {
+                inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
+                inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                             | UpdatePositionFlag.Placement
+                                             | UpdatePositionFlag.ZeroQy
+                                             | UpdatePositionFlag.ZeroQx;
+
+                inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+                inventoryItem.ContainerId = null;
+                inventoryItem.Wielder = null;
+                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+            }
+            else
+            {
+                inventoryItem.ContainerId = Guid.Full;
+                if (inventoryItem.Location != null)
+                    LandblockManager.RemoveObject(inventoryItem);
+                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+                inventoryItem.PositionFlag = UpdatePositionFlag.None;
+                inventoryItem.PhysicsData.Position = null;
+                inventoryItem.Location = null;
+                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+            }
+        }
+
+        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
+        {
+            WorldObject inventoryItem = null;
+            Container container = null;
+
+            if (containerGuid.IsPlayer())
+            {
+                if (CurrentLandblock.ItemExistsInWorld(itemGuid))
+                {
+                    // This is a pickup into our main pack.
+                    HandlePickup(containerGuid, itemGuid, location);
+                    return;
+                }
+                container = this;
+            }
+
+            if (GetInventoryItem(containerGuid) != null)
+            {
+                // Ok I am going into player backpack (container) with something I have somewhere
+                container = (Container)GetInventoryItem(containerGuid);
+            }
+
+            inventoryItem = GetInventoryItem(itemGuid);
+            if (inventoryItem == null)
+            {
+                // This is a pickup into a side pack.
+                HandlePickup(containerGuid, itemGuid, location);
+                return;
+            }
+
+            // Was I equiped?   If so, lets take care of that and unequip
+            if (inventoryItem.Wielder != null)
+            {
+                HandleUnequip(inventoryItem, location);
+                return;
+            }
+
+            // if were are still here, this needs to do a pack pack or main pack move.
+            HandleMove(inventoryItem, container, location);
+        }
+
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
-            ActionChain dropChain = new Actions.ActionChain();
+            ActionChain dropChain = new ActionChain();
 
             // Goody Goody -- lets build  drop chain
             // First start drop animation
@@ -1655,7 +1752,7 @@ namespace ACE.Entity
                 var inventoryItem = GetInventoryItem(itemGuid);
                 if (inventoryItem == null)
                     return;
-
+                UpdateInventory(true, inventoryItem);
                 RemoveFromInventory(itemGuid);
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden));
 
@@ -1673,15 +1770,12 @@ namespace ACE.Entity
 
                 // TODO(ddevec): Need real animation delays...
                 // Wait for drop animation
-                chain.AddDelaySeconds(1);
+                chain.AddDelaySeconds(0.75);
 
                 // Play drop sound
                 // Put item on landblock
                 chain.AddAction(this, () =>
                 {
-                    // The item is at my location now
-                    inventoryItem.Location = Location;
-
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock.EnqueueBroadcastMotion(this, motion);
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
@@ -1716,8 +1810,8 @@ namespace ACE.Entity
                         UsableObject uo = wo as UsableObject;
                         Portal p = wo as Portal;
 
-                    // FIXME: OnCollide for portals -- portals should be usable?
-                    if (p != null)
+                        // FIXME: OnCollide for portals -- portals should be usable?
+                        if (p != null)
                         {
                             p.OnCollide(Guid);
                         }
@@ -1763,7 +1857,8 @@ namespace ACE.Entity
             // poll for arrival every .1 seconds
             moveToBody.AddDelaySeconds(.1);
 
-            moveToChain.AddLoop(this, () => {
+            moveToChain.AddLoop(this, () =>
+            {
                 bool valid;
                 float outdistance;
                 // Break loop if CurrentLandblock == null (we portaled or logged out), or if we arrive at the item
@@ -1823,7 +1918,56 @@ namespace ACE.Entity
                 }
             }).EnqueueChain();
         }
-        
+
+        public void EquipUnequipItem(uint itemId, uint slot)
+        {
+            UpdateWieldedItem(itemId);
+            ModelData.Clear();
+            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+            var wieldeditems = GetCurrentlyWieldedItems();
+            var coverage = new List<uint>();
+
+            foreach (var w in wieldeditems)
+            {
+                var wo = w.Value;
+                ClothingTable item;
+                if (wo.ClothingBase != null)
+                    item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
+                else
+                    item = ClothingTable.ReadFromDat(0x10000002);
+                // If I don't find a match, for now you are pants!
+                // TODO: this needs to go as soon as we get all the clothing base did in
+
+                if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+                // Check if the player model has data. Gear Knights, this is usually you.
+                {
+                    // Add the model and texture(s)
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                    foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                    {
+                        byte partNum = (byte)t.Index;
+                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
+                        coverage.Add(partNum);
+                        foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                    }
+
+                    PhysicsData.ItemsEquipedCount += 1;
+                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
+                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+                }
+            }
+            // Add the "naked" body parts. These are the ones not already covered.
+            SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+            for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+            {
+                if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                    ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+            }
+
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0), new GameMessageObjDescEvent(this));
+        }
+
         public void TestEquipItem(Session session, uint modelId, int palOption)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm

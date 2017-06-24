@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Database;
 using ACE.Managers;
 using ACE.Network.Enum;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 
 namespace ACE.Factories
@@ -26,10 +27,23 @@ namespace ACE.Factories
             return LandblockManager.GetAddObjectChain(inventoryItem);
         }
 
+        public static Container CreateTestContainerObject(Player player, uint weenieId)
+        {
+            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
+            Container wo = new Container(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
+            player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.Guid.Full));
+            return wo;
+        }
+
         public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
             DebugObject wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
+            // This is testing crap remove.
+            if (aceObject.WeenieClassId == 136u)
+            {
+                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.Guid.Full));
+            }
             return wo;
         }
 

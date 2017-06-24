@@ -141,6 +141,20 @@ namespace ACE.Entity
             set { AceObject.ItemType = value; }
         }
 
+        public ContainerType ContainerType
+        {
+            get
+            {
+                if (ItemCapacity == null || ItemCapacity == 0)
+                {
+                    if (Name.Contains("Foci"))
+                        return ContainerType.Foci;
+                    return ContainerType.NonContainer;
+                }
+                return ContainerType.Conatiner;
+            }
+        }
+
         public string NamePlural { get; set; }
 
         public byte? ItemCapacity
@@ -296,6 +310,11 @@ namespace ACE.Entity
         {
             get { return (Spell?)AceObject.SpellId; }
             set { this.AceObject.SpellId = (ushort?)value; }
+        }
+        public uint? ClothingBase
+        {
+            get { return AceObject.ClothingBase; }
+            set { AceObject.ClothingBase = value; }
         }
 
         /// <summary>

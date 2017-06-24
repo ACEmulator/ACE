@@ -9,6 +9,7 @@ namespace ACE.Network.GameAction.Actions
         {
             uint itemGuid = message.Payload.ReadUInt32();
             uint location = message.Payload.ReadUInt32();
+            session.Player.EquipUnequipItem(itemGuid, location);
             // TODO: Og II Pass this to player to process and let them call GameEventWieldItem response.
             session.Network.EnqueueSend(new GameEventWieldItem(session, itemGuid, location));
         }

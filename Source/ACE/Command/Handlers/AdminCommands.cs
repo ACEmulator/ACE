@@ -9,8 +9,8 @@ using ACE.Database;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Factories;
-
-using log4net;
+ using ACE.Network.GameEvent.Events;
+ using log4net;
 
 namespace ACE.Command.Handlers
 {
@@ -1001,8 +1001,26 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            session.Player.HandleAddToInventory(loot);
+
+            // TODO: we have to be able to identify containers - you can create a wo and see if it has
+            // an item capacity but that seems a bit wasteful.   TBD on best method.   Limited number so
+
+            if (weenieId == 136)
+            {
+                var loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
+                session.Player.AddToInventory(loot);
+                session.Player.TrackObject(loot);
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid));
+            }
+            else
+            {
+                var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                session.Player.AddToInventory(loot);
+                session.Player.TrackObject(loot);
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid));
+            }
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
