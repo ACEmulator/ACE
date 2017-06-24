@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-24
+[Ripley]
+* Rebased SQL scripts.
+
 ### 2017-06-23
 [ddevec]
 * Fix to teleport freezing characters in place (Wasn't clearing requested location)
