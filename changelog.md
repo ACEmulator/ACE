@@ -5,6 +5,7 @@
 * Remove unneeded debug command CreateLifestone
 * Modified PortalObjectFactory class to create specialized portals that are temporary spawns, such as the Humming Crystal Portal
 * Created enums for the weenieclassID's for the special portals
+* Added the missing ObjectType to the CollidableObject class
 
 ### 2017-06-23
 [ddevec]
