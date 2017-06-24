@@ -1,6 +1,12 @@
 # ACEmulator Change Log
 
 ### 2017-06-23
+[Jyrus]
+* Remove unneeded debug command CreateLifestone
+* Modified PortalObjectFactory class to create specialized portals that are temporary spawns, such as the Humming Crystal Portal
+* Created enums for the weenieclassID's for the special portals
+
+### 2017-06-23
 [ddevec]
 * Fix to teleport freezing characters in place (Wasn't clearing requested location)
 * Fix to occasional crash when moving long distances (Wasn't properly handling landblock transferring)
