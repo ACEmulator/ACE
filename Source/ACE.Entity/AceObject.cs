@@ -221,6 +221,36 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Level, value); }
         }
 
+        public uint GeneratorTimeType
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorTimeType) ?? 0; }
+            set { SetIntProperty(PropertyInt.GeneratorTimeType, value); }
+        }
+
+        public uint GeneratorProbability
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorProbability) ?? 0; }
+            set { SetIntProperty(PropertyInt.GeneratorProbability, value); }
+        }
+
+        public uint MaxGeneratedObjects
+        {
+            get { return GetIntProperty(PropertyInt.MaxGeneratedObjects) ?? 0; }
+            set { SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
+        }
+
+        public uint GeneratorType
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorType) ?? 0; }
+            set { SetIntProperty(PropertyInt.GeneratorType, value); }
+        }
+
+        public uint ActivationCreateClass
+        {
+            get { return GetIntProperty(PropertyInt.ActivationCreateClass) ?? 0; }
+            set { SetIntProperty(PropertyInt.ActivationCreateClass, value); }
+        }
+
         public uint CombatTableId
         {
             get { return GetDataIdProperty(PropertyDataId.CombatTable) ?? 0; }
@@ -517,6 +547,12 @@ namespace ACE.Entity
         {
             get { return (float?)GetDoubleProperty(PropertyDouble.Translucency); }
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
+        }
+
+        public uint? Generator
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Generator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Generator, value); }
         }
 
         public uint? GetDataIdProperty(PropertyDataId property)
@@ -877,6 +913,12 @@ namespace ACE.Entity
         {
             get { return GetPosition(PositionType.Location); }
             set { SetPosition(PositionType.Location, value); }
+        }
+
+        public Position Instantiation
+        {
+            get { return GetPosition(PositionType.Instantiation); }
+            set { SetPosition(PositionType.Instantiation, value); }
         }
 
         protected Position GetPosition(PositionType positionType)

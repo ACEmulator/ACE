@@ -1,6 +1,7 @@
 ﻿using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using System.Collections.Generic;
 
 namespace ACE.Factories
@@ -34,6 +35,17 @@ namespace ACE.Factories
 
                 switch (ot)
                 {
+                    case 0: // Generator
+                        if ((oDescFlag & (ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Hidden)) != 0)
+                        {
+                            aceO.Location = aceO.Location.InFrontOf(-2.0);
+                            // aceO.Location.PositionZ = 0;
+                            aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
+                            results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), aceO));
+                            var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO);
+                            objectList.ForEach(o => results.Add(o));
+                        }
+                        break;
 #if DEBUG
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies

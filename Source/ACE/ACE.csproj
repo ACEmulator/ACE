@@ -116,6 +116,7 @@
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
+    <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\Lifestone.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Entity\MovementData.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Entity\UsableObject.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
+    <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\GenericObjectFactory.cs" />
     <Compile Include="Factories\LifestoneObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
