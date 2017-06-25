@@ -150,9 +150,7 @@ namespace ACE.Database
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
-                Dictionary<PositionType, Position> worldPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
-                Dictionary<PositionType, Position> destinations = GetAceObjectPositions(o.WeenieClassId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
-                o.AceObjectPropertiesPositions = worldPositions.Union(worldPositions).Union(destinations).ToDictionary(k => k.Key, v => v.Value);
+                o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
                 ret.Add(o);
             });
             return ret;
