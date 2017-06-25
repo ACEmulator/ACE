@@ -717,6 +717,28 @@ namespace ACE.Entity
             chain.AddAction(wo, () => action(wo));
         }
 
+        /// <summary>
+        /// Intended for when moving an item directly to a player's container (which is not visible to the landblock)
+        /// </summary>
+        /// <param name="chain"></param>
+        /// <param name="wo"></param>
+        /// <param name="container"></param>
+        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container)
+        {
+            // Find owner of wo
+            Landblock lb = GetOwner(wo);
+
+            if (lb != null)
+            {
+                chain.AddAction(lb.motionQueue, () => ItemTransferContainerInternal(wo, container));
+            }
+            else
+            {
+                // I find some of our debug commands have races between create and use -- This warning will trigger then
+                log.Warn("Schedule transfer to item that doesn't exist -- ignoring");
+            }
+        }
+
         public void ScheduleItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container)
         {
             // Find owner of wo
@@ -733,17 +755,9 @@ namespace ACE.Entity
             }
         }
 
-        public bool ItemExistsInWorld(ObjectGuid wo)
-        {
-            // Find owner of wo and let us know if it exists
-            Landblock lb = GetOwner(wo);
-            return lb != null;
-        }
-
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid)
+        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container)
         {
             WorldObject wo = GetObject(woGuid);
-            Container container = GetObject(containerGuid) as Container;
 
             if (container == null || wo == null)
             {
@@ -751,7 +765,15 @@ namespace ACE.Entity
             }
 
             RemoveWorldObjectInternal(woGuid, false);
+            wo.ContainerId = container.Guid.Full;
             container.AddToInventory(wo);
+        }
+
+        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid)
+        {
+            Container container = GetObject(containerGuid) as Container;
+
+            ItemTransferContainerInternal(woGuid, container);
         }
 
         private void Log(string message)

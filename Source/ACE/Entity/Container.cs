@@ -109,14 +109,6 @@ namespace ACE.Entity
             {
                 inventory.Add(inventoryItem.Guid, inventoryItem);
             }
-            inventoryItem.ContainerId = Guid.Full;
-            if (inventoryItem.Location != null)
-                LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.PhysicsData.Position = null;
-            inventoryItem.Location = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
@@ -124,6 +116,24 @@ namespace ACE.Entity
             if (inventory.ContainsKey(inventoryItemGuid))
             {
                 inventory.Remove(inventoryItemGuid);
+                Burden = UpdateBurden();
+            }
+            else
+            {
+                // Ok maybe it is inventory in one of our packs
+                var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
+
+                foreach (var cnt in containers)
+                {
+                    if (((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid))
+                    {
+                        ((Container)cnt.Value).inventory.Remove(inventoryItemGuid);
+                        // update pack burden
+                        ((Container)cnt.Value).Burden = ((Container)cnt.Value).UpdateBurden();
+                        break;
+                    }
+                }
+                Burden = UpdateBurden();
             }
         }
 
@@ -137,20 +147,25 @@ namespace ACE.Entity
             return calculatedBurden;
         }
 
-        public void UpdateWieldedItem(uint itemId)
+        public void UpdateWieldedItem(Container container, uint itemId)
         {
             // TODO: need to make pack aware - just coding for main pack now.
             ObjectGuid itemGuid = new ObjectGuid(itemId);
             WorldObject inventoryItem = GetInventoryItem(itemGuid);
+            if (inventoryItem.ContainerId != container.Guid.Full)
+            {
+                RemoveFromInventory(itemGuid);
+                container.AddToInventory(inventoryItem);
+            }
             switch (inventoryItem.ContainerId)
             {
                 case null:
-                    inventoryItem.ContainerId = Guid.Full;
+                    inventoryItem.ContainerId = container.Guid.Full;
                     inventoryItem.Wielder = null;
                     break;
                 default:
                     inventoryItem.ContainerId = null;
-                    inventoryItem.Wielder = Guid.Full;
+                    inventoryItem.Wielder = container.Guid.Full;
                     break;
             }
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();

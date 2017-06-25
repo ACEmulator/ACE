@@ -16,6 +16,8 @@ namespace ACE.Command.Handlers
 {
     using System.Linq;
 
+    using global::ACE.Entity.Enum.Properties;
+
     public static class AdminCommands
     {
         // // commandname parameters
@@ -1008,18 +1010,20 @@ namespace ACE.Command.Handlers
             if (weenieId == 136)
             {
                 var loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
+                loot.ContainerId = session.Player.Guid.Full;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid));
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
             }
             else
             {
                 var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                loot.ContainerId = session.Player.Guid.Full;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid));
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
             }
         }
 

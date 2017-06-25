@@ -1563,37 +1563,42 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void HandleUnequip(WorldObject item, uint location)
+        private void HandleUnequip(Container container, WorldObject item, uint location)
         {
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, this, item, location),
-                new GameMessageUpdateInstanceId(item.Guid, Guid),
+            UpdateAppearance(container, item.Guid.Full);
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+                new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
+                new GameMessageObjDescEvent(this),
                 new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
-            // TODO: Need to start sending slot - set for 0 for now.
-            EquipUnequipItem(item.Guid.Full, 0);
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
         }
 
         private void HandleMove(WorldObject item, Container container, uint location)
         {
-            item.Wielder = null;
             // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
             if (item.ContainerId != container.Guid.Full)
             {
-                Container previousContainer;
-                var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
-                if (previousContainerGuid == Guid)
-                    previousContainer = this;
-                else
+                Container previousContainer = null;
+                if (item.ContainerId != null)
                 {
-                    previousContainer = (Container)GetInventoryItem(previousContainerGuid);
+                    var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
+                    if (previousContainerGuid == Guid)
+                        previousContainer = this;
+                    else
+                    {
+                        previousContainer = (Container)GetInventoryItem(previousContainerGuid);
+                    }
                 }
-                previousContainer.RemoveFromInventory(item.Guid);
+                if (previousContainer != null)
+                    previousContainer.RemoveFromInventory(item.Guid);
                 container.AddToInventory(item);
+                item.ContainerId = container.Guid.Full;
             }
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container, item, location),
-                new GameMessageUpdateInstanceId(item.Guid, container.Guid));
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+                                        new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
         }
 
-        private void HandlePickup(ObjectGuid containerGuid, ObjectGuid itemGuid, uint location)
+        private void HandlePickup(Container container, ObjectGuid itemGuid, uint location, PropertyInstanceId iidPropertyId)
         {
             // Logical operations:
             // !! FIXME: How to handle repeat on condition?
@@ -1603,15 +1608,14 @@ namespace ACE.Entity
             // Try acquire from landblock
             // if acquire successful:
             //   add to container
-
-            ActionChain putItemInContainerChain = new ActionChain();
+            ActionChain pickUpItemChain = new ActionChain();
 
             // Move to the object
-            putItemInContainerChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
+            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
 
             // Pick up the object
             // Start pickup animation
-            putItemInContainerChain.AddAction(this, () =>
+            pickUpItemChain.AddAction(this, () =>
             {
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
@@ -1622,14 +1626,17 @@ namespace ACE.Entity
                         Sequences, motion));
             });
             // Wait for animation to progress
-            putItemInContainerChain.AddDelaySeconds(0.75);
+            pickUpItemChain.AddDelaySeconds(0.75);
 
             // Ask landblock to transfer item
-            // putItemInContainerChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
-            CurrentLandblock.ScheduleItemTransfer(putItemInContainerChain, itemGuid, containerGuid);
+            // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
+            if (container.Guid.IsPlayer())
+                CurrentLandblock.ScheduleItemTransfer(pickUpItemChain, itemGuid, container.Guid);
+            else
+                CurrentLandblock.ScheduleItemTransferInContainer(pickUpItemChain, itemGuid, (Container)GetInventoryItem(container.Guid));
 
             // Finish pickup animation
-            putItemInContainerChain.AddAction(this, () =>
+            pickUpItemChain.AddAction(this, () =>
             {
                 // If success, the item is in our inventory:
                 WorldObject item = GetInventoryItem(itemGuid);
@@ -1637,20 +1644,34 @@ namespace ACE.Entity
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
-                    UpdateInventory(false, item);
+                    SetInventoryForOffWorld(container.Guid, item);
                     // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
                     var motion = new UniversalMotion(MotionStance.Standing);
-                    Session.Network.EnqueueSend(
-                        new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden),
-                        new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
-                        new GameMessagePutObjectInContainer(Session, this, item, location));
+                    if (iidPropertyId == PropertyInstanceId.Container)
+                    {
+                        Session.Network.EnqueueSend(
+                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, UpdateBurden()),
+                            new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                            new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
+                            new GameMessagePutObjectInContainer(Session, container.Guid, item, location));
+                    }
+                    else
+                    {
+                        UpdateAppearance(container, itemGuid.Full);
+                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                    new GameMessageObjDescEvent(this),
+                                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                                                    new GameEventWieldItem(Session, itemGuid.Full, location));
+                    }
 
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                         new GameMessageUpdateMotion(Guid,
                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                             Sequences, motion),
-                        new GameMessageUpdateInstanceId(itemGuid, Guid),
                         new GameMessagePickupEvent(Session, item));
+
+                    if (iidPropertyId == PropertyInstanceId.Wielder)
+                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
 
                     // TODO: Og II - check this later to see if it is still required.
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
@@ -1669,35 +1690,101 @@ namespace ACE.Entity
             });
 
             // Set chain to run
-            putItemInContainerChain.EnqueueChain();
+            pickUpItemChain.EnqueueChain();
         }
 
-        private void UpdateInventory(bool intoWorld, WorldObject inventoryItem)
+        private void SetInventoryForWorld(ObjectGuid containerGuid, WorldObject inventoryItem)
         {
-            if (intoWorld)
-            {
-                inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
-                inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                             | UpdatePositionFlag.Placement
-                                             | UpdatePositionFlag.ZeroQy
-                                             | UpdatePositionFlag.ZeroQx;
+            inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
 
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
-                inventoryItem.ContainerId = null;
-                inventoryItem.Wielder = null;
-                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
-            }
-            else
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+            inventoryItem.ContainerId = null;
+            inventoryItem.Wielder = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        private static void SetInventoryForOffWorld(ObjectGuid containerGuid, WorldObject inventoryItem)
+        {
+            if (inventoryItem.Location != null)
+                LandblockManager.RemoveObject(inventoryItem);
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.PhysicsData.Position = null;
+            inventoryItem.Location = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        public void UpdateAppearance(Container container, uint itemId)
+        {
+            UpdateWieldedItem(container, itemId);
+            ModelData.Clear();
+            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+            var wieldeditems = GetCurrentlyWieldedItems();
+            var coverage = new List<uint>();
+
+            foreach (var w in wieldeditems)
             {
-                inventoryItem.ContainerId = Guid.Full;
-                if (inventoryItem.Location != null)
-                    LandblockManager.RemoveObject(inventoryItem);
-                inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-                inventoryItem.PositionFlag = UpdatePositionFlag.None;
-                inventoryItem.PhysicsData.Position = null;
-                inventoryItem.Location = null;
-                inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+                var wo = w.Value;
+                ClothingTable item;
+                if (wo.ClothingBase != null)
+                    item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
+                else
+                    item = ClothingTable.ReadFromDat(0x10000002);
+                // If I don't find a match, for now you are pants!
+                // TODO: this needs to go as soon as we get all the clothing base did in
+
+                if (PhysicsData.CSetup != null && item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+                // Check if the player model has data. Gear Knights, this is usually you.
+                {
+                    // Add the model and texture(s)
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                    foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                    {
+                        byte partNum = (byte)t.Index;
+                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
+                        coverage.Add(partNum);
+                        foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                    }
+
+                    PhysicsData.ItemsEquipedCount += 1;
+                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
+                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+                }
             }
+            // Add the "naked" body parts. These are the ones not already covered.
+            if (PhysicsData.CSetup != null)
+            {
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+                {
+                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                }
+            }
+        }
+
+        public void HandleActionWieldItem(Container container, uint itemId, uint location)
+        {
+            ObjectGuid itemGuid = new ObjectGuid(itemId);
+            if (GetInventoryItem(itemGuid) == null)
+            {
+                HandlePickup(container, itemGuid, location, PropertyInstanceId.Wielder);
+                return;
+            }
+            // Ok do you have this - if not bail
+            if (GetInventoryItem(itemGuid) == null)
+                return;
+            UpdateAppearance(container, itemId);
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                        new GameMessageObjDescEvent(this),
+                                        new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                                        new GameEventWieldItem(Session, itemGuid.Full, location));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
         }
 
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
@@ -1706,34 +1793,36 @@ namespace ACE.Entity
             Container container = null;
 
             if (containerGuid.IsPlayer())
-            {
-                if (CurrentLandblock.ItemExistsInWorld(itemGuid))
-                {
-                    // This is a pickup into our main pack.
-                    HandlePickup(containerGuid, itemGuid, location);
-                    return;
-                }
                 container = this;
-            }
-
-            if (GetInventoryItem(containerGuid) != null)
+            else
             {
                 // Ok I am going into player backpack (container) with something I have somewhere
                 container = (Container)GetInventoryItem(containerGuid);
             }
 
-            inventoryItem = GetInventoryItem(itemGuid);
-            if (inventoryItem == null)
+            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+            if (GetInventoryItem(itemGuid) == null)
             {
-                // This is a pickup into a side pack.
-                HandlePickup(containerGuid, itemGuid, location);
+                // This is a pickup into our main pack.
+                HandlePickup(container, itemGuid, location, PropertyInstanceId.Container);
                 return;
             }
+
+            if (containerGuid.IsPlayer())
+                container = this;
+            else
+            {
+                // Ok I am going into player backpack (container) with something I have somewhere
+                container = (Container)GetInventoryItem(containerGuid);
+            }
+
+            // Ok, I know my container and I know I must have the inventory item so let's get it.
+            inventoryItem = GetInventoryItem(itemGuid);
 
             // Was I equiped?   If so, lets take care of that and unequip
             if (inventoryItem.Wielder != null)
             {
-                HandleUnequip(inventoryItem, location);
+                HandleUnequip(container, inventoryItem, location);
                 return;
             }
 
@@ -1752,7 +1841,14 @@ namespace ACE.Entity
                 var inventoryItem = GetInventoryItem(itemGuid);
                 if (inventoryItem == null)
                     return;
-                UpdateInventory(true, inventoryItem);
+                if (inventoryItem.Wielder != null)
+                {
+                    UpdateAppearance(this, itemGuid.Full);
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                new GameMessageObjDescEvent(this),
+                                                new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
+                }
+                SetInventoryForWorld(Guid, inventoryItem);
                 RemoveFromInventory(itemGuid);
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden));
 
@@ -1760,7 +1856,7 @@ namespace ACE.Entity
                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
                 var clearContainer = new ObjectGuid(0);
                 Session.Network.EnqueueSend(
-                    new GameMessageUpdateInstanceId(itemGuid, clearContainer));
+                    new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
 
                 // Set pickup motion
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
@@ -1780,7 +1876,7 @@ namespace ACE.Entity
                     CurrentLandblock.EnqueueBroadcastMotion(this, motion);
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
                         new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                        new GameMessageUpdateInstanceId(itemGuid, clearContainer));
+                        new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
 
                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -1917,55 +2013,6 @@ namespace ACE.Entity
                     ChatPacket.SendServerMessage(Session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
                 }
             }).EnqueueChain();
-        }
-
-        public void EquipUnequipItem(uint itemId, uint slot)
-        {
-            UpdateWieldedItem(itemId);
-            ModelData.Clear();
-            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
-            var wieldeditems = GetCurrentlyWieldedItems();
-            var coverage = new List<uint>();
-
-            foreach (var w in wieldeditems)
-            {
-                var wo = w.Value;
-                ClothingTable item;
-                if (wo.ClothingBase != null)
-                    item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
-                else
-                    item = ClothingTable.ReadFromDat(0x10000002);
-                // If I don't find a match, for now you are pants!
-                // TODO: this needs to go as soon as we get all the clothing base did in
-
-                if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
-                // Check if the player model has data. Gear Knights, this is usually you.
-                {
-                    // Add the model and texture(s)
-                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
-                    foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
-                    {
-                        byte partNum = (byte)t.Index;
-                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
-                        coverage.Add(partNum);
-                        foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
-                    }
-
-                    PhysicsData.ItemsEquipedCount += 1;
-                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
-                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
-                }
-            }
-            // Add the "naked" body parts. These are the ones not already covered.
-            SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
-            for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
-            {
-                if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                    ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
-            }
-
-            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0), new GameMessageObjDescEvent(this));
         }
 
         public void TestEquipItem(Session session, uint modelId, int palOption)
