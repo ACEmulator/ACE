@@ -1,8 +1,12 @@
 # ACEmulator Change Log
 
 [Og II]
+### 2017-06-25
 * Added the ability to equip items and have it also update your visual appearance.
-* We have some data work to do - to add clothing table did values, but we have added 30 or so for testing out of 150+ needed.
+* We have some data work to do - finish add clothing table did values
+* Tested - pack to pack, slot to slot, pack to ground, ground to pack, ground to wielded, wielded to ground
+* move packs, move items. 
+* TODO: clothing priority does not look to be right - somethings overlap incorrectly.
 
 ### 2017-06-23
 [ddevec]

@@ -1730,12 +1730,12 @@ namespace ACE.Entity
             {
                 var wo = w.Value;
                 ClothingTable item;
-                if (wo.ClothingBase != null)
-                    item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
+                if (wo.ClothingBase != null) item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
                 else
-                    item = ClothingTable.ReadFromDat(0x10000002);
-                // If I don't find a match, for now you are pants!
-                // TODO: this needs to go as soon as we get all the clothing base did in
+                {
+                    ChatPacket.SendServerMessage(Session, "We have not implemented the visual appearance for that item yet. ", ChatMessageType.AdminTell);
+                    return;
+                }
 
                 if (PhysicsData.CSetup != null && item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
                 // Check if the player model has data. Gear Knights, this is usually you.
