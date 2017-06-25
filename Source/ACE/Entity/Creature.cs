@@ -105,6 +105,7 @@ namespace ACE.Entity
         protected void SetObjectData(AceObject aco)
         {
             PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            // PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.WalkForward));
             PhysicsData.MTableResourceId = aco.MotionTableId;
             PhysicsData.Stable = aco.SoundTableId;
             PhysicsData.CSetup = aco.ModelTableId;

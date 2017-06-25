@@ -17,7 +17,11 @@ namespace ACE.Factories
         public static Monster SpawnMonster(AceObject aceO, Position position)
         {
             aceO.Location = position;
+            // aceO.PhysicsScript = (ushort)Network.Enum.PlayScript.Create;
             Monster newMonster = new Monster(aceO);
+
+            // newMonster.PhysicsData.DefaultScript = aceO.PhysicsScript;
+            newMonster.PhysicsData.DefaultScript = (uint)Network.Enum.PlayScript.Create;
 
             return newMonster;
         }

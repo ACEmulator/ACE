@@ -549,6 +549,12 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
 
+        public uint? Generator
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Generator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Generator, value); }
+        }
+
         public uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
@@ -907,6 +913,12 @@ namespace ACE.Entity
         {
             get { return GetPosition(PositionType.Location); }
             set { SetPosition(PositionType.Location, value); }
+        }
+
+        public Position Instantiation
+        {
+            get { return GetPosition(PositionType.Instantiation); }
+            set { SetPosition(PositionType.Instantiation, value); }
         }
 
         protected Position GetPosition(PositionType positionType)

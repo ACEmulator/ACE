@@ -609,7 +609,6 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(positionMessage);
         }
 
-        /*
         /// <summary>
         /// Debug command to test the ObjDescEvent message. 
         /// </summary>
@@ -650,7 +649,6 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
             }
         }
-        */
 
         /// <summary>
         /// Debug command to learn a spell.

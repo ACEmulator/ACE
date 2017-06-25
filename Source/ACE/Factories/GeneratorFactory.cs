@@ -1,5 +1,6 @@
 ﻿using ACE.Common;
 using ACE.Database;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -74,7 +75,14 @@ namespace ACE.Factories
                 {
                     // Use the position of the generator as a static position
                     case (int)GeneratorType.Absolute:
-                        pos = generator.Location;
+                        // pos = generator.Instantiation;
+                        pos = generator.Location.InFrontOf(2.0);
+                        pos.PositionZ = pos.PositionZ - 0.5f;
+                        // pos.PositionZ = 0;
+                        // pos.PositionZ = CellLandblock.
+                        // CellLandblock cell = new CellLandblock();
+                        // cell = CellLandblock.ReadFromDat(pos.LandblockId.Raw);
+                        // pos.PositionZ = cell.GetZ(pos.PositionX, pos.PositionY);
                         break;
 
                     // Generate a random position inside the landblock
@@ -84,6 +92,7 @@ namespace ACE.Factories
                 }
 
                 AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie(generator.ActivationCreateClass);
+                baseObject.Generator = generator.AceObjectId;
 
                 // Determine the ObjectType and call the specific Factory
                 ObjectType ot = (ObjectType)baseObject.ItemType;
@@ -102,6 +111,12 @@ namespace ACE.Factories
                     case ObjectType.Misc:
                         // TODO: enable generators to spawn misc items: i.e. Campfire
                         // results.Add();
+                        break;
+
+                    default:
+                        baseObject.Location = pos;
+                        if (baseObject.Location != null)
+                            results.Add(new DebugObject(new ObjectGuid(GuidManager.NewItemGuid()), baseObject));
                         break;
                 }
             }
