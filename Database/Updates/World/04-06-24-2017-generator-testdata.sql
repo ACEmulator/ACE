@@ -1,6 +1,7 @@
 USE `ace_world`;
 
 /* Remove potential old stuff */
+/*
 DELETE FROM ace_object
 WHERE aceObjectId = 893;
 
@@ -12,7 +13,7 @@ WHERE aceObjectId = 893;
 
 DELETE FROM ace_position
 WHERE aceObjectId = 893;
-
+*/
 DELETE FROM ace_weenie_class
 WHERE weenieClassId = 893;
 
@@ -21,7 +22,7 @@ INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(893, 'Drudgeskulkergen');
+	(893, 'drudgeskulkergen');
 	
 INSERT INTO ace_object
 	(aceObjectId,
@@ -32,6 +33,14 @@ INSERT INTO ace_object
 VALUES
 	(893, 148, 893, 0, 32769);
 	
+INSERT INTO ace_object_properties_did
+	(aceObjectId,
+	didPropertyId,
+	propertyValue)
+VALUES 
+	(893, 1, 33555051),
+    (893, 8, 100667494);
+
 INSERT INTO ace_object_properties_int
 	(aceObjectId,
 	intPropertyId,
@@ -63,4 +72,5 @@ INSERT INTO ace_position
 	qY,
 	qZ)
 VALUES 
-	(893, 1, 2847080463, 47.767307, 154.314651, 94.005005, 0.278842, 0.000000, 0.000000, 0.960337); /* Position close to Holtburg Lifestone */
+	(893, 1, 2847080471, 50.559231, 157.634384, 94.218269, -0.347880, 0.000000, 0.000000, -0.937539);
+    /* (893, 3, 2847080463, 47.767307, 154.314651, 94.005005, 0.278842, 0.000000, 0.000000, 0.960337); /* Position close to Holtburg Lifestone */

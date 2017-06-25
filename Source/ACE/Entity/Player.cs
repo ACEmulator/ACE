@@ -1354,6 +1354,8 @@ namespace ACE.Entity
             else
             {
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                if (worldObject.PhysicsData.DefaultScript != null)
+                    Session.Network.EnqueueSend(new GameMessageScript(Guid, (PlayScript)worldObject.PhysicsData.DefaultScript));
             }
         }
 

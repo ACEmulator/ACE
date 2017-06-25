@@ -3,6 +3,7 @@ using System.IO;
 using ACE.Entity.Enum;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
@@ -76,7 +77,9 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, 0f, 0f);
+            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
+            // return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, GetZFromCellXy(Cell, PositionX + dx, PositionY + dy), 0f, 0f, qz, qw);
+            // return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, 0, 0f, 0f, qz, qw);
         }
 
         public Position() : base() {
@@ -223,9 +226,68 @@ namespace ACE.Entity
             }
         }
 
+        private List<ushort> Height { get; set; } = new List<ushort>();
+
+        private class Point3d
+        {
+            public float X { get; set; }
+            public float Y { get; set; }
+            public float Z { get; set; }
+        }
+
+        private float GetPointOnPlane(Point3d p1, Point3d p2, Point3d p3, float x, float y)
+        {
+            Point3d v1 = new Point3d();
+            Point3d v2 = new Point3d();
+            Point3d abc = new Point3d();
+
+            v1.X = p1.X - p3.X;
+            v1.Y = p1.Y - p3.Y;
+            v1.Z = p1.Z - p3.Z;
+
+            v2.X = p2.X - p3.X;
+            v2.Y = p2.Y - p3.Y;
+            v2.Z = p2.Z - p3.Z;
+
+            abc.X = (v1.Y * v2.Z) - (v1.Z * v2.Y);
+            abc.Y = (v1.Z * v2.X) - (v1.X * v2.Z);
+            abc.Z = (v1.X * v2.Y) - (v1.Y * v2.X);
+
+            float d = (abc.X * p3.X) + (abc.Y * p3.Y) + (abc.Z * p3.Z);
+
+            float z = (d - (abc.X * x) - (abc.Y * y)) / abc.Z;
+
+            return z;
+        }
+
         private float GetZFromCellXy(uint cell, float xOffset, float yOffset)
         {
             // TODO: Load correct z from file
+            ////uint tileX = (uint)Math.Ceiling(xOffset / 24) - 1; // Subract 1 to 0-index these
+            ////uint tileY = (uint)Math.Ceiling(yOffset / 24) - 1; // Subract 1 to 0-index these
+
+            ////uint v1 = tileX * 9 + tileY;
+            ////uint v2 = tileX * 9 + tileY + 1;
+            ////uint v3 = (tileX + 1) * 9 + tileY;
+
+            ////Point3d p1 = new Point3d();
+            ////p1.X = tileX * 24;
+            ////p1.Y = tileY * 24;
+            ////p1.Z = Height[(int)v1] * 2;
+
+            ////Point3d p2 = new Point3d();
+            ////p2.X = tileX * 24;
+            ////p2.Y = (tileY + 1) * 24;
+            ////p2.Z = Height[(int)v2] * 2;
+
+            ////Point3d p3 = new Point3d();
+            ////p3.X = (tileX + 1) * 24;
+            ////p3.Y = tileY * 24;
+            ////p3.Z = Height[(int)v3] * 2;
+
+            ////float z = GetPointOnPlane(p1, p2, p3, xOffset, yOffset);
+            ////return z;
+
             return 200.0f;
         }
 
