@@ -9,6 +9,9 @@
 * Remove old creature spawning and generator stuff
 * Implement creature spawning from generator objects, nested or hierarchical generators are still to do
 
+[Ripley]
+* Rebased SQL scripts.
+
 ### 2017-06-23
 [Jyrus]
 * Remove unneeded debug command CreateLifestone
@@ -16,7 +19,6 @@
 * Created enums for the weenieclassID's for the special portals
 * Added the missing ObjectType to the CollidableObject class
 
-### 2017-06-23
 [ddevec]
 * Fix to teleport freezing characters in place (Wasn't clearing requested location)
 * Fix to occasional crash when moving long distances (Wasn't properly handling landblock transferring)

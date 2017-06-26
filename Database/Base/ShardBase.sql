@@ -30,7 +30,7 @@ CREATE TABLE `ace_object` (
   `weenieClassId` int(10) unsigned NOT NULL,
   `weenieHeaderFlags` int(10) unsigned DEFAULT NULL,
   `physicsDescriptionFlag` int(10) unsigned DEFAULT NULL,
-  `currentMotionState` text DEFAULT NULL,
+  `currentMotionState` text,
   PRIMARY KEY (`aceObjectId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -423,8 +423,7 @@ CREATE TABLE `ace_position` (
   `aceObjectId` int(10) unsigned NOT NULL,
   `positionType` smallint(5) unsigned NOT NULL,
   `landblockRaw` int(10) unsigned NOT NULL,
-  `landblock` int(5) GENERATED ALWAYS AS (conv(left(lpad(hex(`landblockRaw`),8,'0'),4),16,10)) VIRTUAL,
-  `cell` int(5) GENERATED ALWAYS AS (conv(right(lpad(hex(`landblockRaw`),8,'0'),4),16,10)) VIRTUAL,
+  `landblock` int(5) unsigned GENERATED ALWAYS AS ((`landblockRaw` >> 16)) VIRTUAL,
   `posX` float NOT NULL,
   `posY` float NOT NULL,
   `posZ` float NOT NULL,
@@ -437,9 +436,8 @@ CREATE TABLE `ace_position` (
   KEY `idxPostionType` (`positionType`),
   KEY `idx_landblock_raw` (`landblockRaw`),
   KEY `idx_landblock` (`landblock`),
-  KEY `idx_cell` (`cell`),
   CONSTRAINT `fk_position_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -510,6 +508,7 @@ SET character_set_client = utf8;
  1 AS `aceObjectId`,
  1 AS `name`,
  1 AS `weenieClassId`,
+ 1 AS `currentMotionState`,
  1 AS `weenieClassDescription`,
  1 AS `aceObjectDescriptionFlags`,
  1 AS `physicsDescriptionFlag`,
@@ -518,6 +517,7 @@ SET character_set_client = utf8;
  1 AS `positionId`,
  1 AS `positionType`,
  1 AS `LandblockRaw`,
+ 1 AS `landblock`,
  1 AS `posX`,
  1 AS `posY`,
  1 AS `posZ`,
@@ -526,6 +526,44 @@ SET character_set_client = utf8;
  1 AS `qY`,
  1 AS `qZ`*/;
 SET character_set_client = @saved_cs_client;
+
+--
+-- Dumping events for database 'ace_shard'
+--
+/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;
+/*!50106 DROP EVENT IF EXISTS `SetCharacterDeletedFlag` */;
+DELIMITER ;;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;;
+/*!50003 SET character_set_client  = utf8 */ ;;
+/*!50003 SET character_set_results = utf8 */ ;;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;;
+/*!50003 SET @saved_time_zone      = @@time_zone */ ;;
+/*!50003 SET time_zone             = '+00:00' */ ;;
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `SetCharacterDeletedFlag` ON SCHEDULE EVERY 1 MINUTE STARTS '2017-06-16 16:15:35' ON COMPLETION PRESERVE ENABLE DO BEGIN
+ UPDATE
+      ace_object_properties_bool aopb
+      INNER JOIN ace_object_properties_bigint aopbi
+         ON (
+            aopb.aceObjectId = aopbi.aceObjectId
+            AND aopbi.bigIntPropertyId = 9001
+         ) SET aopb.propertyValue = 1
+   WHERE aopb.boolPropertyId = 9001
+      AND aopbi.propertyValue != 0
+      AND (FROM_UNIXTIME(aopbi.propertyValue) < NOW());
+      
+
+   END */ ;;
+/*!50003 SET time_zone             = @saved_time_zone */ ;;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;;
+/*!50003 SET character_set_results = @saved_cs_results */ ;;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;;
+DELIMITER ;
+/*!50106 SET TIME_ZONE= @save_time_zone */ ;
 
 --
 -- Final view structure for view `vw_ace_character`
@@ -558,7 +596,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `vw_ace_object` AS select `ao`.`aceObjectId` AS `aceObjectId`,`aops`.`propertyValue` AS `name`,`ao`.`weenieClassId` AS `weenieClassId`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType`,`ap`.`positionId` AS `positionId`,`ap`.`positionType` AS `positionType`,`ap`.`landblockRaw` AS `LandblockRaw`,`ap`.`posX` AS `posX`,`ap`.`posY` AS `posY`,`ap`.`posZ` AS `posZ`,`ap`.`qW` AS `qW`,`ap`.`qX` AS `qX`,`ap`.`qY` AS `qY`,`ap`.`qZ` AS `qZ` from ((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_position` `ap` on(((`ao`.`aceObjectId` = `ap`.`aceObjectId`) and (`ap`.`positionType` = 1)))) */;
+/*!50001 VIEW `vw_ace_object` AS select `ao`.`aceObjectId` AS `aceObjectId`,`aops`.`propertyValue` AS `name`,`ao`.`weenieClassId` AS `weenieClassId`,`ao`.`currentMotionState` AS `currentMotionState`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType`,`ap`.`positionId` AS `positionId`,`ap`.`positionType` AS `positionType`,`ap`.`landblockRaw` AS `LandblockRaw`,`ap`.`landblock` AS `landblock`,`ap`.`posX` AS `posX`,`ap`.`posY` AS `posY`,`ap`.`posZ` AS `posZ`,`ap`.`qW` AS `qW`,`ap`.`qX` AS `qX`,`ap`.`qY` AS `qY`,`ap`.`qZ` AS `qZ` from ((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_position` `ap` on(((`ao`.`aceObjectId` = `ap`.`aceObjectId`) and (`ap`.`positionType` = 1)))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -572,4 +610,9 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-14  1:57:46
+-- Dump completed on 2017-06-24 19:05:28
+
+SET GLOBAL event_scheduler = ON;
+SET @@global.event_scheduler = ON;
+SET GLOBAL event_scheduler = 1;
+SET @@global.event_scheduler = 1;
