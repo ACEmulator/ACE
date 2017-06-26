@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-25
+[OptimShi]
+* Re-enabled the "equiptest" debug command that was inadvertently disabled.
+
 ### 2017-06-24
 [Lidefeath]
 * Remove old creature spawning and generator stuff
