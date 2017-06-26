@@ -1,16 +1,10 @@
 ﻿using ACE.Network.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
-    using global::ACE.Entity;
-
     // NOTE: The client doesn't send this packet if the only options that were changed are normally called in the GameActionSetSingleCharacterOption packet.
     // For example, if the user selects/unselects "Auto Repeat Attacks", the GameActionSetSingleCharacterOption packet is sent. Then if the user clicks on Apply
     // this packet (GameActionSetCharacterOptions) will not be sent.
