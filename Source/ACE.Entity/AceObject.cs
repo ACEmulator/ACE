@@ -904,8 +904,7 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            AceObject ret = new AceObject();
-
+            AceObject ret = new AceObject();            
             ret.AceObjectId = AceObjectId;
 
             ret.WeenieClassId = WeenieClassId;

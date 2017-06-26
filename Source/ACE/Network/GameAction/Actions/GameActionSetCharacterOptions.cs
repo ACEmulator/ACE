@@ -9,6 +9,8 @@ using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
+    using global::ACE.Entity;
+
     // NOTE: The client doesn't send this packet if the only options that were changed are normally called in the GameActionSetSingleCharacterOption packet.
     // For example, if the user selects/unselects "Auto Repeat Attacks", the GameActionSetSingleCharacterOption packet is sent. Then if the user clicks on Apply
     // this packet (GameActionSetCharacterOptions) will not be sent.
@@ -33,6 +35,7 @@ namespace ACE.Network.GameAction.Actions
             uint flags = message.Payload.ReadUInt32();
 
             characterOptions1Flag = message.Payload.ReadUInt32();
+            session.Player.SetCharacterOptions1(characterOptions1Flag);
 
             // TODO: Read shortcuts into object so it's available in the Handle method.
             if ((flags & (uint)CharacterOptionDataFlag.Shortcut) != 0)
@@ -113,6 +116,7 @@ namespace ACE.Network.GameAction.Actions
             if ((flags & (uint)CharacterOptionDataFlag.CharacterOptions2) != 0)
             {
                 characterOptions2Flag = message.Payload.ReadUInt32();
+                session.Player.SetCharacterOptions2(characterOptions2Flag);
             }
 
             // TODO: Read into an object so it's available in the Handle method.
@@ -128,7 +132,7 @@ namespace ACE.Network.GameAction.Actions
             // if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0) { }
 
             // if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0) { }
-            
+
             // Set the options on the player object
             Dictionary<CharacterOption, bool> optionValues = new Dictionary<CharacterOption, bool>(); // Have to use a list since I can't change the values of the actual list while enumerating over it.
             foreach (var option in session.Player.CharacterOptions)
@@ -151,13 +155,11 @@ namespace ACE.Network.GameAction.Actions
 
             foreach (var option in optionValues)
                 session.Player.SetCharacterOption(option.Key, option.Value);
-            
+
             // TODO: Set other options from the packet
 
             // Save the options
             session.Player.HandleActionSaveCharacter();
-
-            return;
         }
     }
 }

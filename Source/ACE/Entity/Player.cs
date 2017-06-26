@@ -80,6 +80,16 @@ namespace ACE.Entity
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
+        public void SetCharacterOptions1(uint options1)
+        {
+            Character.CharacterOptions1Mapping = options1;
+        }
+
+        public void SetCharacterOptions2(uint options2)
+        {
+            Character.CharacterOptions2Mapping = options2;
+        }
+
         private Dictionary<Skill, CreatureSkill> Skills
         {
             get { return AceObject.AceObjectPropertiesSkills; }
