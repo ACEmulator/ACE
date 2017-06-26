@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-25
+[OptimShi]
+* Re-enabled the "equiptest" debug command that was inadvertently disabled.
+
 ### 2017-06-23
 [ddevec]
 * Fix to teleport freezing characters in place (Wasn't clearing requested location)
