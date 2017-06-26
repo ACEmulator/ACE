@@ -543,7 +543,7 @@ DELIMITER ;;
 /*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;;
 /*!50003 SET @saved_time_zone      = @@time_zone */ ;;
 /*!50003 SET time_zone             = '+00:00' */ ;;
-/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `SetCharacterDeletedFlag` ON SCHEDULE EVERY 1 MINUTE STARTS '2017-06-16 16:15:35' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `SetCharacterDeletedFlag` ON SCHEDULE EVERY 1 MINUTE STARTS '2017-06-16 16:15:35' ON COMPLETION PRESERVE ENABLE DO BEGIN
  UPDATE
       ace_object_properties_bool aopb
       INNER JOIN ace_object_properties_bigint aopbi
