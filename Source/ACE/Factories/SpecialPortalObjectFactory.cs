@@ -24,9 +24,9 @@ namespace ACE.Factories
         /// <summary>
         /// creates a portal of the specified weenie at the position provided
         /// </summary>
-        public static void SpawnPortal(ushort weenieClassId, Position newPosition, float despawnTime)
+        public static void SpawnPortal(PortalWcid weenieClassId, Position newPosition, float despawnTime)
         {
-            AceObject aceO = DatabaseManager.World.GetAceObjectByWeenie(weenieClassId);
+            AceObject aceO = DatabaseManager.World.GetAceObjectByWeenie((ushort)weenieClassId);
 
             aceO.AceObjectPropertiesPositions.Add(PositionType.Location, newPosition);
 

@@ -328,7 +328,7 @@ namespace ACE.Command.Handlers
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            SpecialPortalObjectFactory.SpawnPortal((ushort)SpecialPortalObjectFactory.PortalWcid.HummingCrystal, session.Player.Location.InFrontOf(3.0f), 60.0f);
+            SpecialPortalObjectFactory.SpawnPortal(SpecialPortalObjectFactory.PortalWcid.HummingCrystal, session.Player.Location.InFrontOf(3.0f), 15.0f);
         }
 
         /// <summary>

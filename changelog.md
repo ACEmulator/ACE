@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-26
+[Jyrus]
+* Add protection to the SpawnPortal method, so any old ushort cannot be used for the weenieclassID that it is expecting
+
 ### 2017-06-25
 [OptimShi]
 * Re-enabled the "equiptest" debug command that was inadvertently disabled.
