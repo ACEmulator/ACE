@@ -780,7 +780,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    listItem.PropertyValue = (uint)value;
+                    listItem.PropertyValue = (ulong)value;
                 }
             }
             else
