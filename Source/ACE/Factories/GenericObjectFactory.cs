@@ -34,6 +34,13 @@ namespace ACE.Factories
 
                 switch (ot)
                 {
+                    case 0: // Generator
+                        if ((oDescFlag & (ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Hidden)) != 0)
+                        {
+                            var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO);
+                            objectList.ForEach(o => results.Add(o));
+                        }
+                        break;
 #if DEBUG
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies

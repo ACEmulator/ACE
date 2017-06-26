@@ -134,11 +134,11 @@
     <Compile Include="Entity\UsableObject.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
+    <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\GenericObjectFactory.cs" />
-    <Compile Include="Factories\LifestoneObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
-    <Compile Include="Factories\PortalObjectFactory.cs" />
+    <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
     <Compile Include="Factories\SpellObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\DbManager.cs" />

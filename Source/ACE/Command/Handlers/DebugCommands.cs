@@ -324,18 +324,11 @@ namespace ACE.Command.Handlers
             session.Player.Teleport(newPosition);
         }
 
-        [CommandHandler("createlifestone", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Creates a lifestone in front of you.")]
-        public static void CreateLifeStone(Session session, params string[] parameters)
-        {
-            LandblockManager.AddObject(LifestoneObjectFactory.CreateLifestone(509, session.Player.Location.InFrontOf(3.0f), LifestoneType.Original));
-        }
-
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
         {
-            LandblockManager.AddObject(PortalObjectFactory.CreatePortal(1234, session.Player.Location.InFrontOf(3.0f), "Test Portal", PortalType.Purple));
+            SpecialPortalObjectFactory.SpawnPortal((ushort)SpecialPortalObjectFactory.PortalWcid.HummingCrystal, session.Player.Location.InFrontOf(3.0f), 60.0f);
         }
 
         /// <summary>
@@ -432,6 +425,8 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Error locating the player.");
         }
 
+        // TODO: Replace later with a command to spawn a generator at the player's location
+        /*
         /// <summary>
         /// Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.
         /// </summary>
@@ -480,6 +475,7 @@ namespace ACE.Command.Handlers
                     ChatMessageType.Broadcast);
             }
         }
+        */
 
         /// <summary>
         /// Debug command to kill a targeted creature so it drops a corpse.
@@ -606,7 +602,6 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(positionMessage);
         }
 
-        /*
         /// <summary>
         /// Debug command to test the ObjDescEvent message. 
         /// </summary>
@@ -647,7 +642,6 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
             }
         }
-        */
 
         /// <summary>
         /// Debug command to learn a spell.
