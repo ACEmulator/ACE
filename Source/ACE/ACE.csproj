@@ -134,6 +134,7 @@
     <Compile Include="Entity\UsableObject.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
+    <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\GenericObjectFactory.cs" />
     <Compile Include="Factories\LifestoneObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />

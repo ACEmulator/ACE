@@ -432,6 +432,8 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Error locating the player.");
         }
 
+        // TODO: Replace later with a command to spawn a generator at the player's location
+        /*
         /// <summary>
         /// Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.
         /// </summary>
@@ -480,6 +482,7 @@ namespace ACE.Command.Handlers
                     ChatMessageType.Broadcast);
             }
         }
+        */
 
         /// <summary>
         /// Debug command to kill a targeted creature so it drops a corpse.
