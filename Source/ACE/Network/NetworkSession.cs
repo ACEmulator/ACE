@@ -12,6 +12,7 @@ using ACE.Network.Handlers;
 using ACE.Network.Managers;
 
 using log4net;
+using ACE.Managers;
 
 namespace ACE.Network
 {
@@ -57,6 +58,11 @@ namespace ACE.Network
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
+        /// <summary>
+        /// Stores the tick value for the when the session will timeout. If this value is in the past, the session is dead/inactive.
+        /// </summary>
+        public long TimeoutTick { get; set; }
+
         public ushort ClientId { get; }
         public ushort ServerId { get; }
 
@@ -65,6 +71,7 @@ namespace ACE.Network
             this.session = session;
             ClientId = clientId;
             ServerId = serverId;
+            TimeoutTick = DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks;
         }
 
         /// <summary>
@@ -188,6 +195,9 @@ namespace ACE.Network
             {
                 log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.Account, packet.Header.Sequence);
             }
+
+            // Set the next timeout tick to compare against in the WorldManager
+            session.Network.TimeoutTick = DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks;
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))

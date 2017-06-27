@@ -5,7 +5,7 @@
         AuthLoginRequest,
         AuthConnectResponse,
         AuthConnected,
-
-        WorldConnected
+        WorldConnected,
+        NetworkTimeout
     }
 }

@@ -5,7 +5,8 @@
         "Network": {
             "Host": "0.0.0.0",
             "Port": 9000,
-            "MaximumAllowedSessions" : 128
+            "MaximumAllowedSessions" : 128,
+            "DefaultSessionTimeout" : 60
         },
         "Accounts": {
             "OverrideCharacterPermissions": true,

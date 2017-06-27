@@ -1,6 +1,13 @@
 # ACEmulator Change Log
 
 ### 2017-06-27
+[fantoms]
+* Added `TimeoutTick` variable to network sessions, to store the tick value for next timeout.
+* Added functionality to `Session` that will increase the network Session timeout limit when a `successful` packet has been receieved.
+* Added a configuration variable called `DefaultSessionTimeout`, to control the session timeout value from outside of the code.
+* Added a session State enum called `NetworkTimeout`, for dead sessions.
+* Added functionality to `WorldManager.UpdateWorld`, that will disconnect active network sessions after they have reached a network timeout limit.
+
 [StackOverflow]
 * Added the following Landblock loading helper console commands.
 * loadLB (landblockid)  -- example "loadLB 0" - loads landblock 0.
