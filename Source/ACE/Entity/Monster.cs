@@ -2,6 +2,8 @@
 using ACE.Factories;
 using ACE.Managers;
 using ACE.Network.Enum;
+using ACE.Network.Motion;
+using System;
 
 namespace ACE.Entity
 {
@@ -22,8 +24,6 @@ namespace ACE.Entity
                 this.WeenieClassid = aceO.WeenieClassId;
             else
                 this.WeenieClassid = (ushort)(aceO.WeenieClassId - 0x8000);
-
-            // SetObjectData(aceO);
             IsAlive = true;
             SetupVitals();
         }

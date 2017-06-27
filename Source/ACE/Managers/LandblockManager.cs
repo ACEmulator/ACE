@@ -190,5 +190,11 @@ namespace ACE.Managers
             log.DebugFormat("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
             Console.WriteLine("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
         }
+
+        public static void FinishedForceLoading()
+        {
+            log.DebugFormat("Finished Forceloading Landblocks");
+            Console.WriteLine("Finished Forceloading Landblocks");
+        }
     }
 }
