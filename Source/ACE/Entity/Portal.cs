@@ -123,12 +123,20 @@ namespace ACE.Entity
 
         public uint MinimumLevel
         {
-            get { return AceObject.GetIntProperty(PropertyInt.MinLevel) ?? 0; }
+            get
+            {
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                return weenie.GetIntProperty(PropertyInt.MinLevel) ?? 0;
+            }
         }
 
         public uint MaximumLevel
         {
-            get { return AceObject.GetIntProperty(PropertyInt.MaxLevel) ?? 0; }
+            get
+            {
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                return weenie.GetIntProperty(PropertyInt.MaxLevel) ?? 0;
+            }
         }
 
         public uint SocietyId
@@ -138,23 +146,33 @@ namespace ACE.Entity
 
         public bool IsTieable
         {
-            get { return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0; }
+            get
+            {
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
+            }
             set
             {
-                uint current = AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                uint current = weenie.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
                 current = (value ? (current & ~(uint)PortalBitmask.NoRecall) : current | (uint)PortalBitmask.NoRecall);
-                AceObject.SetIntProperty(PropertyInt.PortalBitmask, current);
+                weenie.SetIntProperty(PropertyInt.PortalBitmask, current);
             }
         }
 
         public bool IsSummonable
         {
-            get { return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0; }
+            get
+            {
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                return ((weenie.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
+            }
             set
             {
-                uint current = AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                uint current = weenie.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
                 current = (value ? (current & ~(uint)PortalBitmask.NoSummon) : current | (uint)PortalBitmask.NoSummon);
-                AceObject.SetIntProperty(PropertyInt.PortalBitmask, current);
+                weenie.SetIntProperty(PropertyInt.PortalBitmask, current);
             }
         }
 

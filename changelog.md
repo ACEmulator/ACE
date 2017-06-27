@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-06-27
+[Jyrus]
+* Reactivated portal requirements by directing the lookups to the weenie entries in the IntProperty table, instead of the AceObject entries.
+* Fix StyleCop warning in CachingWorldDatabase.cs
+
 [StackOverflow]
 * Added the following Landblock loading helper console commands.
 * loadLB (landblockid)  -- example "loadLB 0" - loads landblock 0.
