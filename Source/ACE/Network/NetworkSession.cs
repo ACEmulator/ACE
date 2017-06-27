@@ -59,7 +59,7 @@ namespace ACE.Network
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
         /// <summary>
-        /// Stores the tick value for the when the session will timeout. If this value is in the past, the session is dead/inactive.
+        /// Stores the tick value for the when an active session will timeout. If this value is in the past, the session is dead/inactive.
         /// </summary>
         public long TimeoutTick { get; set; }
 
@@ -71,7 +71,8 @@ namespace ACE.Network
             this.session = session;
             ClientId = clientId;
             ServerId = serverId;
-            TimeoutTick = DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks;
+            // New network auth session timeouts will always be low.
+            TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
         }
 
         /// <summary>
@@ -196,8 +197,14 @@ namespace ACE.Network
                 log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.Account, packet.Header.Sequence);
             }
 
-            // Set the next timeout tick to compare against in the WorldManager
-            session.Network.TimeoutTick = DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks;
+            // depending on the current session state:
+            // Set the next timeout tick value, to compare against in the WorldManager
+            // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
+            // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
+            // Example: Applications that check uptime will stay in the AuthLoginRequest state.
+            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks : 
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))

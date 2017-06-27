@@ -82,8 +82,8 @@ namespace ACE.Network
 
         public void Update(double lastTick, long currentTimeTick)
         {
-            // Check the  that the server sent a pac has stopped responding.
-            if (Network.TimeoutTick <= currentTimeTick)
+            // Checks if the session has stopped responding.
+            if (currentTimeTick >= Network.TimeoutTick)
             {
                 // Change the state to show that the Session has reached a timeout.
                 State = SessionState.NetworkTimeout;

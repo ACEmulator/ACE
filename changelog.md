@@ -7,6 +7,8 @@
 * Added a configuration variable called `DefaultSessionTimeout`, to control the session timeout value from outside of the code.
 * Added a session State enum called `NetworkTimeout`, for dead sessions.
 * Added functionality to `WorldManager.UpdateWorld`, that will disconnect active network sessions after they have reached a network timeout limit.
+* If a session connects and does not proceed to authenticate, the server will give a shorter network timeout that is set as a default in the Authentication Handler.
+* If a session advances through the authentication steps, it will be given the `DefaultSessionTimeout`.
 
 [StackOverflow]
 * Added the following Landblock loading helper console commands.
