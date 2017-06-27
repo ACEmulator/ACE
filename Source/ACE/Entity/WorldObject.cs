@@ -113,7 +113,11 @@ namespace ACE.Entity
         /// </summary>
         public double LastAnimatedTicks { get; set; }
 
-        public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
+        public ObjectDescriptionFlag DescriptionFlags
+        {
+            get { return (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags; }
+            protected internal set { AceObject.AceObjectDescriptionFlags = (uint)value; }
+        }
 
         public WeenieHeaderFlag WeenieFlags
         {
@@ -373,7 +377,9 @@ namespace ACE.Entity
         }
 
         // PhysicsData Logical
-
+        /// <summary>
+        /// mtable_id in aclogviewer - used to get the correct model out of the dat file
+        /// </summary>
         public uint? CSetup
         {
             get { return AceObject.ModelTableId; }
