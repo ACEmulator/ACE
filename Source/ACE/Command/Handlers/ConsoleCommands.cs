@@ -45,8 +45,8 @@ namespace ACE.Command.Handlers
         [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL Landblock loading process")]
         public static void AbortLL(Session session, params string[] parameters)
         {
+            Console.WriteLine($"Landblock load aborting");
             LandblockLoader.StopLoading();
-            Console.WriteLine($"Landblock load aborting.");
         }
 
         [CommandHandler("loadLB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads Landblock by LandblockId")]

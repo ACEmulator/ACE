@@ -1,8 +1,11 @@
 # ACEmulator Change Log
+
 ### 2017-06-27
 [StackOverflow]
-* Added masterpreload cmd, ability to preload all the landblocks from the command console.  this is a great tool for testing new PRs for failures.
-* Just type masterpreload into the ace console to kick off the process.
+* Added the following Landblock loading helper console commands.
+* loadLB (landblockid)  -- example "loadLB 0" - loads landblock 0.
+* loadALB - loads all 65k landblocks.
+* abortALB - aborts loading operation for all 65k Landblocks.
 
 ### 2017-06-26
 [fantoms]
