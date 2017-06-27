@@ -6,6 +6,9 @@
 
 [Jyrus]
 * Add protection to the SpawnPortal method, so any old ushort cannot be used for the weenieclassID that it is expecting
+* Use CommonObjectFactory.DynamicObjectId to assign a unique AceObjectId to each spawn
+* Set the portal object as the IActor and the portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false) as the action to perform
+* Reduce the decay timer to 15 seconds
 
 ### 2017-06-25
 [OptimShi]

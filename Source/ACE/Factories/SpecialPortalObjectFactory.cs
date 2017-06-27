@@ -28,6 +28,8 @@ namespace ACE.Factories
         {
             AceObject aceO = DatabaseManager.World.GetAceObjectByWeenie((ushort)weenieClassId);
 
+            aceO.AceObjectId = CommonObjectFactory.DynamicObjectId;
+
             aceO.AceObjectPropertiesPositions.Add(PositionType.Location, newPosition);
 
             WorldObject portal = new Portal(aceO);
@@ -37,7 +39,7 @@ namespace ACE.Factories
             // Create portal decay
             ActionChain despawnChain = new ActionChain();
             despawnChain.AddDelaySeconds(despawnTime);
-            despawnChain.AddAction(portal.CurrentLandblock, () => LandblockManager.RemoveObject(portal));
+            despawnChain.AddAction(portal, () => portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false));
             despawnChain.EnqueueChain();
         }
     }
