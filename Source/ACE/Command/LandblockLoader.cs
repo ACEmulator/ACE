@@ -29,6 +29,7 @@ namespace ACE.Command
                 if (block > 65225)
                 {
                     processLandblockLoading = false;
+                    LandblockManager.FinishedForceLoading();
                 }
                 else
                 {
