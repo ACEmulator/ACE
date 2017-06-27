@@ -26,16 +26,14 @@ namespace ACE.Command
 
             while (processLandblockLoading)
             {
-                if (block > 65225)
+                LoadLandblock(block);
+                if (block == 0xFEFE)
                 {
                     processLandblockLoading = false;
                     LandblockManager.FinishedForceLoading();
+                    break;
                 }
-                else
-                {
-                    LoadLandblock(block);
-                    block++;
-                }
+                block++;
             }
         }
 
