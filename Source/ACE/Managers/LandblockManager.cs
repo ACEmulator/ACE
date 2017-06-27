@@ -10,6 +10,7 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using log4net;
+using System.Diagnostics;
 
 namespace ACE.Managers
 {
@@ -179,6 +180,15 @@ namespace ACE.Managers
                 var inverseAdjacency = (Adjacency)Enum.ToObject(typeof(Adjacency), inverse);
                 lb2.SetAdjacency(inverseAdjacency, lb1);
             }
+        }
+
+        public static void ForceLoadLandBlock(LandblockId blockid)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            GetLandblock(blockid, false);
+            sw.Stop();
+            log.DebugFormat("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
+            Console.WriteLine("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
         }
     }
 }

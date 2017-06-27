@@ -1,7 +1,13 @@
 # ACEmulator Change Log
 
-[Og II]
 ### 2017-06-27
+[StackOverflow]
+* Added the following Landblock loading helper console commands.
+* loadLB (landblockid)  -- example "loadLB 0" - loads landblock 0.
+* loadALB - loads all 65k landblocks.
+* abortALB - aborts loading operation for all 65k Landblocks.
+
+[Og II]
 * Added the ability to equip items and have it also update your visual appearance.
 * We have some data work to do - finish add clothing table did values
 * Tested - pack to pack, slot to slot, pack to ground, ground to pack, ground to wielded, wielded to ground

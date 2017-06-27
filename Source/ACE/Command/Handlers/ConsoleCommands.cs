@@ -35,6 +35,36 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
+        [CommandHandler("loadALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ Landblocks, Caution.. it takes a very long time")]
+        public static void LoadLALB(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortALB to stop");
+            LandblockLoader.StartLoading();
+        }
+
+        [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL Landblock loading process")]
+        public static void AbortLL(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"Landblock load aborting");
+            LandblockLoader.StopLoading();
+        }
+
+        [CommandHandler("loadLB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads Landblock by LandblockId")]
+        public static void LoadLandBlock(Session session, params string[] parameters)
+        {
+            try
+            {
+                uint rawid;
+                if (!uint.TryParse(parameters[0], out rawid))
+                    return;
+                LandblockManager.ForceLoadLandBlock(new LandblockId((rawid) << 16));
+            }
+            catch
+            {
+                Console.WriteLine($"Invalid LandblockId");
+            }
+        }
+
         [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
         public static void Diag(Session session, params string[] parameters)
         {
