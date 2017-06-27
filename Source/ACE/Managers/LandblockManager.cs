@@ -182,33 +182,13 @@ namespace ACE.Managers
             }
         }
 
-        public static void LandBockPreload()
+        public static void ForceLoadLandBlock(LandblockId blockid)
         {
-            int progress = 0;
-            int maxprogress = 65025;
-
-            for (byte row = 0; row < 255; row++)
-            {
-                for (byte col = 0; col < 255; col++)
-                {
-                    LandblockId block = new LandblockId(row, col);
-                    lock (landblockMutex)
-                    {
-                        if (landblocks[row, col] == null)
-                        {
-                            // load up this landblock
-                            var sw = Stopwatch.StartNew();
-                            var loadedblock = new Landblock(block);
-                            sw.Stop();
-
-                            ActiveLandblocks.Add(loadedblock);
-                            log.DebugFormat("Loaded Landblock {0} of 65025 - {1} in {2} milliseconds ", progress, loadedblock.Id.Raw.ToString("X"), sw.ElapsedMilliseconds);
-                            Console.WriteLine("Loaded Landblock {0} of 65025 - {1} in {2} milliseconds ", progress, loadedblock.Id.Raw.ToString("X"), sw.ElapsedMilliseconds);
-                            progress++;
-                        }
-                    }
-                }
-            }
+            Stopwatch sw = Stopwatch.StartNew();
+            GetLandblock(blockid, false);
+            sw.Stop();
+            log.DebugFormat("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
+            Console.WriteLine("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
         }
     }
 }

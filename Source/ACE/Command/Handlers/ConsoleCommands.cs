@@ -35,12 +35,37 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
-        [CommandHandler("masterpreload", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ landblocks into memory, Caution.. it takes a very long time")]
-        public static void MasterPreload(Session session, params string[] parameters)
+        // todo: threading ?
+        [CommandHandler("loadAllLandblocks", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ landblocks into memory, Caution.. it takes a very long time")]
+        public static void LoadAllLandBlocks(Session session, params string[] parameters)
         {
-            Console.WriteLine($"Master Preload Loading ALL Landblocks..  This will take a while.");
-            LandblockManager.LandBockPreload();
-            Console.WriteLine($"Master Preload complete.");
+            Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortload to stop");
+            LandblockLoader.StartLoading();
+        }
+
+        [CommandHandler("abort", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts current ALL landblock loading process")]
+        public static void AbortLandBlocks(Session session, params string[] parameters)
+        {
+            LandblockLoader.StopLoading();
+            Console.WriteLine($"Loading ALL Landblocks Aborting..");
+        }
+
+        [CommandHandler("loadlandblock", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads all 65k+ landblocks into memory, Caution.. it takes a very long time")]
+        public static void LoadLandBlock(Session session, params string[] parameters)
+        {
+            try
+            {
+                uint rawid;
+                if (!uint.TryParse(parameters[0], out rawid))
+                    return;
+
+                LandblockId blockid = new LandblockId(rawid);
+                LandblockManager.ForceLoadLandBlock(blockid);
+            }
+            catch
+            {
+                Console.WriteLine($"Invalid landblock id");
+            }
         }
 
         [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
