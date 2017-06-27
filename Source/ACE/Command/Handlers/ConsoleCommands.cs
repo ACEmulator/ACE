@@ -57,9 +57,7 @@ namespace ACE.Command.Handlers
                 uint rawid;
                 if (!uint.TryParse(parameters[0], out rawid))
                     return;
-
-                LandblockId blockid = new LandblockId(rawid);
-                LandblockManager.ForceLoadLandBlock(blockid);
+                LandblockManager.ForceLoadLandBlock(new LandblockId((rawid) << 16));
             }
             catch
             {

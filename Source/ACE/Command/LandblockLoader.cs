@@ -26,6 +26,8 @@ namespace ACE.Command
 
             while (processLandblockLoading)
             {
+                if (block > 65025)
+                    processLandblockLoading = false;
                 block++;
                 LoadLandblock(block);
             }
