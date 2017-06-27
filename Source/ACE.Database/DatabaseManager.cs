@@ -24,7 +24,9 @@ namespace ACE.Database
 
             var worldDb = new WorldDatabase();
             worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database);
-            World = worldDb;
+
+            var cachingWorldDb = new CachingWorldDatabase(worldDb);
+            World = cachingWorldDb;
         }
     }
 }

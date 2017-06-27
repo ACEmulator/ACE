@@ -302,10 +302,5 @@ namespace ACE.Database
         {
             throw new NotImplementedException();
         }
-
-        public async Task<bool> SaveObjectAsync(AceObject aceObject)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -10,8 +10,6 @@ namespace ACE.Entity
 {
     public sealed class Portal : CollidableObject
     {
-        // private readonly Position portalDestination;
-
         public Position Destination { get; private set; }
 
         // private byte portalSocietyId;
@@ -110,9 +108,17 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
-            // FIXME(ddevec): Should be inhereted from aceO, not extend it...
+            // check to see if this ace object has a destination.  if so, defer to it.
             if (aceO.Destination != null)
-                Destination = aceO.Destination;
+            {
+                Destination = AceObject.Destination;
+            }
+            else
+            {
+                // but if not, portals roll up to the weenie
+                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+                Destination = weenie.Destination;
+            }
         }
 
         public uint MinimumLevel

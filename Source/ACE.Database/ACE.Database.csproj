@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthenticationDatabase.cs" />
+    <Compile Include="CachingWorldDatabase.cs" />
     <Compile Include="ConstructedStatementType.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DatabaseManager.cs" />
