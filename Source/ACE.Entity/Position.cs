@@ -3,6 +3,7 @@ using System.IO;
 using ACE.Entity.Enum;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
@@ -76,7 +77,7 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, 0f, 0f);
+            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
         }
 
         public Position() : base() {

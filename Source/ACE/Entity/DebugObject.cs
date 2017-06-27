@@ -19,6 +19,7 @@ namespace ACE.Entity
             Name = baseAceObject.Name ?? "NULL";
             DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
             WeenieClassid = baseAceObject.WeenieClassId;
+            Location = baseAceObject.Location;
             PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             PhysicsData.Stable = baseAceObject.SoundTableId;
             PhysicsData.CSetup = baseAceObject.ModelTableId;
