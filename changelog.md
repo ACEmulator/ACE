@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+[Og II]
+### 2017-06-27
+* Added the ability to equip items and have it also update your visual appearance.
+* We have some data work to do - finish add clothing table did values
+* Tested - pack to pack, slot to slot, pack to ground, ground to pack, ground to wielded, wielded to ground
+* move packs, move items. 
+* Fixed save character options - this will need to be refactored - our character object needs some work.   
+* UI changes still blows up - this fix just addressed the options1 and options2
+* TODO: clothing priority does not look to be right - somethings overlap incorrectly.
+
 ### 2017-06-26
 [fantoms]
 * Changed from `uint` too `ulong` in the `bigint` properties, when a field has already been set.

@@ -9,12 +9,14 @@ using ACE.Database;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Factories;
-
-using log4net;
+ using ACE.Network.GameEvent.Events;
+ using log4net;
 
 namespace ACE.Command.Handlers
 {
     using System.Linq;
+
+    using global::ACE.Entity.Enum.Properties;
 
     public static class AdminCommands
     {
@@ -1001,8 +1003,29 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            session.Player.HandleAddToInventory(loot);
+
+            // TODO: we have to be able to identify containers - you can create a wo and see if it has
+            // an item capacity but that seems a bit wasteful.   TBD on best method.   Limited number so
+
+            WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            if (testContainer.ItemCapacity > 1)
+            {
+                var loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
+                loot.ContainerId = session.Player.Guid.Full;
+                session.Player.AddToInventory(loot);
+                session.Player.TrackObject(loot);
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+            }
+            else
+            {
+                var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                loot.ContainerId = session.Player.Guid.Full;
+                session.Player.AddToInventory(loot);
+                session.Player.TrackObject(loot);
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+            }
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,

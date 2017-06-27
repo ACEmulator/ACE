@@ -1,7 +1,10 @@
-﻿using ACE.Entity.Enum;
+using System;
+using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.Enum;
 using System.Collections.Generic;
+using System.Linq;
+using ACE.Network.Motion;
 
 namespace ACE.Entity
 {
@@ -26,6 +29,63 @@ namespace ACE.Entity
         public Container(AceObject baseObject)
             : base(baseObject) { }
 
+        public Container(ObjectGuid guid, AceObject baseAceObject)
+            : base((ObjectType)baseAceObject.ItemType, guid)
+        {
+            // TODO: Remove all of this - once object flattening is complete.
+            // what we are really loading here is the missing physics and model data.
+            Name = baseAceObject.Name ?? "NULL";
+            DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
+            WeenieClassid = baseAceObject.WeenieClassId;
+            PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
+            PhysicsData.Stable = baseAceObject.SoundTableId;
+            PhysicsData.CSetup = baseAceObject.ModelTableId;
+            PhysicsData.Petable = baseAceObject.PhysicsTableId;
+            PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
+            PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0u;
+            PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
+            PhysicsData.Translucency = baseAceObject.Translucency ?? 0u;
+            PhysicsData.DefaultScript = baseAceObject.DefaultScript;
+            PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
+            PhysicsData.Elasticity = baseAceObject.Elasticity;
+            PhysicsData.Parent = baseAceObject.Parent;
+            PhysicsData.ParentLocation = baseAceObject.ParentLocation;
+            PhysicsData.Friction = baseAceObject.Friction;
+            if (baseAceObject.CurrentMotionState == "0" || baseAceObject.CurrentMotionState == null)
+                PhysicsData.CurrentMotionState = null;
+            else
+                PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
+
+            // game data min required flags;
+            Icon = baseAceObject.IconId;
+            AmmoType = (AmmoType?)baseAceObject.AmmoType;
+            Burden = baseAceObject.Burden;
+            CombatUse = (CombatUse?)baseAceObject.CombatUse;
+            ContainerCapacity = baseAceObject.ContainersCapacity;
+            Cooldown = baseAceObject.CooldownId;
+            CooldownDuration = baseAceObject.CooldownDuration;
+            HookItemTypes = baseAceObject.HookItemTypes;
+            HookType = baseAceObject.HookType;
+            IconOverlay = baseAceObject.IconOverlayId;
+            IconUnderlay = baseAceObject.IconUnderlayId;
+            ItemCapacity = baseAceObject.ItemsCapacity;
+            Material = (Material?)baseAceObject.MaterialType;
+            MaxStackSize = baseAceObject.MaxStackSize;
+            Wielder = baseAceObject.WielderId;
+            ContainerId = baseAceObject.ContainerId;
+            ClothingBase = baseAceObject.ClothingBase;
+            CurrentWieldedLocation = (EquipMask?)baseAceObject.CurrentWieldedLocation;
+
+            PhysicsData.SetPhysicsDescriptionFlag(this);
+            WeenieFlags = SetWeenieHeaderFlag();
+            WeenieFlags2 = SetWeenieHeaderFlag2();
+
+            baseAceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
+            baseAceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            baseAceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            ModelData.PaletteGuid = baseAceObject.PaletteId;
+        }
+
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
@@ -33,41 +93,40 @@ namespace ACE.Entity
             {
                 inventory.Add(inventoryItem.Guid, inventoryItem);
             }
+        }
 
-            Burden += inventoryItem.Burden;
-            inventoryItem.ContainerId = Guid.Full;
-            if (inventoryItem.Location != null)
-                LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.PhysicsData.Position = null;
-            inventoryItem.Location = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        public bool HasItem(ObjectGuid inventoryItemGuid, bool includeSubContainers = true)
+        {
+            if (!includeSubContainers)
+                return inventory.ContainsKey(inventoryItemGuid);
+
+            var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
+            return containers.Any(cnt => ((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid));
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
-            WorldObject inventoryItem = GetInventoryItem(inventoryItemGuid);
-            if (Burden >= inventoryItem.Burden)
-                Burden -= inventoryItem.Burden;
-            else
-                Burden = 0;
-
-            // FIXME(ddevec): RemoveFromInventory should only be responsible for removing the item from the inventory, not placing it on the world!
-            inventoryItem.Location = Location.InFrontOf(1.0f);
-            // TODO: Write a method to set this based on data.
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                         | UpdatePositionFlag.Placement
-                                         | UpdatePositionFlag.ZeroQy
-                                         | UpdatePositionFlag.ZeroQx;
-
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
-            inventoryItem.ContainerId = null;
-            inventoryItem.Wielder = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
             if (inventory.ContainsKey(inventoryItemGuid))
             {
                 inventory.Remove(inventoryItemGuid);
+                Burden = UpdateBurden();
+            }
+            else
+            {
+                // Ok maybe it is inventory in one of our packs
+                var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
+
+                foreach (var cnt in containers)
+                {
+                    if (((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid))
+                    {
+                        ((Container)cnt.Value).inventory.Remove(inventoryItemGuid);
+                        // update pack burden
+                        ((Container)cnt.Value).Burden = ((Container)cnt.Value).UpdateBurden();
+                        break;
+                    }
+                }
+                Burden = UpdateBurden();
             }
         }
 
@@ -81,12 +140,50 @@ namespace ACE.Entity
             return calculatedBurden;
         }
 
+        public void UpdateWieldedItem(Container container, uint itemId)
+        {
+            // TODO: need to make pack aware - just coding for main pack now.
+            ObjectGuid itemGuid = new ObjectGuid(itemId);
+            WorldObject inventoryItem = GetInventoryItem(itemGuid);
+            if (inventoryItem.ContainerId != container.Guid.Full)
+            {
+                RemoveFromInventory(itemGuid);
+                container.AddToInventory(inventoryItem);
+            }
+            switch (inventoryItem.ContainerId)
+            {
+                case null:
+                    inventoryItem.ContainerId = container.Guid.Full;
+                    inventoryItem.Wielder = null;
+                    break;
+                default:
+                    inventoryItem.ContainerId = null;
+                    inventoryItem.Wielder = container.Guid.Full;
+                    break;
+            }
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
+        {
+            return inventory.Where(wo => wo.Value.Wielder != null).ToList();
+        }
+
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
-            if (this.inventory.ContainsKey(objectGuid))
-                return this.inventory[objectGuid];
-            else
-                return null;
+            var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
+
+            if (inventory.ContainsKey(objectGuid))
+                return inventory[objectGuid];
+            foreach (var cnt in containers)
+            {
+                if (((Container)cnt.Value).inventory.ContainsKey(objectGuid))
+                    return ((Container)cnt.Value).inventory[objectGuid];
+            }
+
+            if (inventory.ContainsKey(objectGuid))
+                return inventory[objectGuid];
+            return null;
         }
     }
 }

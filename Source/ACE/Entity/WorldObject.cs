@@ -141,6 +141,20 @@ namespace ACE.Entity
             set { AceObject.ItemType = value; }
         }
 
+        public ContainerType ContainerType
+        {
+            get
+            {
+                if (ItemCapacity == null || ItemCapacity == 0)
+                {
+                    if (Name.Contains("Foci"))
+                        return ContainerType.Foci;
+                    return ContainerType.NonContainer;
+                }
+                return ContainerType.Conatiner;
+            }
+        }
+
         public string NamePlural { get; set; }
 
         public byte? ItemCapacity
@@ -297,6 +311,11 @@ namespace ACE.Entity
             get { return (Spell?)AceObject.SpellId; }
             set { this.AceObject.SpellId = (ushort?)value; }
         }
+        public uint? ClothingBase
+        {
+            get { return AceObject.ClothingBase; }
+            set { AceObject.ClothingBase = value; }
+        }
 
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
@@ -434,6 +453,31 @@ namespace ACE.Entity
                     SetMotionState(gm);
                     break;
             }
+        }
+
+        internal void SetInventoryForWorld(WorldObject inventoryItem)
+        {
+            inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
+
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+            inventoryItem.ContainerId = null;
+            inventoryItem.Wielder = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        internal void SetInventoryForOffWorld(WorldObject inventoryItem)
+        {
+            if (inventoryItem.Location != null)
+                LandblockManager.RemoveObject(inventoryItem);
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.PhysicsData.Position = null;
+            inventoryItem.Location = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public void SetMotionState(MotionState motionState)
