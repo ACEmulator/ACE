@@ -35,22 +35,21 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
-        // todo: threading ?
-        [CommandHandler("loadAllLandblocks", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ landblocks into memory, Caution.. it takes a very long time")]
-        public static void LoadAllLandBlocks(Session session, params string[] parameters)
+        [CommandHandler("loadALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ LandBlocks, Caution.. it takes a very long time")]
+        public static void LoadLALB(Session session, params string[] parameters)
         {
             Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortload to stop");
             LandblockLoader.StartLoading();
         }
 
-        [CommandHandler("abort", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts current ALL landblock loading process")]
-        public static void AbortLandBlocks(Session session, params string[] parameters)
+        [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL LandBlock loading process")]
+        public static void AbortLL(Session session, params string[] parameters)
         {
             LandblockLoader.StopLoading();
-            Console.WriteLine($"Loading ALL Landblocks Aborting..");
+            Console.WriteLine($"Landblock load aborting.");
         }
 
-        [CommandHandler("loadlandblock", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads all 65k+ landblocks into memory, Caution.. it takes a very long time")]
+        [CommandHandler("loadLB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads LandBlock by LandBlockId")]
         public static void LoadLandBlock(Session session, params string[] parameters)
         {
             try
