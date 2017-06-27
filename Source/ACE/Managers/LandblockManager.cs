@@ -10,6 +10,7 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using log4net;
+using System.Diagnostics;
 
 namespace ACE.Managers
 {
@@ -178,6 +179,35 @@ namespace ACE.Managers
                 var inverse = (((int)adjacency) + 4) % 8; // go halfway around the horn (+4) and mod 8 to wrap around
                 var inverseAdjacency = (Adjacency)Enum.ToObject(typeof(Adjacency), inverse);
                 lb2.SetAdjacency(inverseAdjacency, lb1);
+            }
+        }
+
+        public static void LandBockPreload()
+        {
+            int progress = 0;
+            int maxprogress = 65025;
+
+            for (byte row = 0; row < 255; row++)
+            {
+                for (byte col = 0; col < 255; col++)
+                {
+                    LandblockId block = new LandblockId(row, col);
+                    lock (landblockMutex)
+                    {
+                        if (landblocks[row, col] == null)
+                        {
+                            // load up this landblock
+                            var sw = Stopwatch.StartNew();
+                            var loadedblock = new Landblock(block);
+                            sw.Stop();
+
+                            ActiveLandblocks.Add(loadedblock);
+                            log.DebugFormat("Loaded Landblock {0} of 65025 - {1} in {2} milliseconds ", progress, loadedblock.Id.Raw.ToString("X"), sw.ElapsedMilliseconds);
+                            Console.WriteLine("Loaded Landblock {0} of 65025 - {1} in {2} milliseconds ", progress, loadedblock.Id.Raw.ToString("X"), sw.ElapsedMilliseconds);
+                            progress++;
+                        }
+                    }
+                }
             }
         }
     }

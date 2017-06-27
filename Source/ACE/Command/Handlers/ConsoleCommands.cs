@@ -35,6 +35,14 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
+        [CommandHandler("masterpreload", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ landblocks into memory, Caution.. it takes a very long time")]
+        public static void MasterPreload(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"Master Preload Loading ALL Landblocks..  This will take a while.");
+            LandblockManager.LandBockPreload();
+            Console.WriteLine($"Master Preload complete.");
+        }
+
         [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
         public static void Diag(Session session, params string[] parameters)
         {

@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-06-27
+[StackOverflow]
+* Added masterpreload cmd, ability to preload all the landblocks from the command console.  this is a great tool for testing new PRs for failures.
+* Just type masterpreload into the ace console to kick off the process.
 
 ### 2017-06-26
 [fantoms]
