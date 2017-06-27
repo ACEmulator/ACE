@@ -10,7 +10,6 @@
 * UI changes still blows up - this fix just addressed the options1 and options2
 * TODO: clothing priority does not look to be right - somethings overlap incorrectly.
 
-
 ### 2017-06-26
 [fantoms]
 * Changed from `uint` too `ulong` in the `bigint` properties, when a field has already been set.
