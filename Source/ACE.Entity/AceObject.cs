@@ -13,6 +13,8 @@ namespace ACE.Entity
     [DbTable("ace_object")]
     public class AceObject : ICreatureStats, ICloneable
     {
+        public const ushort WEENIE_MAX = 0xFFFF;
+
         public AceObject(uint id)
             : this()
         {

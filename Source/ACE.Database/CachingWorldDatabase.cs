@@ -30,30 +30,18 @@ namespace ACE.Database
 
         public AceObject GetAceObjectByWeenie(uint weenieClassId)
         {
-            if (!_weenieCache.ContainsKey(weenieClassId))
-            {
-                _weenieCache[weenieClassId] = _wrappedDatabase.GetAceObjectByWeenie(weenieClassId);
-            }
-
-            return (AceObject)_weenieCache[weenieClassId].Clone();
+            return (AceObject)_weenieCache.GetOrAdd(weenieClassId, (wcId) => _wrappedDatabase.GetAceObjectByWeenie(wcId)).Clone();
         }
 
         public AceObject GetObject(uint aceObjectId)
         {
             // if they're asking for a weenie, just give them the weenie.
-            if (_weenieCache.ContainsKey(aceObjectId))
+            if (aceObjectId <= AceObject.WEENIE_MAX)
             {
-                return (AceObject)_weenieCache[aceObjectId].Clone();
+                return GetAceObjectByWeenie(aceObjectId);
             }
 
-            AceObject aceObject = _wrappedDatabase.GetObject(aceObjectId);
-
-            if (aceObject.AceObjectId == aceObject.WeenieClassId)
-            {
-                _weenieCache[aceObjectId] = (AceObject)aceObject.Clone();
-            }
-
-            return aceObject;
+            return _wrappedDatabase.GetObject(aceObjectId);
         }
 
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
