@@ -75,14 +75,8 @@ namespace ACE.Factories
                 {
                     // Use the position of the generator as a static position
                     case (int)GeneratorType.Absolute:
-                        // pos = generator.Instantiation;
                         pos = generator.Location.InFrontOf(2.0);
                         pos.PositionZ = pos.PositionZ - 0.5f;
-                        // pos.PositionZ = 0;
-                        // pos.PositionZ = CellLandblock.
-                        // CellLandblock cell = new CellLandblock();
-                        // cell = CellLandblock.ReadFromDat(pos.LandblockId.Raw);
-                        // pos.PositionZ = cell.GetZ(pos.PositionX, pos.PositionY);
                         break;
 
                     // Generate a random position inside the landblock
