@@ -13,11 +13,11 @@ namespace ACE.Command
     {
         private volatile static bool processLandblockLoading = false;
 
-        public static void StartLoading()
+        public static void Start()
         {
             Thread loadthread = new Thread(new ThreadStart(LoadAllLandblocks));
             loadthread.Start();
-        }sss
+        }
 
         public static void LoadAllLandblocks()
         {
