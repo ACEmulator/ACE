@@ -22,7 +22,6 @@ namespace ACE.Database
         /// </summary>
         private ConcurrentDictionary<uint, AceObject> _weenieCache = new ConcurrentDictionary<uint, AceObject>();
         
-
         public CachingWorldDatabase(IWorldDatabase wrappedDatabase)
         {
             _wrappedDatabase = wrappedDatabase;

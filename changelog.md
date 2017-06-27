@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-06-27
+[Jyrus]
+* Reactivated portal requirements by directing the lookups to the weenie entries in the IntProperty table, instead of the AceObject entries.
+* Fix StyleCop warning in CachingWorldDatabase.cs
+
 ### 2017-06-26
 [fantoms]
 * Changed from `uint` too `ulong` in the `bigint` properties, when a field has already been set.
