@@ -1,7 +1,7 @@
 # ACEmulator Change Log
 
 [Og II]
-### 2017-06-25
+### 2017-06-27
 * Added the ability to equip items and have it also update your visual appearance.
 * We have some data work to do - finish add clothing table did values
 * Tested - pack to pack, slot to slot, pack to ground, ground to pack, ground to wielded, wielded to ground
@@ -9,6 +9,33 @@
 * Fixed save character options - this will need to be refactored - our character object needs some work.   
 * UI changes still blows up - this fix just addressed the options1 and options2
 * TODO: clothing priority does not look to be right - somethings overlap incorrectly.
+
+### 2017-06-26
+[fantoms]
+* Changed from `uint` too `ulong` in the `bigint` properties, when a field has already been set.
+
+[Jyrus]
+* Add protection to the SpawnPortal method, so any old ushort cannot be used for the weenieclassID that it is expecting
+* Use CommonObjectFactory.DynamicObjectId to assign a unique AceObjectId to each spawn
+* Set the portal object as the IActor and the portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false) as the action to perform
+* Reduce the decay timer to 15 seconds
+
+[Mogwai]
+* added weenie caching layer
+* fixed portals
+* fixed null ref exception in the object factory, though I highly doubt i fixed the real issue
+
+### 2017-06-25
+[OptimShi]
+* Re-enabled the "equiptest" debug command that was inadvertently disabled.
+
+### 2017-06-24
+[Lidefeath]
+* Remove old creature spawning and generator stuff
+* Implement creature spawning from generator objects, nested or hierarchical generators are still to do
+
+[Ripley]
+* Rebased SQL scripts
 
 ### 2017-06-23
 [ddevec]

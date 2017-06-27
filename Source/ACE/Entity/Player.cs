@@ -1608,7 +1608,7 @@ namespace ACE.Entity
                                         new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
         }
 
-        private void HandlePickup(Container container, ObjectGuid itemGuid, uint location, PropertyInstanceId iidPropertyId)
+        private void HandlePickupItem(Container container, ObjectGuid itemGuid, uint location, PropertyInstanceId iidPropertyId)
         {
             // Logical operations:
             // !! FIXME: How to handle repeat on condition?
@@ -1654,7 +1654,7 @@ namespace ACE.Entity
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
-                    SetInventoryForOffWorld(container.Guid, item);
+                    SetInventoryForOffWorld(item);
                     // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
                     var motion = new UniversalMotion(MotionStance.Standing);
                     if (iidPropertyId == PropertyInstanceId.Container)
@@ -1701,31 +1701,6 @@ namespace ACE.Entity
 
             // Set chain to run
             pickUpItemChain.EnqueueChain();
-        }
-
-        private void SetInventoryForWorld(ObjectGuid containerGuid, WorldObject inventoryItem)
-        {
-            inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                         | UpdatePositionFlag.Placement
-                                         | UpdatePositionFlag.ZeroQy
-                                         | UpdatePositionFlag.ZeroQx;
-
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
-            inventoryItem.ContainerId = null;
-            inventoryItem.Wielder = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
-        }
-
-        private static void SetInventoryForOffWorld(ObjectGuid containerGuid, WorldObject inventoryItem)
-        {
-            if (inventoryItem.Location != null)
-                LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.PhysicsData.Position = null;
-            inventoryItem.Location = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public void UpdateAppearance(Container container, uint itemId)
@@ -1780,64 +1755,79 @@ namespace ACE.Entity
 
         public void HandleActionWieldItem(Container container, uint itemId, uint location)
         {
-            ObjectGuid itemGuid = new ObjectGuid(itemId);
-            if (GetInventoryItem(itemGuid) == null)
-            {
-                HandlePickup(container, itemGuid, location, PropertyInstanceId.Wielder);
-                return;
-            }
-            // Ok do you have this - if not bail
-            if (GetInventoryItem(itemGuid) == null)
-                return;
-            UpdateAppearance(container, itemId);
-            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                        new GameMessageObjDescEvent(this),
-                                        new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                        new GameEventWieldItem(Session, itemGuid.Full, location));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+            ActionChain wieldChain = new ActionChain();
+            wieldChain.AddAction(
+                this,
+                () =>
+                    {
+                        ObjectGuid itemGuid = new ObjectGuid(itemId);
+                        if (GetInventoryItem(itemGuid) == null)
+                        {
+                            HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Wielder);
+                            return;
+                        }
+                        // Ok do you have this - if not bail
+                        if (GetInventoryItem(itemGuid) == null) return;
+                        UpdateAppearance(container, itemId);
+                        Session.Network.EnqueueSend(
+                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                            new GameEventWieldItem(Session, itemGuid.Full, location));
+                        CurrentLandblock.EnqueueBroadcast(
+                            Location,
+                            Landblock.MaxObjectRange,
+                            new GameMessageObjDescEvent(this));
+                    });
+            wieldChain.EnqueueChain();
         }
 
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
         {
-            WorldObject inventoryItem = null;
-            Container container = null;
+            ActionChain inContainerChain = new ActionChain();
+            inContainerChain.AddAction(
+                this,
+                () =>
+                    {
+                        WorldObject inventoryItem = null;
+                        Container container = null;
 
-            if (containerGuid.IsPlayer())
-                container = this;
-            else
-            {
-                // Ok I am going into player backpack (container) with something I have somewhere
-                container = (Container)GetInventoryItem(containerGuid);
-            }
+                        if (containerGuid.IsPlayer()) container = this;
+                        else
+                        {
+                            // Ok I am going into player backpack (container) with something I have somewhere
+                            container = (Container)GetInventoryItem(containerGuid);
+                        }
 
-            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-            if (GetInventoryItem(itemGuid) == null)
-            {
-                // This is a pickup into our main pack.
-                HandlePickup(container, itemGuid, location, PropertyInstanceId.Container);
-                return;
-            }
+                        // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                        if (GetInventoryItem(itemGuid) == null)
+                        {
+                            // This is a pickup into our main pack.
+                            HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Container);
+                            return;
+                        }
 
-            if (containerGuid.IsPlayer())
-                container = this;
-            else
-            {
-                // Ok I am going into player backpack (container) with something I have somewhere
-                container = (Container)GetInventoryItem(containerGuid);
-            }
+                        if (containerGuid.IsPlayer()) container = this;
+                        else
+                        {
+                            // Ok I am going into player backpack (container) with something I have somewhere
+                            container = (Container)GetInventoryItem(containerGuid);
+                        }
 
-            // Ok, I know my container and I know I must have the inventory item so let's get it.
-            inventoryItem = GetInventoryItem(itemGuid);
+                        // Ok, I know my container and I know I must have the inventory item so let's get it.
+                        inventoryItem = GetInventoryItem(itemGuid);
 
-            // Was I equiped?   If so, lets take care of that and unequip
-            if (inventoryItem.Wielder != null)
-            {
-                HandleUnequip(container, inventoryItem, location);
-                return;
-            }
+                        // Was I equiped?   If so, lets take care of that and unequip
+                        if (inventoryItem.Wielder != null)
+                        {
+                            HandleUnequip(container, inventoryItem, location);
+                            return;
+                        }
 
-            // if were are still here, this needs to do a pack pack or main pack move.
-            HandleMove(inventoryItem, container, location);
+                        // if were are still here, this needs to do a pack pack or main pack move.
+                        HandleMove(inventoryItem, container, location);
+                    });
+            inContainerChain.EnqueueChain();
         }
 
         public void HandleActionDropItem(ObjectGuid itemGuid)
@@ -1858,7 +1848,7 @@ namespace ACE.Entity
                                                 new GameMessageObjDescEvent(this),
                                                 new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                 }
-                SetInventoryForWorld(Guid, inventoryItem);
+                SetInventoryForWorld(inventoryItem);
                 RemoveFromInventory(itemGuid);
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden));
 

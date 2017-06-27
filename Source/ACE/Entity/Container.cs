@@ -32,6 +32,8 @@ namespace ACE.Entity
         public Container(ObjectGuid guid, AceObject baseAceObject)
             : base((ObjectType)baseAceObject.ItemType, guid)
         {
+            // TODO: Remove all of this - once object flattening is complete.
+            // what we are really loading here is the missing physics and model data.
             Name = baseAceObject.Name ?? "NULL";
             DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
             WeenieClassid = baseAceObject.WeenieClassId;
@@ -74,24 +76,6 @@ namespace ACE.Entity
             ClothingBase = baseAceObject.ClothingBase;
             CurrentWieldedLocation = (EquipMask?)baseAceObject.CurrentWieldedLocation;
 
-            // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address
-
-            Priority = (CoverageMask?)baseAceObject.Priority;
-            RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
-            RadarColor = (RadarColor?)baseAceObject.BlipColor;
-            Script = baseAceObject.PhysicsScript;
-            Spell = (Spell?)baseAceObject.SpellId;
-            StackSize = baseAceObject.StackSize;
-            Structure = baseAceObject.Structure;
-            TargetType = baseAceObject.TargetTypeId;
-            GameDataType = baseAceObject.ItemType;
-            UiEffects = (UiEffects?)baseAceObject.UiEffects;
-            Usable = (Usable?)baseAceObject.ItemUseable;
-            UseRadius = baseAceObject.UseRadius;
-            ValidLocations = (EquipMask?)baseAceObject.ValidLocations;
-            Value = baseAceObject.Value;
-            Workmanship = baseAceObject.Workmanship;
-
             PhysicsData.SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
@@ -109,6 +93,15 @@ namespace ACE.Entity
             {
                 inventory.Add(inventoryItem.Guid, inventoryItem);
             }
+        }
+
+        public bool HasItem(ObjectGuid inventoryItemGuid, bool includeSubContainers = true)
+        {
+            if (!includeSubContainers)
+                return inventory.ContainsKey(inventoryItemGuid);
+
+            var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
+            return containers.Any(cnt => ((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid));
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)

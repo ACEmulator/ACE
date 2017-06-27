@@ -455,6 +455,31 @@ namespace ACE.Entity
             }
         }
 
+        internal void SetInventoryForWorld(WorldObject inventoryItem)
+        {
+            inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
+            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
+
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+            inventoryItem.ContainerId = null;
+            inventoryItem.Wielder = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
+        internal void SetInventoryForOffWorld(WorldObject inventoryItem)
+        {
+            if (inventoryItem.Location != null)
+                LandblockManager.RemoveObject(inventoryItem);
+            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.PhysicsData.Position = null;
+            inventoryItem.Location = null;
+            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
+        }
+
         public void SetMotionState(MotionState motionState)
         {
             var p = (Player)this;

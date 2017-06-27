@@ -1007,7 +1007,8 @@ namespace ACE.Command.Handlers
             // TODO: we have to be able to identify containers - you can create a wo and see if it has
             // an item capacity but that seems a bit wasteful.   TBD on best method.   Limited number so
 
-            if (weenieId == 136)
+            WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            if (testContainer.ItemCapacity > 1)
             {
                 var loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
