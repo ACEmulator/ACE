@@ -50,18 +50,12 @@ namespace ACE.Database
             ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
             // ConstructStatement(WorldPreparedStatement.GetPortalObjectsByAceObjectId, typeof(AcePortalObject), ConstructedStatementType.Get);
             // ConstructStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(AceObject), ConstructedStatementType.GetList);
-            // ConstructStatement(WorldPreparedStatement.GetCreaturesByLandblock, typeof(AceCreatureStaticLocation), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeeniePalettes, typeof(WeeniePaletteOverride), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeenieTextureMaps, typeof(WeenieTextureMapOverride), ConstructedStatementType.GetList);
             // ConstructStatement(WorldPreparedStatement.GetWeenieAnimations, typeof(WeenieAnimationOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.GetList);
-
-            // ConstructStatement(WorldPreparedStatement.GetCreatureDataByWeenie, typeof(AceCreatureObject), ConstructedStatementType.Get);
-            // ConstructStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), ConstructedStatementType.Insert);
-            // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorByLandblock, typeof(AceCreatureGeneratorLocation), ConstructedStatementType.GetList);
-            // ConstructStatement(WorldPreparedStatement.GetCreatureGeneratorData, typeof(AceCreatureGeneratorData), ConstructedStatementType.GetList);
             // ConstructStatement(
             //     WorldPreparedStatement.GetItemsByTypeId,
             //     typeof(AceObject),
@@ -168,30 +162,6 @@ namespace ACE.Database
             return ret;
         }
 
-        public List<AceCreatureStaticLocation> GetCreaturesByLandblock(ushort landblock)
-        {
-            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureStaticLocation>(WorldPreparedStatement.GetCreaturesByLandblock, criteria);
-            objects.ForEach(o => o.WeenieObject = GetWeenie(o.WeenieClassId));
-
-            return objects;
-        }
-
-        public List<AceCreatureGeneratorLocation> GetCreatureGeneratorsByLandblock(ushort landblock)
-        {
-            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorLocation>(WorldPreparedStatement.GetCreatureGeneratorByLandblock, criteria);
-            objects.ForEach(o => o.CreatureGeneratorData = GetCreatureGeneratorData(o.GeneratorId));
-
-            return objects;
-        }
-
-        private List<AceCreatureGeneratorData> GetCreatureGeneratorData(uint generatorId)
-        {
-            var criteria = new Dictionary<string, object> { { "generatorId", generatorId } };
-            return ExecuteConstructedGetListStatement<WorldPreparedStatement, AceCreatureGeneratorData>(WorldPreparedStatement.GetCreatureGeneratorData, criteria);
-        }
-
         private List<PaletteOverride> GetWeeniePalettes(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object>();
@@ -259,11 +229,6 @@ namespace ACE.Database
             bao.PaletteOverrides = GetAceObjectPalettes(bao.AceObjectId);
             bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
             return bao;
-        }
-
-        public bool InsertStaticCreatureLocation(AceCreatureStaticLocation acsl)
-        {
-            return ExecuteConstructedInsertStatement(WorldPreparedStatement.InsertCreatureStaticLocation, typeof(AceCreatureStaticLocation), acsl);
         }
 
         private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
@@ -334,11 +299,6 @@ namespace ACE.Database
         }
 
         public async Task<bool> SaveObject(AceObject aceObject)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> SaveObjectAsync(AceObject aceObject)
         {
             throw new NotImplementedException();
         }

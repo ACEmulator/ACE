@@ -404,6 +404,7 @@
         DeletionTimestamp = 9002,
         CharacterOptions1 = 9003,
         CharacterOptions2 = 9004,
-        LootTier = 9005
+        LootTier = 9005,
+        GeneratorProbability = 9006
     }
 }

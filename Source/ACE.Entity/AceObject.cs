@@ -13,6 +13,8 @@ namespace ACE.Entity
     [DbTable("ace_object")]
     public class AceObject : ICreatureStats, ICloneable
     {
+        public const ushort WEENIE_MAX = 0xFFFF;
+
         public AceObject(uint id)
             : this()
         {
@@ -219,6 +221,36 @@ namespace ACE.Entity
         {
             get { return GetIntProperty(PropertyInt.Level) ?? 0; }
             set { SetIntProperty(PropertyInt.Level, value); }
+        }
+
+        public uint GeneratorTimeType
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorTimeType) ?? 0; }
+            set { SetIntProperty(PropertyInt.GeneratorTimeType, value); }
+        }
+
+        public uint GeneratorProbability
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorProbability) ?? 0; }
+            set { SetIntProperty(PropertyInt.GeneratorProbability, value); }
+        }
+
+        public uint MaxGeneratedObjects
+        {
+            get { return GetIntProperty(PropertyInt.MaxGeneratedObjects) ?? 0; }
+            set { SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
+        }
+
+        public uint GeneratorType
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorType) ?? 0; }
+            set { SetIntProperty(PropertyInt.GeneratorType, value); }
+        }
+
+        public uint ActivationCreateClass
+        {
+            get { return GetIntProperty(PropertyInt.ActivationCreateClass) ?? 0; }
+            set { SetIntProperty(PropertyInt.ActivationCreateClass, value); }
         }
 
         public uint CombatTableId
@@ -756,7 +788,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    listItem.PropertyValue = (uint)value;
+                    listItem.PropertyValue = (ulong)value;
                 }
             }
             else
