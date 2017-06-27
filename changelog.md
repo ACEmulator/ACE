@@ -36,9 +36,15 @@
 * Implement creature spawning from generator objects, nested or hierarchical generators are still to do
 
 [Ripley]
-* Rebased SQL scripts
+* Rebased SQL scripts.
 
 ### 2017-06-23
+[Jyrus]
+* Remove unneeded debug command CreateLifestone
+* Modified PortalObjectFactory class to create specialized portals that are temporary spawns, such as the Humming Crystal Portal
+* Created enums for the weenieclassID's for the special portals
+* Added the missing ObjectType to the CollidableObject class
+
 [ddevec]
 * Fix to teleport freezing characters in place (Wasn't clearing requested location)
 * Fix to occasional crash when moving long distances (Wasn't properly handling landblock transferring)
@@ -77,7 +83,6 @@
 * Please call DbManager.SaveObject() now instead of DatabaseManager.Shard.SaveObject()
 
 ### 2017-06-19
-[Og II]
 * Trello card task - Extend ORM code to support multiple getLists or implement another method to query by alternate keys - re-implement cirand
 * Many thanks to ddevec - he did the work on the ORM code revision.   I just tested and implemented for my use.
 * Fixed undiscovered alignment bug at hooktype we were sending as dword and it is a word.   That was shifting everything below it.
