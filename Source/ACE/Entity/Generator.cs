@@ -18,10 +18,10 @@ namespace ACE.Entity
             Location = baseAceObject.Location;
             // PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             // PhysicsData.Stable = baseAceObject.SoundTableId;
-            PhysicsData.CSetup = baseAceObject.ModelTableId;
+            CSetup = baseAceObject.ModelTableId;
             // PhysicsData.Petable = baseAceObject.PhysicsTableId;
             // PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
-            PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
+            PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
             // PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0u;
             // PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
             // PhysicsData.Translucency = baseAceObject.Translucency ?? 0u;
@@ -77,7 +77,7 @@ namespace ACE.Entity
             // Value = baseAceObject.Value;
             // Workmanship = baseAceObject.Workmanship;
 
-            PhysicsData.SetPhysicsDescriptionFlag(this);
+            SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
 

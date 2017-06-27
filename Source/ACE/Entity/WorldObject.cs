@@ -526,6 +526,25 @@ namespace ACE.Entity
             ModelData.PaletteGuid = aceObject.PaletteId;
         }
 
+        protected WorldObject(ObjectGuid guid, AceObject aceObject)
+            : this((ObjectType)aceObject.ItemType, guid)
+        {
+            AceObject = aceObject;
+            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
+                CurrentMotionState = null;
+            else
+                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+
+            SetPhysicsDescriptionFlag(this);
+            WeenieFlags = SetWeenieHeaderFlag();
+            WeenieFlags2 = SetWeenieHeaderFlag2();
+
+            aceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
+            aceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            aceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            ModelData.PaletteGuid = aceObject.PaletteId;
+        }
+
         public void SetCombatMode(CombatMode newCombatMode)
         {
             log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);

@@ -98,19 +98,6 @@ namespace ACE.Entity
         {
         }
 
-        protected void SetObjectData(AceObject aco)
-        {
-            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            // PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.WalkForward));
-            PhysicsData.MTableResourceId = aco.MotionTableId;
-            PhysicsData.Stable = aco.SoundTableId;
-            PhysicsData.CSetup = aco.ModelTableId;
-            PhysicsData.Petable = aco.PhysicsTableId;
-            PhysicsData.ObjScale = aco.DefaultScale;
-            PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
-            Location = aco.Location;
-        }
-
         public virtual ActionChain GetOnKillChain(Session killerSession)
         {
             ActionChain onKillChain = new ActionChain();

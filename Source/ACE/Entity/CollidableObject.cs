@@ -7,6 +7,11 @@
         {
         }
 
+        internal CollidableObject(ObjectGuid guid, AceObject aceO)
+            : base(aceO)
+        {
+        }
+
         public abstract void OnCollide(ObjectGuid playerId);
     }
 }
