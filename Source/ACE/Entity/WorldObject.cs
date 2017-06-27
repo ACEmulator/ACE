@@ -12,6 +12,7 @@ using System.IO;
 using ACE.Managers;
 using log4net;
 using System;
+using System.Diagnostics;
 
 namespace ACE.Entity
 {
@@ -90,15 +91,15 @@ namespace ACE.Entity
             set
             {
                 /*
-                log.Debug($"{Name} moved to {PhysicsData.Position}");
+                log.Debug($"{Name} moved to {Position}");
 
-                PhysicsData.Position = value;
+                Position = value;
                 */
                 if (AceObject.Location != null)
                     LastUpdatedTicks = WorldManager.PortalYearTicks;
                 AceObject.Location = value;
                 // FIXME(ddevec): When PhysicsData is factored out this can be deleted
-                PhysicsData.Position = value;
+                Position = value;
             }
         }
 
@@ -137,7 +138,7 @@ namespace ACE.Entity
 
         public ModelData ModelData { get; }
 
-        public PhysicsData PhysicsData { get; }
+        // public PhysicsData PhysicsData { get; }
 
         // Logical Game Data
         public uint GameDataType
@@ -464,16 +465,14 @@ namespace ACE.Entity
         public AceVector3 Velocity = null;
         public AceVector3 Omega = null;
 
+        private MotionState currentMotionState;
+
         public MotionState CurrentMotionState
         {
-            get
-            {
-                if (AceObject.CurrentMotionState == "0" || AceObject.CurrentMotionState == null)
-                    return null;
-                return new UniversalMotion(Convert.FromBase64String(AceObject.CurrentMotionState));
-            }
-            set { AceObject.CurrentMotionState = value.ToString(); }
+            get { return currentMotionState; }
+            set { currentMotionState = value; }
         }
+
         public uint? DefaultScript
         {
             get { return AceObject.DefaultScript; }
@@ -489,9 +488,7 @@ namespace ACE.Entity
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
-            // Kludge until I get everything refactored correctly Og II
-            if (AceObject == null)
-                AceObject = new AceObject(guid.Full);
+            AceObject = new AceObject();
             Type = type;
             Guid = guid;
 
@@ -508,14 +505,25 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
-
-            PhysicsData = new PhysicsData(Sequences);
         }
 
         protected WorldObject(AceObject aceObject)
                 : this((ObjectType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
         {
-            this.AceObject = aceObject;
+            AceObject = aceObject;
+            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
+                CurrentMotionState = null;
+            else
+                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+
+            SetPhysicsDescriptionFlag(this);
+            WeenieFlags = SetWeenieHeaderFlag();
+            WeenieFlags2 = SetWeenieHeaderFlag2();
+
+            aceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
+            aceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
+            aceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            ModelData.PaletteGuid = aceObject.PaletteId;
         }
 
         public void SetCombatMode(CombatMode newCombatMode)
@@ -538,13 +546,13 @@ namespace ACE.Entity
 
         internal void SetInventoryForWorld(WorldObject inventoryItem)
         {
-            inventoryItem.Location = PhysicsData.Position.InFrontOf(1.1f);
+            inventoryItem.Location = Position.InFrontOf(1.1f);
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
                                          | UpdatePositionFlag.Placement
                                          | UpdatePositionFlag.ZeroQy
                                          | UpdatePositionFlag.ZeroQx;
 
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag = inventoryItem.PhysicsData.SetPhysicsDescriptionFlag(inventoryItem);
+            inventoryItem.PhysicsDescriptionFlag = inventoryItem.SetPhysicsDescriptionFlag(inventoryItem);
             inventoryItem.ContainerId = null;
             inventoryItem.Wielder = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
@@ -554,9 +562,9 @@ namespace ACE.Entity
         {
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
+            inventoryItem.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.PhysicsData.Position = null;
+            inventoryItem.Position = null;
             inventoryItem.Location = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
@@ -564,7 +572,7 @@ namespace ACE.Entity
         public void SetMotionState(MotionState motionState)
         {
             var p = (Player)this;
-            PhysicsData.CurrentMotionState = motionState;
+            CurrentMotionState = motionState;
             var updateMotion = new GameMessageUpdateMotion(p.Guid,
                                                            p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                            p.Sequences, motionState);
@@ -710,7 +718,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             ModelData.Serialize(writer);
-            PhysicsData.Serialize(this, writer);
+            Serialize(this, writer);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
             if (WeenieFlags2 != WeenieHeaderFlag2.None)
@@ -948,6 +956,181 @@ namespace ACE.Entity
         public void RunActions()
         {
             actionQueue.RunActions();
+        }
+
+        public PhysicsDescriptionFlag SetPhysicsDescriptionFlag(WorldObject wo)
+        {
+            var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
+
+            if (CurrentMotionState != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
+
+            if ((AnimationFrame != null) && (AnimationFrame != 0))
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
+
+            if (Position != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+
+            // NOTE: While we fill with 0 the flag still has to reflect that we are not really making this entry for the client.
+            if (MTableResourceId != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.MTable;
+
+            if (Stable != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Stable;
+
+            if (Petable != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Petable;
+
+            if (CSetup != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
+
+            if (ItemsEquipedCount != 0)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
+
+            if (Parent != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
+
+            if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
+
+            if (Friction != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Friction;
+
+            if (Elasticity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Elasticity;
+
+            if ((Translucency != null) && (Math.Abs((float)Translucency) >= 0.001))
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
+
+            if (Velocity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
+
+            if (Acceleration != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
+
+            if (Omega != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
+
+            if (DefaultScript != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
+
+            if (DefaultScriptIntensity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
+
+            return physicsDescriptionFlag;
+        }
+        // todo: return bytes of data for network write ? ?
+        public void Serialize(WorldObject wo, BinaryWriter writer)
+        {
+            PhysicsDescriptionFlag = SetPhysicsDescriptionFlag(wo);
+
+            writer.Write((uint)PhysicsDescriptionFlag);
+
+            writer.Write((uint)PhysicsState);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            {
+                if (CurrentMotionState != null)
+                {
+                    var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+                    writer.Write(movementData.Length); // number of bytes in movement object
+                    writer.Write(movementData);
+                    uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    writer.Write(autonomous);
+                }
+                else // create a new current motion state and send it.
+                {
+                    CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+                    var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+                    writer.Write(movementData.Length);
+                    writer.Write(movementData);
+                    uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    writer.Write(autonomous);
+                }
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+                writer.Write((AnimationFrame ?? 0u));
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
+                Position.Serialize(writer);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
+                writer.Write(MTableResourceId ?? 0u);
+
+            // stable_id =  BYTE1(v12) & 8 )  =  8
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
+                writer.Write(Stable ?? 0u);
+
+            // setup id
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
+                writer.Write(Petable ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
+                writer.Write(CSetup ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
+            {
+                writer.Write((uint)Parent);
+                writer.Write((uint)ParentLocation);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
+            {
+                writer.Write(ItemsEquipedCount);
+                foreach (var child in children)
+                {
+                    writer.Write(child.Guid);
+                    writer.Write(1u); // This is going to be child.ParentLocation when we get to it
+                }
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
+                writer.Write(ObjScale ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
+                writer.Write(Friction ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
+                writer.Write(Elasticity ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
+                writer.Write(Translucency ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
+            {
+                Debug.Assert(Velocity != null, "Velocity != null");
+                // We do a null check above and unset the flag so this has to be good.
+                Velocity.Serialize(writer);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
+            {
+                Acceleration.Serialize(writer);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
+            {
+                Omega.Serialize(writer);
+            }
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
+                writer.Write(DefaultScript ?? 0u);
+
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
+                writer.Write(DefaultScriptIntensity ?? 0u);
+
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectMovement));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectState));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVector));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectServerControl));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+
+            writer.Align();
         }
     }
 }

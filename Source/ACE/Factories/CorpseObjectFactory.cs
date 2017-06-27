@@ -22,16 +22,16 @@ namespace ACE.Factories
             Container wo = new Container(ObjectType.Container, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), name, wcidCorpse, objDesc, weenie, newPosition);
 
             // TODO: Find the correct motionstate to create a corpse with. For now only the dead motionstate works 
-            // wo.PhysicsData.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
-            wo.PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            wo.PhysicsData.MTableResourceId = template.PhysicsData.MTableResourceId; // MotionTableId in db
-            wo.PhysicsData.Stable = 536871106; // SoundTableId in DB - constant value according to pcap
-            wo.PhysicsData.CSetup = template.PhysicsData.CSetup; // ModelTableId in DB
-            wo.PhysicsData.Petable = 872415342; // phstableid in DB - constant value according to pcap
-            wo.PhysicsData.ObjScale = template.PhysicsData.ObjScale;
+            // wo.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
+            wo.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            wo.MTableResourceId = template.MTableResourceId; // MotionTableId in db
+            wo.Stable = 536871106; // SoundTableId in DB - constant value according to pcap
+            wo.CSetup = template.CSetup; // ModelTableId in DB
+            wo.Petable = 872415342; // phstableid in DB - constant value according to pcap
+            wo.ObjScale = template.ObjScale;
 
-            wo.PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.ObjScale | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement; // 104579 - according to pcap
-            wo.PhysicsData.PhysicsState = PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.Gravity; // 1044 - according to pcap
+            wo.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.ObjScale | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement; // 104579 - according to pcap
+            wo.PhysicsState = PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.Gravity; // 1044 - according to pcap
 
             uint tmpIcon = 100667504;
             wo.Icon = tmpIcon;

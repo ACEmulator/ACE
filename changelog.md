@@ -100,7 +100,7 @@
 ### 2017-06-18
 [Ripley]
 * Made changes to AceObject, PhysicsData, DebugObject and UsableObject to make wielded items in database work better.
-* Note that PhysicsData.Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
+* Note that Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
 
 ### 2017-06-17
 [fantoms]

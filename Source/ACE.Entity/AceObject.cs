@@ -3,13 +3,11 @@ using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum.Properties;
 using System;
+using ACE.Entity.Enum;
+using System.Linq;
 
 namespace ACE.Entity
 {
-    using Enum;
-    using System.Linq;
-    using System.Net.Mime;
-
     [DbTable("ace_object")]
     public class AceObject : ICreatureStats, ICloneable
     {
@@ -68,7 +66,7 @@ namespace ACE.Entity
         }
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
-        public String CurrentMotionState { get; set; }
+        public string CurrentMotionState { get; set; }
 
         public uint? IconId
         {
@@ -89,7 +87,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// PhysicsData.CSetup
+        /// CSetup
         /// </summary>
         public uint? ModelTableId
         {
@@ -258,7 +256,7 @@ namespace ACE.Entity
             get { return GetDataIdProperty(PropertyDataId.CombatTable) ?? 0; }
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
-        
+
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
@@ -936,7 +934,7 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            AceObject ret = new AceObject();            
+            AceObject ret = new AceObject();
             ret.AceObjectId = AceObjectId;
 
             ret.WeenieClassId = WeenieClassId;

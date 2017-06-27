@@ -23,7 +23,7 @@ namespace ACE.Entity
             else
                 this.WeenieClassid = (ushort)(aceO.WeenieClassId - 0x8000);
 
-            SetObjectData(aceO);
+            // SetObjectData(aceO);
             IsAlive = true;
             SetupVitals();
         }

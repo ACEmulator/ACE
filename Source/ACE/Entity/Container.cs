@@ -1,7 +1,5 @@
 using System;
 using ACE.Entity.Enum;
-using ACE.Managers;
-using ACE.Network.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Network.Motion;
@@ -22,68 +20,9 @@ namespace ACE.Entity
             WeenieClassid = weenieClassId;
         }
 
-        /// <summary>
-        /// Load from saved object
-        /// </summary>
-        /// <param name="baseObject"></param>
-        public Container(AceObject baseObject)
-            : base(baseObject) { }
-
-        public Container(ObjectGuid guid, AceObject baseAceObject)
-            : base((ObjectType)baseAceObject.ItemType, guid)
+        public Container(AceObject aceObject)
+            : base(aceObject)
         {
-            // TODO: Remove all of this - once object flattening is complete.
-            // what we are really loading here is the missing physics and model data.
-            Name = baseAceObject.Name ?? "NULL";
-            DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
-            WeenieClassid = baseAceObject.WeenieClassId;
-            PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
-            PhysicsData.Stable = baseAceObject.SoundTableId;
-            PhysicsData.CSetup = baseAceObject.ModelTableId;
-            PhysicsData.Petable = baseAceObject.PhysicsTableId;
-            PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
-            PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0u;
-            PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
-            PhysicsData.Translucency = baseAceObject.Translucency ?? 0u;
-            PhysicsData.DefaultScript = baseAceObject.DefaultScript;
-            PhysicsData.DefaultScriptIntensity = (float?)baseAceObject.PhysicsScriptIntensity;
-            PhysicsData.Elasticity = baseAceObject.Elasticity;
-            PhysicsData.Parent = baseAceObject.Parent;
-            PhysicsData.ParentLocation = baseAceObject.ParentLocation;
-            PhysicsData.Friction = baseAceObject.Friction;
-            if (baseAceObject.CurrentMotionState == "0" || baseAceObject.CurrentMotionState == null)
-                PhysicsData.CurrentMotionState = null;
-            else
-                PhysicsData.CurrentMotionState = new UniversalMotion(Convert.FromBase64String(baseAceObject.CurrentMotionState));
-
-            // game data min required flags;
-            Icon = baseAceObject.IconId;
-            AmmoType = (AmmoType?)baseAceObject.AmmoType;
-            Burden = baseAceObject.Burden;
-            CombatUse = (CombatUse?)baseAceObject.CombatUse;
-            ContainerCapacity = baseAceObject.ContainersCapacity;
-            Cooldown = baseAceObject.CooldownId;
-            CooldownDuration = baseAceObject.CooldownDuration;
-            HookItemTypes = baseAceObject.HookItemTypes;
-            HookType = baseAceObject.HookType;
-            IconOverlay = baseAceObject.IconOverlayId;
-            IconUnderlay = baseAceObject.IconUnderlayId;
-            ItemCapacity = baseAceObject.ItemsCapacity;
-            Material = (Material?)baseAceObject.MaterialType;
-            MaxStackSize = baseAceObject.MaxStackSize;
-            Wielder = baseAceObject.WielderId;
-            ContainerId = baseAceObject.ContainerId;
-            ClothingBase = baseAceObject.ClothingBase;
-            CurrentWieldedLocation = (EquipMask?)baseAceObject.CurrentWieldedLocation;
-
-            PhysicsData.SetPhysicsDescriptionFlag(this);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
-
-            baseAceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
-            baseAceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            baseAceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = baseAceObject.PaletteId;
         }
 
         // Inventory Management Functions

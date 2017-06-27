@@ -197,7 +197,8 @@ namespace ACE.Entity
             CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
         }
 
-        public Player(Session session, AceCharacter character) : base(character)
+        public Player(Session session, AceCharacter character)
+            : base(character)
         {
             Session = session;
 
@@ -215,16 +216,16 @@ namespace ACE.Entity
 
             // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
+            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
-            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            CurrentMotionState = new UniversalMotion(MotionStance.Standing);
 
-            PhysicsData.MTableResourceId = 0x09000001u;
-            PhysicsData.Stable = 0x20000001u;
-            PhysicsData.Petable = 0x34000004u;
-            PhysicsData.CSetup = 0x02000001u;
+            MTableResourceId = 0x09000001u;
+            Stable = 0x20000001u;
+            Petable = 0x34000004u;
+            CSetup = 0x02000001u;
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -274,10 +275,10 @@ namespace ACE.Entity
             IsAlive = true;
             IsOnline = true;
 
-            PhysicsData.MTableResourceId = Character.MotionTableId;
-            PhysicsData.Stable = Character.SoundTableId;
-            PhysicsData.Petable = Character.PhysicsTableId;
-            PhysicsData.CSetup = Character.ModelTableId;
+            MTableResourceId = Character.MotionTableId;
+            Stable = Character.SoundTableId;
+            Petable = Character.PhysicsTableId;
+            CSetup = Character.ModelTableId;
 
             // Start vital ticking, if they need it
             if (Health.Current != Health.MaxValue)
@@ -298,7 +299,7 @@ namespace ACE.Entity
             ContainerCapacity = 7;
 
             if (Character.DefaultScale != null)
-                PhysicsData.ObjScale = Character.DefaultScale;
+                ObjScale = Character.DefaultScale;
 
             AddCharacterBaseModelData();
 
@@ -1239,7 +1240,7 @@ namespace ACE.Entity
 
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
-            PhysicsData.PhysicsState = state;
+            PhysicsState = state;
 
             if (packet)
             {
@@ -1722,11 +1723,11 @@ namespace ACE.Entity
                     return;
                 }
 
-                if (PhysicsData.CSetup != null && item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+                if (CSetup != null && item.ClothingBaseEffects.ContainsKey((uint)CSetup))
                 // Check if the player model has data. Gear Knights, this is usually you.
                 {
                     // Add the model and texture(s)
-                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)CSetup];
                     foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                     {
                         byte partNum = (byte)t.Index;
@@ -1736,15 +1737,15 @@ namespace ACE.Entity
                             ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                     }
 
-                    PhysicsData.ItemsEquipedCount += 1;
+                    ItemsEquipedCount += 1;
                     foreach (ModelPalette p in wo.ModelData.GetPalettes)
                         ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
             }
             // Add the "naked" body parts. These are the ones not already covered.
-            if (PhysicsData.CSetup != null)
+            if (CSetup != null)
             {
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)CSetup);
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
@@ -2029,10 +2030,10 @@ namespace ACE.Entity
             ModelData.Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
-            if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+            if (item.ClothingBaseEffects.ContainsKey((uint)CSetup))
             {
                 // Add the model and texture(s)
-                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)CSetup];
                 for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
                 {
                     byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
@@ -2075,7 +2076,7 @@ namespace ACE.Entity
                 }
 
                 // Add the "naked" body parts. These are the ones not already covered.
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)CSetup);
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
