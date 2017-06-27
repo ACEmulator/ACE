@@ -6,13 +6,8 @@ using System.Diagnostics;
 
 namespace ACE.Entity
 {
-    public class Generator : CollidableObject
+    public class Generator : WorldObject
     {
-        public Generator(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
-        {
-        }
-
         public Generator(ObjectGuid guid, AceObject baseAceObject)
             : base((ObjectType)baseAceObject.ItemType, guid)
         {
@@ -100,11 +95,6 @@ namespace ACE.Entity
             Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
             WeenieClassid = aceO.WeenieClassId;
             GameDataType = aceO.ItemType;
-        }
-
-        public override void OnCollide(ObjectGuid playerId)
-        {
-            // TODO: Implement
         }
     }
 }

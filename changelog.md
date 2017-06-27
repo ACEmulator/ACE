@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-06-26
+[Ripley]
+* Expanded upon @Lidefeath's generator work
+* Added complete generator test of tutorial dungeon part 1 setup for review
+
 [fantoms]
 * Changed from `uint` too `ulong` in the `bigint` properties, when a field has already been set.
 

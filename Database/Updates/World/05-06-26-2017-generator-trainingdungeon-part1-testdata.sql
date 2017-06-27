@@ -8,7 +8,7 @@ INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(15759, 'LINKITEMGEN10SECONDS');
+	(15759, 'linkitemgen10seconds');
 	
 DELETE FROM ace_object
 WHERE aceObjectId = 70002;
@@ -203,7 +203,7 @@ INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(28282, 'LINKMONSTERGEN10SECONDS');
+	(28282, 'linkmonstergen10seconds');
 
 DELETE FROM ace_object
 WHERE aceObjectId = 70005;
@@ -832,7 +832,7 @@ INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(1542, 'LINKITEMGEN');
+	(1542, 'linkitemgen');
 
 DELETE FROM ace_object
 WHERE aceObjectId = 2012229714;

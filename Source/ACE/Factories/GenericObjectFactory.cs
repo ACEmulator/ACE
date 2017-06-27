@@ -36,10 +36,10 @@ namespace ACE.Factories
                 switch (ot)
                 {
                     case 0: // Generator
+                        // TODO: Is this the best way to figure out what's a generator and whats not? more research needed
                         if ((oDescFlag & (ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Hidden)) != 0)
                         {
                             aceO.Location = aceO.Location.InFrontOf(-2.0);
-                            // aceO.Location.PositionZ = 0;
                             aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
                             results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), aceO));
                             var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
