@@ -18,13 +18,10 @@ namespace ACE.Database
         /// <summary>
         /// so, caches are fun.  we have to be especially careful that we never hand out the same instance
         /// twice.  in order to do that, we always clone objects coming out of the cache and return the
-        /// clone instead of the actual cached object.  Concurrent dictionary could have been used, but
-        /// I went with a standard dictionary and a double locking system because the 99% use case is a
-        /// cache hit, and Currents don't do that as fast.
+        /// clone instead of the actual cached object.
         /// </summary>
-        private volatile Dictionary<uint, AceObject> _weenieCache = new Dictionary<uint, AceObject>();
-
-        private object _weenieCacheMutex = new object();
+        private ConcurrentDictionary<uint, AceObject> _weenieCache = new ConcurrentDictionary<uint, AceObject>();
+        
 
         public CachingWorldDatabase(IWorldDatabase wrappedDatabase)
         {
@@ -35,13 +32,7 @@ namespace ACE.Database
         {
             if (!_weenieCache.ContainsKey(weenieClassId))
             {
-                lock (_weenieCacheMutex)
-                {
-                    if (!_weenieCache.ContainsKey(weenieClassId))
-                    {
-                        _weenieCache.Add(weenieClassId, _wrappedDatabase.GetAceObjectByWeenie(weenieClassId));
-                    }
-                }
+                _weenieCache[weenieClassId] = _wrappedDatabase.GetAceObjectByWeenie(weenieClassId);
             }
 
             return (AceObject)_weenieCache[weenieClassId].Clone();
@@ -59,14 +50,7 @@ namespace ACE.Database
 
             if (aceObject.AceObjectId == aceObject.WeenieClassId)
             {
-                // this is a weenie!  cache it.
-                lock (_weenieCacheMutex)
-                {
-                    if (!_weenieCache.ContainsKey(aceObjectId))
-                    {
-                        _weenieCache.Add(aceObjectId, (AceObject)aceObject.Clone());
-                    }
-                }
+                _weenieCache[aceObjectId] = (AceObject)aceObject.Clone();
             }
 
             return aceObject;

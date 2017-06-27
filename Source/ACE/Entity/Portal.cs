@@ -111,7 +111,7 @@ namespace ACE.Entity
             // check to see if this ace object has a destination.  if so, defer to it.
             if (aceO.Destination != null)
             {
-                Destination = AceObject.Destination;
+                Destination = aceO.Destination;
             }
             else
             {
