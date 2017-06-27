@@ -35,21 +35,21 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
-        [CommandHandler("loadALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ LandBlocks, Caution.. it takes a very long time")]
+        [CommandHandler("loadALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ Landblocks, Caution.. it takes a very long time")]
         public static void LoadLALB(Session session, params string[] parameters)
         {
-            Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortload to stop");
+            Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortALB to stop");
             LandblockLoader.StartLoading();
         }
 
-        [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL LandBlock loading process")]
+        [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL Landblock loading process")]
         public static void AbortLL(Session session, params string[] parameters)
         {
             LandblockLoader.StopLoading();
             Console.WriteLine($"Landblock load aborting.");
         }
 
-        [CommandHandler("loadLB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads LandBlock by LandBlockId")]
+        [CommandHandler("loadLB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads Landblock by LandblockId")]
         public static void LoadLandBlock(Session session, params string[] parameters)
         {
             try
@@ -63,7 +63,7 @@ namespace ACE.Command.Handlers
             }
             catch
             {
-                Console.WriteLine($"Invalid landblock id");
+                Console.WriteLine($"Invalid LandblockId");
             }
         }
 
