@@ -64,7 +64,8 @@ namespace ACE.Entity
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
         /// </summary>
-        public Landblock CurrentLandblock {
+        public Landblock CurrentLandblock
+        {
             get
             {
                 return CurrentParent as Landblock;
@@ -373,36 +374,110 @@ namespace ACE.Entity
 
         // PhysicsData Logical
 
-        public uint CSetup;
+        public uint? CSetup
+        {
+            get { return AceObject.ModelTableId; }
+            set { AceObject.ModelTableId = value; }
+        }
 
         // apply default for back compat with player object
-        // public PhysicsDescriptionFlag PhysicsDescriptionFlag;
-        // public PhysicsState PhysicsState = 0;
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; set; }
 
-        // public Position Position;
+        public PhysicsState PhysicsState
+        {
+            get { return (PhysicsState)AceObject.PhysicsState; }
+            set { AceObject.PhysicsState = (uint)value; }
+        }
+
+        public Position Position
+        {
+            get { return AceObject.Location; }
+            set { AceObject.Location = value; }
+        }
+
+        public uint? MTableResourceId
+        {
+            get { return AceObject.MotionTableId; }
+            set { AceObject.MotionTableId = value; }
+        }
+        public uint? SoundsResourceId;
+        public uint? Stable
+        {
+            get { return AceObject.SoundTableId; }
+            set { AceObject.SoundTableId = value; }
+        }
+        public uint? Petable
+        {
+            get { return AceObject.PhysicsTableId; }
+            set { AceObject.PhysicsTableId = value; }
+        }
+
+        // these are all related
+        public uint ItemsEquipedCount { get; set; }
+        public uint? Parent
+        {
+            get { return AceObject.Parent; }
+            set { AceObject.Parent = value; }
+        }
+        public uint? ParentLocation
+        {
+            get { return AceObject.ParentLocation; }
+            set { AceObject.ParentLocation = value; }
+        }
 
         // these are all related
         public EquipMask? EquipperPhysicsDescriptionFlag;
         private readonly List<EquippedItem> children = new List<EquippedItem>();
 
-        public float? ObjScale;
-        public float? Friction;
-        public float? Elasticity;
-        public uint? AnimationFrame;
-        public AceVector3 Acceleration;
-        public float? Translucency;
+        public float? ObjScale
+        {
+            get { return AceObject.DefaultScale; }
+            set { AceObject.DefaultScale = value; }
+        }
+        public float? Friction
+        {
+            get { return AceObject.Friction; }
+            set { AceObject.Friction = value; }
+        }
+        public float? Elasticity
+        {
+            get { return AceObject.Elasticity; }
+            set { AceObject.Elasticity = value; }
+        }
+        public uint? AnimationFrame
+        {
+            get { return AceObject.AnimationFrameId; }
+            set { AceObject.AnimationFrameId = value; }
+        }
+        public AceVector3 Acceleration { get; set; }
+        public float? Translucency
+        {
+            get { return AceObject.Translucency; }
+            set { AceObject.Translucency = value; }
+        }
         public AceVector3 Velocity = null;
         public AceVector3 Omega = null;
 
-        private MotionState currentMotionState;
         public MotionState CurrentMotionState
         {
-            get { return currentMotionState; }
-            set { currentMotionState = value; }
+            get
+            {
+                if (AceObject.CurrentMotionState == "0" || AceObject.CurrentMotionState == null)
+                    return null;
+                return new UniversalMotion(Convert.FromBase64String(AceObject.CurrentMotionState));
+            }
+            set { AceObject.CurrentMotionState = value.ToString(); }
         }
-
-        public uint? DefaultScript;
-        public float? DefaultScriptIntensity;
+        public uint? DefaultScript
+        {
+            get { return AceObject.DefaultScript; }
+            set { AceObject.DefaultScript = value; }
+        }
+        public float? DefaultScriptIntensity
+        {
+            get { return AceObject.PhysicsScriptIntensity; }
+            set { AceObject.PhysicsScriptIntensity = value; }
+        }
 
         public SequenceManager Sequences { get; }
 
