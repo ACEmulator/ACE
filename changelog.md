@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-06-26
+[fantoms]
+* Changed from `uint` too `ulong` in the `bigint` properties, when a field has already been set.
+
 [Jyrus]
 * Add protection to the SpawnPortal method, so any old ushort cannot be used for the weenieclassID that it is expecting
 
