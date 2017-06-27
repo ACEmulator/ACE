@@ -36,7 +36,7 @@ namespace ACE.Entity.Enum
         UseChargeAttack                         = 25,
 
         [CharacterOptions1(CharacterOptions1.ListenToAllegianceChat)]
-        ListenToAllegianceChat                  = 27,
+        ListenToAllegianceChat                  = 27,        
 
         [CharacterOptions2(CharacterOptions2.ListenToGeneralChat)]
         ListenToGeneralChat                     = 35,
@@ -67,6 +67,9 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions2(CharacterOptions2.ShowYourCloak)]
         ShowYourCloak                           = 50,
+
+        [CharacterOptions2(CharacterOptions2.LockUI)]
+        LockUI = 51,
 
         [CharacterOptions2(CharacterOptions2.ListenToPKDeathMessages)]
         ListenToPKDeathMessages                 = 52,
@@ -165,10 +168,7 @@ namespace ACE.Entity.Enum
         DisableDistanceFog,
 
         [CharacterOptions2(CharacterOptions2.UseMouseTurning)]
-        UseMouseTurning,
-
-        [CharacterOptions2(CharacterOptions2.LockUI)]
-        LockUI
+        UseMouseTurning
     }
 
     public static class CharacterOptionExtensions

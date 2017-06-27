@@ -16,6 +16,7 @@
         ChannelBroadcast                    = 0x0147,
         ChannelList                         = 0x0148,
         ChannelIndex                        = 0x0149,
+        ViewContents                        = 0x0196,
         DropTemp                            = 0x019A, // I need to look at the client and pull this out.   This is a place holder. Og II
 
         YourDeath                           = 0x01AC, // You have died, as a player.

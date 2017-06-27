@@ -94,6 +94,7 @@
     <Compile Include="CreatureVital.cs" />
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
+    <Compile Include="Enum\ContainerType.cs" />
     <Compile Include="Enum\AccessLevel.cs" />
     <Compile Include="Enum\Channel.cs" />
     <Compile Include="Enum\CharacterOption.cs" />

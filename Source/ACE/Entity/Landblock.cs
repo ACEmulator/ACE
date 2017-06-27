@@ -430,7 +430,7 @@ namespace ACE.Entity
                 }
             }
 
-            // North 
+            // North
             if (!highYInLandblock)
             {
                 if (NorthAdjacency != null)
@@ -523,8 +523,8 @@ namespace ACE.Entity
 
             EnqueueBroadcast(wo.Location, MaxObjectRange,
                 new GameMessageUpdateMotion(wo.Guid,
-                        wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                        wo.Sequences, motion));
+                    wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                    wo.Sequences, motion));
         }
 
         /// <summary>
@@ -591,7 +591,8 @@ namespace ACE.Entity
         /// <param name="pos"></param>
         /// <param name="distance"></param>
         /// <param name="delegateAction"></param>
-        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> delegateAction) {
+        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> delegateAction)
+        {
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
 
             foreach (Landblock lb in landblocksInRange)
@@ -607,7 +608,8 @@ namespace ACE.Entity
             }
         }
 
-        private List<WorldObject> GetWorldObjectsInRange(Position pos, float distance) {
+        private List<WorldObject> GetWorldObjectsInRange(Position pos, float distance)
+        {
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
 
             List<WorldObject> ret = new List<WorldObject>();
@@ -619,7 +621,8 @@ namespace ACE.Entity
             return ret;
         }
 
-        private List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float distance) {
+        private List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float distance)
+        {
             return GetWorldObjectsInRange(wo.Location, distance);
         }
 
@@ -629,7 +632,8 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance) {
+        public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance)
+        {
             return GetWorldObjectsInRange(wo, distance);
         }
 
@@ -692,6 +696,28 @@ namespace ACE.Entity
             chain.AddAction(wo, () => action(wo));
         }
 
+        /// <summary>
+        /// Intended for when moving an item directly to a player's container (which is not visible to the landblock)
+        /// </summary>
+        /// <param name="chain"></param>
+        /// <param name="wo"></param>
+        /// <param name="container"></param>
+        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container)
+        {
+            // Find owner of wo
+            Landblock lb = GetOwner(wo);
+
+            if (lb != null)
+            {
+                chain.AddAction(lb.motionQueue, () => ItemTransferContainerInternal(wo, container));
+            }
+            else
+            {
+                // I find some of our debug commands have races between create and use -- This warning will trigger then
+                log.Warn("Schedule transfer to item that doesn't exist -- ignoring");
+            }
+        }
+
         public void ScheduleItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container)
         {
             // Find owner of wo
@@ -708,10 +734,9 @@ namespace ACE.Entity
             }
         }
 
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid)
+        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container)
         {
             WorldObject wo = GetObject(woGuid);
-            Container container = GetObject(containerGuid) as Container;
 
             if (container == null || wo == null)
             {
@@ -719,7 +744,15 @@ namespace ACE.Entity
             }
 
             RemoveWorldObjectInternal(woGuid, false);
+            wo.ContainerId = container.Guid.Full;
             container.AddToInventory(wo);
+        }
+
+        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid)
+        {
+            Container container = GetObject(containerGuid) as Container;
+
+            ItemTransferContainerInternal(woGuid, container);
         }
 
         private void Log(string message)
