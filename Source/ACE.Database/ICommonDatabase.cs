@@ -15,6 +15,5 @@ namespace ACE.Database
         AceObject GetObject(uint aceObjectId);
 
         Task<bool> SaveObject(AceObject aceObject);
-        Task<bool> SaveObjectAsync(AceObject aceObject);
     }
 }

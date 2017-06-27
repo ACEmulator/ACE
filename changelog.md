@@ -10,6 +10,11 @@
 * Set the portal object as the IActor and the portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false) as the action to perform
 * Reduce the decay timer to 15 seconds
 
+[Mogwai]
+* added weenie caching layer
+* fixed portals
+* fixed null ref exception in the object factory, though I highly doubt i fixed the real issue
+
 ### 2017-06-25
 [OptimShi]
 * Re-enabled the "equiptest" debug command that was inadvertently disabled.

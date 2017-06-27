@@ -37,7 +37,7 @@ namespace ACE.Factories
                     case 0: // Generator
                         if ((oDescFlag & (ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Hidden)) != 0)
                         {
-                            var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO);
+                            var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
                             objectList.ForEach(o => results.Add(o));
                         }
                         break;
