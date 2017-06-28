@@ -8,7 +8,7 @@ namespace ACE.Network.Sequence
 {
     public interface ISequence
     {
-        byte[] NextValue { get; }
-        byte[] CurrentValue { get; }
+        byte[] NextBytes { get; }
+        byte[] CurrentBytes { get; }
     }
 }

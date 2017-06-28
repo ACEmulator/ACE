@@ -26,14 +26,14 @@ namespace ACE.Network.Sequence
         {
             if (!sequenceList.ContainsKey(type))
                 throw new ArgumentOutOfRangeException("type");
-            return sequenceList[type].CurrentValue;
+            return sequenceList[type].CurrentBytes;
         }
 
         public byte[] GetNextSequence(SequenceType type)
         {
             if (!sequenceList.ContainsKey(type))
                 throw new ArgumentOutOfRangeException("type");
-            return sequenceList[type].NextValue;
+            return sequenceList[type].NextBytes;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace ACE.Network
         private DateTime nextResync = DateTime.UtcNow;
         private DateTime nextAck = DateTime.UtcNow;
         private DateTime nextSend = DateTime.UtcNow;
-        private bool sendAck = false;
+        private bool sendAck = true;
         private bool sendResync = false;
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
@@ -387,10 +387,14 @@ namespace ACE.Network
             {
                 ServerPacket packet = packetQueue.Dequeue();
 
-                if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
-                    ConnectionData.PacketSequence = 2;
+                if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
+                    ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
 
-                packet.Header.Sequence = ConnectionData.PacketSequence++;
+                // If we are only ACKing, then we don't seem to have to increment the sequence
+                if (packet.Header.Flags == PacketHeaderFlags.AckSequence)
+                    packet.Header.Sequence = ConnectionData.PacketSequence.CurrentValue;
+                else
+                    packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
                 packet.Header.Table = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
