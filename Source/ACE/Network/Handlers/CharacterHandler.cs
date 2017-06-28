@@ -169,18 +169,18 @@ namespace ACE.Network.Handlers
             PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
             ushort skinPal = (ushort)skinPalSet.GetPaletteID(appearance.SkinHue);
             character.SkinPalette = skinPal;
-            // ModelData.AddPalette(skinPal, 0x0, 0x18); // for reference on how to apply
+            // AddPalette(skinPal, 0x0, 0x18); // for reference on how to apply
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
             ushort hairPal = (ushort)hairPalSet.GetPaletteID(appearance.HairHue);
 
             character.HairPalette = hairPal;
-            // ModelData.AddPalette(hairPal, 0x18, 0x8); // for reference on how to apply
+            // AddPalette(hairPal, 0x18, 0x8); // for reference on how to apply
 
             // Eye Color
             character.EyesPalette = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
-            // ModelData.AddPalette(PropertyDataId.EyesPalette, 0x20, 0x8); // for reference on how to apply
+            // AddPalette(PropertyDataId.EyesPalette, 0x20, 0x8); // for reference on how to apply
 
             if (appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
             {

@@ -42,10 +42,10 @@ namespace ACE.Factories
             wo.UseRadius = 2.0f; // constant value according to pcap
             wo.Burden = 6000; // Testdata, has to be set as the sum of the spawned items in the corpse
 
-            wo.ModelData.PaletteGuid = template.ModelData.PaletteGuid;
-            template.ModelData.GetModels.ForEach(mo => wo.ModelData.AddModel(mo.Index, mo.ModelID));
-            template.ModelData.GetTextures.ForEach(mt => wo.ModelData.AddTexture(mt.Index, mt.OldTexture, mt.NewTexture));
-            template.ModelData.GetPalettes.ForEach(mp => wo.ModelData.AddPalette(mp.PaletteId, mp.Offset, mp.Length));
+            wo.PaletteGuid = template.PaletteGuid;
+            template.GetModels.ForEach(mo => wo.AddModel(mo.Index, mo.ModelID));
+            template.GetTextures.ForEach(mt => wo.AddTexture(mt.Index, mt.OldTexture, mt.NewTexture));
+            template.GetPalettes.ForEach(mp => wo.AddPalette(mp.PaletteId, mp.Offset, mp.Length));
 
             // Calculation of the TTL: 5 real time minutes * player level with a minimum of 1 hour, so we set the minimum here
             wo.DespawnTime = 360 + WorldManager.PortalYearTicks;

@@ -322,21 +322,21 @@ namespace ACE.Entity
         private void AddCharacterBaseModelData()
         {
             // Hair/head
-            ModelData.AddModel(0x10, Character.HeadObject);
-            ModelData.AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
-            ModelData.AddPalette(Character.HairPalette, 0x18, 0x8);
+            AddModel(0x10, Character.HeadObject);
+            AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
+            AddPalette(Character.HairPalette, 0x18, 0x8);
 
             // Skin
-            ModelData.PaletteGuid = Character.PaletteId;
-            ModelData.AddPalette(Character.SkinPalette, 0x0, 0x18);
+            PaletteGuid = Character.PaletteId;
+            AddPalette(Character.SkinPalette, 0x0, 0x18);
 
             // Eyes
-            ModelData.AddTexture(0x10, Character.DefaultEyesTexture, Character.EyesTexture);
-            ModelData.AddPalette(Character.EyesPalette, 0x20, 0x8);
+            AddTexture(0x10, Character.DefaultEyesTexture, Character.EyesTexture);
+            AddPalette(Character.EyesPalette, 0x20, 0x8);
 
             // Nose & Mouth
-            ModelData.AddTexture(0x10, Character.DefaultNoseTexture, Character.NoseTexture);
-            ModelData.AddTexture(0x10, Character.DefaultMouthTexture, Character.MouthTexture);
+            AddTexture(0x10, Character.DefaultNoseTexture, Character.NoseTexture);
+            AddTexture(0x10, Character.DefaultMouthTexture, Character.MouthTexture);
         }
 
         public AceObject GetSavableCharacter()
@@ -1709,7 +1709,7 @@ namespace ACE.Entity
         public void UpdateAppearance(Container container, uint itemId)
         {
             UpdateWieldedItem(container, itemId);
-            ModelData.Clear();
+            Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
             var wieldeditems = GetCurrentlyWieldedItems();
             var coverage = new List<uint>();
@@ -1733,15 +1733,15 @@ namespace ACE.Entity
                     foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                     {
                         byte partNum = (byte)t.Index;
-                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
+                        AddModel((byte)t.Index, (ushort)t.ModelId);
                         coverage.Add(partNum);
                         foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                            AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                     }
 
                     ItemsEquipedCount += 1;
-                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
-                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+                    foreach (ModelPalette p in wo.GetPalettes)
+                        AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
             }
             // Add the "naked" body parts. These are the ones not already covered.
@@ -1751,7 +1751,7 @@ namespace ACE.Entity
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                        AddModel(i, baseSetup.SubObjectIds[i]);
                 }
             }
         }
@@ -2029,7 +2029,7 @@ namespace ACE.Entity
             int palCount = 0;
 
             List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
-            ModelData.Clear();
+            Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
             if (item.ClothingBaseEffects.ContainsKey((uint)CSetup))
@@ -2039,10 +2039,10 @@ namespace ACE.Entity
                 for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
                 {
                     byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
-                    ModelData.AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
+                    AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
                     coverage.Add(partNum);
                     for (int j = 0; j < clothingBaseEffec.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                        ModelData.AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                        AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
                 }
 
                 // Apply an appropriate palette. We'll just pick a random one if not specificed--it's a surprise every time!
@@ -2072,7 +2072,7 @@ namespace ACE.Entity
                         {
                             uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                             uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            ModelData.AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                            AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
                 }
@@ -2082,7 +2082,7 @@ namespace ACE.Entity
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
-                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                        AddModel(i, baseSetup.SubObjectIds[i]);
                 }
 
                 var objDescEvent = new GameMessageObjDescEvent(this);

@@ -13,6 +13,7 @@ using ACE.Managers;
 using log4net;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -135,11 +136,7 @@ namespace ACE.Entity
         public virtual void PlayScript(Session session) { }
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
-
-        public ModelData ModelData { get; }
-
-        // public PhysicsData PhysicsData { get; }
-
+       
         // Logical Game Data
         public uint GameDataType
         {
@@ -316,12 +313,7 @@ namespace ACE.Entity
         {
             get { return (Spell?)AceObject.SpellId; }
             set { this.AceObject.SpellId = (ushort?)value; }
-        }
-        public uint? ClothingBase
-        {
-            get { return AceObject.ClothingBase; }
-            set { AceObject.ClothingBase = value; }
-        }
+        }        
 
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
@@ -484,6 +476,66 @@ namespace ACE.Entity
             set { AceObject.PhysicsScriptIntensity = value; }
         }
 
+        // START of Logical Model Data
+
+        public uint? PaletteGuid
+        {
+            get { return AceObject.PaletteId; }
+            set { AceObject.PaletteId = value; }
+        }
+
+        public uint? ClothingBase
+        {
+            get { return AceObject.ClothingBase; }
+            set { AceObject.ClothingBase = value; }
+        }
+
+        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
+
+        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
+
+        private readonly List<Model> models = new List<Model>();
+
+        public List<ModelPalette> GetPalettes
+        {
+            get { return modelPalettes.ToList(); }
+        }
+
+        public List<ModelTexture> GetTextures
+        {
+            get { return modelTextures.ToList(); }
+        }
+
+        public List<Model> GetModels
+        {
+            get { return models.ToList(); }
+        }
+
+        public void AddPalette(uint paletteId, ushort offset, ushort length)
+        {
+            ModelPalette newpalette = new ModelPalette(paletteId, offset, length);
+            modelPalettes.Add(newpalette);
+        }
+
+        public void AddTexture(byte index, uint oldtexture, uint newtexture)
+        {
+            ModelTexture nextTexture = new ModelTexture(index, oldtexture, newtexture);
+            modelTextures.Add(nextTexture);
+        }
+
+        public void AddModel(byte index, uint modelresourceid)
+        {
+            var newmodel = new Model(index, modelresourceid);
+            models.Add(newmodel);
+        }
+
+        public void Clear()
+        {
+            modelPalettes.Clear();
+            modelTextures.Clear();
+            models.Clear();
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectType type, ObjectGuid guid)
@@ -491,9 +543,7 @@ namespace ACE.Entity
             AceObject = new AceObject();
             Type = type;
             Guid = guid;
-
-            ModelData = new ModelData();
-
+            
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
@@ -520,10 +570,10 @@ namespace ACE.Entity
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
 
-            aceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
-            aceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            aceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = aceObject.PaletteId;
+            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            PaletteGuid = aceObject.PaletteId;
         }
 
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
@@ -539,10 +589,10 @@ namespace ACE.Entity
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
 
-            aceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
-            aceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            aceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = aceObject.PaletteId;
+            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            PaletteGuid = aceObject.PaletteId;
         }
 
         public void SetCombatMode(CombatMode newCombatMode)
@@ -736,7 +786,7 @@ namespace ACE.Entity
         {
             writer.WriteGuid(Guid);
 
-            ModelData.Serialize(writer);
+            SerializeModelData(writer);
             Serialize(this, writer);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
@@ -873,9 +923,41 @@ namespace ACE.Entity
         public virtual void SerializeUpdateModelData(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            ModelData.Serialize(writer);
+            SerializeModelData(writer);
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
+        }
+
+        public void SerializeModelData(BinaryWriter writer)
+        {
+            writer.Write((byte)0x11);
+            writer.Write((byte)modelPalettes.Count);
+            writer.Write((byte)modelTextures.Count);
+            writer.Write((byte)models.Count);
+
+            if ((modelPalettes.Count > 0) && (PaletteGuid != null))
+                writer.WritePackedDwordOfKnownType((uint)PaletteGuid, 0x4000000);
+            foreach (var palette in modelPalettes)
+            {
+                writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);
+                writer.Write((byte)palette.Offset);
+                writer.Write((byte)palette.Length);
+            }
+
+            foreach (var texture in modelTextures)
+            {
+                writer.Write((byte)texture.Index);
+                writer.WritePackedDwordOfKnownType(texture.OldTexture, 0x5000000);
+                writer.WritePackedDwordOfKnownType(texture.NewTexture, 0x5000000);
+            }
+
+            foreach (var model in models)
+            {
+                writer.Write((byte)model.Index);
+                writer.WritePackedDwordOfKnownType(model.ModelID, 0x1000000);
+            }
+
+            writer.Align();
         }
 
         public void WriteUpdatePositionPayload(BinaryWriter writer)

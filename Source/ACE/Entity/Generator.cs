@@ -81,10 +81,10 @@ namespace ACE.Entity
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
 
-            baseAceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
-            baseAceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            baseAceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = baseAceObject.PaletteId;
+            baseAceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            baseAceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            baseAceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            PaletteGuid = baseAceObject.PaletteId;
         }
 
         public Generator(AceObject aceO)
