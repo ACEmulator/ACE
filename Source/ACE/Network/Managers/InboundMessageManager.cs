@@ -86,7 +86,7 @@ namespace ACE.Network.Managers
             var opcode = (GameMessageOpcode)message.Opcode;
 
             if (!messageHandlers.ContainsKey(opcode))
-                log.WarnFormat("Received unhandled fragment opcode: 0x{0}", ((uint)opcode).ToString("X4"));
+                log.WarnFormat("Received unhandled fragment opcode: 0x{0:X4}", ((uint)opcode));
             else
             {
                 MessageHandlerInfo messageHandlerInfo;
@@ -101,7 +101,7 @@ namespace ACE.Network.Managers
         public static void HandleGameAction(GameActionType opcode, ClientMessage message, Session session)
         {
             if (!actionHandlers.ContainsKey(opcode))
-                log.WarnFormat("Received unhandled GameActionType: 0x{0}", ((uint)opcode).ToString("X4"));
+                log.WarnFormat("Received unhandled GameActionType: 0x{0:X4}", ((uint)opcode));
             else
             {
                 ActionHandlerInfo actionHandlerInfo;

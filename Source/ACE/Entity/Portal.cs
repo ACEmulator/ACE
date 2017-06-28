@@ -100,11 +100,6 @@ namespace ACE.Entity
             HoltburgOCLanding = 0x860302c3
         }
 
-        public Portal(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
-        {
-        }
-
         public Portal(AceObject aceO)
             : base(aceO)
         {

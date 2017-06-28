@@ -83,10 +83,6 @@
       <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
       <Name>ACE.Database</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
-      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
-      <Name>ACE.Entity</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

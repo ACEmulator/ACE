@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
@@ -13,20 +11,13 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Entity.Events;
-using ACE.Entity;
 using log4net;
 using ACE.Network.Sequence;
-using System.Collections.Concurrent;
-using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
-using ACE.Factories;
-using System.IO;
 
 namespace ACE.Entity
 {
@@ -197,7 +188,8 @@ namespace ACE.Entity
             CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
         }
 
-        public Player(Session session, AceCharacter character) : base(character)
+        public Player(Session session, AceCharacter character)
+            : base(character)
         {
             Session = session;
 
@@ -215,16 +207,17 @@ namespace ACE.Entity
 
             // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsData.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
+            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
-            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            CurrentMotionState = new UniversalMotion(MotionStance.Standing);
 
-            PhysicsData.MTableResourceId = 0x09000001u;
-            PhysicsData.Stable = 0x20000001u;
-            PhysicsData.Petable = 0x34000004u;
-            PhysicsData.CSetup = 0x02000001u;
+            // TODO: test and remove - this should not be needed.
+            MotionTableId = 0x09000001u;
+            SoundTableId = 0x20000001u;
+            PhisicsTableId = 0x34000004u;
+            SetupTableId = 0x02000001u;
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -274,10 +267,12 @@ namespace ACE.Entity
             IsAlive = true;
             IsOnline = true;
 
-            PhysicsData.MTableResourceId = Character.MotionTableId;
-            PhysicsData.Stable = Character.SoundTableId;
-            PhysicsData.Petable = Character.PhysicsTableId;
-            PhysicsData.CSetup = Character.ModelTableId;
+            // TODO: test and remove - this should be coming in from AceObject.
+
+            MotionTableId = Character.MotionTableId;
+            SoundTableId = Character.SoundTableId;
+            PhisicsTableId = Character.PhysicsTableId;
+            SetupTableId = Character.SetupTableId;
 
             // Start vital ticking, if they need it
             if (Health.Current != Health.MaxValue)
@@ -298,7 +293,7 @@ namespace ACE.Entity
             ContainerCapacity = 7;
 
             if (Character.DefaultScale != null)
-                PhysicsData.ObjScale = Character.DefaultScale;
+                ObjScale = Character.DefaultScale;
 
             AddCharacterBaseModelData();
 
@@ -321,21 +316,21 @@ namespace ACE.Entity
         private void AddCharacterBaseModelData()
         {
             // Hair/head
-            ModelData.AddModel(0x10, Character.HeadObject);
-            ModelData.AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
-            ModelData.AddPalette(Character.HairPalette, 0x18, 0x8);
+            AddModel(0x10, Character.HeadObject);
+            AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
+            AddPalette(Character.HairPalette, 0x18, 0x8);
 
             // Skin
-            ModelData.PaletteGuid = Character.PaletteId;
-            ModelData.AddPalette(Character.SkinPalette, 0x0, 0x18);
+            PaletteGuid = Character.PaletteId;
+            AddPalette(Character.SkinPalette, 0x0, 0x18);
 
             // Eyes
-            ModelData.AddTexture(0x10, Character.DefaultEyesTexture, Character.EyesTexture);
-            ModelData.AddPalette(Character.EyesPalette, 0x20, 0x8);
+            AddTexture(0x10, Character.DefaultEyesTexture, Character.EyesTexture);
+            AddPalette(Character.EyesPalette, 0x20, 0x8);
 
             // Nose & Mouth
-            ModelData.AddTexture(0x10, Character.DefaultNoseTexture, Character.NoseTexture);
-            ModelData.AddTexture(0x10, Character.DefaultMouthTexture, Character.MouthTexture);
+            AddTexture(0x10, Character.DefaultNoseTexture, Character.NoseTexture);
+            AddTexture(0x10, Character.DefaultMouthTexture, Character.MouthTexture);
         }
 
         public AceObject GetSavableCharacter()
@@ -1239,7 +1234,7 @@ namespace ACE.Entity
 
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
-            PhysicsData.PhysicsState = state;
+            PhysicsState = state;
 
             if (packet)
             {
@@ -1367,8 +1362,8 @@ namespace ACE.Entity
             else
             {
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
-                if (worldObject.PhysicsData.DefaultScript != null)
-                    Session.Network.EnqueueSend(new GameMessageScript(Guid, (PlayScript)worldObject.PhysicsData.DefaultScript));
+                if (worldObject.DefaultScript != null)
+                    Session.Network.EnqueueSend(new GameMessageScript(Guid, (PlayScript)worldObject.DefaultScript));
             }
         }
 
@@ -1708,7 +1703,7 @@ namespace ACE.Entity
         public void UpdateAppearance(Container container, uint itemId)
         {
             UpdateWieldedItem(container, itemId);
-            ModelData.Clear();
+            Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
             var wieldeditems = GetCurrentlyWieldedItems();
             var coverage = new List<uint>();
@@ -1724,33 +1719,33 @@ namespace ACE.Entity
                     return;
                 }
 
-                if (PhysicsData.CSetup != null && item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+                if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
                 // Check if the player model has data. Gear Knights, this is usually you.
                 {
                     // Add the model and texture(s)
-                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
                     foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                     {
                         byte partNum = (byte)t.Index;
-                        ModelData.AddModel((byte)t.Index, (ushort)t.ModelId);
+                        AddModel((byte)t.Index, (ushort)t.ModelId);
                         coverage.Add(partNum);
                         foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                            ModelData.AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                            AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                     }
 
-                    PhysicsData.ItemsEquipedCount += 1;
-                    foreach (ModelPalette p in wo.ModelData.GetPalettes)
-                        ModelData.AddPalette(p.PaletteId, p.Offset, p.Length);
+                    ItemsEquipedCount += 1;
+                    foreach (ModelPalette p in wo.GetPalettes)
+                        AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
             }
             // Add the "naked" body parts. These are the ones not already covered.
-            if (PhysicsData.CSetup != null)
+            if (SetupTableId != null)
             {
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                        AddModel(i, baseSetup.SubObjectIds[i]);
                 }
             }
         }
@@ -2028,20 +2023,20 @@ namespace ACE.Entity
             int palCount = 0;
 
             List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
-            ModelData.Clear();
+            Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
-            if (item.ClothingBaseEffects.ContainsKey((uint)PhysicsData.CSetup))
+            if (item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
             {
                 // Add the model and texture(s)
-                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)PhysicsData.CSetup];
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
                 for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
                 {
                     byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
-                    ModelData.AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
+                    AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
                     coverage.Add(partNum);
                     for (int j = 0; j < clothingBaseEffec.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                        ModelData.AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+                        AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
                 }
 
                 // Apply an appropriate palette. We'll just pick a random one if not specificed--it's a surprise every time!
@@ -2071,17 +2066,17 @@ namespace ACE.Entity
                         {
                             uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                             uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            ModelData.AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                            AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
                 }
 
                 // Add the "naked" body parts. These are the ones not already covered.
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)PhysicsData.CSetup);
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
-                        ModelData.AddModel(i, baseSetup.SubObjectIds[i]);
+                        AddModel(i, baseSetup.SubObjectIds[i]);
                 }
 
                 var objDescEvent = new GameMessageObjDescEvent(this);

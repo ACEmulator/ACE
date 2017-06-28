@@ -104,8 +104,11 @@ namespace ACE.Entity
             var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
-                worldObjects.Add(fo.Guid, fo);
-                fo.SetParent(this);
+                if (!worldObjects.ContainsKey(fo.Guid))
+                {
+                    worldObjects.Add(fo.Guid, fo);
+                    fo.SetParent(this);
+                }
             });
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
@@ -324,7 +327,7 @@ namespace ACE.Entity
             wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             if (wo != null)
             {
-                var csetup = SetupModel.ReadFromDat(wo.PhysicsData.CSetup.Value);
+                var csetup = SetupModel.ReadFromDat(wo.SetupTableId.Value);
                 return (float)Math.Pow((wo.UseRadius.Value + csetup.Radius + 1.5), 2);
             }
             return 0.00f;

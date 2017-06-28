@@ -76,12 +76,6 @@
       <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command\CommandHandler.cs" />
@@ -128,8 +122,6 @@
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
-    <Compile Include="Entity\ModelData.cs" />
-    <Compile Include="Entity\PhysicsData.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
     <Compile Include="Entity\SummonedPortal.cs" />

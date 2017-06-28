@@ -9,7 +9,7 @@ namespace ACE.Entity
     public class Generator : WorldObject
     {
         public Generator(ObjectGuid guid, AceObject baseAceObject)
-            : base((ObjectType)baseAceObject.ItemType, guid)
+            : base((ObjectType)baseAceObject.Type, guid)
         {
             Name = baseAceObject.Name ?? "NULL";
             // DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
@@ -18,10 +18,10 @@ namespace ACE.Entity
             Location = baseAceObject.Location;
             // PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             // PhysicsData.Stable = baseAceObject.SoundTableId;
-            PhysicsData.CSetup = baseAceObject.ModelTableId;
+            SetupTableId = baseAceObject.SetupTableId;
             // PhysicsData.Petable = baseAceObject.PhysicsTableId;
             // PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
-            PhysicsData.PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
+            PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
             // PhysicsData.ObjScale = baseAceObject.DefaultScale ?? 0u;
             // PhysicsData.AnimationFrame = baseAceObject.AnimationFrameId;
             // PhysicsData.Translucency = baseAceObject.Translucency ?? 0u;
@@ -77,14 +77,14 @@ namespace ACE.Entity
             // Value = baseAceObject.Value;
             // Workmanship = baseAceObject.Workmanship;
 
-            PhysicsData.SetPhysicsDescriptionFlag(this);
+            SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
 
-            baseAceObject.AnimationOverrides.ForEach(ao => ModelData.AddModel(ao.Index, ao.AnimationId));
-            baseAceObject.TextureOverrides.ForEach(to => ModelData.AddTexture(to.Index, to.OldId, to.NewId));
-            baseAceObject.PaletteOverrides.ForEach(po => ModelData.AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            ModelData.PaletteGuid = baseAceObject.PaletteId;
+            baseAceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            baseAceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            baseAceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            PaletteGuid = baseAceObject.PaletteId;
         }
 
         public Generator(AceObject aceO)
@@ -94,7 +94,7 @@ namespace ACE.Entity
             Location = aceO.Location;
             Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
             WeenieClassid = aceO.WeenieClassId;
-            GameDataType = aceO.ItemType;
+            GameDataType = aceO.Type;
         }
     }
 }

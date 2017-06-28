@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2017-06-28
+[Og II]
+* Completed work on flattening PhysicsData and ModelData
+* Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
+* Put in comments for aclogviewer names
+* Cleaned up initailization code for various decendants of worldObject.   
+* Cleaned up redundant using statements.
+* Tested all of my pack work, equipping items, item drop and pick up, portal summoning, world portals, ci and cirand as well as The
+* item generator work.   Could not test corpse.
+* TODO could not test corpse creation as kill was broken before I started.
+
 ### 2017-06-27
 [fantoms]
 * Added `TimeoutTick` variable to network sessions, to store the tick value for next timeout.
@@ -117,7 +128,7 @@
 ### 2017-06-18
 [Ripley]
 * Made changes to AceObject, PhysicsData, DebugObject and UsableObject to make wielded items in database work better.
-* Note that PhysicsData.Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
+* Note that Children does not set properly yet but is seemingly not needed for the effect to work at least for static npcs/items.
 
 ### 2017-06-17
 [fantoms]
@@ -475,7 +486,7 @@
 
 [Ripley]
 * Filled out Portal object and included ObjScale.
-* Changed ModelData.Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
+* Changed Serialize to use WritePackedDwordOfKnownType for PaletteGuid, palette.PaletteId, texture.OldTexture, texture.NewTexture and model.ModelID.
 * Changed IconOverlay and IconUnderlay to use WritePackedDwordOfKnownType.
 
 ### 2017-04-19

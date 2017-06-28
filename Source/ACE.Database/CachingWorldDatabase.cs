@@ -21,7 +21,7 @@ namespace ACE.Database
         /// clone instead of the actual cached object.
         /// </summary>
         private ConcurrentDictionary<uint, AceObject> _weenieCache = new ConcurrentDictionary<uint, AceObject>();
-        
+
         public CachingWorldDatabase(IWorldDatabase wrappedDatabase)
         {
             _wrappedDatabase = wrappedDatabase;
