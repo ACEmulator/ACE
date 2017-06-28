@@ -679,14 +679,23 @@ namespace ACE.Entity
             return ret;
         }
 
-        private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value) {
+        private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value)
+        {
             if (dict.ContainsKey(key))
             {
-                dict[key] = value;
+                if (value == null)
+                {
+                    dict.Remove(key);
+                }
+                else
+                {
+                    dict[key] = value;
+                }
             }
             else
             {
-                dict.Add(key, value);
+                if (value != null)
+                    dict.Add(key, value);
             }
         }
 
