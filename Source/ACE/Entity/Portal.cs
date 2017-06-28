@@ -103,6 +103,7 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
+            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             // check to see if this ace object has a destination.  if so, defer to it.
             if (aceO.Destination != null)
             {
@@ -111,19 +112,23 @@ namespace ACE.Entity
             else
             {
                 // but if not, portals roll up to the weenie
-                var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
                 Destination = weenie.Destination;
             }
+
+            MinimumLevel = weenie.GetIntProperty(PropertyInt.MinLevel) ?? 0;
+            MaximumLevel = weenie.GetIntProperty(PropertyInt.MaxLevel) ?? 0;
+            IsTieable = ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
+            IsSummonable = ((weenie.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
         }
 
         public uint MinimumLevel
         {
-            get { return AceObject.GetIntProperty(PropertyInt.MinLevel) ?? 0; }
+            get;
         }
 
         public uint MaximumLevel
         {
-            get { return AceObject.GetIntProperty(PropertyInt.MaxLevel) ?? 0; }
+            get;
         }
 
         public uint SocietyId
@@ -133,34 +138,23 @@ namespace ACE.Entity
 
         public bool IsTieable
         {
-            get { return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0; }
-            set
-            {
-                uint current = AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
-                current = (value ? (current & ~(uint)PortalBitmask.NoRecall) : current | (uint)PortalBitmask.NoRecall);
-                AceObject.SetIntProperty(PropertyInt.PortalBitmask, current);
-            }
+            get;
         }
 
         public bool IsSummonable
         {
-            get { return ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0; }
-            set
-            {
-                uint current = AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0;
-                current = (value ? (current & ~(uint)PortalBitmask.NoSummon) : current | (uint)PortalBitmask.NoSummon);
-                AceObject.SetIntProperty(PropertyInt.PortalBitmask, current);
-            }
+            get;
         }
 
         public bool IsRecallable
         {
             get { return IsTieable; }
-            set { IsTieable = value; }
         }
 
         public override void OnCollide(ObjectGuid playerId)
         {
+            string serverMessage;
+
             // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
             var rangeCheck = 5.0f;
 
@@ -178,6 +172,11 @@ namespace ACE.Entity
                 {
                     if (Destination != null)
                     {
+#if DEBUG
+                        serverMessage = "Checking requirements for " + this.Name;
+                        var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                        player.Session.Network.EnqueueSend(usePortalMessage);
+#endif
                         // Check player level -- requires remote query to player (ugh)...
                         if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
                         {
@@ -271,6 +270,11 @@ namespace ACE.Entity
                                     }
                             }
 
+#if DEBUG 
+                            serverMessage = "Portal sending player to destination";
+                            usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                            player.Session.Network.EnqueueSend(usePortalMessage);
+#endif
                             player.Session.Player.Teleport(portalDest);
                             // If the portal just used is able to be recalled to,
                             // save the destination coordinates to the LastPortal character position save table
@@ -283,27 +287,27 @@ namespace ACE.Entity
                         else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
                         {
                             // You are too powerful to interact with that portal!
-                            var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);
+                            var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);
                             // always send useDone event
                             var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                            player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
+                            player.Session.Network.EnqueueSend(failedUsePortalMessage, sendUseDoneEvent);
                         }
                         else
                         {
                             // You are not powerful enough to interact with that portal!
-                            var usePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AB);
+                            var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AB);
                             // always send useDone event
                             var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                            player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
+                            player.Session.Network.EnqueueSend(failedUsePortalMessage, sendUseDoneEvent);
                         }
                     }
                     else
                     {
-                        string serverMessage = "Portal destination for portal ID " + this.WeenieClassid + " not yet implemented!";
-                        var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                        serverMessage = "Portal destination for portal ID " + this.WeenieClassid + " not yet implemented!";
+                        var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(usePortalMessage, sendUseDoneEvent);
+                        player.Session.Network.EnqueueSend(failedUsePortalMessage, sendUseDoneEvent);
                     }
                 }
                 else
