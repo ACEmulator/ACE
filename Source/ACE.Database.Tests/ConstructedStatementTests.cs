@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ACE.Common;
-using ACE.Entity;
 
 namespace ACE.Database.Tests
 {

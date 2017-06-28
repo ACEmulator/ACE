@@ -20,6 +20,13 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(128)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint MaximumAllowedSessions { get; set; }
+
+        /// <summary>
+        /// The amount of seconds until an active session will be declared dead/inactive. Default value is 60 (for 1 minute).
+        /// </summary>
+        [System.ComponentModel.DefaultValue(60)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public uint DefaultSessionTimeout { get; set; }
     }
 
     public struct ConfigAccountDefaults

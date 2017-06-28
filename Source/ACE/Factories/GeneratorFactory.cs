@@ -89,7 +89,7 @@ namespace ACE.Factories
                 baseObject.Generator = generator.AceObjectId;
 
                 // Determine the ObjectType and call the specific Factory
-                ObjectType ot = (ObjectType)baseObject.ItemType;
+                ObjectType ot = (ObjectType)baseObject.Type;
                 switch (ot)
                 {
                     case ObjectType.Creature:
