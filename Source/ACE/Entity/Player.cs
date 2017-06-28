@@ -222,10 +222,10 @@ namespace ACE.Entity
             // TODO: Load from database should be loading player data - including inventroy and positions
             CurrentMotionState = new UniversalMotion(MotionStance.Standing);
 
-            MTableResourceId = 0x09000001u;
-            Stable = 0x20000001u;
-            Petable = 0x34000004u;
-            CSetup = 0x02000001u;
+            MotionTableId = 0x09000001u;
+            SoundTableId = 0x20000001u;
+            PhisicsTableId = 0x34000004u;
+            SetupTableId = 0x02000001u;
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -275,10 +275,10 @@ namespace ACE.Entity
             IsAlive = true;
             IsOnline = true;
 
-            MTableResourceId = Character.MotionTableId;
-            Stable = Character.SoundTableId;
-            Petable = Character.PhysicsTableId;
-            CSetup = Character.ModelTableId;
+            MotionTableId = Character.MotionTableId;
+            SoundTableId = Character.SoundTableId;
+            PhisicsTableId = Character.PhysicsTableId;
+            SetupTableId = Character.SetupTableId;
 
             // Start vital ticking, if they need it
             if (Health.Current != Health.MaxValue)
@@ -1725,11 +1725,11 @@ namespace ACE.Entity
                     return;
                 }
 
-                if (CSetup != null && item.ClothingBaseEffects.ContainsKey((uint)CSetup))
+                if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
                 // Check if the player model has data. Gear Knights, this is usually you.
                 {
                     // Add the model and texture(s)
-                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)CSetup];
+                    ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
                     foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                     {
                         byte partNum = (byte)t.Index;
@@ -1745,9 +1745,9 @@ namespace ACE.Entity
                 }
             }
             // Add the "naked" body parts. These are the ones not already covered.
-            if (CSetup != null)
+            if (SetupTableId != null)
             {
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)CSetup);
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
@@ -2032,10 +2032,10 @@ namespace ACE.Entity
             Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
-            if (item.ClothingBaseEffects.ContainsKey((uint)CSetup))
+            if (item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
             {
                 // Add the model and texture(s)
-                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)CSetup];
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
                 for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
                 {
                     byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
@@ -2078,7 +2078,7 @@ namespace ACE.Entity
                 }
 
                 // Add the "naked" body parts. These are the ones not already covered.
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)CSetup);
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.

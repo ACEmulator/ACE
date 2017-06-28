@@ -9,7 +9,7 @@ namespace ACE.Entity
     public class Generator : WorldObject
     {
         public Generator(ObjectGuid guid, AceObject baseAceObject)
-            : base((ObjectType)baseAceObject.ItemType, guid)
+            : base((ObjectType)baseAceObject.Type, guid)
         {
             Name = baseAceObject.Name ?? "NULL";
             // DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
@@ -18,7 +18,7 @@ namespace ACE.Entity
             Location = baseAceObject.Location;
             // PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             // PhysicsData.Stable = baseAceObject.SoundTableId;
-            CSetup = baseAceObject.ModelTableId;
+            SetupTableId = baseAceObject.SetupTableId;
             // PhysicsData.Petable = baseAceObject.PhysicsTableId;
             // PhysicsData.PhysicsState = (PhysicsState)baseAceObject.PhysicsState;
             PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
@@ -94,7 +94,7 @@ namespace ACE.Entity
             Location = aceO.Location;
             Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
             WeenieClassid = aceO.WeenieClassId;
-            GameDataType = aceO.ItemType;
+            GameDataType = aceO.Type;
         }
     }
 }

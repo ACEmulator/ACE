@@ -24,7 +24,7 @@ namespace ACE.Entity
                 Player player = wo as Player;
                 string serverMessage = null;
                 // validate within use range, taking into account the radius of the model itself, as well
-                SetupModel csetup = SetupModel.ReadFromDat(CSetup.Value);
+                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
                 float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
 
                 // Run this animation...

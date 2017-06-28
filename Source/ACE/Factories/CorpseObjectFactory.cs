@@ -24,8 +24,8 @@ namespace ACE.Factories
             // TODO: Find the correct motionstate to create a corpse with. For now only the dead motionstate works
             // wo.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
             wo.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            wo.Stable = 536871106; // SoundTableId in DB - constant value according to pcap
-            wo.Petable = 872415342; // phstableid in DB - constant value according to pcap
+            wo.SoundTableId = 536871106; // SoundTableId in DB - constant value according to pcap
+            wo.PhisicsTableId = 872415342; // phstableid in DB - constant value according to pcap
 
             wo.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.ObjScale | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement; // 104579 - according to pcap
             wo.PhysicsState = PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.Gravity; // 1044 - according to pcap

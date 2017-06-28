@@ -86,10 +86,7 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
         }
 
-        /// <summary>
-        /// CSetup
-        /// </summary>
-        public uint? ModelTableId
+        public uint? SetupTableId
         {
             get { return GetDataIdProperty(PropertyDataId.Setup); }
             set { SetDataIdProperty(PropertyDataId.Setup, value); }
@@ -310,18 +307,12 @@ namespace ACE.Entity
         /// <summary>
         /// will throw if not null!
         /// </summary>
-        public uint ItemType
+        public uint Type
         {
             get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
-
-        // public uint? PaletteId
-        // {
-        //    get { return GetIntProperty(PropertyInt.PaletteTemplate).Value; }
-        //    set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
-        // }
-
+        
         public uint? PaletteId
         {
             get { return GetDataIdProperty(PropertyDataId.PaletteBase); }

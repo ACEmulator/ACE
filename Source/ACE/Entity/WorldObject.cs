@@ -33,8 +33,8 @@ namespace ACE.Entity
 
         public ObjectType Type
         {
-            get { return (ObjectType)AceObject.ItemType; }
-            protected set { AceObject.ItemType = (uint)value; }
+            get { return (ObjectType)AceObject.Type; }
+            protected set { AceObject.Type = (uint)value; }
         }
 
         /// <summary>
@@ -136,12 +136,12 @@ namespace ACE.Entity
         public virtual void PlayScript(Session session) { }
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
-       
+
         // Logical Game Data
         public uint GameDataType
         {
-            get { return AceObject.ItemType; }
-            set { AceObject.ItemType = value; }
+            get { return AceObject.Type; }
+            set { AceObject.Type = value; }
         }
 
         public ContainerType ContainerType
@@ -312,8 +312,8 @@ namespace ACE.Entity
         public Spell? Spell
         {
             get { return (Spell?)AceObject.SpellId; }
-            set { this.AceObject.SpellId = (ushort?)value; }
-        }        
+            set { AceObject.SpellId = (ushort?)value; }
+        }
 
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
@@ -356,8 +356,7 @@ namespace ACE.Entity
 
         public uint? PetOwner { get; set; }
 
-        // WeenieHeaderFlag2
-        public uint? Cooldown
+       public uint? CooldownId
         {
             get { return AceObject.CooldownId; }
             set { AceObject.CooldownId = value; }
@@ -371,15 +370,14 @@ namespace ACE.Entity
 
         // PhysicsData Logical
         /// <summary>
-        /// mtable_id in aclogviewer - used to get the correct model out of the dat file
+        /// setup_id in aclogviewer - used to get the correct model out of the dat file
         /// </summary>
-        public uint? CSetup
+        public uint? SetupTableId
         {
-            get { return AceObject.ModelTableId; }
-            set { AceObject.ModelTableId = value; }
+            get { return AceObject.SetupTableId; }
+            set { AceObject.SetupTableId = value; }
         }
 
-        // apply default for back compat with player object
         public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; set; }
 
         public PhysicsState PhysicsState
@@ -388,73 +386,93 @@ namespace ACE.Entity
             set { AceObject.PhysicsState = (uint)value; }
         }
 
+        /// <summary>
+        /// This is my physical location in the world
+        /// </summary>
         public Position Position
         {
             get { return AceObject.Location; }
             set { AceObject.Location = value; }
         }
-
-        public uint? MTableResourceId
+        /// <summary>
+        /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
+        /// </summary>
+        public uint? MotionTableId
         {
             get { return AceObject.MotionTableId; }
             set { AceObject.MotionTableId = value; }
         }
-        public uint? SoundsResourceId;
-        public uint? Stable
+        /// <summary>
+        /// stable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
+        /// </summary>
+        public uint? SoundTableId
         {
             get { return AceObject.SoundTableId; }
             set { AceObject.SoundTableId = value; }
         }
-        public uint? Petable
+        /// <summary>
+        /// phstable_id in aclogviewer This is the physics table for the object.   Looked up from dat file.
+        /// </summary>
+        public uint? PhisicsTableId
         {
             get { return AceObject.PhysicsTableId; }
             set { AceObject.PhysicsTableId = value; }
         }
 
-        // these are all related
         public uint ItemsEquipedCount { get; set; }
+        /// <summary>
+        /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
+        /// </summary>
         public uint? Parent
         {
             get { return AceObject.Parent; }
             set { AceObject.Parent = value; }
         }
+
         public uint? ParentLocation
         {
             get { return AceObject.ParentLocation; }
             set { AceObject.ParentLocation = value; }
         }
 
-        // these are all related
         public EquipMask? EquipperPhysicsDescriptionFlag;
-        private readonly List<EquippedItem> children = new List<EquippedItem>();
+
+        public List<EquippedItem> Children { get; } = new List<EquippedItem>();
 
         public float? ObjScale
         {
             get { return AceObject.DefaultScale; }
             set { AceObject.DefaultScale = value; }
         }
+
         public float? Friction
         {
             get { return AceObject.Friction; }
             set { AceObject.Friction = value; }
         }
+
         public float? Elasticity
         {
             get { return AceObject.Elasticity; }
             set { AceObject.Elasticity = value; }
         }
+
         public uint? AnimationFrame
         {
             get { return AceObject.AnimationFrameId; }
             set { AceObject.AnimationFrameId = value; }
         }
+
         public AceVector3 Acceleration { get; set; }
+
         public float? Translucency
         {
             get { return AceObject.Translucency; }
             set { AceObject.Translucency = value; }
         }
+
         public AceVector3 Velocity = null;
+
         public AceVector3 Omega = null;
 
         private MotionState currentMotionState;
@@ -470,6 +488,7 @@ namespace ACE.Entity
             get { return AceObject.DefaultScript; }
             set { AceObject.DefaultScript = value; }
         }
+
         public float? DefaultScriptIntensity
         {
             get { return AceObject.PhysicsScriptIntensity; }
@@ -543,7 +562,7 @@ namespace ACE.Entity
             AceObject = new AceObject();
             Type = type;
             Guid = guid;
-            
+
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
@@ -558,7 +577,7 @@ namespace ACE.Entity
         }
 
         protected WorldObject(AceObject aceObject)
-                : this((ObjectType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
+                : this((ObjectType)aceObject.Type, new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
@@ -577,7 +596,7 @@ namespace ACE.Entity
         }
 
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
-            : this((ObjectType)aceObject.ItemType, guid)
+            : this((ObjectType)aceObject.Type, guid)
         {
             Guid = guid;
             AceObject = aceObject;
@@ -771,7 +790,7 @@ namespace ACE.Entity
             if ((IconUnderlay != null) && (IconUnderlay != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
-            if ((Cooldown != null) && (Cooldown != 0))
+            if ((CooldownId != null) && (CooldownId != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
 
             if ((CooldownDuration != null) && Math.Abs((float)CooldownDuration) >= 0.001)
@@ -906,7 +925,7 @@ namespace ACE.Entity
                 writer.Write((uint)(Material ?? 0u));
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.Cooldown) != 0)
-                writer.Write(Cooldown ?? 0u);
+                writer.Write(CooldownId ?? 0u);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.CooldownDuration) != 0)
                 writer.Write((double?)CooldownDuration ?? 0u);
@@ -1074,16 +1093,16 @@ namespace ACE.Entity
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
 
             // NOTE: While we fill with 0 the flag still has to reflect that we are not really making this entry for the client.
-            if (MTableResourceId != 0)
+            if (MotionTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.MTable;
 
-            if (Stable != 0)
+            if (SoundTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Stable;
 
-            if (Petable != 0)
+            if (PhisicsTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Petable;
 
-            if (CSetup != 0)
+            if (SetupTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
 
             if (ItemsEquipedCount != 0)
@@ -1158,18 +1177,18 @@ namespace ACE.Entity
                 Position.Serialize(writer);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
-                writer.Write(MTableResourceId ?? 0u);
+                writer.Write(MotionTableId ?? 0u);
 
             // stable_id =  BYTE1(v12) & 8 )  =  8
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
-                writer.Write(Stable ?? 0u);
+                writer.Write(SoundTableId ?? 0u);
 
             // setup id
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
-                writer.Write(Petable ?? 0u);
+                writer.Write(PhisicsTableId ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
-                writer.Write(CSetup ?? 0u);
+                writer.Write(SetupTableId ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
@@ -1180,7 +1199,7 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
                 writer.Write(ItemsEquipedCount);
-                foreach (var child in children)
+                foreach (var child in Children)
                 {
                     writer.Write(child.Guid);
                     writer.Write(1u); // This is going to be child.ParentLocation when we get to it

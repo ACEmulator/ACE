@@ -137,7 +137,7 @@ namespace ACE.Network.Handlers
             character.MotionTableId = sex.MotionTable;
             character.SoundTableId = sex.SoundTable;
             character.PhysicsTableId = sex.PhysicsTable;
-            character.ModelTableId = sex.SetupID;
+            character.SetupTableId = sex.SetupID;
             character.PaletteId = sex.BasePalette;
             character.CombatTableId = sex.CombatTable;
 
@@ -153,7 +153,7 @@ namespace ACE.Network.Handlers
 
             // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             if (hairstyle.AlternateSetup > 0)
-                character.ModelTableId = hairstyle.AlternateSetup;
+                character.SetupTableId = hairstyle.AlternateSetup;
 
             character.EyesTexture = sex.GetEyeTexture(appearance.Eyes, isBald);
             character.DefaultEyesTexture = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);

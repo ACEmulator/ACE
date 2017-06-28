@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2017-06-28
+[Og II]
+* Completed work on flattening PhysicsData and ModelData
+* Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
+* Put in comments for aclogviewer names
+* Cleaned up initailization code for various decendants of worldObject.   
+* Cleaned up redundant using statements.
+* Tested all of my pack work, equipping items, item drop and pick up, portal summoning, world portals, ci and cirand as well as The
+* item generator work.   Could not test corpse.
+* TODO could not test corpse creation as kill was broken before I started.
+
 ### 2017-06-27
 [StackOverflow]
 * Added the following Landblock loading helper console commands.

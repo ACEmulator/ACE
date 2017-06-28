@@ -327,7 +327,7 @@ namespace ACE.Entity
             wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             if (wo != null)
             {
-                var csetup = SetupModel.ReadFromDat(wo.CSetup.Value);
+                var csetup = SetupModel.ReadFromDat(wo.SetupTableId.Value);
                 return (float)Math.Pow((wo.UseRadius.Value + csetup.Radius + 1.5), 2);
             }
             return 0.00f;

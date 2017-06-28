@@ -31,9 +31,9 @@ namespace ACE.Entity
             WeenieClassid = weenieClassId;
 
             Spell = spellId;
-            CSetup = modelId;
-            Stable = soundTableId;
-            Petable = physicsTableId;
+            SetupTableId = modelId;
+            SoundTableId = soundTableId;
+            PhisicsTableId = physicsTableId;
         }
 
         public override void PlayScript(Session session)
