@@ -68,7 +68,7 @@
             this.picImage.Image = global::ACE.Diagnostics.Properties.Resources.map;
             this.picImage.Location = new System.Drawing.Point(15, 38);
             this.picImage.Name = "picImage";
-            this.picImage.Size = new System.Drawing.Size(256, 256);
+            this.picImage.Size = new System.Drawing.Size(255, 255);
             this.picImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.picImage.TabIndex = 6;
             this.picImage.TabStop = false;
