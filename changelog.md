@@ -31,8 +31,6 @@
 ### 2017-06-28
 [Og II]
 * Update readme with db minimum required versions.
-
-[Og II]
 * Completed work on flattening PhysicsData and ModelData
 * Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
 * Put in comments for aclogviewer names
@@ -42,7 +40,14 @@
 * item generator work.   Could not test corpse.
 * TODO could not test corpse creation as kill was broken before I started.
 
-### 2017-06-27
+### 2017-06-28
+[Lidefeath]
+* Added linked generators i.e. a generator can spawn other generators which then spawn objects - theoretically this can go even deeper
+* Added testdata for the linked generators near Holtburg: 
+	- spawn a Drudge Skulker with his generator
+	- spawn a Drudge Camp (3 drudges) with its generator
+	- randomly spawn 10 drudge camp generators in a landblock
+
 [fantoms]
 * Added `TimeoutTick` variable to network sessions, to store the tick value for next timeout.
 * Added functionality to `Session` that will increase the network Session timeout limit when a `successful` packet has been receieved.
