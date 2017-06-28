@@ -247,10 +247,10 @@ namespace ACE.Diagnostics
         private void picImage_MouseMove(object sender, MouseEventArgs e)
         {
 
-            // The AC landblocks are laid out in a grid of 0,0 by 255,255 but not as you would expect
-            // 0,255  ******** 255,255
+            // The AC landblocks are laid out in a grid of 0,0 by 254,254 but not as you would expect
+            // 0,254  ******** 254,254
             //        ********
-            // 0,0    ******** 255,0
+            // 0,0    ******** 254,0
 
             if (picImage.Image == null)
                 return;
@@ -271,9 +271,10 @@ namespace ACE.Diagnostics
         private void picImage_Click(object sender, EventArgs e)
         {
             txtDetail.Clear();
-   
+
             // this is used for unloaded and loaded landblocks
             LandblockId landblockid = new LandblockId((byte)selrow, (byte)selcol);
+
             txtDetail.Text = string.Format("Landblock: {0} ", landblockid.Raw.ToString("X"));
 
             // this only works if the landblock is loaded..
