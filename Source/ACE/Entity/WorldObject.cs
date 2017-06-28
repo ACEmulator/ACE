@@ -579,6 +579,7 @@ namespace ACE.Entity
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
             : this((ObjectType)aceObject.ItemType, guid)
         {
+            Guid = guid;
             AceObject = aceObject;
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;

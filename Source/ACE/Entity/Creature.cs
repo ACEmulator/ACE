@@ -12,9 +12,15 @@ namespace ACE.Entity
 {
     public class Creature : Container
     {
-        public CreatureAbility Strength {
+        public CreatureAbility Strength
+        {
             get { return AceObject.StrengthAbility; }
             set { AceObject.StrengthAbility = value; }
+        }
+
+        public AceObject AceCopse
+        {
+            get { return AceObject; }
         }
 
         public CreatureAbility Endurance
@@ -72,8 +78,8 @@ namespace ACE.Entity
 
         public double RespawnTime { get; set; }
 
-        public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
+        public Creature(AceObject aceObject, ObjectGuid guid)
+            : base(aceObject, guid)
         {
         }
 

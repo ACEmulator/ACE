@@ -38,13 +38,11 @@ namespace ACE.Factories
         public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            DebugObject wo = new DebugObject(aceObject);
-            // This is testing crap remove.
-            if (aceObject.WeenieClassId == 136u)
+            if (aceObject.ItemsCapacity >= 1)
             {
-                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.Guid.Full));
+                return CreateTestContainerObject(player, weenieId);
             }
-            return wo;
+            return new DebugObject(aceObject);
         }
 
         public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)
