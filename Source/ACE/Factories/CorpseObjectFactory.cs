@@ -19,7 +19,7 @@ namespace ACE.Factories
             WeenieHeaderFlag weenie = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.UseRadius | WeenieHeaderFlag.Burden;
             ObjectDescriptionFlag objDesc = ObjectDescriptionFlag.CanOpen | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Corpse; // = bitfield 8213
             string name = $"Corpse of {template.Name}";
-            Container wo = new Container(template.AceCopse, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), name, wcidCorpse, objDesc, weenie, newPosition);
+            Container wo = new Container(template.AceCorpse, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), name, wcidCorpse, objDesc, weenie, newPosition);
 
             // TODO: Find the correct motionstate to create a corpse with. For now only the dead motionstate works
             // wo.CurrentMotionState = new GeneralMotion(MotionStance.Standing);

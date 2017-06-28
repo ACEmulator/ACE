@@ -99,8 +99,6 @@ namespace ACE.Entity
                 if (AceObject.Location != null)
                     LastUpdatedTicks = WorldManager.PortalYearTicks;
                 AceObject.Location = value;
-                // FIXME(ddevec): When PhysicsData is factored out this can be deleted
-                Position = value;
             }
         }
 
@@ -385,15 +383,7 @@ namespace ACE.Entity
             get { return (PhysicsState)AceObject.PhysicsState; }
             set { AceObject.PhysicsState = (uint)value; }
         }
-
-        /// <summary>
-        /// This is my physical location in the world
-        /// </summary>
-        public Position Position
-        {
-            get { return AceObject.Location; }
-            set { AceObject.Location = value; }
-        }
+       
         /// <summary>
         /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
         /// </summary>
@@ -635,7 +625,7 @@ namespace ACE.Entity
 
         internal void SetInventoryForWorld(WorldObject inventoryItem)
         {
-            inventoryItem.Location = Position.InFrontOf(1.1f);
+            inventoryItem.Location = Location.InFrontOf(1.1f);
             inventoryItem.PositionFlag = UpdatePositionFlag.Contact
                                          | UpdatePositionFlag.Placement
                                          | UpdatePositionFlag.ZeroQy
@@ -652,8 +642,7 @@ namespace ACE.Entity
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.Position = null;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;            
             inventoryItem.Location = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
@@ -1089,7 +1078,7 @@ namespace ACE.Entity
             if ((AnimationFrame != null) && (AnimationFrame != 0))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
-            if (Position != null)
+            if (Location != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
 
             // NOTE: While we fill with 0 the flag still has to reflect that we are not really making this entry for the client.
@@ -1174,7 +1163,7 @@ namespace ACE.Entity
                 writer.Write((AnimationFrame ?? 0u));
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
-                Position.Serialize(writer);
+                Location.Serialize(writer);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
                 writer.Write(MotionTableId ?? 0u);

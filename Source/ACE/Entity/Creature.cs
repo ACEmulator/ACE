@@ -18,7 +18,7 @@ namespace ACE.Entity
             set { AceObject.StrengthAbility = value; }
         }
 
-        public AceObject AceCopse
+        public AceObject AceCorpse
         {
             get { return AceObject; }
         }

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
@@ -13,20 +11,13 @@ using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 using ACE.Managers;
 using ACE.Network.Enum;
-using ACE.Entity.Events;
-using ACE.Entity;
 using log4net;
 using ACE.Network.Sequence;
-using System.Collections.Concurrent;
-using ACE.Network.GameAction;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
-using ACE.Factories;
-using System.IO;
 
 namespace ACE.Entity
 {
@@ -222,6 +213,7 @@ namespace ACE.Entity
             // TODO: Load from database should be loading player data - including inventroy and positions
             CurrentMotionState = new UniversalMotion(MotionStance.Standing);
 
+            // TODO: test and remove - this should not be needed.
             MotionTableId = 0x09000001u;
             SoundTableId = 0x20000001u;
             PhisicsTableId = 0x34000004u;
@@ -274,6 +266,8 @@ namespace ACE.Entity
             Location = character.Location;
             IsAlive = true;
             IsOnline = true;
+
+            // TODO: test and remove - this should be coming in from AceObject.
 
             MotionTableId = Character.MotionTableId;
             SoundTableId = Character.SoundTableId;
