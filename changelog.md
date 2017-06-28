@@ -10,6 +10,10 @@
 * If a session connects and does not proceed to authenticate, the server will give a shorter network timeout that is set as a default in the Authentication Handler.
 * If a session advances through the authentication steps, it will be given the `DefaultSessionTimeout`.
 
+[Jyrus]
+* Reactivated portal requirements by directing the lookups to the weenie entries in the IntProperty table, instead of the AceObject entries.
+* Fix StyleCop warning in CachingWorldDatabase.cs
+
 [StackOverflow]
 * Added the following Landblock loading helper console commands.
 * loadLB (landblockid)  -- example "loadLB 0" - loads landblock 0.
