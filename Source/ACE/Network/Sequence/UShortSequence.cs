@@ -9,42 +9,60 @@ namespace ACE.Network.Sequence
     public class UShortSequence : ISequence
     {
         private ushort value;
+        private ushort maxValue = UInt16.MaxValue;
 
-        public UShortSequence(ushort startingValue)
+        public UShortSequence(ushort startingValue, ushort maxValue = UInt16.MaxValue)
         {
             value = startingValue;
+            this.maxValue = maxValue;
         }
 
         /// <summary>
         /// Creates an instance without a starting value
         /// </summary>
         /// <param name="clientPrimed">Whether the value gets sent to client before first increment</param>
-        public UShortSequence(bool clientPrimed = true)
+        public UShortSequence(bool clientPrimed = true, ushort maxValue = UInt16.MaxValue)
         {
+            this.maxValue = maxValue;
             if (clientPrimed)
                 value = 0;
             else
-                value = UInt16.MaxValue;
+                value = maxValue;
         }
 
-        public byte[] CurrentValue
+        public ushort CurrentValue
         {
             get
             {
-                return BitConverter.GetBytes(value);
+                return value;
+            }
+        }
+        public ushort NextValue
+        {
+            get
+            {
+                if (value == maxValue)
+                {
+                    value = 0;
+                    return value;
+                }
+                return ++value;
             }
         }
 
-        public byte[] NextValue
+        public byte[] CurrentBytes
         {
             get
             {
-                if (value == UInt16.MaxValue)
-                {
-                    value = 0;
-                    return BitConverter.GetBytes(value);
-                }
-                return BitConverter.GetBytes(++value);
+                return BitConverter.GetBytes(CurrentValue);
+            }
+        }
+
+        public byte[] NextBytes
+        {
+            get
+            {
+                return BitConverter.GetBytes(NextValue);
             }
         }
     }

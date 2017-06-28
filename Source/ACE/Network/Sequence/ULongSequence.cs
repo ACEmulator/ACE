@@ -9,42 +9,61 @@ namespace ACE.Network.Sequence
     public class ULongSequence : ISequence
     {
         private ulong value;
+        private ulong maxValue = UInt64.MaxValue;
 
-        public ULongSequence(ulong startingValue)
+        public ULongSequence(ulong startingValue, ulong maxValue = UInt64.MaxValue)
         {
             value = startingValue;
+            this.maxValue = maxValue;
         }
 
         /// <summary>
         /// Creates an instance without a starting value
         /// </summary>
         /// <param name="clientPrimed">Whether the value gets sent to client before first increment</param>
-        public ULongSequence(bool clientPrimed = true)
+        public ULongSequence(bool clientPrimed = true, ulong maxValue = UInt64.MaxValue)
         {
+            this.maxValue = maxValue;
             if (clientPrimed)
                 value = 0;
             else
-                value = UInt64.MaxValue;
+                value = maxValue;
         }
 
-        public byte[] CurrentValue
+        public ulong CurrentValue
         {
             get
             {
-                return BitConverter.GetBytes(value);
+                return value;
             }
         }
 
-        public byte[] NextValue
+        public ulong NextValue
         {
             get
             {
-                if (value == UInt64.MaxValue)
+                if (value == maxValue)
                 {
                     value = 0;
-                    return BitConverter.GetBytes(value);
+                    return value;
                 }
-                return BitConverter.GetBytes(++value);
+                return ++value;
+            }
+        }
+
+        public byte[] CurrentBytes
+        {
+            get
+            {
+                return BitConverter.GetBytes(CurrentValue);
+            }
+        }
+
+        public byte[] NextBytes
+        {
+            get
+            {
+                return BitConverter.GetBytes(NextValue);
             }
         }
     }

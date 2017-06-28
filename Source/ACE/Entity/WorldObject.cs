@@ -563,7 +563,7 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1));
+            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
         }
 
         protected WorldObject(AceObject aceObject)

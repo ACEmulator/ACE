@@ -17,14 +17,14 @@ namespace ACE.Network.Sequence
         ObjectForcePosition = 6,
         ObjectVisualDesc = 7,
         ObjectInstance = 8,
-        PrivateUpdateAttribute,
-        PrivateUpdateAttribute2ndLevel,
-        PrivateUpdateSkill,
-        PrivateUpdatePropertyInt64,
-        PrivateUpdatePropertyInt,
-        PrivateUpdatePropertyString,
-        PrivateUpdatePropertyBool,
-        PrivateUpdatePropertyDouble,
-        Motion
+        PrivateUpdateAttribute = 9,
+        PrivateUpdateAttribute2ndLevel = 10,
+        PrivateUpdateSkill = 11,
+        PrivateUpdatePropertyInt64 = 12,
+        PrivateUpdatePropertyInt = 13,
+        PrivateUpdatePropertyString = 14,
+        PrivateUpdatePropertyBool = 15,
+        PrivateUpdatePropertyDouble = 16,
+        Motion = 17
     }
 }

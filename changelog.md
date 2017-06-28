@@ -40,6 +40,12 @@
 * UI changes still blows up - this fix just addressed the options1 and options2
 * TODO: clothing priority does not look to be right - somethings overlap incorrectly.
 
+[Zegeger]
+* Updated Sequence objects to allow for direct access to value (as opposed to just the byte array)
+* Added MaxValue option to Sequence objects.
+* Enabled sending network acks to client.
+* Updated Motion sequence to set max value based on client source, MSB of the sequence is reserved.
+
 ### 2017-06-26
 [Ripley]
 * Expanded upon @Lidefeath's generator work
