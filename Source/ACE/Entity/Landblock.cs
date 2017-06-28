@@ -104,8 +104,11 @@ namespace ACE.Entity
             var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
-                worldObjects.Add(fo.Guid, fo);
-                fo.SetParent(this);
+                if (!worldObjects.ContainsKey(fo.Guid))
+                {
+                    worldObjects.Add(fo.Guid, fo);
+                    fo.SetParent(this);
+                }
             });
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);

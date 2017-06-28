@@ -20,8 +20,23 @@ namespace ACE.Entity
             WeenieClassid = weenieClassId;
         }
 
+        public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
+            : base(guid, aceObject)
+        {
+            Name = name;
+            DescriptionFlags = descriptionFlag;
+            WeenieFlags = weenieFlag;
+            Location = position;
+            WeenieClassid = weenieClassId;
+        }
+
         public Container(AceObject aceObject)
             : base(aceObject)
+        {
+        }
+
+        public Container(AceObject aceObject, ObjectGuid guid)
+            : base(guid, aceObject)
         {
         }
 
