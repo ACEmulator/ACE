@@ -68,6 +68,7 @@
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="AbilityRegenAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesSkill.cs" />
     <Compile Include="AceObjectPropertiesAttribute2nd.cs" />
     <Compile Include="AceObjectPropertiesAttribute.cs" />

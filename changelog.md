@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-06-28
+[Lidefeath]
+* Added linked generators i.e. a generator can spawn other generators which then spawn objects - theoretically this can go even deeper
+* Added testdata for the linked generators near Holtburg: 
+	- spawn a Drudge Skulker with his generator
+	- spawn a Drudge Camp (3 drudges) with its generator
+	- randomly spawn 10 drudge camp generators in a landblock
+
 ### 2017-06-27
 [StackOverflow]
 * Added the following Landblock loading helper console commands.
