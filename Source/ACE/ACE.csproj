@@ -117,6 +117,7 @@
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
+    <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\Lifestone.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Entity\MovementData.cs" />
