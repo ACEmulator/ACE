@@ -13,6 +13,11 @@ namespace ACE.Network.Handlers
 {
     public static class AuthenticationHandler
     {
+        /// <summary>
+        /// Seconds until an authentication request will timeout/expire.
+        /// </summary>
+        public const int DefaultAuthTimeout = 15;
+
         public static async void HandleLoginRequest(ClientPacket packet, Session session)
         {
             PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
