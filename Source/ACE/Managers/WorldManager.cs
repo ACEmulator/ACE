@@ -27,6 +27,15 @@ namespace ACE.Managers
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
+        /// <summary>
+        /// Seconds until a session will timeout. 
+        /// Raising this value allows connections to remain active for a longer period of time. 
+        /// </summary>
+        /// <remarks>
+        /// If you're experiencing network dropouts or frequent disconnects, try increasing this value.
+        /// </remarks>
+        public static uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
+
         private static volatile bool pendingWorldStop;
         public static bool WorldActive { get; private set; }
 
@@ -307,12 +316,18 @@ namespace ACE.Managers
                 sessionLock.EnterReadLock();
                 try
                 {
-                    Parallel.ForEach(sessions, s => s.Update(lastTick));
+                    // Send the current time ticks to allow sessions to declare themselves bad
+                    Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
                 }
                 finally
                 {
                     sessionLock.ExitReadLock();
                 }
+
+                // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
+                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+                if (deadSessions.Count > 0)
+                    Parallel.ForEach(deadSessions, RemoveSession);
 
                 Thread.Sleep(1);
 

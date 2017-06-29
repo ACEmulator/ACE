@@ -310,8 +310,9 @@ namespace ACE.Database
             return objects;
         }
 
-        public async Task<bool> SaveObject(AceObject aceObject)
+        public Task<bool> SaveObject(AceObject aceObject)
         {
+            // Temp took out async until we implement this to kill the warning.
             throw new NotImplementedException();
         }
     }

@@ -9,42 +9,61 @@ namespace ACE.Network.Sequence
     public class ByteSequence : ISequence
     {
         private byte value;
+        private byte maxValue = Byte.MaxValue;
 
-        public ByteSequence(byte startingValue)
+        public ByteSequence(byte startingValue, byte maxValue = Byte.MaxValue)
         {
             value = startingValue;
+            this.maxValue = maxValue;
         }
 
         /// <summary>
         /// Creates an instance without a starting value
         /// </summary>
         /// <param name="clientPrimed">Whether the value gets sent to client before first increment</param>
-        public ByteSequence(bool clientPrimed = true)
+        public ByteSequence(bool clientPrimed = true, byte maxValue = Byte.MaxValue)
         {
+            this.maxValue = maxValue;
             if (clientPrimed)
                 value = 0;
             else
-                value = Byte.MaxValue;
+                value = this.maxValue;
         }
 
-        public byte[] CurrentValue
+        public byte CurrentValue
         {
             get
             {
-                return new byte[] { value };
+                return value;
             }
         }
 
-        public byte[] NextValue
+        public byte NextValue
         {
             get
             {
-                if (value == Byte.MaxValue)
+                if (value == maxValue)
                 {
                     value = 0;
-                    return new byte[] { value };
+                    return value;
                 }
-                return new byte[] { ++value };
+                return ++value;
+            }
+        }
+
+        public byte[] CurrentBytes
+        {
+            get
+            {
+                return new byte[] { CurrentValue };
+            }
+        }
+
+        public byte[] NextBytes
+        {
+            get
+            {
+                return new byte[] { NextValue };
             }
         }
     }

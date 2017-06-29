@@ -12,6 +12,7 @@ using ACE.Network.Handlers;
 using ACE.Network.Managers;
 
 using log4net;
+using ACE.Managers;
 
 namespace ACE.Network
 {
@@ -36,7 +37,7 @@ namespace ACE.Network
         private DateTime nextResync = DateTime.UtcNow;
         private DateTime nextAck = DateTime.UtcNow;
         private DateTime nextSend = DateTime.UtcNow;
-        private bool sendAck = false;
+        private bool sendAck = true;
         private bool sendResync = false;
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
@@ -57,6 +58,11 @@ namespace ACE.Network
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
+        /// <summary>
+        /// Stores the tick value for the when an active session will timeout. If this value is in the past, the session is dead/inactive.
+        /// </summary>
+        public long TimeoutTick { get; set; }
+
         public ushort ClientId { get; }
         public ushort ServerId { get; }
 
@@ -65,6 +71,8 @@ namespace ACE.Network
             this.session = session;
             ClientId = clientId;
             ServerId = serverId;
+            // New network auth session timeouts will always be low.
+            TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
         }
 
         /// <summary>
@@ -188,6 +196,15 @@ namespace ACE.Network
             {
                 log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.Account, packet.Header.Sequence);
             }
+
+            // depending on the current session state:
+            // Set the next timeout tick value, to compare against in the WorldManager
+            // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
+            // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
+            // Example: Applications that check uptime will stay in the AuthLoginRequest state.
+            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks : 
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
@@ -387,10 +404,14 @@ namespace ACE.Network
             {
                 ServerPacket packet = packetQueue.Dequeue();
 
-                if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence < 2)
-                    ConnectionData.PacketSequence = 2;
+                if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
+                    ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
 
-                packet.Header.Sequence = ConnectionData.PacketSequence++;
+                // If we are only ACKing, then we don't seem to have to increment the sequence
+                if (packet.Header.Flags == PacketHeaderFlags.AckSequence)
+                    packet.Header.Sequence = ConnectionData.PacketSequence.CurrentValue;
+                else
+                    packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
                 packet.Header.Table = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;

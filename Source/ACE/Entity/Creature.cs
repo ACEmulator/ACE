@@ -4,20 +4,23 @@ using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameAction;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ACE.Entity
 {
     public class Creature : Container
     {
-        public CreatureAbility Strength {
+        public CreatureAbility Strength
+        {
             get { return AceObject.StrengthAbility; }
             set { AceObject.StrengthAbility = value; }
+        }
+
+        public AceObject AceCorpse
+        {
+            get { return AceObject; }
         }
 
         public CreatureAbility Endurance
@@ -75,8 +78,8 @@ namespace ACE.Entity
 
         public double RespawnTime { get; set; }
 
-        public Creature(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid, name, weenieClassId, descriptionFlag, weenieFlag, position)
+        public Creature(AceObject aceObject, ObjectGuid guid)
+            : base(aceObject, guid)
         {
         }
 
@@ -96,23 +99,9 @@ namespace ACE.Entity
             }
         }
 
-        public Creature(AceObject baseObject) : base(baseObject)
+        public Creature(AceObject baseObject)
+            : base(baseObject)
         {
-            // FIXME(ddevec): Once physics data has been refactored this shouldn't be needed...
-            SetObjectData(baseObject);
-        }
-
-        protected void SetObjectData(AceObject aco)
-        {
-            PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            // PhysicsData.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.WalkForward));
-            PhysicsData.MTableResourceId = aco.MotionTableId;
-            PhysicsData.Stable = aco.SoundTableId;
-            PhysicsData.CSetup = aco.ModelTableId;
-            PhysicsData.Petable = aco.PhysicsTableId;
-            PhysicsData.ObjScale = aco.DefaultScale;
-            PhysicsData.PhysicsState = (PhysicsState)aco.PhysicsState;
-            Location = aco.Location;
         }
 
         public virtual ActionChain GetOnKillChain(Session killerSession)
@@ -145,8 +134,8 @@ namespace ACE.Entity
                 // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
                 var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
                 // FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
-                corpse.Location.PositionY -= (corpse.PhysicsData.ObjScale ?? 0);
-                corpse.Location.PositionZ -= (corpse.PhysicsData.ObjScale ?? 0) / 2;
+                corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
+                corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
 
                 // Corpses stay on the ground for 5 * player level but minimum 1 hour
                 // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live

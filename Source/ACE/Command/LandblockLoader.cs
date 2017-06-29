@@ -24,19 +24,13 @@ namespace ACE.Command
             ushort block = 0;
             processLandblockLoading = true;
 
-            while (processLandblockLoading)
+            while (processLandblockLoading && block <= 0xFE01)
             {
-                if (block > 65225)
-                {
-                    processLandblockLoading = false;
-                    LandblockManager.FinishedForceLoading();
-                }
-                else
-                {
-                    LoadLandblock(block);
-                    block++;
-                }
+                LoadLandblock(block++);
             }
+
+            processLandblockLoading = false;
+            LandblockManager.FinishedForceLoading();
         }
 
         public static void StopLoading()

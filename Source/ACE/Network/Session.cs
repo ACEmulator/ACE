@@ -80,8 +80,15 @@ namespace ACE.Network
             }
         }
 
-        public void Update(double lastTick)
+        public void Update(double lastTick, long currentTimeTick)
         {
+            // Checks if the session has stopped responding.
+            if (currentTimeTick >= Network.TimeoutTick)
+            {
+                // Change the state to show that the Session has reached a timeout.
+                State = SessionState.NetworkTimeout;
+            }
+
             Network.Update(lastTick);
 
             // FIXME(ddevec): Most of the following work can probably be integrated into the player's action queue, or an action queue strucutre

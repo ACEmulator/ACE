@@ -21,7 +21,7 @@ namespace ACE.Factories
             Monster newMonster = new Monster(aceO);
 
             // newMonster.PhysicsData.DefaultScript = aceO.PhysicsScript;
-            newMonster.PhysicsData.DefaultScript = (uint)Network.Enum.PlayScript.Create;
+            newMonster.DefaultScript = (uint)Network.Enum.PlayScript.Create;
 
             return newMonster;
         }

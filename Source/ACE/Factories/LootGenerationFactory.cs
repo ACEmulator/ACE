@@ -23,14 +23,14 @@ namespace ACE.Factories
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
             inventoryItem.Location = position.InFrontOf(1.00f);
-            inventoryItem.PhysicsData.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+            inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             return LandblockManager.GetAddObjectChain(inventoryItem);
         }
 
         public static Container CreateTestContainerObject(Player player, uint weenieId)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            Container wo = new Container(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
+            Container wo = new Container(aceObject);
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.Guid.Full));
             return wo;
         }
@@ -38,13 +38,11 @@ namespace ACE.Factories
         public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            DebugObject wo = new DebugObject(new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), aceObject);
-            // This is testing crap remove.
-            if (aceObject.WeenieClassId == 136u)
+            if (aceObject.ItemsCapacity >= 1)
             {
-                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.Guid.Full));
+                return CreateTestContainerObject(player, weenieId);
             }
-            return wo;
+            return new DebugObject(aceObject);
         }
 
         public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)

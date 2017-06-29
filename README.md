@@ -16,7 +16,8 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 
 ## Getting Started
 
-* Install MySQL (MariaDB is preferred, but either will work).
+* Install MySQL (MariaDB is preferred, but either will work) MySQL minimum required version 5.7.17+ - MariaDB minimum required version 10.2+
+https://mariadb.org/download/
 * Create three databases named `ace_auth`, `ace_shard`, and `ace_world`.
 * Load AuthenticationBase.sql, ShardBase.sql, and WorldBase.sql for their respective databases. 
 * Load all incremental SQL updates in the Database\Updates sub directories.

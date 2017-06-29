@@ -3,13 +3,11 @@ using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum.Properties;
 using System;
+using ACE.Entity.Enum;
+using System.Linq;
 
 namespace ACE.Entity
 {
-    using Enum;
-    using System.Linq;
-    using System.Net.Mime;
-
     [DbTable("ace_object")]
     public class AceObject : ICreatureStats, ICloneable
     {
@@ -68,7 +66,7 @@ namespace ACE.Entity
         }
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
-        public String CurrentMotionState { get; set; }
+        public string CurrentMotionState { get; set; }
 
         public uint? IconId
         {
@@ -88,10 +86,7 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
         }
 
-        /// <summary>
-        /// PhysicsData.CSetup
-        /// </summary>
-        public uint? ModelTableId
+        public uint? SetupTableId
         {
             get { return GetDataIdProperty(PropertyDataId.Setup); }
             set { SetDataIdProperty(PropertyDataId.Setup, value); }
@@ -258,7 +253,7 @@ namespace ACE.Entity
             get { return GetDataIdProperty(PropertyDataId.CombatTable) ?? 0; }
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
-        
+
         /// <summary>
         /// TODO: convert to enum
         /// </summary>
@@ -312,18 +307,12 @@ namespace ACE.Entity
         /// <summary>
         /// will throw if not null!
         /// </summary>
-        public uint ItemType
+        public uint Type
         {
             get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
-
-        // public uint? PaletteId
-        // {
-        //    get { return GetIntProperty(PropertyInt.PaletteTemplate).Value; }
-        //    set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
-        // }
-
+        
         public uint? PaletteId
         {
             get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
@@ -950,7 +939,7 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            AceObject ret = new AceObject();            
+            AceObject ret = new AceObject();
             ret.AceObjectId = AceObjectId;
 
             ret.WeenieClassId = WeenieClassId;
