@@ -1,7 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-06-28
+[Jyrus]
+* Implement Auto close timer for Doors
 
+### 2017-06-28
 [Og II]
 Update readme with db minimum required versions.
 
