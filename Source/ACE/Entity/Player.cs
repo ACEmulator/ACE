@@ -1751,6 +1751,8 @@ namespace ACE.Entity
 
         public void HandleActionWieldItem(Container container, uint itemId, uint location)
         {
+            uint placementId = 0;
+            uint childLocation = 0;
             ActionChain wieldChain = new ActionChain();
             wieldChain.AddAction(
                 this,
@@ -1770,24 +1772,51 @@ namespace ACE.Entity
                         if ((EquipMask)location > EquipMask.RingLeft)
                         {
                             // We are going into a weapon, wand or shield slot.
+                            switch ((EquipMask)location)
+                            {
+                                case EquipMask.MissileWeapon:
+                                    {
+                                        childLocation = 2;
+                                        placementId = 3;
+                                        break;
+                                    }
+                                case EquipMask.Shield:
+                                    {
+                                        childLocation = 3;
+                                        placementId = 6;
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        placementId = 1;
+                                        childLocation = 1;
+                                        break;
+                                    }
+                            }
                             Children.Add(new EquippedItem(itemGuid.Full, (EquipMask)location));
                             item.Parent = container.Guid.Full;
+                            // Magic numbers - need to understand and fix.
                             item.ParentLocation = 1;
+                            item.AnimationFrame = 1;
+                            item.CurrentWieldedLocation = (EquipMask)location;
                             item.Location = Location;
                             item.SetPhysicsDescriptionFlag(item);
                         }
                         UpdateAppearance(container, itemId);
                         Session.Network.EnqueueSend(
+                            new GameMessageCreateObject(item),
+                            new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                            new GameEventWieldItem(Session, itemGuid.Full, location),
                             new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
                             new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                            new GameEventWieldItem(Session, itemGuid.Full, location));
+                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, location));
                         CurrentLandblock.EnqueueBroadcast(
                             Location,
                             Landblock.MaxObjectRange,
-                            new GameMessageObjDescEvent(this),
                             new GameMessageCreateObject(item),
-                            new GameMessageParentEvent(Session, item),
+                            new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                            new GameEventWieldItem(Session, itemGuid.Full, location),
                             new GameMessageObjDescEvent(item));
                     });
             wieldChain.EnqueueChain();

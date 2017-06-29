@@ -5,15 +5,15 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageParentEvent : GameMessage
     {
-        public GameMessageParentEvent(Session session, WorldObject targetItem)
+        public GameMessageParentEvent(WorldObject player, ObjectGuid targetItem, uint childLocation, uint placementId)
             : base(GameMessageOpcode.ParentEvent, GameMessageGroup.Group0A)
         {
-            Writer.Write(session.Player.Guid.Full);
-            Writer.Write(targetItem.Guid.Full);
-            Writer.Write(1u);
-            Writer.Write(1u);
-            Writer.Write(session.Player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
-            Writer.Write(session.Player.Sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
+            Writer.Write(player.Guid.Full);
+            Writer.Write(targetItem.Full);
+            Writer.Write(childLocation);
+            Writer.Write(placementId);
+            Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            Writer.Write(player.Sequences.GetNextSequence(SequenceType.ObjectState));
         }
     }
 }
