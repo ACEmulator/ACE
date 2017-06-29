@@ -12,11 +12,8 @@ namespace ACE.Entity
         public Monster(AceObject aceO)
             : base(aceO, new ObjectGuid(GuidManager.NewItemGuid()))
         {
-            // TODO: Check why Drudges don't appear on radar yet and don't have a healthbar when you select them
-            if (aceO.WeenieClassId < 0x8000u)
-                this.WeenieClassid = aceO.WeenieClassId;
-            else
-                this.WeenieClassid = (ushort)(aceO.WeenieClassId - 0x8000);
+            // TODO: Check why Drudges don't have a healthbar when you select them
+            aceO.AceObjectId = new ObjectGuid(GuidManager.NewItemGuid()).Full;
             IsAlive = true;
             SetupVitals();
         }

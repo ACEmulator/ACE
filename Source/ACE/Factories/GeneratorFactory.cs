@@ -179,7 +179,7 @@ namespace ACE.Factories
 
             // Search the index of the cumulative weight that's bigger than the generated random weight
             int index = Array.BinarySearch(cumulativeValues, value);
-            if (index <= 0)
+            if (index < 0)
                 index = ~index; // bitwise compliment of the index returned from BinarySearch for the real index
 
             return generatorObjects[index].GeneratorId;
