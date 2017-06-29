@@ -221,6 +221,8 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+
+            Load(character);
         }
 
         /// <summary>
@@ -244,9 +246,8 @@ namespace ACE.Entity
         {
             return Character;
         }
-
-        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
-        public void Load(AceCharacter character)
+        
+        private void Load(AceCharacter character)
         {
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -1050,36 +1051,38 @@ namespace ACE.Entity
         /// Adds a friend and updates the database.
         /// </summary>
         /// <param name="friendName">The name of the friend that is being added.</param>
-        public async Task<AddFriendResult> AddFriend(string friendName)
+        public void AddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
-                return AddFriendResult.FriendWithSelf;
+                ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
 
             // Check if friend exists
             if (Character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
-                return AddFriendResult.AlreadyInList;
+                ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
 
             // TODO: check if player is online first to avoid database hit??
             // Get character record from DB
-            ObjectInfo friendInfo = await DatabaseManager.Shard.GetObjectInfoByName(friendName);
+            DatabaseManager.Shard.GetObjectInfoByName(friendName, ((ObjectInfo friendInfo) =>
+            {
+                if (friendInfo == null)
+                {
+                    ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
+                    return;
+                }
 
-            if (friendInfo == null)
-                return AddFriendResult.CharacterDoesNotExist;
+                Friend newFriend = new Friend();
+                newFriend.Name = friendInfo.Name;
+                newFriend.Id = new ObjectGuid(friendInfo.Guid, GuidType.Player);
 
-            Friend newFriend = new Friend();
-            newFriend.Name = friendInfo.Name;
-            newFriend.Id = new ObjectGuid(friendInfo.Guid, GuidType.Player);
+                // Save to DB, assume success
+                DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low);
 
-            // Save to DB
-            await DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low);
+                // Add to character object
+                Character.AddFriend(newFriend);
 
-            // Add to character object
-            Character.AddFriend(newFriend);
-
-            // Send packet
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
-
-            return AddFriendResult.Success;
+                // Send packet
+                Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+            }));
         }
 
         /// <summary>
@@ -1095,7 +1098,7 @@ namespace ACE.Entity
                 return RemoveFriendResult.NotInFriendsList;
 
             // Remove from DB
-            await DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low);
+            DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low);
 
             // Remove from character object
             Character.RemoveFriend(friendId.Low);
@@ -1112,7 +1115,7 @@ namespace ACE.Entity
         public async void RemoveAllFriends()
         {
             // Remove all from DB
-            await DatabaseManager.Shard.RemoveAllFriends(Guid.Low);
+            DatabaseManager.Shard.RemoveAllFriends(Guid.Low);
 
             // Remove from character object
             Character.RemoveAllFriends();
@@ -1181,7 +1184,8 @@ namespace ACE.Entity
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
                 // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
-                DbManager.SaveObject(GetSavableCharacter());
+
+                DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 #if DEBUG
                 if (Session.Player != null)
                 {

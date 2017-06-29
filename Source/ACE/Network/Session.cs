@@ -216,16 +216,18 @@ namespace ACE.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            var result = await DatabaseManager.Shard.GetCharacters(Id);
-            UpdateCachedCharacters(result);
-            Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+            DatabaseManager.Shard.GetCharacters(Id, ((List<CachedCharacter> result) =>
+            {
+                UpdateCachedCharacters(result);
+                Network.EnqueueSend(new GameMessageCharacterList(result, Account));
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            Network.EnqueueSend(serverNameMessage);
+                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+                Network.EnqueueSend(serverNameMessage);
 
-            State = SessionState.AuthConnected;
+                State = SessionState.AuthConnected;
 
-            Player = null;
+                Player = null;
+            }));
         }
 
         private void SendFinalBoot()

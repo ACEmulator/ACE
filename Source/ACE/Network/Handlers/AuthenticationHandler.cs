@@ -8,6 +8,7 @@ using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Packets;
+using System.Collections.Generic;
 
 namespace ACE.Network.Handlers
 {
@@ -61,21 +62,22 @@ namespace ACE.Network.Handlers
             session.State = SessionState.AuthConnectResponse;
         }
 
-        public static async void HandleConnectResponse(ClientPacket packet, Session session)
+        public static void HandleConnectResponse(ClientPacket packet, Session session)
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            var result = await DatabaseManager.Shard.GetCharacters(session.Id);
+            DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+            {
+                session.UpdateCachedCharacters(result);
 
-            session.UpdateCachedCharacters(result);
+                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
+                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+                GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-            GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
+                session.Network.EnqueueSend(characterListMessage, serverNameMessage, dddInterrogation);
 
-            session.Network.EnqueueSend(characterListMessage, serverNameMessage, dddInterrogation);
-
-            session.State = SessionState.AuthConnected;
+                session.State = SessionState.AuthConnected;
+            }));
         }
     }
 }

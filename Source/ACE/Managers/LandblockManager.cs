@@ -31,26 +31,27 @@ namespace ACE.Managers
         /// </summary>
         public static List<Landblock> ActiveLandblocks { get; } = new List<Landblock>();
 
-        public static async void PlayerEnterWorld(Session session, ObjectGuid guid)
+        public static void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
-            AceCharacter c = DatabaseManager.Shard.GetCharacter(guid.Full);
-
-            session.Player = new Player(session, c);
-            await Task.Run(() => session.Player.Load(c));
-
-            // check the value of the welcome message. Only display it if it is not empty
-            if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
+            DatabaseManager.Shard.GetCharacter(guid.Full, ((AceCharacter c) =>
             {
-                session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-            }
-            Landblock block = GetLandblock(c.Location.LandblockId, true);
-            // Must enqueue add world object -- this is called from a message handler context
-            block.AddWorldObject(session.Player);
+                session.Player = new Player(session, c);
 
-            session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat("  powered by ACEmulator  ", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat("For more information on commands supported by this server, type @acehelp", ChatMessageType.Broadcast));
+                // check the value of the welcome message. Only display it if it is not empty
+                if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
+                {
+                    session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+                }
+
+                Landblock block = GetLandblock(c.Location.LandblockId, true);
+                // Must enqueue add world object -- this is called from a message handler context
+                block.AddWorldObject(session.Player);
+
+                session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat("  powered by ACEmulator  ", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat("For more information on commands supported by this server, type @acehelp", ChatMessageType.Broadcast));
+            }));
         }
 
         public static void AddObject(WorldObject worldObject)

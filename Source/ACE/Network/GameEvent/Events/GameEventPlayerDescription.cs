@@ -79,6 +79,10 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write(0x0Au);
 
+            CommonTasks.WaitForPlayer(Session);
+
+            Console.WriteLine("finished WriteEventBody");
+
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
             // < 9000 to filter out our custom properties

@@ -105,6 +105,7 @@
     <Compile Include="Entity\Actions\NestedActionQueue.cs" />
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\CollidableObject.cs" />
+    <Compile Include="Entity\CommonTasks.cs" />
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\Creature.cs" />
     <Compile Include="Entity\DebugObject.cs" />
@@ -135,7 +136,6 @@
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
     <Compile Include="Factories\SpellObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
-    <Compile Include="Managers\DbManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Managers\ServerManager.cs" />
