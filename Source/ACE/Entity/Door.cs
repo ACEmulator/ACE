@@ -28,11 +28,18 @@ namespace ACE.Entity
 
         public override void OnUse(ObjectGuid playerId)
         {
-            // TODO: implement auto close timer, check if door is locked, send locked soundfx if locked and fail to open.
+            // TODO: check if door is locked, send locked soundfx if locked and fail to open.
+            float autoCloseTime = 30.0f;
 
             if (this.CurrentMotionState == motionStateClosed)
             {
                 Open();
+
+                // Create Door auto close timer
+                ActionChain autoCloseTimer = new ActionChain();
+                autoCloseTimer.AddDelaySeconds(autoCloseTime);
+                autoCloseTimer.AddAction(this, () => Close());
+                autoCloseTimer.EnqueueChain();
             }
             else
             {
@@ -62,6 +69,9 @@ namespace ACE.Entity
 
         private void Close()
         {
+            if (this.CurrentMotionState == motionStateClosed)
+                return;
+
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             this.CurrentMotionState = motionStateClosed;
             this.PhysicsState ^= PhysicsState.Ethereal;
