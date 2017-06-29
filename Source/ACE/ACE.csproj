@@ -247,6 +247,7 @@
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageBootAccount.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageObjDescEvent.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageParentEvent.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePickupEvent.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerKilled.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />

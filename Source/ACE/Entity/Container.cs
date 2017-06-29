@@ -2,6 +2,7 @@ using System;
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Network.Enum;
 using ACE.Network.Motion;
 
 namespace ACE.Entity
@@ -120,7 +121,7 @@ namespace ACE.Entity
 
         public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
         {
-            return inventory.Where(wo => wo.Value.Wielder != null).ToList();
+            return inventory.Where(wo => wo.Value.Wielder != null && wo.Value.CurrentWieldedLocation < EquipMask.BraceletLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)

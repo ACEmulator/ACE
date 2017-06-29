@@ -383,7 +383,7 @@ namespace ACE.Entity
             get { return (PhysicsState)AceObject.PhysicsState; }
             set { AceObject.PhysicsState = (uint)value; }
         }
-       
+
         /// <summary>
         /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
         /// </summary>
@@ -409,7 +409,6 @@ namespace ACE.Entity
             set { AceObject.PhysicsTableId = value; }
         }
 
-        public uint ItemsEquipedCount { get; set; }
         /// <summary>
         /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
         /// </summary>
@@ -642,7 +641,7 @@ namespace ACE.Entity
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;            
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.Location = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
@@ -1094,7 +1093,7 @@ namespace ACE.Entity
             if (SetupTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
 
-            if (ItemsEquipedCount != 0)
+            if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
             if (Parent != null)
@@ -1187,7 +1186,7 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
-                writer.Write(ItemsEquipedCount);
+                writer.Write(Children.Count);
                 foreach (var child in Children)
                 {
                     writer.Write(child.Guid);

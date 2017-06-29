@@ -1733,7 +1733,6 @@ namespace ACE.Entity
                             AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                     }
 
-                    ItemsEquipedCount += 1;
                     foreach (ModelPalette p in wo.GetPalettes)
                         AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
@@ -1763,8 +1762,20 @@ namespace ACE.Entity
                             HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Wielder);
                             return;
                         }
+
                         // Ok do you have this - if not bail
-                        if (GetInventoryItem(itemGuid) == null) return;
+                        var item = GetInventoryItem(itemGuid);
+                        if (item == null)
+                            return;
+                        if ((EquipMask)location > EquipMask.RingLeft)
+                        {
+                            // We are going into a weapon, wand or shield slot.
+                            Children.Add(new EquippedItem(itemGuid.Full, (EquipMask)location));
+                            item.Parent = container.Guid.Full;
+                            item.ParentLocation = 1;
+                            item.Location = Location;
+                            item.SetPhysicsDescriptionFlag(item);
+                        }
                         UpdateAppearance(container, itemId);
                         Session.Network.EnqueueSend(
                             new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
@@ -1774,7 +1785,10 @@ namespace ACE.Entity
                         CurrentLandblock.EnqueueBroadcast(
                             Location,
                             Landblock.MaxObjectRange,
-                            new GameMessageObjDescEvent(this));
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageCreateObject(item),
+                            new GameMessageParentEvent(Session, item),
+                            new GameMessageObjDescEvent(item));
                     });
             wieldChain.EnqueueChain();
         }
