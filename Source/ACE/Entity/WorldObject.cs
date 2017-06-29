@@ -604,10 +604,19 @@ namespace ACE.Entity
             PaletteGuid = aceObject.PaletteId;
         }
 
-        public void SetCombatMode(CombatMode newCombatMode)
+        public void SetCombatMode(CombatMode newCombatMode, Player player)
         {
-            log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);
-            // TODO: any sort of validation
+            log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
+            // TODO: finish up this work.
+            if ((CombatMode == CombatMode.Missle) && (newCombatMode == CombatMode.Peace))
+            {
+                // delete the arrows from the world view
+            }
+            if ((CombatMode == CombatMode.Peace) && (newCombatMode == CombatMode.Missle))
+            {
+                // show the arrows to the world view
+            }
+
             CombatMode = newCombatMode;
             switch (CombatMode)
             {
@@ -615,9 +624,43 @@ namespace ACE.Entity
                     SetMotionState(new UniversalMotion(MotionStance.Standing));
                     break;
                 case CombatMode.Melee:
-                    var gm = new UniversalMotion(MotionStance.UANoShieldAttack);
-                    gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
+                    UniversalMotion gm;
+                    if (player.Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
+                    {
+                        gm = new UniversalMotion(MotionStance.UANoShieldAttack);
+                        gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
+                    }
+                    else
+                    {
+                        gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
+                        gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
+                    }
                     SetMotionState(gm);
+                    break;
+                case CombatMode.Magic:
+                    var mm = new UniversalMotion(MotionStance.Spellcasting);
+                    mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
+                    SetMotionState(mm);
+                    break;
+                case CombatMode.Missle:
+                    EquippedItem mEquipedMissile;
+                    WorldObject missileWeapon = null;
+                    mEquipedMissile = player.Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
+                    if (mEquipedMissile != null)
+                        missileWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
+                    if (missileWeapon != null && missileWeapon.AmmoType == Network.Enum.AmmoType.Bolt)
+                    {
+                        var bm = new UniversalMotion(MotionStance.CrossBowAttack);
+                        bm.MovementData.CurrentStyle = (ushort)MotionStance.CrossBowAttack;
+                        SetMotionState(bm);
+                    }
+                    else
+                    {
+                        var bm = new UniversalMotion(MotionStance.BowAttack);
+                        bm.MovementData.CurrentStyle = (ushort)MotionStance.BowAttack;
+                        SetMotionState(bm);
+                    }
+
                     break;
             }
         }
@@ -842,16 +885,16 @@ namespace ACE.Entity
                 writer.Write((sbyte?)CombatUse ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
-                writer.Write(Structure ?? 0u);
+                writer.Write(Structure ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
-                writer.Write(MaxStructure ?? 0u);
+                writer.Write(MaxStructure ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? 0u);
+                writer.Write(StackSize ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
-                writer.Write(MaxStackSize ?? 0u);
+                writer.Write(MaxStackSize ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
                 writer.Write(ContainerId ?? 0u);

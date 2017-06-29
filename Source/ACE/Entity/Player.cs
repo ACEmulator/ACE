@@ -1570,14 +1570,44 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void HandleUnequip(Container container, WorldObject item, uint location)
+        private void HandleUnequip(Container container, WorldObject item, uint location, ActionChain inContainerChain)
         {
             UpdateAppearance(container, item.Guid.Full);
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+            if (item.CurrentWieldedLocation > EquipMask.RingLeft)
+            {
+                // We are coming from a weapon, wand or shield slot.
+                Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+                item.Parent = null;
+                // Magic numbers - need to understand and fix.
+                item.ParentLocation = null;
+                item.CurrentWieldedLocation = null;
+                inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
+                    Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
+                item.Location = null;
+                item.ContainerId = container.Guid.Full;
+                item.SetPhysicsDescriptionFlag(item);
+            }
+            else
+            {
+                item.Parent = null;
+                item.ParentLocation = null;
+                item.CurrentWieldedLocation = null;
+                item.Location = null;
+                item.ContainerId = container.Guid.Full;
+                item.SetPhysicsDescriptionFlag(item);
+            }
+
+            inContainerChain.AddDelaySeconds(0.001);
+            inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
                 new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
+                new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
+                new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, 0),
                 new GameMessageObjDescEvent(this),
-                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0)));
+
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                new GameMessageObjDescEvent(this),
+                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, location));
         }
 
         private void HandleMove(WorldObject item, Container container, uint location)
@@ -1797,27 +1827,57 @@ namespace ACE.Entity
                             item.Parent = container.Guid.Full;
                             // Magic numbers - need to understand and fix.
                             item.ParentLocation = 1;
-                            item.AnimationFrame = 1;
                             item.CurrentWieldedLocation = (EquipMask)location;
                             item.Location = Location;
                             item.SetPhysicsDescriptionFlag(item);
                         }
+                        else
+                        {
+                            item.CurrentWieldedLocation = (EquipMask)location;
+                            item.SetPhysicsDescriptionFlag(item);
+                        }
                         UpdateAppearance(container, itemId);
-                        Session.Network.EnqueueSend(
-                            new GameMessageCreateObject(item),
-                            new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
-                            new GameEventWieldItem(Session, itemGuid.Full, location),
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
-                            new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, location));
-                        CurrentLandblock.EnqueueBroadcast(
-                            Location,
-                            Landblock.MaxObjectRange,
-                            new GameMessageCreateObject(item),
-                            new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
-                            new GameEventWieldItem(Session, itemGuid.Full, location),
-                            new GameMessageObjDescEvent(item));
+                        if ((EquipMask)location == EquipMask.Ammunition)
+                            Session.Network.EnqueueSend(
+                                new GameEventWieldItem(Session, itemGuid.Full, location),
+                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
+                        else
+                        {
+                            if ((EquipMask)location > EquipMask.RingLeft)
+                            {
+                                Session.Network.EnqueueSend(
+                                    new GameMessageCreateObject(item),
+                                    new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                    new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0),
+                                        PropertyInstanceId.Container),
+                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid,
+                                        PropertyInstanceId.Wielder),
+                                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation,
+                                        location));
+                                CurrentLandblock.EnqueueBroadcast(
+                                    Location,
+                                    Landblock.MaxObjectRange,
+                                    new GameMessageCreateObject(item),
+                                    new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameMessageObjDescEvent(item));
+                            }
+                            else
+                            {
+                                Session.Network.EnqueueSend(
+                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                    new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
+                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, location));
+                                CurrentLandblock.EnqueueBroadcast(
+                                    Location,
+                                    Landblock.MaxObjectRange,
+                                    new GameMessageObjDescEvent(this));
+                            }
+                        }
                     });
             wieldChain.EnqueueChain();
         }
@@ -1825,14 +1885,15 @@ namespace ACE.Entity
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
         {
             ActionChain inContainerChain = new ActionChain();
+            WorldObject inventoryItem;
             inContainerChain.AddAction(
                 this,
                 () =>
                     {
-                        WorldObject inventoryItem = null;
-                        Container container = null;
+                        Container container;
 
-                        if (containerGuid.IsPlayer()) container = this;
+                        if (containerGuid.IsPlayer())
+                            container = this;
                         else
                         {
                             // Ok I am going into player backpack (container) with something I have somewhere
@@ -1847,7 +1908,8 @@ namespace ACE.Entity
                             return;
                         }
 
-                        if (containerGuid.IsPlayer()) container = this;
+                        if (containerGuid.IsPlayer())
+                            container = this;
                         else
                         {
                             // Ok I am going into player backpack (container) with something I have somewhere
@@ -1860,7 +1922,7 @@ namespace ACE.Entity
                         // Was I equiped?   If so, lets take care of that and unequip
                         if (inventoryItem.Wielder != null)
                         {
-                            HandleUnequip(container, inventoryItem, location);
+                            HandleUnequip(container, inventoryItem, location, inContainerChain);
                             return;
                         }
 
