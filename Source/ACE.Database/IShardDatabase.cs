@@ -8,24 +8,24 @@ using System.Threading.Tasks;
 
 namespace ACE.Database
 {
-    public interface IShardDatabase : ICommonDatabase
+    internal interface IShardDatabase : ICommonDatabase
     {
-        Task<List<CachedCharacter>> GetCharacters(uint accountId);
+        List<CachedCharacter> GetCharacters(uint accountId);
 
         /// <summary>
         /// Loads an object by name.  Primary use case: characters.
         /// </summary>
-        Task<ObjectInfo> GetObjectInfoByName(string name);
+        ObjectInfo GetObjectInfoByName(string name);
 
-        Task DeleteFriend(uint characterId, uint friendCharacterId);
+        void DeleteFriend(uint characterId, uint friendCharacterId);
 
-        Task AddFriend(uint characterId, uint friendCharacterId);
+        void AddFriend(uint characterId, uint friendCharacterId);
 
-        Task RemoveAllFriends(uint characterId);
+        void RemoveAllFriends(uint characterId);
 
         bool IsCharacterNameAvailable(string name);
 
-        Task<bool> DeleteOrRestore(ulong unixTime, uint id);
+        bool DeleteOrRestore(ulong unixTime, uint id);
 
         uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
 
@@ -34,5 +34,7 @@ namespace ACE.Database
         uint GetNextCharacterId();
 
         AceCharacter GetCharacter(uint id);
+
+        bool SaveObject(AceObject aceObject);
     }
 }

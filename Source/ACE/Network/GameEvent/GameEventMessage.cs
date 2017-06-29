@@ -1,4 +1,5 @@
 ﻿using ACE.Network.GameMessages;
+using System.Threading.Tasks;
 
 namespace ACE.Network.GameEvent
 {
@@ -13,9 +14,20 @@ namespace ACE.Network.GameEvent
             EventType = eventType;
             Session = session;
 
-            Writer.WriteGuid(session.Player.Guid);
-            Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)EventType);
+            // session.Player is null under race conditions of login and async DB loading.  Task this out.
+            var t = new Task(() =>
+            {
+                while (session.Player == null)
+                {
+                    Task.Delay(10).Wait();
+                }
+
+                Writer.WriteGuid(session.Player.Guid);
+                Writer.Write(session.GameEventSequence++);
+                Writer.Write((uint)EventType);
+            });
+
+            t.Start();
         }
     }
 }

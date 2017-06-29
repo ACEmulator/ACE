@@ -1314,22 +1314,23 @@ namespace ACE.Command.Handlers
             fixupOldName = parameters[0].Replace("+", "").Remove(1).ToUpper() + parameters[0].Replace("+", "").Substring(1);
             fixupNewName = parameters[1].Replace("+", "").Remove(1).ToUpper() + parameters[1].Replace("+", "").Substring(1);
 
-            uint charId = DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName);
-
             string message = "";
 
-            if (charId > 0)
-                message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
-            else
-                message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
-
-            if (session == null)
-                Console.WriteLine(message);
-            else
+            DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName, ((uint charId) =>
             {
-                var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
-                session.Network.EnqueueSend(sysChatMsg);
-            }
+                if (charId > 0)
+                    message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
+                else
+                    message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
+
+                if (session == null)
+                    Console.WriteLine(message);
+                else
+                {
+                    var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
+                    session.Network.EnqueueSend(sysChatMsg);
+                }
+            }));
         }
 
         // setadvclass
