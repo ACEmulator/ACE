@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-06-28
+
+[Og II]
+Update readme with db minimum required versions.
+
 [Og II]
 * Completed work on flattening PhysicsData and ModelData
 * Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
