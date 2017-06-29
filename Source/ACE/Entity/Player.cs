@@ -221,8 +221,6 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
-
-            Load(character);
         }
 
         /// <summary>
@@ -247,7 +245,7 @@ namespace ACE.Entity
             return Character;
         }
         
-        private void Load(AceCharacter character)
+        public void Load(AceCharacter character)
         {
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {

@@ -47,9 +47,7 @@ namespace ACE.Network.GameAction.Actions
             bool longJump;*/
 
             CommonTasks.WaitForPlayer(session);
-
-            Console.WriteLine("finished Handle");
-
+            
             MotionStateFlag flags = (MotionStateFlag)message.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.CurrentHoldKey) != 0)
