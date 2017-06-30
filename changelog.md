@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-06-30
+[Og II]
+* Fixed issue with the wrong data size being used in the weenie data serilzation.
+* Structure, MaxStructure, StackSize and MaxStackSize were being sent as uint and they are ushort.  This caused intermittant alignment issues.
+
 ### 2017-06-29
 [Mogwai and ddevec]
 * Moved all shard database calls into an asynchronous interface implementation.  Callbacks are now necessary to get results back from db I/O.
