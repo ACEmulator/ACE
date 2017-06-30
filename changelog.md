@@ -1,12 +1,16 @@
 # ACEmulator Change Log
 
+### 2017-06-29
+[ddevec]
+* Added basic support for motion broadcasting.
+
 ### 2017-06-28
 [Jyrus]
 * Implement Auto close timer for Doors
 
 ### 2017-06-28
 [Og II]
-Update readme with db minimum required versions.
+* Update readme with db minimum required versions.
 
 [Og II]
 * Completed work on flattening PhysicsData and ModelData

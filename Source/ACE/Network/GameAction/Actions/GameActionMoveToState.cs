@@ -1,6 +1,9 @@
 ﻿using System;
-
+using System.IO;
 using ACE.Entity;
+using ACE.Network.Motion;
+
+using log4net;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -20,7 +23,8 @@ namespace ACE.Network.GameAction.Actions
             SideStepSpeed   = 0x0080,
             TurnCommand     = 0x0100,
             TurnHoldKey     = 0x0200,
-            TurnSpeed       = 0x0400
+            TurnSpeed       = 0x0400,
+            AnimationFlag   = 0x0800
         }
 
         private class MotionStateDirection
@@ -30,15 +34,51 @@ namespace ACE.Network.GameAction.Actions
             public float Speed { get; set; } = 1.0f;
         }
 
+        private static MovementData DeserializeMovement(BinaryReader reader, MotionStateFlag flags)
+        {
+            MovementData ret = new MovementData();
+
+            if ((flags & MotionStateFlag.CurrentStyle) != 0)
+                ret.CurrentStyle = (ushort)reader.ReadUInt32();
+
+            if ((flags & MotionStateFlag.ForwardCommand) != 0)
+                ret.ForwardCommand = (ushort)reader.ReadUInt32();
+
+            // FIXME(ddevec): Holdkey?
+            if ((flags & MotionStateFlag.ForwardHoldKey) != 0)
+                reader.ReadUInt32();
+
+            if ((flags & MotionStateFlag.ForwardSpeed) != 0)
+                ret.ForwardSpeed = (ushort)reader.ReadSingle();
+
+            if ((flags & MotionStateFlag.SideStepCommand) != 0)
+                ret.SideStepCommand = (ushort)reader.ReadUInt32();
+
+            // FIXME(ddevec): Holdkey?
+            if ((flags & MotionStateFlag.SideStepHoldKey) != 0)
+                reader.ReadUInt32();
+
+            if ((flags & MotionStateFlag.SideStepSpeed) != 0)
+                ret.SideStepSpeed = (ushort)reader.ReadSingle();
+
+            if ((flags & MotionStateFlag.TurnCommand) != 0)
+                ret.TurnCommand = (ushort)reader.ReadUInt32();
+
+            // FIXME(ddevec): Holdkey?
+            if ((flags & MotionStateFlag.TurnHoldKey) != 0)
+                reader.ReadUInt32();
+
+            if ((flags & MotionStateFlag.TurnSpeed) != 0)
+                ret.TurnSpeed = (ushort)reader.ReadSingle();
+
+            return ret;
+        }
+
         [GameAction(GameActionType.MoveToState)]
         public static void Handle(ClientMessage message, Session session)
         {
             Position position;
-            uint currentHoldkey;
-            uint currentStyle;
-            MotionStateDirection forward = new MotionStateDirection();
-            MotionStateDirection sideStep = new MotionStateDirection();
-            MotionStateDirection turn = new MotionStateDirection();
+            uint currentHoldkey = 0;
             ushort instanceTimestamp;
             ushort serverControlTimestamp;
             ushort teleportTimestamp;
@@ -51,35 +91,17 @@ namespace ACE.Network.GameAction.Actions
             if ((flags & MotionStateFlag.CurrentHoldKey) != 0)
                 currentHoldkey = message.Payload.ReadUInt32();
 
-            if ((flags & MotionStateFlag.CurrentStyle) != 0)
-                currentStyle = message.Payload.ReadUInt32();
+            MovementData md = DeserializeMovement(message.Payload, flags);
 
-            if ((flags & MotionStateFlag.ForwardCommand) != 0)
-                forward.Command = message.Payload.ReadUInt32();
-
-            if ((flags & MotionStateFlag.ForwardHoldKey) != 0)
-                forward.HoldKey = message.Payload.ReadUInt32();
-
-            if ((flags & MotionStateFlag.ForwardSpeed) != 0)
-                forward.Speed = message.Payload.ReadSingle();
-
-            if ((flags & MotionStateFlag.SideStepCommand) != 0)
-                sideStep.Command = message.Payload.ReadUInt32();
-
-            if ((flags & MotionStateFlag.SideStepHoldKey) != 0)
-                sideStep.HoldKey = message.Payload.ReadUInt32();
-
-            if ((flags & MotionStateFlag.SideStepSpeed) != 0)
-                sideStep.Speed = message.Payload.ReadSingle();
-
-            if ((flags & MotionStateFlag.TurnCommand) != 0)
-                turn.Command = message.Payload.ReadUInt32();
-
-            if ((flags & MotionStateFlag.TurnHoldKey) != 0)
-                turn.HoldKey = message.Payload.ReadUInt32();
-
-            if ((flags & MotionStateFlag.TurnSpeed) != 0)
-                turn.Speed = message.Payload.ReadSingle();
+            uint numAnimations = (uint)flags >> 11;
+            MotionItem[] commands = new MotionItem[numAnimations];
+            for (int i = 0; i < numAnimations; i++)
+            {
+                ushort motionCommand = message.Payload.ReadUInt16();
+                ushort sequence = message.Payload.ReadUInt16();
+                float speed = message.Payload.ReadSingle();
+                commands[i] = new MotionItem((Enum.MotionCommand)motionCommand, speed);
+            }
 
             position = new Position(message.Payload);
             position.LandblockId = new LandblockId(position.Cell);
@@ -89,7 +111,12 @@ namespace ACE.Network.GameAction.Actions
             teleportTimestamp = message.Payload.ReadUInt16();
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
+
             session.Player.RequestUpdatePosition(position);
+
+            // FIXME(ddevec): If speed values in the motion need to be updated by the player, this will likely need to be adjusted
+            // Send the motion to the player
+            session.Player.RequestUpdateMotion(currentHoldkey, md, commands);
         }
     }
 }

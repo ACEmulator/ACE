@@ -245,6 +245,8 @@ namespace ACE.Entity
             return Character;
         }
 
+        private MotionStance stance = MotionStance.Standing;
+
         // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
         public void Load(AceCharacter character)
         {
@@ -1289,6 +1291,31 @@ namespace ACE.Entity
         public void RequestUpdatePosition(Position pos)
         {
             new ActionChain(this, () => ExternalUpdatePosition(pos)).EnqueueChain();
+        }
+
+        public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
+        {
+            new ActionChain(this, () =>
+            {
+                // Update our current style
+                if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+                {
+                    MotionStance newStance = (MotionStance)md.CurrentStyle;
+                    if (newStance != stance)
+                    {
+                        stance = (MotionStance)md.CurrentStyle;
+                    }
+                }
+
+                md = md.ConvertToClientAccepted(holdKey, Skills[Skill.Run]);
+
+                UniversalMotion newMotion = new UniversalMotion(stance, md);
+                // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
+                // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
+                newMotion.Commands.AddRange(commands);
+
+                CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
+            }).EnqueueChain();
         }
 
         private void ExternalUpdatePosition(Position newPosition)
