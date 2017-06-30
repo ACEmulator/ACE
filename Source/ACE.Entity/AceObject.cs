@@ -891,6 +891,8 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
+
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
 
         // ReSharper disable once InconsistentNaming
@@ -956,6 +958,7 @@ namespace ACE.Entity
             ret.DataIdProperties = CloneList(DataIdProperties);
             ret.InstanceIdProperties = CloneList(InstanceIdProperties);
             ret.StringProperties = CloneList(StringProperties);
+            ret.GeneratorLinks = CloneList(GeneratorLinks);
             ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
             ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
