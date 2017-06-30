@@ -13,7 +13,5 @@ namespace ACE.Database
         List<AceObject> GetObjectsByLandblock(ushort landblock);
 
         AceObject GetObject(uint aceObjectId);
-
-        Task<bool> SaveObject(AceObject aceObject);
     }
 }
