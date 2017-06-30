@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
@@ -244,7 +243,7 @@ namespace ACE.Entity
         {
             return Character;
         }
-        
+
         private MotionStance stance = MotionStance.Standing;
 
         // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor

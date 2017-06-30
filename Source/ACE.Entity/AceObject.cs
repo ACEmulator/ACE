@@ -413,6 +413,12 @@ namespace ACE.Entity
             get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
             set { SetIntProperty(PropertyInt.StackSize, value); }
         }
+
+        public uint? DefaultCombatStyle
+        {
+            get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
+            set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
+        }
         /// <summary>
         /// This field represents the number of units or uses an item has in it or left.   Salvage in it
         /// healing kits, essences the number left.

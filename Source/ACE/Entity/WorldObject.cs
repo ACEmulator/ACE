@@ -213,6 +213,12 @@ namespace ACE.Entity
             set { AceObject.CombatUse = (byte?)value; }
         }
 
+        public MotionStance? DefaultCombatStyle
+        {
+            get { return (MotionStance?)AceObject.DefaultCombatStyle; }
+            set { AceObject.DefaultCombatStyle = (uint?)value; }
+        }
+
         /// <summary>
         /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
         /// </summary>
@@ -625,13 +631,32 @@ namespace ACE.Entity
                     break;
                 case CombatMode.Melee:
                     UniversalMotion gm;
+                    WorldObject meleeWeapon = null;
+
+                    // Let's see what if anything is equipped and if we have a shield.
+                    var mEquipedMelee = player.Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
+                    if (mEquipedMelee != null)
+                        meleeWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+
                     if (player.Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
                     {
-                        gm = new UniversalMotion(MotionStance.UaNoShieldAttack);
-                        gm.MovementData.CurrentStyle = (ushort)MotionStance.UaNoShieldAttack;
+
+                        if (meleeWeapon?.DefaultCombatStyle != null)
+                        {
+                            // I can read the weapon Og II
+                            gm = new UniversalMotion((MotionStance)meleeWeapon.DefaultCombatStyle);
+                            gm.MovementData.CurrentStyle = (ushort)meleeWeapon.DefaultCombatStyle;
+                        }
+                        else
+                        {
+                            // I am either truly UA with no weapon or we don't have this defined data error Og II
+                            gm = new UniversalMotion(MotionStance.UaNoShieldAttack);
+                            gm.MovementData.CurrentStyle = (ushort)MotionStance.UaNoShieldAttack;
+                        }
                     }
                     else
                     {
+                        // TODO: Og II pick up here and finish out the stance work.
                         gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
                         gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
                     }
