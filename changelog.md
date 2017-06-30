@@ -8,13 +8,17 @@
 * Fixed some constructor issues related to Guids. Not sure if it is the right way to go about it but does seem to work in testing.
 * Altered GameEventIdentifyObjectResponse to output debug stuff for more objects temporaryly and fixed its output of Guids in decimal form.
 
+### 2017-06-29
+[ddevec]
+* Added basic support for motion broadcasting.
+
 ### 2017-06-28
 [Jyrus]
 * Implement Auto close timer for Doors
 
 ### 2017-06-28
 [Og II]
-Update readme with db minimum required versions.
+* Update readme with db minimum required versions.
 
 [Og II]
 * Completed work on flattening PhysicsData and ModelData
