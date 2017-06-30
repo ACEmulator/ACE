@@ -640,7 +640,6 @@ namespace ACE.Entity
 
                     if (player.Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
                     {
-
                         if (meleeWeapon?.DefaultCombatStyle != null)
                         {
                             // I can read the weapon Og II
