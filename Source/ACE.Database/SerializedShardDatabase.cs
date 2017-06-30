@@ -47,7 +47,7 @@ namespace ACE.Database
 
             while (_keepWorking)
             {
-                lock(_queueLock)
+                lock (_queueLock)
                 {
                     workToDo = _queue.TryDequeue(out t);
                 }
@@ -80,7 +80,7 @@ namespace ACE.Database
                     t.Start();
                     t.Wait();
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                         // log eventually, perhaps add failure callbacks?
                         // swallow for now.  can't block other db work because 1 fails.
@@ -93,24 +93,28 @@ namespace ACE.Database
             }
         }
 
-        public void AddFriend(uint characterId, uint friendCharacterId)
+        public void AddFriend(uint characterId, uint friendCharacterId, Action callback)
         {
             lock (_queueLock)
             {
                 _queue.Enqueue(new Task(() =>
                 {
                     _wrappedDatabase.AddFriend(characterId, friendCharacterId);
+                    if (callback != null)
+                        callback.Invoke();
                 }));
             }
         }
 
-        public void DeleteFriend(uint characterId, uint friendCharacterId)
+        public void DeleteFriend(uint characterId, uint friendCharacterId, Action callback)
         {
             lock (_queueLock)
             {
                 _queue.Enqueue(new Task(() =>
                 {
                     _wrappedDatabase.DeleteFriend(characterId, friendCharacterId);
+                    if (callback != null)
+                        callback.Invoke();
                 }));
             }
         }
@@ -219,13 +223,15 @@ namespace ACE.Database
             }
         }
 
-        public void RemoveAllFriends(uint characterId)
+        public void RemoveAllFriends(uint characterId, Action callback)
         {
             lock (_queueLock)
             {
                 _queue.Enqueue(new Task(() =>
                 {
                     _wrappedDatabase.RemoveAllFriends(characterId);
+                    if (callback != null)
+                        callback.Invoke();
                 }));
             }
         }

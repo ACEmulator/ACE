@@ -1076,13 +1076,14 @@ namespace ACE.Entity
                 newFriend.Id = new ObjectGuid(friendInfo.Guid, GuidType.Player);
 
                 // Save to DB, assume success
-                DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low);
+                DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low, (() =>
+                {
+                    // Add to character object
+                    Character.AddFriend(newFriend);
 
-                // Add to character object
-                Character.AddFriend(newFriend);
-
-                // Send packet
-                Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+                    // Send packet
+                    Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+                }));
             }));
         }
 
@@ -1090,33 +1091,35 @@ namespace ACE.Entity
         /// Remove a single friend and update the database.
         /// </summary>
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public async Task<RemoveFriendResult> RemoveFriend(ObjectGuid friendId)
+        public void RemoveFriend(ObjectGuid friendId)
         {
             Friend friendToRemove = Character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
 
             // Not in friend list
             if (friendToRemove == null)
-                return RemoveFriendResult.NotInFriendsList;
+            {
+                ChatPacket.SendServerMessage(Session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);
+                return;
+            }
 
             // Remove from DB
-            DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low);
+            DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low, (() =>
+            {
+                // Remove from character object
+                Character.RemoveFriend(friendId.Low);
 
-            // Remove from character object
-            Character.RemoveFriend(friendId.Low);
-
-            // Send packet
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
-
-            return RemoveFriendResult.Success;
+                // Send packet
+                Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
+            }));
         }
 
         /// <summary>
         /// Delete all friends and update the database.
         /// </summary>
-        public async void RemoveAllFriends()
+        public void RemoveAllFriends()
         {
             // Remove all from DB
-            DatabaseManager.Shard.RemoveAllFriends(Guid.Low);
+            DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
 
             // Remove from character object
             Character.RemoveAllFriends();
