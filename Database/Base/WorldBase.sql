@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `ace_object`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ace_object` (
-  `aceObjectId` int(10) unsigned NOT NULL,
+  `aceObjectId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `aceObjectDescriptionFlags` int(10) unsigned NOT NULL,
   `weenieClassId` int(10) unsigned NOT NULL,
   `weenieHeaderFlags` int(10) unsigned DEFAULT NULL,
@@ -313,7 +313,7 @@ DROP TABLE IF EXISTS `ace_weenie_class`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ace_weenie_class` (
-  `weenieClassId` int(10) unsigned NOT NULL,
+  `weenieClassId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `weenieClassDescription` text NOT NULL,
   PRIMARY KEY (`weenieClassId`),
   UNIQUE KEY `idx_weenieName` (`weenieClassDescription`(100))
@@ -450,4 +450,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-24 14:32:10
+-- Dump completed on 2017-06-29  2:44:03

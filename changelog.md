@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-06-30
+[Ripley]
+* Changed WorldBase to allow for auto incrementing of aceObjectId and weenieClassId
+* Changed WEENIE_MAX to be 199999 to account for ACE (re)created weenies starting at 100000
+* Several changes to GuidManager and redirected CommonObjectFactory to use it instead of its own list
+* Fixed some constructor issues related to Guids. Not sure if it is the right way to go about it but does seem to work in testing.
+* Altered GameEventIdentifyObjectResponse to output debug stuff for more objects temporaryly and fixed its output of Guids in decimal form.
+
 ### 2017-06-28
 [Jyrus]
 * Implement Auto close timer for Doors
