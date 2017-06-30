@@ -6,7 +6,17 @@
 * Calls to the shard database are now serialized in another thread and should eliminate the deadlocks we were seeing in MySql.
 * Cleaned up session delay loading of Player/Character data to allow for async database operations.
 
+[ddevec]
+* Added basic support for motion broadcastin
+
 ### 2017-06-28
+[Jyrus]
+* Implement Auto close timer for Doors
+
+### 2017-06-28
+[Og II]
+* Update readme with db minimum required versions.
+
 [Og II]
 * Completed work on flattening PhysicsData and ModelData
 * Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
