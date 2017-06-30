@@ -3,6 +3,7 @@
 ### 2017-06-29
 [Mogwai and ddevec]
 * Moved all shard database calls into an asynchronous interface implementation.  Callbacks are now necessary to get results back from db I/O.
+* Calls to the shard database are now serialized in another thread and should eliminate the deadlocks we were seeing in MySql.
 * Cleaned up session delay loading of Player/Character data to allow for async database operations.
 
 ### 2017-06-28
