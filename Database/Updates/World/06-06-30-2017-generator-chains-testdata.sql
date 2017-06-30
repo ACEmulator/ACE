@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `ace_object_generator_link` (
   `generatorWeenieClassId` int(10) unsigned NOT NULL,
   `generatorWeight` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`aceObjectId`,`index`),
-  KEY `fk_generator_link__AceObject` (`generatorId`),
+  KEY `fk_generator_link__AceObject` (`generatorWeenieClassId`),
   CONSTRAINT `fk_generator_link__AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
