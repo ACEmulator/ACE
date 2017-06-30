@@ -105,7 +105,6 @@
     <Compile Include="Entity\Actions\NestedActionQueue.cs" />
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\CollidableObject.cs" />
-    <Compile Include="Entity\CommonTasks.cs" />
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\Creature.cs" />
     <Compile Include="Entity\DebugObject.cs" />

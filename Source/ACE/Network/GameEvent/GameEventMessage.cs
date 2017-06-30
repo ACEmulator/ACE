@@ -14,20 +14,11 @@ namespace ACE.Network.GameEvent
             EventType = eventType;
             Session = session;
 
-            // session.Player is null under race conditions of login and async DB loading.  Task this out.
-            var t = new Task(() =>
-            {
-                while (session.Player == null)
-                {
-                    Task.Delay(10).Wait();
-                }
-
-                Writer.WriteGuid(session.Player.Guid);
-                Writer.Write(session.GameEventSequence++);
-                Writer.Write((uint)EventType);
-            });
-
-            t.Start();
+            // Force session to not be null -- due to races with player initialization
+            session.WaitForPlayer();
+            Writer.WriteGuid(session.Player.Guid);
+            Writer.Write(session.GameEventSequence++);
+            Writer.Write((uint)EventType);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace ACE.Managers
         {
             DatabaseManager.Shard.GetCharacter(guid.Full, ((AceCharacter c) =>
             {
-                session.Player = new Player(session, c);
+                session.SetPlayer(new Player(session, c));
                 session.Player.Load(c);
 
                 // check the value of the welcome message. Only display it if it is not empty
