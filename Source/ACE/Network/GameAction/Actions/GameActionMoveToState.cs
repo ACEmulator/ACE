@@ -46,6 +46,8 @@ namespace ACE.Network.GameAction.Actions
             /*bool contact;
             bool longJump;*/
 
+            session.WaitForPlayer();
+            
             MotionStateFlag flags = (MotionStateFlag)message.Payload.ReadUInt32();
 
             if ((flags & MotionStateFlag.CurrentHoldKey) != 0)

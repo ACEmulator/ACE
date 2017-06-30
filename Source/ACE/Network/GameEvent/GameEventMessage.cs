@@ -1,4 +1,5 @@
 ﻿using ACE.Network.GameMessages;
+using System.Threading.Tasks;
 
 namespace ACE.Network.GameEvent
 {
@@ -13,6 +14,8 @@ namespace ACE.Network.GameEvent
             EventType = eventType;
             Session = session;
 
+            // Force session to not be null -- due to races with player initialization
+            session.WaitForPlayer();
             Writer.WriteGuid(session.Player.Guid);
             Writer.Write(session.GameEventSequence++);
             Writer.Write((uint)EventType);
