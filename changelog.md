@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-06-30
+[Og II]
+* Fixed issue with the wrong data size being used in the weenie data serilzation.
+* Structure, MaxStructure, StackSize and MaxStackSize were being sent as uint and they are ushort.  This caused intermittant alignment issues.
+
 [Mogwai]
 * Fixed all compiler warnings
 
