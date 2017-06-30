@@ -1190,6 +1190,7 @@ namespace ACE.Entity
                 // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
+                SaveInventory();
 #if DEBUG
                 if (Session.Player != null)
                 {

@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Network.Motion;
+using ACE.Database;
 
 namespace ACE.Entity
 {
@@ -41,6 +42,20 @@ namespace ACE.Entity
         }
 
         // Inventory Management Functions
+        public virtual void SaveInventory()
+        {
+            List<KeyValuePair<ObjectGuid, WorldObject>> invlist = new List<KeyValuePair<ObjectGuid, WorldObject>>();
+
+            invlist = inventory.ToList();
+
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in invlist)
+            {
+                // this line may need fixed.
+                AceObject aobj = wo.Value.AceObjectClone();
+                DatabaseManager.Shard.SaveObject(aobj, null);
+            }
+        }
+
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
             if (!inventory.ContainsKey(inventoryItem.Guid))
