@@ -627,8 +627,8 @@ namespace ACE.Entity
                     UniversalMotion gm;
                     if (player.Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
                     {
-                        gm = new UniversalMotion(MotionStance.UANoShieldAttack);
-                        gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
+                        gm = new UniversalMotion(MotionStance.UaNoShieldAttack);
+                        gm.MovementData.CurrentStyle = (ushort)MotionStance.UaNoShieldAttack;
                     }
                     else
                     {
