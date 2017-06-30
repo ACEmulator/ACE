@@ -181,7 +181,7 @@ namespace ACE.Factories
             if (index < 0)
                 index = ~index; // bitwise compliment of the index returned from BinarySearch for the real index
 
-            return generatorObjects[index].GeneratorId;
+            return generatorObjects[index].GeneratorWeenieClassId;
         }
     }
 }

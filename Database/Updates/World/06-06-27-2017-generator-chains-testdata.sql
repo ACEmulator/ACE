@@ -4,7 +4,7 @@ USE `ace_world`;
 CREATE TABLE IF NOT EXISTS `ace_object_generator_link` (
   `aceObjectId` int(10) unsigned NOT NULL,
   `index` tinyint(3) unsigned NOT NULL,
-  `generatorId` int(10) unsigned NOT NULL,
+  `generatorWeenieClassId` int(10) unsigned NOT NULL,
   `generatorWeight` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`aceObjectId`,`index`),
   KEY `fk_generator_link__AceObject` (`generatorId`),
@@ -98,7 +98,7 @@ VALUES
 INSERT INTO ace_object_generator_link
 	(aceObjectId,
 	`index`,
-	generatorId,
+	generatorWeenieClassId,
 	generatorWeight)
 VALUES
 	(1996, 1, 4172, 100),

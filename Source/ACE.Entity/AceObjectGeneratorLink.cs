@@ -13,8 +13,8 @@ namespace ACE.Entity
         [DbField("index", (int)MySqlDbType.UByte)]
         public byte Index { get; set; }
 
-        [DbField("generatorId", (int)MySqlDbType.UInt32)]
-        public uint GeneratorId { get; set; }
+        [DbField("generatorWeenieClassId", (int)MySqlDbType.UInt32)]
+        public uint GeneratorWeenieClassId { get; set; }
 
         [DbField("generatorWeight", (int)MySqlDbType.UByte)]
         public byte GeneratorWeight { get; set; }
