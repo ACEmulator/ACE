@@ -25,18 +25,19 @@ namespace ACE
             ConfigManager.Initialize();
             ServerManager.Initialize();
             DatabaseManager.Initialize();
-            DbManager.Initialize();
             AssetManager.Initialize();
             InboundMessageManager.Initialize();
             DatManager.Initialize();
             SocketManager.Initialize();
             WorldManager.Initialize();
             CommandManager.Initialize();
+
+            DatabaseManager.Start();
         }
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            DbManager.ShutDown();
+            DatabaseManager.Stop();
             Diagnostics.Diagnostics.LandBlockDiag = false;
         }
     }

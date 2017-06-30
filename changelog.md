@@ -1,12 +1,29 @@
 # ACEmulator Change Log
 
+### 2017-06-30
+[Og II]
+* Fixed issue with the wrong data size being used in the weenie data serilzation.
+* Structure, MaxStructure, StackSize and MaxStackSize were being sent as uint and they are ushort.  This caused intermittant alignment issues.
+
+[Mogwai]
+* Fixed all compiler warnings
+
+### 2017-06-29
+[Mogwai and ddevec]
+* Moved all shard database calls into an asynchronous interface implementation.  Callbacks are now necessary to get results back from db I/O.
+* Calls to the shard database are now serialized in another thread and should eliminate the deadlocks we were seeing in MySql.
+* Cleaned up session delay loading of Player/Character data to allow for async database operations.
+
+[ddevec]
+* Added basic support for motion broadcastin
+
 ### 2017-06-28
 [Jyrus]
 * Implement Auto close timer for Doors
 
 ### 2017-06-28
 [Og II]
-Update readme with db minimum required versions.
+* Update readme with db minimum required versions.
 
 [Og II]
 * Completed work on flattening PhysicsData and ModelData

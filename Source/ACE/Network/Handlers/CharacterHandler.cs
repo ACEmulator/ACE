@@ -14,6 +14,7 @@ using ACE.Managers;
 using ACE.Entity.Enum.Properties;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
+using System.Collections.Generic;
 
 namespace ACE.Network.Handlers
 {
@@ -54,7 +55,7 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
-        public static async void CharacterDelete(ClientMessage message, Session session)
+        public static void CharacterDelete(ClientMessage message, Session session)
         {
             string account = message.Payload.ReadString16L();
             uint characterSlot = message.Payload.ReadUInt32();
@@ -76,18 +77,25 @@ namespace ACE.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            if (await DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full))
+            DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full, ((bool deleteOrRestoreSuccess) =>
             {
-                var result = await DatabaseManager.Shard.GetCharacters(session.Id);
-                session.UpdateCachedCharacters(result);
-                session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
-                return;
-            }
-            session.SendCharacterError(CharacterError.Delete);
+                if (deleteOrRestoreSuccess)
+                {
+                    DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+                    {
+                        session.UpdateCachedCharacters(result);
+                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+                    }));
+                }
+                else
+                {
+                    session.SendCharacterError(CharacterError.Delete);
+                }
+            }));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static async void CharacterRestore(ClientMessage message, Session session)
+        public static void CharacterRestore(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -95,32 +103,43 @@ namespace ACE.Network.Handlers
             if (cachedCharacter == null)
                 return;
 
-            bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name);
-            if (!isAvailable)
+            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, ((bool isAvailable) =>
             {
-                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);    /* Name already in use. */
-                return;
-            }
-
-            if (await DatabaseManager.Shard.DeleteOrRestore(0, guid.Full))
-            {
-                session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
-                return;
-            }
-            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
+                if (!isAvailable)
+                {
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                }
+                else
+                {
+                    DatabaseManager.Shard.DeleteOrRestore(0, cachedCharacter.Guid.Full, ((bool deleteOrRestoreSuccess) =>
+                    {
+                        if (deleteOrRestoreSuccess)
+                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
+                        else
+                            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
+                    }));
+                }
+            }));
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
-        public static async void CharacterCreate(ClientMessage message, Session session)
+        public static void CharacterCreate(ClientMessage message, Session session)
         {
             string account = message.Payload.ReadString16L();
             if (account != session.Account)
                 return;
 
-            var reader = message.Payload;
-            CharGen cg = CharGen.ReadFromDat();
-            AceCharacter character = new AceCharacter(DatabaseManager.Shard.GetNextCharacterId());
+            DatabaseManager.Shard.GetNextCharacterId((uint id) =>
+            {
+                CharacterCreateEx(message, session, id);
+            });
+        }
 
+        private static void CharacterCreateEx(ClientMessage message, Session session, uint id)
+        {
+            CharGen cg = CharGen.ReadFromDat();
+            var reader = message.Payload;
+            AceCharacter character = new AceCharacter(id);
             // FIXME(ddevec): These should go in AceCharacter constructor, but the Network enum is not available there
             character.Radar = (byte)Network.Enum.RadarBehavior.ShowAlways;
             character.BlipColor = (byte)Network.Enum.RadarColor.White;
@@ -262,33 +281,36 @@ namespace ACE.Network.Handlers
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
 
-            bool isAvailable = DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
-            if (!isAvailable)
+            DatabaseManager.Shard.IsCharacterNameAvailable(character.Name, ((bool isAvailable) =>
             {
-                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
-                return;
-            }
+                if (!isAvailable)
+                {
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                    return;
+                }
 
-            character.AccountId = session.Id;
+                character.AccountId = session.Id;
 
-            CharacterCreateSetDefaultCharacterOptions(character);
-            CharacterCreateSetDefaultCharacterPositions(character);
+                CharacterCreateSetDefaultCharacterOptions(character);
+                CharacterCreateSetDefaultCharacterPositions(character);
 
-            // We must await here -- 
-            bool saveSuccess = await DbManager.SaveObject(character);
+                // We must await here -- 
+                DatabaseManager.Shard.SaveObject(character, ((bool saveSuccess) =>
+                {
+                    if (!saveSuccess)
+                    {
+                        SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
+                        return;
+                    }
+                    // DatabaseManager.Shard.SaveCharacterOptions(character);
+                    // DatabaseManager.Shard.InitCharacterPositions(character);
 
-            if (!saveSuccess)
-            {
-               SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
-               return;
-            }
-            // DatabaseManager.Shard.SaveCharacterOptions(character);
-            // DatabaseManager.Shard.InitCharacterPositions(character);
+                    var guid = new ObjectGuid(character.AceObjectId);
+                    session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
-            var guid = new ObjectGuid(character.AceObjectId);
-            session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
-
-            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
+                }));
+            }));
         }
 
         private static void CharacterCreateSetDefaultCharacterOptions(AceCharacter character)

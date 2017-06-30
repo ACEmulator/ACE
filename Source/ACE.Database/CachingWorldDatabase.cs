@@ -57,10 +57,5 @@ namespace ACE.Database
         {
             return _wrappedDatabase.GetRandomWeeniesOfType(typeId, numWeenies);
         }
-
-        public Task<bool> SaveObject(AceObject aceObject)
-        {
-            return _wrappedDatabase.SaveObject(aceObject);
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Net;
 
@@ -27,7 +28,7 @@ namespace ACE.Network
 
         public CachedCharacter CharacterRequested { get; set; }
 
-        public Player Player { get; set; }
+        public Player Player { get; private set; }
 
         private DateTime logOffRequestTime;
 
@@ -36,6 +37,9 @@ namespace ACE.Network
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
         private bool bootSession = false;
+
+        private ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
+        private object playerSync = new object();
 
         // connection related
         public IPEndPoint EndPoint { get; }
@@ -48,6 +52,44 @@ namespace ACE.Network
         {
             EndPoint = endPoint;
             Network = new NetworkSession(this, clientId, serverId);
+        }
+
+        public void WaitForPlayer()
+        {
+            // NOTE(ddevec): We use a Reader-writer lock because reads are common, and writes are rare
+            playerWaitLock.EnterReadLock();
+            try
+            {
+                while (Player == null)
+                {
+                    // NOTE(ddevec): This slop is because monitor doesn't support releasing a reader-writer lock 
+                    //     -- trust it's right, and optimial and don't touch it
+                    // This should be a rare operation, so the extra locking nonsense doesn't kill us
+                    lock (playerSync)
+                    {
+                        playerWaitLock.ExitReadLock();
+                        Monitor.Wait(playerSync);
+                    }
+                    playerWaitLock.EnterReadLock();
+                }
+            }
+            finally
+            {
+                playerWaitLock.ExitReadLock();
+            }
+        }
+
+        public void SetPlayer(Player player)
+        {
+            playerWaitLock.EnterWriteLock();
+            Player = player;
+            // NOTE(ddevec): Once again -- no reader-writer lock and Monitor support in c# -- ventring frustration now --  asa;gklkfj;kl
+            //  -- This should be a rare operation, so we don't really care about the stupid double locking, as long as its done right for no deadlocks
+            lock (playerSync)
+            {
+                Monitor.PulseAll(playerSync);
+            }
+            playerWaitLock.ExitWriteLock();
         }
 
         public void InitSessionForWorldLogin()
@@ -212,20 +254,22 @@ namespace ACE.Network
             bootSession = true;
         }
 
-        private async void SendFinalLogOffMessages()
+        private void SendFinalLogOffMessages()
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            var result = await DatabaseManager.Shard.GetCharacters(Id);
-            UpdateCachedCharacters(result);
-            Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+            DatabaseManager.Shard.GetCharacters(Id, ((List<CachedCharacter> result) =>
+            {
+                UpdateCachedCharacters(result);
+                Network.EnqueueSend(new GameMessageCharacterList(result, Account));
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-            Network.EnqueueSend(serverNameMessage);
+                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+                Network.EnqueueSend(serverNameMessage);
 
-            State = SessionState.AuthConnected;
+                State = SessionState.AuthConnected;
 
-            Player = null;
+                Player = null;
+            }));
         }
 
         private void SendFinalBoot()

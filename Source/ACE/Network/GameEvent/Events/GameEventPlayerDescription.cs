@@ -78,7 +78,7 @@ namespace ACE.Network.GameEvent.Events
             var propertyFlagsPos = Writer.BaseStream.Position;
             Writer.Write(0u);
             Writer.Write(0x0Au);
-
+            
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
             // < 9000 to filter out our custom properties

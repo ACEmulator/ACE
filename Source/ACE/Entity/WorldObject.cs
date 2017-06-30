@@ -885,16 +885,16 @@ namespace ACE.Entity
                 writer.Write((sbyte?)CombatUse ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
-                writer.Write(Structure ?? 0);
+                writer.Write(Structure ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
-                writer.Write(MaxStructure ?? 0);
+                writer.Write(MaxStructure ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? 0);
+                writer.Write(StackSize ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
-                writer.Write(MaxStackSize ?? 0);
+                writer.Write(MaxStackSize ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
                 writer.Write(ContainerId ?? 0u);
