@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +41,19 @@ namespace ACE.Entity
         }
 
         // Inventory Management Functions
+        public virtual void SaveInventory()
+        {
+            List<KeyValuePair<ObjectGuid, WorldObject>> invlist = new List<KeyValuePair<ObjectGuid, WorldObject>>();
+            invlist = inventory.ToList();
+
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in invlist)
+            {
+                // this line may need fixed.
+                AceObject aobj = wo.Value.AceObjectClone();
+                DbManager.SaveObject(aobj);
+            }
+        }
+
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
             if (!inventory.ContainsKey(inventoryItem.Guid))

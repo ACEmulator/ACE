@@ -1184,6 +1184,8 @@ namespace ACE.Entity
                 SetPhysicalCharacterPosition();
                 // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
                 DbManager.SaveObject(GetSavableCharacter());
+                // SaveInventory();
+                // todo: Enable and Test this save once major deadlock issue is solved.
 #if DEBUG
                 if (Session.Player != null)
                 {
