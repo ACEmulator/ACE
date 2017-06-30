@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-06-30
+[Mogwai]
+* Fixed all compiler warnings
+
 ### 2017-06-29
 [Mogwai and ddevec]
 * Moved all shard database calls into an asynchronous interface implementation.  Callbacks are now necessary to get results back from db I/O.
