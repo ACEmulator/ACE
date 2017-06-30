@@ -843,16 +843,16 @@ namespace ACE.Entity
                 writer.Write((sbyte?)CombatUse ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
-                writer.Write(Structure ?? 0);
+                writer.Write((ushort?)Structure ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
-                writer.Write(MaxStructure ?? 0);
+                writer.Write((ushort?)MaxStructure ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? 0);
+                writer.Write((ushort?)StackSize ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
-                writer.Write(MaxStackSize ?? 0);
+                writer.Write((ushort?)MaxStackSize ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
                 writer.Write(ContainerId ?? 0u);
