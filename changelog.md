@@ -8,9 +8,21 @@
 * Fixed some constructor issues related to Guids. Not sure if it is the right way to go about it but does seem to work in testing.
 * Altered GameEventIdentifyObjectResponse to output debug stuff for more objects temporaryly and fixed its output of Guids in decimal form.
 
+[Og II]
+* Fixed issue with the wrong data size being used in the weenie data serilzation.
+* Structure, MaxStructure, StackSize and MaxStackSize were being sent as uint and they are ushort.  This caused intermittant alignment issues.
+
+[Mogwai]
+* Fixed all compiler warnings
+
 ### 2017-06-29
+[Mogwai and ddevec]
+* Moved all shard database calls into an asynchronous interface implementation.  Callbacks are now necessary to get results back from db I/O.
+* Calls to the shard database are now serialized in another thread and should eliminate the deadlocks we were seeing in MySql.
+* Cleaned up session delay loading of Player/Character data to allow for async database operations.
+
 [ddevec]
-* Added basic support for motion broadcasting.
+* Added basic support for motion broadcastin
 
 ### 2017-06-28
 [Jyrus]

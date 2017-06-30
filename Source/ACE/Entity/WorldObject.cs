@@ -383,7 +383,7 @@ namespace ACE.Entity
             get { return (PhysicsState)AceObject.PhysicsState; }
             set { AceObject.PhysicsState = (uint)value; }
         }
-       
+
         /// <summary>
         /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
         /// </summary>
@@ -643,7 +643,7 @@ namespace ACE.Entity
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;            
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.Location = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
@@ -844,16 +844,16 @@ namespace ACE.Entity
                 writer.Write((sbyte?)CombatUse ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
-                writer.Write(Structure ?? 0u);
+                writer.Write(Structure ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
-                writer.Write(MaxStructure ?? 0u);
+                writer.Write(MaxStructure ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? 0u);
+                writer.Write(StackSize ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
-                writer.Write(MaxStackSize ?? 0u);
+                writer.Write(MaxStackSize ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
                 writer.Write(ContainerId ?? 0u);

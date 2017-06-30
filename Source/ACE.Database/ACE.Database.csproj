@@ -69,12 +69,14 @@
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="IAuthenticationDatabase.cs" />
     <Compile Include="ICommonDatabase.cs" />
+    <Compile Include="ISerializedShardDatabase.cs" />
     <Compile Include="IShardDatabase.cs" />
     <Compile Include="IWorldDatabase.cs" />
     <Compile Include="MySqlResult.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializedShardDatabase.cs" />
     <Compile Include="ShardDatabase.cs" />
     <Compile Include="StoredPreparedStatement.cs" />
     <Compile Include="WorldDatabase.cs" />

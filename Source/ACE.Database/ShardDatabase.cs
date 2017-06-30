@@ -158,22 +158,22 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
         }
 
-        public Task AddFriend(uint characterId, uint friendCharacterId)
+        public void AddFriend(uint characterId, uint friendCharacterId)
         {
             throw new NotImplementedException();
         }
 
-        public Task DeleteFriend(uint characterId, uint friendCharacterId)
+        public void DeleteFriend(uint characterId, uint friendCharacterId)
         {
             throw new NotImplementedException();
         }
 
-        public Task RemoveAllFriends(uint characterId)
+        public void RemoveAllFriends(uint characterId)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<bool> DeleteOrRestore(ulong unixTime, uint aceObjectId)
+        public bool DeleteOrRestore(ulong unixTime, uint aceObjectId)
         {
             AceCharacter aceCharacter = new AceCharacter(aceObjectId);
             LoadIntoObject(aceCharacter);
@@ -181,13 +181,15 @@ namespace ACE.Database
 
             aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
 
-            return await SaveObject(aceCharacter);
+            SaveObject(aceCharacter);
+
+            return true;
         }
 
-        public async Task<List<CachedCharacter>> GetCharacters(uint accountId)
+        public List<CachedCharacter> GetCharacters(uint accountId)
         {
             var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
-            var objects = await Task.Run(() => ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria));
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
 
             return objects;
         }
@@ -343,7 +345,7 @@ namespace ACE.Database
             return objects;
         }
 
-        public Task<ObjectInfo> GetObjectInfoByName(string name)
+        public ObjectInfo GetObjectInfoByName(string name)
         {
             throw new NotImplementedException();
         }
@@ -403,7 +405,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public async Task<bool> SaveObject(AceObject aceObject)
+        public bool SaveObject(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
 
@@ -416,7 +418,7 @@ namespace ACE.Database
             SaveObjectInternal(transaction, aceObject);
 
             // FIXME(ddevec): Should we wait on this TXN?  I have no idea.
-            return await transaction.Commit();
+            return transaction.Commit().Result;
         }
 
         public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
