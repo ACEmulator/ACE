@@ -23,11 +23,11 @@ namespace ACE.Database
         /// </summary>
         void GetObjectInfoByName(string name, Action<ObjectInfo> callback);
 
-        void DeleteFriend(uint characterId, uint friendCharacterId);
+        void DeleteFriend(uint characterId, uint friendCharacterId, Action callback);
 
-        void AddFriend(uint characterId, uint friendCharacterId);
+        void AddFriend(uint characterId, uint friendCharacterId, Action callback);
 
-        void RemoveAllFriends(uint characterId);
+        void RemoveAllFriends(uint characterId, Action callback);
 
         void IsCharacterNameAvailable(string name, Action<bool> callback);
 

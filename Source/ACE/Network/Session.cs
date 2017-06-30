@@ -254,7 +254,7 @@ namespace ACE.Network
             bootSession = true;
         }
 
-        private async void SendFinalLogOffMessages()
+        private void SendFinalLogOffMessages()
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 

@@ -95,7 +95,7 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static async void CharacterRestore(ClientMessage message, Session session)
+        public static void CharacterRestore(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -123,7 +123,7 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
-        public static async void CharacterCreate(ClientMessage message, Session session)
+        public static void CharacterCreate(ClientMessage message, Session session)
         {
             string account = message.Payload.ReadString16L();
             if (account != session.Account)
