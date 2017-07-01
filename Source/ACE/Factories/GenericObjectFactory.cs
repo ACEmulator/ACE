@@ -41,7 +41,7 @@ namespace ACE.Factories
                         {
                             aceO.Location = aceO.Location.InFrontOf(-2.0);
                             aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
-                            results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), aceO));
+                            results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
                             var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
                             objectList.ForEach(o => results.Add(o));
                         }

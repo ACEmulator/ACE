@@ -20,7 +20,7 @@ namespace ACE.Network.GameEvent.Events
             // We will send some debug properties if this is a true DebugObject
             // Started adding real data to this - I needed the information to debug combat stance
             // we really need to kill debug object.   Og II
-            if (type.Name == "DebugObject")
+            if (type.Name == "DebugObject" || type.Name == "Monster" || type.Name == "Generator")
             {
                 flags |= IdentifyResponseFlags.StringStatsTable;
                 if (obj.ExaminePropertiesInt.Count > 0)

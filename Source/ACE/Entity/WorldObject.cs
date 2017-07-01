@@ -552,6 +552,7 @@ namespace ACE.Entity
         protected WorldObject(ObjectType type, ObjectGuid guid)
         {
             AceObject = new AceObject();
+            AceObject.AceObjectId = guid.Full;
             Type = type;
             Guid = guid;
 
