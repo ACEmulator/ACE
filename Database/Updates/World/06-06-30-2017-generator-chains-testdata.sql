@@ -15,16 +15,20 @@ CREATE TABLE `ace_object_generator_link` (
 
 /* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
 SET @weenieClassId = 893;
+SET @weenieClassDescription = 'drudgeskulkergen';
 
 DELETE FROM ace_weenie_class
 WHERE weenieClassId in (@weenieClassId);
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassDescription in (@weenieClassDescription);
 
 /* Insert new weenie data */
 INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(@weenieClassId, 'drudgeskulkergen');
+	(@weenieClassId, @weenieClassDescription);
 	
 INSERT INTO ace_object
 	(aceObjectId,
@@ -107,16 +111,20 @@ VALUES
 
 /* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
 SET @weenieClassId = 954;
+SET @weenieClassDescription = 'drudgesneakergen';
 
 DELETE FROM ace_weenie_class
 WHERE weenieClassId in (@weenieClassId);
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassDescription in (@weenieClassDescription);
 
 /* Insert new weenie data */
 INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(@weenieClassId, 'drudgesneakergen');
+	(@weenieClassId, @weenieClassDescription);
 	
 INSERT INTO ace_object
 	(aceObjectId,
@@ -153,16 +161,20 @@ VALUES
 
 /* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
 SET @weenieClassId = 4172;
+SET @weenieClassDescription = 'drudgecampgen';
 
 DELETE FROM ace_weenie_class
 WHERE weenieClassId in (@weenieClassId);
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassDescription in (@weenieClassDescription);
 
 /* Insert new weenie data */
 INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(@weenieClassId, 'drudgecampgen');
+	(@weenieClassId, @weenieClassDescription);
 	
 INSERT INTO ace_object
 	(aceObjectId,
@@ -261,16 +273,20 @@ VALUES
 
 /* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
 SET @weenieClassId = 1996;
+SET @weenieClassDescription = 'lowaaluviangen';
 
 DELETE FROM ace_weenie_class
 WHERE weenieClassId in (@weenieClassId);
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassDescription in (@weenieClassDescription);
 
 /* Insert new weenie data */
 INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(@weenieClassId, 'lowaaluviangen');
+	(@weenieClassId, @weenieClassDescription);
 	
 INSERT INTO ace_object
 	(aceObjectId,
