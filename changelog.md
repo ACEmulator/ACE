@@ -37,7 +37,6 @@
 [Jyrus]
 * Implement Auto close timer for Doors
 
-### 2017-06-28
 [Og II]
 * Update readme with db minimum required versions.
 * Completed work on flattening PhysicsData and ModelData
@@ -49,7 +48,6 @@
 * item generator work.   Could not test corpse.
 * TODO could not test corpse creation as kill was broken before I started.
 
-### 2017-06-28
 [Lidefeath]
 * Added linked generators i.e. a generator can spawn other generators which then spawn objects - theoretically this can go even deeper
 * Added testdata for the linked generators near Holtburg: 
