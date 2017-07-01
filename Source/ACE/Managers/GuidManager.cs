@@ -14,25 +14,33 @@ namespace ACE.Managers
         // players
         private const uint playerMin = 0x50000001;
         private const uint playerMax = 0x59999999;
-        private static uint player = 0x50000001;
+        private static uint player   = 0x50000001;
+
+        // admins
+        private const uint adminMin = 0x80000001;
+        private const uint adminMax = 0x89999999;
+        private static uint admin   = 0x80000001;
 
         // private static Hashtable usedplayerguids;
         // private static Hashtable avaliableplayerguids;
 
+        // Orginally found in CommonObjectFactory
+        // private static uint nextObjectId = 0x80000001;
+
         // Npc / Doors / Portals / Etc
-        private const uint staticObjextMin = 0x6000001;
-        private const uint staticObjextMax = 0x6999999;
-        private static uint staticObject = 0x6000001;
+        private const uint staticObjectMin = 0x6000001;
+        private const uint staticObjectMax = 0x6999999;
+        private static uint staticObject   = 0x6000001;
 
         // Monsters /
-        private const uint monsterMin = 0x8000001;
-        private const uint monsterMax = 0x8999999;
+        private const uint monsterMin     = 0x8000001;
+        private const uint monsterMax     = 0x8999999;
         private static uint monsterObject = 0x8000001;
 
         // Items / Player Items
         private const uint itemMin = 0x9000001;
         private const uint itemMax = 0x9999999;
-        private static uint item = 0x9000001;
+        private static uint item   = 0x9000001;
 
         /// <summary>
         /// Returns New Player Guid
@@ -42,6 +50,16 @@ namespace ACE.Managers
         {
             player++;
             return player;
+        }
+
+        /// <summary>
+        /// Returns New Admin Guid
+        /// </summary>
+        /// <returns></returns>
+        public static uint NewAdminGuid()
+        {
+            admin++;
+            return admin;
         }
 
         /// <summary>

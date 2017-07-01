@@ -8,7 +8,7 @@
         }
 
         internal CollidableObject(ObjectGuid guid, AceObject aceO)
-            : base(aceO)
+            : base(guid, aceO)
         {
         }
 
