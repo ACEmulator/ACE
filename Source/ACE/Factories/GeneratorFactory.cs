@@ -99,7 +99,7 @@ namespace ACE.Factories
                     // The linked generator is at the same location as the top generator and references its parent
                     newGen.Location = pos;
                     newGen.Generator = generator.AceObjectId;
-                    
+
                     // Recursively call this method again with the just read generatorObject
                     var objectList = CreateWorldObjectsFromGenerator(newGen);
                     objectList.ForEach(o => results.Add(o));
@@ -129,11 +129,12 @@ namespace ACE.Factories
                             // results.Add();
                             break;
 
-                    default:
-                        baseObject.Location = pos;
-                        if (baseObject.Location != null)
-                            results.Add(new DebugObject(new ObjectGuid(baseObject.AceObjectId), baseObject));
-                        break;
+                        default:
+                            baseObject.Location = pos;
+                            if (baseObject.Location != null)
+                                results.Add(new DebugObject(baseObject));
+                            break;
+                    }
                 }
             }
 

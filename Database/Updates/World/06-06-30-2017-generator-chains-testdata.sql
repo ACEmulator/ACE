@@ -1,110 +1,96 @@
 USE `ace_world`;
 
 /* Create new generator link table */
-CREATE TABLE IF NOT EXISTS `ace_object_generator_link` (
+DROP TABLE IF EXISTS `ace_object_generator_link`;
+CREATE TABLE `ace_object_generator_link` (
   `aceObjectId` int(10) unsigned NOT NULL,
   `index` tinyint(3) unsigned NOT NULL,
   `generatorWeenieClassId` int(10) unsigned NOT NULL,
   `generatorWeight` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`aceObjectId`,`index`),
-  KEY `fk_generator_link__AceObject` (`generatorWeenieClassId`),
-  CONSTRAINT `fk_generator_link__AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+  KEY `idx_generator_link__AceObject` (`generatorWeenieClassId`),
+  CONSTRAINT `fk_generator_link__AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_generator_link__AceWeenieClass` FOREIGN KEY (`generatorWeenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/* Remove potential old stuff */
+/* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
+SET @weenieClassId = 893;
 
 DELETE FROM ace_weenie_class
-WHERE weenieClassId in (893, 954, 1996, 4172);
+WHERE weenieClassId in (@weenieClassId);
 
-DELETE FROM ace_object
-WHERE aceObjectId in (893, 954, 1996, 4172);
-
-/* Insert new stuff */
+/* Insert new weenie data */
 INSERT INTO ace_weenie_class
 	(weenieClassId,
 	weenieClassDescription)
 VALUES 
-	(893, 'drudgeskulkergen'),
-	(954, 'drudgesneakergen'),
-	(1996, 'lowaaluviangen'),
-	(4172, 'drudgecampgen');
+	(@weenieClassId, 'drudgeskulkergen');
 	
 INSERT INTO ace_object
 	(aceObjectId,
 	aceObjectDescriptionFlags,
-	weenieClassId,
-	weenieHeaderFlags,
-	physicsDescriptionFlag)
+	weenieClassId)
 VALUES
-	(893, 148, 893, 0, 32769),
-	(954, 148, 893, 0, 32769),
-	(1996, 148, 893, 0, 32769),
-	(4172, 148, 893, 0, 32769);
+	(@weenieClassId, 148, @weenieClassId);
 	
 INSERT INTO ace_object_properties_did
 	(aceObjectId,
 	didPropertyId,
 	propertyValue)
 VALUES 
-	(893, 1, 33555051),
-   (893, 8, 100667494),
-	(954, 1, 33555051),
-   (954, 8, 100667494),
-   (1996, 1, 33555051),
-   (1996, 8, 100667494),
-	(4172, 1, 33555051),
-   (4172, 8, 100667494);
+	(@weenieClassId, 1, 33555051),
+    (@weenieClassId, 8, 100667494);
 
 INSERT INTO ace_object_properties_int
 	(aceObjectId,
 	intPropertyId,
 	propertyValue)
 VALUES 
-	(893, 1, 0),      /* ItemType = 0 */
-	(893, 81, 1),     /* MaxGeneratedObjects = 1 */
-	(893, 100, 2),    /* GeneratorType = Absolute */
-	(893, 104, 7),		/* ActivationCreateClass = 7 (wcid of Drudge Skulker) */
-	(893, 142, 0),    /* GeneratorTimeType = Undef */
-	(893, 9006, 100), /* GeneratorProbability = 100 */
-	(954, 1, 0),      /* ItemType = 0 */
-	(954, 81, 1),     /* MaxGeneratedObjects = 1 */
-	(954, 100, 2),    /* GeneratorType = Absolute */
-	(954, 104, 940),  /* ActivationCreateClass = 940 (wcid of Drudge Sneaker) */
-	(954, 142, 0),    /* GeneratorTimeType = Undef */
-	(954, 9006, 100), /* GeneratorProbability = 100 */
-	(1996, 1, 0),      /* ItemType = 0 */
-	(1996, 81, 10),    /* MaxGeneratedObjects = 10 */
-	(1996, 100, 1),    /* GeneratorType = Relative */
-	(1996, 104, 0),  /* ActivationCreateClass = 0 (linked generators) */
-	(1996, 142, 0),    /* GeneratorTimeType = Undef */
-	(1996, 9006, 100), /* GeneratorProbability = 100 */
-	(4172, 1, 0),      /* ItemType = 0 */
-	(4172, 81, 3),     /* MaxGeneratedObjects = 3 */
-	(4172, 100, 2),    /* GeneratorType = Absolute */
-	(4172, 104, 0),	 /* ActivationCreateClass = 0 (linked generators) */
-	(4172, 142, 0),    /* GeneratorTimeType = Undef */
-	(4172, 9006, 100); /* GeneratorProbability = 100 */ 
+	(@weenieClassId, 1, 0),      /* ItemType = 0 */
+	(@weenieClassId, 81, 1),     /* MaxGeneratedObjects = 1 */
+	(@weenieClassId, 100, 2),    /* GeneratorType = Absolute */
+	(@weenieClassId, 104, 7),		/* ActivationCreateClass = 7 (wcid of Drudge Skulker) */
+	(@weenieClassId, 142, 0),    /* GeneratorTimeType = Undef */
+	(@weenieClassId, 9006, 100); /* GeneratorProbability = 100 */ 
 
 INSERT INTO ace_object_properties_string 
 	(aceObjectId,
 	strPropertyId,
 	propertyValue)
 VALUES 
-	(893, 1, 'Drudge Skulker Generator'),
-	(954, 1, 'Drudge Sneaker Generator'),
-	(1996, 1, 'Low A Aluvian Generator'),
-	(4172, 1, 'Drudge Camp Generator');
+	(@weenieClassId, 1, 'Drudge Skulker Generator');
 	
-INSERT INTO ace_object_generator_link
-	(aceObjectId,
-	`index`,
-	generatorWeenieClassId,
-	generatorWeight)
-VALUES
-	(1996, 1, 4172, 100),
-	(4172, 1, 893, 60),
-	(4172, 2, 954, 40);
-	
+/* Add generator instances */
+INSERT INTO ace_object
+	(aceObjectDescriptionFlags,
+    weenieClassId)
+SELECT 
+    aceObjectDescriptionFlags,
+    weenieClassId
+FROM ace_object
+WHERE aceObjectId = @weenieClassId;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_did WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_did SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_int WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_int SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_string WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_string SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
 INSERT INTO ace_position 
 	(aceObjectId,
 	positionType,
@@ -117,6 +103,367 @@ INSERT INTO ace_position
 	qY,
 	qZ)
 VALUES 
-	(893, 1, 2847145993, 40.729305, 18.956450, 85.265892, 0.903499, 0.000000, 0.000000, 0.428589),
-	(1996, 1, 2847080471, 50.559231, 157.634384, 94.218269, -0.347880, 0.000000, 0.000000, -0.937539),
-	(4172, 1, 2847145993, 45.804615, 7.771394, 88.062149, 0.701760, 0.000000, 0.000000, 0.712413);
+	(last_insert_id(), 1, 2847145993, 40.729305, 18.956450, 85.265892, 0.903499, 0.000000, 0.000000, 0.428589);
+
+/* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
+SET @weenieClassId = 954;
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassId in (@weenieClassId);
+
+/* Insert new weenie data */
+INSERT INTO ace_weenie_class
+	(weenieClassId,
+	weenieClassDescription)
+VALUES 
+	(@weenieClassId, 'drudgesneakergen');
+	
+INSERT INTO ace_object
+	(aceObjectId,
+	aceObjectDescriptionFlags,
+	weenieClassId)
+VALUES
+	(@weenieClassId, 148, @weenieClassId);
+	
+INSERT INTO ace_object_properties_did
+	(aceObjectId,
+	didPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 33555051);
+
+INSERT INTO ace_object_properties_int
+	(aceObjectId,
+	intPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 0),      /* ItemType = 0 */
+	(@weenieClassId, 81, 1),     /* MaxGeneratedObjects = 1 */
+	(@weenieClassId, 100, 2),    /* GeneratorType = Absolute */
+	(@weenieClassId, 104, 940),  /* ActivationCreateClass = 940 (wcid of Drudge Sneaker) */
+	(@weenieClassId, 142, 0),    /* GeneratorTimeType = Undef */
+	(@weenieClassId, 9006, 100); /* GeneratorProbability = 100 */
+
+INSERT INTO ace_object_properties_string 
+	(aceObjectId,
+	strPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 'Drudge Sneaker Generator');
+
+/* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
+SET @weenieClassId = 4172;
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassId in (@weenieClassId);
+
+/* Insert new weenie data */
+INSERT INTO ace_weenie_class
+	(weenieClassId,
+	weenieClassDescription)
+VALUES 
+	(@weenieClassId, 'drudgecampgen');
+	
+INSERT INTO ace_object
+	(aceObjectId,
+	aceObjectDescriptionFlags,
+	weenieClassId)
+VALUES
+	(@weenieClassId, 148, 4172);
+	
+INSERT INTO ace_object_properties_did
+	(aceObjectId,
+	didPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 33555051),
+    (@weenieClassId, 8, 100667494);
+
+INSERT INTO ace_object_properties_int
+	(aceObjectId,
+	intPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 0),      /* ItemType = 0 */
+	(@weenieClassId, 81, 3),     /* MaxGeneratedObjects = 3 */
+	(@weenieClassId, 100, 2),    /* GeneratorType = Absolute */
+	(@weenieClassId, 104, 0),	 /* ActivationCreateClass = 0 (linked generators) */
+	(@weenieClassId, 142, 0),    /* GeneratorTimeType = Undef */
+	(@weenieClassId, 9006, 100); /* GeneratorProbability = 100 */ 
+
+INSERT INTO ace_object_properties_string 
+	(aceObjectId,
+	strPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 'Drudge Camp Generator');
+	
+INSERT INTO ace_object_generator_link
+	(aceObjectId,
+	`index`,
+	generatorWeenieClassId,
+	generatorWeight)
+VALUES
+	(@weenieClassId, 1, 893, 60),
+	(@weenieClassId, 2, 954, 40);
+	
+/* Add generator instances */
+INSERT INTO ace_object
+	(aceObjectDescriptionFlags,
+    weenieClassId)
+SELECT 
+    aceObjectDescriptionFlags,
+    weenieClassId
+FROM ace_object
+WHERE aceObjectId = @weenieClassId;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_did WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_did SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_int WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_int SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_string WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_string SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_generator_link WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_generator_link SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+INSERT INTO ace_position 
+	(aceObjectId,
+	positionType,
+	landblockRaw,
+	posX,
+	posY,
+	posZ,
+	qW,
+	qX,
+	qY,
+	qZ)
+VALUES 
+	(last_insert_id(), 1, 2847145993, 45.804615, 7.771394, 88.062149, 0.701760, 0.000000, 0.000000, 0.712413);
+
+/* Remove potential bad/outdated weenie data (and their instances due to cascade deletes) */
+SET @weenieClassId = 1996;
+
+DELETE FROM ace_weenie_class
+WHERE weenieClassId in (@weenieClassId);
+
+/* Insert new weenie data */
+INSERT INTO ace_weenie_class
+	(weenieClassId,
+	weenieClassDescription)
+VALUES 
+	(@weenieClassId, 'lowaaluviangen');
+	
+INSERT INTO ace_object
+	(aceObjectId,
+	aceObjectDescriptionFlags,
+	weenieClassId)
+VALUES
+	(@weenieClassId, 148, @weenieClassId);
+	
+INSERT INTO ace_object_properties_did
+	(aceObjectId,
+	didPropertyId,
+	propertyValue)
+VALUES 
+    (@weenieClassId, 1, 33555051),
+    (@weenieClassId, 8, 100667494);
+
+INSERT INTO ace_object_properties_int
+	(aceObjectId,
+	intPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 0),      /* ItemType = 0 */
+	(@weenieClassId, 81, 10),    /* MaxGeneratedObjects = 10 */
+	(@weenieClassId, 100, 1),    /* GeneratorType = Relative */
+	(@weenieClassId, 104, 0),  /* ActivationCreateClass = 0 (linked generators) */
+	(@weenieClassId, 142, 0),    /* GeneratorTimeType = Undef */
+	(@weenieClassId, 9006, 100); /* GeneratorProbability = 100 */
+
+INSERT INTO ace_object_properties_string 
+	(aceObjectId,
+	strPropertyId,
+	propertyValue)
+VALUES 
+	(@weenieClassId, 1, 'Low A Aluvian Generator');
+	
+INSERT INTO ace_object_generator_link
+	(aceObjectId,
+	`index`,
+	generatorWeenieClassId,
+	generatorWeight)
+VALUES
+	(@weenieClassId, 1, 4172, 100);
+	
+/* Add generator instances */
+INSERT INTO ace_object
+	(aceObjectDescriptionFlags,
+    weenieClassId)
+SELECT 
+    aceObjectDescriptionFlags,
+    weenieClassId
+FROM ace_object
+WHERE aceObjectId = @weenieClassId;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_did WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_did SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_int WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_int SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_string WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_string SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_generator_link WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_generator_link SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+INSERT INTO ace_position 
+	(aceObjectId,
+	positionType,
+	landblockRaw,
+	posX,
+	posY,
+	posZ,
+	qW,
+	qX,
+	qY,
+	qZ)
+VALUES 
+	(last_insert_id(), 1, 2847080471, 50.559231, 157.634384, 94.218269, -0.347880, 0.000000, 0.000000, -0.937539);
+    
+INSERT INTO ace_object
+	(aceObjectDescriptionFlags,
+    weenieClassId)
+SELECT 
+    aceObjectDescriptionFlags,
+    weenieClassId
+FROM ace_object
+WHERE aceObjectId = @weenieClassId;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_did WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_did SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_int WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_int SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_string WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_string SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_generator_link WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_generator_link SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+INSERT INTO ace_position 
+	(aceObjectId,
+	positionType,
+	landblockRaw,
+	posX,
+	posY,
+	posZ,
+	qW,
+	qX,
+	qY,
+	qZ)
+VALUES 
+	(last_insert_id(), 1, 2830303296, 189.942215, 170.000732, 92.980865, 0, 0.000000, 0.000000, 0);
+    
+INSERT INTO ace_object
+	(aceObjectDescriptionFlags,
+    weenieClassId)
+SELECT 
+    aceObjectDescriptionFlags,
+    weenieClassId
+FROM ace_object
+WHERE aceObjectId = @weenieClassId;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_did WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_did SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_int WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_int SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_properties_string WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_properties_string SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+CREATE TEMPORARY TABLE tmp SELECT * from ace_object_generator_link WHERE aceObjectId = @weenieClassId;
+UPDATE tmp SET aceObjectId = last_insert_id();
+INSERT INTO ace_object_generator_link SELECT tmp.* FROM tmp;
+DROP TEMPORARY TABLE tmp;
+SET SQL_SAFE_UPDATES = 1;
+
+INSERT INTO ace_position 
+	(aceObjectId,
+	positionType,
+	landblockRaw,
+	posX,
+	posY,
+	posZ,
+	qW,
+	qX,
+	qY,
+	qZ)
+VALUES 
+	(last_insert_id(), 1, 2813526055, 103.956352, 156.198883, 30.004999, 0, 0.000000, 0.000000, 0);

@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-07-01
+[Ripley]
+* Rolled in PR #430 from @Lidefeath as starting base. 
+* Added generator links table to WorldBase.
+* Made changes to GuidManger and ObjectGuid in an effort to avoid collisions with guids already present in ACE-World. Does not persist or track, resets each server start.
+* Above changes made IsCreature function, and smite works for at least the Sparring Golems found in the Academy, does not seem to work for Drudges in Holtburg.
+* Speaking of Drudges, there is a drudge invasion south and west of Holtburg.
+* Several changes to 06-06-30-2017-generator-chains-testdata.sql found in Database/Updates/World to set up for generator instances and show examples of them.
+
 ### 2017-06-30
 [Ripley]
 * Changed WorldBase to allow for auto incrementing of aceObjectId and weenieClassId

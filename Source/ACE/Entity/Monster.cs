@@ -12,8 +12,7 @@ namespace ACE.Entity
         public Monster(AceObject aceO)
           : base(aceO)
         {
-            // TODO: Check why Drudges don't have a healthbar when you select them
-            aceO.AceObjectId = new ObjectGuid(GuidManager.NewItemGuid()).Full;
+            aceO.AceObjectId = new ObjectGuid(GuidManager.NewMonsterGuid()).Full;
             IsAlive = true;
             SetupVitals();
         }

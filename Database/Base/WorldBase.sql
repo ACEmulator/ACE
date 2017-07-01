@@ -54,6 +54,25 @@ CREATE TABLE `ace_object_animation_change` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `ace_object_generator_link`
+--
+
+DROP TABLE IF EXISTS `ace_object_generator_link`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_object_generator_link` (
+  `aceObjectId` int(10) unsigned NOT NULL,
+  `index` tinyint(3) unsigned NOT NULL,
+  `generatorWeenieClassId` int(10) unsigned NOT NULL,
+  `generatorWeight` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`aceObjectId`,`index`),
+  KEY `idx_generator_link__AceObject` (`generatorWeenieClassId`),
+  CONSTRAINT `fk_generator_link__AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_generator_link__AceWeenieClass` FOREIGN KEY (`generatorWeenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `ace_object_palette_change`
 --
 
@@ -450,4 +469,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-29  2:44:03
+-- Dump completed on 2017-07-01 15:58:41
