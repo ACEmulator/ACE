@@ -17,6 +17,8 @@ using System.Linq;
 
 namespace ACE.Entity
 {
+    using System.Windows.Forms;
+
     public abstract class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -30,6 +32,12 @@ namespace ACE.Entity
         }
 
         protected AceObject AceObject { get; set; }
+
+        // we need to expose this read only for examine to work. Og II
+        public List<AceObjectPropertiesInt> ExaminePropertiesInt
+        {
+            get { return AceObject.IntProperties; }
+        }
 
         public ObjectType Type
         {
@@ -61,6 +69,7 @@ namespace ACE.Entity
         public IActor CurrentParent { get; private set; }
 
         public Position ForcedLocation { get; private set; }
+
         public Position RequestedLocation { get; private set; }
 
         /// <summary>
@@ -68,10 +77,7 @@ namespace ACE.Entity
         /// </summary>
         public Landblock CurrentLandblock
         {
-            get
-            {
-                return CurrentParent as Landblock;
-            }
+            get { return CurrentParent as Landblock; }
         }
 
         /// <summary>
@@ -146,13 +152,11 @@ namespace ACE.Entity
         {
             get
             {
-                if (ItemCapacity == null || ItemCapacity == 0)
-                {
-                    if (Name.Contains("Foci"))
-                        return ContainerType.Foci;
-                    return ContainerType.NonContainer;
-                }
-                return ContainerType.Conatiner;
+                if (ItemCapacity != null && ItemCapacity != 0)
+                    return ContainerType.Conatiner;
+                if (Name.Contains("Foci"))
+                    return ContainerType.Foci;
+                return ContainerType.NonContainer;
             }
         }
 
@@ -188,10 +192,9 @@ namespace ACE.Entity
             set { AceObject.ItemUseable = (uint?)value; }
         }
 
-        // FIXME(ddevec): Defaults to 25, so is unnecessarily sent always w/ weenieheaderflags.
         public float? UseRadius
         {
-            get { return AceObject.UseRadius ?? 0.25f; }
+            get { return AceObject.UseRadius; }
             set { AceObject.UseRadius = value; }
         }
 
@@ -470,13 +473,7 @@ namespace ACE.Entity
 
         public AceVector3 Omega = null;
 
-        private MotionState currentMotionState;
-
-        public MotionState CurrentMotionState
-        {
-            get { return currentMotionState; }
-            set { currentMotionState = value; }
-        }
+        public MotionState CurrentMotionState { get; set; }
 
         public uint? DefaultScript
         {
@@ -539,7 +536,7 @@ namespace ACE.Entity
 
         public void AddModel(byte index, uint modelresourceid)
         {
-            var newmodel = new Model(index, modelresourceid);
+            Model newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);
         }
 
@@ -630,16 +627,17 @@ namespace ACE.Entity
                     SetMotionState(new UniversalMotion(MotionStance.Standing));
                     break;
                 case CombatMode.Melee:
-                    UniversalMotion gm;
+                    UniversalMotion gm = null;
                     WorldObject meleeWeapon = null;
 
                     // Let's see what if anything is equipped and if we have a shield.
-                    var mEquipedMelee = player.Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
+                    EquippedItem mEquipedMelee = player.Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
                     if (mEquipedMelee != null)
                         meleeWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
 
                     if (player.Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
                     {
+                        // I know I don't have a shield - so process accordingly.
                         if (meleeWeapon?.DefaultCombatStyle != null)
                         {
                             // I can read the weapon Og II
@@ -655,37 +653,45 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        // TODO: Og II pick up here and finish out the stance work.
-                        gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
-                        gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
+                        // I do have a shield equipped.   What stance do I need to take?
+                        if (meleeWeapon?.DefaultCombatStyle != null)
+                        {
+                            if (meleeWeapon.DefaultCombatStyle == MotionStance.MeleeNoShieldAttack)
+                            {
+                                gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
+                                gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
+                            }
+                            else
+                            {
+                                gm = new UniversalMotion(MotionStance.ThrownShieldCombat);
+                                gm.MovementData.CurrentStyle = (ushort)MotionStance.ThrownShieldCombat;
+                            }
+                        }
                     }
-                    SetMotionState(gm);
+                    // If I am down to here and still null - I have no idea - do nothing.
+                    if (gm != null) SetMotionState(gm);
+                    else
+                        log.InfoFormat("Changing combat mode - but could not determine correct stance. ");
                     break;
                 case CombatMode.Magic:
-                    var mm = new UniversalMotion(MotionStance.Spellcasting);
+                    UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
                     mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
                     SetMotionState(mm);
                     break;
                 case CombatMode.Missle:
-                    EquippedItem mEquipedMissile;
                     WorldObject missileWeapon = null;
-                    mEquipedMissile = player.Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
+                    EquippedItem mEquipedMissile = player.Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
                     if (mEquipedMissile != null)
                         missileWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
-                    if (missileWeapon != null && missileWeapon.AmmoType == Network.Enum.AmmoType.Bolt)
+                    if (missileWeapon?.DefaultCombatStyle != null)
                     {
-                        var bm = new UniversalMotion(MotionStance.CrossBowAttack);
-                        bm.MovementData.CurrentStyle = (ushort)MotionStance.CrossBowAttack;
+                        UniversalMotion bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
+                        bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
                         SetMotionState(bm);
                     }
-                    else
-                    {
-                        var bm = new UniversalMotion(MotionStance.BowAttack);
-                        bm.MovementData.CurrentStyle = (ushort)MotionStance.BowAttack;
-                        SetMotionState(bm);
-                    }
-
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -715,9 +721,9 @@ namespace ACE.Entity
 
         public void SetMotionState(MotionState motionState)
         {
-            var p = (Player)this;
+            Player p = (Player)this;
             CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(p.Guid,
+            GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(p.Guid,
                                                            p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                            p.Sequences, motionState);
             p.Session.Network.EnqueueSend(updateMotion);
@@ -725,7 +731,7 @@ namespace ACE.Entity
 
         public void Examine(Session examiner)
         {
-            var identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
+            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
             examiner.Network.EnqueueSend(identifyResponse);
         }
 
@@ -789,7 +795,7 @@ namespace ACE.Entity
             if (ValidLocations != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
 
-            // You can't be in a wielded location if you don't have a weilder.   This is a gurad against crap data. Og II
+            // You can't be in a wielded location if you don't have a wielder.   This is a gurad against crap data. Og II
             if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (Wielder != null) && (Wielder != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 

@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -9,15 +9,12 @@ using ACE.Database;
 using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Factories;
- using ACE.Network.GameEvent.Events;
- using log4net;
+using System.Collections.Generic;
+using ACE.Entity.Enum.Properties;
+using log4net;
 
 namespace ACE.Command.Handlers
 {
-    using System.Linq;
-
-    using global::ACE.Entity.Enum.Properties;
-
     public static class AdminCommands
     {
         // // commandname parameters
@@ -422,7 +419,8 @@ namespace ACE.Command.Handlers
                 }
 
                 // If we have the position, teleport the player
-                if (session.Player.Positions.ContainsKey(positionType)) {
+                if (session.Player.Positions.ContainsKey(positionType))
+                {
                     session.Player.HandleActionTeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
@@ -866,8 +864,8 @@ namespace ACE.Command.Handlers
             // @time - Displays the server's current game time.
 
             DerethDateTime currentPYtime = new DerethDateTime(WorldManager.PortalYearTicks);
-            String messageUTC   = "The current server time in UtcNow is: " + DateTime.UtcNow.ToString();
-            String messagePY    = "The current server time in DerethDateTime is: " + currentPYtime.ToString();
+            String messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow.ToString();
+            String messagePY = "The current server time in DerethDateTime is: " + currentPYtime.ToString();
 
             var chatSysMessageUTC = new GameMessageSystemChat(messageUTC, ChatMessageType.WorldBroadcast);
             var chatSysMessagePY = new GameMessageSystemChat(messagePY, ChatMessageType.WorldBroadcast);
@@ -1010,7 +1008,7 @@ namespace ACE.Command.Handlers
             WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
             if (testContainer.ItemCapacity > 1)
             {
-                var loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
+                Container loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
@@ -1019,7 +1017,24 @@ namespace ACE.Command.Handlers
             }
             else
             {
-                var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                loot.ContainerId = session.Player.Guid.Full;
+                session.Player.AddToInventory(loot);
+                session.Player.TrackObject(loot);
+                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+            }
+        }
+
+        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
+        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Creates 1 of each weapon class in your inventory.")]
+        public static void HandleWeapons(Session session, params string[] parameters)
+        {
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 148, 307, 311, 326, 338, 348, 350, 12748, 12463, 31812 };
+            foreach (uint weenieId in weaponsTest)
+            {
+                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
@@ -1554,7 +1569,7 @@ namespace ACE.Command.Handlers
         /// </summary>
         [CommandHandler("shutdown", AccessLevel.Admin, CommandHandlerFlag.None, 0,
             "Begins the server shutdown process. Optionally displays a shutdown message, if a string is passed.",
-            "< Optional Shutdown Message >\n"+
+            "< Optional Shutdown Message >\n" +
             "\tUse @cancel-shutdown too abort an active shutdown!\n" +
             "\tSet the shutdown delay with @set-shutdown-interval < 0-99999 >")]
         public static void ShutdownServer(Session session, params string[] parameters)
@@ -1596,10 +1611,8 @@ namespace ACE.Command.Handlers
 
                 if (adminShutdownText.Length > 0)
                     player.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
-
             }
             ServerManager.BeginShutdown();
         }
     }
 }
-

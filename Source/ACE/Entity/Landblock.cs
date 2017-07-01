@@ -321,16 +321,14 @@ namespace ACE.Entity
 
         public float GetWorldObjectEffectiveUseRadius(ObjectGuid objectId)
         {
-            WorldObject wo;
             Log($"Getting WorldObject Effective Use Radius {objectId.Full:X}");
 
-            wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
-            if (wo != null)
-            {
-                var csetup = SetupModel.ReadFromDat(wo.SetupTableId.Value);
-                return (float)Math.Pow((wo.UseRadius.Value + csetup.Radius + 1.5), 2);
-            }
-            return 0.00f;
+            WorldObject wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
+            if (wo?.SetupTableId == null) return 0.00f;
+            SetupModel csetup = SetupModel.ReadFromDat(wo.SetupTableId.Value);
+            if (wo.UseRadius != null)
+                return (float)Math.Pow(wo.UseRadius.Value + csetup.Radius + 1.5, 2);
+            return (float)Math.Pow(0.25 + csetup.Radius + 1.5, 2);
         }
 
         // FIXME(ddevec): Hacky kludge -- trying to get rid of UseTime
