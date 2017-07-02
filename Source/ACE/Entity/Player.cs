@@ -17,6 +17,7 @@ using ACE.Network.Sequence;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
+using System.IO;
 
 namespace ACE.Entity
 {
@@ -2325,6 +2326,171 @@ namespace ACE.Entity
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
             }
+        }
+
+        public void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
+        {
+            writer.Write((uint)flags); // Flags
+            writer.Write(Convert.ToUInt32(success)); // Success bool
+        }
+
+        public void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
+        {
+            const ushort tableSize = 16;
+            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (propertiesInt.Count == 0)) return;
+            writer.Write((ushort)propertiesInt.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesInt x in propertiesInt)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.Int64StatsTable) == 0 || (propertiesInt64.Count == 0)) return;
+            writer.Write((ushort)propertiesInt64.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesInt64 x in propertiesInt64)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.BoolStatsTable) == 0 || (propertiesBool.Count == 0)) return;
+            writer.Write((ushort)propertiesBool.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesBool x in propertiesBool)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(Convert.ToUInt32(x.PropertyValue));
+            }
+        }
+
+        public void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.FloatStatsTable) == 0 || (propertiesDouble.Count == 0)) return;
+            writer.Write((ushort)propertiesDouble.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesDouble x in propertiesDouble)
+            {
+                writer.Write((uint)x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.StringStatsTable) == 0 || (propertiesStrings.Count == 0)) return;
+            writer.Write((ushort)propertiesStrings.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesString x in propertiesStrings)
+            {
+                writer.Write((uint)x.PropertyId);
+                writer.WriteString16L(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
+        {
+            const ushort tableSize = 16;
+            if ((flags & IdentifyResponseFlags.DidStatsTable) == 0 || (propertiesDid.Count == 0)) return;
+            writer.Write((ushort)propertiesDid.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesDataId x in propertiesDid)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        {
+            if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
+            writer.Write((uint)propertiesSpellId.Count);
+
+            foreach (AceObjectPropertiesSpell x in propertiesSpellId)
+            {
+                    writer.Write(x.SpellId);
+            }
+        }
+
+        public void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        {
+            if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (propertiesArmor.Count == 0)) return;
+
+            foreach (AceObjectPropertiesDouble x in propertiesArmor)
+            {
+                writer.Write((float)x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
+        {
+            uint header = 8;
+            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
+            writer.Write(header);
+            writer.Write(obj.Health.Current);
+            writer.Write(obj.Health.MaxValue);
+            if (header == 0)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    writer.Write(0u);
+                }
+            }
+            else
+            {
+                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
+                writer.Write(obj.Strength.UnbuffedValue);
+                writer.Write(obj.Endurance.UnbuffedValue);
+                writer.Write(obj.Quickness.UnbuffedValue);
+                writer.Write(obj.Coordination.UnbuffedValue);
+                writer.Write(obj.Focus.UnbuffedValue);
+                writer.Write(obj.Self.UnbuffedValue);
+                writer.Write(obj.Stamina.UnbuffedValue);
+                writer.Write(obj.Mana.UnbuffedValue);
+                writer.Write(obj.Stamina.MaxValue);
+                writer.Write(obj.Mana.MaxValue);
+                // this only gets sent if the header can be masked with 1
+                // Writer.Write(0u);
+            }
+        }
+
+        public void WriteIdentifyObjectWeaponsProfile(
+            BinaryWriter writer,
+            IdentifyResponseFlags flags,
+            List<AceObjectPropertiesDouble> propertiesWeaponsD,
+            List<AceObjectPropertiesInt> propertiesWeaponsI)
+        {
+            if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
+            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.DamageType)?.PropertyValue ?? 0u);
+            // Signed
+            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.WeaponTime)?.PropertyValue ?? 0);
+            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.WeaponSkill)?.PropertyValue ?? 0u);
+            // Signed
+            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.Damage)?.PropertyValue ?? 0);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.DamageVariance)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.DamageMod)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.WeaponLength)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.MaximumVelocity)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.WeaponOffense)?.PropertyValue ?? 0.00);
+            // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
+            writer.Write(0u);
         }
     }
 }
