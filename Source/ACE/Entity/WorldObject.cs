@@ -34,9 +34,39 @@ namespace ACE.Entity
         protected AceObject AceObject { get; set; }
 
         // we need to expose this read only for examine to work. Og II
-        public List<AceObjectPropertiesInt> ExaminePropertiesInt
+        public List<AceObjectPropertiesInt> PropertiesInt
         {
             get { return AceObject.IntProperties; }
+        }
+
+        public List<AceObjectPropertiesInt64> PropertiesInt64
+        {
+            get { return AceObject.Int64Properties; }
+        }
+
+        public List<AceObjectPropertiesBool> PropertiesBool
+        {
+            get { return AceObject.BoolProperties; }
+        }
+
+        public List<AceObjectPropertiesString> PropertiesString
+        {
+            get { return AceObject.StringProperties; }
+        }
+
+        public List<AceObjectPropertiesDouble> PropertiesDouble
+        {
+            get { return AceObject.DoubleProperties; }
+        }
+
+        public List<AceObjectPropertiesDataId> PropertiesDid
+        {
+            get { return AceObject.DataIdProperties; }
+        }
+
+        public List<AceObjectPropertiesSpell> PropertiesSpellId
+        {
+            get { return AceObject.SpellIdProperties; }
         }
 
         public ObjectType Type

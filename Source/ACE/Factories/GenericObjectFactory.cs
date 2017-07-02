@@ -51,12 +51,18 @@ namespace ACE.Factories
                         // Use the DebugObject to assist in building proper objects for weenies
                         // FIXME(ddevec): Some objects have null location.  This freaks out the landblock... ignore them?
                         if (aceO.Location != null)
+                        {
+                            if ((aceO.Type == (uint)ObjectType.Creature))
+                            {
+                                results.Add(new Creature(aceO));
+                                break;
+                            }
                             results.Add(new DebugObject(aceO));
+                        }
                         break;
 #endif
                 }
             }
-
             return results;
         }
     }
