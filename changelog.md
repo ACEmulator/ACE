@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-07-02
+[Og II]
+
+* Started the removal of DebugObject - NPC's now spawn as creatures and containers now spawn as containers.  Need to finish this work.
+* Appraisal Event is 90% coded.   All stats (int, bool, string, int64, DataId and Double) as sent and coded.   Armor, creature, spell and weapon profiles are 
+* complete.   TODO: Hook profiles and enchantment bitfields as well as base armor status for coverage 
+* Basic infrastructure for the correct motion stance is in place.   Normally I would not have included this WIP code, but it has no negative impact and I started in the wrong 
+* branch.   It would be a pain to pull it out.   If possible, I would like to add this as is - with the note that I will complete this next.
+
 ### 2017-06-30
 [Ripley]
 * Changed WorldBase to allow for auto incrementing of aceObjectId and weenieClassId
