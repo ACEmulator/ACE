@@ -27,7 +27,7 @@ namespace ACE.Network.GameMessages.Messages
                 Writer.Write(sequence.GetCurrentSequence(SequenceType.ObjectServerControl));
 
             ushort autonomous;
-            if (newState.IsAutonomous)
+            if (!newState.IsAutonomous)
                 autonomous = 1;
             else
                 autonomous = 0;
