@@ -50,6 +50,8 @@ namespace ACE.Factories
             Position pos = null;
             Random random = new Random((int)WorldManager.PortalYearTicks);
 
+            random = new Random((int)DateTime.UtcNow.Ticks);
+
             // Check if the current generator is meant to spawn objects at this time of the day
             switch (generator.GeneratorTimeType)
             {
@@ -93,6 +95,8 @@ namespace ACE.Factories
                         results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), generator));
 
                     // Get a random generator from the weighted list of linked generators and read it's AceObject from the DB
+                    if (generator.GeneratorLinks.Count == 0)
+                        return null;
                     uint linkId = GetRandomGeneratorIdFromGeneratorList(random, generator.GeneratorLinks);
                     var newGen = DatabaseManager.World.GetAceObjectByWeenie(linkId);
 
@@ -102,7 +106,7 @@ namespace ACE.Factories
 
                     // Recursively call this method again with the just read generatorObject
                     var objectList = CreateWorldObjectsFromGenerator(newGen);
-                    objectList.ForEach(o => results.Add(o));
+                    objectList?.ForEach(o => results.Add(o));
                 }
                 // else spawn the objects directly from this generator
                 else
