@@ -712,12 +712,30 @@ namespace ACE.Entity
                 case CombatMode.Missle:
                     WorldObject missileWeapon = null;
                     EquippedItem mEquipedMissile = player.Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
+                    UniversalMotion bm;
                     if (mEquipedMissile != null)
                         missileWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
                     if (missileWeapon?.DefaultCombatStyle != null)
                     {
-                        UniversalMotion bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
-                        bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
+                        EquippedItem mEquipedAmmo = player.Children.Find(s => s.EquipMask == EquipMask.Ammunition);
+                        if (mEquipedAmmo != null)
+                        {
+                            bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
+                            bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
+                        }
+                        else
+                        {
+                            if (missileWeapon.DefaultCombatStyle == MotionStance.BowAttack)
+                            {
+                                bm = new UniversalMotion(MotionStance.BowNoAmmo);
+                                bm.MovementData.CurrentStyle = (ushort)MotionStance.BowNoAmmo;
+                            }
+                            else
+                            {
+                                bm = new UniversalMotion(MotionStance.CrossBowAttack);
+                                bm.MovementData.CurrentStyle = (ushort)MotionStance.CrossBowNoAmmo;
+                            }
+                        }
                         SetMotionState(bm);
                     }
                     break;
@@ -754,6 +772,7 @@ namespace ACE.Entity
         {
             Player p = (Player)this;
             CurrentMotionState = motionState;
+            CurrentMotionState.IsAutonomous = true;
             GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(p.Guid,
                                                            p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                            p.Sequences, motionState);

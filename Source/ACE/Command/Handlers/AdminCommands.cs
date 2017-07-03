@@ -1031,7 +1031,7 @@ namespace ACE.Command.Handlers
             "Creates 1 of each weapon class in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 148, 307, 311, 326, 338, 348, 350, 12748, 12463, 31812 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 148, 300, 307, 311, 326, 338, 348, 350, 12748, 12463, 31812 };
             foreach (uint weenieId in weaponsTest)
             {
                 WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
