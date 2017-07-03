@@ -9,6 +9,9 @@
 * Basic infrastructure for the correct motion stance is in place.   Normally I would not have included this WIP code, but it has no negative impact and I started in the wrong 
 * branch.   It would be a pain to pull it out.   If possible, I would like to add this as is - with the note that I will complete this next.
 
+[Og II]
+* Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
+
 ### 2017-06-30
 [Ripley]
 * Changed WorldBase to allow for auto incrementing of aceObjectId and weenieClassId
