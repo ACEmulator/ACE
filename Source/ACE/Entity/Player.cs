@@ -1738,7 +1738,7 @@ namespace ACE.Entity
                         new GameMessageUpdateMotion(Guid,
                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                             Sequences, motion),
-                        new GameMessagePickupEvent(Session, item));
+                        new GameMessagePickupEvent(Guid, item));
 
                     if (iidPropertyId == PropertyInstanceId.Wielder)
                         CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));

@@ -163,9 +163,7 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; set; }
-
-        public CombatMode CombatMode { get; private set; }
+        public UpdatePositionFlag PositionFlag { get; set; }        
 
         public virtual void PlayScript(Session session) { }
 
@@ -638,112 +636,6 @@ namespace ACE.Entity
             PaletteGuid = aceObject.PaletteId;
         }
 
-        public void SetCombatMode(CombatMode newCombatMode, Player player)
-        {
-            log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
-            // TODO: finish up this work.
-            if ((CombatMode == CombatMode.Missle) && (newCombatMode == CombatMode.Peace))
-            {
-                // delete the arrows from the world view
-            }
-            if ((CombatMode == CombatMode.Peace) && (newCombatMode == CombatMode.Missle))
-            {
-                // show the arrows to the world view
-            }
-
-            CombatMode = newCombatMode;
-            switch (CombatMode)
-            {
-                case CombatMode.Peace:
-                    SetMotionState(new UniversalMotion(MotionStance.Standing));
-                    break;
-                case CombatMode.Melee:
-                    UniversalMotion gm = null;
-                    WorldObject meleeWeapon = null;
-
-                    // Let's see what if anything is equipped and if we have a shield.
-                    EquippedItem mEquipedMelee = player.Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
-                    if (mEquipedMelee != null)
-                        meleeWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
-
-                    if (player.Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
-                    {
-                        // I know I don't have a shield - so process accordingly.
-                        if (meleeWeapon?.DefaultCombatStyle != null)
-                        {
-                            // I can read the weapon Og II
-                            gm = new UniversalMotion((MotionStance)meleeWeapon.DefaultCombatStyle);
-                            gm.MovementData.CurrentStyle = (ushort)meleeWeapon.DefaultCombatStyle;
-                        }
-                        else
-                        {
-                            // I am either truly UA with no weapon or we don't have this defined data error Og II
-                            gm = new UniversalMotion(MotionStance.UaNoShieldAttack);
-                            gm.MovementData.CurrentStyle = (ushort)MotionStance.UaNoShieldAttack;
-                        }
-                    }
-                    else
-                    {
-                        // I do have a shield equipped.   What stance do I need to take?
-                        if (meleeWeapon?.DefaultCombatStyle != null)
-                        {
-                            if (meleeWeapon.DefaultCombatStyle == MotionStance.MeleeNoShieldAttack)
-                            {
-                                gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
-                                gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
-                            }
-                            else
-                            {
-                                gm = new UniversalMotion(MotionStance.ThrownShieldCombat);
-                                gm.MovementData.CurrentStyle = (ushort)MotionStance.ThrownShieldCombat;
-                            }
-                        }
-                    }
-                    // If I am down to here and still null - I have no idea - do nothing.
-                    if (gm != null) SetMotionState(gm);
-                    else
-                        log.InfoFormat("Changing combat mode - but could not determine correct stance. ");
-                    break;
-                case CombatMode.Magic:
-                    UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
-                    mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
-                    SetMotionState(mm);
-                    break;
-                case CombatMode.Missle:
-                    WorldObject missileWeapon = null;
-                    EquippedItem mEquipedMissile = player.Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
-                    UniversalMotion bm;
-                    if (mEquipedMissile != null)
-                        missileWeapon = player.GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
-                    if (missileWeapon?.DefaultCombatStyle != null)
-                    {
-                        EquippedItem mEquipedAmmo = player.Children.Find(s => s.EquipMask == EquipMask.Ammunition);
-                        if (mEquipedAmmo != null)
-                        {
-                            bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
-                            bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
-                        }
-                        else
-                        {
-                            if (missileWeapon.DefaultCombatStyle == MotionStance.BowAttack)
-                            {
-                                bm = new UniversalMotion(MotionStance.BowNoAmmo);
-                                bm.MovementData.CurrentStyle = (ushort)MotionStance.BowNoAmmo;
-                            }
-                            else
-                            {
-                                bm = new UniversalMotion(MotionStance.CrossBowAttack);
-                                bm.MovementData.CurrentStyle = (ushort)MotionStance.CrossBowNoAmmo;
-                            }
-                        }
-                        SetMotionState(bm);
-                    }
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         internal void SetInventoryForWorld(WorldObject inventoryItem)
         {
             inventoryItem.Location = Location.InFrontOf(1.1f);
@@ -766,17 +658,6 @@ namespace ACE.Entity
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.Location = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
-        }
-
-        public void SetMotionState(MotionState motionState)
-        {
-            Player p = (Player)this;
-            CurrentMotionState = motionState;
-            CurrentMotionState.IsAutonomous = true;
-            GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(p.Guid,
-                                                           p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                           p.Sequences, motionState);
-            p.Session.Network.EnqueueSend(updateMotion);
         }
 
         public void Examine(Session examiner)
