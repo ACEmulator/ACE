@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-02
+[Og II]
+* Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
+
 ### 2017-07-01
 [Ripley]
 * Required ACE-World database version: v0.1.4
