@@ -139,7 +139,16 @@ namespace ACE.Entity
             if (holdKey == 2)
             {
                 // THis is just a random number that looks close to what the game expects
-                baseSpeed = 1.66f;
+                if (run.ActiveValue >= 800)
+                {
+                    baseSpeed = 18f / 4f;
+                }
+                else
+                {
+                    // FIXME(ddevec): Is burden accounted for externally, or as part of the skill?
+                    baseSpeed = (((float)run.ActiveValue / (run.ActiveValue + 200f) * 11f) + 4.0f) / 4.0f;
+                }
+
                 baseTurnSpeed = 1.5f;
                 baseSidestepSpeed = 1.5f;
             }
@@ -151,9 +160,22 @@ namespace ACE.Entity
                     if (holdKey == 2)
                     {
                         md.ForwardCommand = (ushort)MotionCommand.RunForward;
+                        if (baseSpeed > 4f)
+                        {
+                            baseSpeed = 4f;
+                        }
                     }
                     else
                     {
+                        if (baseSpeed > 3.11999f)
+                        {
+                            baseSpeed = 3.2f;
+                        }
+
+                        if (baseSpeed < -3.11999f)
+                        {
+                            baseSpeed = -3.2f;
+                        }
                         md.ForwardCommand = (ushort)MotionCommand.WalkForward;
                     }
                     md.ForwardSpeed = baseSpeed;

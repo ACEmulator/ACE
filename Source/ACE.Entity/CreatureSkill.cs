@@ -42,6 +42,12 @@ namespace ACE.Entity
             }
         }
 
+        public uint ActiveValue
+        {
+            // FIXME(ddevec) -- buffs?:
+            get { return UnbuffedValue; }
+        }
+
         public uint ExperienceSpent { get; set; }
 
         public CreatureSkill(ICreatureStats character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
