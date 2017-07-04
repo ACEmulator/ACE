@@ -11,6 +11,8 @@
         CharacterTitle                      = 0x0029,
         UpdateTitle                         = 0x002B,
 
+        StartBarber                         = 0x0075, // Spawns the Barber Shop UI.
+
         IdentifyObjectResponse              = 0x00C9,
 
         ChannelBroadcast                    = 0x0147,

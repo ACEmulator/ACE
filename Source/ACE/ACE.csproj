@@ -177,6 +177,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionDropItem.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionFinishBarber.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionGetAndWieldItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToLifestone.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionDie.cs" />
@@ -227,6 +228,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventIdentifyObjectResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventMagicUpdateSpell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPurgeAllEnchantments.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventStartBarber.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventViewContents.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventWieldItem.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventYourDeath.cs" />
@@ -249,6 +251,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageParentEvent.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePickupEvent.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerKilled.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateDataID.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />

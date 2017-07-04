@@ -25,6 +25,7 @@ namespace ACE.Network.Sequence
         PrivateUpdatePropertyString = 14,
         PrivateUpdatePropertyBool = 15,
         PrivateUpdatePropertyDouble = 16,
-        Motion = 17
+        Motion = 17,
+        PrivateUpdatePropertyDataID = 18,
     }
 }

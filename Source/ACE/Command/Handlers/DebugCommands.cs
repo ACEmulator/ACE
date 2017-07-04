@@ -708,5 +708,14 @@ namespace ACE.Command.Handlers
             } else
                 Console.WriteLine(message);
         }
+
+        /// <summary>
+        /// Debug command to spawn the Barber UI
+        /// </summary>
+        [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void BarberShop(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameEventStartBarber(session));
+        }
     }
 }

@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-04
+[Optim Shi]
+* Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
+
 ### 2017-07-03
 [Optim Shi]
 * Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.
