@@ -4,8 +4,10 @@ using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
-    public class CreatureVital : CreatureAbility
+    public class CreatureVital : ICloneable, ICreatureXpSpendableStat
     {
+        private AceObjectPropertiesAttribute2nd _backer;
+
         // because health/stam/mana values are determined from stats, we need a reference to the WeenieCreatureData
         // so we can calculate.  this could be refactored into a better pattern, but it will do for now.
         private ICreatureStats creature;
@@ -14,7 +16,41 @@ namespace ACE.Entity
 
         public double RegenRate { set; get; }
 
-        override public uint UnbuffedValue
+        public Ability Ability
+        {
+            get { return (Ability)_backer.Attribute2ndId; }
+            protected set
+            {
+                _backer.Attribute2ndId = (ushort)value;
+            }
+        }
+        
+        public uint Base { get; set; }
+
+        public uint Ranks
+        {
+            get { return _backer.Attribute2ndRanks; }
+            set
+            {
+                _backer.Attribute2ndRanks = (ushort)value;
+                _backer.IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Total Experience Spent on an ability
+        /// </summary>
+        public uint ExperienceSpent
+        {
+            get { return _backer.Attribute2ndXpSpent; }
+            set
+            {
+                _backer.Attribute2ndXpSpent = value;
+                _backer.IsDirty = true;
+            }
+        }
+
+        public uint UnbuffedValue
         {
             get
             {
@@ -45,12 +81,20 @@ namespace ACE.Entity
             }
         }
 
-        override public uint MaxValue { get { return UnbuffedValue; } }
+        public uint MaxValue { get { return UnbuffedValue; } }
 
         /// <summary>
         /// only applies to Health/Stam/Mana
         /// </summary>
-        public uint Current { get; set; }
+        public uint Current
+        {
+            get { return _backer.Attribute2ndValue; }
+            set
+            {
+                _backer.Attribute2ndValue = (ushort)value;
+                _backer.IsDirty = true;
+            }
+        }
 
         public double NextTickTime {
             get
@@ -102,38 +146,36 @@ namespace ACE.Entity
             }
         }
 
-        public CreatureVital(ICreatureStats creature, Ability ability, double regenRate) : base(ability)
+        public CreatureVital(ICreatureStats creature, Ability ability, double regenRate)
         {
             this.creature = creature;
             this.RegenRate = regenRate;
+            Ability = ability;
+            this.Base = Ability.GetFormula().CalcBase(creature);
         }
 
-        public CreatureVital(ICreatureStats creature, AceObjectPropertiesAttribute2nd props) : base((Ability)props.Attribute2ndId)
+        public CreatureVital(ICreatureStats creature, AceObjectPropertiesAttribute2nd props) 
         {
-            this.Base = 0;
+            this._backer = props;
             this.creature = creature;
-            this.Ranks = props.Attribute2ndRanks;
-            this.ExperienceSpent = props.Attribute2ndXpSpent;
-            this.Current = props.Attribute2ndValue;
             this.RegenRate = Ability.GetRegenRate();
+            this.Base = Ability.GetFormula().CalcBase(creature);
         }
 
-        public AceObjectPropertiesAttribute2nd GetVital(uint objId)
+        public AceObjectPropertiesAttribute2nd GetVital()
         {
-            var ret = new AceObjectPropertiesAttribute2nd();
-
-            ret.AceObjectId = objId;
-            ret.Attribute2ndId = (ushort)Ability;
-            ret.Attribute2ndValue = Current;
-            ret.Attribute2ndRanks = (ushort)Ranks;
-            ret.Attribute2ndXpSpent = ExperienceSpent;
-
-            return ret;
+            return _backer;
         }
 
-        public override object Clone()
+        public void ClearDirtyFlags()
         {
-            return MemberwiseClone();
+            _backer.IsDirty = false;
+            _backer.HasEverBeenSavedToDatabase = true;
+        }
+
+        public object Clone()
+        {
+            return new CreatureVital(creature, (AceObjectPropertiesAttribute2nd)_backer.Clone());
         }
     }
 }

@@ -6,16 +6,41 @@ namespace ACE.Entity
 {
     public class CreatureSkill : ICloneable
     {
+        private AceObjectPropertiesSkill _backer;
+
         // because skill values are determined from stats, we need a reference to the character
         // so we can calculate.  this could be refactored into a better pattern, but it will
         // do for now.
         private ICreatureStats character;
 
-        public Skill Skill { get; private set; }
+        public Skill Skill
+        {
+            get { return (Skill)_backer.SkillId; }
+            protected set
+            {
+                _backer.SkillId = (ushort)value;
+            }
+        }
 
-        public SkillStatus Status { get; private set; }
+        public SkillStatus Status
+        {
+            get { return (SkillStatus)_backer.SkillStatus; }
+            protected set
+            {
+                _backer.SkillStatus = (ushort)value;
+                _backer.IsDirty = true;
+            }
+        }
 
-        public uint Ranks { get; set; } 
+        public uint Ranks
+        {
+            get { return _backer.SkillPoints; }
+            set
+            {
+                _backer.SkillPoints = (ushort)value;
+                _backer.IsDirty = true;
+            }
+        } 
         
         public uint UnbuffedValue
         {
@@ -42,17 +67,26 @@ namespace ACE.Entity
             }
         }
 
+        public uint ExperienceSpent
+        {
+            get { return _backer.SkillXpSpent; }
+            set
+            {
+                _backer.SkillXpSpent = value;
+                _backer.IsDirty = true;
+            }
+        }
         public uint ActiveValue
         {
             // FIXME(ddevec) -- buffs?:
             get { return UnbuffedValue; }
         }
-
-        public uint ExperienceSpent { get; set; }
-
+        
         public CreatureSkill(ICreatureStats character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
         {
             this.character = character;
+            _backer = new AceObjectPropertiesSkill();
+            _backer.AceObjectId = character.AceObjectId;
             Skill = skill;
             Status = status;
             Ranks = ranks;
@@ -62,28 +96,23 @@ namespace ACE.Entity
         public CreatureSkill(ICreatureStats character, AceObjectPropertiesSkill skill)
         {
             this.character = character;
-            Skill = (Skill)skill.SkillId;
-            Status = (SkillStatus)skill.SkillStatus;
-            Ranks = skill.SkillPoints;
-            ExperienceSpent = skill.SkillXpSpent;
+            _backer = skill;
         }
 
-        public AceObjectPropertiesSkill GetAceObjectSkill(uint objId)
+        public AceObjectPropertiesSkill GetAceObjectSkill()
         {
-            var ret = new AceObjectPropertiesSkill();
+            return _backer;
+        }
 
-            ret.AceObjectId = objId;
-            ret.SkillId = (ushort)Skill;
-            ret.SkillPoints = (ushort)Ranks;
-            ret.SkillStatus = (ushort)Status;
-            ret.SkillXpSpent = ExperienceSpent;
-
-            return ret;
+        public void ClearDirtyFlags()
+        {
+            _backer.IsDirty = false;
+            _backer.HasEverBeenSavedToDatabase = true;
         }
 
         public object Clone()
         {
-            return MemberwiseClone();
+            return new CreatureSkill(this.character, (AceObjectPropertiesSkill)_backer.Clone());
         }
     }
 }

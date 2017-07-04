@@ -336,6 +336,10 @@ namespace ACE.Entity
         {
             // Clone Character
             AceObject obj = (AceObject)Character.Clone();
+
+            // immediately after cloning, clear all dirty flags and HasBeenSavedToDatabase
+            Character.ClearDirtyFlags();
+
             // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
             // this is crap and needs to be fixed.
             obj.WeenieClassId = 1;
@@ -481,23 +485,32 @@ namespace ACE.Entity
         public void SpendXp(Enum.Ability ability, uint amount)
         {
             bool isSecondary = false;
+            ICreatureXpSpendableStat creatureStat;
             CreatureAbility creatureAbility;
             bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
-            if (!success)
+            if (success)
+            {
+                creatureStat = creatureAbility;
+            }
+            else
             {
                 CreatureVital v;
                 success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out v);
+
                 // Invalid ability
-                if (!success)
+                if (success)
+                {
+                    creatureStat = v;
+                }
+                else
                 {
                     log.Error("Invalid ability passed to Player.SpendXp");
                     return;
                 }
-                creatureAbility = v;
                 isSecondary = true;
             }
-            uint baseValue = creatureAbility.Base;
-            uint result = SpendAbilityXp(creatureAbility, amount);
+            uint baseValue = creatureStat.Base;
+            uint result = SpendAbilityXp(creatureStat, amount);
             uint ranks = creatureAbility.Ranks;
             uint newValue = creatureAbility.UnbuffedValue;
             string messageText = "";
@@ -510,8 +523,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    CreatureVital vital = creatureAbility as CreatureVital;
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, vital.Current);
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureAbility.Current);
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
@@ -556,7 +568,7 @@ namespace ACE.Entity
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendAbilityXp(CreatureAbility ability, uint amount)
+        private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
         {
             uint result = 0;
             bool addToCurrentValue = false;
@@ -1184,8 +1196,7 @@ namespace ACE.Entity
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
-
+                
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 #if DEBUG
                 if (Session.Player != null)

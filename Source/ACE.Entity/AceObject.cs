@@ -9,7 +9,7 @@ using System.Linq;
 namespace ACE.Entity
 {
     [DbTable("ace_object")]
-    public class AceObject : ICreatureStats, ICloneable
+    public class AceObject : ICreatureStats, ICloneable, IDirty
     {
         public const uint WEENIE_MAX = 199999;
 
@@ -23,6 +23,16 @@ namespace ACE.Entity
         {
         }
 
+        public bool IsDirty { get; set; }
+
+        /// <summary>
+        /// flag to indicate whether or not this instance came from the database
+        /// or was created by the game engine.  use case: when calling "SaveObject"
+        /// in the database, we need to know whether to insert or update.  There's 
+        /// really no other way to tell at present.
+        /// </summary>
+        public bool HasEverBeenSavedToDatabase { get; set; } = false;
+
         /// <summary>
         /// Table field Primary Key
         /// </summary>
@@ -35,23 +45,53 @@ namespace ACE.Entity
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public virtual uint WeenieClassId { get; set; }
 
+        private uint _aceObjectDescriptionFlags = 0;
+
         /// <summary>
         /// Table Field Flags
         /// </summary>
         [DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
-        public uint AceObjectDescriptionFlags { get; set; }
+        public uint AceObjectDescriptionFlags
+        {
+            get { return _aceObjectDescriptionFlags; }
+            set
+            {
+                _aceObjectDescriptionFlags = value;
+                IsDirty = true;
+            }
+        }
+
+        private uint _physicsDescriptionFlag = 0;
 
         /// <summary>
         /// Table Field - Flags
         /// </summary>
         [DbField("physicsDescriptionFlag", (int)MySqlDbType.UInt32)]
-        public uint PhysicsDescriptionFlag { get; set; }
+        public uint PhysicsDescriptionFlag
+        {
+            get { return _physicsDescriptionFlag; }
+            set
+            {
+                _physicsDescriptionFlag = value;
+                IsDirty = true;
+            }
+        }
+
+        private uint _weenieHeaderFlags = 0;
 
         /// <summary>
         /// Table Field - Flags
         /// </summary>
         [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
-        public uint WeenieHeaderFlags { get; set; }
+        public uint WeenieHeaderFlags
+        {
+            get { return _weenieHeaderFlags; }
+            set
+            {
+                _weenieHeaderFlags = value;
+                IsDirty = true;
+            }
+        }
 
         public uint? AnimationFrameId
         {
@@ -65,8 +105,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ClothingPriority, value); }
         }
 
+        private string _currentMotionState = null;
+
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
-        public string CurrentMotionState { get; set; }
+        public string CurrentMotionState
+        {
+            get { return _currentMotionState; }
+            set
+            {
+                _currentMotionState = value;
+                IsDirty = true;
+            }
+        }
 
         public uint? IconId
         {
@@ -305,11 +355,11 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// will throw if not null!
+        /// will throw if null!
         /// </summary>
         public uint Type
         {
-            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
+            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue ?? 0; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
@@ -565,7 +615,7 @@ namespace ACE.Entity
 
         public List<uint> GetDataIdProperties(PropertyDataId property)
         {
-            return DataIdProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+            return DataIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
         public void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
@@ -586,9 +636,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                {
-                    DataIdProperties.Remove(listItem);
-                }
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -599,7 +647,7 @@ namespace ACE.Entity
 
         public List<bool> GetBoolProperties(PropertyBool property)
         {
-            return BoolProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+            return BoolProperties.Where(x => x.PropertyId == (uint)property).Where(b => b.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
         public void SetBoolProperty(PropertyBool propertyId, bool? value)
@@ -620,9 +668,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                {
-                    BoolProperties.Remove(listItem);
-                }
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -633,7 +679,7 @@ namespace ACE.Entity
 
         public List<uint> GetInstanceIdProperties(PropertyInstanceId property)
         {
-            return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+            return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
         public void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
@@ -654,9 +700,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                {
-                    InstanceIdProperties.Remove(listItem);
-                }
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -740,7 +784,7 @@ namespace ACE.Entity
 
         public List<uint> GetIntProperties(PropertyInt property)
         {
-            return IntProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
+            return IntProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
         public void SetIntProperty(PropertyInt intPropertyId, uint? value)
@@ -761,9 +805,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                {
-                    IntProperties.Remove(listItem);
-                }
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -774,7 +816,7 @@ namespace ACE.Entity
 
         public List<ulong> GetInt64Properties(PropertyInt64 property)
         {
-            return Int64Properties.Where(x => x.PropertyId == (ushort)property).Select(x => x.PropertyValue).ToList();
+            return Int64Properties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
         public void SetInt64Property(PropertyInt64 int64PropertyId, ulong? value)
@@ -795,7 +837,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                    Int64Properties.Remove(listItem);
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -806,7 +848,7 @@ namespace ACE.Entity
 
         public List<double> GetDoubleProperties(PropertyDouble property)
         {
-            return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Select(x => x.PropertyValue).ToList();
+            return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
         public void SetDoubleTimestamp(PropertyDouble propertyId)
@@ -840,7 +882,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                    DoubleProperties.Remove(listItem);
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -878,9 +920,7 @@ namespace ACE.Entity
             else
             {
                 if (listItem != null)
-                {
-                    StringProperties.Remove(listItem);
-                }
+                    listItem.PropertyValue = null;
             }
         }
 
@@ -959,6 +999,7 @@ namespace ACE.Entity
             ret.AceObjectDescriptionFlags = AceObjectDescriptionFlags;
             ret.PhysicsDescriptionFlag = PhysicsDescriptionFlag;
             ret.WeenieHeaderFlags = WeenieHeaderFlags;
+            ret.HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase;
 
             // Then clone our properties
             ret.PaletteOverrides = CloneList(PaletteOverrides);
@@ -978,6 +1019,23 @@ namespace ACE.Entity
             ret.SpellIdProperties = CloneList(SpellIdProperties);
 
             return ret;
+        }
+
+        public void ClearDirtyFlags()
+        {
+            this.IsDirty = false;
+            this.HasEverBeenSavedToDatabase = true;
+
+            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.IntProperties.ForEach(x => x.ClearDirtyFlags());
+            this.Int64Properties.ForEach(x => x.ClearDirtyFlags());
+            this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
+            this.BoolProperties.ForEach(x => x.ClearDirtyFlags());
+            this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
+            this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
+            this.StringProperties.ForEach(x => x.ClearDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable

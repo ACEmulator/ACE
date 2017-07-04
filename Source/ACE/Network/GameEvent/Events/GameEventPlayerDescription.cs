@@ -90,10 +90,11 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write((ushort)propertiesInt.Count);
                 Writer.Write((ushort)0x40);
 
-                foreach (var uintProperty in propertiesInt)
+                var notNull = propertiesInt.Where(x => x != null);
+                foreach (var uintProperty in notNull)
                 {
                     Writer.Write((uint)uintProperty.PropertyId);
-                    Writer.Write(uintProperty.PropertyValue);
+                    Writer.Write(uintProperty.PropertyValue.Value);
                 }
             }
 
@@ -105,10 +106,11 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write((ushort)propertiesInt64.Count);
                 Writer.Write((ushort)0x40);
 
-                foreach (var uint64Property in propertiesInt64)
+                var notNull = propertiesInt64.Where(x => x != null);
+                foreach (var uint64Property in notNull)
                 {
                     Writer.Write((uint)uint64Property.PropertyId);
-                    Writer.Write(uint64Property.PropertyValue);
+                    Writer.Write(uint64Property.PropertyValue.Value);
                 }
             }
 
@@ -135,10 +137,11 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write((ushort)propertiesDouble.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var doubleProperty in propertiesDouble)
+                var notNull = propertiesDouble.Where(x => x != null);
+                foreach (var doubleProperty in notNull)
                 {
                     Writer.Write((uint)doubleProperty.PropertyId);
-                    Writer.Write(doubleProperty.PropertyValue);
+                    Writer.Write(doubleProperty.PropertyValue.Value);
                 }
             }
 
@@ -157,7 +160,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDid = aceObj.DataIdProperties.Where(x => x.PropertyId < 9000).ToList();
+            var propertiesDid = aceObj.DataIdProperties.Where(x => x.PropertyId < 9000 && x.PropertyValue != null).ToList();
             if (propertiesDid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDid;
@@ -168,11 +171,11 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var didProperty in propertiesDid)
                 {
                     Writer.Write(didProperty.PropertyId);
-                    Writer.Write(didProperty.PropertyValue);
+                    Writer.Write(didProperty.PropertyValue.Value);
                 }
             }
 
-            var propertiesIid = aceObj.InstanceIdProperties.Where(x => x.PropertyId < 9000).ToList();
+            var propertiesIid = aceObj.InstanceIdProperties.Where(x => x.PropertyId < 9000 && x.PropertyValue != null).ToList();
             if (propertiesIid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyIid;
@@ -183,7 +186,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var iidProperty in propertiesIid)
                 {
                     Writer.Write(iidProperty.PropertyId);
-                    Writer.Write(iidProperty.PropertyValue);
+                    Writer.Write(iidProperty.PropertyValue.Value);
                 }
             }
             /*if ((propertyFlags & DescriptionPropertyFlag.Resource) != 0)

@@ -5,23 +5,57 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_attribute")]
-    public class AceObjectPropertiesAttribute : ICloneable
+    public class AceObjectPropertiesAttribute : BaseAceProperty, ICloneable
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true)]
-        public uint AceObjectId { get; set; }
-
-        [DbField("attributeId", (int)MySqlDbType.UInt16)]
+        private uint _xpSpent = 0;
+        private ushort _ranks = 0;
+        private ushort _base = 0;
+        
+        [DbField("attributeId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort AttributeId { get; set; }
 
         [DbField("attributeBase", (int)MySqlDbType.UInt16)]
-        public ushort AttributeBase { get; set; }
+        public ushort AttributeBase
+        {
+            get
+            {
+                return _base;
+            }
+            set
+            {
+                _base = value;
+                IsDirty = true;
+            }
+        }
 
         [DbField("attributeRanks", (int)MySqlDbType.UInt16)]
-        public ushort AttributeRanks { get; set; }
+        public ushort AttributeRanks
+        {
+            get
+            {
+                return _ranks;
+            }
+            set
+            {
+                _ranks = value;
+                IsDirty = true;
+            }
+        }
 
         [DbField("attributeXpSpent", (int)MySqlDbType.UInt32)]
-        public uint AttributeXpSpent { get; set; }
-
+        public uint AttributeXpSpent
+        {
+            get
+            {
+                return _xpSpent;
+            }
+            set
+            {
+                _xpSpent = value;
+                IsDirty = true;
+            }
+        }
+        
         public uint ActiveValue
         {
             get

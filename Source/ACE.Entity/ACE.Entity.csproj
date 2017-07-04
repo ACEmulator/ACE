@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -74,6 +75,7 @@
     <Compile Include="AceObjectPropertiesInt.cs" />
     <Compile Include="AceObjectPropertiesString.cs" />
     <Compile Include="AceObjectPropertiesPosition.cs" />
+    <Compile Include="BaseAceProperty.cs" />
     <Compile Include="CachedWeenieClass.cs" />
     <Compile Include="CachedWorldObject.cs" />
     <Compile Include="CharacterPositionExtensions.cs" />
@@ -116,6 +118,8 @@
     <Compile Include="Enum\SecurityLevel.cs" />
     <Compile Include="Enum\WeenieHeaderFlags.cs" />
     <Compile Include="Enum\SpellType.cs" />
+    <Compile Include="ICreatureXpSpendableStat.cs" />
+    <Compile Include="IDirty.cs" />
     <Compile Include="LandBlockStatus.cs" />
     <Compile Include="Enum\PortalType.cs" />
     <Compile Include="Enum\Properties\PropertyBool.cs" />
