@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-07-04
+[Og II]
+* Cleaned up some concurrency issues.
+
+### 2017-07-03
+[Optim Shi]
+* Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.
+
 ### 2017-07-02
 [Og II]
 
