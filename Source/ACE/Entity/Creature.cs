@@ -300,7 +300,7 @@ namespace ACE.Entity
                         // I do have a shield equipped.   What stance do I need to take?
                         if (meleeWeapon?.DefaultCombatStyle != null)
                         {
-                            if (meleeWeapon.DefaultCombatStyle == MotionStance.MeleeNoShieldAttack)
+                            if (meleeWeapon.DefaultCombatStyle == MotionStance.MeleeNoShieldAttack || meleeWeapon.DefaultCombatStyle == MotionStance.UaNoShieldAttack)
                             {
                                 gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
                                 gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
@@ -313,7 +313,8 @@ namespace ACE.Entity
                         }
                     }
                     // If I am down to here and still null - I have no idea - do nothing.
-                    if (gm != null) SetMotionState(gm);
+                    if (gm != null)
+                        SetMotionState(gm);
                     else
                         log.InfoFormat("Changing combat mode - but could not determine correct stance. ");
                     break;

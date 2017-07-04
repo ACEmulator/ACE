@@ -1024,54 +1024,7 @@ namespace ACE.Command.Handlers
                 session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
                     new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
             }
-        }
-
-        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
-        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates 1 of each weapon class in your inventory.")]
-        public static void HandleWeapons(Session session, params string[] parameters)
-        {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 148, 300, 307, 311, 326, 338, 348, 350, 12748, 12463, 31812 };
-            foreach (uint weenieId in weaponsTest)
-            {
-                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
-        }
-
-        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
-        public static void HandleCIRandom(Session session, params string[] parameters)
-        {
-            uint typeId;
-            byte numItems = 10;
-            try
-            {
-                typeId = Convert.ToUInt32(parameters[0]);
-            }
-            catch (Exception)
-            {
-                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
-                return;
-            }
-            if (parameters.Length == 2)
-            {
-                try
-                {
-                    numItems = Convert.ToByte(parameters[1]);
-                }
-                catch (Exception)
-                {
-                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 0 - 50", ChatMessageType.Broadcast);
-                    return;
-                }
-            }
-            LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems);
-        }
+        }       
 
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
