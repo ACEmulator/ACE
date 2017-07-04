@@ -134,24 +134,29 @@ namespace ACE.Entity
             }
 
             float baseTurnSpeed = 1;
-            float baseSidestepSpeed = 1;
             float baseSpeed = 1;
+
             if (holdKey == 2)
             {
-                // THis is just a random number that looks close to what the game expects
                 if (run.ActiveValue >= 800)
                 {
                     baseSpeed = 18f / 4f;
                 }
                 else
                 {
-                    // FIXME(ddevec): Is burden accounted for externally, or as part of the skill?
+                    // TODO(ddevec): Is burden accounted for externally, or as part of the skill?
                     baseSpeed = (((float)run.ActiveValue / (run.ActiveValue + 200f) * 11f) + 4.0f) / 4.0f;
                 }
-
-                baseTurnSpeed = 1.5f;
-                baseSidestepSpeed = 1.5f;
             }
+            else
+            {
+                if (baseSpeed > 3.11999f)
+                {
+                    baseSpeed = 3.12f;
+                }
+            }
+
+            float baseSidestepSpeed = baseSpeed;
 
             if (ForwardCommand != 0)
             {
@@ -167,15 +172,6 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        if (baseSpeed > 3.11999f)
-                        {
-                            baseSpeed = 3.2f;
-                        }
-
-                        if (baseSpeed < -3.11999f)
-                        {
-                            baseSpeed = -3.2f;
-                        }
                         md.ForwardCommand = (ushort)MotionCommand.WalkForward;
                     }
                     md.ForwardSpeed = baseSpeed;
@@ -183,6 +179,14 @@ namespace ACE.Entity
                 else if (ForwardCommand == (ushort)MotionCommand.WalkBackwards)
                 {
                     md.ForwardCommand = (ushort)MotionCommand.WalkForward;
+                    if (holdKey != 2)
+                    {
+                        baseSpeed = .65f;
+                    }
+                    else
+                    {
+                        baseSpeed = .65f * baseSpeed;
+                    }
                     md.ForwardSpeed = -1 * baseSpeed;
                 }
                 // Emote -- some are put here, others are sent externally -- ugh
@@ -198,12 +202,20 @@ namespace ACE.Entity
                 if (SideStepCommand == (ushort)MotionCommand.SideStepRight)
                 {
                     md.SideStepCommand = (ushort)MotionCommand.SideStepRight;
-                    md.SideStepSpeed = baseSidestepSpeed;
+                    md.SideStepSpeed = baseSidestepSpeed * 3.12f / 1.25f * .5f;
+                    if (md.SideStepSpeed > 3)
+                    {
+                        md.SideStepSpeed = 3;
+                    }
                 }
                 else if (SideStepCommand == (ushort)MotionCommand.SideStepLeft)
                 {
                     md.SideStepCommand = (ushort)MotionCommand.SideStepRight;
-                    md.SideStepSpeed = -1 * baseSidestepSpeed;
+                    md.SideStepSpeed = -1 * baseSidestepSpeed * 3.12f / 1.25f * .5f;
+                    if (md.SideStepSpeed < -3)
+                    {
+                        md.SideStepSpeed = -3;
+                    }
                 }
                 // Unknown turn command?
                 else
@@ -214,6 +226,10 @@ namespace ACE.Entity
 
             if (TurnCommand != 0)
             {
+                if (holdKey == 2)
+                {
+                    baseTurnSpeed = 1.5f;
+                }
                 if (TurnCommand == (ushort)MotionCommand.TurnRight)
                 {
                     md.TurnCommand = (ushort)MotionCommand.TurnRight;
