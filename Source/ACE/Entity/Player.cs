@@ -213,12 +213,6 @@ namespace ACE.Entity
             // TODO: Load from database should be loading player data - including inventroy and positions
             CurrentMotionState = new UniversalMotion(MotionStance.Standing);
 
-            // TODO: test and remove - this should not be needed.
-            MotionTableId = 0x09000001u;
-            SoundTableId = 0x20000001u;
-            PhisicsTableId = 0x34000004u;
-            SetupTableId = 0x02000001u;
-
             // radius for object updates
             ListeningRadius = 5f;
         }
