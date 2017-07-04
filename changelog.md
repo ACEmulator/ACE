@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-07-03
+[Mogwai]
+* Massive Database optimizations and implementations for saving objects and all their properties.
 
 ### 2017-07-06
 [OptimShi]
