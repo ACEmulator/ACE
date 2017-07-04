@@ -36,6 +36,7 @@ namespace ACE.Database
             GetAceObjectPropertiesIid = 22,
             GetAceObject = 23,
             GetAceObjectPropertiesPosition = 24,
+            GetAceObjectPropertiesSpell = 25,
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -68,6 +69,7 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
         }
@@ -144,6 +146,7 @@ namespace ACE.Database
                 o.TextureOverrides = GetAceObjectTextureMaps(o.AceObjectId);
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
+                o.SpellIdProperties = GetAceObjectPropertiesSpell(o.AceObjectId);
                 o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
                 ret.Add(o);
             });
@@ -227,6 +230,7 @@ namespace ACE.Database
             bao.TextureOverrides = GetAceObjectTextureMaps(bao.AceObjectId);
             bao.AnimationOverrides = GetAceObjectAnimations(bao.AceObjectId);
             bao.PaletteOverrides = GetAceObjectPalettes(bao.AceObjectId);
+            bao.SpellIdProperties = GetAceObjectPropertiesSpell(bao.AceObjectId);
             bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
             return bao;
         }
@@ -277,6 +281,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesInstanceId>(WorldPreparedStatement.GetAceObjectPropertiesIid, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesSpell> GetAceObjectPropertiesSpell(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesSpell>(WorldPreparedStatement.GetAceObjectPropertiesSpell, criteria);
             return objects;
         }
 

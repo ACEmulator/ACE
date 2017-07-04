@@ -46,17 +46,32 @@ namespace ACE.Factories
                             objectList.ForEach(o => results.Add(o));
                         }
                         break;
+
+                    case ObjectType.Container:
+                        if (aceO.Location != null)
+                        {
+                            results.Add(new Container(aceO));
+                        }
+                        break;
+
+                    case ObjectType.Creature:
+                        if (aceO.Location != null)
+                        {
+                            results.Add(new Creature(aceO));
+                        }
+                        break;
 #if DEBUG
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies
                         // FIXME(ddevec): Some objects have null location.  This freaks out the landblock... ignore them?
                         if (aceO.Location != null)
+                        {
                             results.Add(new DebugObject(aceO));
+                        }
                         break;
 #endif
                 }
             }
-
             return results;
         }
     }

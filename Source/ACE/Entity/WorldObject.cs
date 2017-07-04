@@ -17,6 +17,8 @@ using System.Linq;
 
 namespace ACE.Entity
 {
+    using System.Windows.Forms;
+
     public abstract class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -30,6 +32,42 @@ namespace ACE.Entity
         }
 
         protected AceObject AceObject { get; set; }
+
+        // we need to expose this read only for examine to work. Og II
+        public List<AceObjectPropertiesInt> PropertiesInt
+        {
+            get { return AceObject.IntProperties; }
+        }
+
+        public List<AceObjectPropertiesInt64> PropertiesInt64
+        {
+            get { return AceObject.Int64Properties; }
+        }
+
+        public List<AceObjectPropertiesBool> PropertiesBool
+        {
+            get { return AceObject.BoolProperties; }
+        }
+
+        public List<AceObjectPropertiesString> PropertiesString
+        {
+            get { return AceObject.StringProperties; }
+        }
+
+        public List<AceObjectPropertiesDouble> PropertiesDouble
+        {
+            get { return AceObject.DoubleProperties; }
+        }
+
+        public List<AceObjectPropertiesDataId> PropertiesDid
+        {
+            get { return AceObject.DataIdProperties; }
+        }
+
+        public List<AceObjectPropertiesSpell> PropertiesSpellId
+        {
+            get { return AceObject.SpellIdProperties; }
+        }
 
         public ObjectType Type
         {
@@ -61,6 +99,7 @@ namespace ACE.Entity
         public IActor CurrentParent { get; private set; }
 
         public Position ForcedLocation { get; private set; }
+
         public Position RequestedLocation { get; private set; }
 
         /// <summary>
@@ -68,10 +107,7 @@ namespace ACE.Entity
         /// </summary>
         public Landblock CurrentLandblock
         {
-            get
-            {
-                return CurrentParent as Landblock;
-            }
+            get { return CurrentParent as Landblock; }
         }
 
         /// <summary>
@@ -127,9 +163,7 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; set; }
-
-        public CombatMode CombatMode { get; private set; }
+        public UpdatePositionFlag PositionFlag { get; set; }        
 
         public virtual void PlayScript(Session session) { }
 
@@ -146,13 +180,11 @@ namespace ACE.Entity
         {
             get
             {
-                if (ItemCapacity == null || ItemCapacity == 0)
-                {
-                    if (Name.Contains("Foci"))
-                        return ContainerType.Foci;
-                    return ContainerType.NonContainer;
-                }
-                return ContainerType.Conatiner;
+                if (ItemCapacity != null && ItemCapacity != 0)
+                    return ContainerType.Conatiner;
+                if (Name.Contains("Foci"))
+                    return ContainerType.Foci;
+                return ContainerType.NonContainer;
             }
         }
 
@@ -188,10 +220,9 @@ namespace ACE.Entity
             set { AceObject.ItemUseable = (uint?)value; }
         }
 
-        // FIXME(ddevec): Defaults to 25, so is unnecessarily sent always w/ weenieheaderflags.
         public float? UseRadius
         {
-            get { return AceObject.UseRadius ?? 0.25f; }
+            get { return AceObject.UseRadius; }
             set { AceObject.UseRadius = value; }
         }
 
@@ -211,6 +242,12 @@ namespace ACE.Entity
         {
             get { return (CombatUse?)AceObject.CombatUse; }
             set { AceObject.CombatUse = (byte?)value; }
+        }
+
+        public MotionStance? DefaultCombatStyle
+        {
+            get { return (MotionStance?)AceObject.DefaultCombatStyle; }
+            set { AceObject.DefaultCombatStyle = (uint?)value; }
         }
 
         /// <summary>
@@ -409,7 +446,6 @@ namespace ACE.Entity
             set { AceObject.PhysicsTableId = value; }
         }
 
-        public uint ItemsEquipedCount { get; set; }
         /// <summary>
         /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
         /// </summary>
@@ -465,13 +501,7 @@ namespace ACE.Entity
 
         public AceVector3 Omega = null;
 
-        private MotionState currentMotionState;
-
-        public MotionState CurrentMotionState
-        {
-            get { return currentMotionState; }
-            set { currentMotionState = value; }
-        }
+        public MotionState CurrentMotionState { get; set; }
 
         public uint? DefaultScript
         {
@@ -534,7 +564,7 @@ namespace ACE.Entity
 
         public void AddModel(byte index, uint modelresourceid)
         {
-            var newmodel = new Model(index, modelresourceid);
+            Model newmodel = new Model(index, modelresourceid);
             models.Add(newmodel);
         }
 
@@ -606,24 +636,6 @@ namespace ACE.Entity
             PaletteGuid = aceObject.PaletteId;
         }
 
-        public void SetCombatMode(CombatMode newCombatMode)
-        {
-            log.InfoFormat("Changing combat mode for {0} to {1}", this.Guid, newCombatMode);
-            // TODO: any sort of validation
-            CombatMode = newCombatMode;
-            switch (CombatMode)
-            {
-                case CombatMode.Peace:
-                    SetMotionState(new UniversalMotion(MotionStance.Standing));
-                    break;
-                case CombatMode.Melee:
-                    var gm = new UniversalMotion(MotionStance.UANoShieldAttack);
-                    gm.MovementData.CurrentStyle = (ushort)MotionStance.UANoShieldAttack;
-                    SetMotionState(gm);
-                    break;
-            }
-        }
-
         internal void SetInventoryForWorld(WorldObject inventoryItem)
         {
             inventoryItem.Location = Location.InFrontOf(1.1f);
@@ -648,19 +660,9 @@ namespace ACE.Entity
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
-        public void SetMotionState(MotionState motionState)
-        {
-            var p = (Player)this;
-            CurrentMotionState = motionState;
-            var updateMotion = new GameMessageUpdateMotion(p.Guid,
-                                                           p.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                                                           p.Sequences, motionState);
-            p.Session.Network.EnqueueSend(updateMotion);
-        }
-
         public void Examine(Session examiner)
         {
-            var identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
+            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
             examiner.Network.EnqueueSend(identifyResponse);
         }
 
@@ -724,7 +726,7 @@ namespace ACE.Entity
             if (ValidLocations != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
 
-            // You can't be in a wielded location if you don't have a weilder.   This is a gurad against crap data. Og II
+            // You can't be in a wielded location if you don't have a wielder.   This is a gurad against crap data. Og II
             if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (Wielder != null) && (Wielder != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 
@@ -1095,7 +1097,7 @@ namespace ACE.Entity
             if (SetupTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
 
-            if (ItemsEquipedCount != 0)
+            if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
             if (Parent != null)
@@ -1188,7 +1190,7 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
-                writer.Write(ItemsEquipedCount);
+                writer.Write(Children.Count);
                 foreach (var child in Children)
                 {
                     writer.Write(child.Guid);

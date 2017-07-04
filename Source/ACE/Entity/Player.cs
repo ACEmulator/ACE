@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
@@ -18,6 +17,7 @@ using ACE.Network.Sequence;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
+using System.IO;
 
 namespace ACE.Entity
 {
@@ -238,7 +238,7 @@ namespace ACE.Entity
         {
             return Character;
         }
-        
+
         private MotionStance stance = MotionStance.Standing;
 
         // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
@@ -1597,14 +1597,44 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void HandleUnequip(Container container, WorldObject item, uint location)
+        private void HandleUnequip(Container container, WorldObject item, uint location, ActionChain inContainerChain)
         {
             UpdateAppearance(container, item.Guid.Full);
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+            if (item.CurrentWieldedLocation > EquipMask.RingLeft)
+            {
+                // We are coming from a weapon, wand or shield slot.
+                Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+                item.Parent = null;
+                // Magic numbers - need to understand and fix.
+                item.ParentLocation = null;
+                item.CurrentWieldedLocation = null;
+                inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
+                    Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
+                item.Location = null;
+                item.ContainerId = container.Guid.Full;
+                item.SetPhysicsDescriptionFlag(item);
+            }
+            else
+            {
+                item.Parent = null;
+                item.ParentLocation = null;
+                item.CurrentWieldedLocation = null;
+                item.Location = null;
+                item.ContainerId = container.Guid.Full;
+                item.SetPhysicsDescriptionFlag(item);
+            }
+
+            inContainerChain.AddDelaySeconds(0.001);
+            inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
                 new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
+                new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
+                new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, 0),
                 new GameMessageObjDescEvent(this),
-                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0)));
+
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                new GameMessageObjDescEvent(this),
+                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, location));
         }
 
         private void HandleMove(WorldObject item, Container container, uint location)
@@ -1702,7 +1732,7 @@ namespace ACE.Entity
                         new GameMessageUpdateMotion(Guid,
                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                             Sequences, motion),
-                        new GameMessagePickupEvent(Session, item));
+                        new GameMessagePickupEvent(Guid, item));
 
                     if (iidPropertyId == PropertyInstanceId.Wielder)
                         CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
@@ -1760,7 +1790,6 @@ namespace ACE.Entity
                             AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                     }
 
-                    ItemsEquipedCount += 1;
                     foreach (ModelPalette p in wo.GetPalettes)
                         AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
@@ -1779,6 +1808,8 @@ namespace ACE.Entity
 
         public void HandleActionWieldItem(Container container, uint itemId, uint location)
         {
+            uint placementId = 0;
+            uint childLocation = 0;
             ActionChain wieldChain = new ActionChain();
             wieldChain.AddAction(
                 this,
@@ -1790,18 +1821,90 @@ namespace ACE.Entity
                             HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Wielder);
                             return;
                         }
+
                         // Ok do you have this - if not bail
-                        if (GetInventoryItem(itemGuid) == null) return;
+                        var item = GetInventoryItem(itemGuid);
+                        if (item == null)
+                            return;
+                        if ((EquipMask)location > EquipMask.RingLeft)
+                        {
+                            // We are going into a weapon, wand or shield slot.
+                            switch ((EquipMask)location)
+                            {
+                                case EquipMask.MissileWeapon:
+                                    {
+                                        childLocation = 2;
+                                        placementId = 3;
+                                        break;
+                                    }
+                                case EquipMask.Shield:
+                                    {
+                                        childLocation = 3;
+                                        placementId = 6;
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        placementId = 1;
+                                        childLocation = 1;
+                                        break;
+                                    }
+                            }
+                            Children.Add(new EquippedItem(itemGuid.Full, (EquipMask)location));
+                            item.Parent = container.Guid.Full;
+                            // Magic numbers - need to understand and fix.
+                            item.ParentLocation = 1;
+                            item.CurrentWieldedLocation = (EquipMask)location;
+                            item.Location = Location;
+                            item.SetPhysicsDescriptionFlag(item);
+                        }
+                        else
+                        {
+                            item.CurrentWieldedLocation = (EquipMask)location;
+                            item.SetPhysicsDescriptionFlag(item);
+                        }
                         UpdateAppearance(container, itemId);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                            new GameEventWieldItem(Session, itemGuid.Full, location));
-                        CurrentLandblock.EnqueueBroadcast(
-                            Location,
-                            Landblock.MaxObjectRange,
-                            new GameMessageObjDescEvent(this));
+                        if ((EquipMask)location == EquipMask.Ammunition)
+                            Session.Network.EnqueueSend(
+                                new GameEventWieldItem(Session, itemGuid.Full, location),
+                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
+                        else
+                        {
+                            if ((EquipMask)location > EquipMask.RingLeft)
+                            {
+                                Session.Network.EnqueueSend(
+                                    new GameMessageCreateObject(item),
+                                    new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                    new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0),
+                                        PropertyInstanceId.Container),
+                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid,
+                                        PropertyInstanceId.Wielder),
+                                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation,
+                                        location));
+                                CurrentLandblock.EnqueueBroadcast(
+                                    Location,
+                                    Landblock.MaxObjectRange,
+                                    new GameMessageCreateObject(item),
+                                    new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameMessageObjDescEvent(item));
+                            }
+                            else
+                            {
+                                Session.Network.EnqueueSend(
+                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                    new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
+                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, location));
+                                CurrentLandblock.EnqueueBroadcast(
+                                    Location,
+                                    Landblock.MaxObjectRange,
+                                    new GameMessageObjDescEvent(this));
+                            }
+                        }
                     });
             wieldChain.EnqueueChain();
         }
@@ -1809,14 +1912,15 @@ namespace ACE.Entity
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
         {
             ActionChain inContainerChain = new ActionChain();
+            WorldObject inventoryItem;
             inContainerChain.AddAction(
                 this,
                 () =>
                     {
-                        WorldObject inventoryItem = null;
-                        Container container = null;
+                        Container container;
 
-                        if (containerGuid.IsPlayer()) container = this;
+                        if (containerGuid.IsPlayer())
+                            container = this;
                         else
                         {
                             // Ok I am going into player backpack (container) with something I have somewhere
@@ -1831,7 +1935,8 @@ namespace ACE.Entity
                             return;
                         }
 
-                        if (containerGuid.IsPlayer()) container = this;
+                        if (containerGuid.IsPlayer())
+                            container = this;
                         else
                         {
                             // Ok I am going into player backpack (container) with something I have somewhere
@@ -1844,7 +1949,7 @@ namespace ACE.Entity
                         // Was I equiped?   If so, lets take care of that and unequip
                         if (inventoryItem.Wielder != null)
                         {
-                            HandleUnequip(container, inventoryItem, location);
+                            HandleUnequip(container, inventoryItem, location, inContainerChain);
                             return;
                         }
 
@@ -2215,6 +2320,171 @@ namespace ACE.Entity
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
             }
+        }
+
+        public void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
+        {
+            writer.Write((uint)flags); // Flags
+            writer.Write(Convert.ToUInt32(success)); // Success bool
+        }
+
+        public void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
+        {
+            const ushort tableSize = 16;
+            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (propertiesInt.Count == 0)) return;
+            writer.Write((ushort)propertiesInt.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesInt x in propertiesInt)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.Int64StatsTable) == 0 || (propertiesInt64.Count == 0)) return;
+            writer.Write((ushort)propertiesInt64.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesInt64 x in propertiesInt64)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.BoolStatsTable) == 0 || (propertiesBool.Count == 0)) return;
+            writer.Write((ushort)propertiesBool.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesBool x in propertiesBool)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(Convert.ToUInt32(x.PropertyValue));
+            }
+        }
+
+        public void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.FloatStatsTable) == 0 || (propertiesDouble.Count == 0)) return;
+            writer.Write((ushort)propertiesDouble.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesDouble x in propertiesDouble)
+            {
+                writer.Write((uint)x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
+        {
+            const ushort tableSize = 8;
+            if ((flags & IdentifyResponseFlags.StringStatsTable) == 0 || (propertiesStrings.Count == 0)) return;
+            writer.Write((ushort)propertiesStrings.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesString x in propertiesStrings)
+            {
+                writer.Write((uint)x.PropertyId);
+                writer.WriteString16L(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
+        {
+            const ushort tableSize = 16;
+            if ((flags & IdentifyResponseFlags.DidStatsTable) == 0 || (propertiesDid.Count == 0)) return;
+            writer.Write((ushort)propertiesDid.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesDataId x in propertiesDid)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        {
+            if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
+            writer.Write((uint)propertiesSpellId.Count);
+
+            foreach (AceObjectPropertiesSpell x in propertiesSpellId)
+            {
+                    writer.Write(x.SpellId);
+            }
+        }
+
+        public void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        {
+            if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (propertiesArmor.Count == 0)) return;
+
+            foreach (AceObjectPropertiesDouble x in propertiesArmor)
+            {
+                writer.Write((float)x.PropertyValue);
+            }
+        }
+
+        public void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
+        {
+            uint header = 8;
+            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
+            writer.Write(header);
+            writer.Write(obj.Health.Current);
+            writer.Write(obj.Health.MaxValue);
+            if (header == 0)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    writer.Write(0u);
+                }
+            }
+            else
+            {
+                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
+                writer.Write(obj.Strength.UnbuffedValue);
+                writer.Write(obj.Endurance.UnbuffedValue);
+                writer.Write(obj.Quickness.UnbuffedValue);
+                writer.Write(obj.Coordination.UnbuffedValue);
+                writer.Write(obj.Focus.UnbuffedValue);
+                writer.Write(obj.Self.UnbuffedValue);
+                writer.Write(obj.Stamina.UnbuffedValue);
+                writer.Write(obj.Mana.UnbuffedValue);
+                writer.Write(obj.Stamina.MaxValue);
+                writer.Write(obj.Mana.MaxValue);
+                // this only gets sent if the header can be masked with 1
+                // Writer.Write(0u);
+            }
+        }
+
+        public void WriteIdentifyObjectWeaponsProfile(
+            BinaryWriter writer,
+            IdentifyResponseFlags flags,
+            List<AceObjectPropertiesDouble> propertiesWeaponsD,
+            List<AceObjectPropertiesInt> propertiesWeaponsI)
+        {
+            if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
+            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.DamageType)?.PropertyValue ?? 0u);
+            // Signed
+            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.WeaponTime)?.PropertyValue ?? 0);
+            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.WeaponSkill)?.PropertyValue ?? 0u);
+            // Signed
+            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.Damage)?.PropertyValue ?? 0);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.DamageVariance)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.DamageMod)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.WeaponLength)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.MaximumVelocity)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.WeaponOffense)?.PropertyValue ?? 0.00);
+            // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
+            writer.Write(0u);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ACE.Common.Extensions;
+using ACE.Entity;
 using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions

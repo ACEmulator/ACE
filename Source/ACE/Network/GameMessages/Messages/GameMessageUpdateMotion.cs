@@ -1,17 +1,9 @@
-﻿using log4net;
-using ACE.Network.Enum;
-using ACE.Network.Sequence;
+﻿using ACE.Network.Sequence;
 using ACE.Network.Motion;
-using System.Collections.Generic;
+using ACE.Entity;
 
 namespace ACE.Network.GameMessages.Messages
 {
-    using System;
-    using System.Diagnostics.Eventing.Reader;
-    using System.Runtime.Remoting.Messaging;
-
-    using global::ACE.Entity;
-
     public class GameMessageUpdateMotion : GameMessage
     {
         public GameMessageUpdateMotion(ObjectGuid animationTargetGuid, byte[] instance_timestamp, SequenceManager sequence, MotionState newState)

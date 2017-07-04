@@ -312,7 +312,7 @@ namespace ACE.Entity
             get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue; }
             set { SetIntProperty(PropertyInt.ItemType, value); }
         }
-        
+
         public uint? PaletteId
         {
             get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
@@ -412,6 +412,12 @@ namespace ACE.Entity
         {
             get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
             set { SetIntProperty(PropertyInt.StackSize, value); }
+        }
+
+        public uint? DefaultCombatStyle
+        {
+            get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
+            set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
         }
         /// <summary>
         /// This field represents the number of units or uses an item has in it or left.   Salvage in it
@@ -889,6 +895,8 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
 
+        public List<AceObjectPropertiesSpell> SpellIdProperties { get; set; } = new List<AceObjectPropertiesSpell>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
@@ -960,6 +968,7 @@ namespace ACE.Entity
             ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
+            ret.SpellIdProperties = CloneList(SpellIdProperties);
 
             return ret;
         }
