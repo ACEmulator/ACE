@@ -3,6 +3,7 @@
 ### 2017-07-04
 [Optim Shi]
 * Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
+* Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
 
 ### 2017-07-03
 [Optim Shi]

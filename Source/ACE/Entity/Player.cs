@@ -1582,17 +1582,17 @@ namespace ACE.Entity
         {
             // Read the payload sent from the client...
             PaletteGuid = message.Payload.ReadUInt32();
-            Character.HeadObject = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.HairTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.DefaultHairTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.EyesTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.DefaultEyesTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.NoseTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.DefaultNoseTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.MouthTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.DefaultMouthTexture = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.SkinPalette = message.Payload.ReadUInt32() & 0xFFFF;
-            Character.HairPalette = message.Payload.ReadUInt32() & 0xFFFF;
+            Character.HeadObject = message.Payload.ReadUInt32();
+            Character.HairTexture = message.Payload.ReadUInt32();
+            Character.DefaultHairTexture = message.Payload.ReadUInt32();
+            Character.EyesTexture = message.Payload.ReadUInt32();
+            Character.DefaultEyesTexture = message.Payload.ReadUInt32();
+            Character.NoseTexture = message.Payload.ReadUInt32();
+            Character.DefaultNoseTexture = message.Payload.ReadUInt32();
+            Character.MouthTexture = message.Payload.ReadUInt32();
+            Character.DefaultMouthTexture = message.Payload.ReadUInt32();
+            Character.SkinPalette = message.Payload.ReadUInt32();
+            Character.HairPalette = message.Payload.ReadUInt32();
             Character.EyesPalette = message.Payload.ReadUInt32();
             Character.SetupTableId = message.Payload.ReadUInt32();
 

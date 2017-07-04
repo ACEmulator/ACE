@@ -13,8 +13,6 @@ namespace ACE.Network.GameEvent.Events
             : base(GameEventType.StartBarber, GameMessageGroup.Group09, session)
         {
             // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
-            const uint EmpyreanMaleFloatMotionDID = 0x0900020Bu;
-            const uint EmpyreanFemaleFloatMotionDID = 0x0900020Au;
             const uint EmpyreanMaleMotionDID = 0x0900020Eu;
             const uint EmpyreanFemaleMotionDID = 0x0900020Du;
 
@@ -22,21 +20,21 @@ namespace ACE.Network.GameEvent.Events
             AceCharacter characterClone = (AceCharacter)Session.Player.GetAceObject();
 
             Writer.Write((uint)session.Player.PaletteGuid); // base palette for character
-            Writer.Write(0x01000000 + characterClone.HeadObject); // Default Hair Model
-            Writer.Write(0x05000000 + characterClone.HairTexture); // Hair Texture
-            Writer.Write(0x05000000 + characterClone.DefaultHairTexture); // Default Hair Texture
+            Writer.Write(characterClone.HeadObject); // Default Hair Model
+            Writer.Write(characterClone.HairTexture); // Hair Texture
+            Writer.Write(characterClone.DefaultHairTexture); // Default Hair Texture
 
-            Writer.Write(0x05000000 + characterClone.EyesTexture); // Eyes Texture
-            Writer.Write(0x05000000 + characterClone.DefaultEyesTexture); // Default Eyes Texture
+            Writer.Write(characterClone.EyesTexture); // Eyes Texture
+            Writer.Write(characterClone.DefaultEyesTexture); // Default Eyes Texture
 
-            Writer.Write(0x05000000 + characterClone.NoseTexture); // Nose Texture
-            Writer.Write(0x05000000 + characterClone.DefaultNoseTexture); // Default Nose Texture
+            Writer.Write(characterClone.NoseTexture); // Nose Texture
+            Writer.Write(characterClone.DefaultNoseTexture); // Default Nose Texture
 
-            Writer.Write(0x05000000 + characterClone.MouthTexture); // Mouth Texture
-            Writer.Write(0x05000000 + characterClone.DefaultMouthTexture); // Default Mouth Texture
+            Writer.Write(characterClone.MouthTexture); // Mouth Texture
+            Writer.Write(characterClone.DefaultMouthTexture); // Default Mouth Texture
 
-            Writer.Write(0x04000000 + characterClone.SkinPalette); // Skin Palette
-            Writer.Write(0x04000000 + characterClone.HairPalette); // Hair Palette
+            Writer.Write(characterClone.SkinPalette); // Skin Palette
+            Writer.Write(characterClone.HairPalette); // Hair Palette
             Writer.Write(characterClone.EyesPalette); // Eyes Palette
 
             Writer.Write((uint)characterClone.SetupTableId); // Setup Model
