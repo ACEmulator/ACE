@@ -7,16 +7,23 @@ using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
 using System;
+using log4net;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Sequence;
 
 namespace ACE.Entity
 {
     public class Creature : Container
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public CreatureAbility Strength
         {
             get { return AceObject.StrengthAbility; }
             set { AceObject.StrengthAbility = value; }
         }
+
+        public CombatMode CombatMode { get; private set; }
 
         public AceObject AceCorpse
         {
@@ -121,7 +128,7 @@ namespace ACE.Entity
             return onKillChain;
         }
 
-        virtual protected float GetCorpseSpawnTime()
+        protected virtual float GetCorpseSpawnTime()
         {
             return 60;
         }
@@ -219,7 +226,7 @@ namespace ACE.Entity
         private void VitalTick(CreatureVital vital)
         {
             double tickTime = vital.NextTickTime;
-            if (tickTime == double.NegativeInfinity)
+            if (double.IsNegativeInfinity(tickTime))
             {
                 tickTime = vital.RegenRate;
             }
@@ -242,6 +249,119 @@ namespace ACE.Entity
             {
                 VitalTick(vital);
             }
+        }
+
+        public void SetCombatMode(CombatMode newCombatMode)
+        {
+            log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
+            // TODO: finish up this work.
+            if ((CombatMode == CombatMode.Missle) && (newCombatMode == CombatMode.Peace))
+            {
+                // delete the arrows from the world view
+            }
+            if ((CombatMode == CombatMode.Peace) && (newCombatMode == CombatMode.Missle))
+            {
+                // show the arrows to the world view
+            }
+
+            CombatMode = newCombatMode;
+            switch (CombatMode)
+            {
+                case CombatMode.Peace:
+                    SetMotionState(new UniversalMotion(MotionStance.Standing));
+                    break;
+                case CombatMode.Melee:
+                    UniversalMotion gm = null;
+                    WorldObject meleeWeapon = null;
+
+                    // Let's see what if anything is equipped and if we have a shield.
+                    EquippedItem mEquipedMelee = Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
+                    if (mEquipedMelee != null)
+                        meleeWeapon = GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+
+                    if (Children.Find(s => s.EquipMask == EquipMask.Shield) == null)
+                    {
+                        // I know I don't have a shield - so process accordingly.
+                        if (meleeWeapon?.DefaultCombatStyle != null)
+                        {
+                            // I can read the weapon Og II
+                            gm = new UniversalMotion((MotionStance)meleeWeapon.DefaultCombatStyle);
+                            gm.MovementData.CurrentStyle = (ushort)meleeWeapon.DefaultCombatStyle;
+                        }
+                        else
+                        {
+                            // I am either truly UA with no weapon or we don't have this defined data error Og II
+                            gm = new UniversalMotion(MotionStance.UaNoShieldAttack);
+                            gm.MovementData.CurrentStyle = (ushort)MotionStance.UaNoShieldAttack;
+                        }
+                    }
+                    else
+                    {
+                        // I do have a shield equipped.   What stance do I need to take?
+                        if (meleeWeapon?.DefaultCombatStyle != null)
+                        {
+                            if (meleeWeapon.DefaultCombatStyle == MotionStance.MeleeNoShieldAttack)
+                            {
+                                gm = new UniversalMotion(MotionStance.MeleeShieldAttack);
+                                gm.MovementData.CurrentStyle = (ushort)MotionStance.MeleeShieldAttack;
+                            }
+                            else
+                            {
+                                gm = new UniversalMotion(MotionStance.ThrownShieldCombat);
+                                gm.MovementData.CurrentStyle = (ushort)MotionStance.ThrownShieldCombat;
+                            }
+                        }
+                    }
+                    // If I am down to here and still null - I have no idea - do nothing.
+                    if (gm != null) SetMotionState(gm);
+                    else
+                        log.InfoFormat("Changing combat mode - but could not determine correct stance. ");
+                    break;
+                case CombatMode.Magic:
+                    UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
+                    mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
+                    SetMotionState(mm);
+                    break;
+                case CombatMode.Missle:
+                    WorldObject missileWeapon = null;
+                    EquippedItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
+                    if (mEquipedMissile != null)
+                        missileWeapon = GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
+                    if (missileWeapon?.DefaultCombatStyle != null)
+                    {
+                        EquippedItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.Ammunition);
+                        UniversalMotion bm;
+                        if (mEquipedAmmo != null)
+                        {
+                            WorldObject ammo = GetInventoryItem(new ObjectGuid(mEquipedAmmo.Guid));
+                            ammo.Location = Location;
+                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                                        new GameMessageCreateObject(ammo),
+                                                                        new GameMessagePickupEvent(Guid, ammo));
+                            bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
+                            bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
+                        }
+                        else
+                        {
+                            bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
+                            bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
+                        }
+                        SetMotionState(bm);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public void SetMotionState(MotionState motionState)
+        {
+            CurrentMotionState = motionState;
+            CurrentMotionState.IsAutonomous = true;
+            GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(Guid,
+                                                           Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                                                           Sequences, motionState);
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, updateMotion);
         }
 
         protected virtual void UpdateVitalInternal(CreatureVital vital, uint newVal)

@@ -11,7 +11,19 @@
 * Several changes to 06-06-30-2017-generator-chains-testdata.sql found in Database/Updates/World to set up for generator instances and show examples of them.
 * Changed the way generators are classified to make use of some AceObject properties.
 
+### 2017-07-03
+[Optim Shi]
+* Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.
+
 ### 2017-07-02
+[Og II]
+
+* Started the removal of DebugObject - NPC's now spawn as creatures and containers now spawn as containers.  Need to finish this work.
+* Appraisal Event is 90% coded.   All stats (int, bool, string, int64, DataId and Double) as sent and coded.   Armor, creature, spell and weapon profiles are 
+* complete.   TODO: Hook profiles and enchantment bitfields as well as base armor status for coverage 
+* Basic infrastructure for the correct motion stance is in place.   Normally I would not have included this WIP code, but it has no negative impact and I started in the wrong 
+* branch.   It would be a pain to pull it out.   If possible, I would like to add this as is - with the note that I will complete this next.
+
 [Og II]
 * Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
 

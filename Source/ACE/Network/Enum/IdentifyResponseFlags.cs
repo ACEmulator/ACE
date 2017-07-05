@@ -12,7 +12,7 @@ namespace ACE.Network.Enum
         FloatStatsTable = 0x4,
         StringStatsTable = 0x8,
         DidStatsTable = 0x1000,
-        SpellBook = 0x10,       
+        SpellBook = 0x10,
         ArmorProfile = 0x80,
         CreatureProfile = 0x100,
         WeaponProfile = 0x20,

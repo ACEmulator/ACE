@@ -40,7 +40,7 @@ namespace ACE.Entity.Actions
             }
         }
 
-        // Suppoorts running the actions in the queue in parallel
+        // Supports running the actions in the queue in parallel
         public void RunActionsParallel()
         {
             LinkedList<IAction> tmp;
