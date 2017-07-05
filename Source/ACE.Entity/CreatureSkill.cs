@@ -21,7 +21,7 @@ namespace ACE.Entity
         {
             get
             {
-                // TODO: buffs?  not sure where they will go
+                // TODO: buffs? Augs? not sure where they will go
                 var formula = this.Skill.GetFormula();
 
                 uint skillTotal = 0;
@@ -32,6 +32,7 @@ namespace ACE.Entity
                         Status == SkillStatus.Trained ||
                         Status == SkillStatus.Specialized)
                     {
+                        // TODO: Specialization bonus of +10 - How and where does this get applied?
                         skillTotal = formula.CalcBase(character);
                     }
                 }

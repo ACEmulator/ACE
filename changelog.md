@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-05
+[Optim Shi]
+* Fixed an issue with skills not being set properly at character creation.
+
 ### 2017-07-03
 [Optim Shi]
 * Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.

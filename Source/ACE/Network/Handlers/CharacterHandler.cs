@@ -252,6 +252,9 @@ namespace ACE.Network.Handlers
             character.Stamina.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
             character.Mana.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
 
+            // set initial skill credit amount. 52 for all but "OlthoiAcid", which have 68
+            character.AvailableSkillCredits = cg.HeritageGroups[(int)character.Heritage].SkillCredits;
+
             uint numOfSkills = reader.ReadUInt32();
             Skill skill;
             SkillStatus skillStatus;
@@ -271,6 +274,8 @@ namespace ACE.Network.Handlers
                 }
                 if (skillStatus == SkillStatus.Trained)
                     character.TrainSkill(skill, skillCost.TrainingCost);
+                if (skillCost != null && skillStatus == SkillStatus.Untrained)
+                    character.UntrainSkill(skill, skillCost.TrainingCost);
             }
 
             character.Name = reader.ReadString16L();
