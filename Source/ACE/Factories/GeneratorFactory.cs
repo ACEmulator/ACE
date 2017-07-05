@@ -48,9 +48,7 @@ namespace ACE.Factories
             List<WorldObject> results = new List<WorldObject>();
             var currentTime = new DerethDateTime(WorldManager.PortalYearTicks);
             Position pos = null;
-            Random random = new Random((int)WorldManager.PortalYearTicks);
-
-            random = new Random((int)DateTime.UtcNow.Ticks);
+            Random random = new Random((int)DateTime.UtcNow.Ticks);
 
             // Check if the current generator is meant to spawn objects at this time of the day
             switch (generator.GeneratorTimeType)
@@ -92,7 +90,10 @@ namespace ACE.Factories
                 {
                     // Spawn this generator if it's not the top-level generator
                     if (generator.Generator != null)
+                    {
                         results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), generator));
+                        generator.GeneratorEnteredWorld = true;
+                    }
 
                     // Get a random generator from the weighted list of linked generators and read it's AceObject from the DB
                     if (generator.GeneratorLinks.Count == 0)
@@ -103,6 +104,7 @@ namespace ACE.Factories
                     // The linked generator is at the same location as the top generator and references its parent
                     newGen.Location = pos;
                     newGen.Generator = generator.AceObjectId;
+                    newGen.GeneratorEnteredWorld = true;
 
                     // Recursively call this method again with the just read generatorObject
                     var objectList = CreateWorldObjectsFromGenerator(newGen);
@@ -136,7 +138,7 @@ namespace ACE.Factories
                         default:
                             baseObject.Location = pos;
                             if (baseObject.Location != null)
-                                results.Add(new DebugObject(baseObject));
+                                results.Add(new DebugObject(new ObjectGuid(GuidManager.NewItemGuid()), baseObject));
                             break;
                     }
                 }
