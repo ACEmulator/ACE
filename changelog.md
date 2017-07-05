@@ -1,18 +1,19 @@
 # ACEmulator Change Log
 
-### 2017-07-02
-[Og II]
-* Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
-
-### 2017-07-01
+### 2017-07-06
 [Ripley]
-* Required ACE-World database version: v0.1.4
+* Required ACE-World database version: v0.1.5
 * Rolled in PR #430 from @Lidefeath as starting base. 
 * Added generator links table to WorldBase.
 * Made changes to GuidManger and ObjectGuid in an effort to avoid collisions with guids already present in ACE-World. Does not persist or track, resets each server start.
 * Above changes made IsCreature function, and smite works for at least the Sparring Golems found in the Academy, does not seem to work for Drudges in Holtburg.
 * Speaking of Drudges, there is a drudge invasion south and west of Holtburg.
 * Several changes to 06-06-30-2017-generator-chains-testdata.sql found in Database/Updates/World to set up for generator instances and show examples of them.
+* Changed the way generators are classified to make use of some AceObject properties.
+
+### 2017-07-02
+[Og II]
+* Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
 
 ### 2017-06-30
 [Ripley]
