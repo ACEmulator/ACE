@@ -21,7 +21,7 @@ namespace ACE.Entity
         {
             get
             {
-                // TODO: buffs?  not sure where they will go
+                // TODO: buffs? Augs? not sure where they will go
                 var formula = this.Skill.GetFormula();
 
                 uint skillTotal = 0;
