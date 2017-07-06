@@ -8,7 +8,7 @@ namespace ACE.Network.Enum
 {
     /// <summary>
     /// Different commands or styles of stance.
-    /// Items that are listed as Unknown are included for completness, but are not found in PCAPS Og II
+    /// Items that are listed as Unknown are included for completeness, but are not found in PCAPS Og II
     /// </summary>
     public enum MotionStance
     {
