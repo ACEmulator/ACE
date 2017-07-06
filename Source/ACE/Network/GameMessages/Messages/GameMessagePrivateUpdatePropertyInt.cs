@@ -1,9 +1,8 @@
 ﻿using ACE.Entity.Enum.Properties;
+using ACE.Network.Sequence;
 
 namespace ACE.Network.GameMessages.Messages
 {
-    using global::ACE.Network.Sequence;
-
     public class GameMessagePrivateUpdatePropertyInt : GameMessage
     {
         public GameMessagePrivateUpdatePropertyInt(SequenceManager sequences, PropertyInt property, uint value)

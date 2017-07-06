@@ -6,9 +6,6 @@ using log4net;
 
 namespace ACE.Entity
 {
-    using global::ACE.Entity.Enum.Properties;
-    using global::ACE.Network.GameMessages.Messages;
-
     public class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -62,7 +59,7 @@ namespace ACE.Entity
             var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
             return containers.Any(cnt => ((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid));
         }
-        
+
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
             if (inventory.ContainsKey(inventoryItemGuid))
