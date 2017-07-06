@@ -1,9 +1,4 @@
-﻿using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using ACE.DatLoader;
-using System;
-using ACE.Entity.Enum.Properties;
-using ACE.Entity;
+﻿using ACE.Entity;
 
 namespace ACE.Network.GameEvent.Events
 {

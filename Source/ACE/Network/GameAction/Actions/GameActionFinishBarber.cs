@@ -1,10 +1,4 @@
-﻿using ACE.Common.Extensions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using ACE.DatLoader;
-using System;
-using ACE.Entity.Enum.Properties;
+﻿using ACE.Entity.Actions;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -13,7 +7,9 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.FinishBarber)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Player.HandleActionFinishBarber(message);
+            ActionChain chain = new ActionChain();
+            chain.AddAction(session.Player, () => session.Player.HandleActionFinishBarber(message));
+            chain.EnqueueChain();
         }
     }
 }

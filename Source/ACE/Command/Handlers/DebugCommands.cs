@@ -12,6 +12,8 @@ using System.Globalization;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
+using System.Collections.Generic;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
@@ -280,7 +282,8 @@ namespace ACE.Command.Handlers
             bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
             int value = int.MaxValue;
 
-            if (!int.TryParse(paramValue, out value)) {
+            if (!int.TryParse(paramValue, out value))
+            {
                 ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
                 return;
             }
@@ -560,7 +563,8 @@ namespace ACE.Command.Handlers
                 if (Enum.TryParse(parsePositionString, out positionType))
                 {
                     bool success = true;
-                    ActionChain teleChain = session.Player.GetTeleToPositionChain(positionType, () => {
+                    ActionChain teleChain = session.Player.GetTeleToPositionChain(positionType, () =>
+                    {
                         success = false;
                     });
                     teleChain.AddAction(session.Player, () =>
@@ -705,8 +709,65 @@ namespace ACE.Command.Handlers
             {
                 var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(listPlayersMessage);
-            } else
+            }
+            else
                 Console.WriteLine(message);
+        }
+
+        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
+        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Creates 1 of each weapon class in your inventory.")]
+        public static void HandleWeapons(Session session, params string[] parameters)
+        {
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 148, 300, 307, 311, 326, 338, 348, 350, 12748, 12463, 31812 };
+            ActionChain chain = new ActionChain();
+
+            chain.AddAction(session.Player, () =>
+            {
+                foreach (uint weenieId in weaponsTest)
+                {
+                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                    loot.ContainerId = session.Player.Guid.Full;
+                    session.Player.AddToInventory(loot);
+                    session.Player.TrackObject(loot);
+                    session.Network.EnqueueSend(
+                        new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+                }
+            });
+            chain.EnqueueChain();
+        }
+
+        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
+        public static void HandleCIRandom(Session session, params string[] parameters)
+        {
+            uint typeId;
+            byte numItems = 10;
+            try
+            {
+                typeId = Convert.ToUInt32(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
+                return;
+            }
+            if (parameters.Length == 2)
+            {
+                try
+                {
+                    numItems = Convert.ToByte(parameters[1]);
+                }
+                catch (Exception)
+                {
+                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 0 - 50", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            ActionChain chain = new ActionChain();
+            chain.AddAction(session.Player, () => LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems));
+            chain.EnqueueChain();
         }
 
         /// <summary>
@@ -715,7 +776,9 @@ namespace ACE.Command.Handlers
         [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void BarberShop(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameEventStartBarber(session));
+            ActionChain chain = new ActionChain();
+            chain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventStartBarber(session)));
+            chain.EnqueueChain();
         }
     }
 }

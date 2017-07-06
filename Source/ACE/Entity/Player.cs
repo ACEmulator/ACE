@@ -1692,17 +1692,15 @@ namespace ACE.Entity
                 item.SetPhysicsDescriptionFlag(item);
             }
 
-            inContainerChain.AddDelaySeconds(0.001);
             inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
                 new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
                 new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
-                new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, 0),
-                new GameMessageObjDescEvent(this),
-                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0)));
+                new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, 0)));
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                                 new GameMessageObjDescEvent(this),
-                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, location));
+                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+                                                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
         }
 
         private void HandleMove(WorldObject item, Container container, uint location)

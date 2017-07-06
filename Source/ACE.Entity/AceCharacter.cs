@@ -376,7 +376,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Sets the skill to trained status for a character
+        /// Sets the skill to specialized status for a character
         /// </summary>
         /// <param name="skill"></param>
         public bool SpecializeSkill(Skill skill, uint creditsSpent)
@@ -392,6 +392,31 @@ namespace ACE.Entity
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sets the skill to untrained status for a character
+        /// </summary>
+        /// <param name="skill"></param>
+        public bool UntrainSkill(Skill skill, uint creditsSpent)
+        {
+            CreatureSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized) 
+            {
+                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                SetSkillProperty(skill, newSkill);
+                return true;
+            }
+            else if (cs != null && cs.Status == SkillStatus.Trained)
+            {
+                RefundXp(cs.ExperienceSpent);
+                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                SetSkillProperty(skill, newSkill);
+                AvailableSkillCredits += creditsSpent;
+                return true;
             }
 
             return false;
