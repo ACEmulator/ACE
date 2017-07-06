@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-07-06
+[Og II]
+* Initial work on splitting a stackable item.   This is working and in an action chain.   Right now, it is only working for items 
+* in your position.   I need to extend it to work with items in chests and off the ground.   
+* There is some new type of sequence that we need to research and implement.   I put a big todo in the code.
+* I made some posts about getting guid manager going.   We are at a point where we need it.   I modified some of the ranges to make better use
+* of our guid space.   
+* TODO - find out about sequence and then do stack which is the complement function from split.
+
 ### 2017-07-05
 [OptimShi]
 * Fixed an issue with skills not being set properly at character creation.

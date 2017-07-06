@@ -2,11 +2,17 @@ using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Network.Enum;
+using log4net;
 
 namespace ACE.Entity
 {
+    using global::ACE.Entity.Enum.Properties;
+    using global::ACE.Network.GameMessages.Messages;
+
     public class Container : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
@@ -56,7 +62,7 @@ namespace ACE.Entity
             var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
             return containers.Any(cnt => ((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid));
         }
-
+        
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
             if (inventory.ContainsKey(inventoryItemGuid))

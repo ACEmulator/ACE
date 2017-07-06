@@ -163,7 +163,7 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; set; }        
+        public UpdatePositionFlag PositionFlag { get; set; }
 
         public virtual void PlayScript(Session session) { }
 
@@ -1061,6 +1061,11 @@ namespace ACE.Entity
         public void DequeueAction(LinkedListNode<IAction> node)
         {
             actionQueue.DequeueAction(node);
+        }
+
+        public AceObject NewAceObjectFromCopy()
+        {
+            return (AceObject)AceObject.CopyClone(GuidManager.NewItemGuid());
         }
 
         /// <summary>

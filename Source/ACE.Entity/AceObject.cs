@@ -973,6 +973,34 @@ namespace ACE.Entity
             return ret;
         }
 
+        public object CopyClone(uint guid)
+        {
+            AceObject ret = new AceObject
+            {
+                AceObjectId = guid,
+                WeenieClassId = WeenieClassId,
+                AceObjectDescriptionFlags = AceObjectDescriptionFlags,
+                PhysicsDescriptionFlag = PhysicsDescriptionFlag,
+                WeenieHeaderFlags = WeenieHeaderFlags,
+                PaletteOverrides = CloneList(PaletteOverrides),
+                TextureOverrides = CloneList(TextureOverrides),
+                AnimationOverrides = CloneList(AnimationOverrides),
+                IntProperties = CloneList(IntProperties),
+                Int64Properties = CloneList(Int64Properties),
+                DoubleProperties = CloneList(DoubleProperties),
+                BoolProperties = CloneList(BoolProperties),
+                DataIdProperties = CloneList(DataIdProperties),
+                InstanceIdProperties = CloneList(InstanceIdProperties),
+                StringProperties = CloneList(StringProperties),
+                AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
+                AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
+                AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
+                AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
+                SpellIdProperties = CloneList(SpellIdProperties)
+            };
+            return ret;
+        }
+
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
         {
             return toClone.Select(x => (T)x.Clone()).ToList();

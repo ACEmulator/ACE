@@ -337,8 +337,7 @@ namespace ACE.Entity
                             WorldObject ammo = GetInventoryItem(new ObjectGuid(mEquipedAmmo.Guid));
                             ammo.Location = Location;
                             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                                                        new GameMessageCreateObject(ammo),
-                                                                        new GameMessagePickupEvent(Guid, ammo));
+                                                                        new GameMessageCreateObject(ammo));
                             bm = new UniversalMotion((MotionStance)missileWeapon.DefaultCombatStyle);
                             bm.MovementData.CurrentStyle = (ushort)missileWeapon.DefaultCombatStyle;
                         }

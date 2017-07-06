@@ -738,6 +738,32 @@ namespace ACE.Command.Handlers
             chain.EnqueueChain();
         }
 
+        [CommandHandler("splits", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Creates some stackable items in your inventory for testing.")]
+        public static void HandleSplits(Session session, params string[] parameters)
+        {
+            HashSet<uint> splitsTest = new HashSet<uint>() { 237, 300, 690, 20630, 20631, 37155, 31198 };
+            ActionChain chain = new ActionChain();
+
+            chain.AddAction(session.Player, () =>
+            {
+                foreach (uint weenieId in splitsTest)
+                {
+                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                    var valueEach = loot.Value / loot.StackSize;
+                    loot.StackSize = loot.MaxStackSize;
+                    loot.Value = loot.StackSize * valueEach;
+                    loot.ContainerId = session.Player.Guid.Full;
+                    session.Player.AddToInventory(loot);
+                    session.Player.TrackObject(loot);
+                    session.Network.EnqueueSend(
+                        new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+                }
+            });
+            chain.EnqueueChain();
+        }
+
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
