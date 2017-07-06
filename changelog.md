@@ -2,7 +2,7 @@
 
 ### 2017-07-06
 [Ripley]
-* Required ACE-World database version: v0.1.5
+* Required ACE-World database version: v0.1.4
 * Rolled in PR #430 from @Lidefeath as starting base. 
 * Added generator links table to WorldBase.
 * Made changes to GuidManger and ObjectGuid in an effort to avoid collisions with guids already present in ACE-World. Does not persist or track, resets each server start.
