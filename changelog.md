@@ -1,24 +1,25 @@
 # ACEmulator Change Log
 
 ### 2017-07-05
-[Optim Shi]
+[OptimShi]
 * Fixed an issue with skills not being set properly at character creation.
 * Applied the +10 bonus to specialized skills
 
+### 2017-07-04
+[Og II]
+* Cleaned up some concurrency issues.
+
 ### 2017-07-03
-[Optim Shi]
+[OptimShi]
 * Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.
 
 ### 2017-07-02
 [Og II]
-
 * Started the removal of DebugObject - NPC's now spawn as creatures and containers now spawn as containers.  Need to finish this work.
 * Appraisal Event is 90% coded.   All stats (int, bool, string, int64, DataId and Double) as sent and coded.   Armor, creature, spell and weapon profiles are 
 * complete.   TODO: Hook profiles and enchantment bitfields as well as base armor status for coverage 
 * Basic infrastructure for the correct motion stance is in place.   Normally I would not have included this WIP code, but it has no negative impact and I started in the wrong 
 * branch.   It would be a pain to pull it out.   If possible, I would like to add this as is - with the note that I will complete this next.
-
-[Og II]
 * Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
 
 ### 2017-06-30
@@ -52,8 +53,6 @@
 ### 2017-06-28
 [Og II]
 * Update readme with db minimum required versions.
-
-[Og II]
 * Completed work on flattening PhysicsData and ModelData
 * Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
 * Put in comments for aclogviewer names
@@ -174,6 +173,7 @@
 * Please call DbManager.SaveObject() now instead of DatabaseManager.Shard.SaveObject()
 
 ### 2017-06-19
+[Og II]
 * Trello card task - Extend ORM code to support multiple getLists or implement another method to query by alternate keys - re-implement cirand
 * Many thanks to ddevec - he did the work on the ORM code revision.   I just tested and implemented for my use.
 * Fixed undiscovered alignment bug at hooktype we were sending as dword and it is a word.   That was shifting everything below it.
@@ -200,8 +200,6 @@
 * Adds setvital helper function
 * Adds Tick function to handle vital regeneration (will hopefully be removed with core restructure)
 * Separates CreatureVital from CreatureAbility.
-
-[ddevec]
 * Cleaned up player creation.
 * Fixed naming issue on player creation.
 * Fixed saving/loading of several AceObject properties.
