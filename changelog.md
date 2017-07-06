@@ -10,6 +10,7 @@
 * Speaking of Drudges, there is a drudge invasion south and west of Holtburg.
 * Several changes to 06-06-30-2017-generator-chains-testdata.sql found in Database/Updates/World to set up for generator instances and show examples of them.
 * Changed the way generators are classified to make use of some AceObject properties.
+* Slightly adjusted debug output on ID panel.
 
 ### 2017-07-03
 [Optim Shi]

@@ -111,7 +111,7 @@ namespace ACE.Network.GameEvent.Events
             if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc)?.PropertyValue == null)
             {
                 // No short description - we will send just our debugging information.
-                string debugOutput = "baseAceObjectId: " + objectId + " (0x" + objectId.Full.ToString("X") + ")";
+                string debugOutput = "ACE Debug Output:\n" + "baseAceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
                 debugOutput += "\n" + "weenieClassId: " + obj.WeenieClassid + " (0x" + obj.WeenieClassid.ToString("X") + ")";
                 debugOutput += "\n" + "Object Type: " + obj.Type;
                 debugOutput += "\n" + "defaultCombatStyle: " + obj.DefaultCombatStyle;
@@ -124,7 +124,7 @@ namespace ACE.Network.GameEvent.Events
             else
             {
                 // A short description already exists - lets append our data to the end.
-                string debugOutput = "\n" + "baseAceObjectId: " + objectId + " (0x" + objectId.Full.ToString("X") + ")";
+                string debugOutput = "\n\n" + "ACE Debug Output:\n" + "baseAceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
                 debugOutput += "\n" + "weenieClassId: " + obj.WeenieClassid + " (0x" + obj.WeenieClassid.ToString("X") + ")";
                 debugOutput += "\n" + "Object Type: " + obj.Type;
                 debugOutput += "\n" + "defaultCombatStyle: " + obj.DefaultCombatStyle;
