@@ -3,6 +3,7 @@
 ### 2017-07-05
 [Optim Shi]
 * Fixed an issue with skills not being set properly at character creation.
+* Applied the +10 bonus to specialized skills
 
 ### 2017-07-03
 [Optim Shi]

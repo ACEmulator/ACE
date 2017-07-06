@@ -273,7 +273,10 @@ namespace ACE.Network.Handlers
                     character.SpecializeSkill(skill, skillCost.SpecializationCost);
                 }
                 if (skillStatus == SkillStatus.Trained)
+                {
                     character.TrainSkill(skill, skillCost.TrainingCost);
+                    // TODO : Train to rank 5, the training "bonus", total of 526 XP
+                }
                 if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     character.UntrainSkill(skill, skillCost.TrainingCost);
             }

@@ -254,7 +254,7 @@ namespace ACE.Network.GameEvent.Events
                 if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
                 {
                     Writer.Write(this.Session.Player.Health.Ranks); // ranks
-                    Writer.Write(0u); // unknown
+                    Writer.Write(0u); // init_level - always appears to be 0
                     Writer.Write(this.Session.Player.Health.ExperienceSpent); // xp spent
                     Writer.Write(this.Session.Player.Health.Current); // current value
                 }
@@ -262,7 +262,7 @@ namespace ACE.Network.GameEvent.Events
                 if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
                 {
                     Writer.Write(this.Session.Player.Stamina.Ranks); // ranks
-                    Writer.Write(0u); // unknown
+                    Writer.Write(0u); // init_level - always appears to be 0
                     Writer.Write(this.Session.Player.Stamina.ExperienceSpent); // xp spent
                     Writer.Write(this.Session.Player.Stamina.Current); // current value
                 }
@@ -270,7 +270,7 @@ namespace ACE.Network.GameEvent.Events
                 if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
                 {
                     Writer.Write(this.Session.Player.Mana.Ranks); // ranks
-                    Writer.Write(0u); // unknown
+                    Writer.Write(0u); // init_level - always appears to be 0
                     Writer.Write(this.Session.Player.Mana.ExperienceSpent); // xp spent
                     Writer.Write(this.Session.Player.Mana.Current); // current value
                 }
@@ -288,12 +288,15 @@ namespace ACE.Network.GameEvent.Events
                 {
                     Writer.Write((uint)skill.Skill); // skill id
                     Writer.Write((ushort)skill.Ranks); // points raised
-                    Writer.Write((ushort)0);
+                    Writer.Write((ushort)1u);
                     Writer.Write((uint)skill.Status); // skill state
                     Writer.Write((uint)skill.ExperienceSpent); // xp spent on this skill
-                    Writer.Write(0u); // current bonus points applied (buffs) - not implemented
-                    Writer.Write(0u); // task difficulty
-                    Writer.Write(0d);
+                    if (skill.Status == SkillStatus.Specialized)
+                        Writer.Write(10u);  // init_level, for specialization bonus -- buffs are not part of this message
+                    else
+                        Writer.Write(0u); // no init_level
+                    Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"
+                    Writer.Write(0d); // last_time_used
                 }
             }
 

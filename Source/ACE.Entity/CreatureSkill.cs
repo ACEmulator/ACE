@@ -32,7 +32,6 @@ namespace ACE.Entity
                         Status == SkillStatus.Trained ||
                         Status == SkillStatus.Specialized)
                     {
-                        // TODO: Specialization bonus of +10 - How and where does this get applied?
                         skillTotal = formula.CalcBase(character);
                     }
                 }
