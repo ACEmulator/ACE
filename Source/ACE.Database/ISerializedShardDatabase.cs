@@ -33,6 +33,8 @@ namespace ACE.Database
 
         void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback);
 
+        void GetMaxPlayerId(Action<uint> callback);
+
         void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback);
 
         void RenameCharacter(string currentName, string newName, Action<uint> callback);

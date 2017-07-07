@@ -85,7 +85,9 @@ namespace ACE.Database
             InsertAceObjectPropertiesPositions = 132,
             InsertAceObjectPropertiesAttributes = 133,
             InsertAceObjectPropertiesAttributes2nd = 134,
-            InsertAceObjectPropertiesSkills = 135
+            InsertAceObjectPropertiesSkills = 135,
+            // XXX(ddevec): @Og II -- use these to query max values
+            GetMaxPlayerId = 200
         }
 
         protected override Type PreparedStatementType
@@ -94,6 +96,12 @@ namespace ACE.Database
             {
                 return typeof(ShardPreparedStatement);
             }
+        }
+
+        private void ConstructMaxQueryStatement(ShardPreparedStatement id, string tableName, string columnName, uint max, uint min)
+        {
+            // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
+            AddPreparedStatement<ShardPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` < {max} && `{columnName}` >= {min}");
         }
 
         protected override void InitializePreparedStatements()
@@ -156,6 +164,21 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
+
+            // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
+            ConstructMaxQueryStatement(ShardPreparedStatement.GetMaxPlayerId, "ace_object", "aceObjectId", 0x5FFFFFFF, 0x50000001);
+        }
+
+
+        private uint GetMaxGuid(ShardPreparedStatement id)
+        {
+            MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, new object[] { });
+            return (uint)res.Rows[0][0];
+        }
+
+        public uint GetMaxPlayerId()
+        {
+            return GetMaxGuid(ShardPreparedStatement.GetMaxPlayerId);
         }
 
         public void AddFriend(uint characterId, uint friendCharacterId)

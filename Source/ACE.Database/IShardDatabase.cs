@@ -33,6 +33,8 @@ namespace ACE.Database
 
         uint GetNextCharacterId();
 
+        uint GetMaxPlayerId();
+
         AceCharacter GetCharacter(uint id);
 
         bool SaveObject(AceObject aceObject);
