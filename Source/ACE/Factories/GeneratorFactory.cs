@@ -46,7 +46,7 @@ namespace ACE.Factories
         public static List<WorldObject> CreateWorldObjectsFromGenerator(AceObject generator)
         {
             List<WorldObject> results = new List<WorldObject>();
-            var currentTime = new DerethDateTime(WorldManager.PortalYearTicks);
+            DerethDateTime currentTime = new DerethDateTime(WorldManager.PortalYearTicks);
             Position pos = null;
             Random random = new Random((int)DateTime.UtcNow.Ticks);
 
@@ -69,7 +69,7 @@ namespace ACE.Factories
                 return null;
 
             // Generate objects from this generator #MaxGeneratedObjects times
-            for (var i = 0; i < generator.MaxGeneratedObjects; i++)
+            for (int i = 0; i < generator.MaxGeneratedObjects; i++)
             {
                 switch (generator.GeneratorType)
                 {
@@ -99,7 +99,7 @@ namespace ACE.Factories
                     if (generator.GeneratorLinks.Count == 0)
                         return null;
                     uint linkId = GetRandomGeneratorIdFromGeneratorList(random, generator.GeneratorLinks);
-                    var newGen = DatabaseManager.World.GetAceObjectByWeenie(linkId);
+                    AceObject newGen = DatabaseManager.World.GetAceObjectByWeenie(linkId);
 
                     // The linked generator is at the same location as the top generator and references its parent
                     newGen.Location = pos;
@@ -107,7 +107,7 @@ namespace ACE.Factories
                     newGen.GeneratorEnteredWorld = true;
 
                     // Recursively call this method again with the just read generatorObject
-                    var objectList = CreateWorldObjectsFromGenerator(newGen);
+                    List<WorldObject> objectList = CreateWorldObjectsFromGenerator(newGen);
                     objectList?.ForEach(o => results.Add(o));
                 }
                 // else spawn the objects directly from this generator
@@ -170,12 +170,12 @@ namespace ACE.Factories
 
         private static uint GetRandomGeneratorIdFromGeneratorList(Random random, List<AceObjectGeneratorLink> generatorObjects)
         {
-            var cumulativeValues = new int[generatorObjects.Count];
+            int[] cumulativeValues = new int[generatorObjects.Count];
             
             // Build the cumulative values of the generatorWeights
             cumulativeValues[0] = generatorObjects[0].GeneratorWeight;
 
-            for (var i = 1; i < generatorObjects.Count; i++)
+            for (int i = 1; i < generatorObjects.Count; i++)
             {
                 cumulativeValues[i] = cumulativeValues[i - 1] + generatorObjects[i].GeneratorWeight;
             }

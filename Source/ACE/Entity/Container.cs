@@ -16,7 +16,7 @@ namespace ACE.Entity
             DescriptionFlags = descriptionFlag;
             WeenieFlags = weenieFlag;
             Location = position;
-            WeenieClassid = weenieClassId;
+            WeenieClassId = weenieClassId;
         }
 
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
@@ -26,7 +26,7 @@ namespace ACE.Entity
             DescriptionFlags = descriptionFlag;
             WeenieFlags = weenieFlag;
             Location = position;
-            WeenieClassid = weenieClassId;
+            WeenieClassId = weenieClassId;
         }
 
         public Container(AceObject aceObject)

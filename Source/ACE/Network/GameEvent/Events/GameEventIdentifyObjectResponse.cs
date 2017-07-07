@@ -11,6 +11,7 @@ namespace ACE.Network.GameEvent.Events
         public GameEventIdentifyObjectResponse(Session session, ObjectGuid objectId, WorldObject obj)
             : base(GameEventType.IdentifyObjectResponse, GameMessageGroup.Group09, session)
         {
+            System.Type type = obj.GetType();
             // TODO : calculate if we were successful
             const bool successfulId = true;
 
@@ -111,10 +112,12 @@ namespace ACE.Network.GameEvent.Events
             if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc)?.PropertyValue == null)
             {
                 // No short description - we will send just our debugging information.
-                string debugOutput = "ACE Debug Output:\n" + "baseAceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
-                debugOutput += "\n" + "weenieClassId: " + obj.WeenieClassid + " (0x" + obj.WeenieClassid.ToString("X") + ")";
-                debugOutput += "\n" + "Object Type: " + obj.Type;
-                debugOutput += "\n" + "defaultCombatStyle: " + obj.DefaultCombatStyle;
+                string debugOutput = "ACE Debug Output:\n";
+                debugOutput += "AceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
+                debugOutput += "\n" + "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")";
+                debugOutput += "\n" + "Item Type: " + obj.Type;
+                if (obj.DefaultCombatStyle != null)
+                    debugOutput += "\n" + "DefaultCombatStyle: " + obj.DefaultCombatStyle;
                 AceObjectPropertiesString dbAo = new AceObjectPropertiesString();
                 dbAo.AceObjectId = obj.Guid.Full;
                 dbAo.PropertyId = (ushort)PropertyString.ShortDesc;
@@ -124,11 +127,15 @@ namespace ACE.Network.GameEvent.Events
             else
             {
                 // A short description already exists - lets append our data to the end.
-                string debugOutput = "\n\n" + "ACE Debug Output:\n" + "baseAceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
-                debugOutput += "\n" + "weenieClassId: " + obj.WeenieClassid + " (0x" + obj.WeenieClassid.ToString("X") + ")";
-                debugOutput += "\n" + "Object Type: " + obj.Type;
-                debugOutput += "\n" + "defaultCombatStyle: " + obj.DefaultCombatStyle;
-                propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += debugOutput;
+                string debugOutput = "\n\n" + "ACE Debug Output:\n";
+                debugOutput += "Class: " + type.Name + ".cs\n";
+                debugOutput += "AceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
+                debugOutput += "\n" + "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")";
+                debugOutput += "\n" + "Item Type: " + obj.Type;
+                if (obj.DefaultCombatStyle != null)
+                    debugOutput += "\n" + "DefaultCombatStyle: " + obj.DefaultCombatStyle;
+                if (!propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue.Contains("ACE Debug Output"))
+                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += debugOutput;
             }
 
             if (propertiesString.Count > 0)
@@ -152,8 +159,8 @@ namespace ACE.Network.GameEvent.Events
             session.Player.WriteIdentifyObjectSpellIdProperties(Writer, flags, propertiesSpellId);
             session.Player.WriteIdentifyObjectArmorProfile(Writer, flags, propertiesArmor);
             // TODO: There are probably other checks that need to be made here
-            if (obj.Type == ObjectType.Creature)
-            {
+            if (obj.Type == ObjectType.Creature && type.Name != "DebugObject")
+            {                
                 session.Player.WriteIdentifyObjectCreatureProfile(Writer, (Creature)obj);
             }
             session.Player.WriteIdentifyObjectWeaponsProfile(Writer, flags, propertiesWeaponsD, propertiesWeaponsI);
