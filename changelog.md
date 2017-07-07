@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-06
+[OptimShi]
+* Character list will now automatically select your last played character.
+
 ### 2017-07-05
 [OptimShi]
 * Fixed an issue with skills not being set properly at character creation.
