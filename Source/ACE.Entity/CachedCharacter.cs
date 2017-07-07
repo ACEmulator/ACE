@@ -30,6 +30,9 @@ namespace ACE.Entity
         [DbField("deleteTime", (int)MySqlDbType.UInt64)]
         public ulong DeleteTime { get; set; }
 
+        [DbField("loginTimestamp", (int)MySqlDbType.Double)]
+        public double LoginTimestamp { get; set; }
+
         public CachedCharacter() { }
 
         public CachedCharacter(ObjectGuid guid, byte slotId, string name, ulong deleteTime)

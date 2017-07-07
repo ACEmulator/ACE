@@ -9,6 +9,7 @@ using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Packets;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Network.Handlers
 {
@@ -68,6 +69,7 @@ namespace ACE.Network.Handlers
 
             DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
             {
+                result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
                 session.UpdateCachedCharacters(result);
 
                 GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
