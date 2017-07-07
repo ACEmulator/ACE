@@ -28,6 +28,7 @@ namespace ACE
             AssetManager.Initialize();
             InboundMessageManager.Initialize();
             DatManager.Initialize();
+            GuidManager.Initialize();
             SocketManager.Initialize();
             WorldManager.Initialize();
             CommandManager.Initialize();
