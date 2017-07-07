@@ -980,31 +980,15 @@ namespace ACE.Entity
             return ret;
         }
 
-        public object CopyClone(uint guid)
+        /// <summary>
+        /// This method takes a parameter to allow you to set a new guid and use this to make a new object that may or may not be persisted.
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        public object Clone(uint guid)
         {
-            AceObject ret = new AceObject
-            {
-                AceObjectId = guid,
-                WeenieClassId = WeenieClassId,
-                AceObjectDescriptionFlags = AceObjectDescriptionFlags,
-                PhysicsDescriptionFlag = PhysicsDescriptionFlag,
-                WeenieHeaderFlags = WeenieHeaderFlags,
-                PaletteOverrides = CloneList(PaletteOverrides),
-                TextureOverrides = CloneList(TextureOverrides),
-                AnimationOverrides = CloneList(AnimationOverrides),
-                IntProperties = CloneList(IntProperties),
-                Int64Properties = CloneList(Int64Properties),
-                DoubleProperties = CloneList(DoubleProperties),
-                BoolProperties = CloneList(BoolProperties),
-                DataIdProperties = CloneList(DataIdProperties),
-                InstanceIdProperties = CloneList(InstanceIdProperties),
-                StringProperties = CloneList(StringProperties),
-                AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
-                AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
-                AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
-                AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
-                SpellIdProperties = CloneList(SpellIdProperties)
-            };
+            AceObject ret = (AceObject)Clone();
+            ret.AceObjectId = guid;
             return ret;
         }
 
