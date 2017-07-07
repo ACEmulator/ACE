@@ -33,9 +33,9 @@ namespace ACE.Managers
         private static uint staticObject   = 0x6000001;
 
         // Monsters /
-        private const uint monsterMin     = 0x8000001;
-        private const uint monsterMax     = 0x8999999;
-        private static uint monsterObject = 0x8000001;
+        private const uint monsterMin     = 0xE0000001;
+        private const uint monsterMax     = 0xE9999999;
+        private static uint monsterObject = 0xE0000001;
 
         // Items / Player Items
         private const uint itemMin = 0x9000001;

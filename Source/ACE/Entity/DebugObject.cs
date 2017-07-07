@@ -12,7 +12,7 @@ namespace ACE.Entity
         public DebugObject(ObjectGuid guid, AceObject aceObject)
             : base(guid, aceObject)
         {
-            aceObject.AceObjectId = new ObjectGuid(GuidManager.NewItemGuid()).Full;
+            aceObject.AceObjectId = guid.Full;
         }
 
         public override void OnCollide(ObjectGuid playerId)

@@ -218,6 +218,66 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Level, value); }
         }
 
+        public bool GeneratorStatus
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorStatus) ?? false; }
+            set { SetBoolProperty(PropertyBool.GeneratorStatus, value); }
+        }
+
+        public bool GeneratorEnteredWorld
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorEnteredWorld) ?? false; }
+            set { SetBoolProperty(PropertyBool.GeneratorEnteredWorld, value); }
+        }
+
+        public bool GeneratorDisabled
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorDisabled) ?? false; }
+            set { SetBoolProperty(PropertyBool.GeneratorDisabled, value); }
+        }
+
+        public bool GeneratedTreasureItem
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratedTreasureItem) ?? false; }
+            set { SetBoolProperty(PropertyBool.GeneratedTreasureItem, value); }
+        }
+
+        public bool GeneratorAutomaticDestruction
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorAutomaticDestruction) ?? false; }
+            set { SetBoolProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
+        }
+
+        public bool CanGenerateRare
+        {
+            get { return GetBoolProperty(PropertyBool.CanGenerateRare) ?? false; }
+            set { SetBoolProperty(PropertyBool.CanGenerateRare, value); }
+        }
+
+        public bool CorpseGeneratedRare
+        {
+            get { return GetBoolProperty(PropertyBool.CorpseGeneratedRare) ?? false; }
+            set { SetBoolProperty(PropertyBool.CorpseGeneratedRare, value); }
+        }
+
+        public bool SuppressGenerateEffect
+        {
+            get { return GetBoolProperty(PropertyBool.SuppressGenerateEffect) ?? false; }
+            set { SetBoolProperty(PropertyBool.SuppressGenerateEffect, value); }
+        }
+
+        public bool ChestRegenOnClose
+        {
+            get { return GetBoolProperty(PropertyBool.ChestRegenOnClose) ?? false; }
+            set { SetBoolProperty(PropertyBool.ChestRegenOnClose, value); }
+        }
+
+        public bool ChestClearedWhenClosed
+        {
+            get { return GetBoolProperty(PropertyBool.ChestClearedWhenClosed) ?? false; }
+            set { SetBoolProperty(PropertyBool.ChestClearedWhenClosed, value); }
+        }
+
         public uint GeneratorTimeType
         {
             get { return GetIntProperty(PropertyInt.GeneratorTimeType) ?? 0; }
@@ -906,6 +966,8 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
+
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
 
         // ReSharper disable once InconsistentNaming
@@ -971,6 +1033,7 @@ namespace ACE.Entity
             ret.DataIdProperties = CloneList(DataIdProperties);
             ret.InstanceIdProperties = CloneList(InstanceIdProperties);
             ret.StringProperties = CloneList(StringProperties);
+            ret.GeneratorLinks = CloneList(GeneratorLinks);
             ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
             ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);

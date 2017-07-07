@@ -28,7 +28,7 @@ namespace ACE.Entity
             DescriptionFlags = descriptionFlag;
             WeenieFlags = weenieFlag;
             Location = position;
-            WeenieClassid = weenieClassId;
+            WeenieClassId = weenieClassId;
 
             Spell = spellId;
             SetupTableId = modelId;

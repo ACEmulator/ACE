@@ -37,6 +37,7 @@ namespace ACE.Database
             GetAceObject = 23,
             GetAceObjectPropertiesPosition = 24,
             GetAceObjectPropertiesSpell = 25,
+            GetAceObjectGeneratorLinks = 26
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -70,6 +71,7 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
         }
@@ -147,6 +149,7 @@ namespace ACE.Database
                 o.AnimationOverrides = GetAceObjectAnimations(o.AceObjectId);
                 o.PaletteOverrides = GetAceObjectPalettes(o.AceObjectId);
                 o.SpellIdProperties = GetAceObjectPropertiesSpell(o.AceObjectId);
+                o.GeneratorLinks = GetAceObjectGeneratorLinks(o.AceObjectId);
                 o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
                 ret.Add(o);
             });
@@ -183,6 +186,7 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             return ExecuteConstructedGetListStatement<WorldPreparedStatement, AnimationOverride>(WorldPreparedStatement.GetWeenieAnimations, criteria);
         }
+
         private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
@@ -211,6 +215,13 @@ namespace ACE.Database
             return objects;
         }
 
+        private List<AceObjectGeneratorLink> GetAceObjectGeneratorLinks(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorLink>(WorldPreparedStatement.GetAceObjectGeneratorLinks, criteria);
+            return objects;
+        }
+
         public AceObject GetAceObjectByWeenie(uint weenieClassId)
         {
             var bao = new AceObject();
@@ -231,6 +242,7 @@ namespace ACE.Database
             bao.AnimationOverrides = GetAceObjectAnimations(bao.AceObjectId);
             bao.PaletteOverrides = GetAceObjectPalettes(bao.AceObjectId);
             bao.SpellIdProperties = GetAceObjectPropertiesSpell(bao.AceObjectId);
+            bao.GeneratorLinks = GetAceObjectGeneratorLinks(bao.AceObjectId);
             bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
             return bao;
         }
