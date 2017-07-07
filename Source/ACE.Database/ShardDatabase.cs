@@ -559,7 +559,7 @@ namespace ACE.Database
         {
             // Update the character table -- save the AceObject to ace_object.
             SaveAceObjectBase(transaction, aceObject);
-
+            
             SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
@@ -842,7 +842,12 @@ namespace ACE.Database
 
         private bool SaveAceObjectPropertiesAttributes(DatabaseTransaction transaction, uint aceObjectId, Dictionary<Ability, CreatureAbility> attributes)
         {
-            var theDirtyOnes = attributes.Values.Select(x => x.GetAttribute()).Where(x => x.IsDirty).ToList();
+            var attribs = attributes.Values.Select(x => x.GetAttribute()).ToList();
+
+            // setting AceObjectId doesn't trigger dirty
+            attribs.ForEach(a => a.AceObjectId = aceObjectId);
+
+            var theDirtyOnes = attribs.Where(x => x.IsDirty).ToList();
 
             foreach (var prop in theDirtyOnes)
             {
@@ -862,8 +867,13 @@ namespace ACE.Database
 
         private bool SaveAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId, Dictionary<Ability, CreatureVital> properties)
         {
-            var theDirtyOnes = properties.Values.Select(x => x.GetVital()).Where(x => x.IsDirty).ToList();
+            var attribs = properties.Values.Select(x => x.GetVital()).ToList();
 
+            // setting AceObjectId doesn't trigger dirty
+            attribs.ForEach(a => a.AceObjectId = aceObjectId);
+
+            var theDirtyOnes = attribs.Where(x => x.IsDirty).ToList();
+            
             foreach (var prop in theDirtyOnes)
             {
                 if (prop.HasEverBeenSavedToDatabase)
@@ -883,9 +893,14 @@ namespace ACE.Database
         // SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectPropertiesSkills);
         private bool SaveAceObjectPropertiesSkill(DatabaseTransaction transaction, uint aceObjectId, Dictionary<Skill, CreatureSkill> skills)
         {
-            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
-            var theDirtyOnes = skills.Values.Select(s => s.GetAceObjectSkill()).Where(x => x.IsDirty).ToList();
+            var tempSkills = skills.Values.Select(x => x.GetAceObjectSkill()).ToList();
 
+            // setting AceObjectId doesn't trigger dirty
+            tempSkills.ForEach(a => a.AceObjectId = aceObjectId);
+
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = tempSkills.Where(x => x.IsDirty).ToList();
+            
             foreach (var prop in theDirtyOnes)
             {
                 if (prop.HasEverBeenSavedToDatabase)
