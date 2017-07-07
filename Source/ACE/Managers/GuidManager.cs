@@ -108,7 +108,7 @@ namespace ACE.Managers
             return ret + 1;
         }
 
-        // FIXME(ddevec): @Og -- hopefully you can use this
+        // TODO: Finish out this work tieing this into the database
         public static void Initialize()
         {
             lock (playerLock)

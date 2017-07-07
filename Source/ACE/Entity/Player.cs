@@ -1751,8 +1751,6 @@ namespace ACE.Entity
                     GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
                         stack.Guid, (int)stack.StackSize, oldStackSize);
 
-                    // TODO: Finish here - create the object, and finish up the code.   Wrap in ActionChain. Og II
-
                     GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
                     CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue,
                         msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using log4net;
 // ReSharper disable InconsistentNaming
 
@@ -111,7 +109,7 @@ namespace ACE.Database
             DeleteAceObjectPropertyAttribute = 155,
             DeleteAceObjectPropertyAttribute2nd = 156,
             DeleteAceObjectPropertySkill = 157,
-            // XXX(ddevec): @Og II -- use these to query max values
+            // Used to get max values from DB
             GetMaxPlayerId = 200,
         }
 
@@ -542,9 +540,9 @@ namespace ACE.Database
         public bool SaveObject(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
-            
+
             SaveObjectInternal(transaction, aceObject);
-            
+
             return transaction.Commit().Result;
         }
 
@@ -580,7 +578,7 @@ namespace ACE.Database
         {
             // Update the character table -- save the AceObject to ace_object.
             SaveAceObjectBase(transaction, aceObject);
-            
+
             SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
@@ -894,7 +892,7 @@ namespace ACE.Database
             attribs.ForEach(a => a.AceObjectId = aceObjectId);
 
             var theDirtyOnes = attribs.Where(x => x.IsDirty).ToList();
-            
+
             foreach (var prop in theDirtyOnes)
             {
                 if (prop.HasEverBeenSavedToDatabase)
@@ -921,7 +919,7 @@ namespace ACE.Database
 
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = tempSkills.Where(x => x.IsDirty).ToList();
-            
+
             foreach (var prop in theDirtyOnes)
             {
                 if (prop.HasEverBeenSavedToDatabase)
