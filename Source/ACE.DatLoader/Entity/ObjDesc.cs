@@ -44,6 +44,7 @@ namespace ACE.DatLoader.Entity
                 apchange.PartID = datReader.ReadUInt16();
                 if (apchange.PartID == 0x8000) // To be honest, I'm not quite sure WHAT this is/means, but the math works out
                     apchange.PartID = datReader.ReadUInt16();
+                apchange.PartID += 0x01000000u; // convert to full uint value
                 od.AnimPartChanges.Add(apchange);
             }
             datReader.AlignBoundary(); // Align to the DWORD boundary before and after the ObjDesc

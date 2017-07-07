@@ -201,6 +201,7 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -1591,6 +1592,81 @@ namespace ACE.Entity
             DoMotion(motionMarketplaceRecall);
         }
 
+        public void HandleActionFinishBarber(ClientMessage message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoFinishBarber(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoFinishBarber(ClientMessage message)
+        {
+            // Read the payload sent from the client...
+            PaletteGuid = message.Payload.ReadUInt32();
+            Character.HeadObject = message.Payload.ReadUInt32();
+            Character.HairTexture = message.Payload.ReadUInt32();
+            Character.DefaultHairTexture = message.Payload.ReadUInt32();
+            Character.EyesTexture = message.Payload.ReadUInt32();
+            Character.DefaultEyesTexture = message.Payload.ReadUInt32();
+            Character.NoseTexture = message.Payload.ReadUInt32();
+            Character.DefaultNoseTexture = message.Payload.ReadUInt32();
+            Character.MouthTexture = message.Payload.ReadUInt32();
+            Character.DefaultMouthTexture = message.Payload.ReadUInt32();
+            Character.SkinPalette = message.Payload.ReadUInt32();
+            Character.HairPalette = message.Payload.ReadUInt32();
+            Character.EyesPalette = message.Payload.ReadUInt32();
+            Character.SetupTableId = message.Payload.ReadUInt32();
+
+            uint option_bound = message.Payload.ReadUInt32(); // Supress Levitation - Empyrean Only
+            uint option_unk = message.Payload.ReadUInt32(); // Unknown - Possibly set aside for future use?
+
+            // Check if Character is Empyrean, and if we need to set/change/send new motion table
+            if (Character.Heritage == 9)
+            {
+                // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
+                const uint EmpyreanMaleFloatMotionDID = 0x0900020Bu;
+                const uint EmpyreanFemaleFloatMotionDID = 0x0900020Au;
+                const uint EmpyreanMaleMotionDID = 0x0900020Eu;
+                const uint EmpyreanFemaleMotionDID = 0x0900020Du;
+
+                // Check for the Levitation option for Empyrean. Shadow crown and Undead flames are handled by client.
+                if (Character.Gender == 1) // Male
+                {
+                    if (option_bound == 1 && Character.MotionTableId != EmpyreanMaleMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanMaleMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                    else if (option_bound == 0 && Character.MotionTableId != EmpyreanMaleFloatMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanMaleFloatMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                }
+                else // Female
+                {
+                    if (option_bound == 1 && Character.MotionTableId != EmpyreanFemaleMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanFemaleMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                    else if (option_bound == 0 && Character.MotionTableId != EmpyreanFemaleFloatMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanFemaleFloatMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                }
+            }
+
+            UpdateAppearance(this, null);
+
+            // Broadcast updated character appearance
+            CurrentLandblock.EnqueueBroadcast(
+                Location,
+                Landblock.MaxObjectRange,
+                new GameMessageObjDescEvent(this));
+        }
+
         public void HandleActionMotion(UniversalMotion motion)
         {
             if (CurrentLandblock != null)
@@ -1769,9 +1845,10 @@ namespace ACE.Entity
             pickUpItemChain.EnqueueChain();
         }
 
-        public void UpdateAppearance(Container container, uint itemId)
+        public void UpdateAppearance(Container container, uint? itemId)
         {
-            UpdateWieldedItem(container, itemId);
+            if (itemId != null)
+                UpdateWieldedItem(container, (uint)itemId);
             Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
             var wieldeditems = GetCurrentlyWieldedItems();

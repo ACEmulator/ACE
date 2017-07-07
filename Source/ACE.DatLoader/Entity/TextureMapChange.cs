@@ -10,7 +10,7 @@ namespace ACE.DatLoader.Entity
     public class TextureMapChange
     {
         public byte PartIndex { get; set; }
-        public ushort OldTexture { get; set; }
-        public ushort NewTexture { get; set; }
+        public uint OldTexture { get; set; }
+        public uint NewTexture { get; set; }
     }
 }

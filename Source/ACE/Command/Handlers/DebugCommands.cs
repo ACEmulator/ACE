@@ -769,5 +769,16 @@ namespace ACE.Command.Handlers
             chain.AddAction(session.Player, () => LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems));
             chain.EnqueueChain();
         }
+
+        /// <summary>
+        /// Debug command to spawn the Barber UI
+        /// </summary>
+        [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void BarberShop(Session session, params string[] parameters)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventStartBarber(session)));
+            chain.EnqueueChain();
+        }
     }
 }
