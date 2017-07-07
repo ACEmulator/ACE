@@ -128,6 +128,27 @@ namespace ACE.Database
                 return;
             }
 
+            public void AddPreparedUpdateStatement<T1, T2>(T1 id, object instance)
+            {
+                StoredPreparedStatement preparedStatement;
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                {
+                    Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                    return;
+                }
+
+                var properties = GetPropertyCache(typeof(T2));
+
+                List<object> p = new List<object>();
+                properties.Where(x => x.Item2.Update).ToList().ForEach(x => p.Add(x.Item1.GetValue(instance)));
+                properties.Where(x => x.Item2.IsCriteria).ToList().ForEach(x => p.Add(x.Item1.GetValue(instance)));
+                object[] parameters = p.ToArray();
+
+                queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
+
+                return;
+            }
+
             public void AddPreparedDeleteStatement<T1, T2>(T1 id, object instance)
             {
                 Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");

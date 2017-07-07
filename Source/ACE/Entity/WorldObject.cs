@@ -78,7 +78,7 @@ namespace ACE.Entity
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public uint WeenieClassid
+        public uint WeenieClassId
         {
             get { return AceObject.WeenieClassId; }
             protected set { AceObject.WeenieClassId = value; }
@@ -806,7 +806,7 @@ namespace ACE.Entity
                 DescriptionFlags |= ObjectDescriptionFlag.AdditionFlags;
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
-            writer.WritePackedDword(WeenieClassid);
+            writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(Icon ?? 0, 0x6000000);
             writer.Write((uint)Type);
             writer.Write((uint)DescriptionFlags);

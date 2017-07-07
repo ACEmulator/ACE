@@ -14,7 +14,7 @@ namespace ACE.Entity
             Name = baseAceObject.Name ?? "NULL";
             // DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
             DescriptionFlags = ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.HiddenAdmin;
-            WeenieClassid = baseAceObject.WeenieClassId;
+            WeenieClassId = baseAceObject.WeenieClassId;
             Location = baseAceObject.Location;
             // PhysicsData.MTableResourceId = baseAceObject.MotionTableId;
             // PhysicsData.Stable = baseAceObject.SoundTableId;
@@ -93,7 +93,7 @@ namespace ACE.Entity
             // FIXME(ddevec): These should be inhereted from aceO, not copied
             Location = aceO.Location;
             Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
-            WeenieClassid = aceO.WeenieClassId;
+            WeenieClassId = aceO.WeenieClassId;
             GameDataType = aceO.Type;
         }
     }

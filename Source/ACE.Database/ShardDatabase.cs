@@ -86,8 +86,33 @@ namespace ACE.Database
             InsertAceObjectPropertiesAttributes = 133,
             InsertAceObjectPropertiesAttributes2nd = 134,
             InsertAceObjectPropertiesSkills = 135,
+            // note, this section is all "Property" singular
+            UpdateAceObjectPropertyInt = 136,
+            UpdateAceObjectPropertyBigInt = 137,
+            UpdateAceObjectPropertyDouble = 138,
+            UpdateAceObjectPropertyBool = 139,
+            UpdateAceObjectPropertyString = 140,
+            UpdateAceObjectPropertyDid = 141,
+            UpdateAceObjectPropertyIid = 142,
+            UpdateAceObjectPropertyPosition = 143,
+            UpdateAceObjectPropertyAttribute = 144,
+            UpdateAceObjectPropertyAttribute2nd = 145,
+            UpdateAceObjectPropertySkill = 146,
+
+            // note, this section is all "Property" singular
+            DeleteAceObjectPropertyInt = 147,
+            DeleteAceObjectPropertyBigInt = 148,
+            DeleteAceObjectPropertyDouble = 149,
+            DeleteAceObjectPropertyBool = 150,
+            DeleteAceObjectPropertyString = 151,
+            DeleteAceObjectPropertyDid = 152,
+            DeleteAceObjectPropertyIid = 153,
+            DeleteAceObjectPropertyPosition = 154,
+            DeleteAceObjectPropertyAttribute = 155,
+            DeleteAceObjectPropertyAttribute2nd = 156,
+            DeleteAceObjectPropertySkill = 157,
             // XXX(ddevec): @Og II -- use these to query max values
-            GetMaxPlayerId = 200
+            GetMaxPlayerId = 200,
         }
 
         protected override Type PreparedStatementType
@@ -112,6 +137,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteAceObject, typeof(AceObject), ConstructedStatementType.Delete);
             ConstructStatement(ShardPreparedStatement.SaveAceObject, typeof(AceObject), ConstructedStatementType.Insert);
             ConstructStatement(ShardPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObject, typeof(AceObject), ConstructedStatementType.Update);
 
             ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
 
@@ -164,6 +190,31 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
+            // Updates
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyDouble, typeof(AceObjectPropertiesDouble), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyString, typeof(AceObjectPropertiesString), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertySkill, typeof(AceObjectPropertiesSkill), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyAttribute, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.Update);
+            ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyAttribute2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.Update);
+
+            // deletes for properties
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyDouble, typeof(AceObjectPropertiesDouble), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyString, typeof(AceObjectPropertiesString), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertySkill, typeof(AceObjectPropertiesSkill), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.Delete);
 
             // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
             ConstructMaxQueryStatement(ShardPreparedStatement.GetMaxPlayerId, "ace_object", "aceObjectId", 0x5FFFFFFF, 0x50000001);
@@ -249,6 +300,9 @@ namespace ACE.Database
 
         private void LoadIntoObject(AceObject aceObject)
         {
+            // this flag determines whether subequent calls to "save" trigger an insert or an update
+            aceObject.HasEverBeenSavedToDatabase = true;
+
             // TODO: still to implement - load spells, friends, allegiance info, spell comps, spell bars
             aceObject.IntProperties = GetAceObjectPropertiesInt(aceObject.AceObjectId);
             aceObject.Int64Properties = GetAceObjectPropertiesBigInt(aceObject.AceObjectId);
@@ -274,6 +328,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesPosition>(ShardPreparedStatement.GetAceObjectPropertiesPositions, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -281,6 +340,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.GetAceObjectPropertiesSkills, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -288,6 +352,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.GetAceObjectPropertiesAttributes, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -296,12 +365,23 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
+
         private List<AceObjectPropertiesInt> GetAceObjectPropertiesInt(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.GetAceObjectPropertiesInt, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -309,6 +389,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.GetAceObjectPropertiesBigInt, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -316,6 +401,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.GetAceObjectPropertiesBool, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -323,6 +413,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.GetAceObjectPropertiesDouble, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -330,6 +425,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.GetAceObjectPropertiesString, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -337,6 +437,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.GetAceObjectPropertiesDid, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -344,6 +449,11 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.GetAceObjectPropertiesIid, criteria);
+            objects.ForEach(o =>
+            {
+                o.HasEverBeenSavedToDatabase = true;
+                o.IsDirty = false;
+            });
             return objects;
         }
 
@@ -382,6 +492,7 @@ namespace ACE.Database
             {
                 return null;
             }
+            ret.HasEverBeenSavedToDatabase = true;
             return ret;
         }
 
@@ -431,16 +542,9 @@ namespace ACE.Database
         public bool SaveObject(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
-
-            // For now we're just going to go simple and wipe and re-run this sucker -- make sure our inserst/updates work
-
-            // TODO : this never completes as far as I can tell.   I think this is why positions are not saving.   Og II
-            // I can't see any commit or any database updates taking place.   Nor any errors that I can see.
-
-            DeleteObjectInternal(transaction, aceObject);
+            
             SaveObjectInternal(transaction, aceObject);
-
-            // FIXME(ddevec): Should we wait on this TXN?  I have no idea.
+            
             return transaction.Commit().Result;
         }
 
@@ -476,7 +580,7 @@ namespace ACE.Database
         {
             // Update the character table -- save the AceObject to ace_object.
             SaveAceObjectBase(transaction, aceObject);
-
+            
             SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
@@ -484,68 +588,252 @@ namespace ACE.Database
             SaveAceObjectPropertiesString(transaction, aceObject.AceObjectId, aceObject.StringProperties);
             SaveAceObjectPropertiesIid(transaction, aceObject.AceObjectId, aceObject.InstanceIdProperties);
             SaveAceObjectPropertiesDid(transaction, aceObject.AceObjectId, aceObject.DataIdProperties);
+
+            DeleteAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
             SaveAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
+
+            DeleteAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
             SaveAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
+
+            DeleteAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
             SaveAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
 
+            SaveAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes);
+
+            SaveAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes2nd);
+
+            SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesSkills);
+
+            // prositions are special.  the object is actually fully replaced, so we can't do dirty tracking on it (for now)
+            // as a result, we delete them all then reinsert them all
+            DeleteAceObjectPropertiesPositions(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesPositions(transaction, aceObject.AceObjectId,
                 aceObject.AceObjectPropertiesPositions.Select(x => x.Value.GetAceObjectPosition(aceObject.AceObjectId, x.Key)).ToList());
-            SaveAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId,
-                aceObject.AceObjectPropertiesAttributes.Select(x => x.Value.GetAttribute(aceObject.AceObjectId)).ToList());
-            SaveAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId,
-                aceObject.AceObjectPropertiesAttributes2nd.Select(x => x.Value.GetVital(aceObject.AceObjectId)).ToList());
-            SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId,
-                aceObject.AceObjectPropertiesSkills.Select(x => x.Value.GetAceObjectSkill(aceObject.AceObjectId)).ToList());
 
             return true;
         }
 
         private bool SaveAceObjectBase(DatabaseTransaction transaction, AceObject obj)
         {
-            transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.SaveAceObject, obj);
+            if (obj.IsDirty)
+            {
+                if (!obj.HasEverBeenSavedToDatabase)
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.SaveAceObject, obj);
+                else
+                    transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.UpdateAceObject, obj);
+            }
+
             return true;
         }
 
         // FIXME(ddevec): These are a lot of functions that essentially do the same thing... but the SharedPreparedStatement.--- makes them a pain to tempalte/reduce
         private bool SaveAceObjectPropertiesInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.InsertAceObjectPropertiesInt, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.PropertyValue == null)
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.DeleteAceObjectPropertyInt, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.UpdateAceObjectPropertyInt, prop);
+                    }
+                }
+                else if (prop.PropertyValue != null)
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.InsertAceObjectPropertiesInt, prop);
+                }
+            }
+
             return true;
         }
 
         private bool SaveAceObjectPropertiesBigInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt64> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.InsertAceObjectPropertiesBigInt, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.PropertyValue == null)
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.DeleteAceObjectPropertyBigInt, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.UpdateAceObjectPropertyBigInt, prop);
+                    }
+                }
+                else if (prop.PropertyValue != null)
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesInt64>(ShardPreparedStatement.InsertAceObjectPropertiesBigInt, prop);
+                }
+            }
+
             return true;
         }
 
         private bool SaveAceObjectPropertiesBool(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesBool> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.InsertAceObjectPropertiesBool, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.PropertyValue == null)
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.DeleteAceObjectPropertyBool, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.UpdateAceObjectPropertyBool, prop);
+                    }
+                }
+                else if (prop.PropertyValue != null)
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesBool>(ShardPreparedStatement.InsertAceObjectPropertiesBool, prop);
+                }
+            }
+
             return true;
         }
 
         private bool SaveAceObjectPropertiesDouble(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesDouble> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.InsertAceObjectPropertiesDouble, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.PropertyValue == null)
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.DeleteAceObjectPropertyDouble, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.UpdateAceObjectPropertyDouble, prop);
+                    }
+                }
+                else if (prop.PropertyValue != null)
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesDouble>(ShardPreparedStatement.InsertAceObjectPropertiesDouble, prop);
+                }
+            }
+
             return true;
         }
 
         private bool SaveAceObjectPropertiesString(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesString> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.InsertAceObjectPropertiesString, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (string.IsNullOrWhiteSpace(prop.PropertyValue))
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.DeleteAceObjectPropertyString, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.UpdateAceObjectPropertyString, prop);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(prop.PropertyValue))
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesString>(ShardPreparedStatement.InsertAceObjectPropertiesString, prop);
+                }
+            }
+
             return true;
         }
 
         private bool SaveAceObjectPropertiesDid(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesDataId> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.InsertAceObjectPropertiesDid, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.PropertyValue == null)
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertiesDid, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.UpdateAceObjectPropertyDid, prop);
+                    }
+                }
+                else if (prop.PropertyValue != null)
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.InsertAceObjectPropertiesDid, prop);
+                }
+            }
+
             return true;
         }
 
         private bool SaveAceObjectPropertiesIid(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInstanceId> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.InsertAceObjectPropertiesIid, properties);
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.PropertyValue == null)
+                    {
+                        // delete it
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertiesIid, prop);
+                        properties.Remove(prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.UpdateAceObjectPropertyIid, prop);
+                    }
+                }
+                else if (prop.PropertyValue != null)
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.InsertAceObjectPropertiesIid, prop);
+                }
+            }
+
             return true;
         }
 
@@ -573,22 +861,88 @@ namespace ACE.Database
             return true;
         }
 
-        private bool SaveAceObjectPropertiesAttributes(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesAttribute> properties)
+        private bool SaveAceObjectPropertiesAttributes(DatabaseTransaction transaction, uint aceObjectId, Dictionary<Ability, CreatureAbility> attributes)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, properties);
+            var attribs = attributes.Values.Select(x => x.GetAttribute()).ToList();
+
+            // setting AceObjectId doesn't trigger dirty
+            attribs.ForEach(a => a.AceObjectId = aceObjectId);
+
+            var theDirtyOnes = attribs.Where(x => x.IsDirty).ToList();
+
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    // update it
+                    transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.UpdateAceObjectPropertyAttribute, prop);
+                }
+                else
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesAttribute>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes, prop);
+                }
+            }
+
             return true;
         }
 
-        private bool SaveAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesAttribute2nd> properties)
+        private bool SaveAceObjectPropertiesAttribute2nd(DatabaseTransaction transaction, uint aceObjectId, Dictionary<Ability, CreatureVital> properties)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes2nd, properties);
+            var attribs = properties.Values.Select(x => x.GetVital()).ToList();
+
+            // setting AceObjectId doesn't trigger dirty
+            attribs.ForEach(a => a.AceObjectId = aceObjectId);
+
+            var theDirtyOnes = attribs.Where(x => x.IsDirty).ToList();
+            
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    // update it
+                    transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.UpdateAceObjectPropertyAttribute2nd, prop);
+                }
+                else
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesAttribute2nd>(ShardPreparedStatement.InsertAceObjectPropertiesAttributes2nd, prop);
+                }
+            }
+
             return true;
         }
 
         // SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectPropertiesSkills);
-        private bool SaveAceObjectPropertiesSkill(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesSkill> properties)
+        private bool SaveAceObjectPropertiesSkill(DatabaseTransaction transaction, uint aceObjectId, Dictionary<Skill, CreatureSkill> skills)
         {
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.InsertAceObjectPropertiesSkills, properties);
+            var tempSkills = skills.Values.Select(x => x.GetAceObjectSkill()).ToList();
+
+            // setting AceObjectId doesn't trigger dirty
+            tempSkills.ForEach(a => a.AceObjectId = aceObjectId);
+
+            // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
+            var theDirtyOnes = tempSkills.Where(x => x.IsDirty).ToList();
+            
+            foreach (var prop in theDirtyOnes)
+            {
+                if (prop.HasEverBeenSavedToDatabase)
+                {
+                    if (prop.SkillStatus == (ushort)SkillStatus.Untrained)
+                    {
+                        // delete it.  this is possibly (likely?) a no-op
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.DeleteAceObjectPropertiesSkills, prop);
+                    }
+                    else
+                    {
+                        // update it
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.UpdateAceObjectPropertySkill, prop);
+                    }
+                }
+                else
+                {
+                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.InsertAceObjectPropertiesSkills, prop);
+                }
+            }
+
             return true;
         }
 

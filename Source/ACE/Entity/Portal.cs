@@ -181,7 +181,7 @@ namespace ACE.Entity
                         if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
                         {
                             Position portalDest = Destination;
-                            switch (WeenieClassid)
+                            switch (WeenieClassId)
                             {
                                 /// <summary>
                                 /// Setup correct racial portal destination for the Central Courtyard in the Training Academy
@@ -303,7 +303,7 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        serverMessage = "Portal destination for portal ID " + this.WeenieClassid + " not yet implemented!";
+                        serverMessage = "Portal destination for portal ID " + this.WeenieClassId + " not yet implemented!";
                         var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                         // always send useDone event
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);

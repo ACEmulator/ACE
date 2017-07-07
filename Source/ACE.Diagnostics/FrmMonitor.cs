@@ -72,7 +72,7 @@ namespace ACE.Diagnostics
             //        ********
             // 0,0    ******** 255,0
 
-            //  rows decrease / col increase.
+            // rows decrease / col increase.
 
             // Draw to bitmap in memory
             using (imgGraphics)

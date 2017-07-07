@@ -36,7 +36,6 @@ namespace ACE.Managers
         // private const uint staticObjectMax = 0x0FFFFFFF;
 
         private const uint staticObjectMin = 0x70000000;
-
         private const uint staticObjectMax = 0xDFFFFFFF;
 
         // At Server startup read current max from the DB
