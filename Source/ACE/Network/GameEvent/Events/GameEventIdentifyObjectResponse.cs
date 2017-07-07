@@ -3,6 +3,7 @@ using ACE.Network.Enum;
 using System.Linq;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Network.GameEvent.Events
 {
@@ -108,35 +109,24 @@ namespace ACE.Network.GameEvent.Events
 
             var propertiesString = obj.PropertiesString.Where(x => x.PropertyId < 9000).ToList();
 
+#if DEBUG
             // TODO: This needs to come out - only in while we are testing.
             if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc)?.PropertyValue == null)
             {
                 // No short description - we will send just our debugging information.
-                string debugOutput = "ACE Debug Output:\n";
-                debugOutput += "AceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
-                debugOutput += "\n" + "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")";
-                debugOutput += "\n" + "Item Type: " + obj.Type;
-                if (obj.DefaultCombatStyle != null)
-                    debugOutput += "\n" + "DefaultCombatStyle: " + obj.DefaultCombatStyle;
                 AceObjectPropertiesString dbAo = new AceObjectPropertiesString();
                 dbAo.AceObjectId = obj.Guid.Full;
                 dbAo.PropertyId = (ushort)PropertyString.ShortDesc;
-                dbAo.PropertyValue = debugOutput;
+                dbAo.PropertyValue = DebugOutputString(type, obj, objectId);
                 propertiesString.Add(dbAo);
             }
             else
             {
                 // A short description already exists - lets append our data to the end.
-                string debugOutput = "\n\n" + "ACE Debug Output:\n";
-                debugOutput += "Class: " + type.Name + ".cs\n";
-                debugOutput += "AceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")";
-                debugOutput += "\n" + "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")";
-                debugOutput += "\n" + "Item Type: " + obj.Type;
-                if (obj.DefaultCombatStyle != null)
-                    debugOutput += "\n" + "DefaultCombatStyle: " + obj.DefaultCombatStyle;
                 if (!propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue.Contains("ACE Debug Output"))
-                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += debugOutput;
+                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj, objectId);
             }
+#endif
 
             if (propertiesString.Count > 0)
             {
@@ -146,6 +136,10 @@ namespace ACE.Network.GameEvent.Events
             if (obj.Type == ObjectType.Creature)
             {
                 flags |= IdentifyResponseFlags.CreatureProfile;
+#if DEBUG
+                session.Network.EnqueueSend(new GameMessageSystemChat("Creature Panel is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
+#endif
             }
 
             // Ok Down to business - let's identify all of this stuff.
@@ -164,6 +158,29 @@ namespace ACE.Network.GameEvent.Events
                 session.Player.WriteIdentifyObjectCreatureProfile(Writer, (Creature)obj);
             }
             session.Player.WriteIdentifyObjectWeaponsProfile(Writer, flags, propertiesWeaponsD, propertiesWeaponsI);
+        }
+
+        private string DebugOutputString(System.Type type, WorldObject obj, ObjectGuid objectId)
+        {
+            string debugOutput = "ACE Debug Output:\n";
+            debugOutput += "Class: " + type.Name + ".cs" + "\n";
+            debugOutput += "AceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")" + "\n";
+            ////debugOutput += "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")" + "\n";
+            ////debugOutput += "Item Type: " + obj.Type + "\n";
+            ////if (obj.Name != null)
+            ////    debugOutput += "\n" + "Name: " + obj.Name + "\n";
+            ////if (obj.NamePlural != null)
+            ////    debugOutput += "\n" + "NamePlural: " + obj.NamePlural + "\n";
+            ////if (obj.DefaultCombatStyle != null)
+            ////    debugOutput += "DefaultCombatStyle: " + obj.DefaultCombatStyle + "\n";
+
+            foreach (var prop in obj.GetType().GetProperties())
+            {
+                // Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(obj, null));
+               debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+            }
+
+            return debugOutput;
         }
     }
 }
