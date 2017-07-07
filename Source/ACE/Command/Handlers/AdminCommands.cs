@@ -724,8 +724,8 @@ namespace ACE.Command.Handlers
             // This command teleports yourself (or the specified character) to the given longitude and latitude.
             // @tele - Teleports you(or a player) to some location.
 
-            string northSouth = parameters[0].ToLower();
-            string eastWest = parameters[1].ToLower();
+            string northSouth = parameters[0].ToLower().Replace(",", "");
+            string eastWest = parameters[1].ToLower().Replace(",", "");
 
             if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
             {
