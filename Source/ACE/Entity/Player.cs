@@ -1594,6 +1594,13 @@ namespace ACE.Entity
 
         public void HandleActionFinishBarber(ClientMessage message)
         {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoFinishBarber(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoFinishBarber(ClientMessage message)
+        {
             // Read the payload sent from the client...
             PaletteGuid = message.Payload.ReadUInt32();
             Character.HeadObject = message.Payload.ReadUInt32();
@@ -1622,6 +1629,7 @@ namespace ACE.Entity
                 const uint EmpyreanMaleMotionDID = 0x0900020Eu;
                 const uint EmpyreanFemaleMotionDID = 0x0900020Du;
 
+                // Check for the Levitation option for Empyrean. Shadow crown and Undead flames are handled by client.
                 if (Character.Gender == 1) // Male
                 {
                     if (option_bound == 1 && Character.MotionTableId != EmpyreanMaleMotionDID)

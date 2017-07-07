@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+
+### 2017-07-07
+[Optim Shi]
+* Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
+* Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
+
 ### 2017-07-03
 [Mogwai]
 * Massive Database optimizations and implementations for saving objects and all their properties.
@@ -18,11 +24,6 @@
 [OptimShi]
 * Character list will now automatically select your last played character.
 * Modified @tele command to allow comma in coordinate pair (e.g. "@tele 42.1N, 33.6E")
-
-### 2017-07-06
-[Optim Shi]
-* Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
-* Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
 
 ### 2017-07-05
 [OptimShi]
