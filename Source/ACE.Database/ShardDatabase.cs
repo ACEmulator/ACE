@@ -301,8 +301,6 @@ namespace ACE.Database
                 x => new CreatureVital(aceObject, x));
             aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
                 x => new CreatureSkill(aceObject, x));
-
-            
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)

@@ -148,6 +148,7 @@ namespace ACE.Entity
 
         public CreatureVital(ICreatureStats creature, Ability ability, double regenRate)
         {
+            this._backer = new AceObjectPropertiesAttribute2nd();
             this.creature = creature;
             this.RegenRate = regenRate;
             Ability = ability;
