@@ -46,9 +46,9 @@ namespace ACE.Factories
         public static List<WorldObject> CreateWorldObjectsFromGenerator(AceObject generator)
         {
             List<WorldObject> results = new List<WorldObject>();
-            var currentTime = new DerethDateTime(WorldManager.PortalYearTicks);
+            DerethDateTime currentTime = new DerethDateTime(WorldManager.PortalYearTicks);
             Position pos = null;
-            Random random = new Random((int)WorldManager.PortalYearTicks);
+            Random random = new Random((int)DateTime.UtcNow.Ticks);
 
             // Check if the current generator is meant to spawn objects at this time of the day
             switch (generator.GeneratorTimeType)
@@ -69,7 +69,7 @@ namespace ACE.Factories
                 return null;
 
             // Generate objects from this generator #MaxGeneratedObjects times
-            for (var i = 0; i < generator.MaxGeneratedObjects; i++)
+            for (int i = 0; i < generator.MaxGeneratedObjects; i++)
             {
                 switch (generator.GeneratorType)
                 {
@@ -85,37 +85,64 @@ namespace ACE.Factories
                         break;
                 }
 
-                AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie(generator.ActivationCreateClass);
-                baseObject.Generator = generator.AceObjectId;
-
-                // Determine the ObjectType and call the specific Factory
-                ObjectType ot = (ObjectType)baseObject.Type;
-                switch (ot)
+                // If this generator has linked generators use those for spawning objects
+                if (generator.ActivationCreateClass == 0)
                 {
-                    case ObjectType.Creature:
-                        // TODO: enhance this if we need to spawn NPCs too, else it is just monsters for this tpye
-                        results.Add(MonsterFactory.SpawnMonster(baseObject, pos));
-                        break;
+                    // Spawn this generator if it's not the top-level generator
+                    if (generator.Generator != null)
+                    {
+                        results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), generator));
+                        generator.GeneratorEnteredWorld = true;
+                    }
 
-                    case ObjectType.Portal:
-                        // TODO: enable generators to spawn portals, i.e. for Humming Crystal Portal
-                        // results.Add();
-                        break;
+                    // Get a random generator from the weighted list of linked generators and read it's AceObject from the DB
+                    if (generator.GeneratorLinks.Count == 0)
+                        return null;
+                    uint linkId = GetRandomGeneratorIdFromGeneratorList(random, generator.GeneratorLinks);
+                    AceObject newGen = DatabaseManager.World.GetAceObjectByWeenie(linkId);
 
-                    case ObjectType.Misc:
-                        // TODO: enable generators to spawn misc items: i.e. Campfire
-                        // results.Add();
-                        break;
+                    // The linked generator is at the same location as the top generator and references its parent
+                    newGen.Location = pos;
+                    newGen.Generator = generator.AceObjectId;
+                    newGen.GeneratorEnteredWorld = true;
 
-                    default:
-                        baseObject.Location = pos;
-                        if (baseObject.Location != null)
-                            results.Add(new DebugObject(new ObjectGuid(baseObject.AceObjectId), baseObject));
-                        break;
+                    // Recursively call this method again with the just read generatorObject
+                    List<WorldObject> objectList = CreateWorldObjectsFromGenerator(newGen);
+                    objectList?.ForEach(o => results.Add(o));
+                }
+                // else spawn the objects directly from this generator
+                else
+                {
+                    AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie(generator.ActivationCreateClass);
+                    baseObject.Generator = generator.AceObjectId;
+
+                    // Determine the ObjectType and call the specific Factory
+                    ObjectType ot = (ObjectType)baseObject.Type;
+                    switch (ot)
+                    {
+                        case ObjectType.Creature:
+                            // TODO: enhance this if we need to spawn NPCs too, else it is just monsters for this tpye
+                            results.Add(MonsterFactory.SpawnMonster(baseObject, pos));
+                            break;
+
+                        case ObjectType.Portal:
+                            // TODO: enable generators to spawn portals, i.e. for Humming Crystal Portal
+                            // results.Add();
+                            break;
+
+                        case ObjectType.Misc:
+                            // TODO: enable generators to spawn misc items: i.e. Campfire
+                            // results.Add();
+                            break;
+
+                        default:
+                            baseObject.Location = pos;
+                            if (baseObject.Location != null)
+                                results.Add(new DebugObject(new ObjectGuid(GuidManager.NewItemGuid()), baseObject));
+                            break;
+                    }
                 }
             }
-
-            // TODO: extend to hierarchical generators: i.e. a Northern Marae Lessel Generator can spawn different Camps of Monsters, etc.
 
             return results;
         }
@@ -132,14 +159,36 @@ namespace ACE.Factories
             byte cellY = (byte)random.Next(0, 7);
             ushort cell = (ushort)(cellX << 3 | cellY);
 
-            uint lblock = (landblock << 16) | cell;
             byte x = (byte)(cellX * 24 + random.Next(0, 23));
             byte y = (byte)(cellY * 24 + random.Next(0, 23));
             byte z = 0; // TODO: load z from cell.dat, also when specifying 0 the gravity seems to pull the creature to the right z value
 
-            Position pos = new Position(lblock, x, y, z, 0f, 0f, 0f, 0f);
+            Position pos = new Position(landblock, x, y, z, 0f, 0f, 0f, 0f);
 
             return pos;
+        }
+
+        private static uint GetRandomGeneratorIdFromGeneratorList(Random random, List<AceObjectGeneratorLink> generatorObjects)
+        {
+            int[] cumulativeValues = new int[generatorObjects.Count];
+            
+            // Build the cumulative values of the generatorWeights
+            cumulativeValues[0] = generatorObjects[0].GeneratorWeight;
+
+            for (int i = 1; i < generatorObjects.Count; i++)
+            {
+                cumulativeValues[i] = cumulativeValues[i - 1] + generatorObjects[i].GeneratorWeight;
+            }
+
+            // Generate a random weight value between 0 and the maximum cumulative weight
+            int value = (int)(random.NextDouble() * cumulativeValues[generatorObjects.Count - 1]);
+
+            // Search the index of the cumulative weight that's bigger than the generated random weight
+            int index = Array.BinarySearch(cumulativeValues, value);
+            if (index < 0)
+                index = ~index; // bitwise compliment of the index returned from BinarySearch for the real index
+
+            return generatorObjects[index].GeneratorWeenieClassId;
         }
     }
 }

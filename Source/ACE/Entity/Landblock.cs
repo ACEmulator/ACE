@@ -92,6 +92,8 @@ namespace ACE.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
+            actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
+
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
             //   2. terrain data
@@ -113,7 +115,6 @@ namespace ACE.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
-            actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
             // FIXME(ddevec): Goal: get rid of UseTime() function...
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
 

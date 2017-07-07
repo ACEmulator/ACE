@@ -3,25 +3,55 @@ using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
-    public class CreatureAbility : ICloneable
+    public class CreatureAbility : ICloneable, ICreatureXpSpendableStat
     {
-        public Ability Ability { get; protected set; }
+        private AceObjectPropertiesAttribute _backer;
+
+        public Ability Ability
+        {
+            get { return (Ability)_backer.AttributeId; }
+            protected set
+            {
+                _backer.AttributeId = (ushort)value;
+            }
+        }
 
         /// <summary>
         /// Returns the Base Value for a Creature's Ability, for Players this is set durring Character Creation 
         /// </summary>
-        public uint Base { get; set; }
+        public uint Base
+        {
+            get { return _backer.AttributeBase; }
+            set
+            {
+                _backer.AttributeBase = (ushort)value;
+                _backer.IsDirty = true;
+            }
+        }
 
         /// <summary>
         /// Returns the Current Rank for a Creature's Ability
         /// </summary>
-        public uint Ranks { get; set; }
+        public uint Ranks
+        {
+            get { return _backer.AttributeRanks; }
+            set
+            {
+                _backer.AttributeRanks = (ushort)value;
+                _backer.IsDirty = true;
+            }
+        }
+
+        public uint Current
+        {
+            get { return UnbuffedValue; }
+        }
 
         /// <summary>
         /// For Primary Abilities, Returns the Base Value Plus the Ranked Value
         /// For Secondary Abilities, Returns the adjusted Value depending on the current Abiliy formula
         /// </summary>
-        virtual public uint UnbuffedValue
+        public uint UnbuffedValue
         {
             get
             {
@@ -33,7 +63,7 @@ namespace ACE.Entity
         /// <summary>
         /// Returns the MaxValue of an ability, UnbuffedValue + Additional
         /// </summary>
-        virtual public uint MaxValue
+        public uint MaxValue
         {
             get
             {
@@ -47,38 +77,43 @@ namespace ACE.Entity
         /// <summary>
         /// Total Experience Spent on an ability
         /// </summary>
-        public uint ExperienceSpent { get; set; }
+        public uint ExperienceSpent
+        {
+            get { return _backer.AttributeXpSpent; }
+            set
+            {
+                _backer.AttributeXpSpent = value;
+                _backer.IsDirty = true;
+            }
+        }
 
         public CreatureAbility(Ability ability)
         {
+            _backer = new AceObjectPropertiesAttribute();
+
             Ability = ability;
             Base = 10;
         }
 
         public CreatureAbility(AceObjectPropertiesAttribute attrib)
         {
-            Ability = (Ability)attrib.AttributeId;
-            Ranks = attrib.AttributeRanks;
-            Base = attrib.AttributeBase;
-            ExperienceSpent = attrib.AttributeXpSpent;
+            _backer = attrib;
         }
 
-        public AceObjectPropertiesAttribute GetAttribute(uint objId)
+        public AceObjectPropertiesAttribute GetAttribute()
         {
-            var ret = new AceObjectPropertiesAttribute();
-
-            ret.AceObjectId = objId;
-            ret.AttributeId = (ushort)Ability;
-            ret.AttributeBase = (ushort)Base;
-            ret.AttributeRanks = (ushort)Ranks;
-            ret.AttributeXpSpent = ExperienceSpent;
-
-            return ret;
+            return _backer;
         }
 
-        public virtual object Clone()
+        public void ClearDirtyFlags()
         {
-            return MemberwiseClone();
+            _backer.IsDirty = false;
+            _backer.HasEverBeenSavedToDatabase = true;
+        }
+
+        public object Clone()
+        {
+            return new CreatureAbility((AceObjectPropertiesAttribute)_backer.Clone());
         }
     }
 }

@@ -14,8 +14,19 @@ namespace ACE.Factories
 
             foreach (var aceO in sourceObjects)
             {
-                var ot = (ObjectType)aceO.Type;
+                var oType = (ObjectType)aceO.Type;
                 var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
+
+                if (aceO.GeneratorStatus)  // Generator
+                {
+                    aceO.Location = aceO.Location.InFrontOf(-2.0);
+                    aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
+                    results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
+                    aceO.GeneratorEnteredWorld = true;
+                    var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
+                    objectList.ForEach(o => results.Add(o));
+                    continue;
+                }
 
                 if ((oDescFlag & ObjectDescriptionFlag.LifeStone) != 0)
                 {
@@ -33,33 +44,8 @@ namespace ACE.Factories
                     continue;
                 }
 
-                switch (ot)
+                switch (oType)
                 {
-                    case 0: // Generator
-                        // TODO: Is this the best way to figure out what's a generator and whats not? more research needed
-                        if ((oDescFlag & (ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Hidden)) != 0)
-                        {
-                            aceO.Location = aceO.Location.InFrontOf(-2.0);
-                            aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
-                            results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
-                            var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
-                            objectList.ForEach(o => results.Add(o));
-                        }
-                        break;
-
-                    case ObjectType.Container:
-                        if (aceO.Location != null)
-                        {
-                            results.Add(new Container(aceO));
-                        }
-                        break;
-
-                    case ObjectType.Creature:
-                        if (aceO.Location != null)
-                        {
-                            results.Add(new Creature(aceO));
-                        }
-                        break;
 #if DEBUG
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies
