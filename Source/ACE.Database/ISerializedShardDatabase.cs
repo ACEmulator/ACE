@@ -2,9 +2,6 @@
 using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Database
 {
@@ -32,6 +29,8 @@ namespace ACE.Database
         void IsCharacterNameAvailable(string name, Action<bool> callback);
 
         void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback);
+
+        void GetMaxPlayerId(Action<uint> callback);
 
         void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback);
 

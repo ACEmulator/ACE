@@ -2,11 +2,14 @@ using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Network.Enum;
+using log4net;
 
 namespace ACE.Entity
 {
     public class Container : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
         public Container(ObjectType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)

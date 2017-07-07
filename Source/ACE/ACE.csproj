@@ -173,6 +173,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionStackableSplitToContainer.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChatChannel.cs" />
@@ -253,6 +254,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePlayerKilled.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePrivateUpdateDataID.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectIn3d.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageSetStackSize.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
     <Compile Include="Network\Motion\MotionItem.cs" />
