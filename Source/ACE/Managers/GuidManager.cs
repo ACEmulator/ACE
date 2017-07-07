@@ -13,7 +13,7 @@
         // Fragmentation: None
         private const uint weenieMin = 0x00000001;
 
-        private const uint weenieMax = 0x0000FFFF;
+        private const uint weenieMax = 0x0001FFFF;
 
         // At Server startup read current max from the DB
         private static uint weenie = 0x00001344;
@@ -23,7 +23,7 @@
         // these will be added by developers and not in game
         // Nothing in this range is persisted by the game. Read in only   Only developers or content creators can create them to be persisted.
         // Fragmentation: None
-        private const uint staticObjectMin = 0x00010000;
+        private const uint staticObjectMin = 0x00020000;
 
         private const uint staticObjectMax = 0x0FFFFFFF;
 
