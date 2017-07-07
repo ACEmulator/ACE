@@ -3,6 +3,7 @@
 ### 2017-07-06
 [OptimShi]
 * Character list will now automatically select your last played character.
+* Modified @tele command to allow comma in coordinate pair (e.g. "@tele 42.1N, 33.6E")
 
 ### 2017-07-05
 [OptimShi]
