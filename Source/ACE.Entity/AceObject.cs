@@ -809,6 +809,13 @@ namespace ACE.Entity
             return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Select(x => x.PropertyValue).ToList();
         }
 
+        public void SetDoubleTimestamp(PropertyDouble propertyId)
+        {
+            TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+            double timestamp = span.TotalSeconds;
+            SetDoubleProperty(propertyId, timestamp);
+        }
+
         public void SetDoubleProperty(PropertyDouble propertyId, double? value)
         {
             AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);

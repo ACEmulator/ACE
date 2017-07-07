@@ -297,6 +297,9 @@ namespace ACE.Entity
 
             AddCharacterBaseModelData();
 
+            // Save the the LoginTimestamp
+            Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
+
             this.TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
