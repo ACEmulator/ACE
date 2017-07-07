@@ -336,6 +336,10 @@ namespace ACE.Entity
         {
             // Clone Character
             AceObject obj = (AceObject)Character.Clone();
+
+            // immediately after cloning, clear all dirty flags and HasBeenSavedToDatabase
+            Character.ClearDirtyFlags();
+
             // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
             // this is crap and needs to be fixed.
             obj.WeenieClassId = 1;
@@ -481,23 +485,32 @@ namespace ACE.Entity
         public void SpendXp(Enum.Ability ability, uint amount)
         {
             bool isSecondary = false;
+            ICreatureXpSpendableStat creatureStat;
             CreatureAbility creatureAbility;
             bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
-            if (!success)
+            if (success)
+            {
+                creatureStat = creatureAbility;
+            }
+            else
             {
                 CreatureVital v;
                 success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out v);
+
                 // Invalid ability
-                if (!success)
+                if (success)
+                {
+                    creatureStat = v;
+                }
+                else
                 {
                     log.Error("Invalid ability passed to Player.SpendXp");
                     return;
                 }
-                creatureAbility = v;
                 isSecondary = true;
             }
-            uint baseValue = creatureAbility.Base;
-            uint result = SpendAbilityXp(creatureAbility, amount);
+            uint baseValue = creatureStat.Base;
+            uint result = SpendAbilityXp(creatureStat, amount);
             uint ranks = creatureAbility.Ranks;
             uint newValue = creatureAbility.UnbuffedValue;
             string messageText = "";
@@ -510,8 +523,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    CreatureVital vital = creatureAbility as CreatureVital;
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, vital.Current);
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureAbility.Current);
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
@@ -556,7 +568,7 @@ namespace ACE.Entity
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendAbilityXp(CreatureAbility ability, uint amount)
+        private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
         {
             uint result = 0;
             bool addToCurrentValue = false;
@@ -1184,8 +1196,7 @@ namespace ACE.Entity
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                // DatabaseManager.Shard.SaveObject(GetSavableCharacter());
-
+                
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 #if DEBUG
                 if (Session.Player != null)
@@ -2332,67 +2343,72 @@ namespace ACE.Entity
         public void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
         {
             const ushort tableSize = 16;
-            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (propertiesInt.Count == 0)) return;
-            writer.Write((ushort)propertiesInt.Count);
+            var notNull = propertiesInt.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
             writer.Write(tableSize);
 
-            foreach (AceObjectPropertiesInt x in propertiesInt)
+            foreach (AceObjectPropertiesInt x in notNull)
             {
                 writer.Write(x.PropertyId);
-                writer.Write(x.PropertyValue);
+                writer.Write(x.PropertyValue.Value);
             }
         }
 
         public void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
         {
             const ushort tableSize = 8;
-            if ((flags & IdentifyResponseFlags.Int64StatsTable) == 0 || (propertiesInt64.Count == 0)) return;
-            writer.Write((ushort)propertiesInt64.Count);
+            var notNull = propertiesInt64.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.Int64StatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
             writer.Write(tableSize);
 
-            foreach (AceObjectPropertiesInt64 x in propertiesInt64)
+            foreach (AceObjectPropertiesInt64 x in notNull)
             {
                 writer.Write(x.PropertyId);
-                writer.Write(x.PropertyValue);
+                writer.Write(x.PropertyValue.Value);
             }
         }
 
         public void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
         {
             const ushort tableSize = 8;
-            if ((flags & IdentifyResponseFlags.BoolStatsTable) == 0 || (propertiesBool.Count == 0)) return;
-            writer.Write((ushort)propertiesBool.Count);
+            var notNull = propertiesBool.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.BoolStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
             writer.Write(tableSize);
 
-            foreach (AceObjectPropertiesBool x in propertiesBool)
+            foreach (AceObjectPropertiesBool x in notNull)
             {
                 writer.Write(x.PropertyId);
-                writer.Write(Convert.ToUInt32(x.PropertyValue));
+                writer.Write(Convert.ToUInt32(x.PropertyValue.Value));
             }
         }
 
         public void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
         {
             const ushort tableSize = 8;
-            if ((flags & IdentifyResponseFlags.FloatStatsTable) == 0 || (propertiesDouble.Count == 0)) return;
-            writer.Write((ushort)propertiesDouble.Count);
+            var notNull = propertiesDouble.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.FloatStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
             writer.Write(tableSize);
 
-            foreach (AceObjectPropertiesDouble x in propertiesDouble)
+            foreach (AceObjectPropertiesDouble x in notNull)
             {
                 writer.Write((uint)x.PropertyId);
-                writer.Write(x.PropertyValue);
+                writer.Write(x.PropertyValue.Value);
             }
         }
 
         public void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
         {
             const ushort tableSize = 8;
-            if ((flags & IdentifyResponseFlags.StringStatsTable) == 0 || (propertiesStrings.Count == 0)) return;
-            writer.Write((ushort)propertiesStrings.Count);
+            var notNull = propertiesStrings.Where(p => !string.IsNullOrWhiteSpace(p.PropertyValue)).ToList();
+            if ((flags & IdentifyResponseFlags.StringStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
             writer.Write(tableSize);
 
-            foreach (AceObjectPropertiesString x in propertiesStrings)
+            foreach (AceObjectPropertiesString x in notNull)
             {
                 writer.Write((uint)x.PropertyId);
                 writer.WriteString16L(x.PropertyValue);
@@ -2402,14 +2418,15 @@ namespace ACE.Entity
         public void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
         {
             const ushort tableSize = 16;
-            if ((flags & IdentifyResponseFlags.DidStatsTable) == 0 || (propertiesDid.Count == 0)) return;
-            writer.Write((ushort)propertiesDid.Count);
+            var notNull = propertiesDid.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.DidStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
             writer.Write(tableSize);
 
-            foreach (AceObjectPropertiesDataId x in propertiesDid)
+            foreach (AceObjectPropertiesDataId x in notNull)
             {
                 writer.Write(x.PropertyId);
-                writer.Write(x.PropertyValue);
+                writer.Write(x.PropertyValue.Value);
             }
         }
 
@@ -2426,11 +2443,12 @@ namespace ACE.Entity
 
         public void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
         {
-            if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (propertiesArmor.Count == 0)) return;
+            var notNull = propertiesArmor.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (notNull.Count == 0)) return;
 
-            foreach (AceObjectPropertiesDouble x in propertiesArmor)
+            foreach (AceObjectPropertiesDouble x in notNull)
             {
-                writer.Write((float)x.PropertyValue);
+                writer.Write((float)x.PropertyValue.Value);
             }
         }
 

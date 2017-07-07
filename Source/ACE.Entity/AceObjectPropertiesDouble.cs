@@ -4,17 +4,30 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_object_properties_double")]
-    public class AceObjectPropertiesDouble : ICloneable
+    public class AceObjectPropertiesDouble : BaseAceProperty, ICloneable
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true)]
-        public uint AceObjectId { get; set; }
-
-        [DbField("dblPropertyId", (int)MySqlDbType.UInt16)]
+        private double? _value = 0;
+        
+        [DbField("dblPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort PropertyId { get; set; }
 
-        [DbField("propertyValue", (int)MySqlDbType.Double)]
-        public double PropertyValue { get; set; }
+        [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
+        public byte Index { get; set; } = 0;
 
+        [DbField("propertyValue", (int)MySqlDbType.Double)]
+        public double? PropertyValue
+        {
+            get
+            {
+                return _value;
+            }
+            set
+            {
+                _value = value;
+                IsDirty = true;
+            }
+        }
+        
         public object Clone()
         {
             return MemberwiseClone();
