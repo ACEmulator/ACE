@@ -4,6 +4,17 @@
 * Massive Database optimizations and implementations for saving objects and all their properties.
 
 ### 2017-07-06
+[Ripley]
+* Required ACE-World database version: v0.1.4
+* Rolled in PR #430 from @Lidefeath as starting base. 
+* Added generator links table to WorldBase.
+* Made changes to GuidManger and ObjectGuid in an effort to avoid collisions with guids already present in ACE-World. Does not persist or track, resets each server start.
+* Above changes made IsCreature function, and smite works for at least the Sparring Golems found in the Academy, does not seem to work for Drudges in Holtburg.
+* Speaking of Drudges, there is a drudge invasion south and west of Holtburg.
+* Several changes to 06-06-30-2017-generator-chains-testdata.sql found in Database/Updates/World to set up for generator instances and show examples of them.
+* Changed the way generators are classified to make use of some AceObject properties.
+* Slightly adjusted debug output on ID panel.
+
 [OptimShi]
 * Character list will now automatically select your last played character.
 * Modified @tele command to allow comma in coordinate pair (e.g. "@tele 42.1N, 33.6E")
@@ -58,7 +69,6 @@
 [Jyrus]
 * Implement Auto close timer for Doors
 
-### 2017-06-28
 [Og II]
 * Update readme with db minimum required versions.
 * Completed work on flattening PhysicsData and ModelData
@@ -70,7 +80,13 @@
 * item generator work.   Could not test corpse.
 * TODO could not test corpse creation as kill was broken before I started.
 
-### 2017-06-27
+[Lidefeath]
+* Added linked generators i.e. a generator can spawn other generators which then spawn objects - theoretically this can go even deeper
+* Added testdata for the linked generators near Holtburg: 
+	- spawn a Drudge Skulker with his generator
+	- spawn a Drudge Camp (3 drudges) with its generator
+	- randomly spawn 10 drudge camp generators in a landblock
+
 [fantoms]
 * Added `TimeoutTick` variable to network sessions, to store the tick value for next timeout.
 * Added functionality to `Session` that will increase the network Session timeout limit when a `successful` packet has been receieved.
