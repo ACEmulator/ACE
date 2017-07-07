@@ -1065,7 +1065,7 @@ namespace ACE.Entity
 
         public AceObject NewAceObjectFromCopy()
         {
-            return (AceObject)AceObject.CopyClone(GuidManager.NewItemGuid());
+            return (AceObject)AceObject.Clone(GuidManager.NewItemGuid());
         }
 
         /// <summary>
