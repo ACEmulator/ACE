@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-07-06
+### 2017-07-08
 [Ripley]
 * More tweaks to debug output upon object assessment.
 
@@ -32,6 +32,8 @@
 ### 2017-07-03
 [Mogwai]
 * Massive Database optimizations and implementations for saving objects and all their properties.
+
+[OptimShi]
 * Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.
 
 ### 2017-07-02
