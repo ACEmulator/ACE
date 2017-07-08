@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-07-08
+[Og II]
+* Fixed issue with MotionStateFlag - setting now by the existance of data like we do with all other flags.   This prevents data / flag mismatch.
+
+
 ### 2017-07-07
 [Optim Shi]
 * Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
