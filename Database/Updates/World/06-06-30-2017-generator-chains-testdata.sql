@@ -14,13 +14,11 @@ SET @GeneratorProbability   = 100;
 SET @RegenerationInterval   = 120; /* RegenerationInterval in seconds */
 
 /* Delete bad or outdated stuff */
-SET SQL_SAFE_UPDATES = 0;
 DELETE FROM ace_weenie_class
 WHERE weenieClassId = @weenieClassId; /* Unique WCID */
 
 DELETE FROM ace_weenie_class
 WHERE weenieClassDescription = @weenieClassDescription; /* Unique Name */
-SET SQL_SAFE_UPDATES = 1;
 
 /* Insert new stuff */
 INSERT INTO ace_weenie_class
