@@ -58,9 +58,9 @@ namespace ACE.Managers
         // Fragmentation: None - to very light
         // We should get these on player creation.   It would be a very edge case that we threw one away.
         // Again, given probable server populations and available accounts and players - this can pose no real limitation.
-        private static uint playerMin { get; } = 0x50000001;
+        private static uint playerMin = 0x50000001;
 
-        private static uint playerMax { get; } = 0x5FFFFFFF;
+        private static uint playerMax = 0x5FFFFFFF;
 
         private static object playerLock = new object();
 
