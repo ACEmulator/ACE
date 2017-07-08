@@ -18,7 +18,9 @@ REM set latestTag=$(git ls-remote --tags https://github.com/ACEmulator/ACE-World
 REM echo latestTag
 REM curl -L https://github.com/reactiveui/ReactiveUI/releases/download/$latestTag/ReactiveUI-$latestTag.zip
 
-curl -o c:\projects\ace\ACE-World.zip https://github.com/ACEmulator/ACE-World/releases/download/v0.1.4/ACE-World-db-v0.1.4.sql.zip
+REM curl -o c:\projects\ace\ACE-World.zip https://github.com/ACEmulator/ACE-World/releases/download/v0.1.4/ACE-World-db-v0.1.4.sql.zip
+
+appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.1.4/ACE-World-db-v0.1.4.sql.zip
 
 7z x c:\projects\ace\ACE-World.zip "-oc:\projects\ace" 
 
