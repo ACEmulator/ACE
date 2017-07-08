@@ -222,6 +222,12 @@ namespace ACE.Database
         private uint GetMaxGuid(ShardPreparedStatement id)
         {
             MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, new object[] { });
+            var ret = res.Rows[0][0];
+            if (ret is DBNull)
+            {
+                return uint.MaxValue;
+            }
+
             return (uint)res.Rows[0][0];
         }
 
