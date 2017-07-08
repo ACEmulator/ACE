@@ -12,7 +12,20 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public MovementStateFlag MovementStateFlag { get; private set; } = 0;
+        private MovementStateFlag movementStateFlag = 0;
+
+        public MovementStateFlag MovementStateFlag
+        {
+            get
+            {
+                SetMovementStateFlag();
+                return movementStateFlag;
+            }
+            private set
+            {
+                movementStateFlag = value;
+            }
+        }
 
         public ushort CurrentStyle { get; set; } = 0;
 
@@ -162,7 +175,7 @@ namespace ACE.Entity
                 // Unknown turn command?
                 else
                 {
-                    log.WarnFormat("Unexpected turn command: {0}", TurnCommand.ToString("X"));
+                    log.WarnFormat("Unexpected turn command: {0:X}", TurnCommand);
                 }
             }
 
