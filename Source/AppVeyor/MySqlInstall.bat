@@ -20,7 +20,7 @@ REM curl -L https://github.com/reactiveui/ReactiveUI/releases/download/$latestTa
 
 curl -fsS -o c:\projects\ace\ACE-World.zip https://github.com/ACEmulator/ACE-World/releases/download/v0.1.4/ACE-World-db-v0.1.4.sql.zip
 
-7z x -o c:\projects\ace c:\projects\ace\ACE-World.zip
+7z x c:\projects\ace\ACE-World.zip "-oc:\projects\ace" 
 
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < c:\projects\ace\ACE-World-db-v0.1.4.sql
 
