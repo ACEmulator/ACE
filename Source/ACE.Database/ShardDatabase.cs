@@ -218,7 +218,6 @@ namespace ACE.Database
             ConstructMaxQueryStatement(ShardPreparedStatement.GetMaxPlayerId, "ace_object", "aceObjectId", 0x5FFFFFFF, 0x50000001);
         }
 
-
         private uint GetMaxGuid(ShardPreparedStatement id)
         {
             MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, new object[] { });
