@@ -4,6 +4,7 @@
 [Ripley]
 * Rebased SQL scripts.
 * Updated README to reflect new database update procedures.
+* Changed GuidManager ranges to reflect ACE-World usage.
 
 ### 2017-07-07
 [OptimShi]
