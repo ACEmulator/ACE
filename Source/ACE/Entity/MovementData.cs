@@ -6,109 +6,27 @@ using log4net;
 
 namespace ACE.Entity
 {
+    using System;
+
     public class MovementData
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public MovementStateFlag MovementStateFlag { get; private set; } = 0;
 
-        private ushort currentStyle = 0;
-        public ushort CurrentStyle
-        {
-            get
-            {
-                return currentStyle;
-            }
-            set
-            {
-                currentStyle = value;
-                MovementStateFlag |= MovementStateFlag.CurrentStyle;
-            }
-        }
+        public ushort CurrentStyle { get; set; } = 0;
 
-        private ushort forwardCommand = 0;
-        public ushort ForwardCommand
-        {
-            get
-            {
-                return forwardCommand;
-            }
-            set
-            {
-                forwardCommand = value;
-                MovementStateFlag |= MovementStateFlag.ForwardCommand;
-            }
-        }
+        public ushort ForwardCommand { get; set; } = 0;
 
-        private ushort sideStepCommand = 0;
-        public ushort SideStepCommand
-        {
-            get
-            {
-                return sideStepCommand;
-            }
-            set
-            {
-                sideStepCommand = value;
-                MovementStateFlag |= MovementStateFlag.SideStepCommand;
-            }
-        }
+        public ushort SideStepCommand { get; set; } = 0;
 
-        private ushort turnCommand = 0;
-        public ushort TurnCommand
-        {
-            get
-            {
-                return turnCommand;
-            }
-            set
-            {
-                turnCommand = value;
-                MovementStateFlag |= MovementStateFlag.TurnCommand;
-            }
-        }
+        public ushort TurnCommand { get; set; } = 0;
 
-        private float turnSpeed = 0f;
-        public float TurnSpeed
-        {
-            get
-            {
-                return turnSpeed;
-            }
-            set
-            {
-                turnSpeed = value;
-                MovementStateFlag |= MovementStateFlag.TurnSpeed;
-            }
-        }
+        public float TurnSpeed { get; set; } = 0f;
 
-        private float forwardSpeed = 0f;
-        public float ForwardSpeed
-        {
-            get
-            {
-                return forwardSpeed;
-            }
-            set
-            {
-                forwardSpeed = value;
-                MovementStateFlag |= MovementStateFlag.ForwardSpeed;
-            }
-        }
+        public float ForwardSpeed { get; set; } = 0f;
 
-        private float sideStepSpeed = 0f;
-        public float SideStepSpeed
-        {
-            get
-            {
-                return sideStepSpeed;
-            }
-            set
-            {
-                sideStepSpeed = value;
-                MovementStateFlag |= MovementStateFlag.SideStepSpeed;
-            }
-        }
+        public float SideStepSpeed { get; set; } = 0f;
 
         /// <summary>
         /// This guy is nasty!  The movement commands input by the client are not ACCEPTED by the client!
@@ -122,14 +40,15 @@ namespace ACE.Entity
         {
             MovementData md = new MovementData();
             // FIXME(ddevec): -- This is hacky!  I mostly reverse engineered it from old network logs
-            //   WARNING: this is ugly stuffs -- 
+            //   WARNING: this is ugly stuffs --
             //      I'm basically just converting based on analyzing packet stuffs, no idea where the magic #'s come from
             if (holdKey != 0 && holdKey != 2)
             {
                 log.WarnFormat("Unexpected hold key: {0}", holdKey.ToString("X"));
             }
 
-            if ((MovementStateFlag & MovementStateFlag.CurrentStyle) != 0) {
+            if ((MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+            {
                 md.CurrentStyle = CurrentStyle;
             }
 
@@ -248,6 +167,29 @@ namespace ACE.Entity
             }
 
             return md;
+        }
+
+        public void SetMovementStateFlag()
+        {
+            MovementStateFlag = MovementStateFlag.NoMotionState;
+
+            if (CurrentStyle != 0)
+                MovementStateFlag |= MovementStateFlag.CurrentStyle;
+            if (ForwardCommand != 0)
+                MovementStateFlag |= MovementStateFlag.ForwardCommand;
+            if (SideStepCommand != 0)
+                MovementStateFlag |= MovementStateFlag.SideStepCommand;
+            if (TurnCommand != 0)
+                MovementStateFlag |= MovementStateFlag.TurnCommand;
+            // Floating point compare
+            if (Math.Abs(ForwardSpeed) > 0.01)
+                MovementStateFlag |= MovementStateFlag.ForwardSpeed;
+            // Floating point compare
+            if (Math.Abs(SideStepSpeed) > 0.01)
+                MovementStateFlag |= MovementStateFlag.SideStepSpeed;
+            // Floating point compare
+            if (Math.Abs(TurnSpeed) > 0.01)
+                MovementStateFlag |= MovementStateFlag.TurnSpeed;
         }
 
         public void Serialize(BinaryWriter writer)

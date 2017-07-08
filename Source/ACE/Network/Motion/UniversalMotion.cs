@@ -91,6 +91,7 @@ namespace ACE.Network.Motion
             {
                 case MovementTypes.General:
                     {
+                        MovementData.SetMovementStateFlag();
                         MovementStateFlag generalFlags = MovementData.MovementStateFlag;
 
                         generalFlags += (uint)Commands.Count << 7;
@@ -122,7 +123,7 @@ namespace ACE.Network.Motion
                             writer.Write(Speed);
                             writer.Write(WalkRunThreshold);
                             writer.Write(Heading);
-                            writer.Write(RunRate);                            
+                            writer.Write(RunRate);
                         }
                         catch (Exception)
                         {
