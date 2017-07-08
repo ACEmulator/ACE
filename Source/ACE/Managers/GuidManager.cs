@@ -86,19 +86,21 @@ namespace ACE.Managers
 
         public static uint GetCurrentDbValueAsync(Action<Action<uint>> dbCall)
         {
+            bool done = false;
             uint ret = InvalidGuid;
             dbCall.Invoke((dbVal) =>
             {
                 lock (ShardLock)
                 {
                     ret = dbVal;
+                    done = true;
                     Monitor.Pulse(ShardLock);
                 }
             });
 
             lock (ShardLock)
             {
-                while (ret == InvalidGuid)
+                while (!done)
                 {
                     Monitor.Wait(ShardLock);
                 }
@@ -114,6 +116,11 @@ namespace ACE.Managers
             lock (playerLock)
             {
                 player = GetCurrentDbValueAsync(Database.DatabaseManager.Shard.GetMaxPlayerId);
+                // Db returns InvalidGuid when there are no players -- default to PlayerMin
+                if (player == InvalidGuid)
+                {
+                    player = PlayerMin;
+                }
             }
         }
 
