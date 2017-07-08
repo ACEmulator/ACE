@@ -2,8 +2,10 @@ USE `ace_world`;
 
 /* Remove potential old stuff */
 
+SET SQL_SAFE_UPDATES = 0;
 DELETE FROM ace_weenie_class
 WHERE weenieClassId = 893;
+SET SQL_SAFE_UPDATES = 1;
 
 /* Insert new stuff */
 INSERT INTO ace_weenie_class
