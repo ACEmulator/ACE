@@ -267,7 +267,7 @@ namespace ACE.Entity
 
             MotionTableId = Character.MotionTableId;
             SoundTableId = Character.SoundTableId;
-            PhisicsTableId = Character.PhysicsTableId;
+            PhysicsTableId = Character.PhysicsTableId;
             SetupTableId = Character.SetupTableId;
 
             // Start vital ticking, if they need it

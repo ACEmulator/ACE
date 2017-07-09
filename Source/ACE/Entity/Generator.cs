@@ -59,7 +59,7 @@ namespace ACE.Entity
             // TODO: this needs to be pulled in from pcap data. Missing - Name Plural never set need to address
 
             // Priority = (CoverageMask?)baseAceObject.Priority;
-            RadarBehavior = Network.Enum.RadarBehavior.NeverShow;
+            RadarBehavior = Network.Enum.RadarBehavior.ShowNever;
             // RadarBehavior = (RadarBehavior?)baseAceObject.Radar;
             // RadarColor = (RadarColor?)baseAceObject.BlipColor;
             RadarColor = Network.Enum.RadarColor.Admin;

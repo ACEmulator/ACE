@@ -9,14 +9,14 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventIdentifyObjectResponse : GameEventMessage
     {
-        public GameEventIdentifyObjectResponse(Session session, ObjectGuid objectId, WorldObject obj)
+        public GameEventIdentifyObjectResponse(Session session, WorldObject obj)
             : base(GameEventType.IdentifyObjectResponse, GameMessageGroup.Group09, session)
         {
             System.Type type = obj.GetType();
             // TODO : calculate if we were successful
             const bool successfulId = true;
 
-            Writer.Write(objectId.Full);
+            Writer.Write(obj.Guid.Full);
 
             // Set Flags and collect data for Identify Object Processing
 
@@ -117,14 +117,14 @@ namespace ACE.Network.GameEvent.Events
                 AceObjectPropertiesString dbAo = new AceObjectPropertiesString();
                 dbAo.AceObjectId = obj.Guid.Full;
                 dbAo.PropertyId = (ushort)PropertyString.ShortDesc;
-                dbAo.PropertyValue = DebugOutputString(type, obj, objectId);
+                dbAo.PropertyValue = DebugOutputString(type, obj);
                 propertiesString.Add(dbAo);
             }
             else
             {
                 // A short description already exists - lets append our data to the end.
                 if (!propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue.Contains("ACE Debug Output"))
-                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj, objectId);
+                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj);
             }
 #endif
 
@@ -160,11 +160,11 @@ namespace ACE.Network.GameEvent.Events
             session.Player.WriteIdentifyObjectWeaponsProfile(Writer, flags, propertiesWeaponsD, propertiesWeaponsI);
         }
 
-        private string DebugOutputString(System.Type type, WorldObject obj, ObjectGuid objectId)
+        private string DebugOutputString(System.Type type, WorldObject obj)
         {
             string debugOutput = "ACE Debug Output:\n";
             debugOutput += "Class: " + type.Name + ".cs" + "\n";
-            debugOutput += "AceObjectId: " + objectId.Full.ToString() + " (0x" + objectId.Full.ToString("X") + ")" + "\n";
+            debugOutput += "AceObjectId: " + obj.Guid.Full.ToString() + " (0x" + obj.Guid.Full.ToString("X") + ")" + "\n";
             ////debugOutput += "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")" + "\n";
             ////debugOutput += "Item Type: " + obj.Type + "\n";
             ////if (obj.Name != null)
@@ -177,7 +177,99 @@ namespace ACE.Network.GameEvent.Events
             foreach (var prop in obj.GetType().GetProperties())
             {
                 // Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(obj, null));
-               debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+
+                // debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+
+                if (prop.GetValue(obj, null) == null)
+                    continue;
+
+                switch (prop.Name.ToLower())
+                {
+                    case "guid":
+                        debugOutput += $"{prop.Name} = {obj.Guid.Full.ToString()}" + "\n";
+                        break;
+                    case "descriptionflags":
+                        debugOutput += $"{prop.Name} = {obj.DescriptionFlags.ToString()}" + " (" + (uint)obj.DescriptionFlags + ")" + "\n";
+                        break;
+                    case "weenieflags":
+                        debugOutput += $"{prop.Name} = {obj.WeenieFlags.ToString()}" + " (" + (uint)obj.WeenieFlags + ")" + "\n";
+                        break;
+                    case "weenieflags2":
+                        debugOutput += $"{prop.Name} = {obj.WeenieFlags2.ToString()}" + " (" + (uint)obj.WeenieFlags2 + ")" + "\n";
+                        break;
+                    case "positionflag":
+                        debugOutput += $"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")" + "\n";
+                        break;
+                    case "type":
+                        debugOutput += $"{prop.Name} = {obj.Type.ToString()}" + " (" + (uint)obj.Type + ")" + "\n";
+                        break;
+                    case "containertype":
+                        debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";
+                        break;
+                    case "usable":
+                        debugOutput += $"{prop.Name} = {obj.Usable.ToString()}" + " (" + (uint)obj.Usable + ")" + "\n";
+                        break;
+                    case "radarbehavior":
+                        debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
+                        break;
+                    case "physicsdescriptionflags":
+                        debugOutput += $"{prop.Name} = {obj.PhysicsDescriptionFlag.ToString()}" + " (" + (uint)obj.PhysicsDescriptionFlag + ")" + "\n";
+                        break;
+                    case "physicsstate":
+                        debugOutput += $"{prop.Name} = {obj.PhysicsState.ToString()}" + " (" + (uint)obj.PhysicsState + ")" + "\n";
+                        break;
+                    case "propertiesint":
+                        foreach (var item in obj.PropertiesInt)
+                        {
+                            debugOutput += $"PropertyInt.{System.Enum.GetName(typeof(PropertyInt), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                            break;
+                    case "propertiesint64":
+                        foreach (var item in obj.PropertiesInt64)
+                        {
+                            debugOutput += $"PropertyInt64.{System.Enum.GetName(typeof(PropertyInt64), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                        break;
+                    case "propertiesbool":
+                        foreach (var item in obj.PropertiesBool)
+                        {
+                            debugOutput += $"PropertyBool.{System.Enum.GetName(typeof(PropertyBool), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                        break;
+                    case "propertiesstring":
+                        foreach (var item in obj.PropertiesString)
+                        {
+                            debugOutput += $"PropertyString.{System.Enum.GetName(typeof(PropertyString), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                        break;
+                    case "propertiesdouble":
+                        foreach (var item in obj.PropertiesDouble)
+                        {
+                            debugOutput += $"PropertyDouble.{System.Enum.GetName(typeof(PropertyDouble), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                        break;
+                    case "propertiesdid":
+                        foreach (var item in obj.PropertiesDid)
+                        {
+                            debugOutput += $"PropertyDataId.{System.Enum.GetName(typeof(PropertyDataId), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                        break;
+                    case "propertiesiid":
+                        foreach (var item in obj.PropertiesIid)
+                        {
+                            debugOutput += $"PropertyInstanceId.{System.Enum.GetName(typeof(PropertyInstanceId), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                        }
+                        break;
+                    case "propertiesspellid":
+                        foreach (var item in obj.PropertiesSpellId)
+                        {
+                            debugOutput += $"PropertySpellId.{System.Enum.GetName(typeof(Spell), item.SpellId)} ({item.SpellId})" + "\n";
+                        }
+                        break;
+                    default:
+                        debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+                        break;
+                }
             }
 
             return debugOutput;
