@@ -262,6 +262,9 @@ namespace ACE.Network.GameEvent.Events
                             debugOutput += $"PropertySpellId.{System.Enum.GetName(typeof(Spell), item.SpellId)} ({item.SpellId})" + "\n";
                         }
                         break;
+                    case "validlocations":
+                        debugOutput += $"{prop.Name} = {System.Enum.GetName(typeof(EquipMask), obj.ValidLocations)}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
+                        break;
                     default:
                         debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
                         break;
