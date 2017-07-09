@@ -76,20 +76,20 @@ namespace ACE.Network.GameEvent.Events
 
 #if DEBUG
             // TODO: This needs to come out - only in while we are testing.
-            if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc)?.PropertyValue == null)
+            if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc)?.PropertyValue == null)
             {
                 // No short description - we will send just our debugging information.
                 AceObjectPropertiesString dbAo = new AceObjectPropertiesString();
                 dbAo.AceObjectId = obj.Guid.Full;
-                dbAo.PropertyId = (ushort)PropertyString.ShortDesc;
+                dbAo.PropertyId = (ushort)PropertyString.LongDesc;
                 dbAo.PropertyValue = DebugOutputString(type, obj);
                 propertiesString.Add(dbAo);
             }
             else
             {
                 // A short description already exists - lets append our data to the end.
-                if (!propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue.Contains("ACE Debug Output"))
-                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj);
+                if (!propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue.Contains("ACE Debug Output"))
+                    propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj);
             }
 #endif
 
@@ -109,7 +109,7 @@ namespace ACE.Network.GameEvent.Events
                 flags |= IdentifyResponseFlags.ArmorProfile;
 #if DEBUG
                 session.Network.EnqueueSend(new GameMessageSystemChat("Armor Profile is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
-                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue, ChatMessageType.System));
 #endif
             }
 
@@ -132,7 +132,7 @@ namespace ACE.Network.GameEvent.Events
                 flags |= IdentifyResponseFlags.WeaponProfile;
 #if DEBUG
                 session.Network.EnqueueSend(new GameMessageSystemChat("Weapon Profile is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
-                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue, ChatMessageType.System));
 #endif
             }
 
@@ -146,7 +146,7 @@ namespace ACE.Network.GameEvent.Events
                 flags |= IdentifyResponseFlags.CreatureProfile;
 #if DEBUG
                 session.Network.EnqueueSend(new GameMessageSystemChat("Creature Profile is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
-                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue, ChatMessageType.System));
 #endif
             }
 
