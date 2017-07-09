@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using log4net;
 // ReSharper disable InconsistentNaming
 
@@ -86,7 +84,6 @@ namespace ACE.Database
             InsertAceObjectPropertiesAttributes = 133,
             InsertAceObjectPropertiesAttributes2nd = 134,
             InsertAceObjectPropertiesSkills = 135,
-
             // note, this section is all "Property" singular
             UpdateAceObjectPropertyInt = 136,
             UpdateAceObjectPropertyBigInt = 137,
@@ -112,6 +109,8 @@ namespace ACE.Database
             DeleteAceObjectPropertyAttribute = 155,
             DeleteAceObjectPropertyAttribute2nd = 156,
             DeleteAceObjectPropertySkill = 157,
+            // Used to get max values from DB
+            GetMaxPlayerId = 200,
         }
 
         protected override Type PreparedStatementType
@@ -120,6 +119,12 @@ namespace ACE.Database
             {
                 return typeof(ShardPreparedStatement);
             }
+        }
+
+        private void ConstructMaxQueryStatement(ShardPreparedStatement id, string tableName, string columnName, uint max, uint min)
+        {
+            // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
+            AddPreparedStatement<ShardPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` < {max} && `{columnName}` >= {min}");
         }
 
         protected override void InitializePreparedStatements()
@@ -183,8 +188,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
-
-            // updates for properties
+            // Updates
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.Update);
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.Update);
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.Update);
@@ -209,6 +213,27 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertySkill, typeof(AceObjectPropertiesSkill), ConstructedStatementType.Delete);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.Delete);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.Delete);
+
+            // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
+            ConstructMaxQueryStatement(ShardPreparedStatement.GetMaxPlayerId, "ace_object", "aceObjectId", 0x5FFFFFFF, 0x50000001);
+        }
+
+
+        private uint GetMaxGuid(ShardPreparedStatement id)
+        {
+            MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, new object[] { });
+            var ret = res.Rows[0][0];
+            if (ret is DBNull)
+            {
+                return uint.MaxValue;
+            }
+
+            return (uint)res.Rows[0][0];
+        }
+
+        public uint GetMaxPlayerId()
+        {
+            return GetMaxGuid(ShardPreparedStatement.GetMaxPlayerId);
         }
 
         public void AddFriend(uint characterId, uint friendCharacterId)
@@ -521,9 +546,9 @@ namespace ACE.Database
         public bool SaveObject(AceObject aceObject)
         {
             DatabaseTransaction transaction = BeginTransaction();
-            
+
             SaveObjectInternal(transaction, aceObject);
-            
+
             return transaction.Commit().Result;
         }
 
@@ -559,7 +584,7 @@ namespace ACE.Database
         {
             // Update the character table -- save the AceObject to ace_object.
             SaveAceObjectBase(transaction, aceObject);
-            
+
             SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
@@ -873,7 +898,7 @@ namespace ACE.Database
             attribs.ForEach(a => a.AceObjectId = aceObjectId);
 
             var theDirtyOnes = attribs.Where(x => x.IsDirty).ToList();
-            
+
             foreach (var prop in theDirtyOnes)
             {
                 if (prop.HasEverBeenSavedToDatabase)
@@ -900,7 +925,7 @@ namespace ACE.Database
 
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = tempSkills.Where(x => x.IsDirty).ToList();
-            
+
             foreach (var prop in theDirtyOnes)
             {
                 if (prop.HasEverBeenSavedToDatabase)

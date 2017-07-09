@@ -778,7 +778,8 @@ namespace ACE.Entity
             return ret;
         }
 
-        private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value) {
+        private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value)
+        {
             if (dict.ContainsKey(key))
             {
                 dict[key] = value;
@@ -1081,6 +1082,18 @@ namespace ACE.Entity
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
             ret.SpellIdProperties = CloneList(SpellIdProperties);
 
+            return ret;
+        }
+
+        /// <summary>
+        /// This method takes a parameter to allow you to set a new guid and use this to make a new object that may or may not be persisted.
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        public object Clone(uint guid)
+        {
+            AceObject ret = (AceObject)Clone();
+            ret.AceObjectId = guid;
             return ret;
         }
 

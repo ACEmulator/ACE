@@ -4,6 +4,20 @@
 [Ripley]
 * More tweaks to debug output upon object assessment.
 
+### 2017-07-07
+[OptimShi]
+* Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
+* Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
+
+### 2017-07-07
+[Og II]
+* Initial work on splitting a stackable item.   This is working and in an action chain.   Right now, it is only working for items 
+* in your position.   I need to extend it to work with items in chests and off the ground.   
+* There is some new type of sequence that we need to research and implement.   I put a big todo in the code.
+* I made some posts about getting guid manager going.   We are at a point where we need it.   I modified some of the ranges to make better use
+* of our guid space.   
+* TODO - find out about sequence and then do stack which is the complement function from split.
+
 ### 2017-07-06
 [Ripley]
 * Required ACE-World database version: v0.1.4
