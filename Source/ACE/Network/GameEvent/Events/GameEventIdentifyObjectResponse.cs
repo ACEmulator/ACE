@@ -78,7 +78,7 @@ namespace ACE.Network.GameEvent.Events
             // TODO: This needs to come out - only in while we are testing.
             if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc)?.PropertyValue == null)
             {
-                // No short description - we will send just our debugging information.
+                // No long description - we will send just our debugging information.
                 AceObjectPropertiesString dbAo = new AceObjectPropertiesString();
                 dbAo.AceObjectId = obj.Guid.Full;
                 dbAo.PropertyId = (ushort)PropertyString.LongDesc;
@@ -87,7 +87,7 @@ namespace ACE.Network.GameEvent.Events
             }
             else
             {
-                // A short description already exists - lets append our data to the end.
+                // A long description already exists - lets append our data to the end.
                 if (!propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue.Contains("ACE Debug Output"))
                     propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj);
             }
@@ -270,6 +270,9 @@ namespace ACE.Network.GameEvent.Events
                         break;
                     case "priority":
                         debugOutput += $"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")" + "\n";
+                        break;
+                    case "radarcolor":
+                        debugOutput += $"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")" + "\n";
                         break;
                     default:
                         debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";

@@ -2,13 +2,19 @@
 {
     public enum UiEffects : uint
     {
-        EnchantedItem   = 0x00000001,
-        HealingFood     = 0x00000004,
-        ManaFood        = 0x00000008,
-        HeartyStamina   = 0x00000010,
-        FireWeapon      = 0x00000020,
-        LightningWeapon = 0x00000040,
-        ColdWeapon      = 0x00000080,
-        AcidWeapon      = 0x00000100,
+        Undef           = 0x0000,
+        Magical         = 0x0001,
+        Poisoned        = 0x0002,
+        BoostHealth     = 0x0004,
+        BoostMana       = 0x0008,
+        BoostStamina    = 0x0010,
+        Fire            = 0x0020,
+        Lightning       = 0x0040,
+        Frost           = 0x0080,
+        Acid            = 0x0100,
+        Bludgeoning     = 0x0200,
+        Slashing        = 0x0400,
+        Piercing        = 0x0800,
+        Nether          = 0x1000
     }
 }

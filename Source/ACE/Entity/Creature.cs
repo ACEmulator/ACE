@@ -255,11 +255,11 @@ namespace ACE.Entity
         {
             log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
             // TODO: finish up this work.
-            if ((CombatMode == CombatMode.Missle) && (newCombatMode == CombatMode.Peace))
+            if ((CombatMode == CombatMode.Missile) && (newCombatMode == CombatMode.NonCombat))
             {
                 // delete the arrows from the world view
             }
-            if ((CombatMode == CombatMode.Peace) && (newCombatMode == CombatMode.Missle))
+            if ((CombatMode == CombatMode.NonCombat) && (newCombatMode == CombatMode.Missile))
             {
                 // show the arrows to the world view
             }
@@ -267,7 +267,7 @@ namespace ACE.Entity
             CombatMode = newCombatMode;
             switch (CombatMode)
             {
-                case CombatMode.Peace:
+                case CombatMode.NonCombat:
                     SetMotionState(new UniversalMotion(MotionStance.Standing));
                     break;
                 case CombatMode.Melee:
@@ -323,7 +323,7 @@ namespace ACE.Entity
                     mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
                     SetMotionState(mm);
                     break;
-                case CombatMode.Missle:
+                case CombatMode.Missile:
                     WorldObject missileWeapon = null;
                     EquippedItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
                     if (mEquipedMissile != null)

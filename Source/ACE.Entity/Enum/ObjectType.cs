@@ -6,7 +6,7 @@ namespace ACE.Entity.Enum
     public enum ObjectType : uint
     {
         None                       = 0x00000000,
-        MeleeWeapn                 = 0x00000001,
+        MeleeWeapon                = 0x00000001,
         Armor                      = 0x00000002,
         Clothing                   = 0x00000004,
         Jewelry                    = 0x00000008,
@@ -36,6 +36,17 @@ namespace ACE.Entity.Enum
         LifeStone                  = 0x10000000,
         TinkeringTool              = 0x20000000,
         TinkeringMaterial          = 0x40000000,
-        Gameboard                  = 0x80000000
+        Gameboard                  = 0x80000000,
+
+        PortalMagicTarget                       = 268500992,
+        LockableMagicTarget                     = 640,
+        Vestements                              = 6,
+        Weapon                                  = 257,
+        WeaponOrCaster                          = 33025,
+        Item                                    = 3013615,
+        RedirectableItemEnchantmentTarget       = 33031,
+        ItemEnchantableTarget                   = 560015,
+        VendorShopKeep                          = 1208248231,
+        VendorGrocer                            = 4481568
     }
 }

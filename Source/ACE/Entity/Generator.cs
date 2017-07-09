@@ -71,7 +71,7 @@ namespace ACE.Entity
             // GameDataType = baseAceObject.ItemType;
             // UiEffects = (UiEffects?)baseAceObject.UiEffects;
             // Usable = (Usable?)baseAceObject.ItemUseable;
-            Usable = Network.Enum.Usable.UsableNo;
+            Usable = Network.Enum.Usable.No;
             // UseRadius = baseAceObject.UseRadius;
             // ValidLocations = (EquipMask?)baseAceObject.ValidLocations;
             // Value = baseAceObject.Value;

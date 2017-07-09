@@ -35,7 +35,7 @@ namespace ACE.Factories
 
             wo.ItemCapacity = 120; // constant value according to pcap
             wo.ContainerCapacity = 10; // constant value according to pcap
-            wo.Usable = Usable.UsableViewedRemote; // constant value according to pcap
+            wo.Usable = Usable.ViewedRemote; // constant value according to pcap
             wo.UseRadius = 2.0f; // constant value according to pcap
             wo.Burden = 6000; // Testdata, has to be set as the sum of the spawned items in the corpse
 
