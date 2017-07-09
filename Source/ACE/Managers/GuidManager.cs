@@ -30,7 +30,7 @@ namespace ACE.Managers
                 this.min = min;
                 this.max = max;
 
-                // Read current value out of db
+                // Read current value out of ShardDatabase
                 lock (this)
                 {
                     bool done = false;
@@ -65,6 +65,13 @@ namespace ACE.Managers
                     }
                 }
 
+                // Now read current from WorldDatabase
+                uint worldMax = Database.DatabaseManager.World.GetCurrentId(min, max);
+                if (worldMax != InvalidGuid && worldMax >= current)
+                {
+                    current = worldMax + 1;
+                }
+
                 this.name = name;
             }
 
@@ -96,6 +103,8 @@ namespace ACE.Managers
 
         public static uint WeenieMin { get; } = 0x00000001;
         public static uint WeenieMax { get; } = 0x0001FFFF;
+
+        // private static GuidAllocator weenieAlloc;
 
         // Npc / Doors / Portals / world items that get loaded from DB Etc max 268,369,919
         // took Turbine 17 years to get to ‭177,447‬
@@ -158,6 +167,8 @@ namespace ACE.Managers
             playerAlloc = new GuidAllocator(PlayerMin, PlayerMax, "player");
             itemAlloc = new GuidAllocator(ItemMin, ItemMax, "item");
             nonStaticAlloc = new GuidAllocator(NonStaticMin, NonStaticMax, "non-static");
+            staticObjectAlloc = new GuidAllocator(StaticObjectMin, StaticObjectMax, "static");
+            // weenieAlloc = new GuidAllocator(WeenieMin, WeenieMax, "static");
         }
 
         /// <summary>
@@ -169,16 +180,14 @@ namespace ACE.Managers
             return playerAlloc.Alloc();
         }
 
-        /*
         /// <summary>
         /// Returns New Guid for NPCs, Doors, World Portals, etc
         /// </summary>
         /// <returns></returns>
         public static uint NewStaticObjectGuid()
         {
-            blerg
+            return staticObjectAlloc.Alloc();
         }
-        */
 
         /// <summary>
         /// Returns New Guid for Monsters
