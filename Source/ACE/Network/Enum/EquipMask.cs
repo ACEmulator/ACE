@@ -8,7 +8,7 @@ namespace ACE.Network.Enum
     [Flags]
     public enum EquipMask : uint
     {
-        None                = 0x0000000,
+        None                = 0x00000000,
         HeadWear            = 0x00000001,
         ChestWear           = 0x00000002,
         AbdomenWear         = 0x00000004,
