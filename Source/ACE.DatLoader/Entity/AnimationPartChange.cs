@@ -10,6 +10,6 @@ namespace ACE.DatLoader.Entity
     public class AnimationPartChange
     {
         public byte PartIndex { get; set; }
-        public ushort PartID { get; set; }
+        public uint PartID { get; set; }
     }
 }

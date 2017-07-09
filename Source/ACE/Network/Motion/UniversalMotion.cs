@@ -122,8 +122,7 @@ namespace ACE.Network.Motion
                             writer.Write(Speed);
                             writer.Write(WalkRunThreshold);
                             writer.Write(Heading);
-                            writer.Write(RunRate);
-                            // TODO: This needs to be calculated and the flag needs to be deciphered Og II
+                            writer.Write(RunRate);                            
                         }
                         catch (Exception)
                         {

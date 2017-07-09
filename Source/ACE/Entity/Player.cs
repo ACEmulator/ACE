@@ -21,6 +21,10 @@ using System.IO;
 
 namespace ACE.Entity
 {
+    using System.Diagnostics;
+
+    using global::ACE.Factories;
+
     public sealed class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -201,6 +205,7 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -389,7 +394,7 @@ namespace ACE.Entity
                 bool trainNewSkill = Character.TrainSkill(skill, creditsSpent);
 
                 // create an update to send to the client
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
 
                 // as long as the skill is sent, the train new triangle button on the client will not lock up.
                 // Sending Skill.None with status untrained worked in test
@@ -461,12 +466,12 @@ namespace ACE.Entity
                 string level = $"{Character.Level}";
                 string skillCredits = $"{Character.AvailableSkillCredits}";
                 string xpAvailable = $"{Character.AvailableExperience:#,###0}";
-                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Level, Character.Level);
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Level, Character.Level);
                 string levelUpMessageText = (Character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
                 var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
                 string xpUpdateText = (Character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes.";
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
                 if (Character.Level != maxLevel.Level && !creditEarned)
                 {
                     string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > Character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
@@ -790,9 +795,9 @@ namespace ACE.Entity
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.NumDeaths, Character.NumDeaths);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.DeathLevel, Character.DeathLevel);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.VitaeCpPool, Character.VitaeCpPool);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.NumDeaths, Character.NumDeaths);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.DeathLevel, Character.DeathLevel);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.VitaeCpPool, Character.VitaeCpPool);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
@@ -1152,7 +1157,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Set the currenly position of the character, to later save in the database.
+        /// Set the currently position of the character, to later save in the database.
         /// </summary>
         public void SetPhysicalCharacterPosition()
         {
@@ -1217,7 +1222,7 @@ namespace ACE.Entity
         {
             try
             {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.Age, Character.Age));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Age, Character.Age));
             }
             catch (NullReferenceException)
             {
@@ -1362,7 +1367,7 @@ namespace ACE.Entity
         {
             Session.Player.Burden = UpdateBurden();
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(
-                                            Session,
+                                            Session.Player.Sequences,
                                             PropertyInt.EncumbranceVal,
                                             Session.Player.Burden ?? 0u));
         }
@@ -1530,7 +1535,7 @@ namespace ACE.Entity
                 // FIXME(ddevec): I should probably make a better interface for this
                 UpdateVitalInternal(Mana, Mana.Current / 2);
 
-                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, 1);
 
                 var motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
 
@@ -1577,7 +1582,7 @@ namespace ACE.Entity
 
             var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
 
-            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CombatMode, 1);
+            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, 1);
 
             var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
 
@@ -1589,6 +1594,81 @@ namespace ACE.Entity
             // FIX: Recall text isn't being broadcast yet, need to address
             Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
             DoMotion(motionMarketplaceRecall);
+        }
+
+        public void HandleActionFinishBarber(ClientMessage message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoFinishBarber(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoFinishBarber(ClientMessage message)
+        {
+            // Read the payload sent from the client...
+            PaletteGuid = message.Payload.ReadUInt32();
+            Character.HeadObject = message.Payload.ReadUInt32();
+            Character.HairTexture = message.Payload.ReadUInt32();
+            Character.DefaultHairTexture = message.Payload.ReadUInt32();
+            Character.EyesTexture = message.Payload.ReadUInt32();
+            Character.DefaultEyesTexture = message.Payload.ReadUInt32();
+            Character.NoseTexture = message.Payload.ReadUInt32();
+            Character.DefaultNoseTexture = message.Payload.ReadUInt32();
+            Character.MouthTexture = message.Payload.ReadUInt32();
+            Character.DefaultMouthTexture = message.Payload.ReadUInt32();
+            Character.SkinPalette = message.Payload.ReadUInt32();
+            Character.HairPalette = message.Payload.ReadUInt32();
+            Character.EyesPalette = message.Payload.ReadUInt32();
+            Character.SetupTableId = message.Payload.ReadUInt32();
+
+            uint option_bound = message.Payload.ReadUInt32(); // Supress Levitation - Empyrean Only
+            uint option_unk = message.Payload.ReadUInt32(); // Unknown - Possibly set aside for future use?
+
+            // Check if Character is Empyrean, and if we need to set/change/send new motion table
+            if (Character.Heritage == 9)
+            {
+                // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
+                const uint EmpyreanMaleFloatMotionDID = 0x0900020Bu;
+                const uint EmpyreanFemaleFloatMotionDID = 0x0900020Au;
+                const uint EmpyreanMaleMotionDID = 0x0900020Eu;
+                const uint EmpyreanFemaleMotionDID = 0x0900020Du;
+
+                // Check for the Levitation option for Empyrean. Shadow crown and Undead flames are handled by client.
+                if (Character.Gender == 1) // Male
+                {
+                    if (option_bound == 1 && Character.MotionTableId != EmpyreanMaleMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanMaleMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                    else if (option_bound == 0 && Character.MotionTableId != EmpyreanMaleFloatMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanMaleFloatMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                }
+                else // Female
+                {
+                    if (option_bound == 1 && Character.MotionTableId != EmpyreanFemaleMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanFemaleMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                    else if (option_bound == 0 && Character.MotionTableId != EmpyreanFemaleFloatMotionDID)
+                    {
+                        Character.MotionTableId = EmpyreanFemaleFloatMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                    }
+                }
+            }
+
+            UpdateAppearance(this, null);
+
+            // Broadcast updated character appearance
+            CurrentLandblock.EnqueueBroadcast(
+                Location,
+                Landblock.MaxObjectRange,
+                new GameMessageObjDescEvent(this));
         }
 
         public void HandleActionMotion(UniversalMotion motion)
@@ -1641,7 +1721,7 @@ namespace ACE.Entity
             inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
                 new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
                 new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
-                new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, 0)));
+                new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0)));
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                                 new GameMessageObjDescEvent(this),
@@ -1672,6 +1752,86 @@ namespace ACE.Entity
             }
             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
                                         new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
+        }
+
+        /// <summary>
+        /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
+        /// </summary>
+        /// <param name="stackId"></param>
+        /// <param name="containerId"></param>
+        /// <param name="place"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
+        {
+            ActionChain splitItemsChain = new ActionChain();
+            splitItemsChain.AddAction(this, () =>
+                {
+                    Container container;
+                    if (containerId == Guid.Full)
+                    {
+                        container = this;
+                    }
+                    else
+                    {
+                        container = (Container)GetInventoryItem(new ObjectGuid(containerId));
+                    }
+
+                    if (container == null)
+                    {
+                        log.InfoFormat("Asked to split stack {0} in container {1} - the container was not found",
+                            stackId,
+                            containerId);
+                        return;
+                    }
+                    WorldObject stack = container.GetInventoryItem(new ObjectGuid(stackId));
+                    if (stack == null)
+                    {
+                        log.InfoFormat("Asked to split stack {0} in container {1} - the stack item was not found",
+                            stackId,
+                            containerId);
+                        return;
+                    }
+                    if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
+                    {
+                        log.InfoFormat(
+                            "Asked to split stack {0} in container {1} - with amount of {2} but there is not enough to split",
+                            stackId, containerId, amount);
+                        return;
+                    }
+
+                    // Ok we are in business
+
+                    WorldObject newStack = new DebugObject(stack.NewAceObjectFromCopy());
+                    container.AddToInventory(newStack);
+                    var valuePerItem = stack.Value / stack.StackSize;
+                    var burdenPerItem = stack.Burden / stack.StackSize;
+                    ushort oldStackSize = (ushort)stack.StackSize;
+                    ushort newStackSize = (ushort)stack.StackSize;
+                    newStackSize = (ushort)(newStackSize - amount);
+
+                    newStack.StackSize = amount;
+                    newStack.Value = newStack.StackSize * valuePerItem;
+                    newStack.Burden = (ushort)(newStack.StackSize * burdenPerItem);
+
+                    stack.StackSize = newStackSize;
+                    stack.Value = stack.StackSize * valuePerItem;
+                    stack.Burden = (ushort)(stack.StackSize * burdenPerItem);
+
+                    GameMessagePrivateUpdatePropertyInt msgUpdateValue =
+                        new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, 1);
+                    GameMessagePutObjectInContainer msgPutObjectInContainer =
+                        new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
+                    Debug.Assert(stack.StackSize != null, "stack.StackSize != null");
+                    Debug.Assert(stack.Value != null, "stack.Value != null");
+                    GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
+                        stack.Guid, (int)stack.StackSize, oldStackSize);
+
+                    GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
+                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue,
+                        msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
+                });
+            splitItemsChain.EnqueueChain();
         }
 
         private void HandlePickupItem(Container container, ObjectGuid itemGuid, uint location, PropertyInstanceId iidPropertyId)
@@ -1726,7 +1886,7 @@ namespace ACE.Entity
                     if (iidPropertyId == PropertyInstanceId.Container)
                     {
                         Session.Network.EnqueueSend(
-                            new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, UpdateBurden()),
+                            new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
                             new GameMessagePutObjectInContainer(Session, container.Guid, item, location));
@@ -1769,9 +1929,10 @@ namespace ACE.Entity
             pickUpItemChain.EnqueueChain();
         }
 
-        public void UpdateAppearance(Container container, uint itemId)
+        public void UpdateAppearance(Container container, uint? itemId)
         {
-            UpdateWieldedItem(container, itemId);
+            if (itemId != null)
+                UpdateWieldedItem(container, (uint)itemId);
             Clear();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
             var wieldeditems = GetCurrentlyWieldedItems();
@@ -1893,7 +2054,7 @@ namespace ACE.Entity
                                         PropertyInstanceId.Container),
                                     new GameMessageUpdateInstanceId(container.Guid, itemGuid,
                                         PropertyInstanceId.Wielder),
-                                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation,
+                                    new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation,
                                         location));
                                 CurrentLandblock.EnqueueBroadcast(
                                     Location,
@@ -1910,7 +2071,7 @@ namespace ACE.Entity
                                     new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                     new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
                                     new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                    new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CurrentWieldedLocation, location));
+                                    new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, location));
                                 CurrentLandblock.EnqueueBroadcast(
                                     Location,
                                     Landblock.MaxObjectRange,
@@ -1991,7 +2152,7 @@ namespace ACE.Entity
                 }
                 SetInventoryForWorld(inventoryItem);
                 RemoveFromInventory(itemGuid);
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.EncumbranceVal, (uint)Burden));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
 
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
@@ -2437,7 +2598,7 @@ namespace ACE.Entity
 
             foreach (AceObjectPropertiesSpell x in propertiesSpellId)
             {
-                    writer.Write(x.SpellId);
+                writer.Write(x.SpellId);
             }
         }
 

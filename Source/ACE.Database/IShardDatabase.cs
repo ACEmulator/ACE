@@ -1,10 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Database
 {
@@ -32,6 +28,8 @@ namespace ACE.Database
         uint RenameCharacter(string currentName, string newName);
 
         uint GetNextCharacterId();
+
+        uint GetMaxPlayerId();
 
         AceCharacter GetCharacter(uint id);
 

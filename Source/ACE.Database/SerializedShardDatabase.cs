@@ -262,6 +262,18 @@ namespace ACE.Database
             }
         }
 
+        public void GetMaxPlayerId(Action<uint> callback)
+        {
+            lock (_queueLock)
+            {
+                _queue.Enqueue(new Task(() =>
+                {
+                    var result = _wrappedDatabase.GetMaxPlayerId();
+                    callback.Invoke(result);
+                }));
+            }
+        }
+
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
             lock (_queueLock)
