@@ -2,8 +2,8 @@
 
 ### 2017-07-09
 [ddevec]
-* Updated GuidManager to properly initialize current allocation Guids
-* Added support in databases for the queries requried to initialize Guids
+* Updated GuidManager to properly initialize current allocation Guids.
+* Added support in databases for the queries requried to initialize Guids.
 
 ### 2017-07-07
 [Optim Shi]
