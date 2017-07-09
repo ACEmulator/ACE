@@ -163,23 +163,11 @@ namespace ACE.Network.GameEvent.Events
         private string DebugOutputString(System.Type type, WorldObject obj)
         {
             string debugOutput = "ACE Debug Output:\n";
-            debugOutput += "Class: " + type.Name + ".cs" + "\n";
+            debugOutput += "ACE Class File: " + type.Name + ".cs" + "\n";
             debugOutput += "AceObjectId: " + obj.Guid.Full.ToString() + " (0x" + obj.Guid.Full.ToString("X") + ")" + "\n";
-            ////debugOutput += "WeenieClassId: " + obj.WeenieClassId + " (0x" + obj.WeenieClassId.ToString("X") + ")" + "\n";
-            ////debugOutput += "Item Type: " + obj.Type + "\n";
-            ////if (obj.Name != null)
-            ////    debugOutput += "\n" + "Name: " + obj.Name + "\n";
-            ////if (obj.NamePlural != null)
-            ////    debugOutput += "\n" + "NamePlural: " + obj.NamePlural + "\n";
-            ////if (obj.DefaultCombatStyle != null)
-            ////    debugOutput += "DefaultCombatStyle: " + obj.DefaultCombatStyle + "\n";
 
             foreach (var prop in obj.GetType().GetProperties())
             {
-                // Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(obj, null));
-
-                // debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
-
                 if (prop.GetValue(obj, null) == null)
                     continue;
 
