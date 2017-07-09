@@ -42,7 +42,7 @@ namespace ACE.Network.Enum
         SigilThree          = 0x40000000,
         Clothing            = 0x80000000 | HeadWear | ChestWear | AbdomenWear | UpperArmWear | LowerArmWear | HandWear | UpperLegWear | LowerLegWear | FootWear,
         Armor               = ChestArmor | AbdomenArmor | UpperArmArmor | LowerArmArmor | UpperLegArmor | LowerLegWear | FootWear,
-        Jewelry             = NeckWear | WristWearLeft | WristWearRight | FingerWearLeft | FingerWearRight | TrinketOne | Cloak | SigilOne |SigilTwo | SigilThree,
+        Jewelry             = NeckWear | WristWearLeft | WristWearRight | FingerWearLeft | FingerWearRight | TrinketOne | Cloak | SigilOne | SigilTwo | SigilThree,
         WristWear           = WristWearLeft | WristWearRight,
         FingerWear          = FingerWearLeft | FingerWearRight,
         Sigil               = SigilOne | SigilTwo | SigilThree,

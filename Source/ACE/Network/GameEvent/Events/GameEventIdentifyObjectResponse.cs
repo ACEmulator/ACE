@@ -263,7 +263,13 @@ namespace ACE.Network.GameEvent.Events
                         }
                         break;
                     case "validlocations":
-                        debugOutput += $"{prop.Name} = {System.Enum.GetName(typeof(EquipMask), obj.ValidLocations)}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
+                        debugOutput += $"{prop.Name} = {obj.ValidLocations}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
+                        break;
+                    case "currentwieldedlocation":
+                        debugOutput += $"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")" + "\n";
+                        break;
+                    case "priority":
+                        debugOutput += $"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")" + "\n";
                         break;
                     default:
                         debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";

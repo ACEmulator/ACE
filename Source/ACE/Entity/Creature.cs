@@ -330,7 +330,7 @@ namespace ACE.Entity
                         missileWeapon = GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
                     if (missileWeapon?.DefaultCombatStyle != null)
                     {
-                        EquippedItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.Ammunition);
+                        EquippedItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.MissileAmmo);
                         UniversalMotion bm;
                         if (mEquipedAmmo != null)
                         {
