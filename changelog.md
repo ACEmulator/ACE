@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-09
+[ddevec]
+* Changed SerialziedShardDatabase to use a BlockingCollection to stop busy polling of DB requests.
+
 ### 2017-07-07
 [Optim Shi]
 * Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
