@@ -3,6 +3,8 @@
 ### 2017-07-08
 [Ripley]
 * More tweaks to debug output upon object assessment.
+* Fixed some Enum errors and misspellings.
+* Important to note that because of the above fix, you need to drop and re-create ace_shard. Strings were set incorrectly.
 
 ### 2017-07-07
 [OptimShi]
