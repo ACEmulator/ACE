@@ -9,7 +9,8 @@ namespace ACE.Entity
     public class Generator : WorldObject
     {
         public Generator(ObjectGuid guid, AceObject baseAceObject)
-            : base((ObjectType)baseAceObject.Type, guid)
+            // : base((ObjectType)baseAceObject.Type, guid)
+            : base(guid, baseAceObject)
         {
             Name = baseAceObject.Name ?? "NULL";
             // DescriptionFlags = (ObjectDescriptionFlag)baseAceObject.AceObjectDescriptionFlags;
@@ -87,14 +88,14 @@ namespace ACE.Entity
             PaletteGuid = baseAceObject.PaletteId;
         }
 
-        public Generator(AceObject aceO)
-            : this(new ObjectGuid(aceO.AceObjectId), aceO)
-        {
-            // FIXME(ddevec): These should be inhereted from aceO, not copied
-            Location = aceO.Location;
-            Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
-            WeenieClassId = aceO.WeenieClassId;
-            GameDataType = aceO.Type;
-        }
+        ////public Generator(AceObject aceO)
+        ////    : this(new ObjectGuid(aceO.AceObjectId), aceO)
+        ////{
+        ////    // FIXME(ddevec): These should be inhereted from aceO, not copied
+        ////    Location = aceO.Location;
+        ////    Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
+        ////    WeenieClassId = aceO.WeenieClassId;
+        ////    GameDataType = aceO.Type;
+        ////}
     }
 }
