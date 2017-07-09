@@ -72,41 +72,6 @@ namespace ACE.Network.GameEvent.Events
                 flags |= IdentifyResponseFlags.DidStatsTable;
             }
 
-            var propertiesSpellId = obj.PropertiesSpellId.ToList();
-
-            if (propertiesSpellId.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.SpellBook;
-            }
-
-            var propertiesArmor = obj.PropertiesDouble.Where(x => (x.PropertyId < 9000
-                                                         && (x.PropertyId >= (uint)PropertyDouble.ArmorModVsSlash
-                                                         && x.PropertyId <= (uint)PropertyDouble.ArmorModVsElectric))
-                                                         || x.PropertyId == (uint)PropertyDouble.ArmorModVsNether).ToList();
-            if (propertiesArmor.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.ArmorProfile;
-            }
-
-            // Weapons Profile
-            var propertiesWeaponsD = obj.PropertiesDouble.Where(x => x.PropertyId < 9000
-                                                            && (x.PropertyId == (uint)PropertyDouble.WeaponLength
-                                                            || x.PropertyId == (uint)PropertyDouble.DamageVariance
-                                                            || x.PropertyId == (uint)PropertyDouble.MaximumVelocity
-                                                            || x.PropertyId == (uint)PropertyDouble.WeaponOffense
-                                                            || x.PropertyId == (uint)PropertyDouble.DamageMod)).ToList();
-
-            var propertiesWeaponsI = obj.PropertiesInt.Where(x => x.PropertyId < 9000
-                                                         && (x.PropertyId == (uint)PropertyInt.Damage
-                                                         || x.PropertyId == (uint)PropertyInt.DamageType
-                                                         || x.PropertyId == (uint)PropertyInt.WeaponSkill
-                                                         || x.PropertyId == (uint)PropertyInt.WeaponTime)).ToList();
-
-            if (propertiesWeaponsI.Count + propertiesWeaponsD.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.WeaponProfile;
-            }
-
             var propertiesString = obj.PropertiesString.Where(x => x.PropertyId < 9000).ToList();
 
 #if DEBUG
@@ -128,6 +93,49 @@ namespace ACE.Network.GameEvent.Events
             }
 #endif
 
+            var propertiesSpellId = obj.PropertiesSpellId.ToList();
+
+            if (propertiesSpellId.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.SpellBook;
+            }
+
+            var propertiesArmor = obj.PropertiesDouble.Where(x => (x.PropertyId < 9000
+                                                         && (x.PropertyId >= (uint)PropertyDouble.ArmorModVsSlash
+                                                         && x.PropertyId <= (uint)PropertyDouble.ArmorModVsElectric))
+                                                         || x.PropertyId == (uint)PropertyDouble.ArmorModVsNether).ToList();
+            if (propertiesArmor.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.ArmorProfile;
+#if DEBUG
+                session.Network.EnqueueSend(new GameMessageSystemChat("Armor Profile is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
+#endif
+            }
+
+            // Weapons Profile
+            var propertiesWeaponsD = obj.PropertiesDouble.Where(x => x.PropertyId < 9000
+                                                            && (x.PropertyId == (uint)PropertyDouble.WeaponLength
+                                                            || x.PropertyId == (uint)PropertyDouble.DamageVariance
+                                                            || x.PropertyId == (uint)PropertyDouble.MaximumVelocity
+                                                            || x.PropertyId == (uint)PropertyDouble.WeaponOffense
+                                                            || x.PropertyId == (uint)PropertyDouble.DamageMod)).ToList();
+
+            var propertiesWeaponsI = obj.PropertiesInt.Where(x => x.PropertyId < 9000
+                                                         && (x.PropertyId == (uint)PropertyInt.Damage
+                                                         || x.PropertyId == (uint)PropertyInt.DamageType
+                                                         || x.PropertyId == (uint)PropertyInt.WeaponSkill
+                                                         || x.PropertyId == (uint)PropertyInt.WeaponTime)).ToList();
+
+            if (propertiesWeaponsI.Count + propertiesWeaponsD.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.WeaponProfile;
+#if DEBUG
+                session.Network.EnqueueSend(new GameMessageSystemChat("Weapon Profile is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
+#endif
+            }
+
             if (propertiesString.Count > 0)
             {
                 flags |= IdentifyResponseFlags.StringStatsTable;
@@ -137,7 +145,7 @@ namespace ACE.Network.GameEvent.Events
             {
                 flags |= IdentifyResponseFlags.CreatureProfile;
 #if DEBUG
-                session.Network.EnqueueSend(new GameMessageSystemChat("Creature Panel is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat("Creature Profile is Active, redirecting debug output to chat panel for this object.", ChatMessageType.System));
                 session.Network.EnqueueSend(new GameMessageSystemChat(propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.ShortDesc).PropertyValue, ChatMessageType.System));
 #endif
             }
