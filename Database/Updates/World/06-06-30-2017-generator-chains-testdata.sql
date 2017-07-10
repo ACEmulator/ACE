@@ -1,19 +1,5 @@
 USE `ace_world`;
-
-/* Create new generator link table */
-DROP TABLE IF EXISTS `ace_object_generator_link`;
-CREATE TABLE `ace_object_generator_link` (
-  `aceObjectId` int(10) unsigned NOT NULL,
-  `index` tinyint(3) unsigned NOT NULL,
-  `generatorWeenieClassId` int(10) unsigned NOT NULL,
-  `generatorWeight` tinyint(3) unsigned NOT NULL,
-  PRIMARY KEY (`aceObjectId`,`index`),
-  KEY `idx_generator_link__AceObject` (`generatorWeenieClassId`),
-  CONSTRAINT `fk_generator_link__AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_generator_link__AceWeenieClass` FOREIGN KEY (`generatorWeenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-   
+  
 /* Generator Setup Variables */
 SET @weenieClassId = 893;
 SET @weenieClassDescription = 'drudgeskulkergen';

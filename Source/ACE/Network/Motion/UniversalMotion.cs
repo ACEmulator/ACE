@@ -122,7 +122,7 @@ namespace ACE.Network.Motion
                             writer.Write(Speed);
                             writer.Write(WalkRunThreshold);
                             writer.Write(Heading);
-                            writer.Write(RunRate);                            
+                            writer.Write(RunRate);
                         }
                         catch (Exception)
                         {

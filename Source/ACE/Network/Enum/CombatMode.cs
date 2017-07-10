@@ -1,10 +1,17 @@
-﻿namespace ACE.Network.Enum
+﻿using System;
+
+namespace ACE.Network.Enum
 {
+    [Flags]
     public enum CombatMode
     {
-        Peace = 1,
-        Melee = 2,
-        Missle = 4,
-        Magic = 8
+        Undef       = 0x00,
+        NonCombat   = 0x01,
+        Melee       = 0x02,
+        Missile     = 0x04,
+        Magic       = 0x08,
+
+        ValidCombat     = NonCombat | Melee | Missile | Magic,
+        CombatCombat    = Melee | Missile | Magic
     }
 }

@@ -6,109 +6,40 @@ using log4net;
 
 namespace ACE.Entity
 {
+    using System;
+
     public class MovementData
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public MovementStateFlag MovementStateFlag { get; private set; } = 0;
+        private MovementStateFlag movementStateFlag = 0;
 
-        private ushort currentStyle = 0;
-        public ushort CurrentStyle
+        public MovementStateFlag MovementStateFlag
         {
             get
             {
-                return currentStyle;
+                SetMovementStateFlag();
+                return movementStateFlag;
             }
-            set
+            private set
             {
-                currentStyle = value;
-                MovementStateFlag |= MovementStateFlag.CurrentStyle;
+                movementStateFlag = value;
             }
         }
 
-        private ushort forwardCommand = 0;
-        public ushort ForwardCommand
-        {
-            get
-            {
-                return forwardCommand;
-            }
-            set
-            {
-                forwardCommand = value;
-                MovementStateFlag |= MovementStateFlag.ForwardCommand;
-            }
-        }
+        public ushort CurrentStyle { get; set; } = 0;
 
-        private ushort sideStepCommand = 0;
-        public ushort SideStepCommand
-        {
-            get
-            {
-                return sideStepCommand;
-            }
-            set
-            {
-                sideStepCommand = value;
-                MovementStateFlag |= MovementStateFlag.SideStepCommand;
-            }
-        }
+        public ushort ForwardCommand { get; set; } = 0;
 
-        private ushort turnCommand = 0;
-        public ushort TurnCommand
-        {
-            get
-            {
-                return turnCommand;
-            }
-            set
-            {
-                turnCommand = value;
-                MovementStateFlag |= MovementStateFlag.TurnCommand;
-            }
-        }
+        public ushort SideStepCommand { get; set; } = 0;
 
-        private float turnSpeed = 0f;
-        public float TurnSpeed
-        {
-            get
-            {
-                return turnSpeed;
-            }
-            set
-            {
-                turnSpeed = value;
-                MovementStateFlag |= MovementStateFlag.TurnSpeed;
-            }
-        }
+        public ushort TurnCommand { get; set; } = 0;
 
-        private float forwardSpeed = 0f;
-        public float ForwardSpeed
-        {
-            get
-            {
-                return forwardSpeed;
-            }
-            set
-            {
-                forwardSpeed = value;
-                MovementStateFlag |= MovementStateFlag.ForwardSpeed;
-            }
-        }
+        public float TurnSpeed { get; set; } = 0f;
 
-        private float sideStepSpeed = 0f;
-        public float SideStepSpeed
-        {
-            get
-            {
-                return sideStepSpeed;
-            }
-            set
-            {
-                sideStepSpeed = value;
-                MovementStateFlag |= MovementStateFlag.SideStepSpeed;
-            }
-        }
+        public float ForwardSpeed { get; set; } = 0f;
+
+        public float SideStepSpeed { get; set; } = 0f;
 
         /// <summary>
         /// This guy is nasty!  The movement commands input by the client are not ACCEPTED by the client!
@@ -122,14 +53,15 @@ namespace ACE.Entity
         {
             MovementData md = new MovementData();
             // FIXME(ddevec): -- This is hacky!  I mostly reverse engineered it from old network logs
-            //   WARNING: this is ugly stuffs -- 
+            //   WARNING: this is ugly stuffs --
             //      I'm basically just converting based on analyzing packet stuffs, no idea where the magic #'s come from
             if (holdKey != 0 && holdKey != 2)
             {
                 log.WarnFormat("Unexpected hold key: {0}", holdKey.ToString("X"));
             }
 
-            if ((MovementStateFlag & MovementStateFlag.CurrentStyle) != 0) {
+            if ((movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+            {
                 md.CurrentStyle = CurrentStyle;
             }
 
@@ -243,37 +175,60 @@ namespace ACE.Entity
                 // Unknown turn command?
                 else
                 {
-                    log.WarnFormat("Unexpected turn command: {0}", TurnCommand.ToString("X"));
+                    log.WarnFormat("Unexpected turn command: {0:X}", TurnCommand);
                 }
             }
 
             return md;
         }
 
+        public void SetMovementStateFlag()
+        {
+            movementStateFlag = MovementStateFlag.NoMotionState;
+
+            if (CurrentStyle != 0)
+                movementStateFlag |= MovementStateFlag.CurrentStyle;
+            if (ForwardCommand != 0)
+                movementStateFlag |= MovementStateFlag.ForwardCommand;
+            if (SideStepCommand != 0)
+                movementStateFlag |= MovementStateFlag.SideStepCommand;
+            if (TurnCommand != 0)
+                movementStateFlag |= MovementStateFlag.TurnCommand;
+            // Floating point compare
+            if (Math.Abs(ForwardSpeed) > 0.01)
+                movementStateFlag |= MovementStateFlag.ForwardSpeed;
+            // Floating point compare
+            if (Math.Abs(SideStepSpeed) > 0.01)
+                movementStateFlag |= MovementStateFlag.SideStepSpeed;
+            // Floating point compare
+            if (Math.Abs(TurnSpeed) > 0.01)
+                movementStateFlag |= MovementStateFlag.TurnSpeed;
+        }
+
         public void Serialize(BinaryWriter writer)
         {
-            if ((this.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
                 writer.Write((ushort)this.CurrentStyle);
 
-            if ((this.MovementStateFlag & MovementStateFlag.ForwardCommand) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.ForwardCommand) != 0)
                 // writer.Write((uint)this.ForwardCommand);
                 writer.Write((ushort)this.ForwardCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.SideStepCommand) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.SideStepCommand) != 0)
                 // writer.Write((uint)this.SideStepCommand);
                 writer.Write((ushort)this.SideStepCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.TurnCommand) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.TurnCommand) != 0)
                 // writer.Write((uint)this.TurnCommand);
                 writer.Write((ushort)this.TurnCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
                 writer.Write((float)this.ForwardSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
                 writer.Write((float)this.SideStepSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.TurnSpeed) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.TurnSpeed) != 0)
                 writer.Write((float)this.TurnSpeed);
         }
     }
