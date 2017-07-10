@@ -1,17 +1,18 @@
 # ACEmulator Change Log
 
 ### 2017-07-08
+[Og II]
+* Fixed issue with MotionStateFlag - setting now by the existance of data like we do with all other flags.   This prevents data / flag mismatch.
+
 [Ripley]
 * More tweaks to debug output upon object assessment.
 * Fixed some Enum errors and misspellings.
-* Important to note that because of the above fix, you need to drop and re-create ace_shard. Strings were set incorrectly.
 
 ### 2017-07-07
 [OptimShi]
 * Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
 * Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
 
-### 2017-07-07
 [Og II]
 * Initial work on splitting a stackable item.   This is working and in an action chain.   Right now, it is only working for items 
 * in your position.   I need to extend it to work with items in chests and off the ground.   
