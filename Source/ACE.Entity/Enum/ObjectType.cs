@@ -38,15 +38,17 @@ namespace ACE.Entity.Enum
         TinkeringMaterial          = 0x40000000,
         Gameboard                  = 0x80000000,
 
-        PortalMagicTarget = Portal | LifeStone,
-        LockableMagicTarget = Misc | Container,
-        Vestements = Armor | Clothing,
-        Weapon = MeleeWeapon | MissileWeapon,
-        WeaponOrCaster = MeleeWeapon | MissileWeapon | Caster,
-        Item = MeleeWeapon | Armor | Clothing | Jewelry | Food | Money | Misc | MissileWeapon | Container | Gem | SpellComponents | Writable | Key | Caster | Portal | PromissoryNote | ManaStone | MagicWieldable,
-        RedirectableItemEnchantmentTarget = MeleeWeapon | Armor | Clothing | MissileWeapon | Caster,
-        ItemEnchantableTarget = MeleeWeapon | Armor | Clothing | Jewelry | Misc | MissileWeapon | Container | Gem | Caster | ManaStone,
-        VendorShopKeep = MeleeWeapon | Armor | Clothing | Food | Misc | MissileWeapon | Container | Useless | Writable | Key | PromissoryNote | CraftFletchingIntermediate | TinkeringMaterial,
-        VendorGrocer = Food | Container | Writable | Key | PromissoryNote | CraftCookingBase
+        PortalMagicTarget                   = Portal | LifeStone,
+        LockableMagicTarget                 = Misc | Container,
+        Vestements                          = Armor | Clothing,
+        Weapon                              = MeleeWeapon | MissileWeapon,
+        WeaponOrCaster                      = MeleeWeapon | MissileWeapon | Caster,
+        Item                                = MeleeWeapon | Armor | Clothing | Jewelry | Food | Money | Misc | MissileWeapon | Container |
+                                              Gem | SpellComponents | Writable | Key | Caster | Portal | PromissoryNote | ManaStone | MagicWieldable,
+        RedirectableItemEnchantmentTarget   = MeleeWeapon | Armor | Clothing | MissileWeapon | Caster,
+        ItemEnchantableTarget               = MeleeWeapon | Armor | Clothing | Jewelry | Misc | MissileWeapon | Container | Gem | Caster | ManaStone,
+        VendorShopKeep                      = MeleeWeapon | Armor | Clothing | Food | Misc | MissileWeapon | Container | Useless | Writable | Key |
+                                              PromissoryNote | CraftFletchingIntermediate | TinkeringMaterial,
+        VendorGrocer                        = Food | Container | Writable | Key | PromissoryNote | CraftCookingBase
     }
 }
