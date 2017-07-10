@@ -1,12 +1,15 @@
 # ACEmulator Change Log
 
 ### 2017-07-08
-[Og II]
-* Fixed issue with MotionStateFlag - setting now by the existance of data like we do with all other flags.   This prevents data / flag mismatch.
-
 [Ripley]
+* Rebased SQL scripts.
+* Updated README to reflect new database update procedures.
+* Changed GuidManager ranges to reflect ACE-World usage.
 * More tweaks to debug output upon object assessment.
 * Fixed some Enum errors and misspellings.
+
+[Og II]
+* Fixed issue with MotionStateFlag - setting now by the existance of data like we do with all other flags.   This prevents data / flag mismatch.
 
 ### 2017-07-07
 [OptimShi]

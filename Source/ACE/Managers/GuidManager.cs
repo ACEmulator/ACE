@@ -18,12 +18,12 @@ namespace ACE.Managers
         // this is only here for documentation purposes.
         // Fragmentation: None
 
-        private const uint InvalidGuid = uint.MaxValue;
-        private const uint LowIdLimit = 0x1000;
+        private const uint invalidGuid = uint.MaxValue;
+        private const uint lowIdLimit = 0x1000;
 
         private const uint weenieMin = 0x00000001;
 
-        private const uint weenieMax = 0x0001FFFF;
+        private const uint weenieMax = 0x000F423F;
 
         // Npc / Doors / Portals / world items that get loaded from DB Etc max 268,369,919
         // took Turbine 17 years to get to ‭177,447‬
@@ -46,7 +46,7 @@ namespace ACE.Managers
         // Wow does a server restart once per week.   I can't imagine this would be any type of real limitation even on a heavily populated server with
         // a lot of macro activity.    We could easily build a warning when a server was down to 50k free for a restart.
         // Fragmentation: None - N/A
-        private const uint nonStaticMin = 0x00020000;
+        private const uint nonStaticMin = 0x000F4240;
 
         private const uint nonStaticMax = 0x4FFFFFFF;
 
@@ -58,9 +58,9 @@ namespace ACE.Managers
         // Fragmentation: None - to very light
         // We should get these on player creation.   It would be a very edge case that we threw one away.
         // Again, given probable server populations and available accounts and players - this can pose no real limitation.
-        private static uint PlayerMin { get; } = 0x50000001;
+        private static uint playerMin = 0x50000001;
 
-        private static uint PlayerMax { get; } = 0x5FFFFFFF;
+        private static uint playerMax = 0x5FFFFFFF;
 
         private static object playerLock = new object();
 
@@ -77,7 +77,7 @@ namespace ACE.Managers
         // private const uint itemMax = 0xFFFFFFF;
         private const uint itemMin = 0xE0000000;
 
-        private const uint itemMax = 0xFFFFFFF;
+        private const uint itemMax = 0xFFFFFFFF;
 
         // At Server startup read current max from the DB
         private static uint item = 0xDD3B018C;
@@ -87,7 +87,7 @@ namespace ACE.Managers
         public static uint GetCurrentDbValueAsync(Action<Action<uint>> dbCall)
         {
             bool done = false;
-            uint ret = InvalidGuid;
+            uint ret = invalidGuid;
             dbCall.Invoke((dbVal) =>
             {
                 lock (ShardLock)
@@ -117,9 +117,9 @@ namespace ACE.Managers
             {
                 player = GetCurrentDbValueAsync(Database.DatabaseManager.Shard.GetMaxPlayerId);
                 // Db returns InvalidGuid when there are no players -- default to PlayerMin
-                if (player == InvalidGuid)
+                if (player == invalidGuid)
                 {
-                    player = PlayerMin;
+                    player = playerMin;
                 }
             }
         }
@@ -132,12 +132,12 @@ namespace ACE.Managers
         {
             lock (playerLock)
             {
-                if (player == PlayerMax)
+                if (player == playerMax)
                 {
                     log.Fatal("Out of player Guids!");
                 }
 
-                if (player == PlayerMax - LowIdLimit)
+                if (player == playerMax - lowIdLimit)
                 {
                     log.Warn("Running dangerously low on player Ids, need to defrag");
                 }
