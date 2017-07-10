@@ -122,7 +122,7 @@ namespace ACE.Entity
 
         public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
         {
-            return inventory.Where(wo => wo.Value.Wielder != null && wo.Value.CurrentWieldedLocation < EquipMask.BraceletLeft).ToList();
+            return inventory.Where(wo => wo.Value.Wielder != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)

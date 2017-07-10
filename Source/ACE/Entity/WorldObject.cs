@@ -64,6 +64,11 @@ namespace ACE.Entity
             get { return AceObject.DataIdProperties; }
         }
 
+        public List<AceObjectPropertiesInstanceId> PropertiesIid
+        {
+            get { return AceObject.InstanceIdProperties; }
+        }
+
         public List<AceObjectPropertiesSpell> PropertiesSpellId
         {
             get { return AceObject.SpellIdProperties; }
@@ -181,7 +186,7 @@ namespace ACE.Entity
             get
             {
                 if (ItemCapacity != null && ItemCapacity != 0)
-                    return ContainerType.Conatiner;
+                    return ContainerType.Container;
                 if (Name.Contains("Foci"))
                     return ContainerType.Foci;
                 return ContainerType.NonContainer;
@@ -440,7 +445,7 @@ namespace ACE.Entity
         /// <summary>
         /// phstable_id in aclogviewer This is the physics table for the object.   Looked up from dat file.
         /// </summary>
-        public uint? PhisicsTableId
+        public uint? PhysicsTableId
         {
             get { return AceObject.PhysicsTableId; }
             set { AceObject.PhysicsTableId = value; }
@@ -662,7 +667,7 @@ namespace ACE.Entity
 
         public void Examine(Session examiner)
         {
-            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, Guid, this);
+            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this);
             examiner.Network.EnqueueSend(identifyResponse);
         }
 
@@ -803,7 +808,7 @@ namespace ACE.Entity
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
             if (WeenieFlags2 != WeenieHeaderFlag2.None)
-                DescriptionFlags |= ObjectDescriptionFlag.AdditionFlags;
+                DescriptionFlags |= ObjectDescriptionFlag.IncludesSecondHeader;
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
@@ -812,7 +817,7 @@ namespace ACE.Entity
             writer.Write((uint)DescriptionFlags);
             writer.Align();
 
-            if ((DescriptionFlags & ObjectDescriptionFlag.AdditionFlags) != 0)
+            if ((DescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
                 writer.Write((uint)WeenieFlags2);
 
             if ((WeenieFlags & WeenieHeaderFlag.PluralName) != 0)
@@ -1096,7 +1101,7 @@ namespace ACE.Entity
             if (SoundTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Stable;
 
-            if (PhisicsTableId != 0)
+            if (PhysicsTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Petable;
 
             if (SetupTableId != 0)
@@ -1182,7 +1187,7 @@ namespace ACE.Entity
 
             // setup id
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
-                writer.Write(PhisicsTableId ?? 0u);
+                writer.Write(PhysicsTableId ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
                 writer.Write(SetupTableId ?? 0u);

@@ -17,7 +17,7 @@ namespace ACE.Factories
         {
             ushort wcidCorpse = 21;
             WeenieHeaderFlag weenie = WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.UseRadius | WeenieHeaderFlag.Burden;
-            ObjectDescriptionFlag objDesc = ObjectDescriptionFlag.CanOpen | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Corpse; // = bitfield 8213
+            ObjectDescriptionFlag objDesc = ObjectDescriptionFlag.Openable | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Corpse; // = bitfield 8213
             string name = $"Corpse of {template.Name}";
             Container wo = new Container(template.AceCorpse, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), name, wcidCorpse, objDesc, weenie, newPosition);
 
@@ -25,7 +25,7 @@ namespace ACE.Factories
             // wo.CurrentMotionState = new GeneralMotion(MotionStance.Standing);
             wo.CurrentMotionState = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
             wo.SoundTableId = 536871106; // SoundTableId in DB - constant value according to pcap
-            wo.PhisicsTableId = 872415342; // phstableid in DB - constant value according to pcap
+            wo.PhysicsTableId = 872415342; // phstableid in DB - constant value according to pcap
 
             wo.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.ObjScale | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement; // 104579 - according to pcap
             wo.PhysicsState = PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.Gravity; // 1044 - according to pcap
@@ -35,7 +35,7 @@ namespace ACE.Factories
 
             wo.ItemCapacity = 120; // constant value according to pcap
             wo.ContainerCapacity = 10; // constant value according to pcap
-            wo.Usable = Usable.UsableViewedRemote; // constant value according to pcap
+            wo.Usable = Usable.ViewedRemote; // constant value according to pcap
             wo.UseRadius = 2.0f; // constant value according to pcap
             wo.Burden = 6000; // Testdata, has to be set as the sum of the spawned items in the corpse
 

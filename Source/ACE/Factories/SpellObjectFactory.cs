@@ -66,7 +66,7 @@ namespace ACE.Factories
             mobj.Velocity = velocity;
             mobj.Friction = (float)friction;
             mobj.Elasticity = (float)electicity;
-            mobj.PhysicsState = PhysicsState.Spell;
+            mobj.PhysicsState = PhysicsState.ReportCollision | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped | PhysicsState.Gravity | PhysicsState.LightingOn | PhysicsState.ScriptedCollision | PhysicsState.Inelastic;
 
             mobj.PlayerScript = PlayScript.Launch;
 

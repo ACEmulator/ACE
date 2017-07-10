@@ -3,7 +3,7 @@
     public enum ContainerType
     {
         NonContainer = 0,
-        Conatiner    = 1,
+        Container    = 1,
         Foci         = 2
     }
 }
