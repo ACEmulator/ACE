@@ -218,7 +218,6 @@ namespace ACE.Database
             ConstructMaxQueryStatement(ShardPreparedStatement.GetMaxPlayerId, "ace_object", "aceObjectId", 0x5FFFFFFF, 0x50000001);
         }
 
-
         private uint GetMaxGuid(ShardPreparedStatement id)
         {
             MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, new object[] { });
@@ -258,6 +257,18 @@ namespace ACE.Database
             aceCharacter.DeleteTime = unixTime;
 
             aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
+
+            SaveObject(aceCharacter);
+
+            return true;
+        }
+
+        public bool DeleteCharacter(uint aceObjectId)
+        {
+            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
+            LoadIntoObject(aceCharacter);
+            // aceCharacter.IsDeleted = true;
+            aceCharacter.Deleted = true;
 
             SaveObject(aceCharacter);
 

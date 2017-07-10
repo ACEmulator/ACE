@@ -23,6 +23,8 @@ namespace ACE.Database
 
         bool DeleteOrRestore(ulong unixTime, uint id);
 
+        bool DeleteCharacter(uint id);
+
         uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
 
         uint RenameCharacter(string currentName, string newName);

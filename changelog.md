@@ -1,7 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-07-09
+[Ripley]
+* Changed the way deleting a character works. Instead of having the SQL server poll, the act of connecting to the server triggers the check.
+* If character's delete timer is up, the next time you log in, the character is deleted before sending you the list.
+
 ### 2017-07-07
-[Optim Shi]
+[OptimShi]
 * Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
 * Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
 
