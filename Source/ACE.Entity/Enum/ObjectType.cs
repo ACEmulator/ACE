@@ -38,15 +38,15 @@ namespace ACE.Entity.Enum
         TinkeringMaterial          = 0x40000000,
         Gameboard                  = 0x80000000,
 
-        PortalMagicTarget                       = 268500992,
-        LockableMagicTarget                     = 640,
-        Vestements                              = 6,
-        Weapon                                  = 257,
-        WeaponOrCaster                          = 33025,
-        Item                                    = 3013615,
-        RedirectableItemEnchantmentTarget       = 33031,
-        ItemEnchantableTarget                   = 560015,
-        VendorShopKeep                          = 1208248231,
-        VendorGrocer                            = 4481568
+        PortalMagicTarget = Portal | LifeStone,
+        LockableMagicTarget = Misc | Container,
+        Vestements = Armor | Clothing,
+        Weapon = MeleeWeapon | MissileWeapon,
+        WeaponOrCaster = MeleeWeapon | MissileWeapon | Caster,
+        Item = MeleeWeapon | Armor | Clothing | Jewelry | Food | Money | Misc | MissileWeapon | Container | Gem | SpellComponents | Writable | Key | Caster | Portal | PromissoryNote | ManaStone | MagicWieldable,
+        RedirectableItemEnchantmentTarget = MeleeWeapon | Armor | Clothing | MissileWeapon | Caster,
+        ItemEnchantableTarget = MeleeWeapon | Armor | Clothing | Jewelry | Misc | MissileWeapon | Container | Gem | Caster | ManaStone,
+        VendorShopKeep = MeleeWeapon | Armor | Clothing | Food | Misc | MissileWeapon | Container | Useless | Writable | Key | PromissoryNote | CraftFletchingIntermediate | TinkeringMaterial,
+        VendorGrocer = Food | Container | Writable | Key | PromissoryNote | CraftCookingBase
     }
 }

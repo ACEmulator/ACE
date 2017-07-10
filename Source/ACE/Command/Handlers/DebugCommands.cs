@@ -41,6 +41,85 @@ namespace ACE.Command.Handlers
             }
         }
 
+        // echo "text to send back to yourself" [ChatMessageType]
+        [CommandHandler("echoflags", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+            "Echo flags back to you",
+            "[type to test] [int]\n" +
+            "")]
+        public static void HandleDebugEchoFlags(Session session, params string[] parameters)
+        {
+            try
+            {
+                string debugOutput = "";
+                if (parameters?.Length == 2)
+                {
+                    switch (parameters[0])
+                    {
+                        ////case "descriptionflags":
+                        ////    debugOutput += $"{prop.Name} = {obj.DescriptionFlags.ToString()}" + " (" + (uint)obj.DescriptionFlags + ")" + "\n";
+                        ////    break;
+                        ////case "weenieflags":
+                        ////    debugOutput += $"{prop.Name} = {obj.WeenieFlags.ToString()}" + " (" + (uint)obj.WeenieFlags + ")" + "\n";
+                        ////    break;
+                        ////case "weenieflags2":
+                        ////    debugOutput += $"{prop.Name} = {obj.WeenieFlags2.ToString()}" + " (" + (uint)obj.WeenieFlags2 + ")" + "\n";
+                        ////    break;
+                        ////case "positionflag":
+                        ////    debugOutput += $"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")" + "\n";
+                        ////    break;
+                        case "type":
+                            ObjectType objectType = new ObjectType();
+                            objectType = (ObjectType)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{objectType.GetType().Name} = {objectType.ToString()}" + " (" + (uint)objectType + ")";
+                            break;
+                        ////case "containertype":
+                        ////    debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";
+                        ////    break;
+                        case "usable":
+                            // ObjectType test = new ObjectType();
+                            Usable usableType = new Usable();
+                            usableType = (Usable)Convert.ToInt64(parameters[1]);
+                            debugOutput = $"{usableType.GetType().Name} = {usableType.ToString()}" + " (" + (Int64)usableType + ")";
+                            break;
+                        ////case "radarbehavior":
+                        ////    debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
+                        ////    break;
+                        ////case "physicsdescriptionflags":
+                        ////    debugOutput += $"{prop.Name} = {obj.PhysicsDescriptionFlag.ToString()}" + " (" + (uint)obj.PhysicsDescriptionFlag + ")" + "\n";
+                        ////    break;
+                        ////case "physicsstate":
+                        ////    debugOutput += $"{prop.Name} = {obj.PhysicsState.ToString()}" + " (" + (uint)obj.PhysicsState + ")" + "\n";
+                        ////    break;
+                        ////case "validlocations":
+                        ////    debugOutput += $"{prop.Name} = {obj.ValidLocations}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
+                        ////    break;
+                        ////case "currentwieldedlocation":
+                        ////    debugOutput += $"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")" + "\n";
+                        ////    break;
+                        ////case "priority":
+                        ////    debugOutput += $"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")" + "\n";
+                        ////    break;
+                        ////case "radarcolor":
+                        ////    debugOutput += $"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")" + "\n";
+                        ////    break;
+                        default:
+                            // debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+                            break;
+                    }
+
+                    if (session == null)
+                        Console.WriteLine(debugOutput.Replace(", ", " | "));
+                    else
+                        session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
+                }
+            }
+            catch (Exception)
+            {
+                // ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
+            }
+        }
+
         // gps
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Display location.")]
