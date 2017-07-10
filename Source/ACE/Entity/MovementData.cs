@@ -60,7 +60,7 @@ namespace ACE.Entity
                 log.WarnFormat("Unexpected hold key: {0}", holdKey.ToString("X"));
             }
 
-            if ((MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+            if ((movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
             {
                 md.CurrentStyle = CurrentStyle;
             }
@@ -184,51 +184,51 @@ namespace ACE.Entity
 
         public void SetMovementStateFlag()
         {
-            MovementStateFlag = MovementStateFlag.NoMotionState;
+            movementStateFlag = MovementStateFlag.NoMotionState;
 
             if (CurrentStyle != 0)
-                MovementStateFlag |= MovementStateFlag.CurrentStyle;
+                movementStateFlag |= MovementStateFlag.CurrentStyle;
             if (ForwardCommand != 0)
-                MovementStateFlag |= MovementStateFlag.ForwardCommand;
+                movementStateFlag |= MovementStateFlag.ForwardCommand;
             if (SideStepCommand != 0)
-                MovementStateFlag |= MovementStateFlag.SideStepCommand;
+                movementStateFlag |= MovementStateFlag.SideStepCommand;
             if (TurnCommand != 0)
-                MovementStateFlag |= MovementStateFlag.TurnCommand;
+                movementStateFlag |= MovementStateFlag.TurnCommand;
             // Floating point compare
             if (Math.Abs(ForwardSpeed) > 0.01)
-                MovementStateFlag |= MovementStateFlag.ForwardSpeed;
+                movementStateFlag |= MovementStateFlag.ForwardSpeed;
             // Floating point compare
             if (Math.Abs(SideStepSpeed) > 0.01)
-                MovementStateFlag |= MovementStateFlag.SideStepSpeed;
+                movementStateFlag |= MovementStateFlag.SideStepSpeed;
             // Floating point compare
             if (Math.Abs(TurnSpeed) > 0.01)
-                MovementStateFlag |= MovementStateFlag.TurnSpeed;
+                movementStateFlag |= MovementStateFlag.TurnSpeed;
         }
 
         public void Serialize(BinaryWriter writer)
         {
-            if ((this.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
                 writer.Write((ushort)this.CurrentStyle);
 
-            if ((this.MovementStateFlag & MovementStateFlag.ForwardCommand) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.ForwardCommand) != 0)
                 // writer.Write((uint)this.ForwardCommand);
                 writer.Write((ushort)this.ForwardCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.SideStepCommand) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.SideStepCommand) != 0)
                 // writer.Write((uint)this.SideStepCommand);
                 writer.Write((ushort)this.SideStepCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.TurnCommand) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.TurnCommand) != 0)
                 // writer.Write((uint)this.TurnCommand);
                 writer.Write((ushort)this.TurnCommand);
 
-            if ((this.MovementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
                 writer.Write((float)this.ForwardSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
                 writer.Write((float)this.SideStepSpeed);
 
-            if ((this.MovementStateFlag & MovementStateFlag.TurnSpeed) != 0)
+            if ((this.movementStateFlag & MovementStateFlag.TurnSpeed) != 0)
                 writer.Write((float)this.TurnSpeed);
         }
     }
