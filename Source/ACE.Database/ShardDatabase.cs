@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using MySql.Data.MySqlClient;
 using log4net;
 // ReSharper disable InconsistentNaming
 
@@ -110,7 +111,7 @@ namespace ACE.Database
             DeleteAceObjectPropertyAttribute2nd = 156,
             DeleteAceObjectPropertySkill = 157,
             // Used to get max values from DB
-            GetMaxPlayerId = 200,
+            GetCurrentId = 200,
         }
 
         protected override Type PreparedStatementType
@@ -121,10 +122,11 @@ namespace ACE.Database
             }
         }
 
-        private void ConstructMaxQueryStatement(ShardPreparedStatement id, string tableName, string columnName, uint max, uint min)
+        private void ConstructMaxQueryStatement(ShardPreparedStatement id, string tableName, string columnName)
         {
             // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
-            AddPreparedStatement<ShardPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` < {max} && `{columnName}` >= {min}");
+            AddPreparedStatement<ShardPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?",
+                MySqlDbType.UInt32, MySqlDbType.UInt32);
         }
 
         protected override void InitializePreparedStatements()
@@ -215,12 +217,13 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.Delete);
 
             // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
-            ConstructMaxQueryStatement(ShardPreparedStatement.GetMaxPlayerId, "ace_object", "aceObjectId", 0x5FFFFFFF, 0x50000001);
+            ConstructMaxQueryStatement(ShardPreparedStatement.GetCurrentId, "ace_object", "aceObjectId");
         }
 
-        private uint GetMaxGuid(ShardPreparedStatement id)
+        private uint GetMaxGuid(ShardPreparedStatement id, uint min, uint max)
         {
-            MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, new object[] { });
+            object[] critera = new object[] { min, max };
+            MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, critera);
             var ret = res.Rows[0][0];
             if (ret is DBNull)
             {
@@ -230,9 +233,9 @@ namespace ACE.Database
             return (uint)res.Rows[0][0];
         }
 
-        public uint GetMaxPlayerId()
+        public uint GetCurrentId(uint min, uint max)
         {
-            return GetMaxGuid(ShardPreparedStatement.GetMaxPlayerId);
+            return GetMaxGuid(ShardPreparedStatement.GetCurrentId, min, max);
         }
 
         public void AddFriend(uint characterId, uint friendCharacterId)

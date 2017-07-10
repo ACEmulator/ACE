@@ -275,13 +275,13 @@ namespace ACE.Database
             }
         }
 
-        public void GetMaxPlayerId(Action<uint> callback)
+        public void GetCurrentId(uint min, uint max, Action<uint> callback)
         {
             lock (_queueLock)
             {
                 _queue.Enqueue(new Task(() =>
                 {
-                    var result = _wrappedDatabase.GetMaxPlayerId();
+                    var result = _wrappedDatabase.GetCurrentId(min, max);
                     callback.Invoke(result);
                 }));
             }

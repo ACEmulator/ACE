@@ -16,12 +16,15 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 
 ## Getting Started
 
-* Install MySQL (MariaDB is preferred, but either will work) MySQL minimum required version 5.7.17+ - MariaDB minimum required version 10.2+
-https://mariadb.org/download/
+* Install MySQL (MariaDB is preferred, but either will work)
+  [MySQL minimum required version 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
+  [MariaDB minimum required version 10.2+](https://mariadb.org/download/)
 * Create three databases named `ace_auth`, `ace_shard`, and `ace_world`.
 * Load AuthenticationBase.sql, ShardBase.sql, and WorldBase.sql for their respective databases. 
-* Load all incremental SQL updates in the Database\Updates sub directories.
+* Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest.
+* Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest.
 * Download from [ACE-World](https://github.com/ACEmulator/ACE-World) the [latest release](https://github.com/ACEmulator/ACE-World/releases/latest) of world data, extract and load into your ace_world database.
+* Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `Config.json.example` to `Config.json` and modify database settings, such as your database password.
 * Build and run ACE.
 * Create your first account as an admin at the prompt - `accountcreate testaccount testpassword 5`

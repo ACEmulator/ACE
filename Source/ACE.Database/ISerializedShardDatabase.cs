@@ -32,7 +32,7 @@ namespace ACE.Database
 
         void DeleteCharacter(uint id, Action<bool> callback);
 
-        void GetMaxPlayerId(Action<uint> callback);
+        void GetCurrentId(uint min, uint max, Action<uint> callback);
 
         void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback);
 

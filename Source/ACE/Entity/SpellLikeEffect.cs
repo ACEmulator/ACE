@@ -33,7 +33,7 @@ namespace ACE.Entity
             Spell = spellId;
             SetupTableId = modelId;
             SoundTableId = soundTableId;
-            PhisicsTableId = physicsTableId;
+            PhysicsTableId = physicsTableId;
         }
 
         public override void PlayScript(Session session)

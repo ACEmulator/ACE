@@ -31,7 +31,7 @@ namespace ACE.Database
 
         uint GetNextCharacterId();
 
-        uint GetMaxPlayerId();
+        uint GetCurrentId(uint min, uint max);
 
         AceCharacter GetCharacter(uint id);
 
