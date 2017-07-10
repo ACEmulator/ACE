@@ -5,8 +5,8 @@ namespace ACE.Entity.Enum
     [Flags]
     public enum PhysicsState
     {
-        None                        = 0x00000000,
         Static                      = 0x00000001,
+        Unused1                     = 0x00000002,
         Ethereal                    = 0x00000004,
         ReportCollision             = 0x00000008,
         IgnoreCollision             = 0x00000010,
@@ -18,6 +18,7 @@ namespace ACE.Entity.Enum
         Gravity                     = 0x00000400,
         LightingOn                  = 0x00000800,
         ParticleEmitter             = 0x00001000,
+        Unused2                     = 0x00002000,
         Hidden                      = 0x00004000,
         ScriptedCollision           = 0x00008000,
         HasPhysicsBsp               = 0x00010000,
@@ -29,6 +30,5 @@ namespace ACE.Entity.Enum
         EdgeSlide                   = 0x00400000,
         Sledding                    = 0x00800000,
         Frozen                      = 0x01000000,
-        Spell                       = 0x28F48
     }
 }

@@ -272,7 +272,7 @@ namespace ACE.Entity
 
             MotionTableId = Character.MotionTableId;
             SoundTableId = Character.SoundTableId;
-            PhisicsTableId = Character.PhysicsTableId;
+            PhysicsTableId = Character.PhysicsTableId;
             SetupTableId = Character.SetupTableId;
 
             // Start vital ticking, if they need it
@@ -1694,7 +1694,7 @@ namespace ACE.Entity
         private void HandleUnequip(Container container, WorldObject item, uint location, ActionChain inContainerChain)
         {
             UpdateAppearance(container, item.Guid.Full);
-            if (item.CurrentWieldedLocation > EquipMask.RingLeft)
+            if (item.CurrentWieldedLocation > EquipMask.FingerWearLeft)
             {
                 // We are coming from a weapon, wand or shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
@@ -1999,7 +1999,7 @@ namespace ACE.Entity
                         var item = GetInventoryItem(itemGuid);
                         if (item == null)
                             return;
-                        if ((EquipMask)location > EquipMask.RingLeft)
+                        if ((EquipMask)location > EquipMask.FingerWearLeft)
                         {
                             // We are going into a weapon, wand or shield slot.
                             switch ((EquipMask)location)
@@ -2045,13 +2045,13 @@ namespace ACE.Entity
                             item.SetPhysicsDescriptionFlag(item);
                         }
                         UpdateAppearance(container, itemId);
-                        if ((EquipMask)location == EquipMask.Ammunition)
+                        if ((EquipMask)location == EquipMask.MissileAmmo)
                             Session.Network.EnqueueSend(
                                 new GameEventWieldItem(Session, itemGuid.Full, location),
                                 new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
                         else
                         {
-                            if ((EquipMask)location > EquipMask.RingLeft)
+                            if ((EquipMask)location > EquipMask.FingerWearLeft)
                             {
                                 Session.Network.EnqueueSend(
                                     new GameMessageCreateObject(item),
