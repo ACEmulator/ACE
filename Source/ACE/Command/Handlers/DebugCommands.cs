@@ -52,7 +52,7 @@ namespace ACE.Command.Handlers
                 string debugOutput = "";
                 if (parameters?.Length == 2)
                 {
-                    switch (parameters[0])
+                    switch (parameters[0].ToLower())
                     {
                         case "descriptionflags":
                             ObjectDescriptionFlag objectDescFlag = new ObjectDescriptionFlag();
