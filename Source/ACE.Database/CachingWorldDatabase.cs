@@ -57,5 +57,10 @@ namespace ACE.Database
         {
             return _wrappedDatabase.GetRandomWeeniesOfType(typeId, numWeenies);
         }
+
+        public uint GetCurrentId(uint min, uint max)
+        {
+            return _wrappedDatabase.GetCurrentId(min, max);
+        }
     }
 }

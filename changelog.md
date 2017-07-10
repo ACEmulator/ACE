@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-07-09
+[ddevec]
+* Updated GuidManager to properly initialize current allocation Guids.
+* Added support in databases for the queries requried to initialize Guids.
+
 ### 2017-07-08
 [Ripley]
 * Rebased SQL scripts.

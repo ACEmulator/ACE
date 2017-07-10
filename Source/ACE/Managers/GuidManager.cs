@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using log4net;
 
@@ -18,12 +18,93 @@ namespace ACE.Managers
         // this is only here for documentation purposes.
         // Fragmentation: None
 
-        private const uint invalidGuid = uint.MaxValue;
-        private const uint lowIdLimit = 0x1000;
+        private class GuidAllocator
+        {
+            private uint min;
+            private uint max;
+            private uint current;
+            private string name;
 
-        private const uint weenieMin = 0x00000001;
+            public GuidAllocator(uint min, uint max, string name)
+            {
+                this.min = min;
+                this.max = max;
 
-        private const uint weenieMax = 0x000F423F;
+                // Read current value out of ShardDatabase
+                lock (this)
+                {
+                    bool done = false;
+                    Database.DatabaseManager.Shard.GetCurrentId(min, max, (dbVal) =>
+                    {
+                        lock (this)
+                        {
+                            current = dbVal;
+                            done = true;
+                            Monitor.Pulse(this);
+                        }
+                    });
+
+                    while (!done)
+                    {
+                        Monitor.Wait(this);
+                    }
+
+                    if (current == InvalidGuid)
+                    {
+                        current = min;
+                    }
+                    else
+                    {
+                        // Need to start allocating at current value in db +1
+                        current++;
+                    }
+
+                    if ((max - current) < LowIdLimit)
+                    {
+                        log.Warn($"Dangerously low on {name} guids : {current:X} of {max:X}");
+                    }
+                }
+
+                // Now read current from WorldDatabase
+                uint worldMax = Database.DatabaseManager.World.GetCurrentId(min, max);
+                if (worldMax != InvalidGuid && worldMax >= current)
+                {
+                    current = worldMax + 1;
+                }
+
+                this.name = name;
+            }
+
+            public uint Alloc()
+            {
+                lock (this)
+                {
+                    if (current == max)
+                    {
+                        log.Fatal($"Out of {name} Guids!");
+                        return InvalidGuid;
+                    }
+
+                    if (current == max - LowIdLimit)
+                    {
+                        log.Warn($"Running dangerously low on {name} Ids, need to defrag");
+                    }
+
+                    uint ret = current;
+                    current += 1;
+
+                    return ret;
+                }
+            }
+        }
+
+        public static uint InvalidGuid { get; } = uint.MaxValue;
+        private const uint LowIdLimit = 0x1000;
+
+        public static uint WeenieMin { get; } = 0x00000001;
+        public static uint WeenieMax { get; } = 0x0001FFFF;
+
+        // private static GuidAllocator weenieAlloc;
 
         // Npc / Doors / Portals / world items that get loaded from DB Etc max 268,369,919
         // took Turbine 17 years to get to ‭177,447‬
@@ -35,36 +116,34 @@ namespace ACE.Managers
         // private const uint staticObjectMin = 0x00020000;
         // private const uint staticObjectMax = 0x0FFFFFFF;
 
-        private const uint staticObjectMin = 0x70000000;
-        private const uint staticObjectMax = 0xDFFFFFFF;
+        public static uint StaticObjectMin { get; } = 0x70000000;
+        public static uint StaticObjectMax { get; } = 0xDFFFFFFF;
 
-        // At Server startup read current max from the DB
-        private static uint staticObject = 0x0002B527;
+        private static GuidAllocator staticObjectAlloc;
+
+        /* NOTE(ddevec): Taking out static object allocation -- we never allocate "static" objects, right?
+        // We should never allocate from our static object pool?
+        private static uint staticObject = staticObjectMax;
+        */
 
         // Monsters / Summoned portals - any non-static item max  ‭1,073,741,823‬
         // If the server ran for 30 days without a restart, we would need to be creating over 24,854 spawns per minute or 414 per second to exhaust
         // Wow does a server restart once per week.   I can't imagine this would be any type of real limitation even on a heavily populated server with
         // a lot of macro activity.    We could easily build a warning when a server was down to 50k free for a restart.
         // Fragmentation: None - N/A
-        private const uint nonStaticMin = 0x000F4240;
-
-        private const uint nonStaticMax = 0x4FFFFFFF;
-
-        // Never read from the database - resets at server restart each time
-        // Nothing in this range is ever persisted.
-        private static uint nonStaticObject = 0x10000001;
+        // FIXME(ddevec): Currently 
+        public static uint NonStaticMin { get; } = 0x000F4240;
+        public static uint NonStaticMax { get; } = 0x4FFFFFFF;
+        private static GuidAllocator nonStaticAlloc;
 
         // players max 268,345,454
         // Fragmentation: None - to very light
         // We should get these on player creation.   It would be a very edge case that we threw one away.
         // Again, given probable server populations and available accounts and players - this can pose no real limitation.
-        private static uint playerMin = 0x50000001;
+        public static uint PlayerMin { get; } = 0x50000001;
+        public static uint PlayerMax { get; } = 0x5FFFFFFF;
 
-        private static uint playerMax = 0x5FFFFFFF;
-
-        private static object playerLock = new object();
-
-        private static uint player = 0x50000001;
+        private static GuidAllocator playerAlloc;
 
         // Items max ‭2,684,354,559‬
         // Many items created - relatively few persisted.   Anything that could end up in player inventory ie persisted comes from this range.
@@ -74,54 +153,22 @@ namespace ACE.Managers
         // TODO Fix this once we defrag.
         // Proposed real range.
         // private const uint itemMin = 0x6000000;
-        // private const uint itemMax = 0xFFFFFFF;
-        private const uint itemMin = 0xE0000000;
-
-        private const uint itemMax = 0xFFFFFFFF;
+        // private const uint itemMax = 0xFFFFFFE;
+        public static uint ItemMin { get; } = 0xE0000000;
+        // Ends at E because uint.Max is reserved for "invalid"
+        public static uint ItemMax { get; } = 0xFFFFFFFE;
 
         // At Server startup read current max from the DB
-        private static uint item = 0xDD3B018C;
-
-        private static readonly object ShardLock = new object();
-
-        public static uint GetCurrentDbValueAsync(Action<Action<uint>> dbCall)
-        {
-            bool done = false;
-            uint ret = invalidGuid;
-            dbCall.Invoke((dbVal) =>
-            {
-                lock (ShardLock)
-                {
-                    ret = dbVal;
-                    done = true;
-                    Monitor.Pulse(ShardLock);
-                }
-            });
-
-            lock (ShardLock)
-            {
-                while (!done)
-                {
-                    Monitor.Wait(ShardLock);
-                }
-            }
-
-            // NOTE: + 1 -- we don't want to reassign our current guid
-            return ret + 1;
-        }
+        private static GuidAllocator itemAlloc;
 
         // TODO: Finish out this work tieing this into the database
         public static void Initialize()
         {
-            lock (playerLock)
-            {
-                player = GetCurrentDbValueAsync(Database.DatabaseManager.Shard.GetMaxPlayerId);
-                // Db returns InvalidGuid when there are no players -- default to PlayerMin
-                if (player == invalidGuid)
-                {
-                    player = playerMin;
-                }
-            }
+            playerAlloc = new GuidAllocator(PlayerMin, PlayerMax, "player");
+            itemAlloc = new GuidAllocator(ItemMin, ItemMax, "item");
+            nonStaticAlloc = new GuidAllocator(NonStaticMin, NonStaticMax, "non-static");
+            staticObjectAlloc = new GuidAllocator(StaticObjectMin, StaticObjectMax, "static");
+            // weenieAlloc = new GuidAllocator(WeenieMin, WeenieMax, "static");
         }
 
         /// <summary>
@@ -130,20 +177,7 @@ namespace ACE.Managers
         /// <returns></returns>
         public static uint NewPlayerGuid()
         {
-            lock (playerLock)
-            {
-                if (player == playerMax)
-                {
-                    log.Fatal("Out of player Guids!");
-                }
-
-                if (player == playerMax - lowIdLimit)
-                {
-                    log.Warn("Running dangerously low on player Ids, need to defrag");
-                }
-
-                return player;
-            }
+            return playerAlloc.Alloc();
         }
 
         /// <summary>
@@ -152,8 +186,7 @@ namespace ACE.Managers
         /// <returns></returns>
         public static uint NewStaticObjectGuid()
         {
-            staticObject++;
-            return staticObject;
+            return staticObjectAlloc.Alloc();
         }
 
         /// <summary>
@@ -162,8 +195,7 @@ namespace ACE.Managers
         /// <returns></returns>
         public static uint NewNonStaticGuid()
         {
-            nonStaticObject++;
-            return nonStaticObject;
+            return nonStaticAlloc.Alloc();
         }
 
         /// <summary>
@@ -172,8 +204,7 @@ namespace ACE.Managers
         /// <returns></returns>
         public static uint NewItemGuid()
         {
-            item++;
-            return item;
+            return itemAlloc.Alloc();
         }
     }
 }

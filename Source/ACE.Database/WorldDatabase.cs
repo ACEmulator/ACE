@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using MySql.Data.MySqlClient;
 using ACE.Entity;
 using ACE.Entity.Enum;
 
@@ -37,10 +38,18 @@ namespace ACE.Database
             GetAceObject = 23,
             GetAceObjectPropertiesPosition = 24,
             GetAceObjectPropertiesSpell = 25,
-            GetAceObjectGeneratorLinks = 26
+            GetAceObjectGeneratorLinks = 26,
+            GetMaxId = 27
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
+
+        private void ConstructMaxQueryStatement(WorldPreparedStatement id, string tableName, string columnName)
+        {
+            // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
+            AddPreparedStatement<WorldPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?",
+                MySqlDbType.UInt32, MySqlDbType.UInt32);
+        }
 
         protected override void InitializePreparedStatements()
         {
@@ -74,6 +83,8 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
+
+            ConstructMaxQueryStatement(WorldPreparedStatement.GetMaxId, "ace_object", "aceObjectId");
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -325,6 +336,24 @@ namespace ACE.Database
         {
             // Temp took out async until we implement this to kill the warning.
             throw new NotImplementedException();
+        }
+
+        private uint GetMaxGuid(WorldPreparedStatement id, uint min, uint max)
+        {
+            object[] critera = new object[] { min, max };
+            MySqlResult res = SelectPreparedStatement<WorldPreparedStatement>(id, critera);
+            var ret = res.Rows[0][0];
+            if (ret is DBNull)
+            {
+                return uint.MaxValue;
+            }
+
+            return (uint)res.Rows[0][0];
+        }
+
+        public uint GetCurrentId(uint min, uint max)
+        {
+            return GetMaxGuid(WorldPreparedStatement.GetMaxId, min, max);
         }
     }
 }
