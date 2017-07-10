@@ -1,9 +1,13 @@
-﻿namespace ACE.Network.Enum
+﻿using System;
+
+namespace ACE.Network.Enum
 {
     /// <summary>
     /// Used during Calculation of Damage
     /// This data is sent in the priority field of the iilst (equiped items) portion of the player discription event F7B0 - 0013 Og II
     /// </summary>
+    /// 
+    [Flags]
     public enum CoverageMask : uint
     {
         UnderwearUpperLegs      = 0x00000002,

@@ -143,7 +143,7 @@ namespace ACE.Network.Handlers
             // FIXME(ddevec): These should go in AceCharacter constructor, but the Network enum is not available there
             character.Radar = (byte)Network.Enum.RadarBehavior.ShowAlways;
             character.BlipColor = (byte)Network.Enum.RadarColor.White;
-            character.ItemUseable = (uint)Network.Enum.Usable.UsableObjectSelf;
+            character.ItemUseable = (uint)Network.Enum.Usable.ObjSelf;
 
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
