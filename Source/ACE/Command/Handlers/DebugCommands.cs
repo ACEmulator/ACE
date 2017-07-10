@@ -41,11 +41,10 @@ namespace ACE.Command.Handlers
             }
         }
 
-        // echo "text to send back to yourself" [ChatMessageType]
+        // echoflags [flagtype] [int]
         [CommandHandler("echoflags", AccessLevel.Developer, CommandHandlerFlag.None, 2,
             "Echo flags back to you",
-            "[type to test] [int]\n" +
-            "")]
+            "[type to test] [int]\n")]
         public static void HandleDebugEchoFlags(Session session, params string[] parameters)
         {
             try
@@ -55,56 +54,92 @@ namespace ACE.Command.Handlers
                 {
                     switch (parameters[0])
                     {
-                        ////case "descriptionflags":
-                        ////    debugOutput += $"{prop.Name} = {obj.DescriptionFlags.ToString()}" + " (" + (uint)obj.DescriptionFlags + ")" + "\n";
-                        ////    break;
-                        ////case "weenieflags":
-                        ////    debugOutput += $"{prop.Name} = {obj.WeenieFlags.ToString()}" + " (" + (uint)obj.WeenieFlags + ")" + "\n";
-                        ////    break;
-                        ////case "weenieflags2":
-                        ////    debugOutput += $"{prop.Name} = {obj.WeenieFlags2.ToString()}" + " (" + (uint)obj.WeenieFlags2 + ")" + "\n";
-                        ////    break;
-                        ////case "positionflag":
-                        ////    debugOutput += $"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")" + "\n";
-                        ////    break;
+                        case "descriptionflags":
+                            ObjectDescriptionFlag objectDescFlag = new ObjectDescriptionFlag();
+                            objectDescFlag = (ObjectDescriptionFlag)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{objectDescFlag.GetType().Name} = {objectDescFlag.ToString()}" + " (" + (uint)objectDescFlag + ")";
+                            break;
+                        case "weenieflags":
+                            WeenieHeaderFlag weenieHdr = new WeenieHeaderFlag();
+                            weenieHdr = (WeenieHeaderFlag)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{weenieHdr.GetType().Name} = {weenieHdr.ToString()}" + " (" + (uint)weenieHdr + ")";
+                            break;
+                        case "weenieflags2":
+                            WeenieHeaderFlag2 weenieHdr2 = new WeenieHeaderFlag2();
+                            weenieHdr2 = (WeenieHeaderFlag2)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{weenieHdr2.GetType().Name} = {weenieHdr2.ToString()}" + " (" + (uint)weenieHdr2 + ")";
+                            break;
+                        case "positionflag":
+                            UpdatePositionFlag posFlag = new UpdatePositionFlag();
+                            posFlag = (UpdatePositionFlag)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{posFlag.GetType().Name} = {posFlag.ToString()}" + " (" + (uint)posFlag + ")";
+                            break;
                         case "type":
                             ObjectType objectType = new ObjectType();
                             objectType = (ObjectType)Convert.ToUInt32(parameters[1]);
 
                             debugOutput = $"{objectType.GetType().Name} = {objectType.ToString()}" + " (" + (uint)objectType + ")";
                             break;
-                        ////case "containertype":
-                        ////    debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";
-                        ////    break;
+                        case "containertype":
+                            ContainerType contType = new ContainerType();
+                            contType = (ContainerType)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{contType.GetType().Name} = {contType.ToString()}" + " (" + (uint)contType + ")";
+                            break;
                         case "usable":
-                            // ObjectType test = new ObjectType();
                             Usable usableType = new Usable();
                             usableType = (Usable)Convert.ToInt64(parameters[1]);
+
                             debugOutput = $"{usableType.GetType().Name} = {usableType.ToString()}" + " (" + (Int64)usableType + ")";
                             break;
-                        ////case "radarbehavior":
-                        ////    debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
-                        ////    break;
-                        ////case "physicsdescriptionflags":
-                        ////    debugOutput += $"{prop.Name} = {obj.PhysicsDescriptionFlag.ToString()}" + " (" + (uint)obj.PhysicsDescriptionFlag + ")" + "\n";
-                        ////    break;
-                        ////case "physicsstate":
-                        ////    debugOutput += $"{prop.Name} = {obj.PhysicsState.ToString()}" + " (" + (uint)obj.PhysicsState + ")" + "\n";
-                        ////    break;
-                        ////case "validlocations":
-                        ////    debugOutput += $"{prop.Name} = {obj.ValidLocations}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
-                        ////    break;
-                        ////case "currentwieldedlocation":
-                        ////    debugOutput += $"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")" + "\n";
-                        ////    break;
-                        ////case "priority":
-                        ////    debugOutput += $"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")" + "\n";
-                        ////    break;
-                        ////case "radarcolor":
-                        ////    debugOutput += $"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")" + "\n";
-                        ////    break;
+                        case "radarbehavior":
+                            RadarBehavior radarBeh = new RadarBehavior();
+                            radarBeh = (RadarBehavior)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{radarBeh.GetType().Name} = {radarBeh.ToString()}" + " (" + (uint)radarBeh + ")";
+                            break;
+                        case "physicsdescriptionflags":
+                            PhysicsDescriptionFlag physicsDescFlag = new PhysicsDescriptionFlag();
+                            physicsDescFlag = (PhysicsDescriptionFlag)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{physicsDescFlag.GetType().Name} = {physicsDescFlag.ToString()}" + " (" + (uint)physicsDescFlag + ")";
+                            break;
+                        case "physicsstate":
+                            PhysicsState physState = new PhysicsState();
+                            physState = (PhysicsState)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{physState.GetType().Name} = {physState.ToString()}" + " (" + (uint)physState + ")";
+                            break;
+                        case "validlocations":
+                            EquipMask locFlags = new EquipMask();
+                            locFlags = (EquipMask)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{locFlags.GetType().Name} = {locFlags.ToString()}" + " (" + (uint)locFlags + ")";
+                            break;
+                        case "currentwieldedlocation":
+                            EquipMask locFlags2 = new EquipMask();
+                            locFlags2 = (EquipMask)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{locFlags2.GetType().Name} = {locFlags2.ToString()}" + " (" + (uint)locFlags2 + ")";
+                            break;
+                        case "priority":
+                            CoverageMask covMask = new CoverageMask();
+                            covMask = (CoverageMask)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{covMask.GetType().Name} = {covMask.ToString()}" + " (" + (uint)covMask + ")";
+                            break;
+                        case "radarcolor":
+                            RadarColor radarBlipColor = new RadarColor();
+                            radarBlipColor = (RadarColor)Convert.ToUInt32(parameters[1]);
+
+                            debugOutput = $"{radarBlipColor.GetType().Name} = {radarBlipColor.ToString()}" + " (" + (uint)radarBlipColor + ")";
+                            break;
                         default:
-                            // debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+                            debugOutput = "No valid type to test";
                             break;
                     }
 
@@ -116,7 +151,11 @@ namespace ACE.Command.Handlers
             }
             catch (Exception)
             {
-                // ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
+                string debugOutput = "Exception Error, check input and try again";
+                if (session == null)
+                    Console.WriteLine(debugOutput.Replace(", ", " | "));
+                else
+                    session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
             }
         }
 
