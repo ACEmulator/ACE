@@ -5,17 +5,17 @@
 * Rebased SQL scripts.
 * Updated README to reflect new database update procedures.
 * Changed GuidManager ranges to reflect ACE-World usage.
+* More tweaks to debug output upon object assessment.
+* Fixed some Enum errors and misspellings.
+
+[Og II]
+* Fixed issue with MotionStateFlag - setting now by the existance of data like we do with all other flags.   This prevents data / flag mismatch.
 
 ### 2017-07-07
 [OptimShi]
 * Added "@barbershop" debug command and corresponding functionality to load the interface, and save and apply settings.
 * Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
 
-### 2017-07-03
-[Mogwai]
-* Massive Database optimizations and implementations for saving objects and all their properties.
-
-### 2017-07-07
 [Og II]
 * Initial work on splitting a stackable item.   This is working and in an action chain.   Right now, it is only working for items 
 * in your position.   I need to extend it to work with items in chests and off the ground.   
@@ -40,7 +40,6 @@
 * Character list will now automatically select your last played character.
 * Modified @tele command to allow comma in coordinate pair (e.g. "@tele 42.1N, 33.6E")
 
-
 ### 2017-07-05
 [OptimShi]
 * Fixed an issue with skills not being set properly at character creation.
@@ -51,6 +50,9 @@
 * Cleaned up some concurrency issues.
 
 ### 2017-07-03
+[Mogwai]
+* Massive Database optimizations and implementations for saving objects and all their properties.
+
 [OptimShi]
 * Removed some old default character properties that were no longer needed and causing incorrect models and animations to load for players.
 

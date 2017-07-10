@@ -110,7 +110,7 @@
     <Compile Include="Enum\GroupChatType.cs" />
     <Compile Include="Enum\LifestoneType.cs" />
     <Compile Include="Enum\MapScope.cs" />
-    <Compile Include="Enum\ObjectBehaviorFlag.cs" />
+    <Compile Include="Enum\ObjectDescriptionFlag.cs" />
     <Compile Include="Enum\ObjectType.cs" />
     <Compile Include="Enum\PhysicsState.cs" />
     <Compile Include="Enum\Properties\PropertyAttribute.cs" />
