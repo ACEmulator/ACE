@@ -102,7 +102,7 @@ namespace ACE.Managers
         private const uint LowIdLimit = 0x1000;
 
         public static uint WeenieMin { get; } = 0x00000001;
-        public static uint WeenieMax { get; } = 0x0001FFFF;
+        public static uint WeenieMax { get; } = 0x000F423F;
 
         // private static GuidAllocator weenieAlloc;
 
