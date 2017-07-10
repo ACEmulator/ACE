@@ -132,6 +132,19 @@ namespace ACE.Database
             }
         }
 
+        public void DeleteCharacter(uint id, Action<bool> callback)
+        {
+            lock (_queueLock)
+            {
+                _queue.Enqueue(new Task(() =>
+                {
+                    var result = _wrappedDatabase.DeleteCharacter(id);
+                    if (callback != null)
+                        callback.Invoke(result);
+                }));
+            }
+        }
+
         public void GetCharacter(uint id, Action<AceCharacter> callback)
         {
             lock (_queueLock)

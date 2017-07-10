@@ -266,6 +266,18 @@ namespace ACE.Database
             return true;
         }
 
+        public bool DeleteCharacter(uint aceObjectId)
+        {
+            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
+            LoadIntoObject(aceCharacter);
+            // aceCharacter.IsDeleted = true;
+            aceCharacter.Deleted = true;
+
+            SaveObject(aceCharacter);
+
+            return true;
+        }
+
         public List<CachedCharacter> GetCharacters(uint accountId)
         {
             var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };

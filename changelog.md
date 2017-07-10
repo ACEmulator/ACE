@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-07-09
+[Ripley]
+* Changed the way deleting a character works. Instead of having the SQL server poll, the act of connecting to the server triggers the check.
+* If character's delete timer is up, the next time you log in, the character is deleted before sending you the list.
+
 [ddevec]
 * Updated GuidManager to properly initialize current allocation Guids.
 * Added support in databases for the queries requried to initialize Guids.

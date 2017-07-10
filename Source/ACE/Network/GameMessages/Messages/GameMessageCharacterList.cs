@@ -9,10 +9,19 @@ namespace ACE.Network.GameMessages.Messages
     {
         public GameMessageCharacterList(List<CachedCharacter> characters, string account) : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
         {
-            Writer.Write(0u);
-            Writer.Write(characters.Count);
+            // Remove any deleted characters from results
+            List<CachedCharacter> charactersTrimmed = new List<CachedCharacter>();
 
             foreach (var character in characters)
+            {
+                if (!character.Deleted)
+                    charactersTrimmed.Add(character);
+            }
+
+            Writer.Write(0u);
+            Writer.Write(charactersTrimmed.Count);
+
+            foreach (var character in charactersTrimmed)
             {
                 Writer.WriteGuid(character.Guid);
                 Writer.WriteString16L(character.Name);

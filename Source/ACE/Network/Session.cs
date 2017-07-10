@@ -11,11 +11,14 @@ using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
+using log4net;
 
 namespace ACE.Network
 {
     public class Session
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint Id { get; private set; }
 
         public string Account { get; private set; }
@@ -116,6 +119,25 @@ namespace ACE.Network
             byte slot = 0;
             foreach (var character in characters)
             {
+                if (character.DeleteTime > 0)
+                {
+                    if (Time.GetUnixTime() > character.DeleteTime)
+                    {
+                        character.Deleted = true;
+                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, ((bool deleteSuccess) =>
+                        {
+                            if (deleteSuccess)
+                            {
+                                log.Info($"Character {character.Guid.Full.ToString("X")} successfully marked as deleted");
+                            }
+                            else
+                            {
+                                log.Error($"Unable to mark character {character.Guid.Full.ToString("X")} as deleted");
+                            }
+                        }));
+                        continue;
+                    }
+                }
                 character.SlotId = slot;
                 AccountCharacters.Add(character);
                 slot++;
