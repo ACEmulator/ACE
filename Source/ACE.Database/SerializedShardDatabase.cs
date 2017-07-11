@@ -97,15 +97,12 @@ namespace ACE.Database
 
         public void DeleteCharacter(uint id, Action<bool> callback)
         {
-            lock (_queueLock)
+            _queue.Add(new Task(() =>
             {
-                _queue.Enqueue(new Task(() =>
-                {
-                    var result = _wrappedDatabase.DeleteCharacter(id);
-                    if (callback != null)
-                        callback.Invoke(result);
-                }));
-            }
+                var result = _wrappedDatabase.DeleteCharacter(id);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
         }
 
         public void GetCharacter(uint id, Action<AceCharacter> callback)
@@ -214,7 +211,7 @@ namespace ACE.Database
             {
                 var result = _wrappedDatabase.GetCurrentId(min, max);
                 callback.Invoke(result);
-            });
+            }));
         }
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
