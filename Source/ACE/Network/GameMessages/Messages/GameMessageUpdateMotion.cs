@@ -13,16 +13,11 @@ namespace ACE.Network.GameMessages.Messages
             // who is getting the message - the rest of the sequences are the target objects sequences -may be the same
             Writer.Write(instance_timestamp);
             Writer.Write(sequence.GetNextSequence(SequenceType.ObjectMovement));
-            if (!newState.IsAutonomous)
+            ushort autonomous = newState.IsAutonomous ? (ushort)1 : (ushort)0;
+            if (autonomous == 0)
                 Writer.Write(sequence.GetNextSequence(SequenceType.ObjectServerControl));
             else
                 Writer.Write(sequence.GetCurrentSequence(SequenceType.ObjectServerControl));
-
-            ushort autonomous;
-            if (!newState.IsAutonomous)
-                autonomous = 1;
-            else
-                autonomous = 0;
             Writer.Write(autonomous);
             var movementData = newState.GetPayload(animationTargetGuid, sequence);
             Writer.Write(movementData);

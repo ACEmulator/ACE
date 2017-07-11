@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-07-10
+[Og II]
+* Fixed bug with animation - isAutonomous flag was incorrectly set and fix for limping broke animation. (Me)   This should allow both to work correctly.
+
+
 ### 2017-07-09
 [Ripley]
 * Changed the way deleting a character works. Instead of having the SQL server poll, the act of connecting to the server triggers the check.

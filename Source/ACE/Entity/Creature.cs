@@ -357,7 +357,6 @@ namespace ACE.Entity
         public void SetMotionState(MotionState motionState)
         {
             CurrentMotionState = motionState;
-            CurrentMotionState.IsAutonomous = true;
             GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(Guid,
                                                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
                                                            Sequences, motionState);

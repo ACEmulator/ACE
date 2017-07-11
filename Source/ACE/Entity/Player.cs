@@ -1201,7 +1201,7 @@ namespace ACE.Entity
             {
                 // Save the current position to persistent storage, only durring the server update interval
                 SetPhysicalCharacterPosition();
-                
+
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 #if DEBUG
                 if (Session.Player != null)
@@ -1329,6 +1329,8 @@ namespace ACE.Entity
                 md = md.ConvertToClientAccepted(holdKey, Skills[Skill.Run]);
 
                 UniversalMotion newMotion = new UniversalMotion(stance, md);
+                if (holdKey != 0)
+                    newMotion.IsAutonomous = true;
                 // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
                 // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
                 newMotion.Commands.AddRange(commands);
