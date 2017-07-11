@@ -6,7 +6,7 @@ namespace ACE.Entity.Enum
     public enum ObjectType : uint
     {
         None                       = 0x00000000,
-        MeleeWeapn                 = 0x00000001,
+        MeleeWeapon                = 0x00000001,
         Armor                      = 0x00000002,
         Clothing                   = 0x00000004,
         Jewelry                    = 0x00000008,
@@ -36,6 +36,19 @@ namespace ACE.Entity.Enum
         LifeStone                  = 0x10000000,
         TinkeringTool              = 0x20000000,
         TinkeringMaterial          = 0x40000000,
-        Gameboard                  = 0x80000000
+        Gameboard                  = 0x80000000,
+
+        PortalMagicTarget                   = Portal | LifeStone,
+        LockableMagicTarget                 = Misc | Container,
+        Vestements                          = Armor | Clothing,
+        Weapon                              = MeleeWeapon | MissileWeapon,
+        WeaponOrCaster                      = MeleeWeapon | MissileWeapon | Caster,
+        Item                                = MeleeWeapon | Armor | Clothing | Jewelry | Food | Money | Misc | MissileWeapon | Container |
+                                              Gem | SpellComponents | Writable | Key | Caster | Portal | PromissoryNote | ManaStone | MagicWieldable,
+        RedirectableItemEnchantmentTarget   = MeleeWeapon | Armor | Clothing | MissileWeapon | Caster,
+        ItemEnchantableTarget               = MeleeWeapon | Armor | Clothing | Jewelry | Misc | MissileWeapon | Container | Gem | Caster | ManaStone,
+        VendorShopKeep                      = MeleeWeapon | Armor | Clothing | Food | Misc | MissileWeapon | Container | Useless | Writable | Key |
+                                              PromissoryNote | CraftFletchingIntermediate | TinkeringMaterial,
+        VendorGrocer                        = Food | Container | Writable | Key | PromissoryNote | CraftCookingBase
     }
 }

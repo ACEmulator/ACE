@@ -14,5 +14,7 @@ namespace ACE.Database
         List<CachedWeenieClass> GetRandomWeeniesOfType(uint typeId, uint numWeenies);
 
         AceObject GetAceObjectByWeenie(uint weenieClassId);
+
+        uint GetCurrentId(uint min, uint max);
     }
 }

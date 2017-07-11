@@ -95,6 +95,19 @@ namespace ACE.Database
             }));
         }
 
+        public void DeleteCharacter(uint id, Action<bool> callback)
+        {
+            lock (_queueLock)
+            {
+                _queue.Enqueue(new Task(() =>
+                {
+                    var result = _wrappedDatabase.DeleteCharacter(id);
+                    if (callback != null)
+                        callback.Invoke(result);
+                }));
+            }
+        }
+
         public void GetCharacter(uint id, Action<AceCharacter> callback)
         {
             _queue.Add(new Task(() =>
@@ -195,13 +208,13 @@ namespace ACE.Database
             }));
         }
 
-        public void GetMaxPlayerId(Action<uint> callback)
+        public void GetCurrentId(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetMaxPlayerId();
+                var result = _wrappedDatabase.GetCurrentId(min, max);
                 callback.Invoke(result);
-            }));
+            });
         }
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)

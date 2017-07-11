@@ -161,6 +161,7 @@ DROP TABLE IF EXISTS `ace_object_properties_bigint`;
 CREATE TABLE `ace_object_properties_bigint` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `bigIntPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` bigint(20) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_bigint_id` (`aceObjectId`,`bigIntPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -187,6 +188,7 @@ DROP TABLE IF EXISTS `ace_object_properties_bool`;
 CREATE TABLE `ace_object_properties_bool` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `boolPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` tinyint(1) NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_bool_id` (`aceObjectId`,`boolPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -213,6 +215,7 @@ DROP TABLE IF EXISTS `ace_object_properties_did`;
 CREATE TABLE `ace_object_properties_did` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `didPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` int(10) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_did_id` (`aceObjectId`,`didPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -239,6 +242,7 @@ DROP TABLE IF EXISTS `ace_object_properties_double`;
 CREATE TABLE `ace_object_properties_double` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `dblPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` double NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_double_id` (`aceObjectId`,`dblPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -265,6 +269,7 @@ DROP TABLE IF EXISTS `ace_object_properties_iid`;
 CREATE TABLE `ace_object_properties_iid` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `iidPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` int(10) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_iid_id` (`aceObjectId`,`iidPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -291,6 +296,7 @@ DROP TABLE IF EXISTS `ace_object_properties_int`;
 CREATE TABLE `ace_object_properties_int` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `intPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` int(10) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_int_id` (`aceObjectId`,`intPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -369,6 +375,7 @@ DROP TABLE IF EXISTS `ace_object_properties_string`;
 CREATE TABLE `ace_object_properties_string` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `strPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `propertyValue` text NOT NULL,
   UNIQUE KEY `ace_object__property_string_id` (`aceObjectId`,`strPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
@@ -493,7 +500,8 @@ SET character_set_client = utf8;
  1 AS `aceObjectDescriptionFlags`,
  1 AS `physicsDescriptionFlag`,
  1 AS `weenieHeaderFlags`,
- 1 AS `itemType`*/;
+ 1 AS `itemType`,
+ 1 AS `loginTimestamp`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -578,7 +586,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `vw_ace_character` AS select `ao`.`aceObjectId` AS `guid`,`aopiidacc`.`propertyValue` AS `accountId`,`aops`.`propertyValue` AS `NAME`,`aopb`.`propertyValue` AS `deleted`,`aopbi`.`propertyValue` AS `deleteTime`,`ao`.`weenieClassId` AS `weenieClassId`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType` from ((((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_bool` `aopb` on(((`ao`.`aceObjectId` = `aopb`.`aceObjectId`) and (`aopb`.`boolPropertyId` = 9001)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_object_properties_bigint` `aopbi` on(((`ao`.`aceObjectId` = `aopbi`.`aceObjectId`) and (`aopbi`.`bigIntPropertyId` = 9001)))) join `ace_object_properties_iid` `aopiidacc` on(((`ao`.`aceObjectId` = `aopiidacc`.`aceObjectId`) and (`aopiidacc`.`iidPropertyId` = 9001)))) */;
+/*!50001 VIEW `vw_ace_character` AS select `ao`.`aceObjectId` AS `guid`,`aopiidacc`.`propertyValue` AS `accountId`,`aops`.`propertyValue` AS `NAME`,`aopb`.`propertyValue` AS `deleted`,`aopbi`.`propertyValue` AS `deleteTime`,`ao`.`weenieClassId` AS `weenieClassId`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType`,`aopd`.`propertyValue` AS `loginTimestamp` from (((((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_bool` `aopb` on(((`ao`.`aceObjectId` = `aopb`.`aceObjectId`) and (`aopb`.`boolPropertyId` = 9001)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_object_properties_bigint` `aopbi` on(((`ao`.`aceObjectId` = `aopbi`.`aceObjectId`) and (`aopbi`.`bigIntPropertyId` = 9001)))) join `ace_object_properties_iid` `aopiidacc` on(((`ao`.`aceObjectId` = `aopiidacc`.`aceObjectId`) and (`aopiidacc`.`iidPropertyId` = 9001)))) left join `ace_object_properties_double` `aopd` on(((`ao`.`aceObjectId` = `aopd`.`aceObjectId`) and (`aopd`.`dblPropertyId` = 48)))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -610,7 +618,7 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-24 19:05:28
+-- Dump completed on 2017-07-08 12:06:03
 
 SET GLOBAL event_scheduler = ON;
 SET @@global.event_scheduler = ON;
