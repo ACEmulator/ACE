@@ -5,7 +5,7 @@ namespace ACE.Network.Enum
     [Flags]
     public enum PhysicsDescriptionFlag
     {
-        None                   = 0x00000,
+        None                   = 0x000000,
         /// <summary>
         /// Model Resource / ACLOG Calls it_setup_id
         /// </summary>

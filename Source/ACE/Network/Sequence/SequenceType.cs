@@ -27,5 +27,8 @@ namespace ACE.Network.Sequence
         PrivateUpdatePropertyDouble = 16,
         Motion = 17,
         PrivateUpdatePropertyDataID = 18,
+        PrivateUpdateAttribute2ndLevelHealth = 19,
+        PrivateUpdateAttribute2ndLevelStamina = 20,
+        PrivateUpdateAttribute2ndLevelMana = 21
     }
 }

@@ -1,9 +1,16 @@
 # ACEmulator Change Log
 
+### 2017-07-11
+[Ripley]
+* Removed events from SQL scripts. No longer need them in current implementation.
+* Renamed ObjectType to ItemType.
+* Added Sequences for Health/Stamina/Mana for proper updating later.
+* Set slew of initial values for new characters.
+* Added PlayerKillerStatus, CreatureType, and WeenieType enums.
+
 ### 2017-07-10
 [Og II]
 * Fixed bug with animation - isAutonomous flag was incorrectly set and fix for limping broke animation. (Me)   This should allow both to work correctly.
-
 
 ### 2017-07-09
 [Ripley]
@@ -11,10 +18,9 @@
 * If character's delete timer is up, the next time you log in, the character is deleted before sending you the list.
 
 [ddevec]
-* Changed SerialziedShardDatabase to use a BlockingCollection to stop busy polling of DB requests.
+* Changed SerializedShardDatabase to use a BlockingCollection to stop busy polling of DB requests.
 * Updated GuidManager to properly initialize current allocation Guids.
 * Added support in databases for the queries requried to initialize Guids.
-* Changed SerialziedShardDatabase to use a BlockingCollection to stop busy polling of DB requests.
 
 ### 2017-07-08
 [Ripley]
