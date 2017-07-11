@@ -417,7 +417,7 @@ namespace ACE.Entity
         /// <summary>
         /// will throw if null!
         /// </summary>
-        public uint Type
+        public uint ItemType
         {
             get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue ?? 0; }
             set { SetIntProperty(PropertyInt.ItemType, value); }

@@ -20,7 +20,8 @@ namespace ACE.Entity
 
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
-            Type = (uint)ObjectType.Creature;
+            //ItemType = (uint)ItemType.Creature;
+            ItemType = (uint)Enum.ItemType.Creature;
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
             WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior);
             ItemsCapacity = 102;

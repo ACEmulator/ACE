@@ -2014,7 +2014,7 @@ namespace ACE.Entity
                                     }
                                 case EquipMask.Shield:
                                     {
-                                        if (item.Type == ObjectType.Armor)
+                                        if (item.ItemType == ItemType.Armor)
                                         {
                                             childLocation = 3;
                                             placementId = 6;

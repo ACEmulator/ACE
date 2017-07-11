@@ -74,10 +74,10 @@ namespace ACE.Entity
             get { return AceObject.SpellIdProperties; }
         }
 
-        public ObjectType Type
+        public ItemType ItemType
         {
-            get { return (ObjectType)AceObject.Type; }
-            protected set { AceObject.Type = (uint)value; }
+            get { return (ItemType)AceObject.ItemType; }
+            protected set { AceObject.ItemType = (uint)value; }
         }
 
         /// <summary>
@@ -177,8 +177,8 @@ namespace ACE.Entity
         // Logical Game Data
         public uint GameDataType
         {
-            get { return AceObject.Type; }
-            set { AceObject.Type = value; }
+            get { return AceObject.ItemType; }
+            set { AceObject.ItemType = value; }
         }
 
         public ContainerType ContainerType
@@ -582,11 +582,11 @@ namespace ACE.Entity
 
         public SequenceManager Sequences { get; }
 
-        protected WorldObject(ObjectType type, ObjectGuid guid)
+        protected WorldObject(ItemType type, ObjectGuid guid)
         {
             AceObject = new AceObject();
             AceObject.AceObjectId = guid.Full;
-            Type = type;
+            ItemType = type;
             Guid = guid;
 
             Sequences = new SequenceManager();
@@ -603,7 +603,7 @@ namespace ACE.Entity
         }
 
         protected WorldObject(AceObject aceObject)
-                : this((ObjectType)aceObject.Type, new ObjectGuid(aceObject.AceObjectId))
+                : this((ItemType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
@@ -622,7 +622,7 @@ namespace ACE.Entity
         }
 
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
-            : this((ObjectType)aceObject.Type, guid)
+            : this((ItemType)aceObject.ItemType, guid)
         {
             Guid = guid;
             AceObject = aceObject;
@@ -813,7 +813,7 @@ namespace ACE.Entity
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(Icon ?? 0, 0x6000000);
-            writer.Write((uint)Type);
+            writer.Write((uint)ItemType);
             writer.Write((uint)DescriptionFlags);
             writer.Align();
 

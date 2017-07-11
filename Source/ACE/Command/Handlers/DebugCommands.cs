@@ -79,8 +79,8 @@ namespace ACE.Command.Handlers
                             debugOutput = $"{posFlag.GetType().Name} = {posFlag.ToString()}" + " (" + (uint)posFlag + ")";
                             break;
                         case "type":
-                            ObjectType objectType = new ObjectType();
-                            objectType = (ObjectType)Convert.ToUInt32(parameters[1]);
+                            ItemType objectType = new ItemType();
+                            objectType = (ItemType)Convert.ToUInt32(parameters[1]);
 
                             debugOutput = $"{objectType.GetType().Name} = {objectType.ToString()}" + " (" + (uint)objectType + ")";
                             break;

@@ -12,7 +12,7 @@ namespace ACE.Entity
 
         public PlayScript PlayerScript = Network.Enum.PlayScript.Invalid;
 
-        public SpellLikeEffect(ObjectType type,
+        public SpellLikeEffect(ItemType type,
             ObjectGuid guid,
             string name,
             ushort weenieClassId,

@@ -117,20 +117,20 @@ namespace ACE.Factories
                     baseObject.Generator = generator.AceObjectId;
 
                     // Determine the ObjectType and call the specific Factory
-                    ObjectType ot = (ObjectType)baseObject.Type;
+                    ItemType ot = (ItemType)baseObject.ItemType;
                     switch (ot)
                     {
-                        case ObjectType.Creature:
+                        case ItemType.Creature:
                             // TODO: enhance this if we need to spawn NPCs too, else it is just monsters for this tpye
                             results.Add(MonsterFactory.SpawnMonster(baseObject, pos));
                             break;
 
-                        case ObjectType.Portal:
+                        case ItemType.Portal:
                             // TODO: enable generators to spawn portals, i.e. for Humming Crystal Portal
                             // results.Add();
                             break;
 
-                        case ObjectType.Misc:
+                        case ItemType.Misc:
                             // TODO: enable generators to spawn misc items: i.e. Campfire
                             // results.Add();
                             break;
