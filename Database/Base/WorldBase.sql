@@ -576,10 +576,6 @@ SET character_set_client = utf8;
 SET character_set_client = @saved_cs_client;
 
 --
--- Dumping events for database 'ace_world'
---
-
---
 -- Final view structure for view `vw_ace_object`
 --
 
@@ -642,4 +638,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-07-08 12:08:23
+-- Dump completed on 2017-07-10 23:50:40
