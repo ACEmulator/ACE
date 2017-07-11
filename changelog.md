@@ -6,8 +6,10 @@
 * If character's delete timer is up, the next time you log in, the character is deleted before sending you the list.
 
 [ddevec]
+* Changed SerialziedShardDatabase to use a BlockingCollection to stop busy polling of DB requests.
 * Updated GuidManager to properly initialize current allocation Guids.
 * Added support in databases for the queries requried to initialize Guids.
+* Changed SerialziedShardDatabase to use a BlockingCollection to stop busy polling of DB requests.
 
 ### 2017-07-08
 [Ripley]
