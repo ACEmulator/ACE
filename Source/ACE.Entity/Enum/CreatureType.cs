@@ -2,7 +2,6 @@
 
 namespace ACE.Entity.Enum
 {
-    [Flags]
     public enum CreatureType : uint
     {
         Invalid,
