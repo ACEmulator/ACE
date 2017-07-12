@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.Enum
+﻿namespace ACE.Entity.Enum
 {
     /// <summary>
     /// These are used with various movement related messages.   

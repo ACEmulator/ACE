@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Network.Enum
+namespace ACE.Entity.Enum
 {
     // Thanks to tfarley (aclogview) for these enums
     public enum CharacterOptionDataFlag : uint

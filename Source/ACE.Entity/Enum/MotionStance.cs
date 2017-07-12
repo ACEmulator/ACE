@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Network.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// Different commands or styles of stance.

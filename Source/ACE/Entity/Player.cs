@@ -460,7 +460,7 @@ namespace ACE.Entity
                 // break if we reach max
                 if (Character.Level == maxLevel.Level)
                 {
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(Enum.PlayScript.WeddingBliss, Guid);
                     break;
                 }
             }
@@ -487,7 +487,7 @@ namespace ACE.Entity
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 }
                 // play level up effect
-                PlayParticleEffect(Network.Enum.PlayScript.LevelUp, Guid);
+                PlayParticleEffect(Enum.PlayScript.LevelUp, Guid);
             }
         }
 
@@ -539,7 +539,7 @@ namespace ACE.Entity
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -547,7 +547,7 @@ namespace ACE.Entity
                     messageText = $"Your base {ability} is now {newValue}!";
                 }
                 var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
-                var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
+                var soundEvent = new GameMessageSound(this.Guid, Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
 
                 // This seems to be needed to keep health up to date properly.
@@ -702,7 +702,7 @@ namespace ACE.Entity
             var status = creatureSkill.Status;
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(this.Guid, Network.Enum.Sound.RaiseTrait, 1f);
+            var soundEvent = new GameMessageSound(this.Guid, Sound.RaiseTrait, 1f);
             string messageText = "";
 
             if (result > 0u)
@@ -712,7 +712,7 @@ namespace ACE.Entity
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    PlayParticleEffect(Network.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -2238,12 +2238,12 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void HandleActionApplySoundEffect(Network.Enum.Sound sound)
+        public void HandleActionApplySoundEffect(Sound sound)
         {
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }
 
-        public void HandleActionApplyVisualEffect(Network.Enum.PlayScript effect)
+        public void HandleActionApplyVisualEffect(PlayScript effect)
         {
             new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
         }

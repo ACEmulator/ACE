@@ -10,7 +10,7 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PlayScript PlayerScript = Network.Enum.PlayScript.Invalid;
+        public PlayScript PlayerScript = Enum.PlayScript.Invalid;
 
         public SpellLikeEffect(ItemType type,
             ObjectGuid guid,
@@ -38,7 +38,7 @@ namespace ACE.Entity
 
         public override void PlayScript(Session session)
         {
-            if (PlayerScript != Network.Enum.PlayScript.Invalid)
+            if (PlayerScript != Enum.PlayScript.Invalid)
             {
                 var scriptEvent = new GameMessageScript(Guid, PlayerScript, 1f);
                 session.Network.EnqueueSend(scriptEvent);

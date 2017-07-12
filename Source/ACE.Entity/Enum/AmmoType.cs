@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.Enum
+﻿namespace ACE.Entity.Enum
 {
     public enum AmmoType : ushort
     {

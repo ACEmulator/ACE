@@ -238,10 +238,10 @@ namespace ACE.Command.Handlers
         {
             try
             {
-                Network.Enum.Sound sound = Network.Enum.Sound.Invalid;
+                Sound sound = Sound.Invalid;
                 string message = "";
                 float volume = 1f;
-                var soundEvent = new GameMessageSound(session.Player.Guid, Network.Enum.Sound.Invalid, volume);
+                var soundEvent = new GameMessageSound(session.Player.Guid, Sound.Invalid, volume);
 
                 if (parameters.Length > 1)
                     if (parameters[1] != "")
@@ -251,9 +251,9 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parameters[0], true, out sound))
                 {
-                    if (Enum.IsDefined(typeof(Network.Enum.Sound), sound))
+                    if (Enum.IsDefined(typeof(Sound), sound))
                     {
-                        message = $"Playing sound {Enum.GetName(typeof(Network.Enum.Sound), sound)}";
+                        message = $"Playing sound {Enum.GetName(typeof(Sound), sound)}";
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
@@ -280,10 +280,10 @@ namespace ACE.Command.Handlers
         {
             try
             {
-                Network.Enum.PlayScript effect = Network.Enum.PlayScript.Invalid;
+                PlayScript effect = PlayScript.Invalid;
                 string message = "";
                 float scale = 1f;
-                var effectEvent = new GameMessageScript(session.Player.Guid, Network.Enum.PlayScript.Invalid);
+                var effectEvent = new GameMessageScript(session.Player.Guid, PlayScript.Invalid);
 
                 if (parameters.Length > 1)
                     if (parameters[1] != "")
@@ -293,9 +293,9 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parameters[0], true, out effect))
                 {
-                    if (Enum.IsDefined(typeof(Network.Enum.PlayScript), effect))
+                    if (Enum.IsDefined(typeof(PlayScript), effect))
                     {
-                        message = $"Playing effect {Enum.GetName(typeof(Network.Enum.PlayScript), effect)}";
+                        message = $"Playing effect {Enum.GetName(typeof(PlayScript), effect)}";
                         session.Player.HandleActionApplyVisualEffect(effect);
                     }
                 }

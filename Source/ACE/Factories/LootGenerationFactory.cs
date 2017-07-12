@@ -6,6 +6,7 @@ using ACE.Managers;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
+using ACE.Entity.Enum;
 
 namespace ACE.Factories
 {

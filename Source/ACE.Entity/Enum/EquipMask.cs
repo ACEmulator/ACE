@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE.Network.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// This data is sent as loc in the player discription message F7B0 -0013

@@ -13,9 +13,9 @@ namespace ACE.Entity
         {
             DescriptionFlags = ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.HiddenAdmin;
             PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
-            RadarBehavior = Network.Enum.RadarBehavior.ShowNever;
-            RadarColor = Network.Enum.RadarColor.Admin;
-            Usable = Network.Enum.Usable.No;
+            RadarBehavior = Enum.RadarBehavior.ShowNever;
+            RadarColor = Enum.RadarColor.Admin;
+            Usable = Enum.Usable.No;
 
             SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();

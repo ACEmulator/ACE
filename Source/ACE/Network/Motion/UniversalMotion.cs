@@ -4,6 +4,7 @@ using ACE.Network.Enum;
 using ACE.Entity;
 using System;
 using ACE.Network.Sequence;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.Motion
 {

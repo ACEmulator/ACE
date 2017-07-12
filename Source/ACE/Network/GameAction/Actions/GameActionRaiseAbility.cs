@@ -1,4 +1,5 @@
-﻿using ACE.Network.Enum;
+﻿using ACE.Entity.Enum;
+using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -29,7 +30,7 @@ namespace ACE.Network.GameAction.Actions
                 case Ability.Self:
                     ability = Entity.Enum.Ability.Self;
                     break;
-                case Ability.Undefined:
+                case Ability.None:
                     return;
             }
             var xpSpent = message.Payload.ReadUInt32();

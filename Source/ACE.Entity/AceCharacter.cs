@@ -36,11 +36,15 @@ namespace ACE.Entity
             Burden = 0;
             // SpellId = 0;
 
+            Radar = (byte)RadarBehavior.ShowAlways;
+            BlipColor = (byte)RadarColor.White;
+            ItemUseable = (uint)Usable.No;
+
             SetBoolProperty(PropertyBool.FirstEnterWorldDone, false);
 
             SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
             SetIntProperty(PropertyInt.CreationTimestamp, (uint)GetDoubleProperty(PropertyDouble.CreationTimestamp));
-            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("yyyy MMMM dd")}");
+            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("dd MMMM yyyy")}");
 
             SetBoolProperty(PropertyBool.Stuck, true);
             SetBoolProperty(PropertyBool.Attackable, true);
