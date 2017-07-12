@@ -105,6 +105,7 @@
     <Compile Include="Enum\CoverageMask.cs" />
     <Compile Include="Enum\CreatureType.cs" />
     <Compile Include="Enum\EquipMask.cs" />
+    <Compile Include="Enum\IdentifyResponseFlags.cs" />
     <Compile Include="Enum\IdLookupType.cs" />
     <Compile Include="Enum\LandBlockStatusFlag.cs" />
     <Compile Include="Enum\MagicSchool.cs" />
