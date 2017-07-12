@@ -14,7 +14,7 @@ namespace ACE.Factories
 
             foreach (var aceO in sourceObjects)
             {
-                var oType = (ObjectType)aceO.Type;
+                var oType = (ItemType)aceO.ItemType;
                 var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 
                 if (aceO.GeneratorStatus)  // Generator

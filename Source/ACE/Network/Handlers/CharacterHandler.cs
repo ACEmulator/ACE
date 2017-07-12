@@ -140,14 +140,20 @@ namespace ACE.Network.Handlers
             CharGen cg = CharGen.ReadFromDat();
             var reader = message.Payload;
             AceCharacter character = new AceCharacter(id);
+            
             // FIXME(ddevec): These should go in AceCharacter constructor, but the Network enum is not available there
             character.Radar = (byte)Network.Enum.RadarBehavior.ShowAlways;
             character.BlipColor = (byte)Network.Enum.RadarColor.White;
-            character.ItemUseable = (uint)Network.Enum.Usable.ObjSelf;
+            character.ItemUseable = (uint)Network.Enum.Usable.No;
 
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
+            character.SetStringProperty(PropertyString.HeritageGroup, cg.HeritageGroups[(int)character.Heritage].Name);
             character.Gender = reader.ReadUInt32();
+            if (character.Gender == 1)
+                character.SetStringProperty(PropertyString.Sex, "Male");
+            else
+                character.SetStringProperty(PropertyString.Sex, "Female");
             Appearance appearance = Appearance.FromNetwork(reader);
 
             // pull character data from the dat file
@@ -276,6 +282,7 @@ namespace ACE.Network.Handlers
             }
 
             character.Name = reader.ReadString16L();
+            character.SetStringProperty(PropertyString.DisplayName, character.Name); // unsure
 
             // currently not used
             uint startArea = reader.ReadUInt32();

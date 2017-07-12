@@ -71,10 +71,6 @@ LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'ace_auth'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -85,4 +81,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-07-08 12:04:00
+-- Dump completed on 2017-07-10 23:50:17

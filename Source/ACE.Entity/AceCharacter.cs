@@ -20,9 +20,9 @@ namespace ACE.Entity
 
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
-            Type = (uint)ObjectType.Creature;
+            ItemType = (uint)Enum.ItemType.Creature;
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
-            WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBlipColor | WeenieHeaderFlag.RadarBehavior);
+            WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
             ItemsCapacity = 102;
             ContainersCapacity = 7;
             WeenieClassId = 1;
@@ -31,12 +31,88 @@ namespace ACE.Entity
             Level = 1;
             AvailableExperience = 0;
             TotalExperience = 0;
-            IconId = 0x1036;
+            IconId = 100667446;
             WeenieClassId = 1;
             Burden = 0;
-            SpellId = 0;
-            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable |
-                                        ObjectDescriptionFlag.Player);
+            // SpellId = 0;
+
+            SetBoolProperty(PropertyBool.FirstEnterWorldDone, false);
+
+            SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
+            SetIntProperty(PropertyInt.CreationTimestamp, (uint)GetDoubleProperty(PropertyDouble.CreationTimestamp));
+            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("yyyy MMMM dd")}");
+
+            SetBoolProperty(PropertyBool.Stuck, true);
+            SetBoolProperty(PropertyBool.Attackable, true);
+
+            SetIntProperty(PropertyInt.CreatureType, (uint)CreatureType.Human);
+            SetIntProperty(PropertyInt.ChannelsAllowed, (uint)Channel.AllChans);
+            SetIntProperty(PropertyInt.ChannelsActive, (uint)Channel.AllBroadcast);
+
+            SetIntProperty(PropertyInt.NumDeaths, 0);
+
+            SetIntProperty(PropertyInt.ChessRank, 1400);
+            SetIntProperty(PropertyInt.ChessTotalgames, 0);
+            SetIntProperty(PropertyInt.ChessGameslost, 0);
+            SetIntProperty(PropertyInt.ChessGameswon, 0);
+            SetIntProperty(PropertyInt.FakeFishingSkill, 0);
+
+            SetIntProperty(PropertyInt.PhysicsState, (uint)(Enum.PhysicsState.IgnoreCollision | Enum.PhysicsState.Gravity | Enum.PhysicsState.Hidden | Enum.PhysicsState.EdgeSlide));
+            SetBoolProperty(PropertyBool.IgnoreCollisions, true);
+            SetBoolProperty(PropertyBool.GravityStatus, true);
+            // SetBoolProperty(PropertyBool.UiHidden, true); not sure on this one
+            SetBoolProperty(PropertyBool.AllowEdgeSlide, true);
+
+            SetDoubleProperty(PropertyDouble.GlobalXpMod, 0);
+            SetIntProperty(PropertyInt.HealingBoostRating, 0);
+            SetIntProperty(PropertyInt.WeaknessRating, 0);
+            SetIntProperty(PropertyInt.NetherOverTime, 0);
+            SetIntProperty(PropertyInt.NetherResistRating, 0);
+            SetIntProperty(PropertyInt.DotResistRating, 0);
+            SetIntProperty(PropertyInt.LifeResistRating, 0);
+            SetIntProperty(PropertyInt.WeaponAuraDamage, 0);
+            SetIntProperty(PropertyInt.WeaponAuraSpeed, 0);
+            SetIntProperty(PropertyInt.Unknown381, 0);
+            SetIntProperty(PropertyInt.Unknown382, 0);
+            SetIntProperty(PropertyInt.Unknown386, 0);
+            SetIntProperty(PropertyInt.Unknown387, 0);
+            SetIntProperty(PropertyInt.Unknown388, 0);
+            SetIntProperty(PropertyInt.Unknown389, 0);
+            SetDoubleProperty(PropertyDouble.WeaponAuraOffense, 0);
+            SetDoubleProperty(PropertyDouble.WeaponAuraDefense, 0);
+            SetDoubleProperty(PropertyDouble.WeaponAuraElemental, 0);
+            SetDoubleProperty(PropertyDouble.WeaponAuraManaConv, 0);
+            SetInt64Property(PropertyInt64.AvailableLuminance, 0);
+            SetInt64Property(PropertyInt64.MaximumLuminance, 0);
+            SetIntProperty(PropertyInt.LumAugDamageRating, 0);
+            SetIntProperty(PropertyInt.LumAugDamageReductionRating, 0);
+            SetIntProperty(PropertyInt.LumAugCritDamageRating, 0);
+            SetIntProperty(PropertyInt.LumAugCritReductionRating, 0);
+            SetIntProperty(PropertyInt.LumAugSurgeChanceRating, 0);
+            SetIntProperty(PropertyInt.LumAugItemManaUsage, 0);
+            SetIntProperty(PropertyInt.LumAugItemManaGain, 0);
+            SetIntProperty(PropertyInt.LumAugHealingRating, 0);
+            SetIntProperty(PropertyInt.LumAugSkilledCraft, 0);
+            SetIntProperty(PropertyInt.LumAugSkilledSpec, 0);
+            SetIntProperty(PropertyInt.LumAugAllSkills, 0);
+            SetIntProperty(PropertyInt.Unknown390, 0);
+            SetIntProperty(PropertyInt.GearDamage, 0);
+            SetIntProperty(PropertyInt.GearDamageResist, 0);
+            SetIntProperty(PropertyInt.GearCrit, 0);
+            SetIntProperty(PropertyInt.GearCritResist, 0);
+            SetIntProperty(PropertyInt.GearCritDamage, 0);
+            SetIntProperty(PropertyInt.GearCritDamageResist, 0);
+            SetIntProperty(PropertyInt.GearHealingBoost, 0);
+            SetIntProperty(PropertyInt.GearNetherResist, 0);
+            SetIntProperty(PropertyInt.GearLifeResist, 0);
+            SetIntProperty(PropertyInt.GearMaxHealth, 0);
+            SetIntProperty(PropertyInt.Unknown383, 0);
+            SetIntProperty(PropertyInt.Unknown384, 0);
+            SetIntProperty(PropertyInt.Unknown389, 0);
+
+            SetBoolProperty(PropertyBool.Account15Days, true);
+
+            SetIntProperty(PropertyInt.PlayerKillerStatus, (uint)PlayerKillerStatus.NPK);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }

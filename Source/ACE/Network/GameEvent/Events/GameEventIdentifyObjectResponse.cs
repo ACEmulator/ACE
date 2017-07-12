@@ -141,7 +141,7 @@ namespace ACE.Network.GameEvent.Events
                 flags |= IdentifyResponseFlags.StringStatsTable;
             }
 
-            if (obj.Type == ObjectType.Creature)
+            if (obj.ItemType == ItemType.Creature)
             {
                 flags |= IdentifyResponseFlags.CreatureProfile;
 #if DEBUG
@@ -161,7 +161,7 @@ namespace ACE.Network.GameEvent.Events
             session.Player.WriteIdentifyObjectSpellIdProperties(Writer, flags, propertiesSpellId);
             session.Player.WriteIdentifyObjectArmorProfile(Writer, flags, propertiesArmor);
             // TODO: There are probably other checks that need to be made here
-            if (obj.Type == ObjectType.Creature && type.Name != "DebugObject")
+            if (obj.ItemType == ItemType.Creature && type.Name != "DebugObject")
             {                
                 session.Player.WriteIdentifyObjectCreatureProfile(Writer, (Creature)obj);
             }
@@ -196,8 +196,8 @@ namespace ACE.Network.GameEvent.Events
                     case "positionflag":
                         debugOutput += $"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")" + "\n";
                         break;
-                    case "type":
-                        debugOutput += $"{prop.Name} = {obj.Type.ToString()}" + " (" + (uint)obj.Type + ")" + "\n";
+                    case "itemtype":
+                        debugOutput += $"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")" + "\n";
                         break;
                     case "containertype":
                         debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";

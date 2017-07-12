@@ -536,44 +536,6 @@ SET character_set_client = utf8;
 SET character_set_client = @saved_cs_client;
 
 --
--- Dumping events for database 'ace_shard'
---
-/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;
-/*!50106 DROP EVENT IF EXISTS `SetCharacterDeletedFlag` */;
-DELIMITER ;;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;;
-/*!50003 SET character_set_client  = utf8 */ ;;
-/*!50003 SET character_set_results = utf8 */ ;;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;
-/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;;
-/*!50003 SET @saved_time_zone      = @@time_zone */ ;;
-/*!50003 SET time_zone             = '+00:00' */ ;;
-/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `SetCharacterDeletedFlag` ON SCHEDULE EVERY 1 MINUTE STARTS '2017-06-16 16:15:35' ON COMPLETION PRESERVE ENABLE DO BEGIN
- UPDATE
-      ace_object_properties_bool aopb
-      INNER JOIN ace_object_properties_bigint aopbi
-         ON (
-            aopb.aceObjectId = aopbi.aceObjectId
-            AND aopbi.bigIntPropertyId = 9001
-         ) SET aopb.propertyValue = 1
-   WHERE aopb.boolPropertyId = 9001
-      AND aopbi.propertyValue != 0
-      AND (FROM_UNIXTIME(aopbi.propertyValue) < NOW());
-      
-
-   END */ ;;
-/*!50003 SET time_zone             = @saved_time_zone */ ;;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;;
-/*!50003 SET character_set_results = @saved_cs_results */ ;;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;;
-DELIMITER ;
-/*!50106 SET TIME_ZONE= @save_time_zone */ ;
-
---
 -- Final view structure for view `vw_ace_character`
 --
 
@@ -618,9 +580,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-07-08 12:06:03
-
-SET GLOBAL event_scheduler = ON;
-SET @@global.event_scheduler = ON;
-SET GLOBAL event_scheduler = 1;
-SET @@global.event_scheduler = 1;
+-- Dump completed on 2017-07-10 23:50:29

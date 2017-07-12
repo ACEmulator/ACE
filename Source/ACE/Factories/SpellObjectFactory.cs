@@ -57,7 +57,7 @@ namespace ACE.Factories
                     break;
             }
 
-            SpellLikeEffect mobj = new SpellLikeEffect(ObjectType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
+            SpellLikeEffect mobj = new SpellLikeEffect(ItemType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
 
             mobj.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
             mobj.DefaultScriptIntensity = (float)1;

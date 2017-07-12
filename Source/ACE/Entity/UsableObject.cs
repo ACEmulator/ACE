@@ -4,7 +4,7 @@ namespace ACE.Entity
 {
     public class UsableObject : WorldObject
     {
-        public UsableObject(ObjectType type, ObjectGuid guid)
+        public UsableObject(ItemType type, ObjectGuid guid)
             : base(type, guid)
         {
         }

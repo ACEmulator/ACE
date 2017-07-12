@@ -199,6 +199,9 @@ namespace ACE.Entity
 
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
@@ -237,7 +240,8 @@ namespace ACE.Entity
         { get { return Character.Age; } }
 
         public uint CreationTimestamp
-        { get { return Character.GetIntProperty(PropertyInt.CreationTimestamp) ?? 0; } }
+        { get { return (uint)Character.GetDoubleProperty(PropertyDouble.CreationTimestamp); } }
+        // { get { return Character.GetIntProperty(PropertyInt.CreationTimestamp) ?? 0; } }
 
         public AceObject GetAceObject()
         {
@@ -301,7 +305,7 @@ namespace ACE.Entity
             // Save the the LoginTimestamp
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
 
-            this.TotalLogins++;
+            TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
@@ -2014,7 +2018,7 @@ namespace ACE.Entity
                                     }
                                 case EquipMask.Shield:
                                     {
-                                        if (item.Type == ObjectType.Armor)
+                                        if (item.ItemType == ItemType.Armor)
                                         {
                                             childLocation = 3;
                                             placementId = 6;
