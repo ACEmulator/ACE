@@ -7,6 +7,7 @@ using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Factories
 {
@@ -39,7 +40,7 @@ namespace ACE.Factories
         public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            if (aceObject.ItemsCapacity >= 1)
+            if (aceObject.GetIntProperty(PropertyInt.ItemsCapacity) >= 1)
             {
                 return CreateTestContainerObject(player, weenieId);
             }
@@ -52,7 +53,7 @@ namespace ACE.Factories
             for (int i = 0; i < numItems; i++)
             {
                 WorldObject wo = CreateTestWorldObject(player, weenieList[i].WeenieClassId);
-                wo.ContainerId = player.Guid.Full;
+                wo.Container = player.Guid.Full;
                 player.HandleAddToInventory(wo);
             }
         }

@@ -7,10 +7,10 @@ namespace ACE.Entity.Enum
     {
         None                        = 0x00000000,
         PluralName                  = 0x00000001,
-        ItemCapacity                = 0x00000002,
-        ContainerCapacity           = 0x00000004,
+        ItemsCapacity               = 0x00000002,
+        ContainersCapacity          = 0x00000004,
         Value                       = 0x00000008,
-        Usable                      = 0x00000010,
+        Usable                      = 0x00000010, // Usability
         UseRadius                   = 0x00000020,
         Monarch                     = 0x00000040,
         UiEffects                   = 0x00000080,
@@ -23,7 +23,7 @@ namespace ACE.Entity.Enum
         Container                   = 0x00004000,
         Wielder                     = 0x00008000,
         ValidLocations              = 0x00010000,
-        CurrentlyWieldedLocation    = 0x00020000,
+        CurrentlyWieldedLocation    = 0x00020000, // Location
         Priority                    = 0x00040000,
         TargetType                  = 0x00080000,
         RadarBlipColor              = 0x00100000,
@@ -33,11 +33,11 @@ namespace ACE.Entity.Enum
         Workmanship                 = 0x01000000,
         HouseOwner                  = 0x02000000,
         HouseRestrictions           = 0x04000000,
-        Script                      = 0x08000000,
+        PScript                     = 0x08000000,
         HookType                    = 0x10000000,
         HookItemTypes               = 0x20000000,
         IconOverlay                 = 0x40000000,
-        Material                    = 0x80000000
+        MaterialType                = 0x80000000
     }
 
     [Flags]

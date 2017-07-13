@@ -11,7 +11,7 @@
         AvailableLuminance = 6,
         MaximumLuminance = 7,
         InteractionReqs = 8,
+
         DeleteTime = 9001,
-        Count = 10
     }
 }

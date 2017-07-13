@@ -744,7 +744,7 @@ namespace ACE.Entity
             }
 
             RemoveWorldObjectInternal(woGuid, false);
-            wo.ContainerId = container.Guid.Full;
+            wo.Container = container.Guid.Full;
             container.AddToInventory(wo);
         }
 

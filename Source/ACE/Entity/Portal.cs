@@ -105,14 +105,14 @@ namespace ACE.Entity
         {
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             // check to see if this ace object has a destination.  if so, defer to it.
-            if (aceO.Destination != null)
+            if (aceO.GetPosition(PositionType.Destination) != null)
             {
-                Destination = aceO.Destination;
+                Destination = aceO.GetPosition(PositionType.Destination);
             }
             else
             {
                 // but if not, portals roll up to the weenie
-                Destination = weenie.Destination;
+                Destination = weenie.GetPosition(PositionType.Destination);
             }
 
             MinimumLevel = weenie.GetIntProperty(PropertyInt.MinLevel) ?? 0;

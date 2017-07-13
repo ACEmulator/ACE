@@ -845,7 +845,7 @@ namespace ACE.Command.Handlers
                 foreach (uint weenieId in weaponsTest)
                 {
                     WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-                    loot.ContainerId = session.Player.Guid.Full;
+                    loot.Container = session.Player.Guid.Full;
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     session.Network.EnqueueSend(
@@ -871,7 +871,7 @@ namespace ACE.Command.Handlers
                     var valueEach = loot.Value / loot.StackSize;
                     loot.StackSize = loot.MaxStackSize;
                     loot.Value = loot.StackSize * valueEach;
-                    loot.ContainerId = session.Player.Guid.Full;
+                    loot.Container = session.Player.Guid.Full;
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     session.Network.EnqueueSend(

@@ -8,7 +8,7 @@ using System.Linq;
 namespace ACE.Entity
 {
     [DbTable("vw_ace_character")]
-    public class AceCharacter : AceObject
+    public class AceCharacter : AceObject, ICreatureStats
     {
         private readonly List<Friend> friends;
 
@@ -20,25 +20,24 @@ namespace ACE.Entity
 
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
-            ItemType = (uint)Enum.ItemType.Creature;
+            SetIntProperty(PropertyInt.ItemType, (uint)ItemType.Creature);
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
-            WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemCapacity | WeenieHeaderFlag.ContainerCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
-            ItemsCapacity = 102;
-            ContainersCapacity = 7;
+            WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemsCapacity | WeenieHeaderFlag.ContainersCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
+            SetIntProperty(PropertyInt.ItemsCapacity, 102);
+            SetIntProperty(PropertyInt.ContainersCapacity, 7);
             WeenieClassId = 1;
             Deleted = false;
             DeleteTime = 0;
-            Level = 1;
+            SetIntProperty(PropertyInt.Level, 1);
             AvailableExperience = 0;
             TotalExperience = 0;
-            IconId = 100667446;
-            WeenieClassId = 1;
-            Burden = 0;
+            SetDataIdProperty(PropertyDataId.Icon, 100667446);
+            SetIntProperty(PropertyInt.EncumbranceVal, 0);
             // SpellId = 0;
 
-            Radar = (byte)RadarBehavior.ShowAlways;
-            BlipColor = (byte)RadarColor.White;
-            ItemUseable = (uint)Usable.No;
+            SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
+            SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);
+            SetIntProperty(PropertyInt.ItemUseable, (uint)Usable.No);
 
             SetBoolProperty(PropertyBool.FirstEnterWorldDone, false);
 
@@ -56,9 +55,9 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.NumDeaths, 0);
 
             SetIntProperty(PropertyInt.ChessRank, 1400);
-            SetIntProperty(PropertyInt.ChessTotalgames, 0);
-            SetIntProperty(PropertyInt.ChessGameslost, 0);
-            SetIntProperty(PropertyInt.ChessGameswon, 0);
+            SetIntProperty(PropertyInt.ChessTotalGames, 0);
+            SetIntProperty(PropertyInt.ChessGamesLost, 0);
+            SetIntProperty(PropertyInt.ChessGamesWon, 0);
             SetIntProperty(PropertyInt.FakeFishingSkill, 0);
 
             SetIntProperty(PropertyInt.PhysicsState, (uint)(Enum.PhysicsState.IgnoreCollision | Enum.PhysicsState.Gravity | Enum.PhysicsState.Hidden | Enum.PhysicsState.EdgeSlide));
@@ -370,6 +369,114 @@ namespace ACE.Entity
             get { return GetDataIdProperty(PropertyDataId.EyesPalette) ?? 0; }
             set { SetDataIdProperty(PropertyDataId.EyesPalette, value); }
         }
+
+        ////public uint? IconId
+        ////{
+        ////    get { return GetDataIdProperty(PropertyDataId.Icon); }
+        ////    set { SetDataIdProperty(PropertyDataId.Icon, value); }
+        ////}
+
+        ////public uint? IconOverlayId
+        ////{
+        ////    get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
+        ////    set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
+        ////}
+
+        ////public uint? IconUnderlayId
+        ////{
+        ////    get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
+        ////    set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
+        ////}
+
+        public uint? SetupTableId
+        {
+            get { return GetDataIdProperty(PropertyDataId.Setup); }
+            set { SetDataIdProperty(PropertyDataId.Setup, value); }
+        }
+
+        public uint? MotionTableId
+        {
+            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
+            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
+        }
+
+        public ushort? PhysicsScript
+        {
+            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
+            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+        }
+
+        public uint? PhysicsTableId
+        {
+            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
+            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
+        }
+
+        public uint? SoundTableId
+        {
+            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
+            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
+        }
+
+        public uint? CombatTableId
+        {
+            get { return GetDataIdProperty(PropertyDataId.CombatTable); }
+            set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
+        }
+
+        ////public ushort? SpellId
+        ////{
+        ////    get { return (ushort?)GetDataIdProperty(PropertyDataId.Spell); }
+        ////    set { SetDataIdProperty(PropertyDataId.Spell, value); }
+        ////}
+
+        ////public uint? DefaultScript
+        ////{
+        ////    get { return GetDataIdProperty(PropertyDataId.UseUserAnimation); }
+        ////    set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
+        ////}
+
+        public uint Level
+        {
+            get { return GetIntProperty(PropertyInt.Level) ?? 0; }
+            set { SetIntProperty(PropertyInt.Level, value); }
+        }
+
+        public string Name
+        {
+            get { return GetStringProperty(PropertyString.Name); }
+            set { SetStringProperty(PropertyString.Name, value); }
+        }
+
+        public uint? PaletteId
+        {
+            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
+            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
+        }
+
+        public float? DefaultScale
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
+            set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
+        }
+
+        ////public Position Destination
+        ////{
+        ////    get { return GetPosition(PositionType.Destination); }
+        ////    set { SetPosition(PositionType.Destination, value); }
+        ////}
+
+        public Position Location
+        {
+            get { return GetPosition(PositionType.Location); }
+            set { SetPosition(PositionType.Location, value); }
+        }
+
+        ////public Position Instantiation
+        ////{
+        ////    get { return GetPosition(PositionType.Instantiation); }
+        ////    set { SetPosition(PositionType.Instantiation, value); }
+        ////}
 
         private bool dirtyOptions = true;
 

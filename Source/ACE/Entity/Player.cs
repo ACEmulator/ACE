@@ -215,7 +215,7 @@ namespace ACE.Entity
 
             // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
+            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.STable | PhysicsDescriptionFlag.PeTable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
@@ -1711,7 +1711,7 @@ namespace ACE.Entity
                 inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
                     Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
                 item.Location = null;
-                item.ContainerId = container.Guid.Full;
+                item.Container = container.Guid.Full;
                 item.SetPhysicsDescriptionFlag(item);
             }
             else
@@ -1720,7 +1720,7 @@ namespace ACE.Entity
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
                 item.Location = null;
-                item.ContainerId = container.Guid.Full;
+                item.Container = container.Guid.Full;
                 item.SetPhysicsDescriptionFlag(item);
             }
 
@@ -1738,12 +1738,12 @@ namespace ACE.Entity
         private void HandleMove(WorldObject item, Container container, uint location)
         {
             // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
-            if (item.ContainerId != container.Guid.Full)
+            if (item.Container != container.Guid.Full)
             {
                 Container previousContainer = null;
-                if (item.ContainerId != null)
+                if (item.Container != null)
                 {
-                    var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
+                    var previousContainerGuid = new ObjectGuid((uint)item.Container);
                     if (previousContainerGuid == Guid)
                         previousContainer = this;
                     else
@@ -1754,7 +1754,7 @@ namespace ACE.Entity
                 if (previousContainer != null)
                     previousContainer.RemoveFromInventory(item.Guid);
                 container.AddToInventory(item);
-                item.ContainerId = container.Guid.Full;
+                item.Container = container.Guid.Full;
             }
             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
                                         new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));

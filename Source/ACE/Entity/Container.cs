@@ -13,7 +13,7 @@ namespace ACE.Entity
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
         public Container(ItemType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid)
+            : base(guid)
         {
             Name = name;
             DescriptionFlags = descriptionFlag;
@@ -101,19 +101,19 @@ namespace ACE.Entity
             // TODO: need to make pack aware - just coding for main pack now.
             ObjectGuid itemGuid = new ObjectGuid(itemId);
             WorldObject inventoryItem = GetInventoryItem(itemGuid);
-            if (inventoryItem.ContainerId != container.Guid.Full)
+            if (inventoryItem.Container != container.Guid.Full)
             {
                 RemoveFromInventory(itemGuid);
                 container.AddToInventory(inventoryItem);
             }
-            switch (inventoryItem.ContainerId)
+            switch (inventoryItem.Container)
             {
                 case null:
-                    inventoryItem.ContainerId = container.Guid.Full;
+                    inventoryItem.Container = container.Guid.Full;
                     inventoryItem.Wielder = null;
                     break;
                 default:
-                    inventoryItem.ContainerId = null;
+                    inventoryItem.Container = null;
                     inventoryItem.Wielder = container.Guid.Full;
                     break;
             }

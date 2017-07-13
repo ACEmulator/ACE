@@ -1,6 +1,7 @@
 ﻿using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Managers;
 using System.Collections.Generic;
 
@@ -14,15 +15,15 @@ namespace ACE.Factories
 
             foreach (var aceO in sourceObjects)
             {
-                var oType = (ItemType)aceO.ItemType;
+                var oType = (ItemType)aceO.GetIntProperty(PropertyInt.ItemType);
                 var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 
-                if (aceO.GeneratorStatus)  // Generator
+                if (aceO.GetBoolProperty(PropertyBool.GeneratorStatus) ?? false)  // Generator
                 {
-                    aceO.Location = aceO.Location.InFrontOf(-2.0);
-                    aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
+                    aceO.SetPosition(PositionType.Location, aceO.GetPosition(PositionType.Location).InFrontOf(-2.0));
+                    aceO.GetPosition(PositionType.Location).PositionZ = aceO.GetPosition(PositionType.Location).PositionZ - 0.5f;
                     results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
-                    aceO.GeneratorEnteredWorld = true;
+                    aceO.SetBoolProperty(PropertyBool.GeneratorEnteredWorld, true);
                     var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
                     objectList.ForEach(o => results.Add(o));
                     continue;
@@ -50,7 +51,7 @@ namespace ACE.Factories
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies
                         // FIXME(ddevec): Some objects have null location.  This freaks out the landblock... ignore them?
-                        if (aceO.Location != null)
+                        if (aceO.GetPosition(PositionType.Location) != null)
                         {
                             results.Add(new DebugObject(aceO));
                         }

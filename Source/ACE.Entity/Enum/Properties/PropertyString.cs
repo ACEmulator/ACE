@@ -58,7 +58,6 @@
         KillQuest2                      = 49,
         KillQuest3                      = 50,
         UseSendsSignal                  = 51,
-        GearPlatingName                 = 52,
-        Count                           = 53
+        GearPlatingName                 = 52
     }
 }

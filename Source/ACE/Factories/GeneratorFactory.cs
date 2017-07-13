@@ -3,6 +3,7 @@ using ACE.Database;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -51,7 +52,7 @@ namespace ACE.Factories
             Random random = new Random((int)DateTime.UtcNow.Ticks);
 
             // Check if the current generator is meant to spawn objects at this time of the day
-            switch (generator.GeneratorTimeType)
+            switch (generator.GetIntProperty(PropertyInt.GeneratorTimeType))
             {
                 case (int)GeneratorTimeType.Day:
                     if (currentTime.IsNight)
@@ -65,34 +66,34 @@ namespace ACE.Factories
             }
 
             // Check the probability of this generator spawning something at all
-            if (random.Next(1, 100) >= generator.GeneratorProbability)
+            if (random.Next(1, 100) >= generator.GetIntProperty(PropertyInt.GeneratorProbability))
                 return null;
 
             // Generate objects from this generator #MaxGeneratedObjects times
-            for (int i = 0; i < generator.MaxGeneratedObjects; i++)
+            for (int i = 0; i < generator.GetIntProperty(PropertyInt.MaxGeneratedObjects); i++)
             {
-                switch (generator.GeneratorType)
+                switch (generator.GetIntProperty(PropertyInt.GeneratorType))
                 {
                     // Use the position of the generator as a static position
                     case (int)GeneratorType.Absolute:
-                        pos = generator.Location.InFrontOf(2.0);
+                        pos = generator.GetPosition(PositionType.Location).InFrontOf(2.0);
                         pos.PositionZ = pos.PositionZ - 0.5f;
                         break;
 
                     // Generate a random position inside the landblock
                     case (int)GeneratorType.Relative:
-                        pos = GetRandomLocInLandblock(random, generator.Location.Cell);
+                        pos = GetRandomLocInLandblock(random, generator.GetPosition(PositionType.Location).Cell);
                         break;
                 }
 
                 // If this generator has linked generators use those for spawning objects
-                if (generator.ActivationCreateClass == 0)
+                if (generator.GetIntProperty(PropertyInt.ActivationCreateClass) == 0)
                 {
                     // Spawn this generator if it's not the top-level generator
-                    if (generator.Generator != null)
+                    if (generator.GetInstanceIdProperties(PropertyInstanceId.Generator) != null)
                     {
                         results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), generator));
-                        generator.GeneratorEnteredWorld = true;
+                        generator.SetBoolProperty(PropertyBool.GeneratorEnteredWorld, true);
                     }
 
                     // Get a random generator from the weighted list of linked generators and read it's AceObject from the DB
@@ -102,9 +103,9 @@ namespace ACE.Factories
                     AceObject newGen = DatabaseManager.World.GetAceObjectByWeenie(linkId);
 
                     // The linked generator is at the same location as the top generator and references its parent
-                    newGen.Location = pos;
-                    newGen.Generator = generator.AceObjectId;
-                    newGen.GeneratorEnteredWorld = true;
+                    newGen.SetPosition(PositionType.Location, pos);
+                    newGen.SetInstanceIdProperty(PropertyInstanceId.Generator, generator.AceObjectId);
+                    newGen.SetBoolProperty(PropertyBool.GeneratorEnteredWorld, true);
 
                     // Recursively call this method again with the just read generatorObject
                     List<WorldObject> objectList = CreateWorldObjectsFromGenerator(newGen);
@@ -113,11 +114,11 @@ namespace ACE.Factories
                 // else spawn the objects directly from this generator
                 else
                 {
-                    AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie(generator.ActivationCreateClass);
-                    baseObject.Generator = generator.AceObjectId;
+                    AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie((uint)generator.GetIntProperty(PropertyInt.ActivationCreateClass));
+                    baseObject.SetInstanceIdProperty(PropertyInstanceId.Generator, generator.AceObjectId);
 
                     // Determine the ObjectType and call the specific Factory
-                    ItemType ot = (ItemType)baseObject.ItemType;
+                    ItemType ot = (ItemType)baseObject.GetIntProperty(PropertyInt.ItemType);
                     switch (ot)
                     {
                         case ItemType.Creature:
@@ -136,8 +137,8 @@ namespace ACE.Factories
                             break;
 
                         default:
-                            baseObject.Location = pos;
-                            if (baseObject.Location != null)
+                            baseObject.SetPosition(PositionType.Location, pos);
+                            if (baseObject.GetPosition(PositionType.Location) != null)
                                 results.Add(new DebugObject(new ObjectGuid(GuidManager.NewItemGuid()), baseObject));
                             break;
                     }
