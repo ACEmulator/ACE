@@ -370,24 +370,6 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.EyesPalette, value); }
         }
 
-        ////public uint? IconId
-        ////{
-        ////    get { return GetDataIdProperty(PropertyDataId.Icon); }
-        ////    set { SetDataIdProperty(PropertyDataId.Icon, value); }
-        ////}
-
-        ////public uint? IconOverlayId
-        ////{
-        ////    get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
-        ////    set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
-        ////}
-
-        ////public uint? IconUnderlayId
-        ////{
-        ////    get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
-        ////    set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
-        ////}
-
         public uint? SetupTableId
         {
             get { return GetDataIdProperty(PropertyDataId.Setup); }
@@ -424,18 +406,6 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
 
-        ////public ushort? SpellId
-        ////{
-        ////    get { return (ushort?)GetDataIdProperty(PropertyDataId.Spell); }
-        ////    set { SetDataIdProperty(PropertyDataId.Spell, value); }
-        ////}
-
-        ////public uint? DefaultScript
-        ////{
-        ////    get { return GetDataIdProperty(PropertyDataId.UseUserAnimation); }
-        ////    set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
-        ////}
-
         public uint Level
         {
             get { return GetIntProperty(PropertyInt.Level) ?? 0; }
@@ -460,23 +430,11 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
         }
 
-        ////public Position Destination
-        ////{
-        ////    get { return GetPosition(PositionType.Destination); }
-        ////    set { SetPosition(PositionType.Destination, value); }
-        ////}
-
         public Position Location
         {
             get { return GetPosition(PositionType.Location); }
             set { SetPosition(PositionType.Location, value); }
         }
-
-        ////public Position Instantiation
-        ////{
-        ////    get { return GetPosition(PositionType.Instantiation); }
-        ////    set { SetPosition(PositionType.Instantiation, value); }
-        ////}
 
         private bool dirtyOptions = true;
 
