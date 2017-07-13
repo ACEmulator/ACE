@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Network.Motion;
 
 using log4net;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -100,7 +101,7 @@ namespace ACE.Network.GameAction.Actions
                 ushort motionCommand = message.Payload.ReadUInt16();
                 ushort sequence = message.Payload.ReadUInt16();
                 float speed = message.Payload.ReadSingle();
-                commands[i] = new MotionItem((Enum.MotionCommand)motionCommand, speed);
+                commands[i] = new MotionItem((MotionCommand)motionCommand, speed);
             }
 
             position = new Position(message.Payload);

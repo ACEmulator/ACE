@@ -141,11 +141,6 @@ namespace ACE.Network.Handlers
             var reader = message.Payload;
             AceCharacter character = new AceCharacter(id);
             
-            // FIXME(ddevec): These should go in AceCharacter constructor, but the Network enum is not available there
-            character.Radar = (byte)Network.Enum.RadarBehavior.ShowAlways;
-            character.BlipColor = (byte)Network.Enum.RadarColor.White;
-            character.ItemUseable = (uint)Network.Enum.Usable.No;
-
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
             character.SetStringProperty(PropertyString.HeritageGroup, cg.HeritageGroups[(int)character.Heritage].Name);
@@ -155,6 +150,8 @@ namespace ACE.Network.Handlers
             else
                 character.SetStringProperty(PropertyString.Sex, "Female");
             Appearance appearance = Appearance.FromNetwork(reader);
+
+            // character.IconId = cg.HeritageGroups[(int)character.Heritage].IconImage;
 
             // pull character data from the dat file
             SexCG sex = cg.HeritageGroups[(int)character.Heritage].SexList[(int)character.Gender];
@@ -233,6 +230,8 @@ namespace ACE.Network.Handlers
             var templateOption = reader.ReadInt32();
             string templateName = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Name;
             character.SetStringProperty(PropertyString.Title, templateName);
+            character.SetStringProperty(PropertyString.Template, templateName);
+            character.SetIntProperty(PropertyInt.CharacterTitleId, cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title);
 
             // stats
             // TODO - Validate this is equal to 330 (Total Attribute Credits)

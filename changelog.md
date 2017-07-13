@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-07-12
+[Ripley]
+* Moved most of the enums under ACE.Network to ACE.Entity.
+* Changed some properties of new characters to set proper title defaults and DOB.
+* Moved writers out of Player and into GameEventIdentifyObjectResponse.
+
 ### 2017-07-11
 [Ripley]
 * Removed events from SQL scripts. No longer need them in current implementation.

@@ -6,6 +6,7 @@ using log4net;
 
 namespace ACE.Entity
 {
+    using Enum;
     using System;
 
     public class MovementData

@@ -59,7 +59,7 @@ namespace ACE.Factories
 
             SpellLikeEffect mobj = new SpellLikeEffect(ItemType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
 
-            mobj.DefaultScript = (uint)Network.Enum.PlayScript.ProjectileCollision;
+            mobj.DefaultScript = (uint)PlayScript.ProjectileCollision;
             mobj.DefaultScriptIntensity = (float)1;
 
             mobj.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elasticity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;

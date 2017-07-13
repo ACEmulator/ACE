@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE.Network.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// Used during Calculation of Damage

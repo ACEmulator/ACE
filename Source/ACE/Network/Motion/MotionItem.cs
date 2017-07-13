@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACE.Network.Enum;
+using ACE.Entity.Enum;
 
 namespace ACE.Network.Motion
 {
