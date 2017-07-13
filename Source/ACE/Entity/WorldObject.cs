@@ -77,9 +77,7 @@ namespace ACE.Entity
 
         public ItemType ItemType
         {
-            // get { return (ItemType)AceObject.ItemType; }
             get { return (ItemType)AceObject.GetIntProperty(PropertyInt.ItemType); }
-            // protected set { AceObject.ItemType = (uint)value; }
             protected set { AceObject.SetIntProperty(PropertyInt.ItemType, (uint)value); }
         }
 
@@ -178,12 +176,6 @@ namespace ACE.Entity
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
         ////// Logical Game Data
-        ////public uint GameDataType
-        ////{
-        ////    get { return AceObject.ItemType; }
-        ////    set { AceObject.ItemType = value; }
-        ////}
-
         public ContainerType ContainerType
         {
             get
@@ -349,12 +341,6 @@ namespace ACE.Entity
             get { return (ushort?)AceObject.GetDataIdProperty(PropertyDataId.PhysicsScript); }
             set { AceObject.SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
         }
-
-        ////public float Workmanship
-        ////{
-        ////    get { return AceObject.Workmanship; }
-        ////    set { AceObject.Workmanship = value; }
-        ////}
 
         public float Workmanship
         {
@@ -622,32 +608,12 @@ namespace ACE.Entity
             models.Clear();
         }
 
-        ////public Position Destination
-        ////{
-        ////    get { return GetPosition(PositionType.Destination); }
-        ////    set { SetPosition(PositionType.Destination, value); }
-        ////}
-
-        ////public Position Location
-        ////{
-        ////    get { return GetPosition(PositionType.Location); }
-        ////    set { SetPosition(PositionType.Location, value); }
-        ////}
-
-        ////public Position Instantiation
-        ////{
-        ////    get { return GetPosition(PositionType.Instantiation); }
-        ////    set { SetPosition(PositionType.Instantiation, value); }
-        ////}
-
         public SequenceManager Sequences { get; }
 
-        // protected WorldObject(ItemType type, ObjectGuid guid)
         protected WorldObject(ObjectGuid guid)
         {
             AceObject = new AceObject();
             AceObject.AceObjectId = guid.Full;
-            // ItemType = type;
             Guid = guid;
 
             Sequences = new SequenceManager();
@@ -664,7 +630,6 @@ namespace ACE.Entity
         }
 
         protected WorldObject(AceObject aceObject)
-                // : this((ItemType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
                 : this(new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
@@ -680,11 +645,9 @@ namespace ACE.Entity
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            // PaletteGuid = aceObject.PaletteId;
         }
 
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
-            // : this((ItemType)aceObject.ItemType, guid)
             : this(guid)
         {
             Guid = guid;
@@ -701,7 +664,6 @@ namespace ACE.Entity
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            // PaletteGuid = aceObject.PaletteId;
         }
 
         internal void SetInventoryForWorld(WorldObject inventoryItem)
