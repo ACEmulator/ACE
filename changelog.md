@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-13
+[Ripley]
+* Moved a lot of fields out of AceObject and into other objects in an effort to clean up/clear up usage.
+
 ### 2017-07-12
 [Ripley]
 * Moved most of the enums under ACE.Network to ACE.Entity.
