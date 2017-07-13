@@ -286,13 +286,13 @@ namespace ACE.Network.GameEvent.Events
             return debugOutput;
         }
 
-        private void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
+        private static void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
         {
             writer.Write((uint)flags); // Flags
             writer.Write(Convert.ToUInt32(success)); // Success bool
         }
 
-        private void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
+        private static void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
         {
             const ushort tableSize = 16;
             var notNull = propertiesInt.Where(p => p.PropertyValue != null).ToList();
@@ -307,7 +307,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
+        private static void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
         {
             const ushort tableSize = 8;
             var notNull = propertiesInt64.Where(p => p.PropertyValue != null).ToList();
@@ -322,7 +322,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
+        private static void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
         {
             const ushort tableSize = 8;
             var notNull = propertiesBool.Where(p => p.PropertyValue != null).ToList();
@@ -337,7 +337,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
+        private static void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
         {
             const ushort tableSize = 8;
             var notNull = propertiesDouble.Where(p => p.PropertyValue != null).ToList();
@@ -352,7 +352,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
+        private static void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
         {
             const ushort tableSize = 8;
             var notNull = propertiesStrings.Where(p => !string.IsNullOrWhiteSpace(p.PropertyValue)).ToList();
@@ -367,7 +367,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
+        private static void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
         {
             const ushort tableSize = 16;
             var notNull = propertiesDid.Where(p => p.PropertyValue != null).ToList();
@@ -382,7 +382,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        private static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
         {
             if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
             writer.Write((uint)propertiesSpellId.Count);
@@ -393,7 +393,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        private static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
         {
             var notNull = propertiesArmor.Where(p => p.PropertyValue != null).ToList();
             if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (notNull.Count == 0)) return;
@@ -404,7 +404,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
+        private static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
         {
             uint header = 8;
             // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
@@ -436,7 +436,7 @@ namespace ACE.Network.GameEvent.Events
             }
         }
 
-        private void WriteIdentifyObjectWeaponsProfile(
+        private static void WriteIdentifyObjectWeaponsProfile(
             BinaryWriter writer,
             IdentifyResponseFlags flags,
             List<AceObjectPropertiesDouble> propertiesWeaponsD,
