@@ -101,20 +101,20 @@ namespace ACE.Entity
             // TODO: need to make pack aware - just coding for main pack now.
             ObjectGuid itemGuid = new ObjectGuid(itemId);
             WorldObject inventoryItem = GetInventoryItem(itemGuid);
-            if (inventoryItem.Container != container.Guid.Full)
+            if (inventoryItem.ContainerId != container.Guid.Full)
             {
                 RemoveFromInventory(itemGuid);
                 container.AddToInventory(inventoryItem);
             }
-            switch (inventoryItem.Container)
+            switch (inventoryItem.ContainerId)
             {
                 case null:
-                    inventoryItem.Container = container.Guid.Full;
-                    inventoryItem.Wielder = null;
+                    inventoryItem.ContainerId = container.Guid.Full;
+                    inventoryItem.WielderId = null;
                     break;
                 default:
-                    inventoryItem.Container = null;
-                    inventoryItem.Wielder = container.Guid.Full;
+                    inventoryItem.ContainerId = null;
+                    inventoryItem.WielderId = container.Guid.Full;
                     break;
             }
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
@@ -122,7 +122,7 @@ namespace ACE.Entity
 
         public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
         {
-            return inventory.Where(wo => wo.Value.Wielder != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
+            return inventory.Where(wo => wo.Value.WielderId != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)

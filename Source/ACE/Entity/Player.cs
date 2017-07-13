@@ -329,7 +329,7 @@ namespace ACE.Entity
             AddPalette(Character.HairPalette, 0x18, 0x8);
 
             // Skin
-            PaletteGuid = Character.PaletteId;
+            PaletteBaseId = Character.PaletteId;
             AddPalette(Character.SkinPalette, 0x0, 0x18);
 
             // Eyes
@@ -1414,8 +1414,8 @@ namespace ACE.Entity
             else
             {
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
-                if (worldObject.DefaultScript != null)
-                    Session.Network.EnqueueSend(new GameMessageScript(Guid, (PlayScript)worldObject.DefaultScript));
+                if (worldObject.DefaultScriptId != null)
+                    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, (PlayScript)worldObject.DefaultScriptId));
             }
         }
 
@@ -1612,7 +1612,7 @@ namespace ACE.Entity
         public void DoFinishBarber(ClientMessage message)
         {
             // Read the payload sent from the client...
-            PaletteGuid = message.Payload.ReadUInt32();
+            PaletteBaseId = message.Payload.ReadUInt32();
             Character.HeadObject = message.Payload.ReadUInt32();
             Character.HairTexture = message.Payload.ReadUInt32();
             Character.DefaultHairTexture = message.Payload.ReadUInt32();
@@ -1704,23 +1704,23 @@ namespace ACE.Entity
             {
                 // We are coming from a weapon, wand or shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
-                item.Parent = null;
+                item.ParentId = null;
                 // Magic numbers - need to understand and fix.
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
                 inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
                     Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
                 item.Location = null;
-                item.Container = container.Guid.Full;
+                item.ContainerId = container.Guid.Full;
                 item.SetPhysicsDescriptionFlag(item);
             }
             else
             {
-                item.Parent = null;
+                item.ParentId = null;
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
                 item.Location = null;
-                item.Container = container.Guid.Full;
+                item.ContainerId = container.Guid.Full;
                 item.SetPhysicsDescriptionFlag(item);
             }
 
@@ -1738,12 +1738,12 @@ namespace ACE.Entity
         private void HandleMove(WorldObject item, Container container, uint location)
         {
             // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
-            if (item.Container != container.Guid.Full)
+            if (item.ContainerId != container.Guid.Full)
             {
                 Container previousContainer = null;
-                if (item.Container != null)
+                if (item.ContainerId != null)
                 {
-                    var previousContainerGuid = new ObjectGuid((uint)item.Container);
+                    var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
                     if (previousContainerGuid == Guid)
                         previousContainer = this;
                     else
@@ -1754,7 +1754,7 @@ namespace ACE.Entity
                 if (previousContainer != null)
                     previousContainer.RemoveFromInventory(item.Guid);
                 container.AddToInventory(item);
-                item.Container = container.Guid.Full;
+                item.ContainerId = container.Guid.Full;
             }
             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
                                         new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
@@ -2038,7 +2038,7 @@ namespace ACE.Entity
                                     }
                             }
                             Children.Add(new EquippedItem(itemGuid.Full, (EquipMask)location));
-                            item.Parent = container.Guid.Full;
+                            item.ParentId = container.Guid.Full;
                             // Magic numbers - need to understand and fix.
                             item.ParentLocation = 1;
                             item.CurrentWieldedLocation = (EquipMask)location;
@@ -2134,7 +2134,7 @@ namespace ACE.Entity
                         inventoryItem = GetInventoryItem(itemGuid);
 
                         // Was I equiped?   If so, lets take care of that and unequip
-                        if (inventoryItem.Wielder != null)
+                        if (inventoryItem.WielderId != null)
                         {
                             HandleUnequip(container, inventoryItem, location, inContainerChain);
                             return;
@@ -2157,7 +2157,7 @@ namespace ACE.Entity
                 var inventoryItem = GetInventoryItem(itemGuid);
                 if (inventoryItem == null)
                     return;
-                if (inventoryItem.Wielder != null)
+                if (inventoryItem.WielderId != null)
                 {
                     UpdateAppearance(this, itemGuid.Full);
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
@@ -2248,7 +2248,7 @@ namespace ACE.Entity
             new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
         }
 
-        private ActionChain CreateMoveToChain(ObjectGuid target, float distance)
+        public ActionChain CreateMoveToChain(ObjectGuid target, float distance)
         {
             ActionChain moveToChain = new ActionChain();
             // While !at(thing) moveToThing

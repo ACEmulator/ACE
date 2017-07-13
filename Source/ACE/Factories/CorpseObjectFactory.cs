@@ -31,7 +31,7 @@ namespace ACE.Factories
             wo.PhysicsState = PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.Gravity; // 1044 - according to pcap
 
             uint tmpIcon = 100667504;
-            wo.Icon = tmpIcon;
+            wo.IconId = tmpIcon;
 
             wo.ItemCapacity = 120; // constant value according to pcap
             wo.ContainerCapacity = 10; // constant value according to pcap
