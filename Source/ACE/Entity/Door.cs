@@ -122,41 +122,8 @@ namespace ACE.Entity
         }
 
         public override void OnUse(ObjectGuid playerId)
-        // public void OnUse(ObjectGuid playerId)
         {
             // TODO: check if door is locked, send locked soundfx if locked and fail to open.
-            // float autoCloseTime = 30.0f;
-
-            ////if (this.CurrentMotionState == motionStateClosed)
-            ////{
-            ////    ////ActionChain openDoorChain = new ActionChain();
-            ////    ////CurrentLandblock.ChainOnObject(openDoorChain, playerId, (WorldObject wo) =>
-            ////    ////{
-            ////    ////    Player player = wo as Player;
-            ////    ////    if (player == null)
-            ////    ////    {
-            ////    ////        return;
-            ////    ////    }
-
-            ////    ////    openDoorChain.AddChain(player.CreateMoveToChain(Guid, (float)UseRadius));
-
-            ////    ////    // Open(playerId);
-            ////    ////});
-            ////    ////openDoorChain.EnqueueChain();
-
-            ////    // Open(playerId);
-
-            ////    // Create Door auto close timer
-            ////    ActionChain autoCloseTimer = new ActionChain();
-            ////    autoCloseTimer.AddDelaySeconds(ResetInterval);
-            ////    //autoCloseTimer.AddAction(this, () => Close(new ObjectGuid(0)));
-            ////    autoCloseTimer.AddAction(this, () => Reset());
-            ////    autoCloseTimer.EnqueueChain();
-            ////}
-            ////else
-            ////{
-            ////    Close(playerId);
-            ////}
 
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
@@ -166,22 +133,17 @@ namespace ACE.Entity
                 {
                     return;
                 }
-                // var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                // player.Session.Network.EnqueueSend(sendUseDoneEvent);
 
                 SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
                 float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
 
                 if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
                 {
-                    // serverMessage = "You wandered too far to attune with the Lifestone!";
 
                     ActionChain moveToDoorChain = new ActionChain();
 
-                    ////    // Move to the object
-                    ////    // pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
                     moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.1f));
-                    moveToDoorChain.AddDelaySeconds(0.75);
+                    moveToDoorChain.AddDelaySeconds(0.50);
 
                     moveToDoorChain.AddAction(this, () => OnUse(playerId));
 
@@ -189,7 +151,6 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    // if (this.CurrentMotionState == motionStateClosed)
                     if (!IsOpen)
                     {
                         Open(playerId);
@@ -202,7 +163,6 @@ namespace ACE.Entity
                     // Create Door auto close timer
                     ActionChain autoCloseTimer = new ActionChain();
                     autoCloseTimer.AddDelaySeconds(ResetInterval);
-                    // autoCloseTimer.AddAction(this, () => Close(new ObjectGuid(0)));
                     autoCloseTimer.AddAction(this, () => Reset());
                     autoCloseTimer.EnqueueChain();
 
@@ -215,130 +175,6 @@ namespace ACE.Entity
 
         private void Open(ObjectGuid opener = new ObjectGuid())
         {
-            ////ActionChain pickUpItemChain = new ActionChain();
-
-            ////// Move to the object
-            ////pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
-
-            ////// Pick up the object
-            ////// Start pickup animation
-            ////pickUpItemChain.AddAction(this, () =>
-            ////{
-            ////    var motion = new UniversalMotion(MotionStance.Standing);
-            ////    motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-            ////    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-            ////        new GameMessageUpdatePosition(this),
-            ////        new GameMessageUpdateMotion(Guid,
-            ////            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-            ////            Sequences, motion));
-            ////});
-            ////// Wait for animation to progress
-            ////pickUpItemChain.AddDelaySeconds(0.75);
-
-            ////ActionChain openDoorChain = new ActionChain();
-            ////CurrentLandblock.ChainOnObject(openDoorChain, opener, (WorldObject wo) =>
-            ////{
-            ////    Player player = wo as Player;
-            ////    if (player == null)
-            ////    {
-            ////        return;
-            ////    }
-
-            ////    ActionChain orderChain = new ActionChain();
-
-            ////    ActionChain moveToDoorChain = new ActionChain();
-
-            ////    // Move to the object
-            ////    // pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
-            ////    moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.2f));
-            ////    // moveToDoorChain.AddDelaySeconds(0.75);
-            ////    // moveToDoorChain.EnqueueChain();
-            ////    // player.CreateMoveToChain(Guid, 0.75f);
-            ////    orderChain.AddChain(moveToDoorChain);
-            ////    ////orderChain.AddAction(this, () =>
-            ////    ////{
-            ////    ////    ////CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            ////    ////    ////CurrentMotionState = motionStateOpen;
-            ////    ////    ////PhysicsState |= PhysicsState.Ethereal;
-            ////    ////    ////Ethereal = true;
-            ////    ////    ////IsOpen = true;
-            ////    ////    ////UseTimestamp++;
-            ////    ////    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            ////    ////    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            ////    ////});
-            ////    orderChain.AddAction(this, () =>
-            ////    {
-            ////        ////var motion = new UniversalMotion(MotionStance.Standing);
-            ////        ////motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
-            ////        ////CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-            ////        ////    new GameMessageUpdatePosition(this),
-            ////        ////    new GameMessageUpdateMotion(Guid,
-            ////        ////        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-            ////        ////        Sequences, motion));
-
-            ////        ActionChain sendDoneChain = new ActionChain();
-            ////        sendDoneChain.AddAction(this, () =>
-            ////        {
-            ////            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-
-            ////            ////CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-            ////            ////    new GameMessageUpdatePosition(this),
-            ////            ////    new GameMessageUpdateMotion(Guid,
-            ////            ////        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-            ////            ////        Sequences, motion));
-
-            ////            ////orderChain.AddAction(this, () =>
-            ////            ////{
-            ////            ////    ////CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            ////            ////    ////CurrentMotionState = motionStateOpen;
-            ////            ////    ////PhysicsState |= PhysicsState.Ethereal;
-            ////            ////    ////Ethereal = true;
-            ////            ////    ////IsOpen = true;
-            ////            ////    ////UseTimestamp++;
-            ////            ////    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            ////            ////    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            ////            ////});
-
-            ////            player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            ////        });
-
-            ////        ////    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            ////    });
-            ////    orderChain.EnqueueChain();
-            ////    ////var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            ////    ////player.Session.Network.EnqueueSend(sendUseDoneEvent);
-
-            ////    ////CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            ////    ////CurrentMotionState = motionStateOpen;
-            ////    ////PhysicsState |= PhysicsState.Ethereal;
-            ////    ////Ethereal = true;
-            ////    ////IsOpen = true;
-            ////    ////UseTimestamp++;
-            ////    ////ActionChain openTheDoorChain = new ActionChain();
-            ////    ////openTheDoorChain.AddAction(this, () =>
-            ////    ////{
-            ////    ////    CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            ////    ////    CurrentMotionState = motionStateOpen;
-            ////    ////    PhysicsState |= PhysicsState.Ethereal;
-            ////    ////    Ethereal = true;
-            ////    ////    IsOpen = true;
-            ////    ////    UseTimestamp++;
-            ////    ////});
-            ////    ////openTheDoorChain.AddDelaySeconds(0.75);
-            ////    ////openTheDoorChain.EnqueueChain();
-            ////});
-
-            ////////openDoorChain.AddAction(this, () =>
-            ////////{
-            ////////    CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            ////////    CurrentMotionState = motionStateOpen;
-            ////////    PhysicsState |= PhysicsState.Ethereal;
-            ////////    Ethereal = true;
-            ////////    IsOpen = true;
-            ////////    UseTimestamp++;
-            ////////});
-            ////openDoorChain.EnqueueChain();
-
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionStateOpen;
             PhysicsState |= PhysicsState.Ethereal;
@@ -346,27 +182,6 @@ namespace ACE.Entity
             IsOpen = true;
             if (opener.Full > 0)
                 UseTimestamp++;
-
-            ////ActionChain openTheDoorChain = new ActionChain();
-            ////CurrentLandblock.ChainOnObject(openTheDoorChain, opener, (WorldObject wo) =>
-            ////{
-            ////    Player player = wo as Player;
-            ////    if (player == null)
-            ////    {
-            ////        return;
-            ////    }
-
-            ////    openTheDoorChain.AddAction(this, () =>
-            ////    {
-            ////        CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            ////        CurrentMotionState = motionStateOpen;
-            ////        PhysicsState |= PhysicsState.Ethereal;
-            ////        Ethereal = true;
-            ////        IsOpen = true;
-            ////        UseTimestamp++;
-            ////    });
-            ////});
-            ////openTheDoorChain.EnqueueChain();
         }
 
         private void Close(ObjectGuid closer = new ObjectGuid())
