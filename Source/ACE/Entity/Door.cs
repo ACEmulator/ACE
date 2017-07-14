@@ -10,7 +10,6 @@ using ACE.DatLoader.FileTypes;
 namespace ACE.Entity
 {
     public class Door : UsableObject
-    // public class Door : WorldObject
     {
         private static readonly MovementData movementOpen = new MovementData();
         private static readonly MovementData movementClosed = new MovementData();
@@ -29,11 +28,13 @@ namespace ACE.Entity
             {
                 CurrentMotionState = motionStateClosed;
                 IsOpen = false;
+                Ethereal = false;
             }
             else
             {
                 CurrentMotionState = motionStateOpen;
                 IsOpen = true;
+                Ethereal = true;
             }
             if (DefaultLocked)
                 IsLocked = true;
