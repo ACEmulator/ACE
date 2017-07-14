@@ -36,10 +36,17 @@ namespace ACE.Entity
                 IsOpen = true;
                 Ethereal = true;
             }
-            if (DefaultLocked)
-                IsLocked = true;
-            else
-                IsLocked = false;
+
+            // If we had the base weenies this would be the way to go
+            ////if (DefaultLocked)
+            ////    IsLocked = true;
+            ////else
+            ////    IsLocked = false;
+
+            // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
+            if (IsLocked)
+                DefaultLocked = true;
+
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
         }
@@ -137,8 +144,18 @@ namespace ACE.Entity
 
                 SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
                 float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
+                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
 
-                if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
+                ////var sendUseDoneEvent = new GameEventUseDone(player.Session);                
+
+                ////if (playerDistanceTo >= 2500)
+                ////{
+                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
+                ////    return;
+                ////}
+
+                if (playerDistanceTo >= radiusSquared)
                 {
                     ActionChain moveToDoorChain = new ActionChain();
 
