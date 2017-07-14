@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-14
+[Ripley]
+* Reworked Door.cs.
+
 ### 2017-07-13
 [Ripley]
 * Moved a lot of fields out of AceObject and into other objects in an effort to clean up/clear up usage.
