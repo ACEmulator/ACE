@@ -99,6 +99,12 @@ namespace ACE.Entity
             set { AceObject.SetDoubleTimestamp(PropertyDouble.UseTimestamp); }
         }
 
+        public double? UseLockTimestamp
+        {
+            get { return AceObject.GetDoubleProperty(PropertyDouble.UseLockTimestamp); }
+            set { AceObject.SetDoubleTimestamp(PropertyDouble.UseLockTimestamp); }
+        }
+
         public uint? LastUnlocker
         {
             get { return AceObject.GetInstanceIdProperty(PropertyInstanceId.LastUnlocker); }
