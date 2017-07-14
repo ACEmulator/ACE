@@ -140,7 +140,6 @@ namespace ACE.Entity
 
                 if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
                 {
-
                     ActionChain moveToDoorChain = new ActionChain();
 
                     moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.1f));
