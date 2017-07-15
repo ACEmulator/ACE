@@ -288,7 +288,7 @@ namespace ACE.Entity
         {
             HandleUnloadMissileAmmo(oldCombatMode);
 
-            // TODO: <this is a hack for now to be removed.> Placement has an issue we have not figured out.   It has to do with animation frame. Og II
+            // FIXME: (Og II)<this is a hack for now to be removed.> Placement has an issue we have not figured out.   It has to do with animation frame. Og II
             PositionFlag &= ~UpdatePositionFlag.Placement;
             // End hack
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
@@ -335,10 +335,12 @@ namespace ACE.Entity
                     mm.MovementData.ForwardCommand = (ushort)MotionCommand.Reload;
                     SetMotionState(this, mm);
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+                    // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.25);
                     // System.Threading.Thread.Sleep(250); // used for debugging
                     mm.MovementData.ForwardCommand = (ushort)MotionCommand.Invalid;
                     SetMotionState(this, mm);
+                    // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.40);
                     combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)));
                     // CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)); // used for debugging
@@ -440,30 +442,30 @@ namespace ACE.Entity
         {
             log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
 
-            CombatMode oldCombatMode = CombatMode;
-            CombatMode = newCombatMode;
             ActionChain combatModeChain = new ActionChain();
             combatModeChain.AddAction(this, () =>
-            {
-                switch (CombatMode)
                 {
-                    case CombatMode.NonCombat:
-                        HandleSwitchToPeaceMode(oldCombatMode);
-                        break;
-                    case CombatMode.Melee:
-                        HandleSwitchToMeleeCombatMode(oldCombatMode);
-                        break;
-                    case CombatMode.Magic:
-                        HandleSwitchToMagicCombatMode();
-                        break;
-                    case CombatMode.Missile:
-                        HandleSwitchToMissileCombatMode(combatModeChain);
-                        break;
-                    default:
-                        log.InfoFormat("Changing combat mode for {0} - something has gone wrong", Guid);
-                        break;
-                }
-            });
+                    CombatMode oldCombatMode = CombatMode;
+                    CombatMode = newCombatMode;
+                    switch (CombatMode)
+                    {
+                        case CombatMode.NonCombat:
+                            HandleSwitchToPeaceMode(oldCombatMode);
+                            break;
+                        case CombatMode.Melee:
+                            HandleSwitchToMeleeCombatMode(oldCombatMode);
+                            break;
+                        case CombatMode.Magic:
+                            HandleSwitchToMagicCombatMode();
+                            break;
+                        case CombatMode.Missile:
+                            HandleSwitchToMissileCombatMode(combatModeChain);
+                            break;
+                        default:
+                            log.InfoFormat("Changing combat mode for {0} - something has gone wrong", Guid);
+                            break;
+                    }
+                });
             combatModeChain.EnqueueChain();
         }
 
