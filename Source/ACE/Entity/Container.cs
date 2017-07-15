@@ -15,7 +15,6 @@ namespace ACE.Entity
         public override ushort? Burden
         {
             get { return (ushort?)(base.Burden  + UpdateBurden()) ?? (ushort?)0; }
-            set { AceObject.Burden = value; }
         }
 
         public Container(ItemType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
