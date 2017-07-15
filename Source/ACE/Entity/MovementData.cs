@@ -14,7 +14,6 @@ namespace ACE.Entity
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private MovementStateFlag movementStateFlag = 0;
-
         public MovementStateFlag MovementStateFlag
         {
             get
