@@ -20,7 +20,7 @@ namespace ACE.Entity
 
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
-            SetIntProperty(PropertyInt.ItemType, (uint)ItemType.Creature);
+            SetIntProperty(PropertyInt.ItemType, (uint)Enum.ItemType.Creature);
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
             WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemsCapacity | WeenieHeaderFlag.ContainersCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
             SetIntProperty(PropertyInt.ItemsCapacity, 102);
@@ -142,7 +142,7 @@ namespace ACE.Entity
 
         public uint AccountId
         {
-            get { return InstanceIdProperties.Find(x => x.PropertyId == (uint)PropertyInstanceId.Account).PropertyValue.Value; }
+            get { return (uint)GetInstanceIdProperty(PropertyInstanceId.Account); }
             set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
         }
 

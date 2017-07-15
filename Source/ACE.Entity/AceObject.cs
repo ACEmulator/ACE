@@ -44,7 +44,7 @@ namespace ACE.Entity
         /// Table Field Weenie Class
         /// </summary>
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
-        public virtual uint WeenieClassId { get; set; }
+        public uint WeenieClassId { get; set; }
 
         private uint _aceObjectDescriptionFlags = 0;
 
@@ -178,6 +178,325 @@ namespace ACE.Entity
 
         public uint Self
         { get { return SelfAbility.MaxValue; } }
+
+        public uint? SetupDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.Setup); }
+            set { SetDataIdProperty(PropertyDataId.Setup, value); }
+        }
+
+        public uint? MotionTableDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
+            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
+        }
+
+        public uint? SoundTableDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
+            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
+        }
+
+        public uint? PhysicsEffectTableDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
+            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
+        }
+
+        public uint? PhysicsState
+        {
+            get { return GetIntProperty(PropertyInt.PhysicsState); }
+            set { SetIntProperty(PropertyInt.PhysicsState, value); }
+        }
+
+        public uint? ItemType
+        {
+            get { return GetIntProperty(PropertyInt.ItemType); }
+            set { SetIntProperty(PropertyInt.ItemType, value); }
+        }
+
+        public uint? IconDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.Icon); }
+            set { SetDataIdProperty(PropertyDataId.Icon, value); }
+        }
+
+        public string Name
+        {
+            get { return GetStringProperty(PropertyString.Name); }
+            set { SetStringProperty(PropertyString.Name, value); }
+        }
+
+        public string PluralName
+        {
+            get { return GetStringProperty(PropertyString.PluralName); }
+            set { SetStringProperty(PropertyString.PluralName, value); }
+        }
+
+        public byte? ItemsCapacity
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity); }
+            set { SetIntProperty(PropertyInt.ItemsCapacity, (uint)value); }
+        }
+
+        public byte? ContainersCapacity
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.ContainersCapacity); }
+            set { SetIntProperty(PropertyInt.ContainersCapacity, (uint)value); }
+        }
+
+        public uint? AmmoType
+        {
+            get { return GetIntProperty(PropertyInt.AmmoType); }
+            set { SetIntProperty(PropertyInt.AmmoType, (uint)value); }
+        }
+
+        public uint? Value
+        {
+            get { return GetIntProperty(PropertyInt.Value); }
+            set { SetIntProperty(PropertyInt.Value, value); }
+        }
+
+        public uint? ItemUseable
+        {
+            get { return GetIntProperty(PropertyInt.ItemUseable); }
+            set { SetIntProperty(PropertyInt.ItemUseable, (uint?)value); }
+        }
+
+        public float? UseRadius
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius); }
+            set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
+        }
+
+        public uint? TargetType
+        {
+            get { return GetIntProperty(PropertyInt.TargetType); }
+            set { SetIntProperty(PropertyInt.TargetType, value); }
+        }
+
+        public uint? UiEffects
+        {
+            get { return GetIntProperty(PropertyInt.UiEffects); }
+            set { SetIntProperty(PropertyInt.UiEffects, value); }
+        }
+
+        public byte? CombatUse
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.CombatUse); }
+            set { SetIntProperty(PropertyInt.CombatUse, value); }
+        }
+
+        public uint? DefaultCombatStyle
+        {
+            get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
+            set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
+        }
+
+        public ushort? Structure
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.Structure); }
+            set { SetIntProperty(PropertyInt.Structure, value); }
+        }
+
+        public ushort? MaxStructure
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure); }
+            set { SetIntProperty(PropertyInt.MaxStructure, value); }
+        }
+
+        public ushort? StackSize
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
+            set { SetIntProperty(PropertyInt.StackSize, value); }
+        }
+
+        public ushort? MaxStackSize
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
+            set { SetIntProperty(PropertyInt.MaxStackSize, value); }
+        }
+
+        public uint? ContainerIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Container); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
+        }
+
+        public uint? WielderIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+        }
+
+        public uint? GeneratorIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Generator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Generator, value); }
+        }
+
+        // LOCATIONS
+        public uint? ValidLocations
+        {
+            get { return GetIntProperty(PropertyInt.ValidLocations); }
+            set { SetIntProperty(PropertyInt.ValidLocations, value); }
+        }
+
+        public uint? CurrentWieldedLocation
+        {
+            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation); }
+            set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
+        }
+
+        public uint? ClothingPriority
+        {
+            get { return GetIntProperty(PropertyInt.ClothingPriority); }
+            set { SetIntProperty(PropertyInt.ClothingPriority, value); }
+        }
+
+        public byte? RadarBlipColor
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.RadarBlipColor); }
+            set { SetIntProperty(PropertyInt.RadarBlipColor, value); }
+        }
+
+        public byte? ShowableOnRadar
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar); }
+            set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
+        }
+
+        public ushort? PhysicsScriptDID
+        {
+            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
+            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+        }
+
+        public uint? ItemWorkmanship
+        {
+            get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
+            set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
+        }
+
+        public ushort? EncumbranceVal
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.EncumbranceVal); }
+            set { SetIntProperty(PropertyInt.EncumbranceVal, value); }
+        }
+
+        public uint? SpellDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.Spell); }
+            set { SetDataIdProperty(PropertyDataId.Spell, value); }
+        }
+
+        public ushort? HookType
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.HookType); }
+            set { SetIntProperty(PropertyInt.HookType, value); }
+        }
+
+        public ushort? HookItemType
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType); }
+            set { SetIntProperty(PropertyInt.HookItemType, value); }
+        }
+
+        public uint? IconOverlayDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
+            set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
+        }
+
+        public uint? IconUnderlayDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
+            set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
+        }
+
+        public byte? MaterialType
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
+            set { SetIntProperty(PropertyInt.MaterialType, (byte?)value); }
+        }
+
+        public uint? SharedCooldown
+        {
+            get { return GetIntProperty(PropertyInt.SharedCooldown); }
+            set { SetIntProperty(PropertyInt.SharedCooldown, value); }
+        }
+
+        public double? CooldownDuration
+        {
+            get { return GetDoubleProperty(PropertyDouble.CooldownDuration); }
+            set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
+        }
+
+        public uint? ParentIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+        }
+
+        public uint? ParentLocation
+        {
+            get { return GetIntProperty(PropertyInt.ParentLocation); }
+            set { SetIntProperty(PropertyInt.ParentLocation, value); }
+        }
+
+        public float? DefaultScale
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
+            set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
+        }
+
+        public float? Friction
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.Friction); }
+            set { SetDoubleProperty(PropertyDouble.Friction, value); }
+        }
+
+        public float? Elasticity
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity); }
+            set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
+        }
+
+        public uint? PlacementPosition
+        {
+            get { return GetIntProperty(PropertyInt.PlacementPosition); }
+            set {SetIntProperty(PropertyInt.PlacementPosition, value); }
+        }
+
+        public float? Translucency
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency); }
+            set { SetDoubleProperty(PropertyDouble.Translucency, value); }
+        }
+
+        // public uint? DefaultScriptId
+        // {
+        //    get { return GetDataIdProperty(PropertyDataId.PhysicsScript); }
+        //    set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+        // }
+
+        public float? PhysicsScriptIntensity
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity); }
+            set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
+        }
+
+        public uint? PaletteBaseDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
+            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
+        }
+
+        public uint? ClothingBaseDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.ClothingBase); }
+            set { SetDataIdProperty(PropertyDataId.ClothingBase, value); }
+        }
 
         public uint? GetDataIdProperty(PropertyDataId property)
         {
