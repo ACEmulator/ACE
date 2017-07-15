@@ -343,7 +343,7 @@ namespace ACE.Entity
             set { AceObject.Workmanship = value; }
         }
 
-        public ushort? Burden
+        public virtual ushort? Burden
         {
             get { return AceObject.Burden; }
             set { AceObject.Burden = value; }

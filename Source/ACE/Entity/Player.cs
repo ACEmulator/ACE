@@ -301,6 +301,7 @@ namespace ACE.Entity
                 ObjScale = Character.DefaultScale;
 
             AddCharacterBaseModelData();
+            Burden = UpdateBurden();
 
             // Save the the LoginTimestamp
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);

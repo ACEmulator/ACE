@@ -12,6 +12,12 @@ namespace ACE.Entity
 
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
+        public override ushort? Burden
+        {
+            get { return (ushort?)(base.Burden  + UpdateBurden()) ?? (ushort?)0; }
+            set { AceObject.Burden = value; }
+        }
+
         public Container(ItemType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : base(type, guid)
         {
@@ -48,6 +54,7 @@ namespace ACE.Entity
             if (!inventory.ContainsKey(inventoryItem.Guid))
             {
                 inventory.Add(inventoryItem.Guid, inventoryItem);
+                Burden = UpdateBurden();
             }
         }
 
