@@ -77,7 +77,7 @@ namespace ACE.Entity
 
         public ItemType ItemType
         {
-            get { return (ItemType)AceObject.ItemType; }
+            get { return (ItemType?)AceObject.ItemType ?? 0; }
             protected set { AceObject.ItemType = (uint)value; }
         }
 
@@ -339,7 +339,7 @@ namespace ACE.Entity
             set { AceObject.PhysicsScriptDID = value; }
         }
 
-        public float Workmanship
+        public float? Workmanship
         {
             get
             {
@@ -909,7 +909,7 @@ namespace ACE.Entity
                 writer.Write(Script ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
-                writer.Write(Workmanship);
+                writer.Write(Workmanship ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
                 writer.Write(Burden ?? 0);

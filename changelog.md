@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-07-15
+[Ripley]
+* More field changes.
+* More new character defaults set.
+* Fixed Guid assignment for new players.
+* Changes to WorldObject, Door and Generator classes.
+
 ### 2017-07-14
 [Ripley]
 * Reworked Door.cs.

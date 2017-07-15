@@ -20,20 +20,22 @@ namespace ACE.Entity
 
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
-            SetIntProperty(PropertyInt.ItemType, (uint)Enum.ItemType.Creature);
             AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
             WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemsCapacity | WeenieHeaderFlag.ContainersCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
+            WeenieClassId = 1;
+            SetDataIdProperty(PropertyDataId.Icon, 100667446);
+            SetIntProperty(PropertyInt.ItemType, (uint)Enum.ItemType.Creature);
             SetIntProperty(PropertyInt.ItemsCapacity, 102);
             SetIntProperty(PropertyInt.ContainersCapacity, 7);
-            WeenieClassId = 1;
-            Deleted = false;
-            DeleteTime = 0;
+            SetBoolProperty(PropertyBool.IsDeleted, false);
+            SetIntProperty(PropertyInt.TotalLogins, 0);
+            SetInt64Property(PropertyInt64.DeleteTime, 0);
             SetIntProperty(PropertyInt.Level, 1);
-            AvailableExperience = 0;
-            TotalExperience = 0;
-            SetDataIdProperty(PropertyDataId.Icon, 100667446);
+            SetInt64Property(PropertyInt64.AvailableExperience, 0);
+            SetInt64Property(PropertyInt64.TotalExperience, 0);
+
+
             SetIntProperty(PropertyInt.EncumbranceVal, 0);
-            // SpellId = 0;
 
             SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
             SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);
@@ -134,7 +136,7 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
         }
 
-        public uint TotalLogins
+        public new uint TotalLogins
         {
             get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
@@ -152,7 +154,7 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.IsDeleted, value); }
         }
 
-        public ulong DeleteTime
+        public new ulong DeleteTime
         {
             get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
             set { SetInt64Property(PropertyInt64.DeleteTime, value); }
@@ -196,107 +198,107 @@ namespace ACE.Entity
             dirtyOptions = true;
         }
 
-        public ulong AvailableExperience
+        public new ulong AvailableExperience
         {
             get { return GetInt64Property(PropertyInt64.AvailableExperience) ?? 0; }
             set { SetInt64Property(PropertyInt64.AvailableExperience, value); }
         }
 
-        public ulong TotalExperience
+        public new ulong TotalExperience
         {
             get { return GetInt64Property(PropertyInt64.TotalExperience) ?? 0; }
             set { SetInt64Property(PropertyInt64.TotalExperience, value); }
         }
 
-        public uint Age
+        public new uint Age
         {
             get { return GetIntProperty(PropertyInt.Age) ?? 0; }
             set { SetIntProperty(PropertyInt.Age, value); }
         }
 
-        public bool IsDeleted
+        public new bool IsDeleted
         {
             get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }
             set { SetBoolProperty(PropertyBool.IsDeleted, value); }
         }
 
-        public ulong DeletedTime
-        {
-            get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
-            set { SetInt64Property(PropertyInt64.DeleteTime, value); }
-        }
+        ////public ulong DeletedTime
+        ////{
+        ////    get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
+        ////    set { SetInt64Property(PropertyInt64.DeleteTime, value); }
+        ////}
 
-        public string DateOfBirth
-        {
-            get { return GetStringProperty(PropertyString.DateOfBirth); }
-            set { SetStringProperty(PropertyString.DateOfBirth, value); }
-        }
+        ////public string DateOfBirth
+        ////{
+        ////    get { return GetStringProperty(PropertyString.DateOfBirth); }
+        ////    set { SetStringProperty(PropertyString.DateOfBirth, value); }
+        ////}
 
-        public uint AvailableSkillCredits
+        public new uint AvailableSkillCredits
         {
             get { return GetIntProperty(PropertyInt.AvailableSkillCredits) ?? 0; }
             set { SetIntProperty(PropertyInt.AvailableSkillCredits, value); }
         }
 
-        public uint TotalSkillCredits
+        public new uint TotalSkillCredits
         {
             get { return GetIntProperty(PropertyInt.TotalSkillCredits) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalSkillCredits, value); }
         }
 
-        public uint NumDeaths
+        public new uint NumDeaths
         {
             get { return GetIntProperty(PropertyInt.NumDeaths) ?? 0; }
             set { SetIntProperty(PropertyInt.NumDeaths, value); }
         }
 
-        public uint DeathLevel
+        public new uint DeathLevel
         {
             get { return GetIntProperty(PropertyInt.DeathLevel) ?? 0; }
             set { SetIntProperty(PropertyInt.DeathLevel, value); }
         }
 
-        public uint VitaeCpPool
+        public new uint VitaeCpPool
         {
             get { return GetIntProperty(PropertyInt.VitaeCpPool) ?? 0; }
             set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
         }
 
-        public bool IsAdmin
+        public new bool IsAdmin
         {
             get { return GetBoolProperty(PropertyBool.IsAdmin) ?? false; }
             set { SetBoolProperty(PropertyBool.IsAdmin, value); }
         }
 
-        public bool IsEnvoy
+        public new bool IsEnvoy
         {
             get { return GetBoolProperty(PropertyBool.IsSentinel) ?? false; }
             set { SetBoolProperty(PropertyBool.IsSentinel, value); }
         }
 
-        public bool IsArch
+        public new bool IsArch
         {
             get { return GetBoolProperty(PropertyBool.IsArch) ?? false; }
             set { SetBoolProperty(PropertyBool.IsArch, value); }
         }
 
-        public bool IsPsr
+        public new bool IsPsr
         {
             get { return GetBoolProperty(PropertyBool.IsPsr) ?? false; }
             set { SetBoolProperty(PropertyBool.IsPsr, value); }
         }
 
-        public uint Heritage
-        {
-            get { return GetIntProperty(PropertyInt.HeritageGroup).Value; }
-            set { SetIntProperty(PropertyInt.HeritageGroup, value); }
-        }
+        ////public uint Heritage
+        ////{
+        ////    get { return GetIntProperty(PropertyInt.HeritageGroup).Value; }
+        ////    set { SetIntProperty(PropertyInt.HeritageGroup, value); }
+        ////}
 
-        public uint Gender
-        {
-            get { return GetIntProperty(PropertyInt.Gender).Value; }
-            set { SetIntProperty(PropertyInt.Gender, value); }
-        }
+        ////public uint Gender
+        ////{
+        ////    get { return GetIntProperty(PropertyInt.Gender).Value; }
+        ////    set { SetIntProperty(PropertyInt.Gender, value); }
+        ////}
 
         public uint EyesTexture
         {
@@ -406,17 +408,17 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
 
-        public uint Level
+        public new uint Level
         {
-            get { return GetIntProperty(PropertyInt.Level) ?? 0; }
+            get { return GetIntProperty(PropertyInt.Level) ?? 1; }
             set { SetIntProperty(PropertyInt.Level, value); }
         }
 
-        public string Name
-        {
-            get { return GetStringProperty(PropertyString.Name); }
-            set { SetStringProperty(PropertyString.Name, value); }
-        }
+        ////public string Name
+        ////{
+        ////    get { return GetStringProperty(PropertyString.Name); }
+        ////    set { SetStringProperty(PropertyString.Name, value); }
+        ////}
 
         public uint? PaletteId
         {
@@ -424,17 +426,17 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
         }
 
-        public float? DefaultScale
-        {
-            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
-            set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
-        }
+        ////public float? DefaultScale
+        ////{
+        ////    get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
+        ////    set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
+        ////}
 
-        public Position Location
-        {
-            get { return GetPosition(PositionType.Location); }
-            set { SetPosition(PositionType.Location, value); }
-        }
+        ////public Position Location
+        ////{
+        ////    get { return GetPosition(PositionType.Location); }
+        ////    set { SetPosition(PositionType.Location, value); }
+        ////}
 
         private bool dirtyOptions = true;
 
@@ -473,23 +475,23 @@ namespace ACE.Entity
             }
         }
 
-        public Position LastPortal
-        {
-            get { return GetPosition(PositionType.LastPortal); }
-            set { SetPosition(PositionType.LastPortal, value); }
-        }
+        ////public Position LastPortal
+        ////{
+        ////    get { return GetPosition(PositionType.LastPortal); }
+        ////    set { SetPosition(PositionType.LastPortal, value); }
+        ////}
 
-        public Position Sanctuary
-        {
-            get { return GetPosition(PositionType.Sanctuary); }
-            set { SetPosition(PositionType.Sanctuary, value); }
-        }
+        ////public Position Sanctuary
+        ////{
+        ////    get { return GetPosition(PositionType.Sanctuary); }
+        ////    set { SetPosition(PositionType.Sanctuary, value); }
+        ////}
 
-        public Position LastOutsideDeath
-        {
-            get { return GetPosition(PositionType.LastOutsideDeath); }
-            set { SetPosition(PositionType.LastOutsideDeath, value); }
-        }
+        ////public Position LastOutsideDeath
+        ////{
+        ////    get { return GetPosition(PositionType.LastOutsideDeath); }
+        ////    set { SetPosition(PositionType.LastOutsideDeath, value); }
+        ////}
 
         public void SetCharacterOption(CharacterOption option, bool value)
         {

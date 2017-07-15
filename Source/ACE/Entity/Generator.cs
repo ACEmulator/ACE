@@ -35,92 +35,92 @@ namespace ACE.Entity
 
         public bool GeneratorStatus
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.GeneratorStatus) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.GeneratorStatus, value); }
+            get { return AceObject.GeneratorStatus ?? false; }
+            set { AceObject.GeneratorStatus = value; }
         }
 
         public bool GeneratorEnteredWorld
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.GeneratorEnteredWorld) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.GeneratorEnteredWorld, value); }
+            get { return AceObject.GeneratorEnteredWorld ?? false; }
+            set { AceObject.GeneratorEnteredWorld = value; }
         }
 
         public bool GeneratorDisabled
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.GeneratorDisabled) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.GeneratorDisabled, value); }
+            get { return AceObject.GeneratorDisabled ?? false; }
+            set { AceObject.GeneratorDisabled = value; }
         }
 
         public bool GeneratedTreasureItem
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.GeneratedTreasureItem) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.GeneratedTreasureItem, value); }
+            get { return AceObject.GeneratedTreasureItem ?? false; }
+            set { AceObject.GeneratedTreasureItem = value; }
         }
 
         public bool GeneratorAutomaticDestruction
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.GeneratorAutomaticDestruction) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
+            get { return AceObject.GeneratorAutomaticDestruction ?? false; }
+            set { AceObject.GeneratorAutomaticDestruction = value; }
         }
 
         public bool CanGenerateRare
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.CanGenerateRare) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.CanGenerateRare, value); }
+            get { return AceObject.CanGenerateRare ?? false; }
+            set { AceObject.CanGenerateRare = value; }
         }
 
         public bool CorpseGeneratedRare
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.CorpseGeneratedRare) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.CorpseGeneratedRare, value); }
+            get { return AceObject.CorpseGeneratedRare ?? false; }
+            set { AceObject.CorpseGeneratedRare = value; }
         }
 
         public bool SuppressGenerateEffect
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.SuppressGenerateEffect) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.SuppressGenerateEffect, value); }
+            get { return AceObject.SuppressGenerateEffect ?? false; }
+            set { AceObject.SuppressGenerateEffect = value; }
         }
 
         public bool ChestRegenOnClose
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.ChestRegenOnClose) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.ChestRegenOnClose, value); }
+            get { return AceObject.ChestRegenOnClose ?? false; }
+            set { AceObject.ChestRegenOnClose = value; }
         }
 
         public bool ChestClearedWhenClosed
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.ChestClearedWhenClosed) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.ChestClearedWhenClosed, value); }
+            get { return AceObject.ChestClearedWhenClosed ?? false; }
+            set { AceObject.ChestClearedWhenClosed = value; }
         }
 
         public uint GeneratorTimeType
         {
-            get { return AceObject.GetIntProperty(PropertyInt.GeneratorTimeType) ?? 0; }
-            set { AceObject.SetIntProperty(PropertyInt.GeneratorTimeType, value); }
+            get { return AceObject.GeneratorTimeType ?? 0; }
+            set { AceObject.GeneratorTimeType = value; }
         }
 
         public uint GeneratorProbability
         {
-            get { return AceObject.GetIntProperty(PropertyInt.GeneratorProbability) ?? 0; }
-            set { AceObject.SetIntProperty(PropertyInt.GeneratorProbability, value); }
+            get { return AceObject.GeneratorProbability ?? 0; }
+            set { AceObject.GeneratorProbability = value; }
         }
 
         public uint MaxGeneratedObjects
         {
-            get { return AceObject.GetIntProperty(PropertyInt.MaxGeneratedObjects) ?? 0; }
-            set { AceObject.SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
+            get { return AceObject.MaxGeneratedObjects ?? 0; }
+            set { AceObject.MaxGeneratedObjects = value; }
         }
 
         public uint GeneratorType
         {
-            get { return AceObject.GetIntProperty(PropertyInt.GeneratorType) ?? 0; }
-            set { AceObject.SetIntProperty(PropertyInt.GeneratorType, value); }
+            get { return AceObject.GeneratorType ?? 0; }
+            set { AceObject.GeneratorType = value; }
         }
 
         public uint ActivationCreateClass
         {
-            get { return AceObject.GetIntProperty(PropertyInt.ActivationCreateClass) ?? 0; }
-            set { AceObject.SetIntProperty(PropertyInt.ActivationCreateClass, value); }
+            get { return AceObject.ActivationCreateClass ?? 0; }
+            set { AceObject.ActivationCreateClass = value; }
         }
     }
 }

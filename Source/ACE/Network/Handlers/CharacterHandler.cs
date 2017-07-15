@@ -129,10 +129,14 @@ namespace ACE.Network.Handlers
             if (account != session.Account)
                 return;
 
-            DatabaseManager.Shard.GetNextCharacterId((uint id) =>
-            {
-                CharacterCreateEx(message, session, id);
-            });
+            ////DatabaseManager.Shard.GetNextCharacterId((uint id) =>
+            ////{
+            ////    CharacterCreateEx(message, session, id);
+            ////});
+
+            uint id = GuidManager.NewPlayerGuid();
+
+            CharacterCreateEx(message, session, id);
         }
 
         private static void CharacterCreateEx(ClientMessage message, Session session, uint id)
@@ -232,6 +236,7 @@ namespace ACE.Network.Handlers
             character.SetStringProperty(PropertyString.Title, templateName);
             character.SetStringProperty(PropertyString.Template, templateName);
             character.SetIntProperty(PropertyInt.CharacterTitleId, cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title);
+            character.SetIntProperty(PropertyInt.NumCharacterTitles, 1);
 
             // stats
             // TODO - Validate this is equal to 330 (Total Attribute Credits)
