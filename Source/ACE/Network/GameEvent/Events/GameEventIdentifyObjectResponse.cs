@@ -76,7 +76,7 @@ namespace ACE.Network.GameEvent.Events
             }
 
             var propertiesString = obj.PropertiesString.Where(x => x.PropertyId < 9000).ToList();
-
+/*
 #if DEBUG
             // TODO: This needs to come out - only in while we are testing.
             if (propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc)?.PropertyValue == null)
@@ -95,7 +95,7 @@ namespace ACE.Network.GameEvent.Events
                     propertiesString.Find(x => x.PropertyId == (ushort)PropertyString.LongDesc).PropertyValue += "\n\n" + DebugOutputString(type, obj);
             }
 #endif
-
+*/
             var propertiesSpellId = obj.PropertiesSpellId.ToList();
 
             if (propertiesSpellId.Count > 0)
@@ -144,7 +144,9 @@ namespace ACE.Network.GameEvent.Events
                 flags |= IdentifyResponseFlags.StringStatsTable;
             }
 
-            if (obj.ItemType == ItemType.Creature)
+            // if PropertyPool.NpcLooksLikeObject == true, do not treat as creature data
+            var npcLooksLikeObject = propertiesBool.FirstOrDefault(x => x.PropertyId == (uint)PropertyBool.NpcLooksLikeObject)?.PropertyValue;
+            if (obj.ItemType == ItemType.Creature && npcLooksLikeObject != true)
             {
                 flags |= IdentifyResponseFlags.CreatureProfile;
 #if DEBUG
