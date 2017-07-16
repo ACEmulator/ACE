@@ -7,14 +7,8 @@
 * Fixed Guid assignment for new players and generated objects.
 * Changes to WorldObject, Door and Generator classes.
 * Changed Debug Output to chat window only to allow for proper ID display.
-
-### 2017-07-14
-[Ripley]
 * Reworked Door.cs.
-
-### 2017-07-13
-[Ripley]
-* Moved a lot of fields out of AceObject and into other objects in an effort to clean up/clear up usage.
+* Multiple changes to AceObject.
 
 ### 2017-07-12
 [Ripley]
