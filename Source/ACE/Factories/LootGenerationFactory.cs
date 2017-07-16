@@ -40,7 +40,7 @@ namespace ACE.Factories
         public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            if (aceObject.GetIntProperty(PropertyInt.ItemsCapacity) >= 1)
+            if (aceObject.ItemsCapacity >= 1)
             {
                 return CreateTestContainerObject(player, weenieId);
             }

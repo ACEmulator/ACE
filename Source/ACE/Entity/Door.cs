@@ -71,144 +71,108 @@ namespace ACE.Entity
         {
             get;
             private set;
-            ////get { return AceObject.Ethereal ?? false; }
-            ////set { AceObject.Ethereal = value; }
         }
 
         public bool IsOpen
         {
             get;
             private set;
-            ////get { return AceObject.Open ?? false; }
-            ////set { AceObject.Open = value; }
         }
 
         public bool IsLocked
         {
             get;
             private set;
-            ////get { return AceObject.Locked ?? false; }
-            ////set { AceObject.Locked = value; }
         }
 
         public bool DefaultLocked
         {
             get;
             private set;
-            ////get { return AceObject.DefaultLocked ?? false; }
-            ////set { AceObject.DefaultLocked = value; }
         }
 
         public bool DefaultOpen
         {
             get;
             private set;
-            ////get { return AceObject.DefaultOpen ?? false; }
-            ////set { AceObject.DefaultOpen = value; }
         }
 
         public float ResetInterval
         {
             get;
             private set;
-            ////get { return AceObject.ResetInterval ?? 30.0f; }
-            ////set { AceObject.ResetInterval = value; }
         }
 
         public double? ResetTimestamp
         {
             get;
             private set;
-            ////get { return AceObject.ResetTimestamp; }
-            ////set { AceObject.ResetTimestamp = value; }
         }
 
         public double? UseTimestamp
         {
             get;
             private set;
-            ////get { return AceObject.UseTimestamp; }
-            ////set { AceObject.UseTimestamp = value; }
         }
 
         public double? UseLockTimestamp
         {
             get;
             private set;
-            ////get { return AceObject.UseLockTimestamp; }
-            ////set { AceObject.UseLockTimestamp = value; }
         }
 
         public uint? LastUnlocker
         {
             get;
             private set;
-            ////get { return AceObject.LastUnlockerIID; }
-            ////set { AceObject.LastUnlockerIID = value; }
         }
 
         public string KeyCode
         {
             get;
             private set;
-            ////get { return AceObject.KeyCode; }
-            ////set { AceObject.KeyCode = value; }
         }
 
         public string LockCode
         {
             get;
             private set;
-            ////get { return AceObject.LockCode; }
-            ////set { AceObject.LockCode = value; }
         }
 
         public string ShortDesc
         {
             get;
             private set;
-            ////get { return AceObject.LockCode; }
-            ////set { AceObject.LockCode = value; }
         }
 
         public string LongDesc
         {
             get;
             private set;
-            ////get { return AceObject.LockCode; }
-            ////set { AceObject.LockCode = value; }
         }
 
         public string Use
         {
             get;
             private set;
-            ////get { return AceObject.LockCode; }
-            ////set { AceObject.LockCode = value; }
         }
 
         public string UseMessage
         {
             get;
             private set;
-            ////get { return AceObject.LockCode; }
-            ////set { AceObject.LockCode = value; }
         }
 
         public uint? ResistLockpick
         {
             get;
             private set;
-            ////get { return AceObject.ResistLockpick; }
-            ////set { AceObject.ResistLockpick = value; }
         }
 
         public uint? AppraisalLockpickSuccessPercent
         {
             get;
             private set;
-            ////get { return AceObject.AppraisalLockpickSuccessPercent; }
-            ////set { AceObject.AppraisalLockpickSuccessPercent = value; }
         }
 
         public override void OnUse(ObjectGuid playerId)

@@ -32,7 +32,6 @@ namespace ACE.Entity
             get { return guid; }
             set
             {
-                // Guid = value;
                 guid = new ObjectGuid(value.Full, value.Type);
                 AceObject.AceObjectId = value.Full;
             }
@@ -136,7 +135,7 @@ namespace ACE.Entity
 
         public virtual Position Location
         {
-            get { return AceObject.GetPosition(PositionType.Location); }
+            get { return AceObject.Location; }
             set
             {
                 /*
@@ -144,9 +143,9 @@ namespace ACE.Entity
 
                 Position = value;
                 */
-                if (AceObject.GetPosition(PositionType.Location) != null)
+                if (AceObject.Location != null)
                     LastUpdatedTicks = WorldManager.PortalYearTicks;
-                AceObject.SetPosition(PositionType.Location, value);
+                AceObject.Location = value;
             }
         }
 
@@ -496,8 +495,6 @@ namespace ACE.Entity
             get { return AceObject.ParentLocation; }
             set { AceObject.ParentLocation = value; }
         }
-
-        ////public EquipMask? EquipperPhysicsDescriptionFlag;
 
         public List<EquippedItem> Children { get; } = new List<EquippedItem>();
 
