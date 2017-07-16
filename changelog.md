@@ -8,7 +8,7 @@
 * Changes to WorldObject, Door and Generator classes.
 * Changed Debug Output to chat window only to allow for proper ID display.
 * Reworked Door.cs.
-* Multiple changes to AceObject.
+* Multiple changes to AceObject and AceCharacter.
 
 ### 2017-07-12
 [Ripley]

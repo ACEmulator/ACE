@@ -221,18 +221,6 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.IsDeleted, value); }
         }
 
-        ////public ulong DeletedTime
-        ////{
-        ////    get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
-        ////    set { SetInt64Property(PropertyInt64.DeleteTime, value); }
-        ////}
-
-        ////public string DateOfBirth
-        ////{
-        ////    get { return GetStringProperty(PropertyString.DateOfBirth); }
-        ////    set { SetStringProperty(PropertyString.DateOfBirth, value); }
-        ////}
-
         public new uint AvailableSkillCredits
         {
             get { return GetIntProperty(PropertyInt.AvailableSkillCredits) ?? 0; }
@@ -286,18 +274,6 @@ namespace ACE.Entity
             get { return GetBoolProperty(PropertyBool.IsPsr) ?? false; }
             set { SetBoolProperty(PropertyBool.IsPsr, value); }
         }
-
-        ////public uint Heritage
-        ////{
-        ////    get { return GetIntProperty(PropertyInt.HeritageGroup).Value; }
-        ////    set { SetIntProperty(PropertyInt.HeritageGroup, value); }
-        ////}
-
-        ////public uint Gender
-        ////{
-        ////    get { return GetIntProperty(PropertyInt.Gender).Value; }
-        ////    set { SetIntProperty(PropertyInt.Gender, value); }
-        ////}
 
         public uint EyesTexture
         {
@@ -413,29 +389,11 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Level, value); }
         }
 
-        ////public string Name
-        ////{
-        ////    get { return GetStringProperty(PropertyString.Name); }
-        ////    set { SetStringProperty(PropertyString.Name, value); }
-        ////}
-
         public uint? PaletteId
         {
             get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
             set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
         }
-
-        ////public float? DefaultScale
-        ////{
-        ////    get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
-        ////    set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
-        ////}
-
-        ////public Position Location
-        ////{
-        ////    get { return GetPosition(PositionType.Location); }
-        ////    set { SetPosition(PositionType.Location, value); }
-        ////}
 
         private bool dirtyOptions = true;
 
@@ -473,24 +431,6 @@ namespace ACE.Entity
                 return new ReadOnlyDictionary<CharacterOption, bool>(allOptions);
             }
         }
-
-        ////public Position LastPortal
-        ////{
-        ////    get { return GetPosition(PositionType.LastPortal); }
-        ////    set { SetPosition(PositionType.LastPortal, value); }
-        ////}
-
-        ////public Position Sanctuary
-        ////{
-        ////    get { return GetPosition(PositionType.Sanctuary); }
-        ////    set { SetPosition(PositionType.Sanctuary, value); }
-        ////}
-
-        ////public Position LastOutsideDeath
-        ////{
-        ////    get { return GetPosition(PositionType.LastOutsideDeath); }
-        ////    set { SetPosition(PositionType.LastOutsideDeath, value); }
-        ////}
 
         public void SetCharacterOption(CharacterOption option, bool value)
         {
