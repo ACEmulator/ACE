@@ -19,7 +19,6 @@ namespace ACE.Network.GameAction.Actions
             else
                 guid.ChangeGuidType(GuidType.Undef);
 
-            // session.Player.HandleActionQueryHealth(new ObjectGuid(fullId, GuidType.Creature));
             session.Player.HandleActionQueryHealth(guid);
         }
     }

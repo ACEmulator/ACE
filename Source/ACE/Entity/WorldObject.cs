@@ -26,12 +26,6 @@ namespace ACE.Entity
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
-        ////public ObjectGuid Guid
-        ////{
-        ////    get { return new ObjectGuid(AceObject.AceObjectId); }
-        ////    private set { AceObject.AceObjectId = value.Full; }
-        ////}
-
         private ObjectGuid guid;
         public ObjectGuid Guid
         {
@@ -707,19 +701,14 @@ namespace ACE.Entity
 
         public void QueryHealth(Session examiner)
         {
-            ////GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this);
-            ////examiner.Network.EnqueueSend(identifyResponse);
-
             float healthPercentage = 1f;
 
-            ////if (queryId.IsPlayer())
             if (Guid.Type == GuidType.Player)
             {
                 Player tmpTarget = (Player)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
             }
             else if (Guid.Type == GuidType.Undef)
-            ////if (queryId.IsCreature())
             {
                 Creature tmpTarget = (Creature)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;

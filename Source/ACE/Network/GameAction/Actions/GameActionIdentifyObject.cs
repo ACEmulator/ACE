@@ -12,8 +12,6 @@ namespace ACE.Network.GameAction.Actions
         {
             var id = message.Payload.ReadUInt32();
 
-            // session.Player.HandleActionExamination(new ObjectGuid(id));
-
             ObjectGuid guid = new ObjectGuid(id);
 
             if (guid.High == 80)

@@ -241,8 +241,7 @@ namespace ACE.Entity
 
         public uint CreationTimestamp
         { get { return (uint)Character.GetDoubleProperty(PropertyDouble.CreationTimestamp); } }
-        // { get { return Character.GetIntProperty(PropertyInt.CreationTimestamp) ?? 0; } }
-
+        
         public AceObject GetAceObject()
         {
             return Character;
@@ -854,64 +853,12 @@ namespace ACE.Entity
                 // Remember the selected Target
                 selectedTarget = queryId;
 
-                ////CurrentLandblock.ChainOnObject(chain, queryId, (WorldObject wo) =>
-                ////{
-                ////    wo.QueryHealth(Session);
-                ////});
-
                 ActionChain idChain = new ActionChain();
                 CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
                 {
-                    // cwo.Examine(Session);
                     cwo.QueryHealth(Session);
                 });
                 idChain.EnqueueChain();
-
-                // TODO: once items are implemented check if there are items that can trigger
-                //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
-                ////if (queryId.IsPlayer() || queryId.IsCreature())
-                ////if (queryId.Type == GuidType.Player || queryId.Type == GuidType.Creature)
-                ////{
-                ////    // If we're on a landblock, id health, otherwise ignore
-                ////    if (CurrentLandblock != null)
-                ////    {
-                ////        ActionChain idChain = new Actions.ActionChain();
-                ////        ////idChain.AddAction(this, () =>
-                ////        ////{
-                ////        ////    CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject wo) =>
-                ////        ////    {
-                ////        ////        float healthPercentage = 1f;
-
-                ////        ////        ////if (queryId.IsPlayer())
-                ////        ////        if (queryId.Type == GuidType.Player)
-                ////        ////        {
-                ////        ////            Player tmpTarget = (Player)wo;
-                ////        ////            healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                ////        ////        }
-                ////        ////        else if (queryId.Type == GuidType.Creature)
-                ////        ////        ////if (queryId.IsCreature())
-                ////        ////        {
-                ////        ////            Creature tmpTarget = (Creature)wo;
-                ////        ////            healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                ////        ////        }
-                ////        ////        var updateHealth = new GameEventUpdateHealth(Session, queryId.Full, healthPercentage);
-                ////        ////        Session.Network.EnqueueSend(updateHealth);
-                ////        ////    });
-                ////        ////});
-                ////        ////CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject wo) =>
-                ////        ////{
-                ////        ////    wo.QueryHealth(Session);
-                ////        ////});
-                ////        idChain.AddAction(this, () =>
-                ////        {
-                ////            CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject wo) =>
-                ////            {
-                ////                wo.QueryHealth(Session);
-                ////            });
-                ////        });
-                ////        idChain.EnqueueChain();
-                ////    }
-                ////}
             });
             chain.EnqueueChain();
         }

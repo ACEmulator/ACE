@@ -4,9 +4,6 @@ namespace ACE.Entity
 {
     public enum GuidType
     {
-        ////None = 0,
-        ////Player = 0x50,
-        ////Creature = 0x10,
         Undef,
         Player,
         Creature
@@ -18,7 +15,6 @@ namespace ACE.Entity
 
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
-        // public GuidType High => (GuidType)(Full >> 24);
         public uint High => (Full >> 24);
         public GuidType Type { get; private set; }
 
@@ -28,19 +24,12 @@ namespace ACE.Entity
             Type = GuidType.Undef;
         }
 
-        ////public ObjectGuid(uint low, GuidType high)
-        ////{
-        ////    Full = low | ((uint)high << 24);
-        ////}
-
         public ObjectGuid(uint full, GuidType type)
         {
             Full = full;
             Type = type;
         }
-
-        ////public bool IsPlayer() { return High == GuidType.Player; }
-
+        
         public bool IsPlayer()
         {
             if (Type == GuidType.Player)
@@ -48,8 +37,6 @@ namespace ACE.Entity
             else
                 return false;
         }
-
-        ////public bool IsCreature() { return High == GuidType.Creature; }
 
         public bool IsCreature()
         {
