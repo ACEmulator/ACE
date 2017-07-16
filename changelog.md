@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-07-16
+[OptimShi]
+* Added npcLooksLikeObject option in appraisal response 
+* Replaced some "unknown" bitfields with proper variable names in PlayerDescription.
+
 ### 2017-07-12
 [Ripley]
 * Moved most of the enums under ACE.Network to ACE.Entity.

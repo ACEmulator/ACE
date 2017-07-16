@@ -52,15 +52,19 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionOptionFlag
         {
+            // PM_Packed_* in client
             None = 0x0000,
             Shortcut = 0x0001,
+            SquelchList = 0x0002,
+            MultiSpellLists = 0x0004,
             Component = 0x0008,
             SpellTab = 0x0010,
-            Unk20 = 0x0020,
+            SpellbookFilters = 0x0020,
             CharacterOption2 = 0x0040,
-            Unk100 = 0x0100,
+            TimeStampFormat = 0x0080, // This seems to not be used, and is set as a string property instead.
+            GenericQualitiesData = 0x0100,
             WindowLayout = 0x0200,
-            Unk400 = 0x0400,
+            SpellLists8 = 0x0400, 
         }
 
         public GameEventPlayerDescription(Session session)
@@ -348,14 +352,14 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
-            if ((optionFlags & DescriptionOptionFlag.Unk20) != 0)
+            if ((optionFlags & DescriptionOptionFlag.SpellbookFilters) != 0)
                 Writer.Write(0u);
 
             if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
                 // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
                 Writer.Write(aceObj.CharacterOptions2Mapping);
 
-            /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
+            /*if ((optionFlags & DescriptionOptionFlag.GenericQualitiesData) != 0)
             {
             }*/
 
@@ -363,7 +367,7 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
-            /*if ((optionFlags & DescriptionOptionFlag.Unk400) != 0)
+            /*if ((optionFlags & DescriptionOptionFlag.SpellLists8) != 0)
             {
             }*/
 
