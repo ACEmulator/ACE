@@ -4,9 +4,12 @@ namespace ACE.Entity
 {
     public enum GuidType
     {
-        None   = 0,
-        Player = 0x50,
-        Creature = 0x10,
+        ////None = 0,
+        ////Player = 0x50,
+        ////Creature = 0x10,
+        Undef,
+        Player,
+        Creature
     }
 
     public struct ObjectGuid
@@ -15,18 +18,51 @@ namespace ACE.Entity
 
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
-        public GuidType High => (GuidType)(Full >> 24);
+        // public GuidType High => (GuidType)(Full >> 24);
+        public uint High => (Full >> 24);
+        public GuidType Type { get; private set; }
 
-        public ObjectGuid(uint full) { Full = full; }
-
-        public ObjectGuid(uint low, GuidType high)
+        public ObjectGuid(uint full)
         {
-            Full = low | ((uint)high << 24);
+            Full = full;
+            Type = GuidType.Undef;
         }
 
-        public bool IsPlayer() { return High == GuidType.Player; }
+        ////public ObjectGuid(uint low, GuidType high)
+        ////{
+        ////    Full = low | ((uint)high << 24);
+        ////}
 
-        public bool IsCreature() { return High == GuidType.Creature; }
+        public ObjectGuid(uint full, GuidType type)
+        {
+            Full = full;
+            Type = type;
+        }
+
+        ////public bool IsPlayer() { return High == GuidType.Player; }
+
+        public bool IsPlayer()
+        {
+            if (Type == GuidType.Player)
+                return true;
+            else
+                return false;
+        }
+
+        ////public bool IsCreature() { return High == GuidType.Creature; }
+
+        public bool IsCreature()
+        {
+            if (Type == GuidType.Creature)
+                return true;
+            else
+                return false;
+        }
+
+        public void ChangeGuidType(GuidType type)
+        {
+            Type = type;
+        }
 
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
         {

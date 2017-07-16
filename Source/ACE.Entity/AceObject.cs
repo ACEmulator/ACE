@@ -438,6 +438,7 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
         }
 
+        // Wielder is Parent, No such thing as PropertyInstanceId.Parent
         public uint? ParentIID
         {
             get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
@@ -804,13 +805,13 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.Ethereal, value); }
         }
 
-        public bool? IsOpen
+        public bool? Open
         {
             get { return GetBoolProperty(PropertyBool.Open); }
             set { SetBoolProperty(PropertyBool.Open, value); }
         }
 
-        public bool? IsLocked
+        public bool? Locked
         {
             get { return GetBoolProperty(PropertyBool.Locked); }
             set { SetBoolProperty(PropertyBool.Locked, value); }
@@ -880,6 +881,60 @@ namespace ACE.Entity
         {
             get { return GetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent); }
             set { SetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent, value); }
+        }
+
+        public uint? MinLevel
+        {
+            get { return GetIntProperty(PropertyInt.MinLevel); }
+            set { SetIntProperty(PropertyInt.MinLevel, value); }
+        }
+
+        public uint? MaxLevel
+        {
+            get { return GetIntProperty(PropertyInt.MaxLevel); }
+            set { SetIntProperty(PropertyInt.MaxLevel, value); }
+        }
+
+        public uint? PortalBitmask
+        {
+            get { return GetIntProperty(PropertyInt.PortalBitmask); }
+            set { SetIntProperty(PropertyInt.PortalBitmask, value); }
+        }
+
+        public string AppraisalPortalDestination
+        {
+            get { return GetStringProperty(PropertyString.AppraisalPortalDestination); }
+            set { SetStringProperty(PropertyString.AppraisalPortalDestination, value); }
+        }
+
+        public string ShortDesc
+        {
+            get { return GetStringProperty(PropertyString.ShortDesc); }
+            set { SetStringProperty(PropertyString.ShortDesc, value); }
+        }
+
+        public string LongDesc
+        {
+            get { return GetStringProperty(PropertyString.LongDesc); }
+            set { SetStringProperty(PropertyString.LongDesc, value); }
+        }
+
+        public string Use
+        {
+            get { return GetStringProperty(PropertyString.Use); }
+            set { SetStringProperty(PropertyString.Use, value); }
+        }
+
+        public string UseMessage
+        {
+            get { return GetStringProperty(PropertyString.UseMessage); }
+            set { SetStringProperty(PropertyString.UseMessage, value); }
+        }
+
+        public bool? PortalShowDestination
+        {
+            get { return GetBoolProperty(PropertyBool.PortalShowDestination); }
+            set { SetBoolProperty(PropertyBool.PortalShowDestination, value); }
         }
 
         public Position Location

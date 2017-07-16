@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using log4net;
+using ACE.Entity;
 
 namespace ACE.Managers
 {
@@ -175,36 +176,36 @@ namespace ACE.Managers
         /// Returns New Player Guid
         /// </summary>
         /// <returns></returns>
-        public static uint NewPlayerGuid()
+        public static ObjectGuid NewPlayerGuid()
         {
-            return playerAlloc.Alloc();
+            return new ObjectGuid(playerAlloc.Alloc(), GuidType.Player);
         }
 
         /// <summary>
         /// Returns New Guid for NPCs, Doors, World Portals, etc
         /// </summary>
         /// <returns></returns>
-        public static uint NewStaticObjectGuid()
+        public static ObjectGuid NewStaticObjectGuid()
         {
-            return staticObjectAlloc.Alloc();
+            return new ObjectGuid(staticObjectAlloc.Alloc());
         }
 
         /// <summary>
         /// Returns New Guid for Monsters
         /// </summary>
         /// <returns></returns>
-        public static uint NewNonStaticGuid()
+        public static ObjectGuid NewNonStaticGuid()
         {
-            return nonStaticAlloc.Alloc();
+            return new ObjectGuid(nonStaticAlloc.Alloc(), GuidType.Undef);
         }
 
         /// <summary>
         /// Returns New Guid for Items / Player Items
         /// </summary>
         /// <returns></returns>
-        public static uint NewItemGuid()
+        public static ObjectGuid NewItemGuid()
         {
-            return itemAlloc.Alloc();
+            return new ObjectGuid(itemAlloc.Alloc());
         }
     }
 }

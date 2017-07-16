@@ -12,7 +12,16 @@ namespace ACE.Network.GameAction.Actions
         {
             var id = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionExamination(new ObjectGuid(id));
+            // session.Player.HandleActionExamination(new ObjectGuid(id));
+
+            ObjectGuid guid = new ObjectGuid(id);
+
+            if (guid.High == 80)
+                guid.ChangeGuidType(GuidType.Player);
+            else
+                guid.ChangeGuidType(GuidType.Undef);
+
+            session.Player.HandleActionExamination(guid);
         }
     }
 }

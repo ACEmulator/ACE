@@ -105,20 +105,32 @@ namespace ACE.Entity
         {
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             // check to see if this ace object has a destination.  if so, defer to it.
-            if (aceO.GetPosition(PositionType.Destination) != null)
+            if (aceO.Destination != null)
             {
-                Destination = aceO.GetPosition(PositionType.Destination);
+                Destination = aceO.Destination;
             }
             else
             {
                 // but if not, portals roll up to the weenie
-                Destination = weenie.GetPosition(PositionType.Destination);
+                Destination = weenie.Destination;
             }
 
-            MinimumLevel = weenie.GetIntProperty(PropertyInt.MinLevel) ?? 0;
-            MaximumLevel = weenie.GetIntProperty(PropertyInt.MaxLevel) ?? 0;
-            IsTieable = ((AceObject.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
-            IsSummonable = ((weenie.GetIntProperty(PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
+            MinimumLevel = weenie.MinLevel ?? 0;
+            MaximumLevel = weenie.MaxLevel ?? 0;
+            IsTieable = ((weenie.PortalBitmask ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
+            IsSummonable = ((weenie.PortalBitmask ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
+            AppraisalPortalDestination = weenie.AppraisalPortalDestination;
+            PortalShowDestination = weenie.PortalShowDestination ?? false;
+        }
+
+        public string AppraisalPortalDestination
+        {
+            get;
+        }
+
+        public bool PortalShowDestination
+        {
+            get;
         }
 
         public uint MinimumLevel
@@ -278,7 +290,7 @@ namespace ACE.Entity
                             player.Session.Player.Teleport(portalDest);
                             // If the portal just used is able to be recalled to,
                             // save the destination coordinates to the LastPortal character position save table
-                            if (Convert.ToBoolean(IsRecallable) == true)
+                            if (IsRecallable)
                                 player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                             // always send useDone event
                             var sendUseDoneEvent = new GameEventUseDone(player.Session);

@@ -23,7 +23,10 @@ namespace ACE.Entity
         public Door(AceObject aceO)
             : base(aceO)
         {
+            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+
             PhysicsState |= PhysicsState.HasPhysicsBsp | PhysicsState.ReportCollision;
+
             if (!DefaultOpen)
             {
                 CurrentMotionState = motionStateClosed;
@@ -37,6 +40,10 @@ namespace ACE.Entity
                 Ethereal = true;
             }
 
+            IsLocked = AceObject.Locked ?? false;
+            ResetInterval = AceObject.ResetInterval ?? 30.0f;
+            ResistLockpick = AceObject.ResistLockpick ?? 0;
+
             // If we had the base weenies this would be the way to go
             ////if (DefaultLocked)
             ////    IsLocked = true;
@@ -49,90 +56,159 @@ namespace ACE.Entity
 
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
+
+            if (AceObject.Use == null)
+                Use = weenie.Use;
+            if (AceObject.UseMessage == null)
+                UseMessage = weenie.UseMessage;
+            if (AceObject.LongDesc == null)
+                LongDesc = weenie.LongDesc;
+            if (AceObject.ShortDesc == null)
+                ShortDesc = weenie.ShortDesc;
         }
 
         public bool Ethereal
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.Ethereal) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.Ethereal, value); }
+            get;
+            private set;
+            ////get { return AceObject.Ethereal ?? false; }
+            ////set { AceObject.Ethereal = value; }
         }
 
         public bool IsOpen
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.Open) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.Open, value); }
+            get;
+            private set;
+            ////get { return AceObject.Open ?? false; }
+            ////set { AceObject.Open = value; }
         }
 
         public bool IsLocked
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.Locked) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.Locked, value); }
+            get;
+            private set;
+            ////get { return AceObject.Locked ?? false; }
+            ////set { AceObject.Locked = value; }
         }
 
         public bool DefaultLocked
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.DefaultLocked) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.DefaultLocked, value); }
+            get;
+            private set;
+            ////get { return AceObject.DefaultLocked ?? false; }
+            ////set { AceObject.DefaultLocked = value; }
         }
 
         public bool DefaultOpen
         {
-            get { return AceObject.GetBoolProperty(PropertyBool.DefaultOpen) ?? false; }
-            set { AceObject.SetBoolProperty(PropertyBool.DefaultOpen, value); }
+            get;
+            private set;
+            ////get { return AceObject.DefaultOpen ?? false; }
+            ////set { AceObject.DefaultOpen = value; }
         }
 
         public float ResetInterval
         {
-            get { return (float?)AceObject.GetDoubleProperty(PropertyDouble.ResetInterval) ?? 30.0f; }
-            set { AceObject.SetDoubleProperty(PropertyDouble.ResetInterval, value); }
+            get;
+            private set;
+            ////get { return AceObject.ResetInterval ?? 30.0f; }
+            ////set { AceObject.ResetInterval = value; }
         }
 
         public double? ResetTimestamp
         {
-            get { return AceObject.GetDoubleProperty(PropertyDouble.ResetTimestamp); }
-            set { AceObject.SetDoubleTimestamp(PropertyDouble.ResetTimestamp); }
+            get;
+            private set;
+            ////get { return AceObject.ResetTimestamp; }
+            ////set { AceObject.ResetTimestamp = value; }
         }
 
         public double? UseTimestamp
         {
-            get { return AceObject.GetDoubleProperty(PropertyDouble.UseTimestamp); }
-            set { AceObject.SetDoubleTimestamp(PropertyDouble.UseTimestamp); }
+            get;
+            private set;
+            ////get { return AceObject.UseTimestamp; }
+            ////set { AceObject.UseTimestamp = value; }
         }
 
         public double? UseLockTimestamp
         {
-            get { return AceObject.GetDoubleProperty(PropertyDouble.UseLockTimestamp); }
-            set { AceObject.SetDoubleTimestamp(PropertyDouble.UseLockTimestamp); }
+            get;
+            private set;
+            ////get { return AceObject.UseLockTimestamp; }
+            ////set { AceObject.UseLockTimestamp = value; }
         }
 
         public uint? LastUnlocker
         {
-            get { return AceObject.GetInstanceIdProperty(PropertyInstanceId.LastUnlocker); }
-            set { AceObject.SetInstanceIdProperty(PropertyInstanceId.LastUnlocker, value); }
+            get;
+            private set;
+            ////get { return AceObject.LastUnlockerIID; }
+            ////set { AceObject.LastUnlockerIID = value; }
         }
 
         public string KeyCode
         {
-            get { return AceObject.GetStringProperty(PropertyString.KeyCode); }
-            set { AceObject.SetStringProperty(PropertyString.KeyCode, value); }
+            get;
+            private set;
+            ////get { return AceObject.KeyCode; }
+            ////set { AceObject.KeyCode = value; }
         }
 
         public string LockCode
         {
-            get { return AceObject.GetStringProperty(PropertyString.LockCode); }
-            set { AceObject.SetStringProperty(PropertyString.LockCode, value); }
+            get;
+            private set;
+            ////get { return AceObject.LockCode; }
+            ////set { AceObject.LockCode = value; }
+        }
+
+        public string ShortDesc
+        {
+            get;
+            private set;
+            ////get { return AceObject.LockCode; }
+            ////set { AceObject.LockCode = value; }
+        }
+
+        public string LongDesc
+        {
+            get;
+            private set;
+            ////get { return AceObject.LockCode; }
+            ////set { AceObject.LockCode = value; }
+        }
+
+        public string Use
+        {
+            get;
+            private set;
+            ////get { return AceObject.LockCode; }
+            ////set { AceObject.LockCode = value; }
+        }
+
+        public string UseMessage
+        {
+            get;
+            private set;
+            ////get { return AceObject.LockCode; }
+            ////set { AceObject.LockCode = value; }
         }
 
         public uint? ResistLockpick
         {
-            get { return AceObject.GetIntProperty(PropertyInt.ResistLockpick); }
-            set { AceObject.SetIntProperty(PropertyInt.ResistLockpick, value); }
+            get;
+            private set;
+            ////get { return AceObject.ResistLockpick; }
+            ////set { AceObject.ResistLockpick = value; }
         }
 
         public uint? AppraisalLockpickSuccessPercent
         {
-            get { return AceObject.GetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent); }
-            set { AceObject.SetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent, value); }
+            get;
+            private set;
+            ////get { return AceObject.AppraisalLockpickSuccessPercent; }
+            ////set { AceObject.AppraisalLockpickSuccessPercent = value; }
         }
 
         public override void OnUse(ObjectGuid playerId)

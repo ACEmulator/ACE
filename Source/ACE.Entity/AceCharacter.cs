@@ -34,7 +34,6 @@ namespace ACE.Entity
             SetInt64Property(PropertyInt64.AvailableExperience, 0);
             SetInt64Property(PropertyInt64.TotalExperience, 0);
 
-
             SetIntProperty(PropertyInt.EncumbranceVal, 0);
 
             SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);

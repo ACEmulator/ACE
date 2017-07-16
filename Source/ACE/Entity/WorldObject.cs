@@ -26,10 +26,22 @@ namespace ACE.Entity
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
+        ////public ObjectGuid Guid
+        ////{
+        ////    get { return new ObjectGuid(AceObject.AceObjectId); }
+        ////    private set { AceObject.AceObjectId = value.Full; }
+        ////}
+
+        private ObjectGuid guid;
         public ObjectGuid Guid
         {
-            get { return new ObjectGuid(AceObject.AceObjectId); }
-            private set { AceObject.AceObjectId = value.Full; }
+            get { return guid; }
+            set
+            {
+                // Guid = value;
+                guid = new ObjectGuid(value.Full, value.Type);
+                AceObject.AceObjectId = value.Full;
+            }
         }
 
         protected AceObject AceObject { get; set; }
@@ -693,6 +705,30 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(identifyResponse);
         }
 
+        public void QueryHealth(Session examiner)
+        {
+            ////GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this);
+            ////examiner.Network.EnqueueSend(identifyResponse);
+
+            float healthPercentage = 1f;
+
+            ////if (queryId.IsPlayer())
+            if (Guid.Type == GuidType.Player)
+            {
+                Player tmpTarget = (Player)this;
+                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+            }
+            else if (Guid.Type == GuidType.Undef)
+            ////if (queryId.IsCreature())
+            {
+                Creature tmpTarget = (Creature)this;
+                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+            }
+
+            var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
+            examiner.Network.EnqueueSend(updateHealth);
+        }
+
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
@@ -1092,7 +1128,7 @@ namespace ACE.Entity
 
         public AceObject NewAceObjectFromCopy()
         {
-            return (AceObject)AceObject.Clone(GuidManager.NewItemGuid());
+            return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
         }
 
         /// <summary>

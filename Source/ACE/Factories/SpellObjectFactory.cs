@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
 
 namespace ACE.Factories
@@ -57,7 +58,7 @@ namespace ACE.Factories
                     break;
             }
 
-            SpellLikeEffect mobj = new SpellLikeEffect(ItemType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
+            SpellLikeEffect mobj = new SpellLikeEffect(ItemType.MissileWeapon, GuidManager.NewItemGuid(), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
 
             mobj.DefaultScriptId = (uint)PlayScript.ProjectileCollision;
             mobj.DefaultScriptIntensity = (float)1;

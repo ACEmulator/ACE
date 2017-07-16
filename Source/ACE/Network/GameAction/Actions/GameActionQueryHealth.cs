@@ -12,7 +12,15 @@ namespace ACE.Network.GameAction.Actions
         {
             uint fullId = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionQueryHealth(new ObjectGuid(fullId));
+            ObjectGuid guid = new ObjectGuid(fullId);
+
+            if (guid.High == 80)
+                guid.ChangeGuidType(GuidType.Player);
+            else
+                guid.ChangeGuidType(GuidType.Undef);
+
+            // session.Player.HandleActionQueryHealth(new ObjectGuid(fullId, GuidType.Creature));
+            session.Player.HandleActionQueryHealth(guid);
         }
     }
 }
