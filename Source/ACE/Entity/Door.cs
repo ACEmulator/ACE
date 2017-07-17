@@ -215,9 +215,6 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    bool isLocked;
-                    bool isOpen;
-
                     ActionChain checkDoorChain = new ActionChain();
                     CurrentLandblock.ChainOnObject(checkDoorChain, Guid, (WorldObject dwo) =>
                     {
@@ -226,12 +223,10 @@ namespace ACE.Entity
                         {
                             return;
                         }
-                        isLocked = door.IsLocked;
-                        isOpen = door.IsOpen;
 
-                        if (!isLocked)
+                        if (!door.IsLocked)
                         {
-                            if (!isOpen)
+                            if (!door.IsOpen)
                             {
                                 door.Open(playerId);
                             }
@@ -243,13 +238,16 @@ namespace ACE.Entity
                             // Create Door auto close timer
                             ActionChain autoCloseTimer = new ActionChain();
                             autoCloseTimer.AddDelaySeconds(ResetInterval);
-                            autoCloseTimer.AddAction(this, () => door.Reset());
+                            autoCloseTimer.AddAction(door, () => door.Reset());
                             autoCloseTimer.EnqueueChain();
                         }
                         else
                         {
-                            CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                            CurrentLandblock.EnqueueBroadcastSound(door, Sound.OpenFailDueToLock);
                         }
+
+                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
                     });
                     checkDoorChain.EnqueueChain();
 
@@ -275,8 +273,8 @@ namespace ACE.Entity
                     ////    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                     ////}
 
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    ////var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    ////player.Session.Network.EnqueueSend(sendUseDoneEvent);
                 }
             });
             chain.EnqueueChain();
