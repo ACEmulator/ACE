@@ -83,7 +83,6 @@ namespace ACE.Entity
         public ObjectGuid(uint full)
         {
             Full = full;
-            ////Type = GuidType.Undef;
 
             if (Full >= WeenieMin && Full <= WeenieMax)
                 Type = GuidType.Weenie;
@@ -100,12 +99,6 @@ namespace ACE.Entity
             else
                 Type = GuidType.Undef;
         }
-
-        ////public ObjectGuid(uint full, GuidType type)
-        ////{
-        ////    Full = full;
-        ////    Type = type;
-        ////}
         
         public bool IsPlayer()
         {
@@ -122,11 +115,6 @@ namespace ACE.Entity
             else
                 return false;
         }
-
-        ////public void ChangeGuidType(GuidType type)
-        ////{
-        ////    Type = type;
-        ////}
 
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
         {
