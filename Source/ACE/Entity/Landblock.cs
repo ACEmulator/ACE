@@ -207,7 +207,7 @@ namespace ACE.Entity
         {
             Log($"adding {wo.Guid.Full.ToString("X")}");
 
-            if (wo.Guid.High == 80)
+            if (wo.Guid.IsPlayer())
                 wo.Guid = new ObjectGuid(wo.Guid.Full, GuidType.Player);
 
             if (!worldObjects.ContainsKey(wo.Guid))
