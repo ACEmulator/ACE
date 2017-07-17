@@ -7,6 +7,7 @@ using ACE.Entity.Enum.Properties;
 using System;
 using ACE.DatLoader.FileTypes;
 using ACE.Network.GameMessages.Messages;
+using ACE.Common;
 
 namespace ACE.Entity
 {
@@ -104,22 +105,25 @@ namespace ACE.Entity
             private set;
         }
 
+        private double resetTimestamp;
         public double? ResetTimestamp
         {
-            get;
-            private set;
+            get { return resetTimestamp; }
+            private set { resetTimestamp = Time.Timestamp(); }
         }
 
+        private double useTimestamp;
         public double? UseTimestamp
         {
-            get;
-            private set;
+            get { return useTimestamp; }
+            private set { useTimestamp = Time.Timestamp(); }
         }
 
+        private double useLockTimestamp;
         public double? UseLockTimestamp
         {
-            get;
-            private set;
+            get { return useLockTimestamp; }
+            private set { useLockTimestamp = Time.Timestamp(); }
         }
 
         public uint? LastUnlocker
@@ -242,35 +246,42 @@ namespace ACE.Entity
 
         private void Open(ObjectGuid opener = new ObjectGuid())
         {
-            CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            CurrentMotionState = motionStateOpen;
-            PhysicsState |= PhysicsState.Ethereal;
-            Ethereal = true;
-            IsOpen = true;
-            if (opener.Full > 0)
-                UseTimestamp++;
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            {
+                CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
+                CurrentMotionState = motionStateOpen;
+                PhysicsState |= PhysicsState.Ethereal;
+                Ethereal = true;
+                IsOpen = true;
+                if (opener.Full > 0)
+                    UseTimestamp++;
+            });
+            chain.EnqueueChain();
         }
 
         private void Close(ObjectGuid closer = new ObjectGuid())
         {
-            if (this.CurrentMotionState == motionStateClosed)
-                return;
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            {
+                if (this.CurrentMotionState == motionStateClosed)
+                    return;
 
-            CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
-            CurrentMotionState = motionStateClosed;
-            PhysicsState ^= PhysicsState.Ethereal;
-            Ethereal = false;
-            IsOpen = false;
-            if (closer.Full > 0)
-                UseTimestamp++;
+                CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
+                CurrentMotionState = motionStateClosed;
+                PhysicsState ^= PhysicsState.Ethereal;
+                Ethereal = false;
+                IsOpen = false;
+                if (closer.Full > 0)
+                    UseTimestamp++;
+            });
+            chain.EnqueueChain();
         }
 
         private void Reset()
         {
-            TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
-            double timestamp = span.TotalSeconds;
-
-            if ((timestamp - ResetTimestamp) < ResetInterval)
+            if ((Time.Timestamp() - UseTimestamp) < ResetInterval)
                 return;
 
             if (!DefaultOpen)
