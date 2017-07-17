@@ -937,6 +937,55 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.PortalShowDestination, value); }
         }
 
+        public string HeritageGroup
+        {
+            get { return GetStringProperty(PropertyString.HeritageGroup); }
+            set { SetStringProperty(PropertyString.HeritageGroup, value); }
+        }
+
+        public string Sex
+        {
+            get { return GetStringProperty(PropertyString.Sex); }
+            set { SetStringProperty(PropertyString.Sex, value); }
+        }
+
+        public string Title
+        {
+            get { return GetStringProperty(PropertyString.Title); }
+            set { SetStringProperty(PropertyString.Title, value); }
+        }
+
+        public string Template
+        {
+            get { return GetStringProperty(PropertyString.Template); }
+            set { SetStringProperty(PropertyString.Template, value); }
+        }
+
+        public string DisplayName
+        {
+            get { return GetStringProperty(PropertyString.DisplayName); }
+            set { SetStringProperty(PropertyString.DisplayName, value); }
+        }
+
+        public uint? CharacterTitleId
+        {
+            get { return GetIntProperty(PropertyInt.CharacterTitleId); }
+            set { SetIntProperty(PropertyInt.CharacterTitleId, value); }
+        }
+
+        public uint? NumCharacterTitles
+        {
+            get { return GetIntProperty(PropertyInt.NumCharacterTitles); }
+            set { SetIntProperty(PropertyInt.NumCharacterTitles, value); }
+        }
+
+        public double? CreationTimestamp
+        {
+            get { return GetDoubleProperty(PropertyDouble.CreationTimestamp); }
+            set { SetDoubleTimestamp(PropertyDouble.CreationTimestamp); }
+        }
+
+        #region Positions  
         public Position Location
         {
             get { return GetPosition(PositionType.Location); }
@@ -1098,18 +1147,19 @@ namespace ACE.Entity
             get { return GetPosition(PositionType.TeleportedCharacter); }
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
+        #endregion
 
-        public uint? GetDataIdProperty(PropertyDataId property)
+        protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<uint> GetDataIdProperties(PropertyDataId property)
+        protected List<uint> GetDataIdProperties(PropertyDataId property)
         {
             return DataIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
+        protected void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
         {
             AceObjectPropertiesDataId listItem = DataIdProperties.Find(x => x.PropertyId == (short)didPropertyId);
             if (value != null)
@@ -1131,17 +1181,17 @@ namespace ACE.Entity
             }
         }
 
-        public bool? GetBoolProperty(PropertyBool property)
+        protected bool? GetBoolProperty(PropertyBool property)
         {
             return BoolProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<bool> GetBoolProperties(PropertyBool property)
+        protected List<bool> GetBoolProperties(PropertyBool property)
         {
             return BoolProperties.Where(x => x.PropertyId == (uint)property).Where(b => b.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetBoolProperty(PropertyBool propertyId, bool? value)
+        protected void SetBoolProperty(PropertyBool propertyId, bool? value)
         {
             AceObjectPropertiesBool listItem = BoolProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
@@ -1163,17 +1213,17 @@ namespace ACE.Entity
             }
         }
 
-        public uint? GetInstanceIdProperty(PropertyInstanceId property)
+        protected uint? GetInstanceIdProperty(PropertyInstanceId property)
         {
             return InstanceIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<uint> GetInstanceIdProperties(PropertyInstanceId property)
+        protected List<uint> GetInstanceIdProperties(PropertyInstanceId property)
         {
             return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
+        protected void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
         {
             AceObjectPropertiesInstanceId listItem = InstanceIdProperties.Find(x => x.PropertyId == (ushort)iidPropertyId);
             if (value != null)
@@ -1195,7 +1245,7 @@ namespace ACE.Entity
             }
         }
 
-        public CreatureAbility GetAttributeProperty(Ability ability)
+        protected CreatureAbility GetAttributeProperty(Ability ability)
         {
             CreatureAbility ret;
             bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out ret);
@@ -1221,12 +1271,12 @@ namespace ACE.Entity
             }
         }
 
-        public void SetAttributeProperty(Ability ability, CreatureAbility value)
+        protected void SetAttributeProperty(Ability ability, CreatureAbility value)
         {
             SetProperty(AceObjectPropertiesAttributes, ability, value);
         }
 
-        public CreatureVital GetAttribute2ndProperty(Ability ability)
+        protected CreatureVital GetAttribute2ndProperty(Ability ability)
         {
             CreatureVital ret;
             bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out ret);
@@ -1240,12 +1290,12 @@ namespace ACE.Entity
             return ret;
         }
 
-        public void SetAttribute2ndProperty(Ability ability, CreatureVital value)
+        protected void SetAttribute2ndProperty(Ability ability, CreatureVital value)
         {
             SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
         }
 
-        public CreatureSkill GetSkillProperty(Skill skill)
+        protected CreatureSkill GetSkillProperty(Skill skill)
         {
             CreatureSkill ret;
             bool success = AceObjectPropertiesSkills.TryGetValue(skill, out ret);
@@ -1259,7 +1309,7 @@ namespace ACE.Entity
             return ret;
         }
 
-        public void SetSkillProperty(Skill skill, CreatureSkill value)
+        protected void SetSkillProperty(Skill skill, CreatureSkill value)
         {
             SetProperty(AceObjectPropertiesSkills, skill, value);
         }
@@ -1269,17 +1319,17 @@ namespace ACE.Entity
             return AceObjectPropertiesSkills.Values.ToList();
         }
 
-        public uint? GetIntProperty(PropertyInt property)
+        protected uint? GetIntProperty(PropertyInt property)
         {
             return IntProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<uint> GetIntProperties(PropertyInt property)
+        protected List<uint> GetIntProperties(PropertyInt property)
         {
             return IntProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetIntProperty(PropertyInt intPropertyId, uint? value)
+        protected void SetIntProperty(PropertyInt intPropertyId, uint? value)
         {
             AceObjectPropertiesInt listItem = IntProperties.Find(x => x.PropertyId == (ushort)intPropertyId);
             if (value != null)
@@ -1301,17 +1351,17 @@ namespace ACE.Entity
             }
         }
 
-        public ulong? GetInt64Property(PropertyInt64 property)
+        protected ulong? GetInt64Property(PropertyInt64 property)
         {
             return Int64Properties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<ulong> GetInt64Properties(PropertyInt64 property)
+        protected List<ulong> GetInt64Properties(PropertyInt64 property)
         {
             return Int64Properties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetInt64Property(PropertyInt64 int64PropertyId, ulong? value)
+        protected void SetInt64Property(PropertyInt64 int64PropertyId, ulong? value)
         {
             AceObjectPropertiesInt64 listItem = Int64Properties.Find(x => x.PropertyId == (ushort)int64PropertyId);
             if (value != null)
@@ -1333,12 +1383,12 @@ namespace ACE.Entity
             }
         }
 
-        public double? GetDoubleProperty(PropertyDouble property)
+        protected double? GetDoubleProperty(PropertyDouble property)
         {
             return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
         }
 
-        public List<double> GetDoubleProperties(PropertyDouble property)
+        protected List<double> GetDoubleProperties(PropertyDouble property)
         {
             return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
@@ -1350,7 +1400,7 @@ namespace ACE.Entity
             SetDoubleProperty(propertyId, timestamp);
         }
 
-        public void SetDoubleProperty(PropertyDouble propertyId, double? value)
+        protected void SetDoubleProperty(PropertyDouble propertyId, double? value)
         {
             AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
@@ -1378,17 +1428,17 @@ namespace ACE.Entity
             }
         }
 
-        public string GetStringProperty(PropertyString property)
+        protected string GetStringProperty(PropertyString property)
         {
             return StringProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<string> GetStringProperties(PropertyString property)
+        protected List<string> GetStringProperties(PropertyString property)
         {
             return StringProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
         }
 
-        public void SetStringProperty(PropertyString propertyId, string value)
+        protected void SetStringProperty(PropertyString propertyId, string value)
         {
             AceObjectPropertiesString listItem = StringProperties.Find(x => x.PropertyId == (ushort)propertyId);
             if (value != null)
@@ -1449,7 +1499,7 @@ namespace ACE.Entity
 
         public Dictionary<PositionType, Position> AceObjectPropertiesPositions { get; set; } = new Dictionary<PositionType, Position>();
 
-        public Position GetPosition(PositionType positionType)
+        protected Position GetPosition(PositionType positionType)
         {
             Position ret;
             bool success = AceObjectPropertiesPositions.TryGetValue(positionType, out ret);
@@ -1461,7 +1511,7 @@ namespace ACE.Entity
             return ret;
         }
 
-        public void SetPosition(PositionType positionType, Position value)
+        protected void SetPosition(PositionType positionType, Position value)
         {
             SetProperty(AceObjectPropertiesPositions, positionType, value);
         }

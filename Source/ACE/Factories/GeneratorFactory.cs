@@ -52,7 +52,7 @@ namespace ACE.Factories
             Random random = new Random((int)DateTime.UtcNow.Ticks);
 
             // Check if the current generator is meant to spawn objects at this time of the day
-            switch (generator.GetIntProperty(PropertyInt.GeneratorTimeType))
+            switch (generator.GeneratorTimeType)
             {
                 case (int)GeneratorTimeType.Day:
                     if (currentTime.IsNight)

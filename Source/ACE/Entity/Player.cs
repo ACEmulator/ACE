@@ -240,7 +240,7 @@ namespace ACE.Entity
         { get { return Character.Age; } }
 
         public uint CreationTimestamp
-        { get { return (uint)Character.GetDoubleProperty(PropertyDouble.CreationTimestamp); } }
+        { get { return (uint)Character.CreationTimestamp; } }
         
         public AceObject GetAceObject()
         {
