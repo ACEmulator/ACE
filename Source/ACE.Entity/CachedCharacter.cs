@@ -14,7 +14,7 @@ namespace ACE.Entity
         {
             get
             {
-                return new ObjectGuid(FullGuid, GuidType.Player);
+                return new ObjectGuid(FullGuid);
             }
             set
             {

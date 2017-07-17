@@ -32,7 +32,7 @@ namespace ACE.Entity
             get { return guid; }
             set
             {
-                guid = new ObjectGuid(value.Full, value.Type);
+                guid = new ObjectGuid(value.Full);
                 AceObject.AceObjectId = value.Full;
             }
         }
@@ -700,12 +700,12 @@ namespace ACE.Entity
         {
             float healthPercentage = 1f;
 
-            if (Guid.Type == GuidType.Player)
+            if (Guid.IsPlayer())
             {
                 Player tmpTarget = (Player)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
             }
-            else if (Guid.Type == GuidType.Undef)
+            else if (Guid.IsCreature())
             {
                 Creature tmpTarget = (Creature)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;

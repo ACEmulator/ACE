@@ -1068,7 +1068,7 @@ namespace ACE.Entity
 
                 Friend newFriend = new Friend();
                 newFriend.Name = friendInfo.Name;
-                newFriend.Id = new ObjectGuid(friendInfo.Guid, GuidType.Player);
+                newFriend.Id = new ObjectGuid(friendInfo.Guid);
 
                 // Save to DB, assume success
                 DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low, (() =>

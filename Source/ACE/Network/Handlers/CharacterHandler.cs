@@ -30,7 +30,6 @@ namespace ACE.Network.Handlers
         public static void CharacterEnterWorld(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
-            guid.ChangeGuidType(GuidType.Player);
 
             string account = message.Payload.ReadString16L();
 
@@ -320,7 +319,7 @@ namespace ACE.Network.Handlers
                     // DatabaseManager.Shard.SaveCharacterOptions(character);
                     // DatabaseManager.Shard.InitCharacterPositions(character);
 
-                    var guid = new ObjectGuid(character.AceObjectId, GuidType.Player);
+                    var guid = new ObjectGuid(character.AceObjectId);
                     session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);

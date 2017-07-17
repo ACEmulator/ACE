@@ -293,7 +293,7 @@ namespace ACE.Database
         {
             uint maxId = ExecuteConstructedGetAggregateStatement<ShardPreparedStatement, CachedCharacter, uint>(ShardPreparedStatement.GetNextCharacterId);
 
-            ObjectGuid nextGuid = new ObjectGuid(maxId + 1, GuidType.Player);
+            ObjectGuid nextGuid = new ObjectGuid(maxId + 1);
             return nextGuid.Full;
         }
 

@@ -14,11 +14,6 @@ namespace ACE.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(id);
 
-            if (guid.IsPlayer())
-                guid.ChangeGuidType(GuidType.Player);
-            else
-                guid.ChangeGuidType(GuidType.Undef);
-
             session.Player.HandleActionExamination(guid);
         }
     }

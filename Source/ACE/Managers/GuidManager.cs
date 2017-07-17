@@ -102,8 +102,8 @@ namespace ACE.Managers
         public static uint InvalidGuid { get; } = uint.MaxValue;
         private const uint LowIdLimit = 0x1000;
 
-        public static uint WeenieMin { get; } = 0x00000001;
-        public static uint WeenieMax { get; } = 0x000F423F;
+        public static uint WeenieMin { get; } = ObjectGuid.WeenieMin;
+        public static uint WeenieMax { get; } = ObjectGuid.WeenieMax;
 
         // private static GuidAllocator weenieAlloc;
 
@@ -117,8 +117,8 @@ namespace ACE.Managers
         // private const uint staticObjectMin = 0x00020000;
         // private const uint staticObjectMax = 0x0FFFFFFF;
 
-        public static uint StaticObjectMin { get; } = 0x70000000;
-        public static uint StaticObjectMax { get; } = 0xDFFFFFFF;
+        public static uint StaticObjectMin { get; } = ObjectGuid.StaticObjectMin;
+        public static uint StaticObjectMax { get; } = ObjectGuid.StaticObjectMax;
 
         private static GuidAllocator staticObjectAlloc;
 
@@ -127,22 +127,26 @@ namespace ACE.Managers
         private static uint staticObject = staticObjectMax;
         */
 
+        public static uint GeneratorMin { get; } = ObjectGuid.GeneratorMin;
+        public static uint GeneratorMax { get; } = ObjectGuid.GeneratorMax;
+        private static GuidAllocator generatorAlloc;
+
         // Monsters / Summoned portals - any non-static item max  ‭1,073,741,823‬
         // If the server ran for 30 days without a restart, we would need to be creating over 24,854 spawns per minute or 414 per second to exhaust
         // Wow does a server restart once per week.   I can't imagine this would be any type of real limitation even on a heavily populated server with
         // a lot of macro activity.    We could easily build a warning when a server was down to 50k free for a restart.
         // Fragmentation: None - N/A
         // FIXME(ddevec): Currently 
-        public static uint NonStaticMin { get; } = 0x000F4240;
-        public static uint NonStaticMax { get; } = 0x4FFFFFFF;
+        public static uint NonStaticMin { get; } = ObjectGuid.NonStaticMin;
+        public static uint NonStaticMax { get; } = ObjectGuid.NonStaticMax;
         private static GuidAllocator nonStaticAlloc;
 
         // players max 268,345,454
         // Fragmentation: None - to very light
         // We should get these on player creation.   It would be a very edge case that we threw one away.
         // Again, given probable server populations and available accounts and players - this can pose no real limitation.
-        public static uint PlayerMin { get; } = 0x50000001;
-        public static uint PlayerMax { get; } = 0x5FFFFFFF;
+        public static uint PlayerMin { get; } = ObjectGuid.PlayerMin;
+        public static uint PlayerMax { get; } = ObjectGuid.PlayerMax;
 
         private static GuidAllocator playerAlloc;
 
@@ -155,9 +159,9 @@ namespace ACE.Managers
         // Proposed real range.
         // private const uint itemMin = 0x6000000;
         // private const uint itemMax = 0xFFFFFFE;
-        public static uint ItemMin { get; } = 0xE0000000;
+        public static uint ItemMin { get; } = ObjectGuid.ItemMin;
         // Ends at E because uint.Max is reserved for "invalid"
-        public static uint ItemMax { get; } = 0xFFFFFFFE;
+        public static uint ItemMax { get; } = ObjectGuid.ItemMax;
 
         // At Server startup read current max from the DB
         private static GuidAllocator itemAlloc;
@@ -169,7 +173,8 @@ namespace ACE.Managers
             itemAlloc = new GuidAllocator(ItemMin, ItemMax, "item");
             nonStaticAlloc = new GuidAllocator(NonStaticMin, NonStaticMax, "non-static");
             staticObjectAlloc = new GuidAllocator(StaticObjectMin, StaticObjectMax, "static");
-            // weenieAlloc = new GuidAllocator(WeenieMin, WeenieMax, "static");
+            generatorAlloc = new GuidAllocator(GeneratorMin, GeneratorMax, "generator");
+            // weenieAlloc = new GuidAllocator(WeenieMin, WeenieMax, "weenie");
         }
 
         /// <summary>
@@ -178,7 +183,7 @@ namespace ACE.Managers
         /// <returns></returns>
         public static ObjectGuid NewPlayerGuid()
         {
-            return new ObjectGuid(playerAlloc.Alloc(), GuidType.Player);
+            return new ObjectGuid(playerAlloc.Alloc());
         }
 
         /// <summary>
@@ -194,9 +199,18 @@ namespace ACE.Managers
         /// Returns New Guid for Monsters
         /// </summary>
         /// <returns></returns>
+        public static ObjectGuid NewGeneratorGuid()
+        {
+            return new ObjectGuid(generatorAlloc.Alloc());
+        }
+
+        /// <summary>
+        /// Returns New Guid for Monsters
+        /// </summary>
+        /// <returns></returns>
         public static ObjectGuid NewNonStaticGuid()
         {
-            return new ObjectGuid(nonStaticAlloc.Alloc(), GuidType.Undef);
+            return new ObjectGuid(nonStaticAlloc.Alloc());
         }
 
         /// <summary>
