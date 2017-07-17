@@ -206,7 +206,7 @@ namespace ACE.Entity
                 {
                     ActionChain moveToDoorChain = new ActionChain();
 
-                    moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.1f));
+                    moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.2f));
                     moveToDoorChain.AddDelaySeconds(0.50);
 
                     moveToDoorChain.AddAction(this, () => OnUse(playerId));
