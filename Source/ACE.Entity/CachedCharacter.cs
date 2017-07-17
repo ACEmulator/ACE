@@ -8,12 +8,18 @@ namespace ACE.Entity
     public class CachedCharacter
     {
         [DbField("guid", (int)MySqlDbType.UInt32)]
-        public uint LowGuid { get; set; }
+        public uint FullGuid { get; set; }
 
         public ObjectGuid Guid
         {
-            get { return new ObjectGuid(LowGuid, GuidType.Player); } 
-            set { LowGuid = value.Low; }
+            get
+            {
+                return new ObjectGuid(FullGuid, GuidType.Player);
+            }
+            set
+            {
+                FullGuid = value.Full;
+            }
         }
 
         public byte SlotId { get; set; }
