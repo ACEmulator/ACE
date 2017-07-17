@@ -32,7 +32,7 @@ namespace ACE.Entity
         
         public bool IsPlayer()
         {
-            if (Type == GuidType.Player)
+            if (Type == GuidType.Player || High == 80)
                 return true;
             else
                 return false;
