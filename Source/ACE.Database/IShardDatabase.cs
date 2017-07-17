@@ -29,8 +29,6 @@ namespace ACE.Database
 
         uint RenameCharacter(string currentName, string newName);
 
-        uint GetNextCharacterId();
-
         uint GetCurrentId(uint min, uint max);
 
         AceCharacter GetCharacter(uint id);
