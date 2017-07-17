@@ -178,8 +178,6 @@ namespace ACE.Entity
 
         public override void OnUse(ObjectGuid playerId)
         {
-            // TODO: check if door is locked, send locked soundfx if locked and fail to open.
-
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
             {
@@ -191,9 +189,7 @@ namespace ACE.Entity
 
                 SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
                 float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
-
-                ////var sendUseDoneEvent = new GameEventUseDone(player.Session);                
+                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);             
 
                 ////if (playerDistanceTo >= 2500)
                 ////{
@@ -234,10 +230,6 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        // player.HandleActionApplySoundEffect(Sound.OpenFailDueToLock);
-                        // var soundEvent = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1);
-                        // player.Session.Network.EnqueueSend(soundEvent);
-
                         CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                     }
 
