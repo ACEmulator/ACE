@@ -715,6 +715,16 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(updateHealth);
         }
 
+        ////public void PlaySound(Sound sound, ObjectGuid targetId)
+        ////{
+        ////    Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
+        ////}
+
+        ////public void HandleActionApplySoundEffect(Sound sound)
+        ////{
+        ////    new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
+        ////}
+
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?

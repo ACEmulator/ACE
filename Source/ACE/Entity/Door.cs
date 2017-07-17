@@ -6,6 +6,7 @@ using ACE.Network.Motion;
 using ACE.Entity.Enum.Properties;
 using System;
 using ACE.DatLoader.FileTypes;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -214,20 +215,31 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    if (!IsOpen)
+                    if (!IsLocked)
                     {
-                        Open(playerId);
+                        if (!IsOpen)
+                        {
+                            Open(playerId);
+                        }
+                        else
+                        {
+                            Close(playerId);
+                        }
+
+                        // Create Door auto close timer
+                        ActionChain autoCloseTimer = new ActionChain();
+                        autoCloseTimer.AddDelaySeconds(ResetInterval);
+                        autoCloseTimer.AddAction(this, () => Reset());
+                        autoCloseTimer.EnqueueChain();
                     }
                     else
                     {
-                        Close(playerId);
-                    }
+                        // player.HandleActionApplySoundEffect(Sound.OpenFailDueToLock);
+                        // var soundEvent = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1);
+                        // player.Session.Network.EnqueueSend(soundEvent);
 
-                    // Create Door auto close timer
-                    ActionChain autoCloseTimer = new ActionChain();
-                    autoCloseTimer.AddDelaySeconds(ResetInterval);
-                    autoCloseTimer.AddAction(this, () => Reset());
-                    autoCloseTimer.EnqueueChain();
+                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    }
 
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
                     player.Session.Network.EnqueueSend(sendUseDoneEvent);
