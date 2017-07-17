@@ -215,27 +215,65 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    if (!IsLocked)
+                    bool isLocked;
+                    bool isOpen;
+
+                    ActionChain checkDoorChain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(checkDoorChain, Guid, (WorldObject dwo) =>
                     {
-                        if (!IsOpen)
+                        Door door = dwo as Door;
+                        if (door == null)
                         {
-                            Open(playerId);
+                            return;
+                        }
+                        isLocked = door.IsLocked;
+                        isOpen = door.IsOpen;
+
+                        if (!isLocked)
+                        {
+                            if (!isOpen)
+                            {
+                                door.Open(playerId);
+                            }
+                            else
+                            {
+                                door.Close(playerId);
+                            }
+
+                            // Create Door auto close timer
+                            ActionChain autoCloseTimer = new ActionChain();
+                            autoCloseTimer.AddDelaySeconds(ResetInterval);
+                            autoCloseTimer.AddAction(this, () => door.Reset());
+                            autoCloseTimer.EnqueueChain();
                         }
                         else
                         {
-                            Close(playerId);
+                            CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                         }
+                    });
+                    checkDoorChain.EnqueueChain();
 
-                        // Create Door auto close timer
-                        ActionChain autoCloseTimer = new ActionChain();
-                        autoCloseTimer.AddDelaySeconds(ResetInterval);
-                        autoCloseTimer.AddAction(this, () => Reset());
-                        autoCloseTimer.EnqueueChain();
-                    }
-                    else
-                    {
-                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
-                    }
+                    ////if (!IsLocked)
+                    ////{
+                    ////    if (!IsOpen)
+                    ////    {
+                    ////        Open(playerId);
+                    ////    }
+                    ////    else
+                    ////    {
+                    ////        Close(playerId);
+                    ////    }
+
+                    ////    // Create Door auto close timer
+                    ////    ActionChain autoCloseTimer = new ActionChain();
+                    ////    autoCloseTimer.AddDelaySeconds(ResetInterval);
+                    ////    autoCloseTimer.AddAction(this, () => Reset());
+                    ////    autoCloseTimer.EnqueueChain();
+                    ////}
+                    ////else
+                    ////{
+                    ////    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    ////}
 
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
                     player.Session.Network.EnqueueSend(sendUseDoneEvent);
