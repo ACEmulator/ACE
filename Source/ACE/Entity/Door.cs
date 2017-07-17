@@ -105,21 +105,21 @@ namespace ACE.Entity
             private set;
         }
 
-        private double resetTimestamp;
+        private double? resetTimestamp;
         public double? ResetTimestamp
         {
             get { return resetTimestamp; }
             private set { resetTimestamp = Time.GetTimestamp(); }
         }
 
-        private double useTimestamp;
+        private double? useTimestamp;
         public double? UseTimestamp
         {
             get { return useTimestamp; }
             private set { useTimestamp = Time.GetTimestamp(); }
         }
 
-        private double useLockTimestamp;
+        private double? useLockTimestamp;
         public double? UseLockTimestamp
         {
             get { return useLockTimestamp; }
