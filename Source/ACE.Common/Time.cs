@@ -6,7 +6,7 @@ namespace ACE.Common
     {
         public static ulong GetUnixTime() { return (ulong)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds; }
 
-        public static double Timestamp()
+        public static double GetTimestamp()
         {
             TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
             double timestamp = span.TotalSeconds;

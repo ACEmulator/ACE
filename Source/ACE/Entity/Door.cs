@@ -109,21 +109,21 @@ namespace ACE.Entity
         public double? ResetTimestamp
         {
             get { return resetTimestamp; }
-            private set { resetTimestamp = Time.Timestamp(); }
+            private set { resetTimestamp = Time.GetTimestamp(); }
         }
 
         private double useTimestamp;
         public double? UseTimestamp
         {
             get { return useTimestamp; }
-            private set { useTimestamp = Time.Timestamp(); }
+            private set { useTimestamp = Time.GetTimestamp(); }
         }
 
         private double useLockTimestamp;
         public double? UseLockTimestamp
         {
             get { return useLockTimestamp; }
-            private set { useLockTimestamp = Time.Timestamp(); }
+            private set { useLockTimestamp = Time.GetTimestamp(); }
         }
 
         public uint? LastUnlocker
@@ -281,7 +281,7 @@ namespace ACE.Entity
 
         private void Reset()
         {
-            if ((Time.Timestamp() - UseTimestamp) < ResetInterval)
+            if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
                 return;
 
             if (!DefaultOpen)
