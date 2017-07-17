@@ -92,7 +92,7 @@ namespace ACE.Factories
                     // Spawn this generator if it's not the top-level generator
                     if (generator.GeneratorIID != null)
                     {
-                        results.Add(new Generator(GuidManager.NewItemGuid(), generator));
+                        results.Add(new Generator(GuidManager.NewGeneratorGuid(), generator));
                         generator.GeneratorEnteredWorld = true;
                     }
 
