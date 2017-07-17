@@ -249,6 +249,9 @@ namespace ACE.Entity
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
             {
+                if (CurrentMotionState == motionStateOpen)
+                    return;
+
                 CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
                 CurrentMotionState = motionStateOpen;
                 PhysicsState |= PhysicsState.Ethereal;
@@ -265,7 +268,7 @@ namespace ACE.Entity
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
             {
-                if (this.CurrentMotionState == motionStateClosed)
+                if (CurrentMotionState == motionStateClosed)
                     return;
 
                 CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
