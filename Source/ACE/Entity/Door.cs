@@ -69,6 +69,7 @@ namespace ACE.Entity
                 ShortDesc = weenie.ShortDesc;
         }
 
+        private bool ethereal;
         private bool Ethereal
         {
             get;
@@ -253,58 +254,43 @@ namespace ACE.Entity
 
         private void Open(ObjectGuid opener = new ObjectGuid())
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () =>
-            {
-                if (CurrentMotionState == motionStateOpen)
-                    return;
+            if (CurrentMotionState == motionStateOpen)
+                return;
 
-                CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-                CurrentMotionState = motionStateOpen;
-                PhysicsState |= PhysicsState.Ethereal;
-                Ethereal = true;
-                IsOpen = true;
-                if (opener.Full > 0)
-                    UseTimestamp++;
-            });
-            chain.EnqueueChain();
+            CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
+            CurrentMotionState = motionStateOpen;
+            PhysicsState |= PhysicsState.Ethereal;
+            Ethereal = true;
+            IsOpen = true;
+            if (opener.Full > 0)
+                UseTimestamp++;
         }
 
         private void Close(ObjectGuid closer = new ObjectGuid())
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () =>
-            {
-                if (CurrentMotionState == motionStateClosed)
-                    return;
+            if (CurrentMotionState == motionStateClosed)
+                return;
 
-                CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
-                CurrentMotionState = motionStateClosed;
-                PhysicsState ^= PhysicsState.Ethereal;
-                Ethereal = false;
-                IsOpen = false;
-                if (closer.Full > 0)
-                    UseTimestamp++;
-            });
-            chain.EnqueueChain();
+            CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
+            CurrentMotionState = motionStateClosed;
+            PhysicsState ^= PhysicsState.Ethereal;
+            Ethereal = false;
+            IsOpen = false;
+            if (closer.Full > 0)
+                UseTimestamp++;
         }
 
         private void Reset()
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () =>
-            {
-                if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
-                    return;
+            if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
+                return;
 
-                if (!DefaultOpen)
-                    Close(new ObjectGuid(0));
-                else
-                    Open(new ObjectGuid(0));
+            if (!DefaultOpen)
+                Close(new ObjectGuid(0));
+            else
+                Open(new ObjectGuid(0));
 
-                ResetTimestamp++;
-            });
-            chain.EnqueueChain();
+            ResetTimestamp++;
         }
     }
 }
