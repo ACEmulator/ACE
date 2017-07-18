@@ -69,7 +69,6 @@ namespace ACE.Entity
                 ShortDesc = weenie.ShortDesc;
         }
 
-        private bool ethereal;
         private bool Ethereal
         {
             get;
