@@ -69,115 +69,115 @@ namespace ACE.Entity
                 ShortDesc = weenie.ShortDesc;
         }
 
-        public bool Ethereal
+        private bool Ethereal
         {
             get;
-            private set;
+            set;
         }
 
-        public bool IsOpen
+        private bool IsOpen
         {
             get;
-            private set;
+            set;
         }
 
-        public bool IsLocked
+        private bool IsLocked
         {
             get;
-            private set;
+            set;
         }
 
-        public bool DefaultLocked
+        private bool DefaultLocked
         {
             get;
-            private set;
+            set;
         }
 
-        public bool DefaultOpen
+        private bool DefaultOpen
         {
             get;
-            private set;
+            set;
         }
 
-        public float ResetInterval
+        private float ResetInterval
         {
             get;
-            private set;
+            set;
         }
 
         private double? resetTimestamp;
-        public double? ResetTimestamp
+        private double? ResetTimestamp
         {
             get { return resetTimestamp; }
-            private set { resetTimestamp = Time.GetTimestamp(); }
+            set { resetTimestamp = Time.GetTimestamp(); }
         }
 
         private double? useTimestamp;
-        public double? UseTimestamp
+        private double? UseTimestamp
         {
             get { return useTimestamp; }
-            private set { useTimestamp = Time.GetTimestamp(); }
+            set { useTimestamp = Time.GetTimestamp(); }
         }
 
         private double? useLockTimestamp;
-        public double? UseLockTimestamp
+        private double? UseLockTimestamp
         {
             get { return useLockTimestamp; }
-            private set { useLockTimestamp = Time.GetTimestamp(); }
+            set { useLockTimestamp = Time.GetTimestamp(); }
         }
 
-        public uint? LastUnlocker
+        private uint? LastUnlocker
         {
             get;
-            private set;
+            set;
         }
 
-        public string KeyCode
+        private string KeyCode
         {
             get;
-            private set;
+            set;
         }
 
-        public string LockCode
+        private string LockCode
         {
             get;
-            private set;
+            set;
         }
 
-        public string ShortDesc
+        private string ShortDesc
         {
             get;
-            private set;
+            set;
         }
 
-        public string LongDesc
+        private string LongDesc
         {
             get;
-            private set;
+            set;
         }
 
-        public string Use
+        private string Use
         {
             get;
-            private set;
+            set;
         }
 
-        public string UseMessage
+        private string UseMessage
         {
             get;
-            private set;
+            set;
         }
 
-        public uint? ResistLockpick
+        private uint? ResistLockpick
         {
             get;
-            private set;
+            set;
         }
 
-        public uint? AppraisalLockpickSuccessPercent
+        private uint? AppraisalLockpickSuccessPercent
         {
             get;
-            private set;
+            set;
         }
 
         public override void OnUse(ObjectGuid playerId)
@@ -246,67 +246,6 @@ namespace ACE.Entity
                     });
 
                     checkDoorChain.EnqueueChain();
-
-                    ////ActionChain checkDoorChain = new ActionChain();
-                    ////CurrentLandblock.ChainOnObject(checkDoorChain, Guid, (WorldObject dwo) =>
-                    ////{
-                    ////    Door door = dwo as Door;
-                    ////    if (door == null)
-                    ////    {
-                    ////        return;
-                    ////    }
-
-                    ////    if (!door.IsLocked)
-                    ////    {
-                    ////        if (!door.IsOpen)
-                    ////        {
-                    ////            door.Open(playerId);
-                    ////        }
-                    ////        else
-                    ////        {
-                    ////            door.Close(playerId);
-                    ////        }
-
-                    ////        // Create Door auto close timer
-                    ////        ActionChain autoCloseTimer = new ActionChain();
-                    ////        autoCloseTimer.AddDelaySeconds(ResetInterval);
-                    ////        autoCloseTimer.AddAction(door, () => door.Reset());
-                    ////        autoCloseTimer.EnqueueChain();
-                    ////    }
-                    ////    else
-                    ////    {
-                    ////        CurrentLandblock.EnqueueBroadcastSound(door, Sound.OpenFailDueToLock);
-                    ////    }
-
-                    ////    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    ////    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    ////});
-                    ////checkDoorChain.EnqueueChain();
-
-                    ////if (!IsLocked)
-                    ////{
-                    ////    if (!IsOpen)
-                    ////    {
-                    ////        Open(playerId);
-                    ////    }
-                    ////    else
-                    ////    {
-                    ////        Close(playerId);
-                    ////    }
-
-                    ////    // Create Door auto close timer
-                    ////    ActionChain autoCloseTimer = new ActionChain();
-                    ////    autoCloseTimer.AddDelaySeconds(ResetInterval);
-                    ////    autoCloseTimer.AddAction(this, () => Reset());
-                    ////    autoCloseTimer.EnqueueChain();
-                    ////}
-                    ////else
-                    ////{
-                    ////    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
-                    ////}
-
-                    ////var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    ////player.Session.Network.EnqueueSend(sendUseDoneEvent);
                 }
             });
             chain.EnqueueChain();
@@ -315,7 +254,6 @@ namespace ACE.Entity
         private void Open(ObjectGuid opener = new ObjectGuid())
         {
             ActionChain chain = new ActionChain();
-            // CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
             chain.AddAction(this, () =>
             {
                 if (CurrentMotionState == motionStateOpen)
@@ -335,7 +273,6 @@ namespace ACE.Entity
         private void Close(ObjectGuid closer = new ObjectGuid())
         {
             ActionChain chain = new ActionChain();
-            // CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
             chain.AddAction(this, () =>
             {
                 if (CurrentMotionState == motionStateClosed)
@@ -355,7 +292,6 @@ namespace ACE.Entity
         private void Reset()
         {
             ActionChain chain = new ActionChain();
-            // CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
             chain.AddAction(this, () =>
             {
                 if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
