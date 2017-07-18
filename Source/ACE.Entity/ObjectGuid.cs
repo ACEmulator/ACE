@@ -18,7 +18,7 @@ namespace ACE.Entity
         public static readonly ObjectGuid Invalid = new ObjectGuid(0);
 
         public static uint WeenieMin { get; } = 0x00000001;
-        public static uint WeenieMax { get; } = 0x000F423F;
+        public static uint WeenieMax { get; } = 0x000F423F; // 999,999
 
         // Npc / Doors / Portals / world items that get loaded from DB Etc max 268,369,919
         // took Turbine 17 years to get to ‭177,447‬
@@ -38,8 +38,8 @@ namespace ACE.Entity
         private static uint staticObject = staticObjectMax;
         */
 
-        public static uint GeneratorMin { get; } = 0x000F4240;
-        public static uint GeneratorMax { get; } = 0x001E847F;
+        public static uint GeneratorMin { get; } = 0x000F4240; // 1,000,000
+        public static uint GeneratorMax { get; } = 0x001E847F; // 1,999,999
 
         // Monsters / Summoned portals - any non-static item max  ‭1,073,741,823‬
         // If the server ran for 30 days without a restart, we would need to be creating over 24,854 spawns per minute or 414 per second to exhaust
@@ -47,7 +47,7 @@ namespace ACE.Entity
         // a lot of macro activity.    We could easily build a warning when a server was down to 50k free for a restart.
         // Fragmentation: None - N/A
         // FIXME(ddevec): Currently 
-        public static uint NonStaticMin { get; } = 0x001E8480;
+        public static uint NonStaticMin { get; } = 0x001E8480; // 2,000,000
         public static uint NonStaticMax { get; } = 0x4FFFFFFF;
 
         // players max 268,345,454
