@@ -193,7 +193,7 @@ namespace ACE.Entity
 
                 SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
                 float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);             
+                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
 
                 ////if (playerDistanceTo >= 2500)
                 ////{
@@ -216,40 +216,72 @@ namespace ACE.Entity
                 else
                 {
                     ActionChain checkDoorChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(checkDoorChain, Guid, (WorldObject dwo) =>
-                    {
-                        Door door = dwo as Door;
-                        if (door == null)
-                        {
-                            return;
-                        }
 
-                        if (!door.IsLocked)
+                    checkDoorChain.AddAction(this, () =>
+                    {
+                        if (!IsLocked)
                         {
-                            if (!door.IsOpen)
+                            if (!IsOpen)
                             {
-                                door.Open(playerId);
+                                Open(playerId);
                             }
                             else
                             {
-                                door.Close(playerId);
+                                Close(playerId);
                             }
 
                             // Create Door auto close timer
                             ActionChain autoCloseTimer = new ActionChain();
                             autoCloseTimer.AddDelaySeconds(ResetInterval);
-                            autoCloseTimer.AddAction(door, () => door.Reset());
+                            autoCloseTimer.AddAction(this, () => Reset());
                             autoCloseTimer.EnqueueChain();
                         }
                         else
                         {
-                            CurrentLandblock.EnqueueBroadcastSound(door, Sound.OpenFailDueToLock);
+                            CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                         }
 
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent);
                     });
+
                     checkDoorChain.EnqueueChain();
+
+                    ////ActionChain checkDoorChain = new ActionChain();
+                    ////CurrentLandblock.ChainOnObject(checkDoorChain, Guid, (WorldObject dwo) =>
+                    ////{
+                    ////    Door door = dwo as Door;
+                    ////    if (door == null)
+                    ////    {
+                    ////        return;
+                    ////    }
+
+                    ////    if (!door.IsLocked)
+                    ////    {
+                    ////        if (!door.IsOpen)
+                    ////        {
+                    ////            door.Open(playerId);
+                    ////        }
+                    ////        else
+                    ////        {
+                    ////            door.Close(playerId);
+                    ////        }
+
+                    ////        // Create Door auto close timer
+                    ////        ActionChain autoCloseTimer = new ActionChain();
+                    ////        autoCloseTimer.AddDelaySeconds(ResetInterval);
+                    ////        autoCloseTimer.AddAction(door, () => door.Reset());
+                    ////        autoCloseTimer.EnqueueChain();
+                    ////    }
+                    ////    else
+                    ////    {
+                    ////        CurrentLandblock.EnqueueBroadcastSound(door, Sound.OpenFailDueToLock);
+                    ////    }
+
+                    ////    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    ////    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    ////});
+                    ////checkDoorChain.EnqueueChain();
 
                     ////if (!IsLocked)
                     ////{
@@ -283,7 +315,8 @@ namespace ACE.Entity
         private void Open(ObjectGuid opener = new ObjectGuid())
         {
             ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            // CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            chain.AddAction(this, () =>
             {
                 if (CurrentMotionState == motionStateOpen)
                     return;
@@ -302,7 +335,8 @@ namespace ACE.Entity
         private void Close(ObjectGuid closer = new ObjectGuid())
         {
             ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            // CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            chain.AddAction(this, () =>
             {
                 if (CurrentMotionState == motionStateClosed)
                     return;
@@ -320,15 +354,21 @@ namespace ACE.Entity
 
         private void Reset()
         {
-            if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
-                return;
+            ActionChain chain = new ActionChain();
+            // CurrentLandblock.ChainOnObject(chain, Guid, (WorldObject wo) =>
+            chain.AddAction(this, () =>
+            {
+                if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
+                    return;
 
-            if (!DefaultOpen)
-                Close(new ObjectGuid(0));
-            else
-                Open(new ObjectGuid(0));
+                if (!DefaultOpen)
+                    Close(new ObjectGuid(0));
+                else
+                    Open(new ObjectGuid(0));
 
-            ResetTimestamp++;
+                ResetTimestamp++;
+            });
+            chain.EnqueueChain();
         }
     }
 }
