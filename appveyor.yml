@@ -13,3 +13,5 @@ build:
   verbosity: minimal
 test_script:
 - cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64
+hosts:
+  api.nuget.org: 93.184.221.200
