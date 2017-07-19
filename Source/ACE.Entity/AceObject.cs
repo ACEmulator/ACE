@@ -10,6 +10,7 @@ namespace ACE.Entity
 {
     [DbTable("ace_object")]
     public class AceObject : ICreatureStats, ICloneable, IDirty
+    ////public class AceObject : ICloneable, IDirty
     {
         public const uint WEENIE_MAX = 199999;
 
@@ -43,7 +44,7 @@ namespace ACE.Entity
         /// Table Field Weenie Class
         /// </summary>
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
-        public virtual uint WeenieClassId { get; set; }
+        public uint WeenieClassId { get; set; }
 
         private uint _aceObjectDescriptionFlags = 0;
 
@@ -92,19 +93,7 @@ namespace ACE.Entity
                 IsDirty = true;
             }
         }
-
-        public uint? AnimationFrameId
-        {
-            get { return GetIntProperty(PropertyInt.PlacementPosition); }
-            set { SetIntProperty(PropertyInt.PlacementPosition, value); }
-        }
-
-        public uint? Priority
-        {
-            get { return GetIntProperty(PropertyInt.ClothingPriority); }
-            set { SetIntProperty(PropertyInt.ClothingPriority, value); }
-        }
-
+        
         private string _currentMotionState = null;
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
@@ -116,66 +105,6 @@ namespace ACE.Entity
                 _currentMotionState = value;
                 IsDirty = true;
             }
-        }
-
-        public uint? IconId
-        {
-            get { return GetDataIdProperty(PropertyDataId.Icon); }
-            set { SetDataIdProperty(PropertyDataId.Icon, value); }
-        }
-
-        public uint? IconOverlayId
-        {
-            get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
-            set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
-        }
-
-        public uint? IconUnderlayId
-        {
-            get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
-            set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
-        }
-
-        public uint? SetupTableId
-        {
-            get { return GetDataIdProperty(PropertyDataId.Setup); }
-            set { SetDataIdProperty(PropertyDataId.Setup, value); }
-        }
-
-        public uint? MotionTableId
-        {
-            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
-            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
-        }
-
-        public ushort? PhysicsScript
-        {
-            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
-            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
-        }
-
-        public uint? PhysicsTableId
-        {
-            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
-            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
-        }
-
-        public uint? SoundTableId
-        {
-            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
-            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
-        }
-
-        public ushort? SpellId
-        {
-            get { return (ushort?)GetDataIdProperty(PropertyDataId.Spell); }
-            set { SetDataIdProperty(PropertyDataId.Spell, value); }
-        }
-
-        public uint? DefaultScript
-        {
-            get { return GetDataIdProperty(PropertyDataId.UseUserAnimation); }
-            set { SetDataIdProperty(PropertyDataId.UseUserAnimation, value); }
         }
 
         public CreatureAbility StrengthAbility
@@ -250,162 +179,52 @@ namespace ACE.Entity
         public uint Self
         { get { return SelfAbility.MaxValue; } }
 
-        public byte LuminanceAward
+        public uint? SetupDID
         {
-            get { return (byte?)GetIntProperty(PropertyInt.LuminanceAward) ?? 0x0; }
-            set { SetIntProperty(PropertyInt.LuminanceAward, value); }
+            get { return GetDataIdProperty(PropertyDataId.Setup); }
+            set { SetDataIdProperty(PropertyDataId.Setup, value); }
         }
 
-        public byte LootTier
+        public uint? MotionTableDID
         {
-            get { return (byte?)GetIntProperty(PropertyInt.LootTier) ?? 0; }
-            set { SetIntProperty(PropertyInt.LootTier, value); }
+            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
+            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
         }
 
-        public uint Level
+        public uint? SoundTableDID
         {
-            get { return GetIntProperty(PropertyInt.Level) ?? 0; }
-            set { SetIntProperty(PropertyInt.Level, value); }
+            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
+            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
         }
 
-        public bool GeneratorStatus
+        public uint? PhysicsEffectTableDID
         {
-            get { return GetBoolProperty(PropertyBool.GeneratorStatus) ?? false; }
-            set { SetBoolProperty(PropertyBool.GeneratorStatus, value); }
+            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
+            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
         }
 
-        public bool GeneratorEnteredWorld
+        public uint? CombatTableDID
         {
-            get { return GetBoolProperty(PropertyBool.GeneratorEnteredWorld) ?? false; }
-            set { SetBoolProperty(PropertyBool.GeneratorEnteredWorld, value); }
-        }
-
-        public bool GeneratorDisabled
-        {
-            get { return GetBoolProperty(PropertyBool.GeneratorDisabled) ?? false; }
-            set { SetBoolProperty(PropertyBool.GeneratorDisabled, value); }
-        }
-
-        public bool GeneratedTreasureItem
-        {
-            get { return GetBoolProperty(PropertyBool.GeneratedTreasureItem) ?? false; }
-            set { SetBoolProperty(PropertyBool.GeneratedTreasureItem, value); }
-        }
-
-        public bool GeneratorAutomaticDestruction
-        {
-            get { return GetBoolProperty(PropertyBool.GeneratorAutomaticDestruction) ?? false; }
-            set { SetBoolProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
-        }
-
-        public bool CanGenerateRare
-        {
-            get { return GetBoolProperty(PropertyBool.CanGenerateRare) ?? false; }
-            set { SetBoolProperty(PropertyBool.CanGenerateRare, value); }
-        }
-
-        public bool CorpseGeneratedRare
-        {
-            get { return GetBoolProperty(PropertyBool.CorpseGeneratedRare) ?? false; }
-            set { SetBoolProperty(PropertyBool.CorpseGeneratedRare, value); }
-        }
-
-        public bool SuppressGenerateEffect
-        {
-            get { return GetBoolProperty(PropertyBool.SuppressGenerateEffect) ?? false; }
-            set { SetBoolProperty(PropertyBool.SuppressGenerateEffect, value); }
-        }
-
-        public bool ChestRegenOnClose
-        {
-            get { return GetBoolProperty(PropertyBool.ChestRegenOnClose) ?? false; }
-            set { SetBoolProperty(PropertyBool.ChestRegenOnClose, value); }
-        }
-
-        public bool ChestClearedWhenClosed
-        {
-            get { return GetBoolProperty(PropertyBool.ChestClearedWhenClosed) ?? false; }
-            set { SetBoolProperty(PropertyBool.ChestClearedWhenClosed, value); }
-        }
-
-        public uint GeneratorTimeType
-        {
-            get { return GetIntProperty(PropertyInt.GeneratorTimeType) ?? 0; }
-            set { SetIntProperty(PropertyInt.GeneratorTimeType, value); }
-        }
-
-        public uint GeneratorProbability
-        {
-            get { return GetIntProperty(PropertyInt.GeneratorProbability) ?? 0; }
-            set { SetIntProperty(PropertyInt.GeneratorProbability, value); }
-        }
-
-        public uint MaxGeneratedObjects
-        {
-            get { return GetIntProperty(PropertyInt.MaxGeneratedObjects) ?? 0; }
-            set { SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
-        }
-
-        public uint GeneratorType
-        {
-            get { return GetIntProperty(PropertyInt.GeneratorType) ?? 0; }
-            set { SetIntProperty(PropertyInt.GeneratorType, value); }
-        }
-
-        public uint ActivationCreateClass
-        {
-            get { return GetIntProperty(PropertyInt.ActivationCreateClass) ?? 0; }
-            set { SetIntProperty(PropertyInt.ActivationCreateClass, value); }
-        }
-
-        public uint CombatTableId
-        {
-            get { return GetDataIdProperty(PropertyDataId.CombatTable) ?? 0; }
+            get { return GetDataIdProperty(PropertyDataId.CombatTable); }
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
 
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public uint? AmmoType
+        public uint? PhysicsState
         {
-            get { return GetIntProperty(PropertyInt.AmmoType); }
-            set { SetIntProperty(PropertyInt.AmmoType, value); }
+            get { return GetIntProperty(PropertyInt.PhysicsState); }
+            set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public byte? BlipColor
+        public uint? ItemType
         {
-            get { return (byte?)GetIntProperty(PropertyInt.RadarBlipColor); }
-            set { SetIntProperty(PropertyInt.RadarBlipColor, value); }
+            get { return GetIntProperty(PropertyInt.ItemType); }
+            set { SetIntProperty(PropertyInt.ItemType, value); }
         }
 
-        public ushort? Burden
+        public uint? IconDID
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.EncumbranceVal); }
-            set { SetIntProperty(PropertyInt.EncumbranceVal, value); }
-        }
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public byte? CombatUse
-        {
-            get { return (byte?)GetIntProperty(PropertyInt.CombatUse); }
-            set { SetIntProperty(PropertyInt.CombatUse, value); }
-        }
-
-        public virtual byte? ContainersCapacity
-        {
-            get { return (byte?)GetIntProperty(PropertyInt.ContainersCapacity); }
-            set { SetIntProperty(PropertyInt.ContainersCapacity, value); }
-        }
-
-        public double? CooldownDuration
-        {
-            get { return GetDoubleProperty(PropertyDouble.CooldownDuration); }
-            set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
+            get { return GetDataIdProperty(PropertyDataId.Icon); }
+            set { SetDataIdProperty(PropertyDataId.Icon, value); }
         }
 
         public string Name
@@ -414,160 +233,28 @@ namespace ACE.Entity
             set { SetStringProperty(PropertyString.Name, value); }
         }
 
-        /// <summary>
-        /// will throw if null!
-        /// </summary>
-        public uint ItemType
+        public string PluralName
         {
-            get { return IntProperties.Find(x => x.PropertyId == (uint)PropertyInt.ItemType).PropertyValue ?? 0; }
-            set { SetIntProperty(PropertyInt.ItemType, value); }
-        }
-
-        public uint? PaletteId
-        {
-            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
-            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
-        }
-
-        public uint? ClothingBase
-        {
-            get { return GetDataIdProperty(PropertyDataId.Clothingbase); }
-            set { SetDataIdProperty(PropertyDataId.Clothingbase, value); }
-        }
-
-        // TODO: Not sure if this enum is right.
-        public uint? CooldownId
-        {
-            get { return GetIntProperty(PropertyInt.SharedCooldown); }
-            set { SetIntProperty(PropertyInt.SharedCooldown, value); }
-        }
-
-        public uint? UiEffects
-        {
-            get { return GetIntProperty(PropertyInt.UiEffects); }
-            set { SetIntProperty(PropertyInt.UiEffects, value); }
-        }
-
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public ushort? HookType
-        {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookType); }
-            set { SetIntProperty(PropertyInt.HookType, value); }
-        }
-
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public ushort? HookItemTypes
-        {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType); }
-            set { SetIntProperty(PropertyInt.HookItemType, value); }
+            get { return GetStringProperty(PropertyString.PluralName); }
+            set { SetStringProperty(PropertyString.PluralName, value); }
         }
 
         public byte? ItemsCapacity
         {
             get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity); }
-            set { SetIntProperty(PropertyInt.ItemsCapacity, value); }
+            set { SetIntProperty(PropertyInt.ItemsCapacity, (uint)value); }
         }
 
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public byte? MaterialType
+        public byte? ContainersCapacity
         {
-            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
-            set { SetIntProperty(PropertyInt.MaterialType, value); }
+            get { return (byte?)GetIntProperty(PropertyInt.ContainersCapacity); }
+            set { SetIntProperty(PropertyInt.ContainersCapacity, (uint)value); }
         }
 
-        public ushort? MaxStackSize
+        public uint? AmmoType
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
-            set { SetIntProperty(PropertyInt.MaxStackSize, value); }
-        }
-
-        public uint? WielderId
-        {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
-        }
-
-        public uint? ContainerId
-        {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Container); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
-        }
-
-        /// <summary>
-        /// This is the Maximum an item can hold in the case of salvage 100
-        /// everything else healing kits, lock picks etc it is the max number of uses.
-        /// </summary>
-        public ushort? MaxStructure
-        {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure); }
-            set { SetIntProperty(PropertyInt.MaxStructure, value); }
-        }
-
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public byte? Radar
-        {
-            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar); }
-            set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
-        }
-
-        public ushort? StackSize
-        {
-            get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
-            set { SetIntProperty(PropertyInt.StackSize, value); }
-        }
-
-        public uint? DefaultCombatStyle
-        {
-            get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
-            set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
-        }
-        /// <summary>
-        /// This field represents the number of units or uses an item has in it or left.   Salvage in it
-        /// healing kits, essences the number left.
-        /// </summary>
-        public ushort? Structure
-        {
-            get { return (ushort?)GetIntProperty(PropertyInt.Structure); }
-            set { SetIntProperty(PropertyInt.Structure, value); }
-        }
-
-        /// <summary>
-        /// TODO: convert to enum
-        /// </summary>
-        public uint? TargetTypeId
-        {
-            get { return GetIntProperty(PropertyInt.TargetType); }
-            set { SetIntProperty(PropertyInt.TargetType, value); }
-        }
-
-        public uint? ItemUseable
-        {
-            get { return GetIntProperty(PropertyInt.ItemUseable); }
-            set { SetIntProperty(PropertyInt.ItemUseable, value); }
-        }
-
-        public float? UseRadius
-        {
-            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius); }
-            set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
-        }
-
-        /// <summary>
-        /// Left the name as ValidLocations as it is more descriptive of what it does than just locations.
-        /// This field maps to EquipMask Enum
-        /// </summary>
-        public uint? ValidLocations
-        {
-            get { return GetIntProperty(PropertyInt.ValidLocations); }
-            set { SetIntProperty(PropertyInt.ValidLocations, value); }
+            get { return GetIntProperty(PropertyInt.AmmoType); }
+            set { SetIntProperty(PropertyInt.AmmoType, (uint)value); }
         }
 
         public uint? Value
@@ -576,51 +263,89 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
-        public float Workmanship
+        public uint? ItemUseable
         {
-            get
-            {
-                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
-                {
-                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
-                }
-                return (ItemWorkmanship ?? 0.0f);
-            }
-            set
-            {
-                if ((Structure != null) && (Structure != 0))
-                {
-                    ItemWorkmanship = (uint)Convert.ToInt32(value * 10000 * Structure);
-                }
-                else
-                {
-                    ItemWorkmanship = (uint)Convert.ToInt32(value);
-                }
-            }
+            get { return GetIntProperty(PropertyInt.ItemUseable); }
+            set { SetIntProperty(PropertyInt.ItemUseable, (uint?)value); }
         }
 
-        private uint? ItemWorkmanship
+        public float? UseRadius
         {
-            get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
-            set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
+            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius); }
+            set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
         }
 
-        public float? PhysicsScriptIntensity
+        public uint? TargetType
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity); }
-            set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
+            get { return GetIntProperty(PropertyInt.TargetType); }
+            set { SetIntProperty(PropertyInt.TargetType, value); }
         }
 
-        public float? Elasticity
+        public uint? UiEffects
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity); }
-            set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
+            get { return GetIntProperty(PropertyInt.UiEffects); }
+            set { SetIntProperty(PropertyInt.UiEffects, value); }
         }
 
-        public float? Friction
+        public byte? CombatUse
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Friction); }
-            set { SetDoubleProperty(PropertyDouble.Friction, value); }
+            get { return (byte?)GetIntProperty(PropertyInt.CombatUse); }
+            set { SetIntProperty(PropertyInt.CombatUse, value); }
+        }
+
+        public uint? DefaultCombatStyle
+        {
+            get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
+            set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
+        }
+
+        public ushort? Structure
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.Structure); }
+            set { SetIntProperty(PropertyInt.Structure, value); }
+        }
+
+        public ushort? MaxStructure
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure); }
+            set { SetIntProperty(PropertyInt.MaxStructure, value); }
+        }
+
+        public ushort? StackSize
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
+            set { SetIntProperty(PropertyInt.StackSize, value); }
+        }
+
+        public ushort? MaxStackSize
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
+            set { SetIntProperty(PropertyInt.MaxStackSize, value); }
+        }
+
+        public uint? ContainerIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Container); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
+        }
+
+        public uint? WielderIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+        }
+
+        public uint? GeneratorIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Generator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Generator, value); }
+        }
+
+        // LOCATIONS
+        public uint? ValidLocations
+        {
+            get { return GetIntProperty(PropertyInt.ValidLocations); }
+            set { SetIntProperty(PropertyInt.ValidLocations, value); }
         }
 
         public uint? CurrentWieldedLocation
@@ -629,7 +354,92 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
-        public uint? Parent
+        public uint? ClothingPriority
+        {
+            get { return GetIntProperty(PropertyInt.ClothingPriority); }
+            set { SetIntProperty(PropertyInt.ClothingPriority, value); }
+        }
+
+        public byte? RadarBlipColor
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.RadarBlipColor); }
+            set { SetIntProperty(PropertyInt.RadarBlipColor, value); }
+        }
+
+        public byte? ShowableOnRadar
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar); }
+            set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
+        }
+
+        public ushort? PhysicsScriptDID
+        {
+            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
+            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+        }
+
+        public uint? ItemWorkmanship
+        {
+            get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
+            set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
+        }
+
+        public ushort? EncumbranceVal
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.EncumbranceVal); }
+            set { SetIntProperty(PropertyInt.EncumbranceVal, value); }
+        }
+
+        public uint? SpellDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.Spell); }
+            set { SetDataIdProperty(PropertyDataId.Spell, value); }
+        }
+
+        public ushort? HookType
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.HookType); }
+            set { SetIntProperty(PropertyInt.HookType, value); }
+        }
+
+        public ushort? HookItemType
+        {
+            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType); }
+            set { SetIntProperty(PropertyInt.HookItemType, value); }
+        }
+
+        public uint? IconOverlayDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
+            set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
+        }
+
+        public uint? IconUnderlayDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
+            set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
+        }
+
+        public byte? MaterialType
+        {
+            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
+            set { SetIntProperty(PropertyInt.MaterialType, (byte?)value); }
+        }
+
+        public uint? SharedCooldown
+        {
+            get { return GetIntProperty(PropertyInt.SharedCooldown); }
+            set { SetIntProperty(PropertyInt.SharedCooldown, value); }
+        }
+
+        public double? CooldownDuration
+        {
+            get { return GetDoubleProperty(PropertyDouble.CooldownDuration); }
+            set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
+        }
+
+        // Wielder is Parent, No such thing as PropertyInstanceId.Parent
+        public uint? ParentIID
         {
             get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
             set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
@@ -647,13 +457,22 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
         }
 
-        /// <summary>
-        /// TODO: convert to enum, probably a flags enum
-        /// </summary>
-        public uint PhysicsState
+        public float? Friction
         {
-            get { return GetIntProperty(PropertyInt.PhysicsState) ?? default(int); }
-            set { SetIntProperty(PropertyInt.PhysicsState, value); }
+            get { return (float?)GetDoubleProperty(PropertyDouble.Friction); }
+            set { SetDoubleProperty(PropertyDouble.Friction, value); }
+        }
+
+        public float? Elasticity
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity); }
+            set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
+        }
+
+        public uint? PlacementPosition
+        {
+            get { return GetIntProperty(PropertyInt.PlacementPosition); }
+            set { SetIntProperty(PropertyInt.PlacementPosition, value); }
         }
 
         public float? Translucency
@@ -662,23 +481,685 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.Translucency, value); }
         }
 
-        public uint? Generator
+        // public uint? DefaultScriptId
+        // {
+        //    get { return GetDataIdProperty(PropertyDataId.PhysicsScript); }
+        //    set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+        // }
+
+        public float? PhysicsScriptIntensity
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Generator); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Generator, value); }
+            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity); }
+            set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
         }
 
-        public uint? GetDataIdProperty(PropertyDataId property)
+        public uint? PaletteBaseDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
+            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
+        }
+
+        public uint? ClothingBaseDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.ClothingBase); }
+            set { SetDataIdProperty(PropertyDataId.ClothingBase, value); }
+        }
+
+        public uint? CharacterOptions1
+        {
+            get { return GetIntProperty(PropertyInt.CharacterOptions1); }
+            set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
+        }
+
+        public uint? CharacterOptions2
+        {
+            get { return GetIntProperty(PropertyInt.CharacterOptions2); }
+            set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
+        }
+
+        public uint? TotalLogins
+        {
+            get { return GetIntProperty(PropertyInt.TotalLogins); }
+            set { SetIntProperty(PropertyInt.TotalLogins, value); }
+        }
+
+        public uint? AccountIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
+        }
+
+        public bool? IsDeleted
+        {
+            get { return GetBoolProperty(PropertyBool.IsDeleted); }
+            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
+        }
+
+        public ulong? DeleteTime
+        {
+            get { return GetInt64Property(PropertyInt64.DeleteTime); }
+            set { SetInt64Property(PropertyInt64.DeleteTime, value); }
+        }
+
+        public ulong? AvailableExperience
+        {
+            get { return GetInt64Property(PropertyInt64.AvailableExperience); }
+            set { SetInt64Property(PropertyInt64.AvailableExperience, value); }
+        }
+
+        public ulong? TotalExperience
+        {
+            get { return GetInt64Property(PropertyInt64.TotalExperience); }
+            set { SetInt64Property(PropertyInt64.TotalExperience, value); }
+        }
+
+        public uint? Age
+        {
+            get { return GetIntProperty(PropertyInt.Age); }
+            set { SetIntProperty(PropertyInt.Age, value); }
+        }
+
+        public string DateOfBirth
+        {
+            get { return GetStringProperty(PropertyString.DateOfBirth); }
+            set { SetStringProperty(PropertyString.DateOfBirth, value); }
+        }
+
+        public uint? AvailableSkillCredits
+        {
+            get { return GetIntProperty(PropertyInt.AvailableSkillCredits); }
+            set { SetIntProperty(PropertyInt.AvailableSkillCredits, value); }
+        }
+
+        public uint? TotalSkillCredits
+        {
+            get { return GetIntProperty(PropertyInt.TotalSkillCredits); }
+            set { SetIntProperty(PropertyInt.TotalSkillCredits, value); }
+        }
+
+        public uint? NumDeaths
+        {
+            get { return GetIntProperty(PropertyInt.NumDeaths); }
+            set { SetIntProperty(PropertyInt.NumDeaths, value); }
+        }
+
+        public uint? DeathLevel
+        {
+            get { return GetIntProperty(PropertyInt.DeathLevel); }
+            set { SetIntProperty(PropertyInt.DeathLevel, value); }
+        }
+
+        public uint? VitaeCpPool
+        {
+            get { return GetIntProperty(PropertyInt.VitaeCpPool); }
+            set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
+        }
+
+        public bool? IsAdmin
+        {
+            get { return GetBoolProperty(PropertyBool.IsAdmin); }
+            set { SetBoolProperty(PropertyBool.IsAdmin, value); }
+        }
+
+        public bool? IsEnvoy
+        {
+            get { return GetBoolProperty(PropertyBool.IsSentinel); }
+            set { SetBoolProperty(PropertyBool.IsSentinel, value); }
+        }
+
+        public bool? IsArch
+        {
+            get { return GetBoolProperty(PropertyBool.IsArch); }
+            set { SetBoolProperty(PropertyBool.IsArch, value); }
+        }
+
+        public bool? IsPsr
+        {
+            get { return GetBoolProperty(PropertyBool.IsPsr); }
+            set { SetBoolProperty(PropertyBool.IsPsr, value); }
+        }
+
+        public uint? Heritage
+        {
+            get { return GetIntProperty(PropertyInt.HeritageGroup); }
+            set { SetIntProperty(PropertyInt.HeritageGroup, value); }
+        }
+
+        public uint? Gender
+        {
+            get { return GetIntProperty(PropertyInt.Gender); }
+            set { SetIntProperty(PropertyInt.Gender, value); }
+        }
+
+        public uint? EyesTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.EyesTexture); }
+            set { SetDataIdProperty(PropertyDataId.EyesTexture, value); }
+        }
+
+        public uint? DefaultEyesTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultEyesTexture); }
+            set { SetDataIdProperty(PropertyDataId.DefaultEyesTexture, value); }
+        }
+
+        public uint? NoseTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.NoseTexture); }
+            set { SetDataIdProperty(PropertyDataId.NoseTexture, value); }
+        }
+
+        public uint? DefaultNoseTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultNoseTexture); }
+            set { SetDataIdProperty(PropertyDataId.DefaultNoseTexture, value); }
+        }
+
+        public uint? MouthTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.MouthTexture); }
+            set { SetDataIdProperty(PropertyDataId.MouthTexture, value); }
+        }
+
+        public uint? DefaultMouthTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultMouthTexture); }
+            set { SetDataIdProperty(PropertyDataId.DefaultMouthTexture, value); }
+        }
+
+        public uint? HairTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.HairTexture); }
+            set { SetDataIdProperty(PropertyDataId.HairTexture, value); }
+        }
+
+        public uint? DefaultHairTextureDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.DefaultHairTexture); }
+            set { SetDataIdProperty(PropertyDataId.DefaultHairTexture, value); }
+        }
+
+        public uint? HeadObjectDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.HeadObject); }
+            set { SetDataIdProperty(PropertyDataId.HeadObject, value); }
+        }
+
+        public uint? SkinPaletteDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.SkinPalette); }
+            set { SetDataIdProperty(PropertyDataId.SkinPalette, value); }
+        }
+
+        public uint? HairPaletteDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.HairPalette); }
+            set { SetDataIdProperty(PropertyDataId.HairPalette, value); }
+        }
+
+        public uint? EyesPaletteDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.EyesPalette); }
+            set { SetDataIdProperty(PropertyDataId.EyesPalette, value); }
+        }
+
+        public uint? Level
+        {
+            get { return GetIntProperty(PropertyInt.Level); }
+            set { SetIntProperty(PropertyInt.Level, value); }
+        }
+
+        public bool? GeneratorStatus
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorStatus); }
+            set { SetBoolProperty(PropertyBool.GeneratorStatus, value); }
+        }
+
+        public bool? GeneratorEnteredWorld
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorEnteredWorld); }
+            set { SetBoolProperty(PropertyBool.GeneratorEnteredWorld, value); }
+        }
+
+        public bool? GeneratorDisabled
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorDisabled); }
+            set { SetBoolProperty(PropertyBool.GeneratorDisabled, value); }
+        }
+
+        public bool? GeneratedTreasureItem
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratedTreasureItem); }
+            set { SetBoolProperty(PropertyBool.GeneratedTreasureItem, value); }
+        }
+
+        public bool? GeneratorAutomaticDestruction
+        {
+            get { return GetBoolProperty(PropertyBool.GeneratorAutomaticDestruction); }
+            set { SetBoolProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
+        }
+
+        public bool? CanGenerateRare
+        {
+            get { return GetBoolProperty(PropertyBool.CanGenerateRare); }
+            set { SetBoolProperty(PropertyBool.CanGenerateRare, value); }
+        }
+
+        public bool? CorpseGeneratedRare
+        {
+            get { return GetBoolProperty(PropertyBool.CorpseGeneratedRare); }
+            set { SetBoolProperty(PropertyBool.CorpseGeneratedRare, value); }
+        }
+
+        public bool? SuppressGenerateEffect
+        {
+            get { return GetBoolProperty(PropertyBool.SuppressGenerateEffect); }
+            set { SetBoolProperty(PropertyBool.SuppressGenerateEffect, value); }
+        }
+
+        public bool? ChestRegenOnClose
+        {
+            get { return GetBoolProperty(PropertyBool.ChestRegenOnClose); }
+            set { SetBoolProperty(PropertyBool.ChestRegenOnClose, value); }
+        }
+
+        public bool? ChestClearedWhenClosed
+        {
+            get { return GetBoolProperty(PropertyBool.ChestClearedWhenClosed); }
+            set { SetBoolProperty(PropertyBool.ChestClearedWhenClosed, value); }
+        }
+
+        public uint? GeneratorTimeType
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorTimeType); }
+            set { SetIntProperty(PropertyInt.GeneratorTimeType, value); }
+        }
+
+        public uint? GeneratorProbability
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorProbability); }
+            set { SetIntProperty(PropertyInt.GeneratorProbability, value); }
+        }
+
+        public uint? MaxGeneratedObjects
+        {
+            get { return GetIntProperty(PropertyInt.MaxGeneratedObjects); }
+            set { SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
+        }
+
+        public uint? GeneratorType
+        {
+            get { return GetIntProperty(PropertyInt.GeneratorType); }
+            set { SetIntProperty(PropertyInt.GeneratorType, value); }
+        }
+
+        public uint? ActivationCreateClass
+        {
+            get { return GetIntProperty(PropertyInt.ActivationCreateClass); }
+            set { SetIntProperty(PropertyInt.ActivationCreateClass, value); }
+        }
+
+        public bool? Ethereal
+        {
+            get { return GetBoolProperty(PropertyBool.Ethereal); }
+            set { SetBoolProperty(PropertyBool.Ethereal, value); }
+        }
+
+        public bool? Open
+        {
+            get { return GetBoolProperty(PropertyBool.Open); }
+            set { SetBoolProperty(PropertyBool.Open, value); }
+        }
+
+        public bool? Locked
+        {
+            get { return GetBoolProperty(PropertyBool.Locked); }
+            set { SetBoolProperty(PropertyBool.Locked, value); }
+        }
+
+        public bool? DefaultLocked
+        {
+            get { return GetBoolProperty(PropertyBool.DefaultLocked); }
+            set { SetBoolProperty(PropertyBool.DefaultLocked, value); }
+        }
+
+        public bool? DefaultOpen
+        {
+            get { return GetBoolProperty(PropertyBool.DefaultOpen); }
+            set { SetBoolProperty(PropertyBool.DefaultOpen, value); }
+        }
+
+        public float? ResetInterval
+        {
+            get { return (float?)GetDoubleProperty(PropertyDouble.ResetInterval); }
+            set { SetDoubleProperty(PropertyDouble.ResetInterval, value); }
+        }
+
+        public double? ResetTimestamp
+        {
+            get { return GetDoubleProperty(PropertyDouble.ResetTimestamp); }
+            set { SetDoubleTimestamp(PropertyDouble.ResetTimestamp); }
+        }
+
+        public double? UseTimestamp
+        {
+            get { return GetDoubleProperty(PropertyDouble.UseTimestamp); }
+            set { SetDoubleTimestamp(PropertyDouble.UseTimestamp); }
+        }
+
+        public double? UseLockTimestamp
+        {
+            get { return GetDoubleProperty(PropertyDouble.UseLockTimestamp); }
+            set { SetDoubleTimestamp(PropertyDouble.UseLockTimestamp); }
+        }
+
+        public uint? LastUnlockerIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.LastUnlocker); }
+            set { SetInstanceIdProperty(PropertyInstanceId.LastUnlocker, value); }
+        }
+
+        public string KeyCode
+        {
+            get { return GetStringProperty(PropertyString.KeyCode); }
+            set { SetStringProperty(PropertyString.KeyCode, value); }
+        }
+
+        public string LockCode
+        {
+            get { return GetStringProperty(PropertyString.LockCode); }
+            set { SetStringProperty(PropertyString.LockCode, value); }
+        }
+
+        public uint? ResistLockpick
+        {
+            get { return GetIntProperty(PropertyInt.ResistLockpick); }
+            set { SetIntProperty(PropertyInt.ResistLockpick, value); }
+        }
+
+        public uint? AppraisalLockpickSuccessPercent
+        {
+            get { return GetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent); }
+            set { SetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent, value); }
+        }
+
+        public uint? MinLevel
+        {
+            get { return GetIntProperty(PropertyInt.MinLevel); }
+            set { SetIntProperty(PropertyInt.MinLevel, value); }
+        }
+
+        public uint? MaxLevel
+        {
+            get { return GetIntProperty(PropertyInt.MaxLevel); }
+            set { SetIntProperty(PropertyInt.MaxLevel, value); }
+        }
+
+        public uint? PortalBitmask
+        {
+            get { return GetIntProperty(PropertyInt.PortalBitmask); }
+            set { SetIntProperty(PropertyInt.PortalBitmask, value); }
+        }
+
+        public string AppraisalPortalDestination
+        {
+            get { return GetStringProperty(PropertyString.AppraisalPortalDestination); }
+            set { SetStringProperty(PropertyString.AppraisalPortalDestination, value); }
+        }
+
+        public string ShortDesc
+        {
+            get { return GetStringProperty(PropertyString.ShortDesc); }
+            set { SetStringProperty(PropertyString.ShortDesc, value); }
+        }
+
+        public string LongDesc
+        {
+            get { return GetStringProperty(PropertyString.LongDesc); }
+            set { SetStringProperty(PropertyString.LongDesc, value); }
+        }
+
+        public string Use
+        {
+            get { return GetStringProperty(PropertyString.Use); }
+            set { SetStringProperty(PropertyString.Use, value); }
+        }
+
+        public string UseMessage
+        {
+            get { return GetStringProperty(PropertyString.UseMessage); }
+            set { SetStringProperty(PropertyString.UseMessage, value); }
+        }
+
+        public bool? PortalShowDestination
+        {
+            get { return GetBoolProperty(PropertyBool.PortalShowDestination); }
+            set { SetBoolProperty(PropertyBool.PortalShowDestination, value); }
+        }
+
+        public string HeritageGroup
+        {
+            get { return GetStringProperty(PropertyString.HeritageGroup); }
+            set { SetStringProperty(PropertyString.HeritageGroup, value); }
+        }
+
+        public string Sex
+        {
+            get { return GetStringProperty(PropertyString.Sex); }
+            set { SetStringProperty(PropertyString.Sex, value); }
+        }
+
+        public string Title
+        {
+            get { return GetStringProperty(PropertyString.Title); }
+            set { SetStringProperty(PropertyString.Title, value); }
+        }
+
+        public string Template
+        {
+            get { return GetStringProperty(PropertyString.Template); }
+            set { SetStringProperty(PropertyString.Template, value); }
+        }
+
+        public string DisplayName
+        {
+            get { return GetStringProperty(PropertyString.DisplayName); }
+            set { SetStringProperty(PropertyString.DisplayName, value); }
+        }
+
+        public uint? CharacterTitleId
+        {
+            get { return GetIntProperty(PropertyInt.CharacterTitleId); }
+            set { SetIntProperty(PropertyInt.CharacterTitleId, value); }
+        }
+
+        public uint? NumCharacterTitles
+        {
+            get { return GetIntProperty(PropertyInt.NumCharacterTitles); }
+            set { SetIntProperty(PropertyInt.NumCharacterTitles, value); }
+        }
+
+        public double? CreationTimestamp
+        {
+            get { return GetDoubleProperty(PropertyDouble.CreationTimestamp); }
+            set { SetDoubleTimestamp(PropertyDouble.CreationTimestamp); }
+        }
+
+        #region Positions  
+        public Position Location
+        {
+            get { return GetPosition(PositionType.Location); }
+            set { SetPosition(PositionType.Location, value); }
+        }
+
+        public Position Destination
+        {
+            get { return GetPosition(PositionType.Destination); }
+            set { SetPosition(PositionType.Destination, value); }
+        }
+
+        public Position Instantiation
+        {
+            get { return GetPosition(PositionType.Instantiation); }
+            set { SetPosition(PositionType.Instantiation, value); }
+        }
+
+        public Position Sanctuary
+        {
+            get { return GetPosition(PositionType.Sanctuary); }
+            set { SetPosition(PositionType.Sanctuary, value); }
+        }
+
+        public Position Home
+        {
+            get { return GetPosition(PositionType.Home); }
+            set { SetPosition(PositionType.Home, value); }
+        }
+
+        public Position ActivationMove
+        {
+            get { return GetPosition(PositionType.ActivationMove); }
+            set { SetPosition(PositionType.ActivationMove, value); }
+        }
+
+        public Position Target
+        {
+            get { return GetPosition(PositionType.Target); }
+            set { SetPosition(PositionType.Target, value); }
+        }
+
+        public Position LinkedPortalOne
+        {
+            get { return GetPosition(PositionType.LinkedPortalOne); }
+            set { SetPosition(PositionType.LinkedPortalOne, value); }
+        }
+
+        public Position LastPortal
+        {
+            get { return GetPosition(PositionType.LastPortal); }
+            set { SetPosition(PositionType.LastPortal, value); }
+        }
+
+        public Position PortalStorm
+        {
+            get { return GetPosition(PositionType.PortalStorm); }
+            set { SetPosition(PositionType.PortalStorm, value); }
+        }
+
+        public Position CrashAndTurn
+        {
+            get { return GetPosition(PositionType.CrashAndTurn); }
+            set { SetPosition(PositionType.CrashAndTurn, value); }
+        }
+
+        public Position PortalSummonLoc
+        {
+            get { return GetPosition(PositionType.PortalSummonLoc); }
+            set { SetPosition(PositionType.PortalSummonLoc, value); }
+        }
+
+        public Position HouseBoot
+        {
+            get { return GetPosition(PositionType.HouseBoot); }
+            set { SetPosition(PositionType.HouseBoot, value); }
+        }
+
+        public Position LastOutsideDeath
+        {
+            get { return GetPosition(PositionType.LastOutsideDeath); }
+            set { SetPosition(PositionType.LastOutsideDeath, value); }
+        }
+
+        public Position LinkedLifestone
+        {
+            get { return GetPosition(PositionType.LinkedLifestone); }
+            set { SetPosition(PositionType.LinkedLifestone, value); }
+        }
+
+        public Position LinkedPortalTwo
+        {
+            get { return GetPosition(PositionType.LinkedPortalTwo); }
+            set { SetPosition(PositionType.LinkedPortalTwo, value); }
+        }
+
+        public Position Save1
+        {
+            get { return GetPosition(PositionType.Save1); }
+            set { SetPosition(PositionType.Save1, value); }
+        }
+
+        public Position Save2
+        {
+            get { return GetPosition(PositionType.Save2); }
+            set { SetPosition(PositionType.Save2, value); }
+        }
+
+        public Position Save3
+        {
+            get { return GetPosition(PositionType.Save3); }
+            set { SetPosition(PositionType.Save3, value); }
+        }
+
+        public Position Save4
+        {
+            get { return GetPosition(PositionType.Save4); }
+            set { SetPosition(PositionType.Save4, value); }
+        }
+
+        public Position Save5
+        {
+            get { return GetPosition(PositionType.Save5); }
+            set { SetPosition(PositionType.Save5, value); }
+        }
+
+        public Position Save6
+        {
+            get { return GetPosition(PositionType.Save6); }
+            set { SetPosition(PositionType.Save6, value); }
+        }
+
+        public Position Save7
+        {
+            get { return GetPosition(PositionType.Save7); }
+            set { SetPosition(PositionType.Save7, value); }
+        }
+
+        public Position Save8
+        {
+            get { return GetPosition(PositionType.Save8); }
+            set { SetPosition(PositionType.Save8, value); }
+        }
+
+        public Position Save9
+        {
+            get { return GetPosition(PositionType.Save9); }
+            set { SetPosition(PositionType.Save9, value); }
+        }
+
+        public Position RelativeDestination
+        {
+            get { return GetPosition(PositionType.RelativeDestination); }
+            set { SetPosition(PositionType.RelativeDestination, value); }
+        }
+
+        public Position TeleportedCharacter
+        {
+            get { return GetPosition(PositionType.TeleportedCharacter); }
+            set { SetPosition(PositionType.TeleportedCharacter, value); }
+        }
+        #endregion
+
+        protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<uint> GetDataIdProperties(PropertyDataId property)
+        protected List<uint> GetDataIdProperties(PropertyDataId property)
         {
             return DataIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
+        protected void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
         {
             AceObjectPropertiesDataId listItem = DataIdProperties.Find(x => x.PropertyId == (short)didPropertyId);
             if (value != null)
@@ -700,17 +1181,17 @@ namespace ACE.Entity
             }
         }
 
-        public bool? GetBoolProperty(PropertyBool property)
+        protected bool? GetBoolProperty(PropertyBool property)
         {
             return BoolProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<bool> GetBoolProperties(PropertyBool property)
+        protected List<bool> GetBoolProperties(PropertyBool property)
         {
             return BoolProperties.Where(x => x.PropertyId == (uint)property).Where(b => b.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetBoolProperty(PropertyBool propertyId, bool? value)
+        protected void SetBoolProperty(PropertyBool propertyId, bool? value)
         {
             AceObjectPropertiesBool listItem = BoolProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
@@ -732,17 +1213,17 @@ namespace ACE.Entity
             }
         }
 
-        public uint? GetInstanceIdProperty(PropertyInstanceId property)
+        protected uint? GetInstanceIdProperty(PropertyInstanceId property)
         {
             return InstanceIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<uint> GetInstanceIdProperties(PropertyInstanceId property)
+        protected List<uint> GetInstanceIdProperties(PropertyInstanceId property)
         {
             return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
+        protected void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
         {
             AceObjectPropertiesInstanceId listItem = InstanceIdProperties.Find(x => x.PropertyId == (ushort)iidPropertyId);
             if (value != null)
@@ -764,7 +1245,7 @@ namespace ACE.Entity
             }
         }
 
-        public CreatureAbility GetAttributeProperty(Ability ability)
+        protected CreatureAbility GetAttributeProperty(Ability ability)
         {
             CreatureAbility ret;
             bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out ret);
@@ -790,12 +1271,12 @@ namespace ACE.Entity
             }
         }
 
-        public void SetAttributeProperty(Ability ability, CreatureAbility value)
+        protected void SetAttributeProperty(Ability ability, CreatureAbility value)
         {
             SetProperty(AceObjectPropertiesAttributes, ability, value);
         }
 
-        public CreatureVital GetAttribute2ndProperty(Ability ability)
+        protected CreatureVital GetAttribute2ndProperty(Ability ability)
         {
             CreatureVital ret;
             bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out ret);
@@ -809,12 +1290,12 @@ namespace ACE.Entity
             return ret;
         }
 
-        public void SetAttribute2ndProperty(Ability ability, CreatureVital value)
+        protected void SetAttribute2ndProperty(Ability ability, CreatureVital value)
         {
             SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
         }
 
-        public CreatureSkill GetSkillProperty(Skill skill)
+        protected CreatureSkill GetSkillProperty(Skill skill)
         {
             CreatureSkill ret;
             bool success = AceObjectPropertiesSkills.TryGetValue(skill, out ret);
@@ -828,7 +1309,7 @@ namespace ACE.Entity
             return ret;
         }
 
-        public void SetSkillProperty(Skill skill, CreatureSkill value)
+        protected void SetSkillProperty(Skill skill, CreatureSkill value)
         {
             SetProperty(AceObjectPropertiesSkills, skill, value);
         }
@@ -838,17 +1319,17 @@ namespace ACE.Entity
             return AceObjectPropertiesSkills.Values.ToList();
         }
 
-        public uint? GetIntProperty(PropertyInt property)
+        protected uint? GetIntProperty(PropertyInt property)
         {
             return IntProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<uint> GetIntProperties(PropertyInt property)
+        protected List<uint> GetIntProperties(PropertyInt property)
         {
             return IntProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetIntProperty(PropertyInt intPropertyId, uint? value)
+        protected void SetIntProperty(PropertyInt intPropertyId, uint? value)
         {
             AceObjectPropertiesInt listItem = IntProperties.Find(x => x.PropertyId == (ushort)intPropertyId);
             if (value != null)
@@ -870,17 +1351,17 @@ namespace ACE.Entity
             }
         }
 
-        public ulong? GetInt64Property(PropertyInt64 property)
+        protected ulong? GetInt64Property(PropertyInt64 property)
         {
             return Int64Properties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<ulong> GetInt64Properties(PropertyInt64 property)
+        protected List<ulong> GetInt64Properties(PropertyInt64 property)
         {
             return Int64Properties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetInt64Property(PropertyInt64 int64PropertyId, ulong? value)
+        protected void SetInt64Property(PropertyInt64 int64PropertyId, ulong? value)
         {
             AceObjectPropertiesInt64 listItem = Int64Properties.Find(x => x.PropertyId == (ushort)int64PropertyId);
             if (value != null)
@@ -902,12 +1383,12 @@ namespace ACE.Entity
             }
         }
 
-        public double? GetDoubleProperty(PropertyDouble property)
+        protected double? GetDoubleProperty(PropertyDouble property)
         {
             return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
         }
 
-        public List<double> GetDoubleProperties(PropertyDouble property)
+        protected List<double> GetDoubleProperties(PropertyDouble property)
         {
             return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
@@ -919,7 +1400,7 @@ namespace ACE.Entity
             SetDoubleProperty(propertyId, timestamp);
         }
 
-        public void SetDoubleProperty(PropertyDouble propertyId, double? value)
+        protected void SetDoubleProperty(PropertyDouble propertyId, double? value)
         {
             AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
@@ -947,17 +1428,17 @@ namespace ACE.Entity
             }
         }
 
-        public string GetStringProperty(PropertyString property)
+        protected string GetStringProperty(PropertyString property)
         {
             return StringProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        public List<string> GetStringProperties(PropertyString property)
+        protected List<string> GetStringProperties(PropertyString property)
         {
             return StringProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
         }
 
-        public void SetStringProperty(PropertyString propertyId, string value)
+        protected void SetStringProperty(PropertyString propertyId, string value)
         {
             AceObjectPropertiesString listItem = StringProperties.Find(x => x.PropertyId == (ushort)propertyId);
             if (value != null)
@@ -1017,24 +1498,6 @@ namespace ACE.Entity
         public Dictionary<Skill, CreatureSkill> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkill>();
 
         public Dictionary<PositionType, Position> AceObjectPropertiesPositions { get; set; } = new Dictionary<PositionType, Position>();
-
-        public Position Destination
-        {
-            get { return GetPosition(PositionType.Destination); }
-            set { SetPosition(PositionType.Destination, value); }
-        }
-
-        public Position Location
-        {
-            get { return GetPosition(PositionType.Location); }
-            set { SetPosition(PositionType.Location, value); }
-        }
-
-        public Position Instantiation
-        {
-            get { return GetPosition(PositionType.Instantiation); }
-            set { SetPosition(PositionType.Instantiation, value); }
-        }
 
         protected Position GetPosition(PositionType positionType)
         {

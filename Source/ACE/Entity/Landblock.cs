@@ -528,6 +528,26 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Convenience wrapper to EnqueueBroadcast to broadcast a sound.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="sound"></param>
+        /// <param name="volume"></param>
+        public void EnqueueBroadcastSound(WorldObject wo, Sound sound, float volume = 1f)
+        {
+            // wo must exist on us
+            if (wo.CurrentLandblock != this)
+            {
+                log.Error("ERROR: Broadcasting sound from object not on our landblock");
+            }
+
+            EnqueueBroadcast(wo.Location, MaxObjectRange,
+                new GameMessageSound(wo.Guid,
+                    sound,
+                    volume));
+        }
+
+        /// <summary>
         /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
         /// </summary>
         private void SendBroadcasts()

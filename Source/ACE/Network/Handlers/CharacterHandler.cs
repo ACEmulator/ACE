@@ -30,6 +30,7 @@ namespace ACE.Network.Handlers
         public static void CharacterEnterWorld(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
+
             string account = message.Payload.ReadString16L();
 
             if (account != session.Account)
@@ -129,10 +130,14 @@ namespace ACE.Network.Handlers
             if (account != session.Account)
                 return;
 
-            DatabaseManager.Shard.GetNextCharacterId((uint id) =>
-            {
-                CharacterCreateEx(message, session, id);
-            });
+            ////DatabaseManager.Shard.GetNextCharacterId((uint id) =>
+            ////{
+            ////    CharacterCreateEx(message, session, id);
+            ////});
+
+            uint id = GuidManager.NewPlayerGuid().Full;
+
+            CharacterCreateEx(message, session, id);
         }
 
         private static void CharacterCreateEx(ClientMessage message, Session session, uint id)
@@ -143,12 +148,12 @@ namespace ACE.Network.Handlers
             
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
-            character.SetStringProperty(PropertyString.HeritageGroup, cg.HeritageGroups[(int)character.Heritage].Name);
+            character.HeritageGroup = cg.HeritageGroups[(int)character.Heritage].Name;
             character.Gender = reader.ReadUInt32();
             if (character.Gender == 1)
-                character.SetStringProperty(PropertyString.Sex, "Male");
+                character.Sex = "Male";
             else
-                character.SetStringProperty(PropertyString.Sex, "Female");
+                character.Sex = "Female";
             Appearance appearance = Appearance.FromNetwork(reader);
 
             // character.IconId = cg.HeritageGroups[(int)character.Heritage].IconImage;
@@ -229,9 +234,10 @@ namespace ACE.Network.Handlers
             // TODO - Add this title to the available titles for this character.
             var templateOption = reader.ReadInt32();
             string templateName = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Name;
-            character.SetStringProperty(PropertyString.Title, templateName);
-            character.SetStringProperty(PropertyString.Template, templateName);
-            character.SetIntProperty(PropertyInt.CharacterTitleId, cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title);
+            character.Title = templateName;
+            character.Template = templateName;
+            character.CharacterTitleId = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title;
+            character.NumCharacterTitles = 1;
 
             // stats
             // TODO - Validate this is equal to 330 (Total Attribute Credits)
@@ -281,7 +287,7 @@ namespace ACE.Network.Handlers
             }
 
             character.Name = reader.ReadString16L();
-            character.SetStringProperty(PropertyString.DisplayName, character.Name); // unsure
+            character.DisplayName = character.Name; // unsure
 
             // currently not used
             uint startArea = reader.ReadUInt32();
