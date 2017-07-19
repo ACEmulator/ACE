@@ -22,7 +22,7 @@ namespace ACE.Entity
             Spell spellId,
             uint modelId,
             uint soundTableId,
-            uint physicsTableId) : base(type, guid)
+            uint physicsTableId) : base(guid)
         {
             Name = name;
             DescriptionFlags = descriptionFlag;

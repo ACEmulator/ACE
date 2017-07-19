@@ -1,5 +1,17 @@
 # ACEmulator Change Log
 
+### 2017-07-17
+[Ripley]
+* More field changes.
+* More new character defaults set.
+* Fixed Guid assignment for new players and generated objects.
+* Move Guid range assignments to ObjectGuid, GuidManager reads them in from there now.
+* Changes to WorldObject, Door and Generator classes.
+* Changed Debug Output to chat window only to allow for proper ID display.
+* Reworked Door.cs.
+* Locked Doors are now now locked and act accordingly.
+* Multiple changes to AceObject and AceCharacter.
+
 ### 2017-07-12
 [Ripley]
 * Moved most of the enums under ACE.Network to ACE.Entity.

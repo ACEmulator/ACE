@@ -178,6 +178,5 @@
         WeaponAuraDefense = 169,
         WeaponAuraElemental = 170,
         WeaponAuraManaConv = 171,
-        Count = 172
     }
 }

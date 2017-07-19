@@ -125,16 +125,6 @@ namespace ACE.Database
             }));
         }
 
-        public void GetNextCharacterId(Action<uint> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetNextCharacterId();
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
         public void GetObject(uint aceObjectId, Action<AceObject> callback)
         {
             _queue.Add(new Task(() =>

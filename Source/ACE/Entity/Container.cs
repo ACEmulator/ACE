@@ -13,7 +13,7 @@ namespace ACE.Entity
         private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
 
         public Container(ItemType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(type, guid)
+            : base(guid)
         {
             Name = name;
             DescriptionFlags = descriptionFlag;
@@ -110,11 +110,11 @@ namespace ACE.Entity
             {
                 case null:
                     inventoryItem.ContainerId = container.Guid.Full;
-                    inventoryItem.Wielder = null;
+                    inventoryItem.WielderId = null;
                     break;
                 default:
                     inventoryItem.ContainerId = null;
-                    inventoryItem.Wielder = container.Guid.Full;
+                    inventoryItem.WielderId = container.Guid.Full;
                     break;
             }
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
@@ -122,7 +122,7 @@ namespace ACE.Entity
 
         public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
         {
-            return inventory.Where(wo => wo.Value.Wielder != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
+            return inventory.Where(wo => wo.Value.WielderId != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)

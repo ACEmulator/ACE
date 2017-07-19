@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Managers;
 using ACE.Network.Enum;
 
 namespace ACE.Factories
@@ -57,12 +58,12 @@ namespace ACE.Factories
                     break;
             }
 
-            SpellLikeEffect mobj = new SpellLikeEffect(ItemType.MissileWeapon, new ObjectGuid(CommonObjectFactory.DynamicObjectId, GuidType.None), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
+            SpellLikeEffect mobj = new SpellLikeEffect(ItemType.MissileWeapon, GuidManager.NewItemGuid(), "Spell", weenieClassId, ObjectDescriptionFlag.None, WeenieHeaderFlag.Spell, position, spellId, modelId, soundTableId, physicsTableId);
 
-            mobj.DefaultScript = (uint)PlayScript.ProjectileCollision;
+            mobj.DefaultScriptId = (uint)PlayScript.ProjectileCollision;
             mobj.DefaultScriptIntensity = (float)1;
 
-            mobj.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elasticity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
+            mobj.PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.STable | PhysicsDescriptionFlag.PeTable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Velocity | PhysicsDescriptionFlag.Friction | PhysicsDescriptionFlag.Elasticity | PhysicsDescriptionFlag.DefaultScript | PhysicsDescriptionFlag.DefaultScriptIntensity;
             mobj.Velocity = velocity;
             mobj.Friction = (float)friction;
             mobj.Elasticity = (float)electicity;

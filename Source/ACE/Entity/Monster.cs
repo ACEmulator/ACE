@@ -12,8 +12,7 @@ namespace ACE.Entity
         public Monster(AceObject aceO)
           : base(aceO)
         {
-            // TODO: Check why Drudges don't appear on radar yet and don't have a healthbar when you select them
-            aceO.AceObjectId = new ObjectGuid(GuidManager.NewNonStaticGuid()).Full;
+            Guid = GuidManager.NewNonStaticGuid();
             IsAlive = true;
             SetupVitals();
         }

@@ -215,7 +215,7 @@ namespace ACE.Entity
 
             // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
             SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
-            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.Stable | PhysicsDescriptionFlag.Petable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
+            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.STable | PhysicsDescriptionFlag.PeTable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
@@ -240,9 +240,8 @@ namespace ACE.Entity
         { get { return Character.Age; } }
 
         public uint CreationTimestamp
-        { get { return (uint)Character.GetDoubleProperty(PropertyDouble.CreationTimestamp); } }
-        // { get { return Character.GetIntProperty(PropertyInt.CreationTimestamp) ?? 0; } }
-
+        { get { return (uint)Character.CreationTimestamp; } }
+        
         public AceObject GetAceObject()
         {
             return Character;
@@ -329,7 +328,7 @@ namespace ACE.Entity
             AddPalette(Character.HairPalette, 0x18, 0x8);
 
             // Skin
-            PaletteGuid = Character.PaletteId;
+            PaletteBaseId = Character.PaletteId;
             AddPalette(Character.SkinPalette, 0x0, 0x18);
 
             // Eyes
@@ -854,34 +853,12 @@ namespace ACE.Entity
                 // Remember the selected Target
                 selectedTarget = queryId;
 
-                // TODO: once items are implemented check if there are items that can trigger
-                //       the QueryHealth event. So far I believe it only gets triggered for players and creatures
-                if (queryId.IsPlayer() || queryId.IsCreature())
+                ActionChain idChain = new ActionChain();
+                CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
                 {
-                    // If we're on a landblock, id health, otherwise ignore
-                    if (CurrentLandblock != null)
-                    {
-                        ActionChain idChain = new Actions.ActionChain();
-                        CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject wo) =>
-                        {
-                            float healthPercentage = 1f;
-
-                            if (queryId.IsPlayer())
-                            {
-                                Player tmpTarget = (Player)wo;
-                                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                            }
-                            if (queryId.IsCreature())
-                            {
-                                Creature tmpTarget = (Creature)wo;
-                                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-                            }
-                            var updateHealth = new GameEventUpdateHealth(Session, queryId.Full, healthPercentage);
-                            Session.Network.EnqueueSend(updateHealth);
-                        });
-                        idChain.EnqueueChain();
-                    }
-                }
+                    cwo.QueryHealth(Session);
+                });
+                idChain.EnqueueChain();
             });
             chain.EnqueueChain();
         }
@@ -1091,7 +1068,7 @@ namespace ACE.Entity
 
                 Friend newFriend = new Friend();
                 newFriend.Name = friendInfo.Name;
-                newFriend.Id = new ObjectGuid(friendInfo.Guid, GuidType.Player);
+                newFriend.Id = new ObjectGuid(friendInfo.Guid);
 
                 // Save to DB, assume success
                 DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low, (() =>
@@ -1414,8 +1391,8 @@ namespace ACE.Entity
             else
             {
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
-                if (worldObject.DefaultScript != null)
-                    Session.Network.EnqueueSend(new GameMessageScript(Guid, (PlayScript)worldObject.DefaultScript));
+                if (worldObject.DefaultScriptId != null)
+                    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, (PlayScript)worldObject.DefaultScriptId));
             }
         }
 
@@ -1612,7 +1589,7 @@ namespace ACE.Entity
         public void DoFinishBarber(ClientMessage message)
         {
             // Read the payload sent from the client...
-            PaletteGuid = message.Payload.ReadUInt32();
+            PaletteBaseId = message.Payload.ReadUInt32();
             Character.HeadObject = message.Payload.ReadUInt32();
             Character.HairTexture = message.Payload.ReadUInt32();
             Character.DefaultHairTexture = message.Payload.ReadUInt32();
@@ -1704,7 +1681,7 @@ namespace ACE.Entity
             {
                 // We are coming from a weapon, wand or shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
-                item.Parent = null;
+                item.ParentId = null;
                 // Magic numbers - need to understand and fix.
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
@@ -1716,7 +1693,7 @@ namespace ACE.Entity
             }
             else
             {
-                item.Parent = null;
+                item.ParentId = null;
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
                 item.Location = null;
@@ -2038,7 +2015,7 @@ namespace ACE.Entity
                                     }
                             }
                             Children.Add(new EquippedItem(itemGuid.Full, (EquipMask)location));
-                            item.Parent = container.Guid.Full;
+                            item.ParentId = container.Guid.Full;
                             // Magic numbers - need to understand and fix.
                             item.ParentLocation = 1;
                             item.CurrentWieldedLocation = (EquipMask)location;
@@ -2134,7 +2111,7 @@ namespace ACE.Entity
                         inventoryItem = GetInventoryItem(itemGuid);
 
                         // Was I equiped?   If so, lets take care of that and unequip
-                        if (inventoryItem.Wielder != null)
+                        if (inventoryItem.WielderId != null)
                         {
                             HandleUnequip(container, inventoryItem, location, inContainerChain);
                             return;
@@ -2157,7 +2134,7 @@ namespace ACE.Entity
                 var inventoryItem = GetInventoryItem(itemGuid);
                 if (inventoryItem == null)
                     return;
-                if (inventoryItem.Wielder != null)
+                if (inventoryItem.WielderId != null)
                 {
                     UpdateAppearance(this, itemGuid.Full);
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
@@ -2248,7 +2225,7 @@ namespace ACE.Entity
             new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
         }
 
-        private ActionChain CreateMoveToChain(ObjectGuid target, float distance)
+        public ActionChain CreateMoveToChain(ObjectGuid target, float distance)
         {
             ActionChain moveToChain = new ActionChain();
             // While !at(thing) moveToThing

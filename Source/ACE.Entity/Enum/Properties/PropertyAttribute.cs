@@ -11,7 +11,6 @@
         Self = 6,
         Health = 7,
         Stamina = 8,
-        Mana = 9,
-        Count = 10
+        Mana = 9
     }
 }

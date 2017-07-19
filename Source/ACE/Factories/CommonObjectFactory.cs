@@ -9,7 +9,7 @@ namespace ACE.Factories
 
         public static uint DynamicObjectId
         {
-            get { return new ObjectGuid(GuidManager.NewItemGuid()).Full; }
+            get { return GuidManager.NewItemGuid().Full; }
         }
     }
 }
