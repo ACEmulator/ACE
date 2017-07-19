@@ -1,5 +1,4 @@
-﻿using ACE.Entity.Enum;
-using ACE.Network.Enum;
+﻿using ACE.Entity.Enum.Properties;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -9,28 +8,28 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             Entity.Enum.Ability ability = Entity.Enum.Ability.None;
-            var networkAbility = (Ability)message.Payload.ReadUInt32();
+            var networkAbility = (PropertyAttribute)message.Payload.ReadUInt32();
             switch (networkAbility)
             {
-                case Ability.Strength:
+                case PropertyAttribute.Strength:
                     ability = Entity.Enum.Ability.Strength;
                     break;
-                case Ability.Endurance:
+                case PropertyAttribute.Endurance:
                     ability = Entity.Enum.Ability.Endurance;
                     break;
-                case Ability.Coordination:
+                case PropertyAttribute.Coordination:
                     ability = Entity.Enum.Ability.Coordination;
                     break;
-                case Ability.Quickness:
+                case PropertyAttribute.Quickness:
                     ability = Entity.Enum.Ability.Quickness;
                     break;
-                case Ability.Focus:
+                case PropertyAttribute.Focus:
                     ability = Entity.Enum.Ability.Focus;
                     break;
-                case Ability.Self:
+                case PropertyAttribute.Self:
                     ability = Entity.Enum.Ability.Self;
                     break;
-                case Ability.None:
+                case PropertyAttribute.Undef:
                     return;
             }
             var xpSpent = message.Payload.ReadUInt32();
