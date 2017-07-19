@@ -18,13 +18,10 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.IO;
+using System.Diagnostics;
 
 namespace ACE.Entity
 {
-    using System.Diagnostics;
-
-    using global::ACE.Factories;
-
     public sealed class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -1308,14 +1305,12 @@ namespace ACE.Entity
                 }
 
                 md = md.ConvertToClientAccepted(holdKey, Skills[Skill.Run]);
-
                 UniversalMotion newMotion = new UniversalMotion(stance, md);
                 if (holdKey != 0)
                     newMotion.IsAutonomous = true;
                 // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
                 // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
                 newMotion.Commands.AddRange(commands);
-
                 CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
             }).EnqueueChain();
         }
@@ -1676,6 +1671,7 @@ namespace ACE.Entity
 
         private void HandleUnequip(Container container, WorldObject item, uint location, ActionChain inContainerChain)
         {
+            EquipMask? oldLocation = item.CurrentWieldedLocation;
             UpdateAppearance(container, item.Guid.Full);
             if (item.CurrentWieldedLocation > EquipMask.FingerWearLeft)
             {
@@ -1685,8 +1681,7 @@ namespace ACE.Entity
                 // Magic numbers - need to understand and fix.
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
-                inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
-                    Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
+                inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
                 item.SetPhysicsDescriptionFlag(item);
@@ -1710,6 +1705,10 @@ namespace ACE.Entity
                                                 new GameMessageObjDescEvent(this),
                                                 new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
                                                 new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
+            if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
+                return;
+            HandleSwitchToPeaceMode(CombatMode);
+            HandleSwitchToMeleeCombatMode(CombatMode);
         }
 
         private void HandleMove(WorldObject item, Container container, uint location)
@@ -1883,11 +1882,15 @@ namespace ACE.Entity
                                                     new GameEventWieldItem(Session, itemGuid.Full, location));
                     }
 
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(Guid,
+                    CurrentLandblock.EnqueueBroadcast(
+                        Location,
+                        Landblock.MaxObjectRange,
+                        new GameMessageUpdateMotion(
+                            Guid,
                             Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                            Sequences, motion),
-                        new GameMessagePickupEvent(Guid, item));
+                            Sequences,
+                            motion),
+                        new GameMessagePickupEvent(item));
 
                     if (iidPropertyId == PropertyInstanceId.Wielder)
                         CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
@@ -1970,18 +1973,11 @@ namespace ACE.Entity
             wieldChain.AddAction(
                 this,
                 () =>
+                {
+                    ObjectGuid itemGuid = new ObjectGuid(itemId);
+                    WorldObject item = GetInventoryItem(itemGuid);
+                    if (item != null)
                     {
-                        ObjectGuid itemGuid = new ObjectGuid(itemId);
-                        if (GetInventoryItem(itemGuid) == null)
-                        {
-                            HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Wielder);
-                            return;
-                        }
-
-                        // Ok do you have this - if not bail
-                        var item = GetInventoryItem(itemGuid);
-                        if (item == null)
-                            return;
                         if ((EquipMask)location > EquipMask.FingerWearLeft)
                         {
                             // We are going into a weapon, wand or shield slot.
@@ -1989,8 +1985,18 @@ namespace ACE.Entity
                             {
                                 case EquipMask.MissileWeapon:
                                     {
-                                        childLocation = 2;
-                                        placementId = 3;
+                                        if (item.DefaultCombatStyle == MotionStance.BowAttack
+                                            || item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
+                                            item.DefaultCombatStyle == MotionStance.AtlatlCombat)
+                                        {
+                                            childLocation = 2;
+                                            placementId = 3;
+                                        }
+                                        else
+                                        {
+                                            placementId = 1;
+                                            childLocation = 1;
+                                        }
                                         break;
                                     }
                                 case EquipMask.Shield:
@@ -2005,6 +2011,12 @@ namespace ACE.Entity
                                             childLocation = 8;
                                             placementId = 1;
                                         }
+                                        break;
+                                    }
+                                case EquipMask.Held:
+                                    {
+                                        placementId = 1;
+                                        childLocation = 1;
                                         break;
                                     }
                                 default:
@@ -2038,41 +2050,74 @@ namespace ACE.Entity
                             {
                                 Session.Network.EnqueueSend(
                                     new GameMessageCreateObject(item),
-                                    new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                                    new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                     new GameEventWieldItem(Session, itemGuid.Full, location),
                                     new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                    new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0),
+                                    new GameMessageUpdateInstanceId(
+                                        container.Guid,
+                                        new ObjectGuid(0),
                                         PropertyInstanceId.Container),
-                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid,
+                                    new GameMessageUpdateInstanceId(
+                                        container.Guid,
+                                        itemGuid,
                                         PropertyInstanceId.Wielder),
-                                    new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation,
+                                    new GameMessagePrivateUpdatePropertyInt(
+                                        Session.Player.Sequences,
+                                        PropertyInt.CurrentWieldedLocation,
                                         location));
                                 CurrentLandblock.EnqueueBroadcast(
                                     Location,
                                     Landblock.MaxObjectRange,
                                     new GameMessageCreateObject(item),
-                                    new GameMessageParentEvent(Session.Player, item.Guid, childLocation, placementId),
+                                    new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                     new GameEventWieldItem(Session, itemGuid.Full, location),
                                     new GameMessageObjDescEvent(item));
+                                if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
+                                    return;
+                                switch ((EquipMask)location)
+                                {
+                                    case EquipMask.MissileWeapon:
+                                        SetCombatMode(CombatMode.Missile);
+                                        break;
+                                    case EquipMask.Held:
+                                        SetCombatMode(CombatMode.Magic);
+                                        break;
+                                    default:
+                                        SetCombatMode(CombatMode.Melee);
+                                        break;
+                                }
                             }
                             else
                             {
                                 Session.Network.EnqueueSend(
                                     new GameEventWieldItem(Session, itemGuid.Full, location),
                                     new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                    new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
-                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                    new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, location));
+                                    new GameMessageUpdateInstanceId(
+                                        container.Guid,
+                                        new ObjectGuid(0),
+                                        PropertyInstanceId.Container),
+                                    new GameMessageUpdateInstanceId(
+                                        container.Guid,
+                                        itemGuid,
+                                        PropertyInstanceId.Wielder),
+                                    new GameMessagePrivateUpdatePropertyInt(
+                                        Session.Player.Sequences,
+                                        PropertyInt.CurrentWieldedLocation,
+                                        location));
                                 CurrentLandblock.EnqueueBroadcast(
                                     Location,
                                     Landblock.MaxObjectRange,
                                     new GameMessageObjDescEvent(this));
                             }
                         }
-                    });
+                    }
+                    else
+                    {
+                        HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Wielder);
+                    }
+                });
             wieldChain.EnqueueChain();
         }
-
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
         {
             ActionChain inContainerChain = new ActionChain();
