@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+### 2017-07-20
+[Ripley]
+* Reorganized folder structure for WorldObject and sub objects.
+* Move chat to be handled by Player.
+* Set up local chat to be landblock ranged.
+* Wired up emotes and soul emotes, also landblock ranged.
+* Moved ID functionality to be handled within WorldObject.
+* Added PK Altar object.
+* Made change to SetupModel per @OptimShi.
+
 ### 2017-07-17
 [Ripley]
 * More field changes.
