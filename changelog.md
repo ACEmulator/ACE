@@ -7,6 +7,7 @@
 * Set up local chat to be landblock ranged.
 * Wired up emotes and soul emotes, also landblock ranged.
 * Moved ID functionality to be handled within WorldObject.
+* Added PK Altar object.
 
 ### 2017-07-17
 [Ripley]
