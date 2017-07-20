@@ -44,6 +44,11 @@ namespace ACE.Factories
                     results.Add(new Door(aceO));
                     continue;
                 }
+                if ((oDescFlag & ObjectDescriptionFlag.PkSwitch) != 0)
+                {
+                    results.Add(new PKSwitch(aceO));
+                    continue;
+                }
 
                 switch (oType)
                 {

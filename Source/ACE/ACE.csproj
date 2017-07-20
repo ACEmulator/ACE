@@ -124,6 +124,7 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\WorldObjects\Collidable\Objects\Portal.cs" />
     <Compile Include="Entity\WorldObjects\Objects\SpellLikeEffect.cs" />
+    <Compile Include="Entity\WorldObjects\Usable\Objects\PKSwitch.cs" />
     <Compile Include="Entity\WorldObjects\Usable\Objects\SummonedPortal.cs" />
     <Compile Include="Entity\WorldObjects\Usable\UsableObject.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
