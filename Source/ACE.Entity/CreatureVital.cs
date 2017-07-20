@@ -55,7 +55,7 @@ namespace ACE.Entity
             get
             {
                 // TODO: buffs?  not sure where they will go
-                // TODO: check if this can be replaced this with Ability.GetFormula().CalcBase(creature)
+                // TODO: check if this can be replaced with Ability.GetFormula().CalcBase(creature)
                 var formula = this.Ability.GetFormula();
 
                 uint derivationTotal = 0;

@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-07-20
+[Lidefeath]
+* Fix raising primary and secondary attributes.
+* Aligned the enums PropertyAttribute.Quickness and PropertyAttribute.Coordination with the client.
+* Due to this alignment old chars will have wrong coord and quick, so make new characters.
+* I didn't touch the trigger of VitalTicks yet, so vital ticking is only enabled during Player.Load().
+
 ### 2017-07-17
 [Ripley]
 * More field changes.
