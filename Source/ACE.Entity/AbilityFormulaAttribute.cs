@@ -56,7 +56,7 @@ namespace ACE.Entity
                 sum += stats.Strength;
             }
 
-            return (sum * AbilityMultiplier) / Divisor;
+            return (uint) Math.Ceiling((double)(sum * AbilityMultiplier) / Divisor);
         }
     }
 }
