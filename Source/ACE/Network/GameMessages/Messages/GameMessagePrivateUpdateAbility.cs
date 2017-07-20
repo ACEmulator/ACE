@@ -1,6 +1,5 @@
 ﻿using System;
-using ACE.Network.Enum;
-using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Network.GameMessages.Messages
 {
@@ -11,27 +10,27 @@ namespace ACE.Network.GameMessages.Messages
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
 
-            Ability networkAbility;
+            PropertyAttribute networkAbility;
 
             switch (ability)
             {
                 case Entity.Enum.Ability.Strength:
-                    networkAbility = Ability.Strength;
+                    networkAbility = PropertyAttribute.Strength;
                     break;
                 case Entity.Enum.Ability.Endurance:
-                    networkAbility = Ability.Endurance;
+                    networkAbility = PropertyAttribute.Endurance;
                     break;
                 case Entity.Enum.Ability.Coordination:
-                    networkAbility = Ability.Coordination;
+                    networkAbility = PropertyAttribute.Coordination;
                     break;
                 case Entity.Enum.Ability.Quickness:
-                    networkAbility = Ability.Quickness;
+                    networkAbility = PropertyAttribute.Quickness;
                     break;
                 case Entity.Enum.Ability.Focus:
-                    networkAbility = Ability.Focus;
+                    networkAbility = PropertyAttribute.Focus;
                     break;
                 case Entity.Enum.Ability.Self:
-                    networkAbility = Ability.Self;
+                    networkAbility = PropertyAttribute.Self;
                     break;
                 default:
                     throw new ArgumentException("invalid ability specified");

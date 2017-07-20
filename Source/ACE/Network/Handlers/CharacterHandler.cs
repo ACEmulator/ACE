@@ -253,9 +253,9 @@ namespace ACE.Network.Handlers
             uint classId = reader.ReadUInt32();
 
             // characters start with max vitals
-            character.Health.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Health).CalcBase(character);
-            character.Stamina.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Stamina).CalcBase(character);
-            character.Mana.Current = AbilityExtensions.GetFormula(Entity.Enum.Ability.Mana).CalcBase(character);
+            character.Health.Current = character.Health.MaxValue;
+            character.Stamina.Current = character.Stamina.MaxValue;
+            character.Mana.Current = character.Mana.MaxValue;
 
             // set initial skill credit amount. 52 for all but "OlthoiAcid", which have 68
             character.AvailableSkillCredits = cg.HeritageGroups[(int)character.Heritage].SkillCredits;

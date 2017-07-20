@@ -516,8 +516,8 @@ namespace ACE.Entity
             }
             uint baseValue = creatureStat.Base;
             uint result = SpendAbilityXp(creatureStat, amount);
-            uint ranks = creatureAbility.Ranks;
-            uint newValue = creatureAbility.UnbuffedValue;
+            uint ranks = creatureStat.Ranks;
+            uint newValue = creatureStat.UnbuffedValue;
             string messageText = "";
             if (result > 0u)
             {
@@ -528,7 +528,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureAbility.Current);
+                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureStat.Current);
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
@@ -576,7 +576,6 @@ namespace ACE.Entity
         private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
         {
             uint result = 0;
-            bool addToCurrentValue = false;
             ExperienceExpenditureChart chart;
             XpTable xpTable = XpTable.ReadFromDat();
             switch (ability.Ability)
@@ -585,7 +584,6 @@ namespace ACE.Entity
                 case Enum.Ability.Stamina:
                 case Enum.Ability.Mana:
                     chart = xpTable.VitalXpChart;
-                    addToCurrentValue = true;
                     break;
                 default:
                     chart = xpTable.AbilityXpChart;
@@ -628,13 +626,8 @@ namespace ACE.Entity
 
             if (rankUps > 0)
             {
-                // FIXME(ddevec): This needs to be done for vitals only? Someone verify --
+                // FIXME(ddevec):
                 //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
-                CreatureVital vital = ability as CreatureVital;
-                if (vital != null)
-                {
-                    vital.Current += addToCurrentValue ? rankUps : 0u;
-                }
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
                 this.Character.SpendXp(amount);

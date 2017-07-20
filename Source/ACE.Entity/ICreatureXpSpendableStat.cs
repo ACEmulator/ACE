@@ -15,6 +15,8 @@ namespace ACE.Entity
 
         uint MaxValue { get; }
 
+        uint UnbuffedValue { get; }
+
         uint Base { get; }
 
         Ability Ability { get; }

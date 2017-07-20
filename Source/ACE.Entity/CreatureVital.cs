@@ -55,6 +55,7 @@ namespace ACE.Entity
             get
             {
                 // TODO: buffs?  not sure where they will go
+                // TODO: check if this can be replaced with Ability.GetFormula().CalcBase(creature)
                 var formula = this.Ability.GetFormula();
 
                 uint derivationTotal = 0;
@@ -72,7 +73,7 @@ namespace ACE.Entity
                     derivationTotal += wil * this.creature.Self;
 
                     derivationTotal *= formula.AbilityMultiplier;
-                    abilityTotal = derivationTotal / formula.Divisor;
+                    abilityTotal = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
                 }
 
                 abilityTotal += this.Ranks + this.Base;
@@ -152,7 +153,6 @@ namespace ACE.Entity
             this.creature = creature;
             this.RegenRate = regenRate;
             Ability = ability;
-            this.Base = Ability.GetFormula().CalcBase(creature);
         }
 
         public CreatureVital(ICreatureStats creature, AceObjectPropertiesAttribute2nd props) 
@@ -160,7 +160,6 @@ namespace ACE.Entity
             this._backer = props;
             this.creature = creature;
             this.RegenRate = Ability.GetRegenRate();
-            this.Base = Ability.GetFormula().CalcBase(creature);
         }
 
         public AceObjectPropertiesAttribute2nd GetVital()
