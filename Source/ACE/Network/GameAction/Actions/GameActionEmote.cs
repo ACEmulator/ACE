@@ -11,6 +11,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO: send emote text to other characters
             // The emote text comes from the client ready to broadcast.
             // For example: *afk* comes as "decides to rest for a while."
+            session.Player.HandleActionEmote(emote);
         }
     }
 }

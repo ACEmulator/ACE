@@ -130,11 +130,6 @@ namespace ACE.Network.Handlers
             if (account != session.Account)
                 return;
 
-            ////DatabaseManager.Shard.GetNextCharacterId((uint id) =>
-            ////{
-            ////    CharacterCreateEx(message, session, id);
-            ////});
-
             uint id = GuidManager.NewPlayerGuid().Full;
 
             CharacterCreateEx(message, session, id);

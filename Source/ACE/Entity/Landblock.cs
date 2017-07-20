@@ -548,6 +548,60 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="message"></param>
+        public void EnqueueBroadcastLocalChat(WorldObject wo, string message)
+        {
+            // wo must exist on us
+            if (wo.CurrentLandblock != this)
+            {
+                log.Error("ERROR: Broadcasting chat from object not on our landblock");
+            }
+
+            GameMessageCreatureMessage creatureMessage = new GameMessageCreatureMessage(message, wo.Name, wo.Guid.Full, ChatMessageType.Speech);
+
+            EnqueueBroadcast(wo.Location, MaxObjectRange, creatureMessage);
+        }
+
+        /// <summary>
+        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat emotes.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="emote"></param>
+        public void EnqueueBroadcastLocalChatEmote(WorldObject wo, string emote)
+        {
+            // wo must exist on us
+            if (wo.CurrentLandblock != this)
+            {
+                log.Error("ERROR: Broadcasting chat from object not on our landblock");
+            }
+
+            GameMessageEmoteText creatureMessage = new GameMessageEmoteText(wo.Guid.Full, wo.Name, emote);
+
+            EnqueueBroadcast(wo.Location, MaxObjectRange, creatureMessage);
+        }
+
+        /// <summary>
+        /// Convenience wrapper to EnqueueBroadcast to broadcast local soul emotes.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="emote"></param>
+        public void EnqueueBroadcastLocalChatSoulEmote(WorldObject wo, string emote)
+        {
+            // wo must exist on us
+            if (wo.CurrentLandblock != this)
+            {
+                log.Error("ERROR: Broadcasting chat from object not on our landblock");
+            }
+
+            GameMessageSoulEmote creatureMessage = new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote);
+
+            EnqueueBroadcast(wo.Location, MaxObjectRange, creatureMessage);
+        }
+
+        /// <summary>
         /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
         /// </summary>
         private void SendBroadcasts()

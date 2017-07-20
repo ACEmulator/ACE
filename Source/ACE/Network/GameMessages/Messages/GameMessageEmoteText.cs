@@ -6,8 +6,8 @@
             : base(GameMessageOpcode.EmoteText, GameMessageGroup.Group09)
         {
             Writer.Write(senderId);
-            Writer.Write(senderName);
-            Writer.Write(emoteText);
+            Writer.WriteString16L(senderName);
+            Writer.WriteString16L(emoteText);
         }
     }
 }
