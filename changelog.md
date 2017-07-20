@@ -8,6 +8,7 @@
 * Wired up emotes and soul emotes, also landblock ranged.
 * Moved ID functionality to be handled within WorldObject.
 * Added PK Altar object.
+* Made change to SetupModel per @OptimShi.
 
 ### 2017-07-17
 [Ripley]

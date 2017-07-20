@@ -199,8 +199,8 @@ namespace ACE.Entity
                     return;
                 }
 
-                // SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
-                SetupModel csetup = SetupModel.ReadFromDat(33555182); // Lifestone for faking
+                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
+                ////SetupModel csetup = SetupModel.ReadFromDat(33555182); // Lifestone for faking
                 float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
                 float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
 
