@@ -1215,7 +1215,7 @@ namespace ACE.Entity
             if ((Script != null) && (Script != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.PScript;
 
-            if ((uint?)Workmanship != 0u)
+            if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
             if (Burden != null)
