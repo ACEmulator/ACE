@@ -8,9 +8,6 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var emote = message.Payload.ReadString16L();
-            // TODO: send emote text to other characters
-            // The emote text comes from the client ready to broadcast.
-            // For example: *afk* comes as "decides to rest for a while."
             session.Player.HandleActionEmote(emote);
         }
     }
