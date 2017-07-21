@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-21
+[Ripley]
+* Fix for SetupModel bug provided by @OptimShi.
+
 ### 2017-07-20
 [Lidefeath]
 * Fix raising primary and secondary attributes.
