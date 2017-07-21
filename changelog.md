@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-07-21
+[Ripley]
+* Moved GameActionTalk handle code to Player.
+* Wired up broadcasting of local chat, emotes and soul emotes.
+* Fixed StyleCop issue in AbilityFormulaAttribute.
+
 ### 2017-07-20
 [Lidefeath]
 * Fix raising primary and secondary attributes.
