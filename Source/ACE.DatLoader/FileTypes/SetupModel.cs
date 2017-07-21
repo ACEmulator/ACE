@@ -70,7 +70,7 @@ namespace ACE.DatLoader.FileTypes
                     m.SubObjectIds.Add(datReader.ReadUInt32());
                 }
 
-                if ((m.TypeId & 1) == 1)
+                if ((m.TypeId & 1) > 0)
                 {
                     for (int i = 0; i < numSubObjects; i++)
                     {
@@ -78,7 +78,7 @@ namespace ACE.DatLoader.FileTypes
                     }
                 }
 
-                if ((m.TypeId & 2) == 1)
+                if ((m.TypeId & 2) > 0)
                 {
                     for (int i = 0; i < numSubObjects; i++)
                     {
