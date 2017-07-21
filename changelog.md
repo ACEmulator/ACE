@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-21
+[Ripley]
+* Moved Identify to WorldObject.
+
 ### 2017-07-20
 [Lidefeath]
 * Fix raising primary and secondary attributes.
