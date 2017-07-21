@@ -10,6 +10,8 @@ using System;
 using log4net;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
+using System.IO;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -493,6 +495,163 @@ namespace ACE.Entity
             {
                 // Start up a vital ticker
                 new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
+            }
+        }
+
+        public override void SerializeIdentifyObjectResponse(BinaryWriter writer)
+        {
+            // TODO : calculate if we were successful
+            const bool successfulId = true;
+            writer.Write(Guid.Full);
+
+            // Set Flags and collect data for Identify Object Processing
+
+            IdentifyResponseFlags flags = IdentifyResponseFlags.None;
+
+            // Excluding some times that are sent later as weapon status Og II
+
+            var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
+                                                          && x.PropertyId != (uint)PropertyInt.Damage
+                                                          && x.PropertyId != (uint)PropertyInt.DamageType
+                                                          && x.PropertyId != (uint)PropertyInt.WeaponSkill
+                                                          && x.PropertyId != (uint)PropertyInt.WeaponTime).ToList();
+
+            if (propertiesInt.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.IntStatsTable;
+            }
+
+            var propertiesInt64 = PropertiesInt64.Where(x => x.PropertyId < 9000).ToList();
+
+            if (propertiesInt64.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.Int64StatsTable;
+            }
+
+            var propertiesBool = PropertiesBool.Where(x => x.PropertyId < 9000).ToList();
+
+            if (propertiesBool.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.BoolStatsTable;
+            }
+
+            // the float values 13 - 19 + 165 (nether added way later) are armor resistance and is shown in a different list. Og II
+            // 21-22, 26, 62-63 are all sent as part of the weapons profile and not duplicated.
+            var propertiesDouble = PropertiesDouble.Where(x => x.PropertyId < 9000
+                                                               && (x.PropertyId < (uint)PropertyDouble.ArmorModVsSlash
+                                                               || x.PropertyId > (uint)PropertyDouble.ArmorModVsElectric)
+                                                               && x.PropertyId != (uint)PropertyDouble.WeaponLength
+                                                               && x.PropertyId != (uint)PropertyDouble.DamageVariance
+                                                               && x.PropertyId != (uint)PropertyDouble.MaximumVelocity
+                                                               && x.PropertyId != (uint)PropertyDouble.WeaponOffense
+                                                               && x.PropertyId != (uint)PropertyDouble.DamageMod
+                                                               && x.PropertyId != (uint)PropertyDouble.ArmorModVsNether).ToList();
+            if (propertiesDouble.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.FloatStatsTable;
+            }
+
+            var propertiesDid = PropertiesDid.Where(x => x.PropertyId < 9000).ToList();
+
+            if (propertiesDid.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.DidStatsTable;
+            }
+
+            var propertiesString = PropertiesString.Where(x => x.PropertyId < 9000).ToList();
+
+            var propertiesSpellId = PropertiesSpellId.ToList();
+
+            if (propertiesSpellId.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.SpellBook;
+            }
+
+            var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
+                                                         && (x.PropertyId >= (uint)PropertyDouble.ArmorModVsSlash
+                                                         && x.PropertyId <= (uint)PropertyDouble.ArmorModVsElectric))
+                                                         || x.PropertyId == (uint)PropertyDouble.ArmorModVsNether).ToList();
+            if (propertiesArmor.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.ArmorProfile;
+            }
+
+            // Weapons Profile
+            var propertiesWeaponsD = PropertiesDouble.Where(x => x.PropertyId < 9000
+                                                            && (x.PropertyId == (uint)PropertyDouble.WeaponLength
+                                                            || x.PropertyId == (uint)PropertyDouble.DamageVariance
+                                                            || x.PropertyId == (uint)PropertyDouble.MaximumVelocity
+                                                            || x.PropertyId == (uint)PropertyDouble.WeaponOffense
+                                                            || x.PropertyId == (uint)PropertyDouble.DamageMod)).ToList();
+
+            var propertiesWeaponsI = PropertiesInt.Where(x => x.PropertyId < 9000
+                                                         && (x.PropertyId == (uint)PropertyInt.Damage
+                                                         || x.PropertyId == (uint)PropertyInt.DamageType
+                                                         || x.PropertyId == (uint)PropertyInt.WeaponSkill
+                                                         || x.PropertyId == (uint)PropertyInt.WeaponTime)).ToList();
+
+            if (propertiesWeaponsI.Count + propertiesWeaponsD.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.WeaponProfile;
+            }
+
+            if (propertiesString.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.StringStatsTable;
+            }
+
+            if (ItemType == ItemType.Creature)
+            {
+                flags |= IdentifyResponseFlags.CreatureProfile;
+            }
+
+            // Ok Down to business - let's identify all of this stuff.
+            WriteIdentifyObjectHeader(writer, flags, successfulId);
+            WriteIdentifyObjectIntProperties(writer, flags, propertiesInt);
+            WriteIdentifyObjectInt64Properties(writer, flags, propertiesInt64);
+            WriteIdentifyObjectBoolProperties(writer, flags, propertiesBool);
+            WriteIdentifyObjectDoubleProperties(writer, flags, propertiesDouble);
+            WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
+            WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
+            WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
+            WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
+            // TODO: There are probably other checks that need to be made here
+            if (ItemType == ItemType.Creature && GetType().Name != "DebugObject")
+            {
+                WriteIdentifyObjectCreatureProfile(writer, (Creature)this);
+            }
+            WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
+        }
+
+        protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
+        {
+            uint header = 8;
+            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
+            writer.Write(header);
+            writer.Write(obj.Health.Current);
+            writer.Write(obj.Health.MaxValue);
+            if (header == 0)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    writer.Write(0u);
+                }
+            }
+            else
+            {
+                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
+                writer.Write(obj.Strength.UnbuffedValue);
+                writer.Write(obj.Endurance.UnbuffedValue);
+                writer.Write(obj.Quickness.UnbuffedValue);
+                writer.Write(obj.Coordination.UnbuffedValue);
+                writer.Write(obj.Focus.UnbuffedValue);
+                writer.Write(obj.Self.UnbuffedValue);
+                writer.Write(obj.Stamina.UnbuffedValue);
+                writer.Write(obj.Mana.UnbuffedValue);
+                writer.Write(obj.Stamina.MaxValue);
+                writer.Write(obj.Mana.MaxValue);
+                // this only gets sent if the header can be masked with 1
+                // Writer.Write(0u);
             }
         }
     }

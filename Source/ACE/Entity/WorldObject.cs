@@ -771,6 +771,7 @@ namespace ACE.Entity
                 flags |= IdentifyResponseFlags.SpellBook;
             }
 
+            // TODO: Move to Armor class
             var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
                                                          && (x.PropertyId >= (uint)PropertyDouble.ArmorModVsSlash
                                                          && x.PropertyId <= (uint)PropertyDouble.ArmorModVsElectric))
@@ -780,6 +781,7 @@ namespace ACE.Entity
                 flags |= IdentifyResponseFlags.ArmorProfile;
             }
 
+            // TODO: Move to Weapon class
             // Weapons Profile
             var propertiesWeaponsD = PropertiesDouble.Where(x => x.PropertyId < 9000
                                                             && (x.PropertyId == (uint)PropertyDouble.WeaponLength
@@ -804,10 +806,10 @@ namespace ACE.Entity
                 flags |= IdentifyResponseFlags.StringStatsTable;
             }
 
-            if (ItemType == ItemType.Creature)
-            {
-                flags |= IdentifyResponseFlags.CreatureProfile;
-            }
+            ////if (ItemType == ItemType.Creature)
+            ////{
+            ////    flags |= IdentifyResponseFlags.CreatureProfile;
+            ////}
 
             // Ok Down to business - let's identify all of this stuff.
             WriteIdentifyObjectHeader(writer, flags, successfulId);
@@ -819,11 +821,11 @@ namespace ACE.Entity
             WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
             WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
             WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
-            // TODO: There are probably other checks that need to be made here
-            if (ItemType == ItemType.Creature && GetType().Name != "DebugObject")
-            {
-                WriteIdentifyObjectCreatureProfile(writer, (Creature)this);
-            }
+            ////// TODO: There are probably other checks that need to be made here
+            ////if (ItemType == ItemType.Creature && GetType().Name != "DebugObject")
+            ////{
+            ////    WriteIdentifyObjectCreatureProfile(writer, (Creature)this);
+            ////}
             WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
         }
 
@@ -952,13 +954,13 @@ namespace ACE.Entity
             return debugOutput;
         }
 
-        private static void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
+        protected static void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
         {
             writer.Write((uint)flags); // Flags
             writer.Write(Convert.ToUInt32(success)); // Success bool
         }
 
-        private static void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
+        protected static void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
         {
             const ushort tableSize = 16;
             var notNull = propertiesInt.Where(p => p.PropertyValue != null).ToList();
@@ -973,7 +975,7 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
+        protected static void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
         {
             const ushort tableSize = 8;
             var notNull = propertiesInt64.Where(p => p.PropertyValue != null).ToList();
@@ -988,7 +990,7 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
+        protected static void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
         {
             const ushort tableSize = 8;
             var notNull = propertiesBool.Where(p => p.PropertyValue != null).ToList();
@@ -1003,7 +1005,7 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
+        protected static void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
         {
             const ushort tableSize = 8;
             var notNull = propertiesDouble.Where(p => p.PropertyValue != null).ToList();
@@ -1018,7 +1020,7 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
+        protected static void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
         {
             const ushort tableSize = 8;
             var notNull = propertiesStrings.Where(p => !string.IsNullOrWhiteSpace(p.PropertyValue)).ToList();
@@ -1033,7 +1035,7 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
+        protected static void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
         {
             const ushort tableSize = 16;
             var notNull = propertiesDid.Where(p => p.PropertyValue != null).ToList();
@@ -1048,7 +1050,7 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        protected static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
         {
             if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
             writer.Write((uint)propertiesSpellId.Count);
@@ -1059,7 +1061,8 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        // TODO: Move to Armor class
+        protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
         {
             var notNull = propertiesArmor.Where(p => p.PropertyValue != null).ToList();
             if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (notNull.Count == 0)) return;
@@ -1070,39 +1073,40 @@ namespace ACE.Entity
             }
         }
 
-        private static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
-        {
-            uint header = 8;
-            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
-            writer.Write(header);
-            writer.Write(obj.Health.Current);
-            writer.Write(obj.Health.MaxValue);
-            if (header == 0)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    writer.Write(0u);
-                }
-            }
-            else
-            {
-                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
-                writer.Write(obj.Strength.UnbuffedValue);
-                writer.Write(obj.Endurance.UnbuffedValue);
-                writer.Write(obj.Quickness.UnbuffedValue);
-                writer.Write(obj.Coordination.UnbuffedValue);
-                writer.Write(obj.Focus.UnbuffedValue);
-                writer.Write(obj.Self.UnbuffedValue);
-                writer.Write(obj.Stamina.UnbuffedValue);
-                writer.Write(obj.Mana.UnbuffedValue);
-                writer.Write(obj.Stamina.MaxValue);
-                writer.Write(obj.Mana.MaxValue);
-                // this only gets sent if the header can be masked with 1
-                // Writer.Write(0u);
-            }
-        }
+        ////private static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
+        ////{
+        ////    uint header = 8;
+        ////    // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
+        ////    writer.Write(header);
+        ////    writer.Write(obj.Health.Current);
+        ////    writer.Write(obj.Health.MaxValue);
+        ////    if (header == 0)
+        ////    {
+        ////        for (int i = 0; i < 10; i++)
+        ////        {
+        ////            writer.Write(0u);
+        ////        }
+        ////    }
+        ////    else
+        ////    {
+        ////        // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
+        ////        writer.Write(obj.Strength.UnbuffedValue);
+        ////        writer.Write(obj.Endurance.UnbuffedValue);
+        ////        writer.Write(obj.Quickness.UnbuffedValue);
+        ////        writer.Write(obj.Coordination.UnbuffedValue);
+        ////        writer.Write(obj.Focus.UnbuffedValue);
+        ////        writer.Write(obj.Self.UnbuffedValue);
+        ////        writer.Write(obj.Stamina.UnbuffedValue);
+        ////        writer.Write(obj.Mana.UnbuffedValue);
+        ////        writer.Write(obj.Stamina.MaxValue);
+        ////        writer.Write(obj.Mana.MaxValue);
+        ////        // this only gets sent if the header can be masked with 1
+        ////        // Writer.Write(0u);
+        ////    }
+        ////}
 
-        private static void WriteIdentifyObjectWeaponsProfile(
+        // TODO: Move to Weapon class
+        protected static void WriteIdentifyObjectWeaponsProfile(
             BinaryWriter writer,
             IdentifyResponseFlags flags,
             List<AceObjectPropertiesDouble> propertiesWeaponsD,
