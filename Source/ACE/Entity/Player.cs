@@ -19,6 +19,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.IO;
 using System.Diagnostics;
+using ACE.Command;
 
 namespace ACE.Entity
 {
@@ -2522,6 +2523,80 @@ namespace ACE.Entity
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
             }
+        }
+
+        public void HandleActionTalk(string message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoTalk(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoTalk(string message)
+        {
+            if (message.StartsWith("@"))
+            {
+                string command;
+                string[] parameters;
+                CommandManager.ParseCommand(message.Remove(0, 1), out command, out parameters);
+
+                CommandHandlerInfo commandHandler;
+                var response = CommandManager.GetCommandHandler(Session, command, parameters, out commandHandler);
+                if (response == CommandHandlerResponse.Ok)
+                    ((CommandHandler)commandHandler.Handler).Invoke(Session, parameters);
+                else if (response == CommandHandlerResponse.SudoOk)
+                {
+                    string[] sudoParameters = new string[parameters.Length - 1];
+                    for (int i = 1; i < parameters.Length; i++)
+                        sudoParameters[i - 1] = parameters[i];
+
+                    ((CommandHandler)commandHandler.Handler).Invoke(Session, sudoParameters);
+                }
+                else
+                {
+                    switch (response)
+                    {
+                        case CommandHandlerResponse.InvalidCommand:
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown command: {command}", ChatMessageType.Help));
+                            break;
+                        case CommandHandlerResponse.InvalidParameterCount:
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Help));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"@{commandHandler.Attribute.Command} - {commandHandler.Attribute.Description}", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Usage: @{commandHandler.Attribute.Command} {commandHandler.Attribute.Usage}", ChatMessageType.Broadcast));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
+            }
+        }
+
+        public void HandleActionEmote(string message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoEmote(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoEmote(string message)
+        {
+            CurrentLandblock.EnqueueBroadcastLocalChatEmote(this, message);
+        }
+
+        public void HandleActionSoulEmote(string message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoSoulEmote(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoSoulEmote(string message)
+        {
+            CurrentLandblock.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
     }
 }
