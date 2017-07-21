@@ -2534,45 +2534,7 @@ namespace ACE.Entity
 
         public void DoTalk(string message)
         {
-            if (message.StartsWith("@"))
-            {
-                string command;
-                string[] parameters;
-                CommandManager.ParseCommand(message.Remove(0, 1), out command, out parameters);
-
-                CommandHandlerInfo commandHandler;
-                var response = CommandManager.GetCommandHandler(Session, command, parameters, out commandHandler);
-                if (response == CommandHandlerResponse.Ok)
-                    ((CommandHandler)commandHandler.Handler).Invoke(Session, parameters);
-                else if (response == CommandHandlerResponse.SudoOk)
-                {
-                    string[] sudoParameters = new string[parameters.Length - 1];
-                    for (int i = 1; i < parameters.Length; i++)
-                        sudoParameters[i - 1] = parameters[i];
-
-                    ((CommandHandler)commandHandler.Handler).Invoke(Session, sudoParameters);
-                }
-                else
-                {
-                    switch (response)
-                    {
-                        case CommandHandlerResponse.InvalidCommand:
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown command: {command}", ChatMessageType.Help));
-                            break;
-                        case CommandHandlerResponse.InvalidParameterCount:
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid parameter count, got {parameters.Length}, expected {commandHandler.Attribute.ParameterCount}!", ChatMessageType.Help));
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"@{commandHandler.Attribute.Command} - {commandHandler.Attribute.Description}", ChatMessageType.Broadcast));
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Usage: @{commandHandler.Attribute.Command} {commandHandler.Attribute.Usage}", ChatMessageType.Broadcast));
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-            else
-            {
-                CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
-            }
+            CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
         }
 
         public void HandleActionEmote(string message)
