@@ -820,12 +820,17 @@ namespace ACE.Entity
             WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
             WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
             WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
+           
+            // TODO: Move to Armor class
             WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
+            
             ////// TODO: There are probably other checks that need to be made here
             ////if (ItemType == ItemType.Creature && GetType().Name != "DebugObject")
             ////{
             ////    WriteIdentifyObjectCreatureProfile(writer, (Creature)this);
             ////}
+            
+            // TODO: Move to Weapon class
             WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
         }
 
