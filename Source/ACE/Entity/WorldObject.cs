@@ -693,7 +693,9 @@ namespace ACE.Entity
 
         public void Examine(Session examiner)
         {
-            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this);
+            // TODO : calculate if we were successful
+            bool successfulId = true;
+            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this, successfulId);
             examiner.Network.EnqueueSend(identifyResponse);
 
 #if DEBUG
@@ -702,15 +704,15 @@ namespace ACE.Entity
 #endif
         }
 
-        public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer)
+        public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
-            // TODO : calculate if we were successful
-            const bool successfulId = true;
-            writer.Write(Guid.Full);
+            ////// TODO : calculate if we were successful
+            ////const bool successfulId = true;
+            ////writer.Write(Guid.Full);
 
             // Set Flags and collect data for Identify Object Processing
 
-            IdentifyResponseFlags flags = IdentifyResponseFlags.None;
+            ////IdentifyResponseFlags flags = IdentifyResponseFlags.None;
 
             // Excluding some times that are sent later as weapon status Og II
 
@@ -812,7 +814,7 @@ namespace ACE.Entity
             ////}
 
             // Ok Down to business - let's identify all of this stuff.
-            WriteIdentifyObjectHeader(writer, flags, successfulId);
+            WriteIdentifyObjectHeader(writer, flags, success);
             WriteIdentifyObjectIntProperties(writer, flags, propertiesInt);
             WriteIdentifyObjectInt64Properties(writer, flags, propertiesInt64);
             WriteIdentifyObjectBoolProperties(writer, flags, propertiesBool);
@@ -820,16 +822,16 @@ namespace ACE.Entity
             WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
             WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
             WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
-           
+
             // TODO: Move to Armor class
             WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
-            
+
             ////// TODO: There are probably other checks that need to be made here
             ////if (ItemType == ItemType.Creature && GetType().Name != "DebugObject")
             ////{
             ////    WriteIdentifyObjectCreatureProfile(writer, (Creature)this);
             ////}
-            
+
             // TODO: Move to Weapon class
             WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
         }
