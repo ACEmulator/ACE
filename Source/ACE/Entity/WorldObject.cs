@@ -352,7 +352,7 @@ namespace ACE.Entity
                 {
                     return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
                 }
-                return (ItemWorkmanship ?? 0.0f);
+                return (ItemWorkmanship);
             }
             set
             {
@@ -1177,7 +1177,7 @@ namespace ACE.Entity
             if ((Script != null) && (Script != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.PScript;
 
-            if ((uint)Workmanship != 0u)
+            if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
             if (Burden != null)

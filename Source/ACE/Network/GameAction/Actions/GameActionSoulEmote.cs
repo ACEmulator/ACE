@@ -2,13 +2,13 @@
 
 namespace ACE.Network.GameAction.Actions
 {
-    public static class GameActionEmote
+    public static class GameActionSoulEmote
     {
-        [GameAction(GameActionType.Emote)]
+        [GameAction(GameActionType.SoulEmote)]
         public static void Handle(ClientMessage message, Session session)
         {
             var emote = message.Payload.ReadString16L();
-            session.Player.HandleActionEmote(emote);
+            session.Player.HandleActionSoulEmote(emote);
         }
     }
 }
