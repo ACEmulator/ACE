@@ -10,6 +10,7 @@ using System;
 using log4net;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
+using System.IO;
 
 namespace ACE.Entity
 {
@@ -493,6 +494,53 @@ namespace ACE.Entity
             {
                 // Start up a vital ticker
                 new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
+            }
+        }
+
+        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
+        {
+            flags |= IdentifyResponseFlags.CreatureProfile;
+            
+            base.SerializeIdentifyObjectResponse(writer, success, flags);
+
+            // TODO: There are probably other checks that need to be made here
+            if (GetType().Name != "DebugObject")
+            {
+                WriteIdentifyObjectCreatureProfile(writer, this, success);
+            }
+        }
+
+        protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj, bool success)
+        {
+            uint header = 0;
+            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
+            if (success)
+                header = 8;
+            writer.Write(header);
+            writer.Write(obj.Health.Current);
+            writer.Write(obj.Health.MaxValue);
+            if (header == 0)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    writer.Write(0u);
+                }
+            }
+            else
+            {
+                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
+                writer.Write(obj.Strength.UnbuffedValue);
+                writer.Write(obj.Endurance.UnbuffedValue);
+                writer.Write(obj.Quickness.UnbuffedValue);
+                writer.Write(obj.Coordination.UnbuffedValue);
+                writer.Write(obj.Focus.UnbuffedValue);
+                writer.Write(obj.Self.UnbuffedValue);
+                writer.Write(obj.Stamina.UnbuffedValue);
+                writer.Write(obj.Mana.UnbuffedValue);
+                writer.Write(obj.Stamina.MaxValue);
+                writer.Write(obj.Mana.MaxValue);
+                // this only gets sent if the header can be masked with 1
+                // Writer.Write(0u);
             }
         }
     }
