@@ -11,7 +11,6 @@ using log4net;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
 using System.IO;
-using System.Linq;
 
 namespace ACE.Entity
 {

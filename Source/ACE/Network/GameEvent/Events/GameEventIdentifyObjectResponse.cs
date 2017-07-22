@@ -1,8 +1,5 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using System;
-using System.Linq;
 
 namespace ACE.Network.GameEvent.Events
 {

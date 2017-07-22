@@ -19,7 +19,6 @@ namespace ACE.Entity
 {
     using Enum.Properties;
     using System.Reflection;
-    using System.Windows.Forms;
 
     public abstract class WorldObject : IActor
     {
