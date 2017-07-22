@@ -10,6 +10,9 @@ using System;
 using log4net;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
+using System.Collections.Generic;
+using System.Linq;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Entity
 {
@@ -76,6 +79,10 @@ namespace ACE.Entity
         {
             get { return AceObject.Mana; }
             set { AceObject.Mana = value; }
+        }
+        public List<AceObjectPropertiesSpell> KnownSpells
+        {
+            get { return AceObject.SpellIdProperties; }          
         }
 
         /// <summary>

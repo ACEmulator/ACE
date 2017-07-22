@@ -778,6 +778,20 @@ namespace ACE.Command.Handlers
                 uint spellId = (uint)int.Parse(parameters[0]);
 
                 SpellTable spells = SpellTable.ReadFromDat();
+
+                var creatureLevel7Spells = spells.Spells.Where(x => x.Value.School == MagicSchool.CreatureEnchantment && x.Value.Power == 7);
+                foreach (var x in creatureLevel7Spells)
+                {
+                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, x.Key);
+                    session.Network.EnqueueSend(updateSpellEvent);
+
+                    string spellName = x.Value.Name;
+                    // TODO Lookup the spell in the spell table.
+                    string message = "You learn the " + spellName + " spell.\n";
+                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(learnMessage);
+                    System.Threading.Thread.Sleep(250);
+                }
                 if (!spells.Spells.ContainsKey(spellId))
                 {
                     var errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
