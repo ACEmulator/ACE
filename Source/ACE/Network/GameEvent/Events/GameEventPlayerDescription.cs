@@ -11,15 +11,15 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None           = 0x0000,
-            PropertyInt32  = 0x0001,
-            PropertyBool   = 0x0002,
+            None = 0x0000,
+            PropertyInt32 = 0x0001,
+            PropertyBool = 0x0002,
             PropertyDouble = 0x0004,
-            PropertyDid    = 0x0008,
+            PropertyDid = 0x0008,
             PropertyString = 0x0010,
-            Position       = 0x0020,
-            PropertyIid    = 0x0040,
-            PropertyInt64  = 0x0080,
+            Position = 0x0020,
+            PropertyIid = 0x0040,
+            PropertyInt64 = 0x0080,
         }
 
         [Flags]
@@ -203,7 +203,12 @@ namespace ACE.Network.GameEvent.Events
 
             Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
-            var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
+            DescriptionVectorFlag vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
+
+            var propertiesSpells = aceObj.SpellIdProperties.ToList();
+            if (propertiesSpells.Count > 0)
+                vectorFlags |= DescriptionVectorFlag.Spell;
+
             Writer.Write((uint)vectorFlags);
             Writer.Write(1u);
 
@@ -303,16 +308,20 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            /*if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
+            if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
             {
-                writer.Write((ushort)spellCount);
-                writer.Write((ushort)0x20);
+                Writer.Write((ushort)propertiesSpells.Count);
+                Writer.Write((ushort)64);
 
                 {
-                    writer.Write(0u);
-                    writer.Write(0.0f);
+                    foreach (AceObjectPropertiesSpell spell in propertiesSpells)
+                    {
+                        Writer.Write(spell.SpellId);
+                        // This sets a flag to use new spell configuration always 2
+                        Writer.Write(2f);
+                    }
                 }
-            }*/
+            }
 
             /*if ((vectorFlags & DescriptionVectorFlag.Enchantment) != 0)
             {

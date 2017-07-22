@@ -46,6 +46,7 @@ namespace ACE.Database
             DeleteAceObject = 28,
             GetAceObject = 29,
             UpdateAceObject = 30,
+            GetAceObjectPropertiesSpell = 31,
 
             AddFriend = 101,
             DeleteFriend = 102,
@@ -158,6 +159,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesAttributes, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.GetList);
 
             // Delete statements
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.DeleteList);
@@ -340,6 +342,7 @@ namespace ACE.Database
                 x => new CreatureVital(aceObject, x));
             aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
                 x => new CreatureSkill(aceObject, x));
+            aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
@@ -472,6 +475,13 @@ namespace ACE.Database
                 o.HasEverBeenSavedToDatabase = true;
                 o.IsDirty = false;
             });
+            return objects;
+        }
+
+        private List<AceObjectPropertiesSpell> GetAceObjectPropertiesSpell(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.GetAceObjectPropertiesSpell, criteria);
             return objects;
         }
 
