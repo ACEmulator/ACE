@@ -500,13 +500,8 @@ namespace ACE.Entity
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
-            // base.SerializeIdentifyObjectResponse();
-
-            ////if (ItemType == ItemType.Creature)
-            ////{
-                flags |= IdentifyResponseFlags.CreatureProfile;
-            ////}
-
+            flags |= IdentifyResponseFlags.CreatureProfile;
+            
             base.SerializeIdentifyObjectResponse(writer, success, flags);
 
             // TODO: There are probably other checks that need to be made here

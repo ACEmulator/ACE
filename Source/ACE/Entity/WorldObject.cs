@@ -705,17 +705,8 @@ namespace ACE.Entity
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            ////// TODO : calculate if we were successful
-            ////const bool successfulId = true;
-            ////writer.Write(Guid.Full);
-
-            // Set Flags and collect data for Identify Object Processing
-
-            ////IdentifyResponseFlags flags = IdentifyResponseFlags.None;
-
+        {            
             // Excluding some times that are sent later as weapon status Og II
-
             var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
                                                           && x.PropertyId != (uint)PropertyInt.Damage
                                                           && x.PropertyId != (uint)PropertyInt.DamageType
@@ -808,11 +799,6 @@ namespace ACE.Entity
                 flags |= IdentifyResponseFlags.StringStatsTable;
             }
 
-            ////if (ItemType == ItemType.Creature)
-            ////{
-            ////    flags |= IdentifyResponseFlags.CreatureProfile;
-            ////}
-
             // Ok Down to business - let's identify all of this stuff.
             WriteIdentifyObjectHeader(writer, flags, success);
             WriteIdentifyObjectIntProperties(writer, flags, propertiesInt);
@@ -825,12 +811,6 @@ namespace ACE.Entity
 
             // TODO: Move to Armor class
             WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
-
-            ////// TODO: There are probably other checks that need to be made here
-            ////if (ItemType == ItemType.Creature && GetType().Name != "DebugObject")
-            ////{
-            ////    WriteIdentifyObjectCreatureProfile(writer, (Creature)this);
-            ////}
 
             // TODO: Move to Weapon class
             WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
