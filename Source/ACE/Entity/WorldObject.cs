@@ -1059,38 +1059,6 @@ namespace ACE.Entity
             }
         }
 
-        ////private static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj)
-        ////{
-        ////    uint header = 8;
-        ////    // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
-        ////    writer.Write(header);
-        ////    writer.Write(obj.Health.Current);
-        ////    writer.Write(obj.Health.MaxValue);
-        ////    if (header == 0)
-        ////    {
-        ////        for (int i = 0; i < 10; i++)
-        ////        {
-        ////            writer.Write(0u);
-        ////        }
-        ////    }
-        ////    else
-        ////    {
-        ////        // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
-        ////        writer.Write(obj.Strength.UnbuffedValue);
-        ////        writer.Write(obj.Endurance.UnbuffedValue);
-        ////        writer.Write(obj.Quickness.UnbuffedValue);
-        ////        writer.Write(obj.Coordination.UnbuffedValue);
-        ////        writer.Write(obj.Focus.UnbuffedValue);
-        ////        writer.Write(obj.Self.UnbuffedValue);
-        ////        writer.Write(obj.Stamina.UnbuffedValue);
-        ////        writer.Write(obj.Mana.UnbuffedValue);
-        ////        writer.Write(obj.Stamina.MaxValue);
-        ////        writer.Write(obj.Mana.MaxValue);
-        ////        // this only gets sent if the header can be masked with 1
-        ////        // Writer.Write(0u);
-        ////    }
-        ////}
-
         // TODO: Move to Weapon class
         protected static void WriteIdentifyObjectWeaponsProfile(
             BinaryWriter writer,
