@@ -19,6 +19,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.IO;
 using System.Diagnostics;
+using ACE.Command;
 
 namespace ACE.Entity
 {
@@ -2523,6 +2524,42 @@ namespace ACE.Entity
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
             }
+        }
+
+        public void HandleActionTalk(string message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoTalk(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoTalk(string message)
+        {
+            CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
+        }
+
+        public void HandleActionEmote(string message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoEmote(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoEmote(string message)
+        {
+            CurrentLandblock.EnqueueBroadcastLocalChatEmote(this, message);
+        }
+
+        public void HandleActionSoulEmote(string message)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoSoulEmote(message));
+            chain.EnqueueChain();
+        }
+
+        public void DoSoulEmote(string message)
+        {
+            CurrentLandblock.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
     }
 }

@@ -2,6 +2,10 @@
 
 ### 2017-07-21
 [Ripley]
+* Changed the way Workmanship is set so to not always default to 0 if ItemWorkmanship was null.
+* Moved GameActionTalk handle code to Player.
+* Wired up broadcasting of local chat, emotes and soul emotes.
+* Fixed StyleCop issue in AbilityFormulaAttribute.
 * Fix for SetupModel bug provided by @OptimShi.
 
 ### 2017-07-20
