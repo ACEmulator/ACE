@@ -1,10 +1,7 @@
 using ACE.Command;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
-using ACE.Managers;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -14,6 +11,7 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage clientMessage, Session session)
         {
             var message = clientMessage.Payload.ReadString16L();
+            
             if (message.StartsWith("@"))
             {
                 string command;
@@ -51,13 +49,7 @@ namespace ACE.Network.GameAction.Actions
             }
             else
             {
-                var creatureMessage = new GameMessageCreatureMessage(message, session.Player.Name, session.Player.Guid.Full, ChatMessageType.Speech);
-
-                // TODO: This needs to be changed to a different method. GetByRadius or GetNear, however we decide to do proximity updates...
-                var targets = WorldManager.GetAll();
-
-                foreach (var target in targets)
-                    target.Network.EnqueueSend(new GameMessage[] { creatureMessage });
+                session.Player.HandleActionTalk(message);
             }
         }
     }
