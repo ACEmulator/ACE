@@ -36,9 +36,7 @@ namespace ACE.Database
 
         void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback);
 
-        void RenameCharacter(string currentName, string newName, Action<uint> callback);
-
-        void GetNextCharacterId(Action<uint> callback);
+        void RenameCharacter(string currentName, string newName, Action<uint> callback);        
 
         void GetCharacter(uint id, Action<AceCharacter> callback);
     }

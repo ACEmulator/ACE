@@ -54,7 +54,7 @@ namespace ACE.Database
             DeleteAllFriends = 104,
 
             GetCharacters = 105,
-            GetNextCharacterId = 106,
+            // ThisNumberIsFreeForUseAgain = 106,
             IsCharacterNameAvailable = 107,
             // keep on going, you get the idea
 
@@ -132,7 +132,6 @@ namespace ACE.Database
 
         protected override void InitializePreparedStatements()
         {
-            ConstructStatement(ShardPreparedStatement.GetNextCharacterId, typeof(CachedCharacter), ConstructedStatementType.GetAggregate);
             ConstructStatement(ShardPreparedStatement.IsCharacterNameAvailable, typeof(CachedCharacter), ConstructedStatementType.Get);
 
             ConstructStatement(ShardPreparedStatement.DeleteAceObject, typeof(AceObject), ConstructedStatementType.Delete);
@@ -286,17 +285,6 @@ namespace ACE.Database
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
 
             return objects;
-        }
-
-        // FIXME(ddevec): This is racy.  If we have 2 sessions create a character at the same time this may return the same key 2x, crashing the server
-        // One solution would be to read at init into a local variable, then protect accesses to that variable with a lock
-        // I'm not that familiar with DB's as a whole, so I'll leave this for a DB person to fix.
-        public uint GetNextCharacterId()
-        {
-            uint maxId = ExecuteConstructedGetAggregateStatement<ShardPreparedStatement, CachedCharacter, uint>(ShardPreparedStatement.GetNextCharacterId);
-
-            ObjectGuid nextGuid = new ObjectGuid(maxId + 1, GuidType.Player);
-            return nextGuid.Full;
         }
 
         public AceCharacter GetCharacter(uint id)

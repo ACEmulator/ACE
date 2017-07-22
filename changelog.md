@@ -1,5 +1,38 @@
 # ACEmulator Change Log
 
+### 2017-07-21
+[Ripley]
+* Fix for SetupModel bug provided by @OptimShi.
+
+### 2017-07-20
+[Lidefeath]
+* Fix raising primary and secondary attributes.
+* Aligned the enums PropertyAttribute.Quickness and PropertyAttribute.Coordination with the client.
+* Due to this alignment old chars will have wrong coord and quick, so make new characters.
+* I didn't touch the trigger of VitalTicks yet, so vital ticking is only enabled during Player.Load().
+
+### 2017-07-17
+[Ripley]
+* More field changes.
+* More new character defaults set.
+* Fixed Guid assignment for new players and generated objects.
+* Move Guid range assignments to ObjectGuid, GuidManager reads them in from there now.
+* Changes to WorldObject, Door and Generator classes.
+* Changed Debug Output to chat window only to allow for proper ID display.
+* Reworked Door.cs.
+* Locked Doors are now now locked and act accordingly.
+* Multiple changes to AceObject and AceCharacter.
+
+### 2017-07-14
+[Og II]
+* Initial work on combat mode.   System now will move into and out of the correct combat mode depending on what items you have equipped.
+* TODO: There are some edge cases I still need to implement and additional testing.   I would like to get this in so that I do not run into huge merge issues later on.
+* Testing - you can log in - run @weapons after log in.   This will get you various weapons based on weapon type.   You can go into and out of combat mode
+* Melee, missile - both bow and xbow, thrown, sword, UA, two handed as well as dual wield.    I also implemented if you remove your weapon while in combat mode, 
+* you will drop into unarmed.   If you equip an item and you are not in peace mode, you will assume the correct combat mode.   There may be some tweaking needed 
+* for changing combat mode in combat mode - I think it did some slower animation - but the basics are in and I can tweak the sequence once I talk to players or If
+* I can find a pcap with that behavior.
+
 ### 2017-07-12
 [Ripley]
 * Moved most of the enums under ACE.Network to ACE.Entity.

@@ -7,8 +7,8 @@ namespace ACE.Entity.Enum
     {
         None            = 0,
         Strength        = 1,
-        Coordination    = 2,
-        Endurance       = 4,
+        Endurance       = 2,
+        Coordination    = 4,        
         Quickness       = 8,
         Focus           = 16,
         Self            = 32,

@@ -192,10 +192,6 @@ namespace ACE.Entity
                 // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
                 payload.Write((uint)0x65);
             }
-            else
-            {
-                payload.Write((uint)0);
-            }
 
             if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
             {

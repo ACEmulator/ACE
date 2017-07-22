@@ -12,7 +12,9 @@ namespace ACE.Network.GameAction.Actions
         {
             uint fullId = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionQueryHealth(new ObjectGuid(fullId));
+            ObjectGuid guid = new ObjectGuid(fullId);
+
+            session.Player.HandleActionQueryHealth(guid);
         }
     }
 }

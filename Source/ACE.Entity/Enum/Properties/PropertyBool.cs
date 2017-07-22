@@ -73,7 +73,7 @@
         SpellComponentsRequired = 68,
         IsSellable = 69,
         IgnoreShieldsBySkill = 70,
-        Nodraw = 71,
+        NoDraw = 71,
         ActivationUntargeted = 72,
         HouseHasGottenPriorityBootPos = 73,
         GeneratorAutomaticDestruction = 74,
@@ -133,7 +133,6 @@
         HadNoVitae = 128,
         NoOlthoiTalk = 129,
         AutowieldLeft = 130,
-        Count = 131,
 
         // values over 9000 are ones that we have added and should not be sent to the client
         IsDeleted = 9001

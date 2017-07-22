@@ -3,6 +3,7 @@ using ACE.Database;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -89,9 +90,9 @@ namespace ACE.Factories
                 if (generator.ActivationCreateClass == 0)
                 {
                     // Spawn this generator if it's not the top-level generator
-                    if (generator.Generator != null)
+                    if (generator.GeneratorIID != null)
                     {
-                        results.Add(new Generator(new ObjectGuid(GuidManager.NewItemGuid()), generator));
+                        results.Add(new Generator(GuidManager.NewGeneratorGuid(), generator));
                         generator.GeneratorEnteredWorld = true;
                     }
 
@@ -103,7 +104,7 @@ namespace ACE.Factories
 
                     // The linked generator is at the same location as the top generator and references its parent
                     newGen.Location = pos;
-                    newGen.Generator = generator.AceObjectId;
+                    newGen.GeneratorIID = generator.AceObjectId;
                     newGen.GeneratorEnteredWorld = true;
 
                     // Recursively call this method again with the just read generatorObject
@@ -113,8 +114,8 @@ namespace ACE.Factories
                 // else spawn the objects directly from this generator
                 else
                 {
-                    AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie(generator.ActivationCreateClass);
-                    baseObject.Generator = generator.AceObjectId;
+                    AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie((uint)generator.ActivationCreateClass);
+                    baseObject.GeneratorIID = generator.AceObjectId;
 
                     // Determine the ObjectType and call the specific Factory
                     ItemType ot = (ItemType)baseObject.ItemType;
@@ -138,7 +139,7 @@ namespace ACE.Factories
                         default:
                             baseObject.Location = pos;
                             if (baseObject.Location != null)
-                                results.Add(new DebugObject(new ObjectGuid(GuidManager.NewItemGuid()), baseObject));
+                                results.Add(new DebugObject(GuidManager.NewItemGuid(), baseObject));
                             break;
                     }
                 }

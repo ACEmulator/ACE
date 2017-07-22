@@ -92,6 +92,7 @@ namespace ACE.Network.Motion
             {
                 case MovementTypes.General:
                     {
+                        MovementData.SetMovementStateFlag();
                         MovementStateFlag generalFlags = MovementData.MovementStateFlag;
 
                         generalFlags += (uint)Commands.Count << 7;

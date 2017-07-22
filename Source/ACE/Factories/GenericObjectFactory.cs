@@ -1,6 +1,7 @@
 ﻿using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Managers;
 using System.Collections.Generic;
 
@@ -17,8 +18,8 @@ namespace ACE.Factories
                 var oType = (ItemType)aceO.ItemType;
                 var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 
-                if (aceO.GeneratorStatus)  // Generator
-                {
+                if (aceO.GeneratorStatus ?? false)  // Generator
+                {                    
                     aceO.Location = aceO.Location.InFrontOf(-2.0);
                     aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
                     results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));

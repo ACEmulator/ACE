@@ -17,6 +17,7 @@ using System.Linq;
 
 namespace ACE.Entity
 {
+    using Enum.Properties;
     using System.Windows.Forms;
 
     public abstract class WorldObject : IActor
@@ -25,10 +26,15 @@ namespace ACE.Entity
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
+        private ObjectGuid guid;
         public ObjectGuid Guid
         {
-            get { return new ObjectGuid(AceObject.AceObjectId); }
-            private set { AceObject.AceObjectId = value.Full; }
+            get { return guid; }
+            set
+            {
+                guid = new ObjectGuid(value.Full);
+                AceObject.AceObjectId = value.Full;
+            }
         }
 
         protected AceObject AceObject { get; set; }
@@ -76,7 +82,7 @@ namespace ACE.Entity
 
         public ItemType ItemType
         {
-            get { return (ItemType)AceObject.ItemType; }
+            get { return (ItemType?)AceObject.ItemType ?? 0; }
             protected set { AceObject.ItemType = (uint)value; }
         }
 
@@ -89,10 +95,10 @@ namespace ACE.Entity
             protected set { AceObject.WeenieClassId = value; }
         }
 
-        public uint? Icon
+        public uint? IconId
         {
-            get { return AceObject.IconId; }
-            set { AceObject.IconId = value; }
+            get { return AceObject.IconDID; }
+            set { AceObject.IconDID = value; }
         }
 
         public string Name
@@ -174,13 +180,7 @@ namespace ACE.Entity
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
-        // Logical Game Data
-        public uint GameDataType
-        {
-            get { return AceObject.ItemType; }
-            set { AceObject.ItemType = value; }
-        }
-
+        ////// Logical Game Data
         public ContainerType ContainerType
         {
             get
@@ -193,7 +193,11 @@ namespace ACE.Entity
             }
         }
 
-        public string NamePlural { get; set; }
+        public string NamePlural
+        {
+            get { return AceObject.PluralName; }
+            set { AceObject.PluralName = value; }
+        }
 
         public byte? ItemCapacity
         {
@@ -233,8 +237,8 @@ namespace ACE.Entity
 
         public uint? TargetType
         {
-            get { return AceObject.TargetTypeId; }
-            set { AceObject.TargetTypeId = value; }
+            get { return AceObject.TargetType; }
+            set { AceObject.TargetType = value; }
         }
 
         public UiEffects? UiEffects
@@ -287,26 +291,29 @@ namespace ACE.Entity
 
         public uint? ContainerId
         {
-            get { return AceObject.ContainerId; }
-            set { AceObject.ContainerId = value; }
+            get { return AceObject.ContainerIID; }
+            set { AceObject.ContainerIID = value; }
         }
 
-        // TODO: I think we need to store this in aceObject from pacps - example Paul's Axe (Blue Ox)
-        public uint? Wielder
+        public uint? WielderId
         {
-            get { return AceObject.WielderId; }
-            set { AceObject.WielderId = value; }
+            get { return AceObject.WielderIID; }
+            set { AceObject.WielderIID = value; }
         }
 
+        public uint? GeneratorId
+        {
+            get { return AceObject.GeneratorIID; }
+            set { AceObject.GeneratorIID = value; }
+        }
+
+        // Locations
         public EquipMask? ValidLocations
         {
             get { return (EquipMask?)AceObject.ValidLocations; }
             set { AceObject.ValidLocations = (uint?)value; }
         }
 
-        /// <summary>
-        /// Location - renamed for conflict with wo and to have a more descriptive name
-        /// </summary>
         public EquipMask? CurrentWieldedLocation
         {
             get { return (EquipMask?)AceObject.CurrentWieldedLocation; }
@@ -315,44 +322,67 @@ namespace ACE.Entity
 
         public CoverageMask? Priority
         {
-            get { return (CoverageMask?)AceObject.Priority; }
-            set { AceObject.Priority = (uint?)value; }
+            get { return (CoverageMask?)AceObject.ClothingPriority; }
+            set { AceObject.ClothingPriority = (uint?)value; }
         }
 
         public RadarColor? RadarColor
         {
-            get { return (RadarColor?)AceObject.BlipColor; }
-            set { AceObject.BlipColor = (byte?)value; }
+            get { return (RadarColor?)AceObject.RadarBlipColor; }
+            set { AceObject.RadarBlipColor = (byte?)value; }
         }
 
         public RadarBehavior? RadarBehavior
         {
-            get { return (RadarBehavior?)AceObject.Radar; }
-            set { AceObject.Radar = (byte?)value; }
+            get { return (RadarBehavior?)AceObject.ShowableOnRadar; }
+            set { AceObject.ShowableOnRadar = (byte?)value; }
         }
 
         public ushort? Script
         {
-            get { return AceObject.PhysicsScript; }
-            set { AceObject.PhysicsScript = value; }
+            get { return AceObject.PhysicsScriptDID; }
+            set { AceObject.PhysicsScriptDID = value; }
         }
 
-        public float Workmanship
+        public float? Workmanship
         {
-            get { return AceObject.Workmanship; }
-            set { AceObject.Workmanship = value; }
+            get
+            {
+                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
+                {
+                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
+                }
+                return (ItemWorkmanship ?? 0.0f);
+            }
+            set
+            {
+                if ((Structure != null) && (Structure != 0))
+                {
+                    ItemWorkmanship = (uint)Convert.ToInt32(value * 10000 * Structure);
+                }
+                else
+                {
+                    ItemWorkmanship = (uint)Convert.ToInt32(value);
+                }
+            }
+        }
+
+        private uint? ItemWorkmanship
+        {
+            get { return AceObject.ItemWorkmanship; }
+            set { AceObject.ItemWorkmanship = value; }
         }
 
         public virtual ushort? Burden
         {
-            get { return AceObject.Burden; }
-            set { AceObject.Burden = value; }
+            get { return AceObject.EncumbranceVal; }
+            set { AceObject.EncumbranceVal = value; }
         }
 
         public Spell? Spell
         {
-            get { return (Spell?)AceObject.SpellId; }
-            set { AceObject.SpellId = (ushort?)value; }
+            get { return (Spell?)AceObject.SpellDID; }
+            set { AceObject.SpellDID = (ushort?)value; }
         }
 
         /// <summary>
@@ -362,33 +392,33 @@ namespace ACE.Entity
 
         public uint? HouseRestrictions { get; set; }
 
-        public ushort? HookItemTypes
+        public ushort? HookItemType
         {
-            get { return AceObject.HookItemTypes; }
-            set { AceObject.HookItemTypes = value; }
+            get { return AceObject.HookItemType; }
+            set { AceObject.HookItemType = value; }
         }
 
         public uint? Monarch { get; set; }
 
         public ushort? HookType
         {
-            get { return AceObject.HookType; }
+            get { return (ushort?)AceObject.HookType; }
             set { AceObject.HookType = value; }
         }
 
-        public uint? IconOverlay
+        public uint? IconOverlayId
         {
-            get { return AceObject.IconOverlayId; }
-            set { AceObject.IconOverlayId = value; }
+            get { return AceObject.IconOverlayDID; }
+            set { AceObject.IconOverlayDID = value; }
         }
 
-        public uint? IconUnderlay
+        public uint? IconUnderlayId
         {
-            get { return AceObject.IconUnderlayId; }
-            set { AceObject.IconUnderlayId = value; }
+            get { return AceObject.IconUnderlayDID; }
+            set { AceObject.IconUnderlayDID = value; }
         }
 
-        public Material? Material
+        public Material? MaterialType
         {
             get { return (Material?)AceObject.MaterialType; }
             set { AceObject.MaterialType = (byte?)value; }
@@ -396,10 +426,10 @@ namespace ACE.Entity
 
         public uint? PetOwner { get; set; }
 
-       public uint? CooldownId
+        public uint? CooldownId
         {
-            get { return AceObject.CooldownId; }
-            set { AceObject.CooldownId = value; }
+            get { return AceObject.SharedCooldown; }
+            set { AceObject.SharedCooldown = value; }
         }
 
         public double? CooldownDuration
@@ -414,8 +444,8 @@ namespace ACE.Entity
         /// </summary>
         public uint? SetupTableId
         {
-            get { return AceObject.SetupTableId; }
-            set { AceObject.SetupTableId = value; }
+            get { return AceObject.SetupDID; }
+            set { AceObject.SetupDID = value; }
         }
 
         public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; set; }
@@ -431,33 +461,33 @@ namespace ACE.Entity
         /// </summary>
         public uint? MotionTableId
         {
-            get { return AceObject.MotionTableId; }
-            set { AceObject.MotionTableId = value; }
+            get { return AceObject.MotionTableDID; }
+            set { AceObject.MotionTableDID = value; }
         }
         /// <summary>
         /// stable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
         /// </summary>
         public uint? SoundTableId
         {
-            get { return AceObject.SoundTableId; }
-            set { AceObject.SoundTableId = value; }
+            get { return AceObject.SoundTableDID; }
+            set { AceObject.SoundTableDID = value; }
         }
         /// <summary>
         /// phstable_id in aclogviewer This is the physics table for the object.   Looked up from dat file.
         /// </summary>
         public uint? PhysicsTableId
         {
-            get { return AceObject.PhysicsTableId; }
-            set { AceObject.PhysicsTableId = value; }
+            get { return AceObject.PhysicsEffectTableDID; }
+            set { AceObject.PhysicsEffectTableDID = value; }
         }
 
         /// <summary>
         /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
         /// </summary>
-        public uint? Parent
+        public uint? ParentId
         {
-            get { return AceObject.Parent; }
-            set { AceObject.Parent = value; }
+            get { return WielderId; }
+            set { WielderId = value; }
         }
 
         public uint? ParentLocation
@@ -465,8 +495,6 @@ namespace ACE.Entity
             get { return AceObject.ParentLocation; }
             set { AceObject.ParentLocation = value; }
         }
-
-        public EquipMask? EquipperPhysicsDescriptionFlag;
 
         public List<EquippedItem> Children { get; } = new List<EquippedItem>();
 
@@ -490,8 +518,8 @@ namespace ACE.Entity
 
         public uint? AnimationFrame
         {
-            get { return AceObject.AnimationFrameId; }
-            set { AceObject.AnimationFrameId = value; }
+            get { return AceObject.PlacementPosition; }
+            set { AceObject.PlacementPosition = value; }
         }
 
         public AceVector3 Acceleration { get; set; }
@@ -508,10 +536,10 @@ namespace ACE.Entity
 
         public MotionState CurrentMotionState { get; set; }
 
-        public uint? DefaultScript
+        public uint? DefaultScriptId
         {
-            get { return AceObject.DefaultScript; }
-            set { AceObject.DefaultScript = value; }
+            get { return Script; }
+            set { Script = (ushort?)value; }
         }
 
         public float? DefaultScriptIntensity
@@ -522,16 +550,16 @@ namespace ACE.Entity
 
         // START of Logical Model Data
 
-        public uint? PaletteGuid
+        public uint? PaletteBaseId
         {
-            get { return AceObject.PaletteId; }
-            set { AceObject.PaletteId = value; }
+            get { return AceObject.PaletteBaseDID; }
+            set { AceObject.PaletteBaseDID = value; }
         }
 
         public uint? ClothingBase
         {
-            get { return AceObject.ClothingBase; }
-            set { AceObject.ClothingBase = value; }
+            get { return AceObject.ClothingBaseDID; }
+            set { AceObject.ClothingBaseDID = value; }
         }
 
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
@@ -582,11 +610,10 @@ namespace ACE.Entity
 
         public SequenceManager Sequences { get; }
 
-        protected WorldObject(ItemType type, ObjectGuid guid)
+        protected WorldObject(ObjectGuid guid)
         {
             AceObject = new AceObject();
             AceObject.AceObjectId = guid.Full;
-            ItemType = type;
             Guid = guid;
 
             Sequences = new SequenceManager();
@@ -603,7 +630,7 @@ namespace ACE.Entity
         }
 
         protected WorldObject(AceObject aceObject)
-                : this((ItemType)aceObject.ItemType, new ObjectGuid(aceObject.AceObjectId))
+                : this(new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
@@ -618,11 +645,10 @@ namespace ACE.Entity
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            PaletteGuid = aceObject.PaletteId;
         }
 
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
-            : this((ItemType)aceObject.ItemType, guid)
+            : this(guid)
         {
             Guid = guid;
             AceObject = aceObject;
@@ -638,7 +664,6 @@ namespace ACE.Entity
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            PaletteGuid = aceObject.PaletteId;
         }
 
         internal void SetInventoryForWorld(WorldObject inventoryItem)
@@ -651,7 +676,7 @@ namespace ACE.Entity
 
             inventoryItem.PhysicsDescriptionFlag = inventoryItem.SetPhysicsDescriptionFlag(inventoryItem);
             inventoryItem.ContainerId = null;
-            inventoryItem.Wielder = null;
+            inventoryItem.WielderId = null;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
@@ -671,6 +696,25 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(identifyResponse);
         }
 
+        public void QueryHealth(Session examiner)
+        {
+            float healthPercentage = 1f;
+
+            if (Guid.IsPlayer())
+            {
+                Player tmpTarget = (Player)this;
+                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+            }
+            else if (Guid.IsCreature())
+            {
+                Creature tmpTarget = (Creature)this;
+                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+            }
+
+            var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
+            examiner.Network.EnqueueSend(updateHealth);
+        }
+
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
@@ -684,10 +728,10 @@ namespace ACE.Entity
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
             if (ItemCapacity != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.ItemCapacity;
+                weenieHeaderFlag |= WeenieHeaderFlag.ItemsCapacity;
 
             if (ContainerCapacity != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.ContainerCapacity;
+                weenieHeaderFlag |= WeenieHeaderFlag.ContainersCapacity;
 
             if (AmmoType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.AmmoType;
@@ -725,14 +769,14 @@ namespace ACE.Entity
             if (ContainerId != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Container;
 
-            if (Wielder != null)
+            if (WielderId != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Wielder;
 
             if (ValidLocations != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
 
             // You can't be in a wielded location if you don't have a wielder.   This is a gurad against crap data. Og II
-            if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (Wielder != null) && (Wielder != 0))
+            if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (WielderId != null) && (WielderId != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 
             if (Priority != null)
@@ -745,7 +789,7 @@ namespace ACE.Entity
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBehavior;
 
             if ((Script != null) && (Script != 0u))
-                weenieHeaderFlag |= WeenieHeaderFlag.Script;
+                weenieHeaderFlag |= WeenieHeaderFlag.PScript;
 
             if ((uint)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
@@ -762,7 +806,7 @@ namespace ACE.Entity
             if (HouseRestrictions != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
-            if (HookItemTypes != null)
+            if (HookItemType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookItemTypes;
 
             if (Monarch != null)
@@ -771,11 +815,11 @@ namespace ACE.Entity
             if (HookType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookType;
 
-            if ((IconOverlay != null) && (IconOverlay != 0))
+            if ((IconOverlayId != null) && (IconOverlayId != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
-            if (Material != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Material;
+            if (MaterialType != null)
+                weenieHeaderFlag |= WeenieHeaderFlag.MaterialType;
 
             return weenieHeaderFlag;
         }
@@ -784,7 +828,7 @@ namespace ACE.Entity
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
-            if ((IconUnderlay != null) && (IconUnderlay != 0))
+            if ((IconUnderlayId != null) && (IconUnderlayId != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
             if ((CooldownId != null) && (CooldownId != 0))
@@ -812,7 +856,7 @@ namespace ACE.Entity
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
-            writer.WritePackedDwordOfKnownType(Icon ?? 0, 0x6000000);
+            writer.WritePackedDwordOfKnownType(IconId ?? 0, 0x6000000);
             writer.Write((uint)ItemType);
             writer.Write((uint)DescriptionFlags);
             writer.Align();
@@ -823,10 +867,10 @@ namespace ACE.Entity
             if ((WeenieFlags & WeenieHeaderFlag.PluralName) != 0)
                 writer.WriteString16L(NamePlural);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ItemCapacity) != 0)
+            if ((WeenieFlags & WeenieHeaderFlag.ItemsCapacity) != 0)
                 writer.Write(ItemCapacity ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ContainerCapacity) != 0)
+            if ((WeenieFlags & WeenieHeaderFlag.ContainersCapacity) != 0)
                 writer.Write(ContainerCapacity ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.AmmoType) != 0)
@@ -866,7 +910,7 @@ namespace ACE.Entity
                 writer.Write(ContainerId ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)
-                writer.Write(Wielder ?? 0u);
+                writer.Write(WielderId ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
                 writer.Write((uint?)ValidLocations ?? 0u);
@@ -883,11 +927,11 @@ namespace ACE.Entity
             if ((WeenieFlags & WeenieHeaderFlag.RadarBehavior) != 0)
                 writer.Write((byte?)RadarBehavior ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Script) != 0)
+            if ((WeenieFlags & WeenieHeaderFlag.PScript) != 0)
                 writer.Write(Script ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
-                writer.Write(Workmanship);
+                writer.Write(Workmanship ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
                 writer.Write(Burden ?? 0);
@@ -904,7 +948,7 @@ namespace ACE.Entity
             }
 
             if ((WeenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
-                writer.Write(HookItemTypes ?? 0);
+                writer.Write(HookItemType ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Monarch) != 0)
                 writer.Write(Monarch ?? 0u);
@@ -913,13 +957,13 @@ namespace ACE.Entity
                 writer.Write(HookType ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
-                writer.WritePackedDwordOfKnownType((IconOverlay ?? 0), 0x6000000);
+                writer.WritePackedDwordOfKnownType((IconOverlayId ?? 0), 0x6000000);
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
-                writer.WritePackedDwordOfKnownType((IconUnderlay ?? 0), 0x6000000);
+                writer.WritePackedDwordOfKnownType((IconUnderlayId ?? 0), 0x6000000);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Material) != 0)
-                writer.Write((uint)(Material ?? 0u));
+            if ((WeenieFlags & WeenieHeaderFlag.MaterialType) != 0)
+                writer.Write((uint)(MaterialType ?? 0u));
 
             if ((WeenieFlags2 & WeenieHeaderFlag2.Cooldown) != 0)
                 writer.Write(CooldownId ?? 0u);
@@ -952,8 +996,8 @@ namespace ACE.Entity
             writer.Write((byte)modelTextures.Count);
             writer.Write((byte)models.Count);
 
-            if ((modelPalettes.Count > 0) && (PaletteGuid != null))
-                writer.WritePackedDwordOfKnownType((uint)PaletteGuid, 0x4000000);
+            if ((modelPalettes.Count > 0) && (PaletteBaseId != null))
+                writer.WritePackedDwordOfKnownType((uint)PaletteBaseId, 0x4000000);
             foreach (var palette in modelPalettes)
             {
                 writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);
@@ -1070,7 +1114,7 @@ namespace ACE.Entity
 
         public AceObject NewAceObjectFromCopy()
         {
-            return (AceObject)AceObject.Clone(GuidManager.NewItemGuid());
+            return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
         }
 
         /// <summary>
@@ -1099,10 +1143,10 @@ namespace ACE.Entity
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.MTable;
 
             if (SoundTableId != 0)
-                physicsDescriptionFlag |= PhysicsDescriptionFlag.Stable;
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.STable;
 
             if (PhysicsTableId != 0)
-                physicsDescriptionFlag |= PhysicsDescriptionFlag.Petable;
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.PeTable;
 
             if (SetupTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
@@ -1110,7 +1154,7 @@ namespace ACE.Entity
             if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
-            if (Parent != null)
+            if (ParentId != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
             if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
@@ -1134,7 +1178,7 @@ namespace ACE.Entity
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (DefaultScript != null)
+            if (DefaultScriptId != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
             if (DefaultScriptIntensity != null)
@@ -1182,11 +1226,11 @@ namespace ACE.Entity
                 writer.Write(MotionTableId ?? 0u);
 
             // stable_id =  BYTE1(v12) & 8 )  =  8
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Stable) != 0)
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.STable) != 0)
                 writer.Write(SoundTableId ?? 0u);
 
             // setup id
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Petable) != 0)
+            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.PeTable) != 0)
                 writer.Write(PhysicsTableId ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
@@ -1194,7 +1238,7 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
-                writer.Write((uint)Parent);
+                writer.Write((uint)ParentId);
                 writer.Write((uint)ParentLocation);
             }
 
@@ -1238,7 +1282,7 @@ namespace ACE.Entity
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write(DefaultScript ?? 0u);
+                writer.Write(DefaultScriptId ?? 0u);
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
                 writer.Write(DefaultScriptIntensity ?? 0u);

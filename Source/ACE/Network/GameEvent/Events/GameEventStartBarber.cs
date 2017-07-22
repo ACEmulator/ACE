@@ -14,7 +14,7 @@ namespace ACE.Network.GameEvent.Events
             // We will use this function to get the current player's appearance values.
             AceCharacter characterClone = (AceCharacter)Session.Player.GetAceObject();
 
-            Writer.Write((uint)session.Player.PaletteGuid); // base palette for character
+            Writer.Write((uint)session.Player.PaletteBaseId); // base palette for character
             Writer.Write(characterClone.HeadObject); // Default Hair Model
             Writer.Write(characterClone.HairTexture); // Hair Texture
             Writer.Write(characterClone.DefaultHairTexture); // Default Hair Texture

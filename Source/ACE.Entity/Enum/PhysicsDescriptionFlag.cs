@@ -22,15 +22,15 @@ namespace ACE.Entity.Enum
         ObjScale               = 0x000080,
         Friction               = 0x000100,
         Elasticity             = 0x000200,
-        Timestamp              = 0x000400,
+        Timestamps             = 0x000400,
         /// <summary>
         ///  Sound Table
         /// </summary>
-        Stable                 = 0x000800,
+        STable                 = 0x000800,
         /// <summary>
         /// Physics Table Id
         /// </summary>
-        Petable                = 0x001000,
+        PeTable                = 0x001000,
         DefaultScript          = 0x002000,
         DefaultScriptIntensity = 0x004000,
         Position               = 0x008000,
