@@ -608,6 +608,234 @@ namespace ACE.Entity
             models.Clear();
         }
 
+        public bool? Stuck
+        {
+            get { return AceObject.Stuck; }
+            set { AceObject.Stuck = value; }
+        }
+
+        public bool? IgnoreCollisions
+        {
+            get { return AceObject.IgnoreCollisions; }
+            set { AceObject.IgnoreCollisions = value; }
+        }
+
+        public bool? ReportCollisions
+        {
+            get { return AceObject.ReportCollisions; }
+            set { AceObject.ReportCollisions = value; }
+        }
+
+        public bool? GravityStatus
+        {
+            get { return AceObject.GravityStatus; }
+            set { AceObject.GravityStatus = value; }
+        }
+
+        public bool? LightsStatus
+        {
+            get { return AceObject.LightsStatus; }
+            set { AceObject.LightsStatus = value; }
+        }
+
+        public bool? ScriptedCollision
+        {
+            get { return AceObject.ScriptedCollision; }
+            set { AceObject.ScriptedCollision = value; }
+        }
+
+        public bool? Inelastic
+        {
+            get { return AceObject.Inelastic; }
+            set { AceObject.Inelastic = value; }
+        }
+
+        public bool? Visibility
+        {
+            get { return AceObject.Visibility; }
+            set { AceObject.Visibility = value; }
+        }
+
+        public bool? Attackable
+        {
+            get { return AceObject.Attackable; }
+            set { AceObject.Attackable = value; }
+        }
+
+        public bool? AdvocateState
+        {
+            get { return AceObject.AdvocateState; }
+            set { AceObject.AdvocateState = value; }
+        }
+
+        public bool? Inscribable
+        {
+            get { return AceObject.Inscribable; }
+            set { AceObject.Inscribable = value; }
+        }
+
+        public bool? UiHidden
+        {
+            get { return AceObject.UiHidden; }
+            set { AceObject.UiHidden = value; }
+        }
+
+        public bool? IgnoreHouseBarriers
+        {
+            get { return AceObject.IgnoreHouseBarriers; }
+            set { AceObject.IgnoreHouseBarriers = value; }
+        }
+
+        public bool? HiddenAdmin
+        {
+            get { return AceObject.HiddenAdmin; }
+            set { AceObject.HiddenAdmin = value; }
+        }
+
+        public bool? PkWounder
+        {
+            get { return AceObject.PkWounder; }
+            set { AceObject.PkWounder = value; }
+        }
+
+        public bool? PkKiller
+        {
+            get { return AceObject.PkKiller; }
+            set { AceObject.PkKiller = value; }
+        }
+
+        public bool? UnderLifestoneProtection
+        {
+            get { return AceObject.UnderLifestoneProtection; }
+            set { AceObject.UnderLifestoneProtection = value; }
+        }
+
+        public bool? DefaultOn
+        {
+            get { return AceObject.DefaultOn; }
+            set { AceObject.DefaultOn = value; }
+        }
+
+        public bool? IsFrozen
+        {
+            get { return AceObject.IsFrozen; }
+            set { AceObject.IsFrozen = value; }
+        }
+
+        public bool? ReportCollisionsAsEnvironment
+        {
+            get { return AceObject.ReportCollisionsAsEnvironment; }
+            set { AceObject.ReportCollisionsAsEnvironment = value; }
+        }
+
+        public bool? AllowEdgeSlide
+        {
+            get { return AceObject.AllowEdgeSlide; }
+            set { AceObject.AllowEdgeSlide = value; }
+        }
+
+        public bool? AdvocateQuest
+        {
+            get { return AceObject.AdvocateQuest; }
+            set { AceObject.AdvocateQuest = value; }
+        }
+
+        public bool? IsAdvocate
+        {
+            get { return AceObject.IsAdvocate; }
+            set { AceObject.IsAdvocate = value; }
+        }
+
+        public bool? IsSentinel
+        {
+            get { return AceObject.IsSentinel; }
+            set { AceObject.IsSentinel = value; }
+        }
+
+        public bool? NoDraw
+        {
+            get { return AceObject.NoDraw; }
+            set { AceObject.NoDraw = value; }
+        }
+
+        public bool? IgnorePortalRestrictions
+        {
+            get { return AceObject.IgnorePortalRestrictions; }
+            set { AceObject.IgnorePortalRestrictions = value; }
+        }
+
+        public bool? Retained
+        {
+            get { return AceObject.Retained; }
+            set { AceObject.Retained = value; }
+        }
+
+        public bool? Invincible
+        {
+            get { return AceObject.Invincible; }
+            set { AceObject.Invincible = value; }
+        }
+
+        public bool? IsGagged
+        {
+            get { return AceObject.IsGagged; }
+            set { AceObject.IsGagged = value; }
+        }
+
+        public bool? Afk
+        {
+            get { return AceObject.Afk; }
+            set { AceObject.Afk = value; }
+        }
+
+        public bool? WieldOnUse
+        {
+            get { return AceObject.WieldOnUse; }
+            set { AceObject.WieldOnUse = value; }
+        }
+
+        public bool? AutowieldLeft
+        {
+            get { return AceObject.AutowieldLeft; }
+            set { AceObject.AutowieldLeft = value; }
+        }
+
+        public bool? VendorService
+        {
+            get { return AceObject.VendorService; }
+            set { AceObject.VendorService = value; }
+        }
+
+        public bool? RequiresBackpackSlot
+        {
+            get { return AceObject.RequiresBackpackSlot; }
+            set { AceObject.RequiresBackpackSlot = value; }
+        }
+
+        public bool? Ethereal
+        {
+            get { return AceObject.Ethereal; }
+            set { AceObject.Ethereal = value; }
+        }
+
+        public bool? Hidden
+        {
+            get; // { return AceObject.Ethereal; }
+            set; // { AceObject.Ethereal = value; }
+        }
+
+        public bool? Sledding
+        {
+            get; // { return AceObject.Ethereal; }
+            set; // { AceObject.Ethereal = value; }
+        }
+
+        public bool? Cloaked
+        {
+            get; // { return AceObject.Ethereal; }
+            set; // { AceObject.Ethereal = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
@@ -638,6 +866,10 @@ namespace ACE.Entity
             else
                 CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
 
+            DescriptionFlags = SetObjectDescriptionFlag();
+            SetObjectDescriptionBools();
+            SetPhysicsStateBools();
+
             SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
             WeenieFlags2 = SetWeenieHeaderFlag2();
@@ -656,6 +888,10 @@ namespace ACE.Entity
                 CurrentMotionState = null;
             else
                 CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+
+            DescriptionFlags = SetObjectDescriptionFlag();
+            SetObjectDescriptionBools();
+            SetPhysicsStateBools();
 
             SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
@@ -1105,6 +1341,232 @@ namespace ACE.Entity
         {
             // content of these 2 is the same? TODO: Validate that?
             SerializeCreateObject(writer);
+        }
+
+        public virtual ObjectDescriptionFlag SetObjectDescriptionFlag()
+        {
+            // When we have more objects in place, likely we'll start from None then tack on more.
+            // ObjectDescriptionFlag objectDescriptionFlag = ObjectDescriptionFlag.None;
+            // for now, read in whats in database and lets see what we kill out
+            ObjectDescriptionFlag objectDescriptionFlag = (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags;
+
+            if (Stuck ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.Stuck;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.Stuck;
+
+            if (Attackable ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.Attackable;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.Attackable;
+
+            if (PkKiller ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.PlayerKiller;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.PlayerKiller;
+
+            if (HiddenAdmin ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.HiddenAdmin;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.HiddenAdmin;
+
+            if (UiHidden ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.UiHidden;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.UiHidden;
+
+            if (VendorService ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.Vendor;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.Vendor;
+
+            ////if (IsAdmin ?? false)
+            ////    objectDescriptionFlag |= ObjectDescriptionFlag.Admin;
+            ////else
+            ////    objectDescriptionFlag &= ~ObjectDescriptionFlag.Admin;
+
+            if (IgnoreHouseBarriers ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.ImmuneCellRestrictions;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
+
+            if (RequiresBackpackSlot ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.RequiresPackSlot;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.RequiresPackSlot;
+
+            if (Retained ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.Retained;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.Retained;
+
+            if (WieldOnUse ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.WieldOnUse;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.WieldOnUse;
+
+            if (AutowieldLeft ?? false)
+                objectDescriptionFlag |= ObjectDescriptionFlag.WieldLeft;
+            else
+                objectDescriptionFlag &= ~ObjectDescriptionFlag.WieldLeft;
+
+            return objectDescriptionFlag;
+        }
+
+        public virtual PhysicsState SetPhysicsState()
+        {
+            // When we have more objects in place, likely we'll start from None then tack on more.
+            // PhysicsState physicsState = PhysicsState.None;
+            // for now, read in whats in database and lets see what we kill out
+            PhysicsState physicsState = (PhysicsState)AceObject.PhysicsState;
+
+            if (Ethereal ?? false)
+                physicsState |= PhysicsState.Ethereal;
+            else
+                physicsState &= ~PhysicsState.Ethereal;
+
+            if (ReportCollisions ?? false)
+                physicsState |= PhysicsState.ReportCollision;
+            else
+                physicsState &= ~PhysicsState.ReportCollision;
+
+            if (IgnoreCollisions ?? false)
+                physicsState |= PhysicsState.IgnoreCollision;
+            else
+                physicsState &= ~PhysicsState.IgnoreCollision;
+
+            if (NoDraw ?? false)
+                physicsState |= PhysicsState.NoDraw;
+            else
+                physicsState &= ~PhysicsState.NoDraw;
+
+            if (GravityStatus ?? false)
+                physicsState |= PhysicsState.Gravity;
+            else
+                physicsState &= ~PhysicsState.Gravity;
+
+            if (LightsStatus ?? false)
+                physicsState |= PhysicsState.LightingOn;
+            else
+                physicsState &= ~PhysicsState.LightingOn;
+
+            if (LightsStatus ?? false)
+                physicsState |= PhysicsState.LightingOn;
+            else
+                physicsState &= ~PhysicsState.LightingOn;
+
+            if (Hidden ?? false)
+                physicsState |= PhysicsState.Hidden;
+            else
+                physicsState &= ~PhysicsState.Hidden;
+
+            if (ScriptedCollision ?? false)
+                physicsState |= PhysicsState.ScriptedCollision;
+            else
+                physicsState &= ~PhysicsState.ScriptedCollision;
+
+            if (Inelastic ?? false)
+                physicsState |= PhysicsState.Inelastic;
+            else
+                physicsState &= ~PhysicsState.Inelastic;
+
+            if (ReportCollisionsAsEnvironment ?? false)
+                physicsState |= PhysicsState.ReportCollisionAsEnviroment;
+            else
+                physicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
+
+            if (AllowEdgeSlide ?? false)
+                physicsState |= PhysicsState.EdgeSlide;
+            else
+                physicsState &= ~PhysicsState.EdgeSlide;
+
+            if (Sledding ?? false)
+                physicsState |= PhysicsState.Sledding;
+            else
+                physicsState &= ~PhysicsState.Sledding;
+
+            if (IsFrozen ?? false)
+                physicsState |= PhysicsState.Frozen;
+            else
+                physicsState &= ~PhysicsState.Frozen;
+
+            if (Cloaked ?? false)
+                physicsState |= PhysicsState.Cloaked;
+            else
+                physicsState &= ~PhysicsState.Cloaked;
+
+            return physicsState;
+        }
+
+        // This likely could be removed later on after we have a better handle on whats appropriate for weenies/objects in db.
+        private void SetPhysicsStateBools()
+        {
+            // When we have more objects in place, likely we'll start from None then tack on more.
+            // PhysicsState physicsState = PhysicsState.None;
+            // for now, read in whats in database and lets see what is true
+            PhysicsState physicsState = (PhysicsState)AceObject.PhysicsState;
+
+            if (physicsState.HasFlag(PhysicsState.Ethereal))
+                Ethereal = true;
+            if (physicsState.HasFlag(PhysicsState.ReportCollision))
+                ReportCollisions = true;
+            if (physicsState.HasFlag(PhysicsState.IgnoreCollision))
+                IgnoreCollisions = true;
+            if (physicsState.HasFlag(PhysicsState.NoDraw))
+                NoDraw = true;
+            if (physicsState.HasFlag(PhysicsState.Gravity))
+                GravityStatus = true;
+            if (physicsState.HasFlag(PhysicsState.LightingOn))
+                LightsStatus = true;
+            if (physicsState.HasFlag(PhysicsState.Hidden))
+                Hidden = true;
+            if (physicsState.HasFlag(PhysicsState.ScriptedCollision))
+                ScriptedCollision = true;
+            if (physicsState.HasFlag(PhysicsState.Inelastic))
+                Inelastic = true;
+            if (physicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment))
+                ReportCollisionsAsEnvironment = true;
+            if (physicsState.HasFlag(PhysicsState.EdgeSlide))
+                AllowEdgeSlide = true;
+            if (physicsState.HasFlag(PhysicsState.Sledding))
+                Sledding = true;
+            if (physicsState.HasFlag(PhysicsState.Frozen))
+                IsFrozen = true;
+            if (physicsState.HasFlag(PhysicsState.Cloaked))
+                Cloaked = true;
+        }
+
+        // This likely could be removed later on after we have a better handle on whats appropriate for weenies/objects in db.
+        private void SetObjectDescriptionBools()
+        {
+            ObjectDescriptionFlag objectDescriptionFlag = DescriptionFlags;
+            // When we have more objects in place, likely we'll start from None then tack on more.
+            // PhysicsState physicsState = PhysicsState.None;
+            // for now, read in whats in database and lets see what is true
+            // ObjectDescriptionFlag objectDescriptionFlag = (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags;
+
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Stuck))
+                Stuck = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Attackable))
+                Attackable = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.PlayerKiller))
+                PkKiller = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.HiddenAdmin))
+                HiddenAdmin = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.UiHidden))
+                UiHidden = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Vendor))
+                VendorService = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions))
+                IgnoreHouseBarriers = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.RequiresPackSlot))
+                RequiresBackpackSlot = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Retained))
+                Retained = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.WieldOnUse))
+                WieldOnUse = true;
+            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.WieldLeft))
+                AutowieldLeft = true;
         }
 
         public WeenieHeaderFlag SetWeenieHeaderFlag()

@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-23
+[Ripley]
+* Added Bools used by ObjectDescriptionFlag and PhysicsState
+
 ### 2017-07-21
 [Ripley]
 * Moved Identify Serializes and Writers to WorldObject and Creature as appropriate.

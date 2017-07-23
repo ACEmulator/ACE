@@ -69,12 +69,6 @@ namespace ACE.Entity
                 ShortDesc = weenie.ShortDesc;
         }
 
-        private bool Ethereal
-        {
-            get;
-            set;
-        }
-
         private bool IsOpen
         {
             get;
