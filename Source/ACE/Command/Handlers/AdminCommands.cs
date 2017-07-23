@@ -219,25 +219,29 @@ namespace ACE.Command.Handlers
             // < creature > You will appear as a creature. (No + and an orange radar dot.)
             // @cloak - Sets your cloaking state.
 
-            // TODO: Fix cloaking state resetting after teleport, investigate translucensy/visbility of other cloaked admins.
-
-            var newPhysicsState = session.Player.PhysicsState;
+            // TODO: investigate translucensy/visbility of other cloaked admins.
 
             switch (parameters?[0].ToLower())
             {
                 case "on":
-                    newPhysicsState |= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
-                    newPhysicsState ^= PhysicsState.ReportCollision;
-                    session.Player.SetPhysicsState(newPhysicsState, true);
+                    session.Player.Cloaked = true;
+                    session.Player.Ethereal = true;
+                    session.Player.IgnoreCollision = true;
+                    session.Player.NoDraw = true;
+                    session.Player.ReportCollision = false;
+                    session.Player.EnqueueBroadcastPhysicsState();
                     // var test = session.Player.PhysicsDescriptionFlag;
                     // test |= PhysicsDescriptionFlag.Translucency;
                     // session.Player.PhysicsDescriptionFlag = test;
                     // session.Player.Translucency = 0.5f;
                     break;
                 case "off":
-                    newPhysicsState ^= PhysicsState.Cloaked | PhysicsState.Ethereal | PhysicsState.IgnoreCollision | PhysicsState.NoDraw;
-                    newPhysicsState |= PhysicsState.ReportCollision;
-                    session.Player.SetPhysicsState(newPhysicsState, true);
+                    session.Player.Cloaked = false;
+                    session.Player.Ethereal = false;
+                    session.Player.IgnoreCollision = false;
+                    session.Player.NoDraw = false;
+                    session.Player.ReportCollision = true;
+                    session.Player.EnqueueBroadcastPhysicsState();
                     break;
                 case "player":
                 case "creature":

@@ -612,49 +612,7 @@ namespace ACE.Entity
         {
             get { return AceObject.Stuck; }
             set { AceObject.Stuck = value; }
-        }
-
-        public bool? IgnoreCollisions
-        {
-            get { return AceObject.IgnoreCollisions; }
-            set { AceObject.IgnoreCollisions = value; }
-        }
-
-        public bool? ReportCollisions
-        {
-            get { return AceObject.ReportCollisions; }
-            set { AceObject.ReportCollisions = value; }
-        }
-
-        public bool? GravityStatus
-        {
-            get { return AceObject.GravityStatus; }
-            set { AceObject.GravityStatus = value; }
-        }
-
-        public bool? LightsStatus
-        {
-            get { return AceObject.LightsStatus; }
-            set { AceObject.LightsStatus = value; }
-        }
-
-        public bool? ScriptedCollision
-        {
-            get { return AceObject.ScriptedCollision; }
-            set { AceObject.ScriptedCollision = value; }
-        }
-
-        public bool? Inelastic
-        {
-            get { return AceObject.Inelastic; }
-            set { AceObject.Inelastic = value; }
-        }
-
-        public bool? Visibility
-        {
-            get { return AceObject.Visibility; }
-            set { AceObject.Visibility = value; }
-        }
+        }        
 
         public bool? Attackable
         {
@@ -716,24 +674,6 @@ namespace ACE.Entity
             set { AceObject.DefaultOn = value; }
         }
 
-        public bool? IsFrozen
-        {
-            get { return AceObject.IsFrozen; }
-            set { AceObject.IsFrozen = value; }
-        }
-
-        public bool? ReportCollisionsAsEnvironment
-        {
-            get { return AceObject.ReportCollisionsAsEnvironment; }
-            set { AceObject.ReportCollisionsAsEnvironment = value; }
-        }
-
-        public bool? AllowEdgeSlide
-        {
-            get { return AceObject.AllowEdgeSlide; }
-            set { AceObject.AllowEdgeSlide = value; }
-        }
-
         public bool? AdvocateQuest
         {
             get { return AceObject.AdvocateQuest; }
@@ -750,12 +690,6 @@ namespace ACE.Entity
         {
             get { return AceObject.IsSentinel; }
             set { AceObject.IsSentinel = value; }
-        }
-
-        public bool? NoDraw
-        {
-            get { return AceObject.NoDraw; }
-            set { AceObject.NoDraw = value; }
         }
 
         public bool? IgnorePortalRestrictions
@@ -812,29 +746,315 @@ namespace ACE.Entity
             set { AceObject.RequiresBackpackSlot = value; }
         }
 
-        public bool? Ethereal
+        #region PhysicsState Bools 
+        ////Static                      = 0x00000001,
+        public bool Static
         {
-            get { return AceObject.Ethereal; }
-            set { AceObject.Ethereal = value; }
+            get { return PhysicsState.HasFlag(PhysicsState.Static); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Static;
+                else
+                    PhysicsState &= ~PhysicsState.Static;
+                // AceObject.Static = value;
+            }
+        }
+        ////Unused1                     = 0x00000002,
+        ////Ethereal                    = 0x00000004,
+        public bool Ethereal
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Ethereal); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Ethereal;
+                else
+                    PhysicsState &= ~PhysicsState.Ethereal;
+                AceObject.Ethereal = value;
+            }
+        }
+        ////ReportCollision             = 0x00000008,
+        public bool ReportCollision
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ReportCollision); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ReportCollision;
+                else
+                    PhysicsState &= ~PhysicsState.ReportCollision;
+                AceObject.ReportCollisions = value;
+            }
+        }
+        ////IgnoreCollision             = 0x00000010,
+        public bool IgnoreCollision
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.IgnoreCollision); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.IgnoreCollision;
+                else
+                    PhysicsState &= ~PhysicsState.IgnoreCollision;
+                AceObject.IgnoreCollisions = value;
+            }
+        }
+        ////NoDraw                      = 0x00000020,
+        public bool NoDraw
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.NoDraw); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.NoDraw;
+                else
+                    PhysicsState &= ~PhysicsState.NoDraw;
+                AceObject.NoDraw = value;
+            }
+        }
+        ////Missile                     = 0x00000040,
+        public bool Missile
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Missile); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Missile;
+                else
+                    PhysicsState &= ~PhysicsState.Missile;
+                ////AceObject.Missile = value;
+            }
+        }
+        ////Pushable                    = 0x00000080,
+        public bool Pushable
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Pushable); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Pushable;
+                else
+                    PhysicsState &= ~PhysicsState.Pushable;
+                ////AceObject.AlignPath = value;
+            }
+        }
+        ////AlignPath                   = 0x00000100,
+        public bool AlignPath
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.AlignPath); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.AlignPath;
+                else
+                    PhysicsState &= ~PhysicsState.AlignPath;
+                ////AceObject.AlignPath = value;
+            }
+        }
+        ////PathClipped                 = 0x00000200,
+        public bool PathClipped
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.PathClipped); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.PathClipped;
+                else
+                    PhysicsState &= ~PhysicsState.PathClipped;
+                ////AceObject.PathClipped = value;
+            }
+        }
+        ////Gravity                     = 0x00000400,
+        public bool Gravity
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Gravity); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Gravity;
+                else
+                    PhysicsState &= ~PhysicsState.Gravity;
+                AceObject.GravityStatus = value;
+            }
+        }
+        ////LightingOn                  = 0x00000800,
+        public bool LightingOn
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.LightingOn); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.LightingOn;
+                else
+                    PhysicsState &= ~PhysicsState.LightingOn;
+                AceObject.LightsStatus = value;
+            }
+        }
+        ////ParticleEmitter             = 0x00001000,
+        public bool ParticleEmitter
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ParticleEmitter); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ParticleEmitter;
+                else
+                    PhysicsState &= ~PhysicsState.ParticleEmitter;
+                ////AceObject.HasPhysicsBsp = value;
+            }
+        }
+        ////Unused2                     = 0x00002000,
+        ////Hidden                      = 0x00004000,
+        public bool Hidden
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Hidden); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Hidden;
+                else
+                    PhysicsState &= ~PhysicsState.Hidden;
+                // AceObject.Hidden = value;
+            }
+        }
+        ////ScriptedCollision           = 0x00008000,
+        public bool ScriptedCollision
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ScriptedCollision); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ScriptedCollision;
+                else
+                    PhysicsState &= ~PhysicsState.ScriptedCollision;
+                AceObject.ScriptedCollision = value;
+            }
+        }
+        ////HasPhysicsBsp               = 0x00010000,
+        public bool HasPhysicsBsp
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.HasPhysicsBsp); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.HasPhysicsBsp;
+                else
+                    PhysicsState &= ~PhysicsState.HasPhysicsBsp;
+                ////AceObject.HasPhysicsBsp = value;
+            }
+        }
+        ////Inelastic                   = 0x00020000,
+        public bool Inelastic
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Inelastic); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Inelastic;
+                else
+                    PhysicsState &= ~PhysicsState.Inelastic;
+                AceObject.Inelastic = value;
+            }
+        }
+        ////HasDefaultAnim              = 0x00040000,
+        public bool HasDefaultAnim
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.HasDefaultAnim); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.HasDefaultAnim;
+                else
+                    PhysicsState &= ~PhysicsState.HasDefaultAnim;
+                ////AceObject.HasDefaultAnim = value;
+            }
+        }
+        ////HasDefaultScript            = 0x00080000,
+        public bool HasDefaultScript
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.HasDefaultScript); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.HasDefaultScript;
+                else
+                    PhysicsState &= ~PhysicsState.HasDefaultScript;
+                ////AceObject.HasDefaultScript = value;
+            }
+        }
+        ////Cloaked                     = 0x00100000,
+        public bool Cloaked
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Cloaked); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Cloaked;
+                else
+                    PhysicsState &= ~PhysicsState.Cloaked;
+                ////AceObject.Cloaked = value;
+            }
+        }
+        ////ReportCollisionAsEnviroment = 0x00200000,
+        public bool ReportCollisionAsEnviroment
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ReportCollisionAsEnviroment;
+                else
+                    PhysicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
+                AceObject.ReportCollisionsAsEnvironment = value;
+            }
+        }
+        ////EdgeSlide                   = 0x00400000,
+        public bool EdgeSlide
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.EdgeSlide); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.EdgeSlide;
+                else
+                    PhysicsState &= ~PhysicsState.EdgeSlide;
+                AceObject.AllowEdgeSlide = value;
+            }
+        }
+        ////Sledding                    = 0x00800000,
+        public bool Sledding
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Sledding); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Sledding;
+                else
+                    PhysicsState &= ~PhysicsState.Sledding;
+                ////AceObject.Sledding = value;
+            }
+        }
+        ////Frozen                      = 0x01000000,
+        public bool Frozen
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Frozen); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Frozen;
+                else
+                    PhysicsState &= ~PhysicsState.Frozen;
+                AceObject.IsFrozen = value;
+            }
         }
 
-        public bool? Hidden
-        {
-            get; // { return AceObject.Ethereal; }
-            set; // { AceObject.Ethereal = value; }
-        }
-
-        public bool? Sledding
-        {
-            get; // { return AceObject.Ethereal; }
-            set; // { AceObject.Ethereal = value; }
-        }
-
-        public bool? Cloaked
-        {
-            get; // { return AceObject.Ethereal; }
-            set; // { AceObject.Ethereal = value; }
-        }
+        ////public bool? Visibility
+        ////{
+        ////    get { return AceObject.Visibility; }
+        ////    set { AceObject.Visibility = value; }
+        ////}
+        #endregion
 
         public SequenceManager Sequences { get; }
 
@@ -868,7 +1088,6 @@ namespace ACE.Entity
 
             DescriptionFlags = SetObjectDescriptionFlag();
             SetObjectDescriptionBools();
-            SetPhysicsStateBools();
 
             SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
@@ -891,7 +1110,6 @@ namespace ACE.Entity
 
             DescriptionFlags = SetObjectDescriptionFlag();
             SetObjectDescriptionBools();
-            SetPhysicsStateBools();
 
             SetPhysicsDescriptionFlag(this);
             WeenieFlags = SetWeenieHeaderFlag();
@@ -1343,6 +1561,26 @@ namespace ACE.Entity
             SerializeCreateObject(writer);
         }
 
+        // This fully replaces the PhysicsState of the WO, use sparingly?
+        public void SetPhysicsState(PhysicsState state, bool packet = true)
+        {
+            PhysicsState = state;
+
+            if (packet)
+            {
+                EnqueueBroadcastPhysicsState();
+            }
+        }
+
+        public void EnqueueBroadcastPhysicsState()
+        {
+            if (CurrentLandblock != null)
+            {
+                GameMessage msg = new GameMessageSetState(this, PhysicsState);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            }
+        }
+
         public virtual ObjectDescriptionFlag SetObjectDescriptionFlag()
         {
             // When we have more objects in place, likely we'll start from None then tack on more.
@@ -1411,129 +1649,6 @@ namespace ACE.Entity
                 objectDescriptionFlag &= ~ObjectDescriptionFlag.WieldLeft;
 
             return objectDescriptionFlag;
-        }
-
-        public virtual PhysicsState SetPhysicsState()
-        {
-            // When we have more objects in place, likely we'll start from None then tack on more.
-            // PhysicsState physicsState = PhysicsState.None;
-            // for now, read in whats in database and lets see what we kill out
-            PhysicsState physicsState = (PhysicsState)AceObject.PhysicsState;
-
-            if (Ethereal ?? false)
-                physicsState |= PhysicsState.Ethereal;
-            else
-                physicsState &= ~PhysicsState.Ethereal;
-
-            if (ReportCollisions ?? false)
-                physicsState |= PhysicsState.ReportCollision;
-            else
-                physicsState &= ~PhysicsState.ReportCollision;
-
-            if (IgnoreCollisions ?? false)
-                physicsState |= PhysicsState.IgnoreCollision;
-            else
-                physicsState &= ~PhysicsState.IgnoreCollision;
-
-            if (NoDraw ?? false)
-                physicsState |= PhysicsState.NoDraw;
-            else
-                physicsState &= ~PhysicsState.NoDraw;
-
-            if (GravityStatus ?? false)
-                physicsState |= PhysicsState.Gravity;
-            else
-                physicsState &= ~PhysicsState.Gravity;
-
-            if (LightsStatus ?? false)
-                physicsState |= PhysicsState.LightingOn;
-            else
-                physicsState &= ~PhysicsState.LightingOn;
-
-            if (LightsStatus ?? false)
-                physicsState |= PhysicsState.LightingOn;
-            else
-                physicsState &= ~PhysicsState.LightingOn;
-
-            if (Hidden ?? false)
-                physicsState |= PhysicsState.Hidden;
-            else
-                physicsState &= ~PhysicsState.Hidden;
-
-            if (ScriptedCollision ?? false)
-                physicsState |= PhysicsState.ScriptedCollision;
-            else
-                physicsState &= ~PhysicsState.ScriptedCollision;
-
-            if (Inelastic ?? false)
-                physicsState |= PhysicsState.Inelastic;
-            else
-                physicsState &= ~PhysicsState.Inelastic;
-
-            if (ReportCollisionsAsEnvironment ?? false)
-                physicsState |= PhysicsState.ReportCollisionAsEnviroment;
-            else
-                physicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
-
-            if (AllowEdgeSlide ?? false)
-                physicsState |= PhysicsState.EdgeSlide;
-            else
-                physicsState &= ~PhysicsState.EdgeSlide;
-
-            if (Sledding ?? false)
-                physicsState |= PhysicsState.Sledding;
-            else
-                physicsState &= ~PhysicsState.Sledding;
-
-            if (IsFrozen ?? false)
-                physicsState |= PhysicsState.Frozen;
-            else
-                physicsState &= ~PhysicsState.Frozen;
-
-            if (Cloaked ?? false)
-                physicsState |= PhysicsState.Cloaked;
-            else
-                physicsState &= ~PhysicsState.Cloaked;
-
-            return physicsState;
-        }
-
-        // This likely could be removed later on after we have a better handle on whats appropriate for weenies/objects in db.
-        private void SetPhysicsStateBools()
-        {
-            // When we have more objects in place, likely we'll start from None then tack on more.
-            // PhysicsState physicsState = PhysicsState.None;
-            // for now, read in whats in database and lets see what is true
-            PhysicsState physicsState = (PhysicsState)AceObject.PhysicsState;
-
-            if (physicsState.HasFlag(PhysicsState.Ethereal))
-                Ethereal = true;
-            if (physicsState.HasFlag(PhysicsState.ReportCollision))
-                ReportCollisions = true;
-            if (physicsState.HasFlag(PhysicsState.IgnoreCollision))
-                IgnoreCollisions = true;
-            if (physicsState.HasFlag(PhysicsState.NoDraw))
-                NoDraw = true;
-            if (physicsState.HasFlag(PhysicsState.Gravity))
-                GravityStatus = true;
-            if (physicsState.HasFlag(PhysicsState.LightingOn))
-                LightsStatus = true;
-            if (physicsState.HasFlag(PhysicsState.Hidden))
-                Hidden = true;
-            if (physicsState.HasFlag(PhysicsState.ScriptedCollision))
-                ScriptedCollision = true;
-            if (physicsState.HasFlag(PhysicsState.Inelastic))
-                Inelastic = true;
-            if (physicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment))
-                ReportCollisionsAsEnvironment = true;
-            if (physicsState.HasFlag(PhysicsState.EdgeSlide))
-                AllowEdgeSlide = true;
-            if (physicsState.HasFlag(PhysicsState.Sledding))
-                Sledding = true;
-            if (physicsState.HasFlag(PhysicsState.Frozen))
-                IsFrozen = true;
-            if (physicsState.HasFlag(PhysicsState.Cloaked))
-                Cloaked = true;
         }
 
         // This likely could be removed later on after we have a better handle on whats appropriate for weenies/objects in db.

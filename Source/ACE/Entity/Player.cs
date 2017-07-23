@@ -212,7 +212,7 @@ namespace ACE.Entity
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
             // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
-            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide, false);
+            IgnoreCollision = true; Gravity = true; Hidden = true; EdgeSlide = true;
             PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.STable | PhysicsDescriptionFlag.PeTable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
@@ -1225,21 +1225,6 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(player, title, friends);
         }
 
-        public void SetPhysicsState(PhysicsState state, bool packet = true)
-        {
-            PhysicsState = state;
-
-            if (packet)
-            {
-                // TODO: this should be broadcast
-                if (CurrentLandblock != null)
-                {
-                    GameMessage msg = new GameMessageSetState(this, state);
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
-                }
-            }
-        }
-
         public void Teleport(Position newPosition)
         {
             ActionChain chain = GetTeleportChain(newPosition);
@@ -1267,7 +1252,10 @@ namespace ACE.Entity
             if (!InWorld)
                 return;
 
-            SetPhysicsState(PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide);
+            Hidden = true;
+            IgnoreCollision = true;
+            ReportCollision = false;
+            EnqueueBroadcastPhysicsState();
             ExternalUpdatePosition(newPosition);
             InWorld = false;
 
@@ -1422,7 +1410,7 @@ namespace ACE.Entity
                 var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
                 CurrentLandblock.EnqueueBroadcastMotion(this, logout);
 
-                SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
+                EnqueueBroadcastPhysicsState();
 
                 // Thie retail server sends a ChatRoomTracker 0x0295 first, then the status message, 0x028B. It does them one at a time for each individual channel.
                 // The ChatRoomTracker message doesn't seem to change at all.
