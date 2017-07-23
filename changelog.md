@@ -2,7 +2,8 @@
 
 ### 2017-07-23
 [Ripley]
-* Added Bools used by ObjectDescriptionFlag and PhysicsState
+* Added Bools used by ObjectDescriptionFlag and PhysicsState.
+* Added WeenieType to PropertyInt Enum for future use.
 
 ### 2017-07-21
 [Ripley]
