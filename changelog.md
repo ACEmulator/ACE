@@ -2,6 +2,7 @@
 
 ### 2017-07-21
 [Ripley]
+* Moved Identify Serializes and Writers to WorldObject and Creature as appropriate.
 * Changed the way Workmanship is set so to not always default to 0 if ItemWorkmanship was null.
 * Moved GameActionTalk handle code to Player.
 * Wired up broadcasting of local chat, emotes and soul emotes.
