@@ -663,7 +663,7 @@ namespace ACE.Entity
             get { return AceObject.IgnorePortalRestrictions; }
             set { AceObject.IgnorePortalRestrictions = value; }
         }
-        
+
         public bool? Invincible
         {
             get { return AceObject.Invincible; }
@@ -680,7 +680,7 @@ namespace ACE.Entity
         {
             get { return AceObject.Afk; }
             set { AceObject.Afk = value; }
-        }       
+        }
 
         #region ObjectDescription Bools 
         ////None                   = 0x00000000,
@@ -1392,7 +1392,7 @@ namespace ACE.Entity
         {
             AceObject = new AceObject();
             AceObject.AceObjectId = guid.Full;
-            Guid = guid;
+            Guid = guid;            
 
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
@@ -1411,6 +1411,9 @@ namespace ACE.Entity
                 : this(new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
+
+            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
             else
@@ -1426,10 +1429,13 @@ namespace ACE.Entity
         {
             Guid = guid;
             AceObject = aceObject;
+
+            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
             else
-                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));           
+                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
 
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
@@ -1470,7 +1476,7 @@ namespace ACE.Entity
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {            
+        {
             // Excluding some times that are sent later as weapon status Og II
             var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
                                                           && x.PropertyId != (uint)PropertyInt.Damage
@@ -1631,7 +1637,7 @@ namespace ACE.Entity
                     case "radarbehavior":
                         debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
                         break;
-                    case "physicsdescriptionflags":
+                    case "physicsdescriptionflag":
                         debugOutput += $"{prop.Name} = {obj.PhysicsDescriptionFlag.ToString()}" + " (" + (uint)obj.PhysicsDescriptionFlag + ")" + "\n";
                         break;
                     case "physicsstate":
@@ -1892,7 +1898,16 @@ namespace ACE.Entity
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
-      
+
+        public void EnqueueBroadcastUpdateObject()
+        {
+            if (CurrentLandblock != null)
+            {
+                GameMessage msg = new GameMessageUpdateObject(this);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            }
+        }
+
         private WeenieHeaderFlag SetWeenieHeaderFlag()
         {
             WeenieHeaderFlag weenieHeaderFlag = WeenieHeaderFlag.None;
@@ -2022,7 +2037,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             SerializeModelData(writer);
-            Serialize(this, writer);
+            SerializePhysicsData(this, writer);
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
@@ -2357,7 +2372,7 @@ namespace ACE.Entity
             return physicsDescriptionFlag;
         }
         // todo: return bytes of data for network write ? ?
-        public void Serialize(WorldObject wo, BinaryWriter writer)
+        public void SerializePhysicsData(WorldObject wo, BinaryWriter writer)
         {
             writer.Write((uint)PhysicsDescriptionFlag);
 
@@ -2466,6 +2481,102 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
 
             writer.Align();
+        }
+
+        private void RecallAndSetObjectDescriptionBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+            ////None                   = 0x00000000,
+            ////Openable               = 0x00000001,
+            // if (AceObject.Openable ?? false)
+            //    Openable = true;
+            ////Inscribable            = 0x00000002,
+            if (AceObject.Inscribable ?? false)
+                Inscribable = true;
+            ////Stuck                  = 0x00000004,
+            if (AceObject.Stuck ?? false)
+                Stuck = true;
+            ////Player                 = 0x00000008,
+            // if (AceObject.Player ?? false)
+            //    Player = true;
+            ////Attackable             = 0x00000010,
+            if (AceObject.Attackable ?? false)
+                Attackable = true;
+            ////PlayerKiller           = 0x00000020,
+            // if (AceObject.PlayerKiller ?? false)
+            //    PlayerKiller = true;
+            ////HiddenAdmin            = 0x00000040,
+            if (AceObject.HiddenAdmin ?? false)
+                HiddenAdmin = true;
+            ////UiHidden               = 0x00000080,
+            if (AceObject.UiHidden ?? false)
+                UiHidden = true;
+            ////Book                   = 0x00000100,
+            // if (AceObject.Book ?? false)
+            //    Book = true;
+            ////Vendor                 = 0x00000200,
+            // if (AceObject.Vendor ?? false)
+            //    Vendor = true;
+            ////PkSwitch               = 0x00000400,
+            // if (AceObject.PkSwitch ?? false)
+            //    PkSwitch = true;
+            ////NpkSwitch              = 0x00000800,
+            // if (AceObject.NpkSwitch ?? false)
+            //    NpkSwitch = true;
+            ////Door                   = 0x00001000,
+            // if (AceObject.Door ?? false)
+            //    Door = true;
+            ////Corpse                 = 0x00002000,
+            // if (AceObject.Corpse ?? false)
+            //    Corpse = true;
+            ////LifeStone              = 0x00004000,
+            // if (AceObject.LifeStone ?? false)
+            //    LifeStone = true;
+            ////Food                   = 0x00008000,
+            // if (AceObject.Food ?? false)
+            //    Food = true;
+            ////Healer                 = 0x00010000,
+            // if (AceObject.Healer ?? false)
+            //    Healer = true;
+            ////Lockpick               = 0x00020000,
+            // if (AceObject.Lockpick ?? false)
+            //    Lockpick = true;
+            ////Portal                 = 0x00040000,
+            // if (AceObject.Portal ?? false)
+            //    Portal = true;
+            ////Admin                  = 0x00100000,
+            // if (AceObject.Admin ?? false)
+            //    Admin = true;
+            ////FreePkStatus           = 0x00200000,
+            // if (AceObject.FreePkStatus ?? false)
+            //    FreePkStatus = true;
+            ////ImmuneCellRestrictions = 0x00400000,
+            if (AceObject.IgnoreHouseBarriers ?? false)
+                ImmuneCellRestrictions = true;
+            ////RequiresPackSlot       = 0x00800000,
+            if (AceObject.RequiresBackpackSlot ?? false)
+                RequiresPackSlot = true;
+            ////Retained               = 0x01000000,
+            if (AceObject.Retained ?? false)
+                Retained = true;
+            ////PkLiteStatus           = 0x02000000,
+            // if (AceObject.PkLiteStatus ?? false)
+            //    PkLiteStatus = true;
+            ////IncludesSecondHeader   = 0x04000000,
+            // if (AceObject.IncludesSecondHeader ?? false)
+            //    IncludesSecondHeader = true;
+            ////BindStone              = 0x08000000,
+            // if (AceObject.BindStone ?? false)
+            //    BindStone = true;
+            ////VolatileRare           = 0x10000000,
+            // if (AceObject.VolatileRare ?? false)
+            //    VolatileRare = true;
+            ////WieldOnUse             = 0x20000000,
+            if (AceObject.WieldOnUse ?? false)
+                WieldOnUse = true;
+            ////WieldLeft              = 0x40000000,
+            if (AceObject.AutowieldLeft ?? false)
+                WieldLeft = true;
         }
     }
 }

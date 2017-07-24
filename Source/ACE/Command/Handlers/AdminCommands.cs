@@ -437,12 +437,13 @@ namespace ACE.Command.Handlers
         }
 
         // mrt
-        [CommandHandler("mrt", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("mrt", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Toggles the ability to bypass housing boundaries",
+            "")]
         public static void HandleMRT(Session session, params string[] parameters)
         {
             // @mrt - Toggles the ability to bypass housing boundaries.
-
-            // TODO: output
+            session.Player.HandleMRT();        
         }
 
         // limbo [on / off]

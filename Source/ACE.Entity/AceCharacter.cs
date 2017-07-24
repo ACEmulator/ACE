@@ -21,15 +21,17 @@ namespace ACE.Entity
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
 
-            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable);            
+            AceObjectDescriptionFlags = 0;
             SetBoolProperty(PropertyBool.Stuck, true);
             SetBoolProperty(PropertyBool.Attackable, true);
 
-            WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemsCapacity | WeenieHeaderFlag.ContainersCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
+            WeenieHeaderFlags = 0;
             SetIntProperty(PropertyInt.ItemsCapacity, 102);
             SetIntProperty(PropertyInt.ContainersCapacity, 7);           
             SetIntProperty(PropertyInt.ItemUseable, (uint)Usable.No);
             SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
+
+            PhysicsState = 0;
 
             WeenieClassId = 1;
             SetDataIdProperty(PropertyDataId.Icon, 100667446);
@@ -60,13 +62,7 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.ChessTotalGames, 0);
             SetIntProperty(PropertyInt.ChessGamesLost, 0);
             SetIntProperty(PropertyInt.ChessGamesWon, 0);
-            SetIntProperty(PropertyInt.FakeFishingSkill, 0);
-
-            SetIntProperty(PropertyInt.PhysicsState, (uint)(Enum.PhysicsState.IgnoreCollision | Enum.PhysicsState.Gravity | Enum.PhysicsState.Hidden | Enum.PhysicsState.EdgeSlide));
-            SetBoolProperty(PropertyBool.IgnoreCollisions, true);
-            SetBoolProperty(PropertyBool.GravityStatus, true);
-            // SetBoolProperty(PropertyBool.UiHidden, true); not sure on this one
-            SetBoolProperty(PropertyBool.AllowEdgeSlide, true);
+            SetIntProperty(PropertyInt.FakeFishingSkill, 0);            
 
             SetDoubleProperty(PropertyDouble.GlobalXpMod, 0);
             SetIntProperty(PropertyInt.HealingBoostRating, 0);

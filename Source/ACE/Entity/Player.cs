@@ -210,8 +210,11 @@ namespace ACE.Entity
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
-
+            
             Player = true;
+
+            // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true, 
+            // I don't believe both were on at the same time. -Ripley
 
             IgnoreCollision = true; Gravity = true; Hidden = true; EdgeSlide = true;
 
@@ -346,9 +349,11 @@ namespace ACE.Entity
             // immediately after cloning, clear all dirty flags and HasBeenSavedToDatabase
             Character.ClearDirtyFlags();
 
-            // TODO: Fix this hack - not sure where but weenieclassid is getting set to 0 has to be 1 for players
-            // this is crap and needs to be fixed.
-            obj.WeenieClassId = 1;
+            // These don't usually get saved back to the object so setting here for now.
+            // Realisticly speaking, I think it will be possible to eliminate WeenieHeaderFlags and PhysicsDescriptionFlag from the datbase
+            // AceObjectDescriptionFlag possibly could be eliminated as well... -Ripley
+            obj.WeenieHeaderFlags = (uint)WeenieFlags;
+            obj.PhysicsDescriptionFlag = (uint)PhysicsDescriptionFlag;
 
             return obj;
         }
@@ -1440,6 +1445,41 @@ namespace ACE.Entity
             {
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
             }
+        }
+
+        public void HandleMRT()
+        {
+            ActionChain mrtChain = new ActionChain();
+
+            // Handle MRT Toggle internal must decide what to do next...
+            mrtChain.AddAction(this, new ActionEventDelegate(() => HandleMRTToggleInternal()));
+
+            mrtChain.EnqueueChain();
+        }
+
+        private void HandleMRTToggleInternal()
+        {
+            // This requires the Admin flag set on ObjectDescriptionFlags
+            // I would expect this flag to be set in Admin.cs which would be a subclass of Player
+            // FIXME: maybe move to Admin class?
+            // TODO: reevaluate class location
+
+            if (!ImmuneCellRestrictions)
+                ImmuneCellRestrictions = true;
+            else
+                ImmuneCellRestrictions = false;
+
+            // The EnqueueBroadcastUpdateObject below sends the player back into teleport. I assume at this point, this was never done to players
+            // EnqueueBroadcastUpdateObject();
+
+            // The private message below worked as expected, but it only broadcast to the player. This would be a problem with for others in range seeing something try to
+            // pass through a barrier but not being allowed. 
+            // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
+            // Session.Network.EnqueueSend(updateBool);
+
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions));
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {ImmuneCellRestrictions}", ChatMessageType.Broadcast));
         }
 
         public void SendAutonomousPosition()

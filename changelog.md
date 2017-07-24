@@ -1,11 +1,15 @@
 # ACEmulator Change Log
 
-### 2017-07-23
+### 2017-07-24
 [Ripley]
 * Added Bools used by ObjectDescriptionFlag and PhysicsState.
 * Added WeenieType to PropertyInt Enum for future use.
 * Changed GameMessageServerName to include connection count and max.
 * Changed the way PhysicsDescriptionFlag, PhysicsState, WeenieHeaderFlag and WeenieHeaderFlag2 are set and sent to the client.
+* Even more changes to main object flags.
+* Wired up /mrt command.
+* /mrt was used by admins to bypass the housing barriers. I used it to prove out ObjectDescriptionFlag state changes.
+* Note that you have to have manually set the Admin flag on ObjectDescriptionFlag in the code for this command to work, See Player.cs constructor section.
 
 ### 2017-07-21
 [Ripley]
