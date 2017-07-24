@@ -27,6 +27,11 @@ namespace ACE.Entity
         {
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
 
+            // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
+            // PhysicsState = 0;
+            // ReportCollision = true;
+            // HasPhysicsBsp = true;
+
             if (!DefaultOpen)
             {
                 CurrentMotionState = motionStateClosed;
