@@ -156,7 +156,7 @@ namespace ACE.Entity
             RotationZ = aoPos.RotationZ;
         }
 
-        public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, bool writeLandblock = true)
+        public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, uint animationFrame, bool writeLandblock = true)
         {
             payload.Write((uint)updatePositionFlags);
 
@@ -190,7 +190,7 @@ namespace ACE.Entity
             if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
             {
                 // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
-                payload.Write((uint)0x65);
+                payload.Write(animationFrame);
             }
 
             if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)

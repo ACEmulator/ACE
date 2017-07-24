@@ -677,6 +677,7 @@ namespace ACE.Entity
             inventoryItem.PhysicsDescriptionFlag = inventoryItem.SetPhysicsDescriptionFlag(inventoryItem);
             inventoryItem.ContainerId = null;
             inventoryItem.WielderId = null;
+            inventoryItem.AnimationFrame = 0x65;
             inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
@@ -1024,7 +1025,7 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            Location.Serialize(writer, PositionFlag);
+            Location.Serialize(writer, PositionFlag, this.AnimationFrame ?? 0x0);
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
