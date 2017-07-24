@@ -4,6 +4,8 @@
 [Ripley]
 * Added Bools used by ObjectDescriptionFlag and PhysicsState.
 * Added WeenieType to PropertyInt Enum for future use.
+* Changed GameMessageServerName to include connection count and max.
+* Changed the way PhysicsDescriptionFlag, PhysicsState, WeenieHeaderFlag and WeenieHeaderFlag2 are set and sent to the client.
 
 ### 2017-07-21
 [Ripley]
