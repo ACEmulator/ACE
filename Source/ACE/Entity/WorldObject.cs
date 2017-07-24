@@ -168,11 +168,21 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag WeenieFlags
         {
-            get { return (WeenieHeaderFlag)AceObject.WeenieHeaderFlags; }
+            get { return SetWeenieHeaderFlag(); }
             protected internal set { AceObject.WeenieHeaderFlags = (uint)value; }
         }
 
-        public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
+        public WeenieHeaderFlag2 WeenieFlags2
+        {
+            get
+            {
+                WeenieHeaderFlag2 flags = SetWeenieHeaderFlag2();
+                if (flags != WeenieHeaderFlag2.None)
+                    IncludesSecondHeader = true;
+                return flags;
+            }
+            protected internal set { AceObject.WeenieHeaderFlags2 = (uint)value; }
+        }
 
         public UpdatePositionFlag PositionFlag { get; set; }
 
@@ -448,7 +458,11 @@ namespace ACE.Entity
             set { AceObject.SetupDID = value; }
         }
 
-        public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; set; }
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag
+        {
+            get { return SetPhysicsDescriptionFlag(); }
+            protected internal set { AceObject.PhysicsDescriptionFlag = (uint)SetPhysicsDescriptionFlag(); }
+        }
 
         public PhysicsState PhysicsState
         {
@@ -608,58 +622,10 @@ namespace ACE.Entity
             models.Clear();
         }
 
-        public bool? Stuck
-        {
-            get { return AceObject.Stuck; }
-            set { AceObject.Stuck = value; }
-        }        
-
-        public bool? Attackable
-        {
-            get { return AceObject.Attackable; }
-            set { AceObject.Attackable = value; }
-        }
-
         public bool? AdvocateState
         {
             get { return AceObject.AdvocateState; }
             set { AceObject.AdvocateState = value; }
-        }
-
-        public bool? Inscribable
-        {
-            get { return AceObject.Inscribable; }
-            set { AceObject.Inscribable = value; }
-        }
-
-        public bool? UiHidden
-        {
-            get { return AceObject.UiHidden; }
-            set { AceObject.UiHidden = value; }
-        }
-
-        public bool? IgnoreHouseBarriers
-        {
-            get { return AceObject.IgnoreHouseBarriers; }
-            set { AceObject.IgnoreHouseBarriers = value; }
-        }
-
-        public bool? HiddenAdmin
-        {
-            get { return AceObject.HiddenAdmin; }
-            set { AceObject.HiddenAdmin = value; }
-        }
-
-        public bool? PkWounder
-        {
-            get { return AceObject.PkWounder; }
-            set { AceObject.PkWounder = value; }
-        }
-
-        public bool? PkKiller
-        {
-            get { return AceObject.PkKiller; }
-            set { AceObject.PkKiller = value; }
         }
 
         public bool? UnderLifestoneProtection
@@ -697,13 +663,7 @@ namespace ACE.Entity
             get { return AceObject.IgnorePortalRestrictions; }
             set { AceObject.IgnorePortalRestrictions = value; }
         }
-
-        public bool? Retained
-        {
-            get { return AceObject.Retained; }
-            set { AceObject.Retained = value; }
-        }
-
+        
         public bool? Invincible
         {
             get { return AceObject.Invincible; }
@@ -720,31 +680,401 @@ namespace ACE.Entity
         {
             get { return AceObject.Afk; }
             set { AceObject.Afk = value; }
-        }
+        }       
 
-        public bool? WieldOnUse
+        #region ObjectDescription Bools 
+        ////None                   = 0x00000000,
+        ////Openable               = 0x00000001,
+        public bool Openable
         {
-            get { return AceObject.WieldOnUse; }
-            set { AceObject.WieldOnUse = value; }
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Openable); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Openable;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Openable;
+                // AceObject.Openable = value;
+            }
         }
-
-        public bool? AutowieldLeft
+        ////Inscribable            = 0x00000002,
+        public bool Inscribable
         {
-            get { return AceObject.AutowieldLeft; }
-            set { AceObject.AutowieldLeft = value; }
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Inscribable); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Inscribable;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Inscribable;
+                AceObject.Inscribable = value;
+            }
         }
-
-        public bool? VendorService
+        ////Stuck                  = 0x00000004,
+        public bool Stuck
         {
-            get { return AceObject.VendorService; }
-            set { AceObject.VendorService = value; }
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Stuck); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Stuck;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Stuck;
+                AceObject.Stuck = value;
+            }
         }
-
-        public bool? RequiresBackpackSlot
+        ////Player                 = 0x00000008,
+        public bool Player
         {
-            get { return AceObject.RequiresBackpackSlot; }
-            set { AceObject.RequiresBackpackSlot = value; }
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Player); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Player;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Player;
+                // AceObject.Player = value;
+            }
         }
+        ////Attackable             = 0x00000010,
+        public bool Attackable
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Attackable); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Attackable;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Attackable;
+                AceObject.Attackable = value;
+            }
+        }
+        ////PlayerKiller           = 0x00000020,
+        public bool PlayerKiller
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PlayerKiller); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.PlayerKiller;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.PlayerKiller;
+                // AceObject.PlayerKiller = value;
+            }
+        }
+        ////HiddenAdmin            = 0x00000040,
+        public bool HiddenAdmin
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.HiddenAdmin); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.HiddenAdmin;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.HiddenAdmin;
+                AceObject.HiddenAdmin = value;
+            }
+        }
+        ////UiHidden               = 0x00000080,
+        public bool UiHidden
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.UiHidden); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.UiHidden;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
+                AceObject.UiHidden = value;
+            }
+        }
+        ////Book                   = 0x00000100,
+        public bool Book
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Book); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Book;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Book;
+                // AceObject.Book = value;
+            }
+        }
+        ////Vendor                 = 0x00000200,
+        public bool Vendor
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Vendor); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Vendor;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Vendor;
+                // AceObject.Vendor = value;
+            }
+        }
+        ////PkSwitch               = 0x00000400,
+        public bool PkSwitch
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkSwitch); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.PkSwitch;
+                // AceObject.PkSwitch = value;
+            }
+        }
+        ////NpkSwitch              = 0x00000800,
+        public bool NpkSwitch
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.NpkSwitch); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.NpkSwitch;
+                // AceObject.NpkSwitch = value;
+            }
+        }
+        ////Door                   = 0x00001000,
+        public bool Door
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Door); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Door;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Door;
+                // AceObject.Door = value;
+            }
+        }
+        ////Corpse                 = 0x00002000,
+        public bool Corpse
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Corpse); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Corpse;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Corpse;
+                // AceObject.Corpse = value;
+            }
+        }
+        ////LifeStone              = 0x00004000,
+        public bool LifeStone
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.LifeStone); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.LifeStone;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.LifeStone;
+                // AceObject.LifeStone = value;
+            }
+        }
+        ////Food                   = 0x00008000,
+        public bool Food
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Food); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Food;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Food;
+                // AceObject.Food = value;
+            }
+        }
+        ////Healer                 = 0x00010000,
+        public bool Healer
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Healer); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Healer;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Healer;
+                // AceObject.Healer = value;
+            }
+        }
+        ////Lockpick               = 0x00020000,
+        public bool Lockpick
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Lockpick); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Lockpick;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Lockpick;
+                // AceObject.Lockpick = value;
+            }
+        }
+        ////Portal                 = 0x00040000,
+        public bool Portal
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Portal); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Portal;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Portal;
+                // AceObject.Portal = value;
+            }
+        }
+        ////Admin                  = 0x00100000,
+        public bool Admin
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Admin); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Admin;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Admin;
+                // AceObject.Admin = value;
+            }
+        }
+        ////FreePkStatus           = 0x00200000,
+        public bool FreePkStatus
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.FreePkStatus); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.FreePkStatus;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.FreePkStatus;
+                // AceObject.FreePkStatus = value;
+            }
+        }
+        ////ImmuneCellRestrictions = 0x00400000,
+        public bool ImmuneCellRestrictions
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.ImmuneCellRestrictions;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
+                AceObject.IgnoreHouseBarriers = value;
+            }
+        }
+        ////RequiresPackSlot       = 0x00800000,
+        public bool RequiresPackSlot
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.RequiresPackSlot); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.RequiresPackSlot;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.RequiresPackSlot;
+                AceObject.RequiresBackpackSlot = value;
+            }
+        }
+        ////Retained               = 0x01000000,
+        public bool Retained
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Retained); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Retained;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Retained;
+                AceObject.Retained = value;
+            }
+        }
+        ////PkLiteStatus           = 0x02000000,
+        public bool PkLiteStatus
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkLiteStatus); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.PkLiteStatus;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.PkLiteStatus;
+                // AceObject.PkLiteStatus = value;
+            }
+        }
+        ////IncludesSecondHeader   = 0x04000000,
+        public bool IncludesSecondHeader
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.IncludesSecondHeader); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.IncludesSecondHeader;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.IncludesSecondHeader;
+                // AceObject.IncludesSecondHeader = value;
+            }
+        }
+        ////BindStone              = 0x08000000,
+        public bool BindStone
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.BindStone); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.BindStone;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.BindStone;
+                // AceObject.BindStone = value;
+            }
+        }
+        ////VolatileRare           = 0x10000000,
+        public bool VolatileRare
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.VolatileRare); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.VolatileRare;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.VolatileRare;
+                // AceObject.VolatileRare = value;
+            }
+        }
+        ////WieldOnUse             = 0x20000000,
+        public bool WieldOnUse
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldOnUse); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.WieldOnUse;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.WieldOnUse;
+                AceObject.WieldOnUse = value;
+            }
+        }
+        ////WieldLeft              = 0x40000000,
+        public bool WieldLeft
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldLeft); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.WieldLeft;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.WieldLeft;
+                AceObject.AutowieldLeft = value;
+            }
+        }
+        #endregion
 
         #region PhysicsState Bools 
         ////Static                      = 0x00000001,
@@ -1086,13 +1416,6 @@ namespace ACE.Entity
             else
                 CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
 
-            DescriptionFlags = SetObjectDescriptionFlag();
-            SetObjectDescriptionBools();
-
-            SetPhysicsDescriptionFlag(this);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
-
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
@@ -1106,14 +1429,7 @@ namespace ACE.Entity
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
             else
-                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            DescriptionFlags = SetObjectDescriptionFlag();
-            SetObjectDescriptionBools();
-
-            SetPhysicsDescriptionFlag(this);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
+                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));           
 
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
@@ -1128,20 +1444,16 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQy
                                          | UpdatePositionFlag.ZeroQx;
 
-            inventoryItem.PhysicsDescriptionFlag = inventoryItem.SetPhysicsDescriptionFlag(inventoryItem);
             inventoryItem.ContainerId = null;
             inventoryItem.WielderId = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         internal void SetInventoryForOffWorld(WorldObject inventoryItem)
         {
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.Location = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public void Examine(Session examiner)
@@ -1580,111 +1892,8 @@ namespace ACE.Entity
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
-
-        public virtual ObjectDescriptionFlag SetObjectDescriptionFlag()
-        {
-            // When we have more objects in place, likely we'll start from None then tack on more.
-            // ObjectDescriptionFlag objectDescriptionFlag = ObjectDescriptionFlag.None;
-            // for now, read in whats in database and lets see what we kill out
-            ObjectDescriptionFlag objectDescriptionFlag = (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags;
-
-            if (Stuck ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.Stuck;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.Stuck;
-
-            if (Attackable ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.Attackable;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.Attackable;
-
-            if (PkKiller ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.PlayerKiller;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.PlayerKiller;
-
-            if (HiddenAdmin ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.HiddenAdmin;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.HiddenAdmin;
-
-            if (UiHidden ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.UiHidden;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.UiHidden;
-
-            if (VendorService ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.Vendor;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.Vendor;
-
-            ////if (IsAdmin ?? false)
-            ////    objectDescriptionFlag |= ObjectDescriptionFlag.Admin;
-            ////else
-            ////    objectDescriptionFlag &= ~ObjectDescriptionFlag.Admin;
-
-            if (IgnoreHouseBarriers ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.ImmuneCellRestrictions;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
-
-            if (RequiresBackpackSlot ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.RequiresPackSlot;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.RequiresPackSlot;
-
-            if (Retained ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.Retained;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.Retained;
-
-            if (WieldOnUse ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.WieldOnUse;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.WieldOnUse;
-
-            if (AutowieldLeft ?? false)
-                objectDescriptionFlag |= ObjectDescriptionFlag.WieldLeft;
-            else
-                objectDescriptionFlag &= ~ObjectDescriptionFlag.WieldLeft;
-
-            return objectDescriptionFlag;
-        }
-
-        // This likely could be removed later on after we have a better handle on whats appropriate for weenies/objects in db.
-        private void SetObjectDescriptionBools()
-        {
-            ObjectDescriptionFlag objectDescriptionFlag = DescriptionFlags;
-            // When we have more objects in place, likely we'll start from None then tack on more.
-            // PhysicsState physicsState = PhysicsState.None;
-            // for now, read in whats in database and lets see what is true
-            // ObjectDescriptionFlag objectDescriptionFlag = (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags;
-
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Stuck))
-                Stuck = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Attackable))
-                Attackable = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.PlayerKiller))
-                PkKiller = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.HiddenAdmin))
-                HiddenAdmin = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.UiHidden))
-                UiHidden = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Vendor))
-                VendorService = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions))
-                IgnoreHouseBarriers = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.RequiresPackSlot))
-                RequiresBackpackSlot = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.Retained))
-                Retained = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.WieldOnUse))
-                WieldOnUse = true;
-            if (objectDescriptionFlag.HasFlag(ObjectDescriptionFlag.WieldLeft))
-                AutowieldLeft = true;
-        }
-
-        public WeenieHeaderFlag SetWeenieHeaderFlag()
+      
+        private WeenieHeaderFlag SetWeenieHeaderFlag()
         {
             WeenieHeaderFlag weenieHeaderFlag = WeenieHeaderFlag.None;
             if (NamePlural != null)
@@ -1784,10 +1993,12 @@ namespace ACE.Entity
             if (MaterialType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaterialType;
 
+            SetWeenieHeaderFlag2();
+
             return weenieHeaderFlag;
         }
 
-        public WeenieHeaderFlag2 SetWeenieHeaderFlag2()
+        private WeenieHeaderFlag2 SetWeenieHeaderFlag2()
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
@@ -1812,10 +2023,6 @@ namespace ACE.Entity
 
             SerializeModelData(writer);
             Serialize(this, writer);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
-            if (WeenieFlags2 != WeenieHeaderFlag2.None)
-                DescriptionFlags |= ObjectDescriptionFlag.IncludesSecondHeader;
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
@@ -2088,7 +2295,7 @@ namespace ACE.Entity
             actionQueue.RunActions();
         }
 
-        public PhysicsDescriptionFlag SetPhysicsDescriptionFlag(WorldObject wo)
+        private PhysicsDescriptionFlag SetPhysicsDescriptionFlag()
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
@@ -2152,8 +2359,6 @@ namespace ACE.Entity
         // todo: return bytes of data for network write ? ?
         public void Serialize(WorldObject wo, BinaryWriter writer)
         {
-            PhysicsDescriptionFlag = SetPhysicsDescriptionFlag(wo);
-
             writer.Write((uint)PhysicsDescriptionFlag);
 
             writer.Write((uint)PhysicsState);

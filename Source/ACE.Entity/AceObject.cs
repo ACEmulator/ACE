@@ -93,7 +93,23 @@ namespace ACE.Entity
                 IsDirty = true;
             }
         }
-        
+
+        private uint _weenieHeaderFlags2 = 0;
+
+        /// <summary>
+        /// Table Field - Flags
+        /// </summary>
+        // [DbField("weenieHeaderFlags2", (int)MySqlDbType.UInt32)] // this field isn't stored in database
+        public uint WeenieHeaderFlags2
+        {
+            get { return _weenieHeaderFlags2; }
+            set
+            {
+                _weenieHeaderFlags2 = value;
+                IsDirty = true;
+            }
+        }
+
         private string _currentMotionState = null;
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]

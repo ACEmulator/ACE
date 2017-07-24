@@ -27,8 +27,6 @@ namespace ACE.Entity
         {
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
 
-            PhysicsState |= PhysicsState.HasPhysicsBsp | PhysicsState.ReportCollision;
-
             if (!DefaultOpen)
             {
                 CurrentMotionState = motionStateClosed;
@@ -252,7 +250,6 @@ namespace ACE.Entity
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionStateOpen;
-            PhysicsState |= PhysicsState.Ethereal;
             Ethereal = true;
             IsOpen = true;
             if (opener.Full > 0)
@@ -266,7 +263,6 @@ namespace ACE.Entity
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionStateClosed;
-            PhysicsState ^= PhysicsState.Ethereal;
             Ethereal = false;
             IsOpen = false;
             if (closer.Full > 0)

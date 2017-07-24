@@ -211,9 +211,9 @@ namespace ACE.Entity
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
-            // FIXME(ddevec): Once physics data is refactored this shouldn't be needed
+            Player = true;
+
             IgnoreCollision = true; Gravity = true; Hidden = true; EdgeSlide = true;
-            PhysicsDescriptionFlag = PhysicsDescriptionFlag.CSetup | PhysicsDescriptionFlag.MTable | PhysicsDescriptionFlag.STable | PhysicsDescriptionFlag.PeTable | PhysicsDescriptionFlag.Position | PhysicsDescriptionFlag.Movement;
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
@@ -1666,7 +1666,6 @@ namespace ACE.Entity
                 inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
-                item.SetPhysicsDescriptionFlag(item);
             }
             else
             {
@@ -1675,7 +1674,6 @@ namespace ACE.Entity
                 item.CurrentWieldedLocation = null;
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
-                item.SetPhysicsDescriptionFlag(item);
             }
 
             inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
@@ -2014,12 +2012,10 @@ namespace ACE.Entity
                             item.ParentLocation = 1;
                             item.CurrentWieldedLocation = (EquipMask)location;
                             item.Location = Location;
-                            item.SetPhysicsDescriptionFlag(item);
                         }
                         else
                         {
                             item.CurrentWieldedLocation = (EquipMask)location;
-                            item.SetPhysicsDescriptionFlag(item);
                         }
                         UpdateAppearance(container, itemId);
                         if ((EquipMask)location == EquipMask.MissileAmmo)

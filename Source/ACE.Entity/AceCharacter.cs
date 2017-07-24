@@ -20,13 +20,21 @@ namespace ACE.Entity
 
             // Required default properties for character login
             // FIXME(ddevec): Should we have constants for (some of) these things?
-            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Attackable);
+
+            AceObjectDescriptionFlags = (uint)(ObjectDescriptionFlag.Player | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable);            
+            SetBoolProperty(PropertyBool.Stuck, true);
+            SetBoolProperty(PropertyBool.Attackable, true);
+
             WeenieHeaderFlags = (uint)(WeenieHeaderFlag.ItemsCapacity | WeenieHeaderFlag.ContainersCapacity | WeenieHeaderFlag.Usable | WeenieHeaderFlag.RadarBehavior);
+            SetIntProperty(PropertyInt.ItemsCapacity, 102);
+            SetIntProperty(PropertyInt.ContainersCapacity, 7);           
+            SetIntProperty(PropertyInt.ItemUseable, (uint)Usable.No);
+            SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
+
             WeenieClassId = 1;
             SetDataIdProperty(PropertyDataId.Icon, 100667446);
             SetIntProperty(PropertyInt.ItemType, (uint)Enum.ItemType.Creature);
-            SetIntProperty(PropertyInt.ItemsCapacity, 102);
-            SetIntProperty(PropertyInt.ContainersCapacity, 7);
+            SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);
             SetBoolProperty(PropertyBool.IsDeleted, false);
             SetIntProperty(PropertyInt.TotalLogins, 0);
             SetInt64Property(PropertyInt64.DeleteTime, 0);
@@ -36,18 +44,11 @@ namespace ACE.Entity
 
             SetIntProperty(PropertyInt.EncumbranceVal, 0);
 
-            SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
-            SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);
-            SetIntProperty(PropertyInt.ItemUseable, (uint)Usable.No);
-
             SetBoolProperty(PropertyBool.FirstEnterWorldDone, false);
 
             SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
             SetIntProperty(PropertyInt.CreationTimestamp, (uint)GetDoubleProperty(PropertyDouble.CreationTimestamp));
             SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("dd MMMM yyyy")}");
-
-            SetBoolProperty(PropertyBool.Stuck, true);
-            SetBoolProperty(PropertyBool.Attackable, true);
 
             SetIntProperty(PropertyInt.CreatureType, (uint)CreatureType.Human);
             SetIntProperty(PropertyInt.ChannelsAllowed, (uint)Channel.AllChans);
