@@ -8,7 +8,10 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             session.Player.InWorld = true;
-            session.Player.SetPhysicsState(PhysicsState.ReportCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide);
+            session.Player.ReportCollision = true;
+            session.Player.IgnoreCollision = false;
+            session.Player.Hidden = false;
+            session.Player.EnqueueBroadcastPhysicsState();
         }
     }
 }

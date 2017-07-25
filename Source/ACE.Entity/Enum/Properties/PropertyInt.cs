@@ -404,6 +404,7 @@
         CharacterOptions1 = 9003,
         CharacterOptions2 = 9004,
         LootTier = 9005,
-        GeneratorProbability = 9006
+        GeneratorProbability = 9006,
+        WeenieType = 9007
     }
 }

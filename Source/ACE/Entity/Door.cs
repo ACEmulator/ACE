@@ -27,7 +27,10 @@ namespace ACE.Entity
         {
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
 
-            PhysicsState |= PhysicsState.HasPhysicsBsp | PhysicsState.ReportCollision;
+            // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
+            // PhysicsState = 0;
+            // ReportCollision = true;
+            // HasPhysicsBsp = true;
 
             if (!DefaultOpen)
             {
@@ -67,12 +70,6 @@ namespace ACE.Entity
                 LongDesc = weenie.LongDesc;
             if (AceObject.ShortDesc == null)
                 ShortDesc = weenie.ShortDesc;
-        }
-
-        private bool Ethereal
-        {
-            get;
-            set;
         }
 
         private bool IsOpen
@@ -258,7 +255,6 @@ namespace ACE.Entity
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionStateOpen;
-            PhysicsState |= PhysicsState.Ethereal;
             Ethereal = true;
             IsOpen = true;
             if (opener.Full > 0)
@@ -272,7 +268,6 @@ namespace ACE.Entity
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionStateClosed;
-            PhysicsState ^= PhysicsState.Ethereal;
             Ethereal = false;
             IsOpen = false;
             if (closer.Full > 0)

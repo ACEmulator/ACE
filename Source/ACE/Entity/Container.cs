@@ -123,7 +123,6 @@ namespace ACE.Entity
                     inventoryItem.WielderId = container.Guid.Full;
                     break;
             }
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()

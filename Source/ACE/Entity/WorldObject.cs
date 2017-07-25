@@ -168,11 +168,21 @@ namespace ACE.Entity
 
         public WeenieHeaderFlag WeenieFlags
         {
-            get { return (WeenieHeaderFlag)AceObject.WeenieHeaderFlags; }
+            get { return SetWeenieHeaderFlag(); }
             protected internal set { AceObject.WeenieHeaderFlags = (uint)value; }
         }
 
-        public WeenieHeaderFlag2 WeenieFlags2 { get; protected set; }
+        public WeenieHeaderFlag2 WeenieFlags2
+        {
+            get
+            {
+                WeenieHeaderFlag2 flags = SetWeenieHeaderFlag2();
+                if (flags != WeenieHeaderFlag2.None)
+                    IncludesSecondHeader = true;
+                return flags;
+            }
+            protected internal set { AceObject.WeenieHeaderFlags2 = (uint)value; }
+        }
 
         public UpdatePositionFlag PositionFlag { get; set; }
 
@@ -448,7 +458,11 @@ namespace ACE.Entity
             set { AceObject.SetupDID = value; }
         }
 
-        public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; set; }
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag
+        {
+            get { return SetPhysicsDescriptionFlag(); }
+            protected internal set { AceObject.PhysicsDescriptionFlag = (uint)SetPhysicsDescriptionFlag(); }
+        }
 
         public PhysicsState PhysicsState
         {
@@ -608,13 +622,777 @@ namespace ACE.Entity
             models.Clear();
         }
 
+        public bool? AdvocateState
+        {
+            get { return AceObject.AdvocateState; }
+            set { AceObject.AdvocateState = value; }
+        }
+
+        public bool? UnderLifestoneProtection
+        {
+            get { return AceObject.UnderLifestoneProtection; }
+            set { AceObject.UnderLifestoneProtection = value; }
+        }
+
+        public bool? DefaultOn
+        {
+            get { return AceObject.DefaultOn; }
+            set { AceObject.DefaultOn = value; }
+        }
+
+        public bool? AdvocateQuest
+        {
+            get { return AceObject.AdvocateQuest; }
+            set { AceObject.AdvocateQuest = value; }
+        }
+
+        public bool? IsAdvocate
+        {
+            get { return AceObject.IsAdvocate; }
+            set { AceObject.IsAdvocate = value; }
+        }
+
+        public bool? IsSentinel
+        {
+            get { return AceObject.IsSentinel; }
+            set { AceObject.IsSentinel = value; }
+        }
+
+        public bool? IgnorePortalRestrictions
+        {
+            get { return AceObject.IgnorePortalRestrictions; }
+            set { AceObject.IgnorePortalRestrictions = value; }
+        }
+
+        public bool? Invincible
+        {
+            get { return AceObject.Invincible; }
+            set { AceObject.Invincible = value; }
+        }
+
+        public bool? IsGagged
+        {
+            get { return AceObject.IsGagged; }
+            set { AceObject.IsGagged = value; }
+        }
+
+        public bool? Afk
+        {
+            get { return AceObject.Afk; }
+            set { AceObject.Afk = value; }
+        }
+
+        #region ObjectDescription Bools 
+        ////None                   = 0x00000000,
+        ////Openable               = 0x00000001,
+        public bool Openable
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Openable); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Openable;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Openable;
+                // AceObject.Openable = value;
+            }
+        }
+        ////Inscribable            = 0x00000002,
+        public bool Inscribable
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Inscribable); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Inscribable;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Inscribable;
+                AceObject.Inscribable = value;
+            }
+        }
+        ////Stuck                  = 0x00000004,
+        public bool Stuck
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Stuck); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Stuck;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Stuck;
+                AceObject.Stuck = value;
+            }
+        }
+        ////Player                 = 0x00000008,
+        public bool Player
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Player); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Player;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Player;
+                // AceObject.Player = value;
+            }
+        }
+        ////Attackable             = 0x00000010,
+        public bool Attackable
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Attackable); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Attackable;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Attackable;
+                AceObject.Attackable = value;
+            }
+        }
+        ////PlayerKiller           = 0x00000020,
+        public bool PlayerKiller
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PlayerKiller); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.PlayerKiller;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.PlayerKiller;
+                // AceObject.PlayerKiller = value;
+            }
+        }
+        ////HiddenAdmin            = 0x00000040,
+        public bool HiddenAdmin
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.HiddenAdmin); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.HiddenAdmin;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.HiddenAdmin;
+                AceObject.HiddenAdmin = value;
+            }
+        }
+        ////UiHidden               = 0x00000080,
+        public bool UiHidden
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.UiHidden); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.UiHidden;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
+                AceObject.UiHidden = value;
+            }
+        }
+        ////Book                   = 0x00000100,
+        public bool Book
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Book); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Book;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Book;
+                // AceObject.Book = value;
+            }
+        }
+        ////Vendor                 = 0x00000200,
+        public bool Vendor
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Vendor); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Vendor;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Vendor;
+                // AceObject.Vendor = value;
+            }
+        }
+        ////PkSwitch               = 0x00000400,
+        public bool PkSwitch
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkSwitch); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.PkSwitch;
+                // AceObject.PkSwitch = value;
+            }
+        }
+        ////NpkSwitch              = 0x00000800,
+        public bool NpkSwitch
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.NpkSwitch); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.NpkSwitch;
+                // AceObject.NpkSwitch = value;
+            }
+        }
+        ////Door                   = 0x00001000,
+        public bool Door
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Door); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Door;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Door;
+                // AceObject.Door = value;
+            }
+        }
+        ////Corpse                 = 0x00002000,
+        public bool Corpse
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Corpse); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Corpse;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Corpse;
+                // AceObject.Corpse = value;
+            }
+        }
+        ////LifeStone              = 0x00004000,
+        public bool LifeStone
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.LifeStone); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.LifeStone;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.LifeStone;
+                // AceObject.LifeStone = value;
+            }
+        }
+        ////Food                   = 0x00008000,
+        public bool Food
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Food); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Food;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Food;
+                // AceObject.Food = value;
+            }
+        }
+        ////Healer                 = 0x00010000,
+        public bool Healer
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Healer); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Healer;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Healer;
+                // AceObject.Healer = value;
+            }
+        }
+        ////Lockpick               = 0x00020000,
+        public bool Lockpick
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Lockpick); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Lockpick;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Lockpick;
+                // AceObject.Lockpick = value;
+            }
+        }
+        ////Portal                 = 0x00040000,
+        public bool Portal
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Portal); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Portal;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Portal;
+                // AceObject.Portal = value;
+            }
+        }
+        ////Admin                  = 0x00100000,
+        public bool Admin
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Admin); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Admin;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Admin;
+                // AceObject.Admin = value;
+            }
+        }
+        ////FreePkStatus           = 0x00200000,
+        public bool FreePkStatus
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.FreePkStatus); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.FreePkStatus;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.FreePkStatus;
+                // AceObject.FreePkStatus = value;
+            }
+        }
+        ////ImmuneCellRestrictions = 0x00400000,
+        public bool ImmuneCellRestrictions
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.ImmuneCellRestrictions;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
+                AceObject.IgnoreHouseBarriers = value;
+            }
+        }
+        ////RequiresPackSlot       = 0x00800000,
+        public bool RequiresPackSlot
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.RequiresPackSlot); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.RequiresPackSlot;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.RequiresPackSlot;
+                AceObject.RequiresBackpackSlot = value;
+            }
+        }
+        ////Retained               = 0x01000000,
+        public bool Retained
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Retained); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.Retained;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.Retained;
+                AceObject.Retained = value;
+            }
+        }
+        ////PkLiteStatus           = 0x02000000,
+        public bool PkLiteStatus
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkLiteStatus); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.PkLiteStatus;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.PkLiteStatus;
+                // AceObject.PkLiteStatus = value;
+            }
+        }
+        ////IncludesSecondHeader   = 0x04000000,
+        public bool IncludesSecondHeader
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.IncludesSecondHeader); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.IncludesSecondHeader;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.IncludesSecondHeader;
+                // AceObject.IncludesSecondHeader = value;
+            }
+        }
+        ////BindStone              = 0x08000000,
+        public bool BindStone
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.BindStone); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.BindStone;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.BindStone;
+                // AceObject.BindStone = value;
+            }
+        }
+        ////VolatileRare           = 0x10000000,
+        public bool VolatileRare
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.VolatileRare); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.VolatileRare;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.VolatileRare;
+                // AceObject.VolatileRare = value;
+            }
+        }
+        ////WieldOnUse             = 0x20000000,
+        public bool WieldOnUse
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldOnUse); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.WieldOnUse;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.WieldOnUse;
+                AceObject.WieldOnUse = value;
+            }
+        }
+        ////WieldLeft              = 0x40000000,
+        public bool WieldLeft
+        {
+            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldLeft); }
+            set
+            {
+                if (value == true)
+                    DescriptionFlags |= ObjectDescriptionFlag.WieldLeft;
+                else
+                    DescriptionFlags &= ~ObjectDescriptionFlag.WieldLeft;
+                AceObject.AutowieldLeft = value;
+            }
+        }
+        #endregion
+
+        #region PhysicsState Bools 
+        ////Static                      = 0x00000001,
+        public bool Static
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Static); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Static;
+                else
+                    PhysicsState &= ~PhysicsState.Static;
+                // AceObject.Static = value;
+            }
+        }
+        ////Unused1                     = 0x00000002,
+        ////Ethereal                    = 0x00000004,
+        public bool Ethereal
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Ethereal); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Ethereal;
+                else
+                    PhysicsState &= ~PhysicsState.Ethereal;
+                AceObject.Ethereal = value;
+            }
+        }
+        ////ReportCollision             = 0x00000008,
+        public bool ReportCollision
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ReportCollision); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ReportCollision;
+                else
+                    PhysicsState &= ~PhysicsState.ReportCollision;
+                AceObject.ReportCollisions = value;
+            }
+        }
+        ////IgnoreCollision             = 0x00000010,
+        public bool IgnoreCollision
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.IgnoreCollision); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.IgnoreCollision;
+                else
+                    PhysicsState &= ~PhysicsState.IgnoreCollision;
+                AceObject.IgnoreCollisions = value;
+            }
+        }
+        ////NoDraw                      = 0x00000020,
+        public bool NoDraw
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.NoDraw); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.NoDraw;
+                else
+                    PhysicsState &= ~PhysicsState.NoDraw;
+                AceObject.NoDraw = value;
+            }
+        }
+        ////Missile                     = 0x00000040,
+        public bool Missile
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Missile); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Missile;
+                else
+                    PhysicsState &= ~PhysicsState.Missile;
+                ////AceObject.Missile = value;
+            }
+        }
+        ////Pushable                    = 0x00000080,
+        public bool Pushable
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Pushable); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Pushable;
+                else
+                    PhysicsState &= ~PhysicsState.Pushable;
+                ////AceObject.AlignPath = value;
+            }
+        }
+        ////AlignPath                   = 0x00000100,
+        public bool AlignPath
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.AlignPath); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.AlignPath;
+                else
+                    PhysicsState &= ~PhysicsState.AlignPath;
+                ////AceObject.AlignPath = value;
+            }
+        }
+        ////PathClipped                 = 0x00000200,
+        public bool PathClipped
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.PathClipped); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.PathClipped;
+                else
+                    PhysicsState &= ~PhysicsState.PathClipped;
+                ////AceObject.PathClipped = value;
+            }
+        }
+        ////Gravity                     = 0x00000400,
+        public bool Gravity
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Gravity); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Gravity;
+                else
+                    PhysicsState &= ~PhysicsState.Gravity;
+                AceObject.GravityStatus = value;
+            }
+        }
+        ////LightingOn                  = 0x00000800,
+        public bool LightingOn
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.LightingOn); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.LightingOn;
+                else
+                    PhysicsState &= ~PhysicsState.LightingOn;
+                AceObject.LightsStatus = value;
+            }
+        }
+        ////ParticleEmitter             = 0x00001000,
+        public bool ParticleEmitter
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ParticleEmitter); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ParticleEmitter;
+                else
+                    PhysicsState &= ~PhysicsState.ParticleEmitter;
+                ////AceObject.HasPhysicsBsp = value;
+            }
+        }
+        ////Unused2                     = 0x00002000,
+        ////Hidden                      = 0x00004000,
+        public bool Hidden
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Hidden); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Hidden;
+                else
+                    PhysicsState &= ~PhysicsState.Hidden;
+                // AceObject.Hidden = value;
+            }
+        }
+        ////ScriptedCollision           = 0x00008000,
+        public bool ScriptedCollision
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ScriptedCollision); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ScriptedCollision;
+                else
+                    PhysicsState &= ~PhysicsState.ScriptedCollision;
+                AceObject.ScriptedCollision = value;
+            }
+        }
+        ////HasPhysicsBsp               = 0x00010000,
+        public bool HasPhysicsBsp
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.HasPhysicsBsp); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.HasPhysicsBsp;
+                else
+                    PhysicsState &= ~PhysicsState.HasPhysicsBsp;
+                ////AceObject.HasPhysicsBsp = value;
+            }
+        }
+        ////Inelastic                   = 0x00020000,
+        public bool Inelastic
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Inelastic); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Inelastic;
+                else
+                    PhysicsState &= ~PhysicsState.Inelastic;
+                AceObject.Inelastic = value;
+            }
+        }
+        ////HasDefaultAnim              = 0x00040000,
+        public bool HasDefaultAnim
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.HasDefaultAnim); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.HasDefaultAnim;
+                else
+                    PhysicsState &= ~PhysicsState.HasDefaultAnim;
+                ////AceObject.HasDefaultAnim = value;
+            }
+        }
+        ////HasDefaultScript            = 0x00080000,
+        public bool HasDefaultScript
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.HasDefaultScript); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.HasDefaultScript;
+                else
+                    PhysicsState &= ~PhysicsState.HasDefaultScript;
+                ////AceObject.HasDefaultScript = value;
+            }
+        }
+        ////Cloaked                     = 0x00100000,
+        public bool Cloaked
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Cloaked); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Cloaked;
+                else
+                    PhysicsState &= ~PhysicsState.Cloaked;
+                ////AceObject.Cloaked = value;
+            }
+        }
+        ////ReportCollisionAsEnviroment = 0x00200000,
+        public bool ReportCollisionAsEnviroment
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.ReportCollisionAsEnviroment;
+                else
+                    PhysicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
+                AceObject.ReportCollisionsAsEnvironment = value;
+            }
+        }
+        ////EdgeSlide                   = 0x00400000,
+        public bool EdgeSlide
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.EdgeSlide); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.EdgeSlide;
+                else
+                    PhysicsState &= ~PhysicsState.EdgeSlide;
+                AceObject.AllowEdgeSlide = value;
+            }
+        }
+        ////Sledding                    = 0x00800000,
+        public bool Sledding
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Sledding); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Sledding;
+                else
+                    PhysicsState &= ~PhysicsState.Sledding;
+                ////AceObject.Sledding = value;
+            }
+        }
+        ////Frozen                      = 0x01000000,
+        public bool Frozen
+        {
+            get { return PhysicsState.HasFlag(PhysicsState.Frozen); }
+            set
+            {
+                if (value == true)
+                    PhysicsState |= PhysicsState.Frozen;
+                else
+                    PhysicsState &= ~PhysicsState.Frozen;
+                AceObject.IsFrozen = value;
+            }
+        }
+
+        ////public bool? Visibility
+        ////{
+        ////    get { return AceObject.Visibility; }
+        ////    set { AceObject.Visibility = value; }
+        ////}
+        #endregion
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
         {
             AceObject = new AceObject();
             AceObject.AceObjectId = guid.Full;
-            Guid = guid;
+            Guid = guid;            
 
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
@@ -633,14 +1411,15 @@ namespace ACE.Entity
                 : this(new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
+
+            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
+            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
             else
                 CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            SetPhysicsDescriptionFlag(this);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
 
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
@@ -652,14 +1431,15 @@ namespace ACE.Entity
         {
             Guid = guid;
             AceObject = aceObject;
+
+            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
+            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
             else
                 CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            SetPhysicsDescriptionFlag(this);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
 
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
@@ -674,7 +1454,6 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQy
                                          | UpdatePositionFlag.ZeroQx;
 
-            inventoryItem.PhysicsDescriptionFlag = inventoryItem.SetPhysicsDescriptionFlag(inventoryItem);
             inventoryItem.ContainerId = null;
             inventoryItem.WielderId = null;
             inventoryItem.AnimationFrame = 0x65;
@@ -685,10 +1464,8 @@ namespace ACE.Entity
         {
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PhysicsDescriptionFlag &= ~PhysicsDescriptionFlag.Position;
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.Location = null;
-            inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag();
         }
 
         public void Examine(Session examiner)
@@ -705,7 +1482,7 @@ namespace ACE.Entity
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {            
+        {
             // Excluding some times that are sent later as weapon status Og II
             var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
                                                           && x.PropertyId != (uint)PropertyInt.Damage
@@ -866,7 +1643,7 @@ namespace ACE.Entity
                     case "radarbehavior":
                         debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
                         break;
-                    case "physicsdescriptionflags":
+                    case "physicsdescriptionflag":
                         debugOutput += $"{prop.Name} = {obj.PhysicsDescriptionFlag.ToString()}" + " (" + (uint)obj.PhysicsDescriptionFlag + ")" + "\n";
                         break;
                     case "physicsstate":
@@ -1108,7 +1885,36 @@ namespace ACE.Entity
             SerializeCreateObject(writer);
         }
 
-        public WeenieHeaderFlag SetWeenieHeaderFlag()
+        // This fully replaces the PhysicsState of the WO, use sparingly?
+        public void SetPhysicsState(PhysicsState state, bool packet = true)
+        {
+            PhysicsState = state;
+
+            if (packet)
+            {
+                EnqueueBroadcastPhysicsState();
+            }
+        }
+
+        public void EnqueueBroadcastPhysicsState()
+        {
+            if (CurrentLandblock != null)
+            {
+                GameMessage msg = new GameMessageSetState(this, PhysicsState);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            }
+        }
+
+        public void EnqueueBroadcastUpdateObject()
+        {
+            if (CurrentLandblock != null)
+            {
+                GameMessage msg = new GameMessageUpdateObject(this);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            }
+        }
+
+        private WeenieHeaderFlag SetWeenieHeaderFlag()
         {
             WeenieHeaderFlag weenieHeaderFlag = WeenieHeaderFlag.None;
             if (NamePlural != null)
@@ -1208,10 +2014,12 @@ namespace ACE.Entity
             if (MaterialType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaterialType;
 
+            SetWeenieHeaderFlag2();
+
             return weenieHeaderFlag;
         }
 
-        public WeenieHeaderFlag2 SetWeenieHeaderFlag2()
+        private WeenieHeaderFlag2 SetWeenieHeaderFlag2()
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
@@ -1235,11 +2043,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             SerializeModelData(writer);
-            Serialize(this, writer);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
-            if (WeenieFlags2 != WeenieHeaderFlag2.None)
-                DescriptionFlags |= ObjectDescriptionFlag.IncludesSecondHeader;
+            SerializePhysicsData(this, writer);
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
@@ -1512,7 +2316,7 @@ namespace ACE.Entity
             actionQueue.RunActions();
         }
 
-        public PhysicsDescriptionFlag SetPhysicsDescriptionFlag(WorldObject wo)
+        private PhysicsDescriptionFlag SetPhysicsDescriptionFlag()
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
@@ -1574,10 +2378,8 @@ namespace ACE.Entity
             return physicsDescriptionFlag;
         }
         // todo: return bytes of data for network write ? ?
-        public void Serialize(WorldObject wo, BinaryWriter writer)
+        public void SerializePhysicsData(WorldObject wo, BinaryWriter writer)
         {
-            PhysicsDescriptionFlag = SetPhysicsDescriptionFlag(wo);
-
             writer.Write((uint)PhysicsDescriptionFlag);
 
             writer.Write((uint)PhysicsState);
@@ -1685,6 +2487,179 @@ namespace ACE.Entity
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
 
             writer.Align();
+        }
+
+        private void RecallAndSetObjectDescriptionBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+            ////None                   = 0x00000000,
+            ////Openable               = 0x00000001,
+            // if (AceObject.Openable ?? false)
+            //    Openable = true;
+            ////Inscribable            = 0x00000002,
+            if (AceObject.Inscribable ?? false)
+                Inscribable = true;
+            ////Stuck                  = 0x00000004,
+            if (AceObject.Stuck ?? false)
+                Stuck = true;
+            ////Player                 = 0x00000008,
+            // if (AceObject.Player ?? false)
+            //    Player = true;
+            ////Attackable             = 0x00000010,
+            if (AceObject.Attackable ?? false)
+                Attackable = true;
+            ////PlayerKiller           = 0x00000020,
+            // if (AceObject.PlayerKiller ?? false)
+            //    PlayerKiller = true;
+            ////HiddenAdmin            = 0x00000040,
+            if (AceObject.HiddenAdmin ?? false)
+                HiddenAdmin = true;
+            ////UiHidden               = 0x00000080,
+            if (AceObject.UiHidden ?? false)
+                UiHidden = true;
+            ////Book                   = 0x00000100,
+            // if (AceObject.Book ?? false)
+            //    Book = true;
+            ////Vendor                 = 0x00000200,
+            // if (AceObject.Vendor ?? false)
+            //    Vendor = true;
+            ////PkSwitch               = 0x00000400,
+            // if (AceObject.PkSwitch ?? false)
+            //    PkSwitch = true;
+            ////NpkSwitch              = 0x00000800,
+            // if (AceObject.NpkSwitch ?? false)
+            //    NpkSwitch = true;
+            ////Door                   = 0x00001000,
+            // if (AceObject.Door ?? false)
+            //    Door = true;
+            ////Corpse                 = 0x00002000,
+            // if (AceObject.Corpse ?? false)
+            //    Corpse = true;
+            ////LifeStone              = 0x00004000,
+            // if (AceObject.LifeStone ?? false)
+            //    LifeStone = true;
+            ////Food                   = 0x00008000,
+            // if (AceObject.Food ?? false)
+            //    Food = true;
+            ////Healer                 = 0x00010000,
+            // if (AceObject.Healer ?? false)
+            //    Healer = true;
+            ////Lockpick               = 0x00020000,
+            // if (AceObject.Lockpick ?? false)
+            //    Lockpick = true;
+            ////Portal                 = 0x00040000,
+            // if (AceObject.Portal ?? false)
+            //    Portal = true;
+            ////Admin                  = 0x00100000,
+            // if (AceObject.Admin ?? false)
+            //    Admin = true;
+            ////FreePkStatus           = 0x00200000,
+            // if (AceObject.FreePkStatus ?? false)
+            //    FreePkStatus = true;
+            ////ImmuneCellRestrictions = 0x00400000,
+            if (AceObject.IgnoreHouseBarriers ?? false)
+                ImmuneCellRestrictions = true;
+            ////RequiresPackSlot       = 0x00800000,
+            if (AceObject.RequiresBackpackSlot ?? false)
+                RequiresPackSlot = true;
+            ////Retained               = 0x01000000,
+            if (AceObject.Retained ?? false)
+                Retained = true;
+            ////PkLiteStatus           = 0x02000000,
+            // if (AceObject.PkLiteStatus ?? false)
+            //    PkLiteStatus = true;
+            ////IncludesSecondHeader   = 0x04000000,
+            // if (AceObject.IncludesSecondHeader ?? false)
+            //    IncludesSecondHeader = true;
+            ////BindStone              = 0x08000000,
+            // if (AceObject.BindStone ?? false)
+            //    BindStone = true;
+            ////VolatileRare           = 0x10000000,
+            // if (AceObject.VolatileRare ?? false)
+            //    VolatileRare = true;
+            ////WieldOnUse             = 0x20000000,
+            if (AceObject.WieldOnUse ?? false)
+                WieldOnUse = true;
+            ////WieldLeft              = 0x40000000,
+            if (AceObject.AutowieldLeft ?? false)
+                WieldLeft = true;
+        }
+
+        private void RecallAndSetPhysicsStateBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+
+            ////Static                      = 0x00000001,
+            // if (AceObject.Static ?? false)
+            //    Static = true;
+            ////Unused1                     = 0x00000002,
+            ////Ethereal                    = 0x00000004,
+            if (AceObject.Ethereal ?? false)
+                Ethereal = true;
+            ////ReportCollision             = 0x00000008,
+            if (AceObject.ReportCollisions ?? false)
+                ReportCollision = true;
+            ////IgnoreCollision             = 0x00000010,
+            if (AceObject.IgnoreCollisions ?? false)
+                IgnoreCollision = true;
+            ////NoDraw                      = 0x00000020,
+            if (AceObject.NoDraw ?? false)
+                NoDraw = true;
+            ////Missile                     = 0x00000040,
+            // if (AceObject.Missile ?? false)
+            //    Missile = true;
+            ////Pushable                    = 0x00000080,
+            // if (AceObject.Pushable ?? false)
+            //    Pushable = true;
+            ////AlignPath                   = 0x00000100,
+            // if (AceObject.AlignPath ?? false)
+            //    AlignPath = true;
+            ////PathClipped                 = 0x00000200,
+            // if (AceObject.PathClipped ?? false)
+            //    PathClipped = true;
+            ////Gravity                     = 0x00000400,
+            if (AceObject.GravityStatus ?? false)
+                Gravity = true;
+            ////LightingOn                  = 0x00000800,
+            if (AceObject.LightsStatus ?? false)
+                LightingOn = true;
+            ////ParticleEmitter             = 0x00001000,
+            // if (AceObject.ParticleEmitter ?? false)
+            //    ParticleEmitter = true;
+            ////Unused2                     = 0x00002000,
+            ////Hidden                      = 0x00004000,
+            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
+            //    Hidden = true;
+            ////ScriptedCollision           = 0x00008000,
+            if (AceObject.ScriptedCollision ?? false)
+                ScriptedCollision = true;
+            ////HasPhysicsBsp               = 0x00010000,
+            // if (AceObject.HasPhysicsBsp ?? false)
+            //    HasPhysicsBsp = true;
+            ////Inelastic                   = 0x00020000,
+            if (AceObject.Inelastic ?? false)
+                Inelastic = true;
+            ////HasDefaultAnim              = 0x00040000,
+            // if (AceObject.HasDefaultAnim ?? false)
+            //    HasDefaultAnim = true;
+            ////HasDefaultScript            = 0x00080000,
+            // if (AceObject.HasDefaultScript ?? false) // Probably based on PhysicsDescriptionFlag
+            //    HasDefaultScript = true;
+            ////Cloaked                     = 0x00100000,
+            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
+            //    Cloaked = true;
+            ////ReportCollisionAsEnviroment = 0x00200000,
+            if (AceObject.ReportCollisionsAsEnvironment ?? false)
+                ReportCollisionAsEnviroment = true;
+            ////EdgeSlide                   = 0x00400000,
+            if (AceObject.AllowEdgeSlide ?? false)
+                EdgeSlide = true;
+            ////Sledding                    = 0x00800000,
+            // if (AceObject.Sledding ?? false)
+            //    Sledding = true;
+            ////Frozen                      = 0x01000000,
+            if (AceObject.IsFrozen ?? false)
+                Frozen = true;            
         }
     }
 }
