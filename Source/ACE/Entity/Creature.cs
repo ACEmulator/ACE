@@ -81,10 +81,6 @@ namespace ACE.Entity
             get { return AceObject.Mana; }
             set { AceObject.Mana = value; }
         }
-        public List<AceObjectPropertiesSpell> KnownSpells
-        {
-            get { return AceObject.SpellIdProperties; }          
-        }
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
@@ -165,7 +161,6 @@ namespace ACE.Entity
                 despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
                 despawnChain.EnqueueChain();
             });
-
             return createCorpseChain;
         }
 
@@ -507,7 +502,7 @@ namespace ACE.Entity
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
             flags |= IdentifyResponseFlags.CreatureProfile;
-            
+
             base.SerializeIdentifyObjectResponse(writer, success, flags);
 
             // TODO: There are probably other checks that need to be made here

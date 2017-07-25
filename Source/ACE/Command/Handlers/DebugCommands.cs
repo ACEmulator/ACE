@@ -767,6 +767,7 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Debug command to learn a spell.
         /// </summary>
+        /// <param name="session">Pass the current player session.</param>
         /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
         [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
@@ -776,46 +777,12 @@ namespace ACE.Command.Handlers
             if (parameters?.Length > 0)
             {
                 uint spellId = (uint)int.Parse(parameters[0]);
-
-                SpellTable spells = SpellTable.ReadFromDat();
-
-                var creatureLevel7Spells = spells.Spells.Where(x => x.Value.School == MagicSchool.CreatureEnchantment && x.Value.Power == 7);
-                foreach (var x in creatureLevel7Spells)
-                {
-                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, x.Key);
-                    session.Network.EnqueueSend(updateSpellEvent);
-
-                    string spellName = x.Value.Name;
-                    // TODO Lookup the spell in the spell table.
-                    string message = "You learn the " + spellName + " spell.\n";
-                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(learnMessage);
-                    System.Threading.Thread.Sleep(250);
-                }
-                if (!spells.Spells.ContainsKey(spellId))
-                {
-                    var errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(errorMessage);
-                }
-                else
-                {
-                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, spellId);
-                    session.Network.EnqueueSend(updateSpellEvent);
-
-                    // Always seems to be this SkillUpPurple effect
-                    session.Player.HandleActionApplyVisualEffect(PlayScript.SkillUpPurple);
-
-                    string spellName = spells.Spells[spellId].Name;
-                    // TODO Lookup the spell in the spell table.
-                    string message = "You learn the " + spellName + " spell.\n";
-                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(learnMessage);
-                }
+                session.Player.HandleLearnSpell(spellId);
             }
             else
             {
-                string message = "Invalid Syntax\n";
-                var errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                const string message = "Invalid Syntax\n";
+                GameMessageSystemChat errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(errorMessage);
             }
         }

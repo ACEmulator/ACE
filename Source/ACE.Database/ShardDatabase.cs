@@ -72,6 +72,7 @@ namespace ACE.Database
             DeleteAceObjectPropertiesAttributes = 119,
             DeleteAceObjectPropertiesAttributes2nd = 120,
             DeleteAceObjectPropertiesSkills = 121,
+            DeleteAceObjectPropertiesSpell = 158,
             InsertPaletteOverridesByObject = 122,
             InsertAnimationOverridesByObject = 123,
             InsertTextureOverridesByObject = 124,
@@ -86,6 +87,8 @@ namespace ACE.Database
             InsertAceObjectPropertiesAttributes = 133,
             InsertAceObjectPropertiesAttributes2nd = 134,
             InsertAceObjectPropertiesSkills = 135,
+            InsertAceObjectPropertiesSpells = 159,
+
             // note, this section is all "Property" singular
             UpdateAceObjectPropertyInt = 136,
             UpdateAceObjectPropertyBigInt = 137,
@@ -175,6 +178,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeletePaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.DeleteList);
 
             // Insert statements
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.InsertList);
@@ -191,6 +195,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesSpells, typeof(AceObjectPropertiesSpell), ConstructedStatementType.InsertList);
             // Updates
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.Update);
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.Update);
@@ -608,6 +613,9 @@ namespace ACE.Database
             DeleteAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
             SaveAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
 
+            DeleteAceObjectPropertiesSpells(transaction, aceObject.AceObjectId);
+            SaveAceObjectPropertiesSpells(transaction, aceObject.AceObjectId, aceObject.SpellIdProperties);
+
             DeleteAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
             SaveAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
 
@@ -859,6 +867,12 @@ namespace ACE.Database
             return true;
         }
 
+        private bool SaveAceObjectPropertiesSpells(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesSpell> properties)
+        {
+            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.InsertAceObjectPropertiesSpells, properties);
+            return true;
+        }
+
         private bool SaveAceObjectPalettes(DatabaseTransaction transaction, uint aceObjectId, List<PaletteOverride> properties)
         {
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.InsertPaletteOverridesByObject, properties);
@@ -973,6 +987,13 @@ namespace ACE.Database
         {
             var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.DeleteAceObjectPropertiesInt, critera);
+            return true;
+        }
+
+        private bool DeleteAceObjectPropertiesSpells(DatabaseTransaction transaction, uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.DeleteAceObjectPropertiesSpell, criteria);
             return true;
         }
 

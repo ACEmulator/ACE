@@ -11,15 +11,12 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Managers;
-using ACE.Network.Enum;
 using log4net;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
-using System.IO;
 using System.Diagnostics;
-using ACE.Command;
 
 namespace ACE.Entity
 {
@@ -133,6 +130,67 @@ namespace ACE.Entity
             }
         }
 
+        public bool UnknowSpell(uint spellId)
+        {
+            return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
+        }
+
+        public void HandleMagicRemoveSpellId(uint spellId)
+        {
+            if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
+            {
+                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                return;
+            }
+            ActionChain unlearnSpellChain = new ActionChain();
+            unlearnSpellChain.AddAction(
+               this,
+               () =>
+                   {
+                       AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
+                       GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+                       Session.Network.EnqueueSend(removeSpellEvent);
+                   });
+            unlearnSpellChain.EnqueueChain();
+        }
+
+        public void HandleLearnSpell(uint spellId)
+        {
+            ActionChain learnSpellChain = new ActionChain();
+            SpellTable spells = SpellTable.ReadFromDat();
+            if (!spells.Spells.ContainsKey(spellId))
+            {
+                GameMessageSystemChat errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(errorMessage);
+                return;
+            }
+            learnSpellChain.AddAction(this,
+                () =>
+                {
+                    if (!UnknowSpell(spellId))
+                    {
+                        GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
+                        Session.Network.EnqueueSend(errorMessage);
+                        return;
+                    }
+                    AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell();
+                    newSpell.AceObjectId = this.Guid.Full;
+                    newSpell.SpellId = spellId;
+                    AceObject.SpellIdProperties.Add(newSpell);
+                    GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
+                    Session.Network.EnqueueSend(updateSpellEvent);
+
+                    // Always seems to be this SkillUpPurple effect
+                    Session.Player.HandleActionApplyVisualEffect(Enum.PlayScript.SkillUpPurple);
+
+                    string spellName = spells.Spells[spellId].Name;
+                    string message = "You learn the " + spellName + " spell.\n";
+                    GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                    Session.Network.EnqueueSend(learnMessage);
+                });
+            learnSpellChain.EnqueueChain();
+        }
+
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
             get { return Character.CharacterOptions; }
@@ -239,7 +297,7 @@ namespace ACE.Entity
 
         public uint CreationTimestamp
         { get { return (uint)Character.CreationTimestamp; } }
-        
+
         public AceObject GetAceObject()
         {
             return Character;
