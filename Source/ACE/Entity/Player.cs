@@ -130,7 +130,7 @@ namespace ACE.Entity
             }
         }
 
-        public bool UnknowSpell(uint spellId)
+        public bool UnknownSpell(uint spellId)
         {
             return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
         }
@@ -167,7 +167,7 @@ namespace ACE.Entity
             learnSpellChain.AddAction(this,
                 () =>
                 {
-                    if (!UnknowSpell(spellId))
+                    if (!UnknownSpell(spellId))
                     {
                         GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
                         Session.Network.EnqueueSend(errorMessage);
