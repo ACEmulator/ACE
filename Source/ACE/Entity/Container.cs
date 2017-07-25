@@ -14,6 +14,10 @@ namespace ACE.Entity
 
         public override ushort? Burden
         {
+            // FIXME : this is a temp fix, it works, but we need to refactor burden correctly.   It should only be
+            // persisted when burden is actually changed ie via application of salvage.   All burden for containers should be a sum of
+            // burden.  For example a pack is 65 bu.   It should always be 65 bu empty or full.   However we should report burden as below calculation
+            // base burden + burden of contents as calculation. Og II
             get { return (ushort?)(base.Burden  + UpdateBurden()) ?? (ushort?)0; }
         }
 
