@@ -1414,6 +1414,8 @@ namespace ACE.Entity
 
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
+            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
             else
@@ -1431,6 +1433,8 @@ namespace ACE.Entity
             AceObject = aceObject;
 
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
+            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
 
             if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
                 CurrentMotionState = null;
@@ -2577,6 +2581,83 @@ namespace ACE.Entity
             ////WieldLeft              = 0x40000000,
             if (AceObject.AutowieldLeft ?? false)
                 WieldLeft = true;
+        }
+
+        private void RecallAndSetPhysicsStateBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+
+            ////Static                      = 0x00000001,
+            // if (AceObject.Static ?? false)
+            //    Static = true;
+            ////Unused1                     = 0x00000002,
+            ////Ethereal                    = 0x00000004,
+            if (AceObject.Ethereal ?? false)
+                Ethereal = true;
+            ////ReportCollision             = 0x00000008,
+            if (AceObject.ReportCollisions ?? false)
+                ReportCollision = true;
+            ////IgnoreCollision             = 0x00000010,
+            if (AceObject.IgnoreCollisions ?? false)
+                IgnoreCollision = true;
+            ////NoDraw                      = 0x00000020,
+            if (AceObject.NoDraw ?? false)
+                NoDraw = true;
+            ////Missile                     = 0x00000040,
+            // if (AceObject.Missile ?? false)
+            //    Missile = true;
+            ////Pushable                    = 0x00000080,
+            // if (AceObject.Pushable ?? false)
+            //    Pushable = true;
+            ////AlignPath                   = 0x00000100,
+            // if (AceObject.AlignPath ?? false)
+            //    AlignPath = true;
+            ////PathClipped                 = 0x00000200,
+            // if (AceObject.PathClipped ?? false)
+            //    PathClipped = true;
+            ////Gravity                     = 0x00000400,
+            if (AceObject.GravityStatus ?? false)
+                Gravity = true;
+            ////LightingOn                  = 0x00000800,
+            if (AceObject.LightsStatus ?? false)
+                LightingOn = true;
+            ////ParticleEmitter             = 0x00001000,
+            // if (AceObject.ParticleEmitter ?? false)
+            //    ParticleEmitter = true;
+            ////Unused2                     = 0x00002000,
+            ////Hidden                      = 0x00004000,
+            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
+            //    Hidden = true;
+            ////ScriptedCollision           = 0x00008000,
+            if (AceObject.ScriptedCollision ?? false)
+                ScriptedCollision = true;
+            ////HasPhysicsBsp               = 0x00010000,
+            // if (AceObject.HasPhysicsBsp ?? false)
+            //    HasPhysicsBsp = true;
+            ////Inelastic                   = 0x00020000,
+            if (AceObject.Inelastic ?? false)
+                Inelastic = true;
+            ////HasDefaultAnim              = 0x00040000,
+            // if (AceObject.HasDefaultAnim ?? false)
+            //    HasDefaultAnim = true;
+            ////HasDefaultScript            = 0x00080000,
+            // if (AceObject.HasDefaultScript ?? false) // Probably based on PhysicsDescriptionFlag
+            //    HasDefaultScript = true;
+            ////Cloaked                     = 0x00100000,
+            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
+            //    Cloaked = true;
+            ////ReportCollisionAsEnviroment = 0x00200000,
+            if (AceObject.ReportCollisionsAsEnvironment ?? false)
+                ReportCollisionAsEnviroment = true;
+            ////EdgeSlide                   = 0x00400000,
+            if (AceObject.AllowEdgeSlide ?? false)
+                EdgeSlide = true;
+            ////Sledding                    = 0x00800000,
+            // if (AceObject.Sledding ?? false)
+            //    Sledding = true;
+            ////Frozen                      = 0x01000000,
+            if (AceObject.IsFrozen ?? false)
+                Frozen = true;            
         }
     }
 }
