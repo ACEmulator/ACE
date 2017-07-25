@@ -49,7 +49,10 @@ namespace ACE.Network.Handlers
 
             if (WorldManager.Find(account.Name) != null)
             {
-                session.SendCharacterError(CharacterError.AccountInUse);
+                var foundSession = WorldManager.Find(account.Name);
+
+                if (foundSession.State == SessionState.AuthConnected)
+                    session.SendCharacterError(CharacterError.AccountInUse);
                 return;
             }
 
@@ -73,10 +76,11 @@ namespace ACE.Network.Handlers
                 session.UpdateCachedCharacters(result);
 
                 GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-                session.Network.EnqueueSend(characterListMessage, serverNameMessage, dddInterrogation);
+                session.Network.EnqueueSend(characterListMessage, serverNameMessage);
+                session.Network.EnqueueSend(dddInterrogation);
 
                 session.State = SessionState.AuthConnected;
             }));

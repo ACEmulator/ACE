@@ -12,26 +12,13 @@ namespace ACE.Entity
         public Generator(ObjectGuid guid, AceObject baseAceObject)
             : base(guid, baseAceObject)
         {
-            DescriptionFlags = ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.HiddenAdmin;
-            PhysicsState = PhysicsState.IgnoreCollision | PhysicsState.Hidden | PhysicsState.Ethereal;
+            DescriptionFlags = ObjectDescriptionFlag.None;
+            Stuck = true; Attackable = true; HiddenAdmin = true;
+            IgnoreCollision = true; Hidden = true; Ethereal = true;
             RadarBehavior = Enum.RadarBehavior.ShowNever;
             RadarColor = Enum.RadarColor.Admin;
             Usable = Enum.Usable.No;
-
-            SetPhysicsDescriptionFlag(this);
-            WeenieFlags = SetWeenieHeaderFlag();
-            WeenieFlags2 = SetWeenieHeaderFlag2();
         }
-
-        ////public Generator(AceObject aceO)
-        ////    : this(new ObjectGuid(aceO.AceObjectId), aceO)
-        ////{
-        ////    // FIXME(ddevec): These should be inhereted from aceO, not copied
-        ////    Location = aceO.Location;
-        ////    Debug.Assert(aceO.Location != null, "Trying to create DebugObject with null location");
-        ////    WeenieClassId = aceO.WeenieClassId;
-        ////    GameDataType = aceO.Type;
-        ////}
 
         public bool GeneratorStatus
         {

@@ -93,7 +93,23 @@ namespace ACE.Entity
                 IsDirty = true;
             }
         }
-        
+
+        private uint _weenieHeaderFlags2 = 0;
+
+        /// <summary>
+        /// Table Field - Flags
+        /// </summary>
+        // [DbField("weenieHeaderFlags2", (int)MySqlDbType.UInt32)] // this field isn't stored in database
+        public uint WeenieHeaderFlags2
+        {
+            get { return _weenieHeaderFlags2; }
+            set
+            {
+                _weenieHeaderFlags2 = value;
+                IsDirty = true;
+            }
+        }
+
         private string _currentMotionState = null;
 
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
@@ -983,6 +999,210 @@ namespace ACE.Entity
         {
             get { return GetDoubleProperty(PropertyDouble.CreationTimestamp); }
             set { SetDoubleTimestamp(PropertyDouble.CreationTimestamp); }
+        }
+
+        public bool? Stuck
+        {
+            get { return GetBoolProperty(PropertyBool.Stuck); }
+            set { SetBoolProperty(PropertyBool.Stuck, value); }
+        }
+
+        public bool? IgnoreCollisions
+        {
+            get { return GetBoolProperty(PropertyBool.IgnoreCollisions); }
+            set { SetBoolProperty(PropertyBool.IgnoreCollisions, value); }
+        }
+
+        public bool? ReportCollisions
+        {
+            get { return GetBoolProperty(PropertyBool.ReportCollisions); }
+            set { SetBoolProperty(PropertyBool.ReportCollisions, value); }
+        }
+
+        public bool? GravityStatus
+        {
+            get { return GetBoolProperty(PropertyBool.GravityStatus); }
+            set { SetBoolProperty(PropertyBool.GravityStatus, value); }
+        }
+
+        public bool? LightsStatus
+        {
+            get { return GetBoolProperty(PropertyBool.LightsStatus); }
+            set { SetBoolProperty(PropertyBool.LightsStatus, value); }
+        }
+
+        public bool? ScriptedCollision
+        {
+            get { return GetBoolProperty(PropertyBool.ScriptedCollision); }
+            set { SetBoolProperty(PropertyBool.ScriptedCollision, value); }
+        }
+
+        public bool? Inelastic
+        {
+            get { return GetBoolProperty(PropertyBool.Inelastic); }
+            set { SetBoolProperty(PropertyBool.Inelastic, value); }
+        }
+
+        public bool? Visibility
+        {
+            get { return GetBoolProperty(PropertyBool.Visibility); }
+            set { SetBoolProperty(PropertyBool.Visibility, value); }
+        }
+
+        public bool? Attackable
+        {
+            get { return GetBoolProperty(PropertyBool.Attackable); }
+            set { SetBoolProperty(PropertyBool.Attackable, value); }
+        }
+
+        public bool? AdvocateState
+        {
+            get { return GetBoolProperty(PropertyBool.AdvocateState); }
+            set { SetBoolProperty(PropertyBool.AdvocateState, value); }
+        }
+
+        public bool? Inscribable
+        {
+            get { return GetBoolProperty(PropertyBool.Inscribable); }
+            set { SetBoolProperty(PropertyBool.Inscribable, value); }
+        }
+
+        public bool? UiHidden
+        {
+            get { return GetBoolProperty(PropertyBool.UiHidden); }
+            set { SetBoolProperty(PropertyBool.UiHidden, value); }
+        }
+
+        public bool? IgnoreHouseBarriers
+        {
+            get { return GetBoolProperty(PropertyBool.IgnoreHouseBarriers); }
+            set { SetBoolProperty(PropertyBool.IgnoreHouseBarriers, value); }
+        }
+
+        public bool? HiddenAdmin
+        {
+            get { return GetBoolProperty(PropertyBool.HiddenAdmin); }
+            set { SetBoolProperty(PropertyBool.HiddenAdmin, value); }
+        }
+
+        public bool? PkWounder
+        {
+            get { return GetBoolProperty(PropertyBool.PkWounder); }
+            set { SetBoolProperty(PropertyBool.PkWounder, value); }
+        }
+
+        public bool? PkKiller
+        {
+            get { return GetBoolProperty(PropertyBool.PkKiller); }
+            set { SetBoolProperty(PropertyBool.PkKiller, value); }
+        }
+
+        public bool? UnderLifestoneProtection
+        {
+            get { return GetBoolProperty(PropertyBool.UnderLifestoneProtection); }
+            set { SetBoolProperty(PropertyBool.UnderLifestoneProtection, value); }
+        }
+
+        public bool? DefaultOn
+        {
+            get { return GetBoolProperty(PropertyBool.DefaultOn); }
+            set { SetBoolProperty(PropertyBool.DefaultOn, value); }
+        }
+
+        public bool? IsFrozen
+        {
+            get { return GetBoolProperty(PropertyBool.IsFrozen); }
+            set { SetBoolProperty(PropertyBool.IsFrozen, value); }
+        }
+
+        public bool? ReportCollisionsAsEnvironment
+        {
+            get { return GetBoolProperty(PropertyBool.ReportCollisionsAsEnvironment); }
+            set { SetBoolProperty(PropertyBool.ReportCollisionsAsEnvironment, value); }
+        }
+
+        public bool? AllowEdgeSlide
+        {
+            get { return GetBoolProperty(PropertyBool.AllowEdgeSlide); }
+            set { SetBoolProperty(PropertyBool.AllowEdgeSlide, value); }
+        }
+
+        public bool? AdvocateQuest
+        {
+            get { return GetBoolProperty(PropertyBool.AdvocateQuest); }
+            set { SetBoolProperty(PropertyBool.AdvocateQuest, value); }
+        }
+
+        public bool? IsAdvocate
+        {
+            get { return GetBoolProperty(PropertyBool.IsAdvocate); }
+            set { SetBoolProperty(PropertyBool.IsAdvocate, value); }
+        }
+
+        public bool? IsSentinel
+        {
+            get { return GetBoolProperty(PropertyBool.IsSentinel); }
+            set { SetBoolProperty(PropertyBool.IsSentinel, value); }
+        }
+
+        public bool? NoDraw
+        {
+            get { return GetBoolProperty(PropertyBool.NoDraw); }
+            set { SetBoolProperty(PropertyBool.NoDraw, value); }
+        }
+
+        public bool? IgnorePortalRestrictions
+        {
+            get { return GetBoolProperty(PropertyBool.IgnorePortalRestrictions); }
+            set { SetBoolProperty(PropertyBool.IgnorePortalRestrictions, value); }
+        }
+
+        public bool? Retained
+        {
+            get { return GetBoolProperty(PropertyBool.Retained); }
+            set { SetBoolProperty(PropertyBool.Retained, value); }
+        }
+
+        public bool? Invincible
+        {
+            get { return GetBoolProperty(PropertyBool.Invincible); }
+            set { SetBoolProperty(PropertyBool.Invincible, value); }
+        }
+
+        public bool? IsGagged
+        {
+            get { return GetBoolProperty(PropertyBool.IsGagged); }
+            set { SetBoolProperty(PropertyBool.IsGagged, value); }
+        }
+
+        public bool? Afk
+        {
+            get { return GetBoolProperty(PropertyBool.Afk); }
+            set { SetBoolProperty(PropertyBool.Afk, value); }
+        }
+
+        public bool? WieldOnUse
+        {
+            get { return GetBoolProperty(PropertyBool.WieldOnUse); }
+            set { SetBoolProperty(PropertyBool.WieldOnUse, value); }
+        }
+
+        public bool? AutowieldLeft
+        {
+            get { return GetBoolProperty(PropertyBool.AutowieldLeft); }
+            set { SetBoolProperty(PropertyBool.AutowieldLeft, value); }
+        }
+
+        public bool? VendorService
+        {
+            get { return GetBoolProperty(PropertyBool.VendorService); }
+            set { SetBoolProperty(PropertyBool.VendorService, value); }
+        }
+
+        public bool? RequiresBackpackSlot
+        {
+            get { return GetBoolProperty(PropertyBool.RequiresBackpackSlot); }
+            set { SetBoolProperty(PropertyBool.RequiresBackpackSlot, value); }
         }
 
         #region Positions  
