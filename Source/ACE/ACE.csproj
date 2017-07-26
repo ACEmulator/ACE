@@ -152,6 +152,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMagicRemoveSpellId.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSoulEmote.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableSplitToContainer.cs" />
@@ -210,6 +211,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventMagicRemoveSpellId.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventMagicUpdateSpell.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventPurgeAllEnchantments.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventQueryItemManaResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventStartBarber.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventViewContents.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventWieldItem.cs" />
