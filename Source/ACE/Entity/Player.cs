@@ -859,6 +859,30 @@ namespace ACE.Entity
             chain.EnqueueChain();
         }
 
+        public void HandleActionQueryItemMana(ObjectGuid queryId)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () =>
+            {
+                // the object could be in the world or on the player, first check player
+                WorldObject wo = GetInventoryItem(queryId);
+                if (wo != null)
+                {
+                    wo.QueryItemMana(Session);
+                }
+                else
+                {
+                    ActionChain idChain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                    {
+                        cwo.QueryItemMana(Session);
+                    });
+                    idChain.EnqueueChain();
+                }
+            });
+            chain.EnqueueChain();
+        }
+
         // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
         /*
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)

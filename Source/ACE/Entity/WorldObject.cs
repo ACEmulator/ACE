@@ -1877,6 +1877,23 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(updateHealth);
         }
 
+        public void QueryItemMana(Session examiner)
+        {
+            float manaPercentage = 1f;
+            uint success = 0;
+
+            var currentMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemCurMana).FirstOrDefault();
+            var maxMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemMaxMana).FirstOrDefault();
+            if (currentMana != null && maxMana != null)
+            {
+                manaPercentage = (float)currentMana.PropertyValue / (float)maxMana.PropertyValue;
+                success = 1;
+            }
+
+            var updateMana = new GameEventQueryItemManaResponse(examiner, Guid.Full, manaPercentage, success);
+            examiner.Network.EnqueueSend(updateMana);
+        }
+
         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?

@@ -32,6 +32,7 @@
         PingResponse                        = 0x01EA,
 
         HouseStatus                         = 0x0226,
+        QueryItemManaResponse               = 0x0264,
         DisplayStatusMessage                = 0x028A,
         DisplayParameterizedStatusMessage   = 0x028B,
         SetTurbineChatChannels              = 0x0295,
