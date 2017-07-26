@@ -576,6 +576,18 @@ namespace ACE.Entity
             set { AceObject.ClothingBaseDID = value; }
         }
 
+        public uint? ItemCurMana
+        {
+            get { return AceObject.ItemCurMana; }
+            set { AceObject.ItemCurMana = value; }
+        }
+
+        public uint? ItemMaxMana
+        {
+            get { return AceObject.ItemMaxMana; }
+            set { AceObject.ItemMaxMana = value; }
+        }
+
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
         private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
@@ -1882,11 +1894,11 @@ namespace ACE.Entity
             float manaPercentage = 1f;
             uint success = 0;
 
-            var currentMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemCurMana).FirstOrDefault();
-            var maxMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemMaxMana).FirstOrDefault();
-            if (currentMana != null && maxMana != null)
+            // var currentMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemCurMana).FirstOrDefault();
+            // var maxMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemMaxMana).FirstOrDefault();
+            if (ItemCurMana != null && ItemMaxMana != null)
             {
-                manaPercentage = (float)currentMana.PropertyValue / (float)maxMana.PropertyValue;
+                manaPercentage = (float)ItemCurMana / (float)ItemMaxMana;
                 success = 1;
             }
 
