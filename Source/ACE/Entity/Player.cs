@@ -135,26 +135,27 @@ namespace ACE.Entity
             return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
         }
 
-        public void HandleMagicRemoveSpellId(uint spellId)
+        public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
-            {
-                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
-                return;
-            }
             ActionChain unlearnSpellChain = new ActionChain();
             unlearnSpellChain.AddAction(
-               this,
-               () =>
-                   {
-                       AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
-                       GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
-                       Session.Network.EnqueueSend(removeSpellEvent);
-                   });
+                this,
+                () =>
+                {
+                    if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
+                    {
+                        log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                        return;
+                    }
+
+                    AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
+                    GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+                    Session.Network.EnqueueSend(removeSpellEvent);
+                });
             unlearnSpellChain.EnqueueChain();
         }
 
-        public void HandleLearnSpell(uint spellId)
+        public void HandleActionLearnSpell(uint spellId)
         {
             ActionChain learnSpellChain = new ActionChain();
             SpellTable spells = SpellTable.ReadFromDat();
@@ -173,9 +174,11 @@ namespace ACE.Entity
                         Session.Network.EnqueueSend(errorMessage);
                         return;
                     }
-                    AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell();
-                    newSpell.AceObjectId = this.Guid.Full;
-                    newSpell.SpellId = spellId;
+                    AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell
+                    {
+                        AceObjectId = this.Guid.Full,
+                        SpellId = spellId
+                    };
                     AceObject.SpellIdProperties.Add(newSpell);
                     GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
                     Session.Network.EnqueueSend(updateSpellEvent);
@@ -268,10 +271,10 @@ namespace ACE.Entity
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
-            
+
             Player = true;
 
-            // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true, 
+            // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true,
             // I don't believe both were on at the same time. -Ripley
 
             IgnoreCollision = true; Gravity = true; Hidden = true; EdgeSlide = true;
@@ -1532,7 +1535,7 @@ namespace ACE.Entity
             // EnqueueBroadcastUpdateObject();
 
             // The private message below worked as expected, but it only broadcast to the player. This would be a problem with for others in range seeing something try to
-            // pass through a barrier but not being allowed. 
+            // pass through a barrier but not being allowed.
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 

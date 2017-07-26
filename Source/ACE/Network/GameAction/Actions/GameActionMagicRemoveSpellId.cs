@@ -7,7 +7,7 @@
         {
             uint spellId = message.Payload.ReadUInt32();
 
-            session.Player.HandleMagicRemoveSpellId(spellId);
+            session.Player.HandleActionMagicRemoveSpellId(spellId);
         }
     }
 }

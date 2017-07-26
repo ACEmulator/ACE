@@ -11,40 +11,40 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None = 0x0000,
-            PropertyInt32 = 0x0001,
-            PropertyBool = 0x0002,
+            None           = 0x0000,
+            PropertyInt32  = 0x0001,
+            PropertyBool   = 0x0002,
             PropertyDouble = 0x0004,
-            PropertyDid = 0x0008,
+            PropertyDid    = 0x0008,
             PropertyString = 0x0010,
-            Position = 0x0020,
-            PropertyIid = 0x0040,
-            PropertyInt64 = 0x0080,
+            Position       = 0x0020,
+            PropertyIid    = 0x0040,
+            PropertyInt64  = 0x0080,
         }
 
         [Flags]
         private enum DescriptionVectorFlag
         {
-            None = 0x0000,
-            Attribute = 0x0001,
-            Skill = 0x0002,
-            Spell = 0x0100,
+            None        = 0x0000,
+            Attribute   = 0x0001,
+            Skill       = 0x0002,
+            Spell       = 0x0100,
             Enchantment = 0x0200
         }
 
         [Flags]
         private enum DescriptionAttributeFlag
         {
-            None = 0x0000,
-            Strength = 0x0001,
-            Endurance = 0x0002,
-            Quickness = 0x0004,
+            None         = 0x0000,
+            Strength     = 0x0001,
+            Endurance    = 0x0002,
+            Quickness    = 0x0004,
             Coordination = 0x0008,
-            Focus = 0x0010,
-            Self = 0x0020,
-            Health = 0x0040,
-            Stamina = 0x0080,
-            Mana = 0x0100,
+            Focus        = 0x0010,
+            Self         = 0x0020,
+            Health       = 0x0040,
+            Stamina      = 0x0080,
+            Mana         = 0x0100,
             // server always sends full mask (any cases where this shouldn't happen?)
             Full = Strength | Endurance | Quickness | Coordination | Focus | Self | Health | Stamina | Mana
         }
@@ -52,15 +52,15 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionOptionFlag
         {
-            None = 0x0000,
-            Shortcut = 0x0001,
-            Component = 0x0008,
-            SpellTab = 0x0010,
-            Unk20 = 0x0020,
+            None             = 0x0000,
+            Shortcut         = 0x0001,
+            Component        = 0x0008,
+            SpellTab         = 0x0010,
+            Unk20            = 0x0020,
             CharacterOption2 = 0x0040,
-            Unk100 = 0x0100,
-            WindowLayout = 0x0200,
-            Unk400 = 0x0400,
+            Unk100           = 0x0100,
+            WindowLayout     = 0x0200,
+            Unk400           = 0x0400,
         }
 
         public GameEventPlayerDescription(Session session)

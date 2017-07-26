@@ -777,7 +777,7 @@ namespace ACE.Command.Handlers
             if (parameters?.Length > 0)
             {
                 uint spellId = (uint)int.Parse(parameters[0]);
-                session.Player.HandleLearnSpell(spellId);
+                session.Player.HandleActionLearnSpell(spellId);
             }
             else
             {
