@@ -63,7 +63,7 @@
         UpdateRentPayment                      = 0x0228,
         UpdateHar                              = 0x0257,
         HouseTransaction                       = 0x0259,
-        ItemManaResponse                       = 0x0264,
+        QueryItemManaResponse                  = 0x0264,
         AvailableHouses                        = 0x0271,
         CharacterConfirmationRequest           = 0x0274,
         CharacterConfirmationDone              = 0x0276,

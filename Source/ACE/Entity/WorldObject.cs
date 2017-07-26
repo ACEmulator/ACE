@@ -576,6 +576,18 @@ namespace ACE.Entity
             set { AceObject.ClothingBaseDID = value; }
         }
 
+        public uint? ItemCurMana
+        {
+            get { return AceObject.ItemCurMana; }
+            set { AceObject.ItemCurMana = value; }
+        }
+
+        public uint? ItemMaxMana
+        {
+            get { return AceObject.ItemMaxMana; }
+            set { AceObject.ItemMaxMana = value; }
+        }
+
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
         private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
@@ -1881,6 +1893,21 @@ namespace ACE.Entity
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
             examiner.Network.EnqueueSend(updateHealth);
+        }
+
+        public void QueryItemMana(Session examiner)
+        {
+            float manaPercentage = 1f;
+            uint success = 0;
+
+            if (ItemCurMana != null && ItemMaxMana != null)
+            {
+                manaPercentage = (float)ItemCurMana / (float)ItemMaxMana;
+                success = 1;
+            }
+
+            var updateMana = new GameEventQueryItemManaResponse(examiner, Guid.Full, manaPercentage, success);
+            examiner.Network.EnqueueSend(updateMana);
         }
 
         public virtual void SerializeUpdateObject(BinaryWriter writer)

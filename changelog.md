@@ -7,6 +7,10 @@
 * TODO: Put in the abilty to use scrolls to learn spells.
 
 ### 2017-07-24
+[Lidefeath]
+* Added GameAction and GameEvent for querying an items Mana.
+
+### 2017-07-24
 [Ripley]
 * Added Bools used by ObjectDescriptionFlag and PhysicsState.
 * Added WeenieType to PropertyInt Enum for future use.
