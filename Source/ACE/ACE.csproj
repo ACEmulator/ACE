@@ -104,10 +104,8 @@
     <Compile Include="Entity\Actions\LoopAction.cs" />
     <Compile Include="Entity\Actions\NestedActionQueue.cs" />
     <Compile Include="Entity\Adjacency.cs" />
-    <Compile Include="Entity\CollidableObject.cs" />
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\Creature.cs" />
-    <Compile Include="Entity\DebugObject.cs" />
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
@@ -125,8 +123,6 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
-    <Compile Include="Entity\SummonedPortal.cs" />
-    <Compile Include="Entity\UsableObject.cs" />
     <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />

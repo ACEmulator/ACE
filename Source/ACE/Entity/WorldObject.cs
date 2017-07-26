@@ -2685,19 +2685,12 @@ namespace ACE.Entity
             {
                 case WeenieType.LifeStone:
                     return new Lifestone(AceObject);
-                ////break;
                 case WeenieType.Door:
                     return new Door(AceObject);
-                ////break;
                 case WeenieType.Portal:
                     return new Portal(AceObject);
-                ////break;
                 default:
-                    ////if (aceO.Location != null)
-                    ////{
                     return new Generic(AceObject);
-                    ////}
-                    ////break;
             }
         }
 
@@ -2708,7 +2701,7 @@ namespace ACE.Entity
 
         public virtual void OnCollide(ObjectGuid playerId)
         {
-            // todo: implement.  default is probably to pick it up off the ground
+            // todo: implement.  default is probably to do nothing.
         }
     }
 }

@@ -18,5 +18,10 @@ namespace ACE.Entity
         ////{
         ////    // TODO: Implement
         ////}
+
+        ////public override void OnUse(ObjectGuid playerId)
+        ////{
+        ////    // TODO: Implement
+        ////}
     }
 }
