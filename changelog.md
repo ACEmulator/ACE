@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+### 2017-24-2017
+[Og II]
+* Refactored debug command learn spell.
+* Made spells persist to the database.
+* Added abilty to delete spell from spell book and send that persistantly to the database on character save.
+* TODO: Put in the abilty to use scrolls to learn spells.
 
 ### 2017-07-24
 [Ripley]

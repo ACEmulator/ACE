@@ -9,7 +9,7 @@ namespace ACE.Network.GameMessages.Messages
         {
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.DropTemp);
+            Writer.Write((uint)GameEvent.GameEventType.InventoryPutObjectIn3D);
             Writer.Write(itemGuid.Full);
             Writer.Align();
         }

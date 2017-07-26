@@ -25,26 +25,26 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionVectorFlag
         {
-            None = 0x0000,
-            Attribute = 0x0001,
-            Skill = 0x0002,
-            Spell = 0x0100,
+            None        = 0x0000,
+            Attribute   = 0x0001,
+            Skill       = 0x0002,
+            Spell       = 0x0100,
             Enchantment = 0x0200
         }
 
         [Flags]
         private enum DescriptionAttributeFlag
         {
-            None = 0x0000,
-            Strength = 0x0001,
-            Endurance = 0x0002,
-            Quickness = 0x0004,
+            None         = 0x0000,
+            Strength     = 0x0001,
+            Endurance    = 0x0002,
+            Quickness    = 0x0004,
             Coordination = 0x0008,
-            Focus = 0x0010,
-            Self = 0x0020,
-            Health = 0x0040,
-            Stamina = 0x0080,
-            Mana = 0x0100,
+            Focus        = 0x0010,
+            Self         = 0x0020,
+            Health       = 0x0040,
+            Stamina      = 0x0080,
+            Mana         = 0x0100,
             // server always sends full mask (any cases where this shouldn't happen?)
             Full = Strength | Endurance | Quickness | Coordination | Focus | Self | Health | Stamina | Mana
         }
@@ -52,15 +52,15 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionOptionFlag
         {
-            None = 0x0000,
-            Shortcut = 0x0001,
-            Component = 0x0008,
-            SpellTab = 0x0010,
-            Unk20 = 0x0020,
+            None             = 0x0000,
+            Shortcut         = 0x0001,
+            Component        = 0x0008,
+            SpellTab         = 0x0010,
+            Unk20            = 0x0020,
             CharacterOption2 = 0x0040,
-            Unk100 = 0x0100,
-            WindowLayout = 0x0200,
-            Unk400 = 0x0400,
+            Unk100           = 0x0100,
+            WindowLayout     = 0x0200,
+            Unk400           = 0x0400,
         }
 
         public GameEventPlayerDescription(Session session)
@@ -203,7 +203,12 @@ namespace ACE.Network.GameEvent.Events
 
             Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
-            var vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
+            DescriptionVectorFlag vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
+
+            var propertiesSpells = aceObj.SpellIdProperties.ToList();
+            if (propertiesSpells.Count > 0)
+                vectorFlags |= DescriptionVectorFlag.Spell;
+
             Writer.Write((uint)vectorFlags);
             Writer.Write(1u);
 
@@ -303,16 +308,20 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            /*if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
+            if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
             {
-                writer.Write((ushort)spellCount);
-                writer.Write((ushort)0x20);
+                Writer.Write((ushort)propertiesSpells.Count);
+                Writer.Write((ushort)64);
 
                 {
-                    writer.Write(0u);
-                    writer.Write(0.0f);
+                    foreach (AceObjectPropertiesSpell spell in propertiesSpells)
+                    {
+                        Writer.Write(spell.SpellId);
+                        // This sets a flag to use new spell configuration always 2
+                        Writer.Write(2f);
+                    }
                 }
-            }*/
+            }
 
             /*if ((vectorFlags & DescriptionVectorFlag.Enchantment) != 0)
             {

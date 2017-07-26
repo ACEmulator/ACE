@@ -10,6 +10,9 @@ using System;
 using log4net;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
+using System.Collections.Generic;
+using System.Linq;
+using ACE.DatLoader.Entity;
 using System.IO;
 
 namespace ACE.Entity
@@ -158,7 +161,6 @@ namespace ACE.Entity
                 despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
                 despawnChain.EnqueueChain();
             });
-
             return createCorpseChain;
         }
 
@@ -500,7 +502,7 @@ namespace ACE.Entity
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
             flags |= IdentifyResponseFlags.CreatureProfile;
-            
+
             base.SerializeIdentifyObjectResponse(writer, success, flags);
 
             // TODO: There are probably other checks that need to be made here
