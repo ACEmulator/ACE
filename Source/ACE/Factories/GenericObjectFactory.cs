@@ -19,7 +19,7 @@ namespace ACE.Factories
                 var oDescFlag = (ObjectDescriptionFlag)aceO.AceObjectDescriptionFlags;
 
                 if (aceO.GeneratorStatus ?? false)  // Generator
-                {                    
+                {
                     aceO.Location = aceO.Location.InFrontOf(-2.0);
                     aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
                     results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
@@ -36,8 +36,8 @@ namespace ACE.Factories
                 }
                 if ((oDescFlag & ObjectDescriptionFlag.Portal) != 0)
                 {
-                   results.Add(new Portal(aceO));
-                   continue;
+                    results.Add(new Portal(aceO));
+                    continue;
                 }
                 if ((oDescFlag & ObjectDescriptionFlag.Door) != 0)
                 {
@@ -51,6 +51,7 @@ namespace ACE.Factories
                     default:
                         // Use the DebugObject to assist in building proper objects for weenies
                         // FIXME(ddevec): Some objects have null location.  This freaks out the landblock... ignore them?
+                        // && aceO.AceObjectId == 2056994930 Og II debug chest issue create object.
                         if (aceO.Location != null)
                         {
                             results.Add(new DebugObject(aceO));
