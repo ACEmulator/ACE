@@ -7,7 +7,7 @@
 * DebugObject, CollidableObject and UsableObject are removed.
 * Moved OnUse/OnCollide to WorldObject virtuals for overriding.
 * Added WeenieType to AceObject/WorldObject for weenie classification.
-* Added Generic object which the default object for weenies.
+* Added Generic object which becomes the default object for weenies.
 * Reworked GenericObjectFactory to use WorldObject.GetObjectFromWeenieType.
 
 ### 2017-07-24
