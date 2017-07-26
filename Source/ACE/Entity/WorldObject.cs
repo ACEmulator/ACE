@@ -383,7 +383,7 @@ namespace ACE.Entity
             set { AceObject.ItemWorkmanship = value; }
         }
 
-        public ushort? Burden
+        public virtual ushort? Burden
         {
             get { return AceObject.EncumbranceVal; }
             set { AceObject.EncumbranceVal = value; }
@@ -694,7 +694,7 @@ namespace ACE.Entity
             set { AceObject.Afk = value; }
         }
 
-        #region ObjectDescription Bools 
+        #region ObjectDescription Bools
         ////None                   = 0x00000000,
         ////Openable               = 0x00000001,
         public bool Openable
@@ -1088,7 +1088,7 @@ namespace ACE.Entity
         }
         #endregion
 
-        #region PhysicsState Bools 
+        #region PhysicsState Bools
         ////Static                      = 0x00000001,
         public bool Static
         {
@@ -1404,7 +1404,7 @@ namespace ACE.Entity
         {
             AceObject = new AceObject();
             AceObject.AceObjectId = guid.Full;
-            Guid = guid;            
+            Guid = guid;
 
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
@@ -1468,6 +1468,10 @@ namespace ACE.Entity
 
             inventoryItem.ContainerId = null;
             inventoryItem.WielderId = null;
+            // TODO: create enum for this once we understand this better.
+            // This is needed to make items lay flat on the ground.
+            inventoryItem.AnimationFrame = 0x65;
+            // inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag(); Leaving here for just a bit Og II
         }
 
         internal void SetInventoryForOffWorld(WorldObject inventoryItem)
@@ -1475,6 +1479,8 @@ namespace ACE.Entity
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            // TODO: Create enums for this.
+            inventoryItem.AnimationFrame = 1;
             inventoryItem.Location = null;
         }
 
@@ -2240,7 +2246,7 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            Location.Serialize(writer, PositionFlag);
+            Location.Serialize(writer, PositionFlag, this.AnimationFrame ?? 0x0);
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
@@ -2684,7 +2690,7 @@ namespace ACE.Entity
             //    Sledding = true;
             ////Frozen                      = 0x01000000,
             if (AceObject.IsFrozen ?? false)
-                Frozen = true;            
+                Frozen = true;
         }
     }
 }
