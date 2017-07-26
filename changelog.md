@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+### 2017-07-28
+[Ripley]
+* NOTE: The following changes require ACE-World database v0.1.6 or greater...
+* No longer setting WeenieHeaderFlag.Value if Value = 0.
+* DebugObject, CollidableObject and UsableObject are removed.
+* Moved OnUse/OnCollide to WorldObject virtuals for overriding.
+* Added WeenieType to AceObject/WorldObject for weenie classification.
+* Added Generic object which the default object for weenies.
+* Reworked GenericObjectFactory to use WorldObject.GetObjectFromWeenieType.
+
 ### 2017-07-24
 [Ripley]
 * Added Bools used by ObjectDescriptionFlag and PhysicsState.

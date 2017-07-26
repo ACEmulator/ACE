@@ -8,7 +8,7 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
-    public sealed class Portal : CollidableObject
+    public sealed class Portal : WorldObject
     {
         public Position Destination { get; private set; }
 
@@ -164,6 +164,11 @@ namespace ACE.Entity
         }
 
         public override void OnCollide(ObjectGuid playerId)
+        {
+            OnUse(playerId);
+        }
+
+        public override void OnUse(ObjectGuid playerId)
         {
             string serverMessage;
 

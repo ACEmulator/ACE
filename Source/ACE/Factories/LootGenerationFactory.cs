@@ -44,7 +44,7 @@ namespace ACE.Factories
             {
                 return CreateTestContainerObject(player, weenieId);
             }
-            return new DebugObject(aceObject);
+            return new Generic(aceObject);
         }
 
         public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)

@@ -1804,7 +1804,7 @@ namespace ACE.Entity
 
                     // Ok we are in business
 
-                    WorldObject newStack = new DebugObject(stack.NewAceObjectFromCopy());
+                    WorldObject newStack = new Generic(stack.NewAceObjectFromCopy()); // This should probably be figuring out what the weenietype of an object is and returning that, yeah?
                     container.AddToInventory(newStack);
                     var valuePerItem = stack.Value / stack.StackSize;
                     var burdenPerItem = stack.Burden / stack.StackSize;
@@ -2259,18 +2259,18 @@ namespace ACE.Entity
                     ActionChain onUseChain = new ActionChain();
                     CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
                     {
-                        UsableObject uo = wo as UsableObject;
-                        Portal p = wo as Portal;
+                        ////UsableObject uo = wo as UsableObject;
+                        ////Portal p = wo as Portal;
 
-                        // FIXME: OnCollide for portals -- portals should be usable?
-                        if (p != null)
-                        {
-                            p.OnCollide(Guid);
-                        }
+                        ////// FIXME: OnCollide for portals -- portals should be usable?
+                        ////if (p != null)
+                        ////{
+                        ////    p.OnCollide(Guid);
+                        ////}
 
-                        if (uo != null)
+                        if (wo != null)
                         {
-                            uo.OnUse(Guid);
+                            wo.OnUse(Guid);
                         }
                     });
                     onUseChain.EnqueueChain();

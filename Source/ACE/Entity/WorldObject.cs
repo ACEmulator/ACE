@@ -95,6 +95,12 @@ namespace ACE.Entity
             protected set { AceObject.WeenieClassId = value; }
         }
 
+        public WeenieType WeenieType
+        {
+            get { return (WeenieType?)AceObject.WeenieType ?? 0; }
+            protected set { AceObject.WeenieType = (uint)value; }
+        }
+
         public uint? IconId
         {
             get { return AceObject.IconDID; }
@@ -1927,7 +1933,7 @@ namespace ACE.Entity
             if (AmmoType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.AmmoType;
 
-            if (Value != null)
+            if (Value != null && (Value > 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Value;
 
             if (Usable != null)
@@ -2658,6 +2664,51 @@ namespace ACE.Entity
             ////Frozen                      = 0x01000000,
             if (AceObject.IsFrozen ?? false)
                 Frozen = true;            
+        }
+
+        public WorldObject GetObjectFromWeenieType()
+        {
+            WeenieType objWeenieType = (WeenieType?)AceObject.WeenieType ?? WeenieType.Generic;
+
+            ////if (aceO.GeneratorStatus ?? false)  // Generator
+            ////{
+            ////    ////aceO.Location = aceO.Location.InFrontOf(-2.0);
+            ////    ////aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
+            ////    ////results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
+            ////    ////aceO.GeneratorEnteredWorld = true;
+            ////    ////var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
+            ////    ////objectList.ForEach(o => results.Add(o));
+            ////    continue;
+            ////}
+
+            switch (objWeenieType)
+            {
+                case WeenieType.LifeStone:
+                    return new Lifestone(AceObject);
+                ////break;
+                case WeenieType.Door:
+                    return new Door(AceObject);
+                ////break;
+                case WeenieType.Portal:
+                    return new Portal(AceObject);
+                ////break;
+                default:
+                    ////if (aceO.Location != null)
+                    ////{
+                    return new Generic(AceObject);
+                    ////}
+                    ////break;
+            }
+        }
+
+        public virtual void OnUse(ObjectGuid playerId)
+        {
+            // todo: implement.  default is probably to pick it up off the ground
+        }
+
+        public virtual void OnCollide(ObjectGuid playerId)
+        {
+            // todo: implement.  default is probably to pick it up off the ground
         }
     }
 }

@@ -8,7 +8,7 @@ using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
-    public class Lifestone : UsableObject
+    public class Lifestone : WorldObject
     {
         public Lifestone(AceObject aceO)
             : base(aceO)

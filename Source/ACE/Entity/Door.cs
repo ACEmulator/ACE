@@ -11,7 +11,7 @@ using ACE.Common;
 
 namespace ACE.Entity
 {
-    public class Door : UsableObject
+    public class Door : WorldObject
     {
         private static readonly MovementData movementOpen = new MovementData();
         private static readonly MovementData movementClosed = new MovementData();
