@@ -1894,8 +1894,6 @@ namespace ACE.Entity
             float manaPercentage = 1f;
             uint success = 0;
 
-            // var currentMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemCurMana).FirstOrDefault();
-            // var maxMana = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.ItemMaxMana).FirstOrDefault();
             if (ItemCurMana != null && ItemMaxMana != null)
             {
                 manaPercentage = (float)ItemCurMana / (float)ItemMaxMana;
