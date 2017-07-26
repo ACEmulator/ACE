@@ -2259,15 +2259,6 @@ namespace ACE.Entity
                     ActionChain onUseChain = new ActionChain();
                     CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
                     {
-                        ////UsableObject uo = wo as UsableObject;
-                        ////Portal p = wo as Portal;
-
-                        ////// FIXME: OnCollide for portals -- portals should be usable?
-                        ////if (p != null)
-                        ////{
-                        ////    p.OnCollide(Guid);
-                        ////}
-
                         if (wo != null)
                         {
                             wo.OnUse(Guid);
