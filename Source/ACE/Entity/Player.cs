@@ -923,7 +923,6 @@ namespace ACE.Entity
 
         public void HandleActionQueryItemMana(ObjectGuid queryId)
         {
-            // TODO: Why does the client send a QueryItemMana action with a queryid of 0
             if (queryId.Full == 0)
             {
                 // Do nothing if the queryID is 0

@@ -1906,6 +1906,9 @@ namespace ACE.Entity
                 success = 1;
             }
 
+            if (success == 0) // according to retail PCAPs, if success = 0, mana = 0.
+                manaPercentage = 0;
+
             var updateMana = new GameEventQueryItemManaResponse(examiner, Guid.Full, manaPercentage, success);
             examiner.Network.EnqueueSend(updateMana);
         }
