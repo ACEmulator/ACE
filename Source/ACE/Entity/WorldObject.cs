@@ -2732,7 +2732,12 @@ namespace ACE.Entity
 
         public virtual void OnUse(ObjectGuid playerId)
         {
-            // todo: implement.  default is probably to pick it up off the ground
+            // todo: implement.  default is probably to do nothing.
+        }
+
+        public virtual void InternalOnUse(Session session)
+        {
+            // todo: implement.  default is probably to do nothing.
         }
 
         public virtual void OnCollide(ObjectGuid playerId)

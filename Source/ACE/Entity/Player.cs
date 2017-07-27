@@ -2345,18 +2345,27 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (CurrentLandblock != null)
+                if (GetInventoryItem(usedItemId) != null)
                 {
-                    // Just forward our action to the appropriate user...
-                    ActionChain onUseChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
+                    WorldObject iwo = GetInventoryItem(usedItemId);
+                    ////iwo = iwo.GetObjectFromWeenieType(); // is this right? is this even needed?
+                    iwo.InternalOnUse(Session);
+                }
+                else
+                {
+                    if (CurrentLandblock != null)
                     {
-                        if (wo != null)
+                        // Just forward our action to the appropriate user...
+                        ActionChain onUseChain = new ActionChain();
+                        CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
                         {
-                            wo.OnUse(Guid);
-                        }
-                    });
-                    onUseChain.EnqueueChain();
+                            if (wo != null)
+                            {
+                                wo.OnUse(Guid);
+                            }
+                        });
+                        onUseChain.EnqueueChain();
+                    }
                 }
             }).EnqueueChain();
         }

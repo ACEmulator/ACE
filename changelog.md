@@ -9,6 +9,7 @@
 * Added WeenieType to AceObject/WorldObject for weenie classification.
 * Added GenericObject which becomes the default object for weenies.
 * Reworked GenericObjectFactory to use WorldObject.GetObjectFromWeenieType.
+* Generic OnUse just sends UseDone
 
 ### 2017-07-25
 [Ripley]
