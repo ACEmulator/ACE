@@ -34,10 +34,10 @@ namespace ACE.Network
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
         private ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
 
-        private DateTime nextResync = DateTime.UtcNow;
-        private DateTime nextAck = DateTime.UtcNow;
+        private DateTime nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
+        private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
         private DateTime nextSend = DateTime.UtcNow;
-        private bool sendAck = true;
+        private bool sendAck = false;
         private bool sendResync = false;
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
@@ -115,6 +115,7 @@ namespace ACE.Network
             {
                 if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
                 {
+                    log.DebugFormat("[{0}] Setting to send TimeSync packet", session.Account);
                     currentBundle.TimeSync = true;
                     currentBundle.EncryptedChecksum = true;
                     nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
@@ -122,6 +123,7 @@ namespace ACE.Network
 
                 if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
                 {
+                    log.DebugFormat("[{0}] Setting to send ACK packet", session.Account);
                     currentBundle.SendAck = true;
                     nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
                 }
