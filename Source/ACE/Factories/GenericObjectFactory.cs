@@ -28,7 +28,7 @@ namespace ACE.Factories
 
                 if (aceO.Location != null)
                 {
-                    WorldObject wo = new Generic(aceO);
+                    WorldObject wo = new GenericObject(aceO);
 
                     results.Add(wo.GetObjectFromWeenieType());
                 }

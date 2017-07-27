@@ -2690,7 +2690,7 @@ namespace ACE.Entity
                 case WeenieType.Portal:
                     return new Portal(AceObject);
                 default:
-                    return new Generic(AceObject);
+                    return new GenericObject(AceObject);
             }
         }
 

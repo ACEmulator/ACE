@@ -1,15 +1,15 @@
-﻿using ACE.Managers;
+﻿// WeenieType.Generic
 
 namespace ACE.Entity
 {
-    public class Generic : WorldObject
+    public class GenericObject : WorldObject
     {
-        public Generic(AceObject aceObject)
+        public GenericObject(AceObject aceObject)
             : base(aceObject)
         {
         }
 
-        public Generic(ObjectGuid guid, AceObject aceObject)
+        public GenericObject(ObjectGuid guid, AceObject aceObject)
             : base(guid, aceObject)
         {
         }

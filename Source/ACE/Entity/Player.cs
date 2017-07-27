@@ -1804,7 +1804,7 @@ namespace ACE.Entity
 
                     // Ok we are in business
 
-                    WorldObject newStack = new Generic(stack.NewAceObjectFromCopy()); // This should probably be figuring out what the weenietype of an object is and returning that, yeah?
+                    WorldObject newStack = new GenericObject(stack.NewAceObjectFromCopy()); // This should probably be figuring out what the weenietype of an object is and returning that, yeah?
                     container.AddToInventory(newStack);
                     var valuePerItem = stack.Value / stack.StackSize;
                     var burdenPerItem = stack.Burden / stack.StackSize;
