@@ -1211,6 +1211,18 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.RequiresBackpackSlot, value); }
         }
 
+        public uint? ItemCurMana
+        {
+            get { return GetIntProperty(PropertyInt.ItemCurMana); }
+            set { SetIntProperty(PropertyInt.ItemCurMana, value); }
+        }
+
+        public uint? ItemMaxMana
+        {
+            get { return GetIntProperty(PropertyInt.ItemMaxMana); }
+            set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
+        }
+
         #region Positions  
         public Position Location
         {

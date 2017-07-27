@@ -767,6 +767,7 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Debug command to learn a spell.
         /// </summary>
+        /// <param name="session">Pass the current player session.</param>
         /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
         [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
@@ -776,32 +777,12 @@ namespace ACE.Command.Handlers
             if (parameters?.Length > 0)
             {
                 uint spellId = (uint)int.Parse(parameters[0]);
-
-                SpellTable spells = SpellTable.ReadFromDat();
-                if (!spells.Spells.ContainsKey(spellId))
-                {
-                    var errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(errorMessage);
-                }
-                else
-                {
-                    var updateSpellEvent = new GameEventMagicUpdateSpell(session, spellId);
-                    session.Network.EnqueueSend(updateSpellEvent);
-
-                    // Always seems to be this SkillUpPurple effect
-                    session.Player.HandleActionApplyVisualEffect(PlayScript.SkillUpPurple);
-
-                    string spellName = spells.Spells[spellId].Name;
-                    // TODO Lookup the spell in the spell table.
-                    string message = "You learn the " + spellName + " spell.\n";
-                    var learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(learnMessage);
-                }
+                session.Player.HandleActionLearnSpell(spellId);
             }
             else
             {
-                string message = "Invalid Syntax\n";
-                var errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                const string message = "Invalid Syntax\n";
+                GameMessageSystemChat errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(errorMessage);
             }
         }
@@ -837,7 +818,7 @@ namespace ACE.Command.Handlers
             "Creates 1 of each weapon class in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812, 41514, 42209 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>
@@ -848,6 +829,7 @@ namespace ACE.Command.Handlers
                     loot.ContainerId = session.Player.Guid.Full;
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
+                    session.Player.UpdatePlayerBurden();
                     session.Network.EnqueueSend(
                         new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
                         new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));

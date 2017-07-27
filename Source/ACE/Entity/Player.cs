@@ -11,15 +11,12 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Managers;
-using ACE.Network.Enum;
 using log4net;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
-using System.IO;
 using System.Diagnostics;
-using ACE.Command;
 
 namespace ACE.Entity
 {
@@ -133,6 +130,70 @@ namespace ACE.Entity
             }
         }
 
+        public bool UnknownSpell(uint spellId)
+        {
+            return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
+        }
+
+        public void HandleActionMagicRemoveSpellId(uint spellId)
+        {
+            ActionChain unlearnSpellChain = new ActionChain();
+            unlearnSpellChain.AddAction(
+                this,
+                () =>
+                {
+                    if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
+                    {
+                        log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                        return;
+                    }
+
+                    AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
+                    GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+                    Session.Network.EnqueueSend(removeSpellEvent);
+                });
+            unlearnSpellChain.EnqueueChain();
+        }
+
+        public void HandleActionLearnSpell(uint spellId)
+        {
+            ActionChain learnSpellChain = new ActionChain();
+            SpellTable spells = SpellTable.ReadFromDat();
+            if (!spells.Spells.ContainsKey(spellId))
+            {
+                GameMessageSystemChat errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(errorMessage);
+                return;
+            }
+            learnSpellChain.AddAction(this,
+                () =>
+                {
+                    if (!UnknownSpell(spellId))
+                    {
+                        GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
+                        Session.Network.EnqueueSend(errorMessage);
+                        return;
+                    }
+                    AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell
+                    {
+                        AceObjectId = this.Guid.Full,
+                        SpellId = spellId
+                    };
+                    AceObject.SpellIdProperties.Add(newSpell);
+                    GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
+                    Session.Network.EnqueueSend(updateSpellEvent);
+
+                    // Always seems to be this SkillUpPurple effect
+                    Session.Player.HandleActionApplyVisualEffect(Enum.PlayScript.SkillUpPurple);
+
+                    string spellName = spells.Spells[spellId].Name;
+                    string message = "You learn the " + spellName + " spell.\n";
+                    GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                    Session.Network.EnqueueSend(learnMessage);
+                });
+            learnSpellChain.EnqueueChain();
+        }
+
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
             get { return Character.CharacterOptions; }
@@ -210,10 +271,10 @@ namespace ACE.Entity
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
-            
+
             Player = true;
 
-            // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true, 
+            // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true,
             // I don't believe both were on at the same time. -Ripley
 
             IgnoreCollision = true; Gravity = true; Hidden = true; EdgeSlide = true;
@@ -242,7 +303,7 @@ namespace ACE.Entity
 
         public uint CreationTimestamp
         { get { return (uint)Character.CreationTimestamp; } }
-        
+
         public AceObject GetAceObject()
         {
             return Character;
@@ -301,6 +362,7 @@ namespace ACE.Entity
                 ObjScale = Character.DefaultScale;
 
             AddCharacterBaseModelData();
+            Burden = UpdateBurden();
 
             // Save the the LoginTimestamp
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
@@ -855,6 +917,36 @@ namespace ACE.Entity
                     cwo.QueryHealth(Session);
                 });
                 idChain.EnqueueChain();
+            });
+            chain.EnqueueChain();
+        }
+
+        public void HandleActionQueryItemMana(ObjectGuid queryId)
+        {
+            if (queryId.Full == 0)
+            {
+                // Do nothing if the queryID is 0
+                return;
+            }
+
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () =>
+            {
+                // the object could be in the world or on the player, first check player
+                WorldObject wo = GetInventoryItem(queryId);
+                if (wo != null)
+                {
+                    wo.QueryItemMana(Session);
+                }
+                else
+                {
+                    ActionChain idChain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                    {
+                        cwo.QueryItemMana(Session);
+                    });
+                    idChain.EnqueueChain();
+                }
             });
             chain.EnqueueChain();
         }
@@ -1473,7 +1565,7 @@ namespace ACE.Entity
             // EnqueueBroadcastUpdateObject();
 
             // The private message below worked as expected, but it only broadcast to the player. This would be a problem with for others in range seeing something try to
-            // pass through a barrier but not being allowed. 
+            // pass through a barrier but not being allowed.
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
