@@ -194,6 +194,40 @@ namespace ACE.Entity
             learnSpellChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// This method implements player spell bar management for - adding a spell to a specific spell bar (0 based) at a specific slot (0 based).
+        /// </summary>
+        /// <param name="spellId"></param>
+        /// <param name="spellBarPositionId"></param>
+        /// <param name="spellBarId"></param>
+        public void HandleActionAddSpellToSpellBar(uint spellId, uint spellBarPositionId, uint spellBarId)
+        {
+            // The spell bar magic happens here. First, let's mind our race conditions....
+            // 1. When we add, if we are adding
+            ActionChain addSpellBarChain = new ActionChain();
+            addSpellBarChain.AddAction(this, () =>
+            {
+                // Leroooooy Jeeeenkins!
+            });
+            addSpellBarChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method implements player spell bar management for - removing a spell to a specific spell bar (0 based)
+        /// </summary>
+        /// <param name="spellId"></param>
+        /// <param name="spellBarId"></param>
+        public void HandleActionRemoveSpellToSpellBar(uint spellId, uint spellBarId)
+        {
+            // More spell bar magic happens here. First, let's mind our race conditions....
+            ActionChain removeSpellBarChain = new ActionChain();
+            removeSpellBarChain.AddAction(this, () =>
+            {
+                // Leroooooy Jeeeenkins!
+            });
+            removeSpellBarChain.EnqueueChain();
+        }
+
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
         {
             get { return Character.CharacterOptions; }
