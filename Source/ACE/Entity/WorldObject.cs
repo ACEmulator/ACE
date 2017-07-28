@@ -26,6 +26,7 @@ namespace ACE.Entity
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
+        // object_id
         private ObjectGuid guid;
         public ObjectGuid Guid
         {
@@ -80,65 +81,184 @@ namespace ACE.Entity
             get { return AceObject.SpellIdProperties; }
         }
 
-        public ItemType ItemType
+        #region ObjDesc
+        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
+
+        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
+
+        private readonly List<Model> models = new List<Model>();
+
+        // subpalettes
+        public List<ModelPalette> GetPalettes
         {
-            get { return (ItemType?)AceObject.ItemType ?? 0; }
-            protected set { AceObject.ItemType = (uint)value; }
+            get { return modelPalettes.ToList(); }
+        }
+
+        // tmChanges
+        public List<ModelTexture> GetTextures
+        {
+            get { return modelTextures.ToList(); }
+        }
+
+        // apChanges
+        public List<Model> GetModels
+        {
+            get { return models.ToList(); }
+        }
+
+        public void AddPalette(uint paletteId, ushort offset, ushort length)
+        {
+            ModelPalette newpalette = new ModelPalette(paletteId, offset, length);
+            modelPalettes.Add(newpalette);
+        }
+
+        public void AddTexture(byte index, uint oldtexture, uint newtexture)
+        {
+            ModelTexture nextTexture = new ModelTexture(index, oldtexture, newtexture);
+            modelTextures.Add(nextTexture);
+        }
+
+        public void AddModel(byte index, uint modelresourceid)
+        {
+            Model newmodel = new Model(index, modelresourceid);
+            models.Add(newmodel);
+        }
+
+        public void Clear()
+        {
+            modelPalettes.Clear();
+            modelTextures.Clear();
+            models.Clear();
+        }
+        // START of Logical Model Data
+
+        public uint? PaletteBaseId
+        {
+            get { return AceObject.PaletteBaseDID; }
+            set { AceObject.PaletteBaseDID = value; }
+        }
+        #endregion
+
+        #region PhysicsDesc
+        // PhysicsData Logical
+
+        // bitfield
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag
+        {
+            get { return SetPhysicsDescriptionFlag(); }
+            protected internal set { AceObject.PhysicsDescriptionFlag = (uint)SetPhysicsDescriptionFlag(); }
+        }
+
+        // state
+        public PhysicsState PhysicsState
+        {
+            get { return (PhysicsState)AceObject.PhysicsState; }
+            set { AceObject.PhysicsState = (uint)value; }
         }
 
         /// <summary>
-        /// wcid - stands for weenie class id
+        /// setup_id in aclogviewer - used to get the correct model out of the dat file
         /// </summary>
-        public uint WeenieClassId
+        public uint? SetupTableId
         {
-            get { return AceObject.WeenieClassId; }
-            protected set { AceObject.WeenieClassId = value; }
-        }
-
-        public WeenieType WeenieType
-        {
-            get { return (WeenieType?)AceObject.WeenieType ?? 0; }
-            protected set { AceObject.WeenieType = (uint)value; }
-        }
-
-        public uint? IconId
-        {
-            get { return AceObject.IconDID; }
-            set { AceObject.IconDID = value; }
-        }
-
-        public string Name
-        {
-            get { return AceObject.Name; }
-            protected set { AceObject.Name = value; }
-        }
-
-        public IActor CurrentParent { get; private set; }
-
-        public Position ForcedLocation { get; private set; }
-
-        public Position RequestedLocation { get; private set; }
-
-        /// <summary>
-        /// Should only be adjusted by LandblockManager -- default is null
-        /// </summary>
-        public Landblock CurrentLandblock
-        {
-            get { return CurrentParent as Landblock; }
+            get { return AceObject.SetupDID; }
+            set { AceObject.SetupDID = value; }
         }
 
         /// <summary>
-        /// tick-stamp for the last time this object changed in any way.
+        /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
         /// </summary>
-        public double LastUpdatedTicks { get; set; }
+        public uint? MotionTableId
+        {
+            get { return AceObject.MotionTableDID; }
+            set { AceObject.MotionTableDID = value; }
+        }
+        /// <summary>
+        /// stable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
+        /// </summary>
+        public uint? SoundTableId
+        {
+            get { return AceObject.SoundTableDID; }
+            set { AceObject.SoundTableDID = value; }
+        }
+        /// <summary>
+        /// phstable_id in aclogviewer This is the physics table for the object.   Looked up from dat file.
+        /// </summary>
+        public uint? PhysicsTableId
+        {
+            get { return AceObject.PhysicsEffectTableDID; }
+            set { AceObject.PhysicsEffectTableDID = value; }
+        }
 
         /// <summary>
-        /// Time when this object will despawn, -1 is never.
+        /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
         /// </summary>
-        public double DespawnTime { get; set; } = -1;
+        public uint? ParentId
+        {
+            get { return WielderId; }
+            set { WielderId = value; }
+        }
 
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
+        public uint? ParentLocation
+        {
+            get { return AceObject.ParentLocation; }
+            set { AceObject.ParentLocation = value; }
+        }
 
+        public List<EquippedItem> Children { get; } = new List<EquippedItem>();
+
+        public float? ObjScale
+        {
+            get { return AceObject.DefaultScale; }
+            set { AceObject.DefaultScale = value; }
+        }
+
+        public float? Friction
+        {
+            get { return AceObject.Friction; }
+            set { AceObject.Friction = value; }
+        }
+
+        public float? Elasticity
+        {
+            get { return AceObject.Elasticity; }
+            set { AceObject.Elasticity = value; }
+        }
+
+        public uint? AnimationFrame
+        {
+            get { return AceObject.PlacementPosition; }
+            set { AceObject.PlacementPosition = value; }
+        }
+
+        public AceVector3 Acceleration { get; set; }
+
+        public float? Translucency
+        {
+            get { return AceObject.Translucency; }
+            set { AceObject.Translucency = value; }
+        }
+
+        public AceVector3 Velocity = null;
+
+        public AceVector3 Omega = null;
+
+        // movement_buffer
+        public MotionState CurrentMotionState { get; set; }
+
+        public uint? DefaultScriptId
+        {
+            get { return Script; }
+            set { Script = (ushort?)value; }
+        }
+
+        public float? DefaultScriptIntensity
+        {
+            get { return AceObject.PhysicsScriptIntensity; }
+            set { AceObject.PhysicsScriptIntensity = value; }
+        }
+
+        // pos
         public virtual Position Location
         {
             get { return AceObject.Location; }
@@ -155,29 +275,19 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary>
-        /// tick-stamp for the last time a movement update was sent
-        /// </summary>
-        public double LastMovementBroadcastTicks { get; set; }
+        public UpdatePositionFlag PositionFlag { get; set; }
+        #endregion
 
-        /// <summary>
-        /// tick-stamp for the server time of the last time the player moved.
-        /// TODO: implement
-        /// </summary>
-        public double LastAnimatedTicks { get; set; }
-
-        public ObjectDescriptionFlag DescriptionFlags
-        {
-            get { return (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags; }
-            protected internal set { AceObject.AceObjectDescriptionFlags = (uint)value; }
-        }
-
+        #region WDesc
+        #region always present
+        // bitfield
         public WeenieHeaderFlag WeenieFlags
         {
             get { return SetWeenieHeaderFlag(); }
             protected internal set { AceObject.WeenieHeaderFlags = (uint)value; }
         }
 
+        // bitfield2
         public WeenieHeaderFlag2 WeenieFlags2
         {
             get
@@ -190,25 +300,42 @@ namespace ACE.Entity
             protected internal set { AceObject.WeenieHeaderFlags2 = (uint)value; }
         }
 
-        public UpdatePositionFlag PositionFlag { get; set; }
-
-        public virtual void PlayScript(Session session) { }
-
-        public virtual float ListeningRadius { get; protected set; } = 5f;
-
-        ////// Logical Game Data
-        public ContainerType ContainerType
+        public string Name
         {
-            get
-            {
-                if (ItemCapacity != null && ItemCapacity != 0)
-                    return ContainerType.Container;
-                if (Name.Contains("Foci"))
-                    return ContainerType.Foci;
-                return ContainerType.NonContainer;
-            }
+            get { return AceObject.Name; }
+            protected set { AceObject.Name = value; }
         }
 
+        /// <summary>
+        /// wcid - stands for weenie class id
+        /// </summary>
+        public uint WeenieClassId
+        {
+            get { return AceObject.WeenieClassId; }
+            protected set { AceObject.WeenieClassId = value; }
+        }
+
+        public uint? IconId
+        {
+            get { return AceObject.IconDID; }
+            set { AceObject.IconDID = value; }
+        }
+
+        // type
+        public ItemType ItemType
+        {
+            get { return (ItemType?)AceObject.ItemType ?? 0; }
+            protected set { AceObject.ItemType = (uint)value; }
+        }
+
+        // header
+        public ObjectDescriptionFlag DescriptionFlags
+        {
+            get { return (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags; }
+            protected internal set { AceObject.AceObjectDescriptionFlags = (uint)value; }
+        }
+        #endregion
+        #region optional
         public string NamePlural
         {
             get { return AceObject.PluralName; }
@@ -269,12 +396,6 @@ namespace ACE.Entity
             set { AceObject.CombatUse = (byte?)value; }
         }
 
-        public MotionStance? DefaultCombatStyle
-        {
-            get { return (MotionStance?)AceObject.DefaultCombatStyle; }
-            set { AceObject.DefaultCombatStyle = (uint?)value; }
-        }
-
         /// <summary>
         /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
         /// </summary>
@@ -315,12 +436,6 @@ namespace ACE.Entity
         {
             get { return AceObject.WielderIID; }
             set { AceObject.WielderIID = value; }
-        }
-
-        public uint? GeneratorId
-        {
-            get { return AceObject.GeneratorIID; }
-            set { AceObject.GeneratorIID = value; }
         }
 
         // Locations
@@ -453,252 +568,8 @@ namespace ACE.Entity
             get { return AceObject.CooldownDuration; }
             set { AceObject.CooldownDuration = value; }
         }
-
-        // PhysicsData Logical
-        /// <summary>
-        /// setup_id in aclogviewer - used to get the correct model out of the dat file
-        /// </summary>
-        public uint? SetupTableId
-        {
-            get { return AceObject.SetupDID; }
-            set { AceObject.SetupDID = value; }
-        }
-
-        public PhysicsDescriptionFlag PhysicsDescriptionFlag
-        {
-            get { return SetPhysicsDescriptionFlag(); }
-            protected internal set { AceObject.PhysicsDescriptionFlag = (uint)SetPhysicsDescriptionFlag(); }
-        }
-
-        public PhysicsState PhysicsState
-        {
-            get { return (PhysicsState)AceObject.PhysicsState; }
-            set { AceObject.PhysicsState = (uint)value; }
-        }
-
-        /// <summary>
-        /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
-        /// </summary>
-        public uint? MotionTableId
-        {
-            get { return AceObject.MotionTableDID; }
-            set { AceObject.MotionTableDID = value; }
-        }
-        /// <summary>
-        /// stable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
-        /// </summary>
-        public uint? SoundTableId
-        {
-            get { return AceObject.SoundTableDID; }
-            set { AceObject.SoundTableDID = value; }
-        }
-        /// <summary>
-        /// phstable_id in aclogviewer This is the physics table for the object.   Looked up from dat file.
-        /// </summary>
-        public uint? PhysicsTableId
-        {
-            get { return AceObject.PhysicsEffectTableDID; }
-            set { AceObject.PhysicsEffectTableDID = value; }
-        }
-
-        /// <summary>
-        /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
-        /// </summary>
-        public uint? ParentId
-        {
-            get { return WielderId; }
-            set { WielderId = value; }
-        }
-
-        public uint? ParentLocation
-        {
-            get { return AceObject.ParentLocation; }
-            set { AceObject.ParentLocation = value; }
-        }
-
-        public List<EquippedItem> Children { get; } = new List<EquippedItem>();
-
-        public float? ObjScale
-        {
-            get { return AceObject.DefaultScale; }
-            set { AceObject.DefaultScale = value; }
-        }
-
-        public float? Friction
-        {
-            get { return AceObject.Friction; }
-            set { AceObject.Friction = value; }
-        }
-
-        public float? Elasticity
-        {
-            get { return AceObject.Elasticity; }
-            set { AceObject.Elasticity = value; }
-        }
-
-        public uint? AnimationFrame
-        {
-            get { return AceObject.PlacementPosition; }
-            set { AceObject.PlacementPosition = value; }
-        }
-
-        public AceVector3 Acceleration { get; set; }
-
-        public float? Translucency
-        {
-            get { return AceObject.Translucency; }
-            set { AceObject.Translucency = value; }
-        }
-
-        public AceVector3 Velocity = null;
-
-        public AceVector3 Omega = null;
-
-        public MotionState CurrentMotionState { get; set; }
-
-        public uint? DefaultScriptId
-        {
-            get { return Script; }
-            set { Script = (ushort?)value; }
-        }
-
-        public float? DefaultScriptIntensity
-        {
-            get { return AceObject.PhysicsScriptIntensity; }
-            set { AceObject.PhysicsScriptIntensity = value; }
-        }
-
-        // START of Logical Model Data
-
-        public uint? PaletteBaseId
-        {
-            get { return AceObject.PaletteBaseDID; }
-            set { AceObject.PaletteBaseDID = value; }
-        }
-
-        public uint? ClothingBase
-        {
-            get { return AceObject.ClothingBaseDID; }
-            set { AceObject.ClothingBaseDID = value; }
-        }
-
-        public uint? ItemCurMana
-        {
-            get { return AceObject.ItemCurMana; }
-            set { AceObject.ItemCurMana = value; }
-        }
-
-        public uint? ItemMaxMana
-        {
-            get { return AceObject.ItemMaxMana; }
-            set { AceObject.ItemMaxMana = value; }
-        }
-
-        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
-
-        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
-
-        private readonly List<Model> models = new List<Model>();
-
-        public List<ModelPalette> GetPalettes
-        {
-            get { return modelPalettes.ToList(); }
-        }
-
-        public List<ModelTexture> GetTextures
-        {
-            get { return modelTextures.ToList(); }
-        }
-
-        public List<Model> GetModels
-        {
-            get { return models.ToList(); }
-        }
-
-        public void AddPalette(uint paletteId, ushort offset, ushort length)
-        {
-            ModelPalette newpalette = new ModelPalette(paletteId, offset, length);
-            modelPalettes.Add(newpalette);
-        }
-
-        public void AddTexture(byte index, uint oldtexture, uint newtexture)
-        {
-            ModelTexture nextTexture = new ModelTexture(index, oldtexture, newtexture);
-            modelTextures.Add(nextTexture);
-        }
-
-        public void AddModel(byte index, uint modelresourceid)
-        {
-            Model newmodel = new Model(index, modelresourceid);
-            models.Add(newmodel);
-        }
-
-        public void Clear()
-        {
-            modelPalettes.Clear();
-            modelTextures.Clear();
-            models.Clear();
-        }
-
-        public bool? AdvocateState
-        {
-            get { return AceObject.AdvocateState; }
-            set { AceObject.AdvocateState = value; }
-        }
-
-        public bool? UnderLifestoneProtection
-        {
-            get { return AceObject.UnderLifestoneProtection; }
-            set { AceObject.UnderLifestoneProtection = value; }
-        }
-
-        public bool? DefaultOn
-        {
-            get { return AceObject.DefaultOn; }
-            set { AceObject.DefaultOn = value; }
-        }
-
-        public bool? AdvocateQuest
-        {
-            get { return AceObject.AdvocateQuest; }
-            set { AceObject.AdvocateQuest = value; }
-        }
-
-        public bool? IsAdvocate
-        {
-            get { return AceObject.IsAdvocate; }
-            set { AceObject.IsAdvocate = value; }
-        }
-
-        public bool? IsSentinel
-        {
-            get { return AceObject.IsSentinel; }
-            set { AceObject.IsSentinel = value; }
-        }
-
-        public bool? IgnorePortalRestrictions
-        {
-            get { return AceObject.IgnorePortalRestrictions; }
-            set { AceObject.IgnorePortalRestrictions = value; }
-        }
-
-        public bool? Invincible
-        {
-            get { return AceObject.Invincible; }
-            set { AceObject.Invincible = value; }
-        }
-
-        public bool? IsGagged
-        {
-            get { return AceObject.IsGagged; }
-            set { AceObject.IsGagged = value; }
-        }
-
-        public bool? Afk
-        {
-            get { return AceObject.Afk; }
-            set { AceObject.Afk = value; }
-        }
+        #endregion
+        #endregion
 
         #region ObjectDescription Bools
         ////None                   = 0x00000000,
@@ -1403,6 +1274,156 @@ namespace ACE.Entity
         ////    set { AceObject.Visibility = value; }
         ////}
         #endregion
+
+        public WeenieType WeenieType
+        {
+            get { return (WeenieType?)AceObject.WeenieType ?? WeenieType.Undef; }
+            protected set { AceObject.WeenieType = (uint)value; }
+        }
+
+        public IActor CurrentParent { get; private set; }
+
+        public Position ForcedLocation { get; private set; }
+
+        public Position RequestedLocation { get; private set; }
+
+        /// <summary>
+        /// Should only be adjusted by LandblockManager -- default is null
+        /// </summary>
+        public Landblock CurrentLandblock
+        {
+            get { return CurrentParent as Landblock; }
+        }
+
+        /// <summary>
+        /// tick-stamp for the last time this object changed in any way.
+        /// </summary>
+        public double LastUpdatedTicks { get; set; }
+
+        /// <summary>
+        /// Time when this object will despawn, -1 is never.
+        /// </summary>
+        public double DespawnTime { get; set; } = -1;
+
+        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
+
+        /// <summary>
+        /// tick-stamp for the last time a movement update was sent
+        /// </summary>
+        public double LastMovementBroadcastTicks { get; set; }
+
+        /// <summary>
+        /// tick-stamp for the server time of the last time the player moved.
+        /// TODO: implement
+        /// </summary>
+        public double LastAnimatedTicks { get; set; }
+       
+        public virtual void PlayScript(Session session) { }
+
+        public virtual float ListeningRadius { get; protected set; } = 5f;
+
+        ////// Logical Game Data
+        public ContainerType ContainerType
+        {
+            get
+            {
+                if (ItemCapacity != null && ItemCapacity != 0)
+                    return ContainerType.Container;
+                if (Name.Contains("Foci"))
+                    return ContainerType.Foci;
+                return ContainerType.NonContainer;
+            }
+        }
+
+        public MotionStance? DefaultCombatStyle
+        {
+            get { return (MotionStance?)AceObject.DefaultCombatStyle; }
+            set { AceObject.DefaultCombatStyle = (uint?)value; }
+        }
+      
+        public uint? GeneratorId
+        {
+            get { return AceObject.GeneratorIID; }
+            set { AceObject.GeneratorIID = value; }
+        }
+
+        public uint? ClothingBase
+        {
+            get { return AceObject.ClothingBaseDID; }
+            set { AceObject.ClothingBaseDID = value; }
+        }
+
+        public uint? ItemCurMana
+        {
+            get { return AceObject.ItemCurMana; }
+            set { AceObject.ItemCurMana = value; }
+        }
+
+        public uint? ItemMaxMana
+        {
+            get { return AceObject.ItemMaxMana; }
+            set { AceObject.ItemMaxMana = value; }
+        }        
+
+        public bool? AdvocateState
+        {
+            get { return AceObject.AdvocateState; }
+            set { AceObject.AdvocateState = value; }
+        }
+
+        public bool? UnderLifestoneProtection
+        {
+            get { return AceObject.UnderLifestoneProtection; }
+            set { AceObject.UnderLifestoneProtection = value; }
+        }
+
+        public bool? DefaultOn
+        {
+            get { return AceObject.DefaultOn; }
+            set { AceObject.DefaultOn = value; }
+        }
+
+        public bool? AdvocateQuest
+        {
+            get { return AceObject.AdvocateQuest; }
+            set { AceObject.AdvocateQuest = value; }
+        }
+
+        public bool? IsAdvocate
+        {
+            get { return AceObject.IsAdvocate; }
+            set { AceObject.IsAdvocate = value; }
+        }
+
+        public bool? IsSentinel
+        {
+            get { return AceObject.IsSentinel; }
+            set { AceObject.IsSentinel = value; }
+        }
+
+        public bool? IgnorePortalRestrictions
+        {
+            get { return AceObject.IgnorePortalRestrictions; }
+            set { AceObject.IgnorePortalRestrictions = value; }
+        }
+
+        public bool? Invincible
+        {
+            get { return AceObject.Invincible; }
+            set { AceObject.Invincible = value; }
+        }
+
+        public bool? IsGagged
+        {
+            get { return AceObject.IsGagged; }
+            set { AceObject.IsGagged = value; }
+        }
+
+        public bool? Afk
+        {
+            get { return AceObject.Afk; }
+            set { AceObject.Afk = value; }
+        }
 
         public SequenceManager Sequences { get; }
 
@@ -2360,10 +2381,30 @@ namespace ACE.Entity
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
-            if (CurrentMotionState != null)
+            ////if (CurrentMotionState != null)
+            ////    physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
+
+            ////if ((AnimationFrame != null) && (AnimationFrame != 0))
+            ////    physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
+
+            ////if (CurrentMotionState != null)
+            ////{
+            ////    var movementData = CurrentMotionState.GetPayload(Guid, Sequences);
+            ////    if (movementData.Length > 0)
+            ////        physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
+            ////}
+            ////else
+            ////{
+            ////    if ((AnimationFrame != null)) // && (AnimationFrame != 0))
+            ////        physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
+            ////}
+
+            var movementData = CurrentMotionState?.GetPayload(Guid, Sequences);
+
+            if (CurrentMotionState != null && movementData.Length > 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if ((AnimationFrame != null) && (AnimationFrame != 0))
+            if (AnimationFrame != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
             if (Location != null)
@@ -2424,28 +2465,72 @@ namespace ACE.Entity
 
             writer.Write((uint)PhysicsState);
 
+            ////if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            ////{
+            ////    if (CurrentMotionState != null)
+            ////    {
+            ////        var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+            ////        writer.Write(movementData.Length); // number of bytes in movement object
+            ////        writer.Write(movementData);
+            ////        uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+            ////        writer.Write(autonomous);
+            ////    }
+            ////    else // create a new current motion state and send it.
+            ////    {
+            ////        ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            ////        ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+            ////        ////writer.Write(movementData.Length);
+            ////        ////writer.Write(movementData);
+            ////        ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+            ////        ////writer.Write(autonomous);
+
+            ////        ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            ////        ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+            ////        writer.Write(0u);
+            ////        ////writer.Write(0);
+            ////        ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+            ////        ////writer.Write(autonomous);
+            ////    }
+            ////}
+
+            ////if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+            ////    writer.Write((AnimationFrame ?? 0u));
+
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
                 if (CurrentMotionState != null)
                 {
                     var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-                    writer.Write(movementData.Length); // number of bytes in movement object
-                    writer.Write(movementData);
-                    uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-                    writer.Write(autonomous);
+                    if (movementData.Length > 0)
+                    {
+                        writer.Write(movementData.Length); // number of bytes in movement object
+                        writer.Write(movementData);
+                        uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                        writer.Write(autonomous);
+                    }
+                    else
+                    {
+                        writer.Write(0u);
+                    }
                 }
                 else // create a new current motion state and send it.
                 {
-                    CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-                    var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-                    writer.Write(movementData.Length);
-                    writer.Write(movementData);
-                    uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-                    writer.Write(autonomous);
+                    ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+                    ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+                    ////writer.Write(movementData.Length);
+                    ////writer.Write(movementData);
+                    ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    ////writer.Write(autonomous);
+
+                    ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+                    ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+                    writer.Write(0u);
+                    ////writer.Write(0);
+                    ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
+                    ////writer.Write(autonomous);
                 }
             }
-
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+            else if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
                 writer.Write((AnimationFrame ?? 0u));
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
@@ -2516,15 +2601,16 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
                 writer.Write(DefaultScriptIntensity ?? 0u);
 
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectMovement));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectState));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVector));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectServerControl));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            // timestamps
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));        // 0
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectMovement));        // 1
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectState));           // 2
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVector));          // 3
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));        // 4
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectServerControl));   // 5
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));   // 6
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectVisualDesc));      // 7
+            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));        // 8
 
             writer.Align();
         }
@@ -2725,6 +2811,8 @@ namespace ACE.Entity
                     return new Door(AceObject);
                 case WeenieType.Portal:
                     return new Portal(AceObject);
+                case WeenieType.PKModifier:
+                    return new PKModifier(AceObject);
                 default:
                     return new GenericObject(AceObject);
             }
