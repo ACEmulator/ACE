@@ -2750,8 +2750,8 @@ namespace ACE.Entity
                     return new Door(AceObject);
                 case WeenieType.Portal:
                     return new Portal(AceObject);
-                case WeenieType.PKModifier:
-                    return new PKModifier(AceObject);
+                // case WeenieType.PKModifier:
+                //    return new PKModifier(AceObject);
                 default:
                     return new GenericObject(AceObject);
             }
