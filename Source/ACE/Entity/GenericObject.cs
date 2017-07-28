@@ -40,7 +40,10 @@ namespace ACE.Entity
                         return;
                     }
 
-                    var errorMessage = new GameMessageSystemChat("Generic OnUse reached, this item not programmed yet", ChatMessageType.System);
+                    var errorMessage = new GameMessageSystemChat($"Generic OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+                    // var errorSound = new GameMessageSound(Guid, Sound.UI_GeneralError, 1);
+                    // var errorSound = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_058D);
+                    // var errorSound = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0036);
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
 
                     player.Session.Network.EnqueueSend(errorMessage, sendUseDoneEvent);
@@ -51,7 +54,8 @@ namespace ACE.Entity
 
         public override void InternalOnUse(Session session)
         {
-            var errorMessage = new GameMessageSystemChat("Generic InternalOnUse reached, this item not programmed yet", ChatMessageType.System);
+            var errorMessage = new GameMessageSystemChat($"Generic InternalOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+            // var errorSound = new GameMessageSound(session.Player.Guid, Sound.UI_GeneralError, 1);
             var sendUseDoneEvent = new GameEventUseDone(session);
 
             session.Network.EnqueueSend(errorMessage, sendUseDoneEvent);
