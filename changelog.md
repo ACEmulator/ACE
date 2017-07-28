@@ -1,16 +1,19 @@
 # ACEmulator Change Log
-### 2017-24-2017
+
+### 2017-07-25
+[Ripley]
+* Minor change to QueryItemMana based on PCAPs.
+
+### 2017-07-24
+[Lidefeath]
+* Added GameAction and GameEvent for querying an items Mana.
+
 [Og II]
 * Refactored debug command learn spell.
 * Made spells persist to the database.
 * Added abilty to delete spell from spell book and send that persistantly to the database on character save.
 * TODO: Put in the abilty to use scrolls to learn spells.
 
-### 2017-07-24
-[Lidefeath]
-* Added GameAction and GameEvent for querying an items Mana.
-
-### 2017-07-24
 [Ripley]
 * Added Bools used by ObjectDescriptionFlag and PhysicsState.
 * Added WeenieType to PropertyInt Enum for future use.
