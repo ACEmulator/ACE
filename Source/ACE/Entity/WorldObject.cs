@@ -1,5 +1,7 @@
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
+using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
@@ -7,19 +9,18 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
-using System.Collections.Generic;
-using System.IO;
-using ACE.Managers;
+
 using log4net;
+
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace ACE.Entity
 {
-    using Enum.Properties;
-    using System.Reflection;
-
     public abstract class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -2104,7 +2105,7 @@ namespace ACE.Entity
             writer.WriteGuid(Guid);
 
             SerializeModelData(writer);
-            SerializePhysicsData(this, writer);
+            SerializePhysicsData(writer);
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);
@@ -2381,24 +2382,6 @@ namespace ACE.Entity
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
-            ////if (CurrentMotionState != null)
-            ////    physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
-
-            ////if ((AnimationFrame != null) && (AnimationFrame != 0))
-            ////    physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
-
-            ////if (CurrentMotionState != null)
-            ////{
-            ////    var movementData = CurrentMotionState.GetPayload(Guid, Sequences);
-            ////    if (movementData.Length > 0)
-            ////        physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
-            ////}
-            ////else
-            ////{
-            ////    if ((AnimationFrame != null)) // && (AnimationFrame != 0))
-            ////        physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
-            ////}
-
             var movementData = CurrentMotionState?.GetPayload(Guid, Sequences);
 
             if (CurrentMotionState != null && movementData.Length > 0)
@@ -2410,7 +2393,6 @@ namespace ACE.Entity
             if (Location != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
 
-            // NOTE: While we fill with 0 the flag still has to reflect that we are not really making this entry for the client.
             if (MotionTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.MTable;
 
@@ -2458,49 +2440,21 @@ namespace ACE.Entity
 
             return physicsDescriptionFlag;
         }
+        
         // todo: return bytes of data for network write ? ?
-        public void SerializePhysicsData(WorldObject wo, BinaryWriter writer)
+        public void SerializePhysicsData(BinaryWriter writer)
         {
             writer.Write((uint)PhysicsDescriptionFlag);
 
             writer.Write((uint)PhysicsState);
 
-            ////if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
-            ////{
-            ////    if (CurrentMotionState != null)
-            ////    {
-            ////        var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-            ////        writer.Write(movementData.Length); // number of bytes in movement object
-            ////        writer.Write(movementData);
-            ////        uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-            ////        writer.Write(autonomous);
-            ////    }
-            ////    else // create a new current motion state and send it.
-            ////    {
-            ////        ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            ////        ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-            ////        ////writer.Write(movementData.Length);
-            ////        ////writer.Write(movementData);
-            ////        ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-            ////        ////writer.Write(autonomous);
-
-            ////        ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-            ////        ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-            ////        writer.Write(0u);
-            ////        ////writer.Write(0);
-            ////        ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-            ////        ////writer.Write(autonomous);
-            ////    }
-            ////}
-
-            ////if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
-            ////    writer.Write((AnimationFrame ?? 0u));
-
+            // PhysicsDescriptionFlag.Movement takes priorty over PhysicsDescription.FlagAnimationFrame
+            // If both are set, only Movement is written.
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
                 if (CurrentMotionState != null)
                 {
-                    var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+                    var movementData = CurrentMotionState.GetPayload(Guid, Sequences);
                     if (movementData.Length > 0)
                     {
                         writer.Write(movementData.Length); // number of bytes in movement object
@@ -2513,21 +2467,9 @@ namespace ACE.Entity
                         writer.Write(0u);
                     }
                 }
-                else // create a new current motion state and send it.
-                {
-                    ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-                    ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-                    ////writer.Write(movementData.Length);
-                    ////writer.Write(movementData);
-                    ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-                    ////writer.Write(autonomous);
-
-                    ////CurrentMotionState = new UniversalMotion(MotionStance.Standing);
-                    ////var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
+                else
+                {                  
                     writer.Write(0u);
-                    ////writer.Write(0);
-                    ////uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-                    ////writer.Write(autonomous);
                 }
             }
             else if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
@@ -2539,11 +2481,9 @@ namespace ACE.Entity
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
                 writer.Write(MotionTableId ?? 0u);
 
-            // stable_id =  BYTE1(v12) & 8 )  =  8
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.STable) != 0)
                 writer.Write(SoundTableId ?? 0u);
 
-            // setup id
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.PeTable) != 0)
                 writer.Write(PhysicsTableId ?? 0u);
 
@@ -2562,6 +2502,7 @@ namespace ACE.Entity
                 foreach (var child in Children)
                 {
                     writer.Write(child.Guid);
+                    // TODO: FIX THIS!
                     writer.Write(1u); // This is going to be child.ParentLocation when we get to it
                 }
             }
@@ -2580,8 +2521,6 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                Debug.Assert(Velocity != null, "Velocity != null");
-                // We do a null check above and unset the flag so this has to be good.
                 Velocity.Serialize(writer);
             }
 

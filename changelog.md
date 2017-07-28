@@ -10,6 +10,7 @@
 * Added GenericObject which becomes the default object for weenies.
 * Reworked GenericObjectFactory to use WorldObject.GetObjectFromWeenieType.
 * Generic OnUse just sends UseDone
+* Reorganized WorldObject class file, made changes to PhysicsDesc to align with client expectations.
 
 ### 2017-07-25
 [Ripley]
