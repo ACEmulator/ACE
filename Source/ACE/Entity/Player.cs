@@ -1896,7 +1896,7 @@ namespace ACE.Entity
 
                     // Ok we are in business
 
-                    WorldObject newStack = new DebugObject(stack.NewAceObjectFromCopy());
+                    WorldObject newStack = new GenericObject(stack.NewAceObjectFromCopy()); // This should probably be figuring out what the weenietype of an object is and returning that, yeah?
                     container.AddToInventory(newStack);
                     var valuePerItem = stack.Value / stack.StackSize;
                     var burdenPerItem = stack.Burden / stack.StackSize;
@@ -2031,7 +2031,7 @@ namespace ACE.Entity
         {
             if (itemId != null)
                 UpdateWieldedItem(container, (uint)itemId);
-            Clear();
+            ClearObjDesc();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
             var wieldeditems = GetCurrentlyWieldedItems();
             var coverage = new List<uint>();
@@ -2345,27 +2345,26 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (CurrentLandblock != null)
+                WorldObject iwo = GetInventoryItem(usedItemId);
+                if (iwo != null)
                 {
-                    // Just forward our action to the appropriate user...
-                    ActionChain onUseChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
+                    iwo.OnUse(Session);
+                }
+                else
+                {
+                    if (CurrentLandblock != null)
                     {
-                        UsableObject uo = wo as UsableObject;
-                        Portal p = wo as Portal;
-
-                        // FIXME: OnCollide for portals -- portals should be usable?
-                        if (p != null)
+                        // Just forward our action to the appropriate user...
+                        ActionChain onUseChain = new ActionChain();
+                        CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
                         {
-                            p.OnCollide(Guid);
-                        }
-
-                        if (uo != null)
-                        {
-                            uo.OnUse(Guid);
-                        }
-                    });
-                    onUseChain.EnqueueChain();
+                            if (wo != null)
+                            {
+                                wo.HandleActionOnUse(Guid);
+                            }
+                        });
+                        onUseChain.EnqueueChain();
+                    }
                 }
             }).EnqueueChain();
         }
@@ -2474,7 +2473,7 @@ namespace ACE.Entity
             int palCount = 0;
 
             List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
-            Clear();
+            ClearObjDesc();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
             if (item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
