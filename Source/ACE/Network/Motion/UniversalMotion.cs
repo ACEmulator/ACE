@@ -99,6 +99,8 @@ namespace ACE.Network.Motion
                         writer.Write((uint)generalFlags);
 
                         MovementData.Serialize(writer);
+                        // Must be aligned for correct alignment. - sigh Og II
+                        writer.Align();
 
                         foreach (var item in Commands)
                         {

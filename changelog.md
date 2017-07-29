@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-07-28
+### 2017-07-29
 [Ripley]
 * NOTE: The following changes require ACE-World database v0.1.6 or greater...
 * No longer setting WeenieHeaderFlag.Value if Value = 0.
@@ -11,6 +11,10 @@
 * Reworked GenericObjectFactory to use WorldObject.GetObjectFromWeenieType.
 * Generic OnUse just sends UseDone
 * Reorganized WorldObject class file, made changes to PhysicsDesc to align with client expectations.
+
+### 2017-07-28
+[Og II]
+* Spent 5 or 6 hours tracking down an align bug in create object - Universial Motion section.   Damn it Jim, I am a high level programmer not a down in the bits and bytes weenie.... :)
 
 ### 2017-07-25
 [Ripley]

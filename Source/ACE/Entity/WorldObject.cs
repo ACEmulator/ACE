@@ -2457,7 +2457,7 @@ namespace ACE.Entity
                     var movementData = CurrentMotionState.GetPayload(Guid, Sequences);
                     if (movementData.Length > 0)
                     {
-                        writer.Write(movementData.Length); // number of bytes in movement object
+                        writer.Write((uint)movementData.Length); // May not need this cast from int to uint, but the protocol says uint Og II
                         writer.Write(movementData);
                         uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
                         writer.Write(autonomous);
