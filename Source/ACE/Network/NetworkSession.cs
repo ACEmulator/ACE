@@ -34,10 +34,10 @@ namespace ACE.Network
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
         private ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
 
-        private DateTime nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
+        private DateTime nextResync = DateTime.UtcNow;
         private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
         private DateTime nextSend = DateTime.UtcNow;
-        private bool sendAck = false;
+        private bool sendAck = true;
         private bool sendResync = false;
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
@@ -218,6 +218,7 @@ namespace ACE.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
+                log.DebugFormat("[{0}] Incoming TimeSync TS: {1}", session.Account, packet.HeaderOptional.TimeSynch);
                 // Do something with this...
                 // Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
                 // Client seems to send them alternatingly every 2 or 4 seconds per port.
@@ -496,6 +497,7 @@ namespace ACE.Network
                     if (bundle.TimeSync) // 0x1000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
+                        log.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.Account, ConnectionData.ServerTime);
                         packet.BodyWriter.Write(ConnectionData.ServerTime);
                     }
 
