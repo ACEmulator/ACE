@@ -13,6 +13,9 @@
 * Reorganized WorldObject class file, made changes to PhysicsDesc to align with client expectations.
 
 ### 2017-07-28
+[Zegeger]
+* Tweaked the ACK timer to help improve network reliability
+
 [Og II]
 * Spent 5 or 6 hours tracking down an align bug in create object - Universial Motion section.   Damn it Jim, I am a high level programmer not a down in the bits and bytes weenie.... :)
 
