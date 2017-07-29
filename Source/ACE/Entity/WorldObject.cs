@@ -125,7 +125,7 @@ namespace ACE.Entity
             models.Add(newmodel);
         }
 
-        public void Clear()
+        public void ClearObjDesc()
         {
             modelPalettes.Clear();
             modelTextures.Clear();

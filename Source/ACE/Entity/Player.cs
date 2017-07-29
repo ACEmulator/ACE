@@ -2031,7 +2031,7 @@ namespace ACE.Entity
         {
             if (itemId != null)
                 UpdateWieldedItem(container, (uint)itemId);
-            Clear();
+            ClearObjDesc();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
             var wieldeditems = GetCurrentlyWieldedItems();
             var coverage = new List<uint>();
@@ -2474,7 +2474,7 @@ namespace ACE.Entity
             int palCount = 0;
 
             List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
-            Clear();
+            ClearObjDesc();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
             if (item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
