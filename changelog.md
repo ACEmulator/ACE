@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-28
+[Og II]
+* Spent 5 or 6 hours tracking down an align bug in create object - Universial Motion section.   Damn it Jim, I am a high level programmer not a down in the bits and bytes weenie.... :)
+
 ### 2017-07-25
 [Ripley]
 * Minor change to QueryItemMana based on PCAPs.

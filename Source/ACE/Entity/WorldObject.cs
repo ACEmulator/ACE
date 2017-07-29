@@ -2432,7 +2432,8 @@ namespace ACE.Entity
                 {
                     CurrentMotionState = new UniversalMotion(MotionStance.Standing);
                     var movementData = CurrentMotionState.GetPayload(wo.Guid, wo.Sequences);
-                    writer.Write(movementData.Length);
+                    // May not need this cast from int to uint, but the protocol says uint Og II
+                    writer.Write((uint)movementData.Length);
                     writer.Write(movementData);
                     uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
                     writer.Write(autonomous);
