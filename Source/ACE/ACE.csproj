@@ -131,6 +131,7 @@
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
     <Compile Include="Factories\SpellObjectFactory.cs" />
+    <Compile Include="Factories\WorldObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />

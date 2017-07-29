@@ -2727,36 +2727,6 @@ namespace ACE.Entity
                 Frozen = true;
         }
 
-        public WorldObject GetObjectFromWeenieType()
-        {
-            WeenieType objWeenieType = (WeenieType?)AceObject.WeenieType ?? WeenieType.Generic;
-
-            ////if (aceO.GeneratorStatus ?? false)  // Generator
-            ////{
-            ////    ////aceO.Location = aceO.Location.InFrontOf(-2.0);
-            ////    ////aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
-            ////    ////results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
-            ////    ////aceO.GeneratorEnteredWorld = true;
-            ////    ////var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
-            ////    ////objectList.ForEach(o => results.Add(o));
-            ////    continue;
-            ////}
-
-            switch (objWeenieType)
-            {
-                case WeenieType.LifeStone:
-                    return new Lifestone(AceObject);
-                case WeenieType.Door:
-                    return new Door(AceObject);
-                case WeenieType.Portal:
-                    return new Portal(AceObject);
-                // case WeenieType.PKModifier:
-                //    return new PKModifier(AceObject);
-                default:
-                    return new GenericObject(AceObject);
-            }
-        }
-
         public virtual void OnUse(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.
