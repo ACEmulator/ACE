@@ -34,11 +34,18 @@ namespace ACE.Network
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
         private ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
 
-        private DateTime nextResync = DateTime.UtcNow;
-        private DateTime nextAck = DateTime.UtcNow;
         private DateTime nextSend = DateTime.UtcNow;
-        private bool sendAck = true;
+
+        // Resync will be started after ConnectResponse, and should immediately be sent then, so no delay here.
+        // Fun fact: even though we send the server time in the ConnectRequest, client doesn't seem to use it?  Therefore we must TimeSync early so client doesn't see a skew when we send it later.
         private bool sendResync = false;
+        private DateTime nextResync = DateTime.UtcNow;
+
+        // Ack should be sent after a 2 second delay, so start enabled with the delay.
+        // Sending this too early seems to cause issues with clients disconnecting.
+        private bool sendAck = true;
+        private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
+        
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
 
@@ -115,6 +122,7 @@ namespace ACE.Network
             {
                 if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
                 {
+                    log.DebugFormat("[{0}] Setting to send TimeSync packet", session.Account);
                     currentBundle.TimeSync = true;
                     currentBundle.EncryptedChecksum = true;
                     nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
@@ -122,6 +130,7 @@ namespace ACE.Network
 
                 if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
                 {
+                    log.DebugFormat("[{0}] Setting to send ACK packet", session.Account);
                     currentBundle.SendAck = true;
                     nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
                 }
@@ -216,6 +225,7 @@ namespace ACE.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
             {
+                log.DebugFormat("[{0}] Incoming TimeSync TS: {1}", session.Account, packet.HeaderOptional.TimeSynch);
                 // Do something with this...
                 // Based on network traces these are not 1:1.  Server seems to send them every 20 seconds per port.
                 // Client seems to send them alternatingly every 2 or 4 seconds per port.
@@ -240,7 +250,7 @@ namespace ACE.Network
             }
 
             // This should be set on the second packet to the server from the client.
-            // This comletes the three-way handshake.
+            // This completes the three-way handshake.
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
                 sendResync = true;
@@ -494,6 +504,7 @@ namespace ACE.Network
                     if (bundle.TimeSync) // 0x1000000
                     {
                         packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
+                        log.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.Account, ConnectionData.ServerTime);
                         packet.BodyWriter.Write(ConnectionData.ServerTime);
                     }
 

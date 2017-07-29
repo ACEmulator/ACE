@@ -234,10 +234,6 @@ namespace ACE.Network
         {
             if (!CheckState(packet))
             {
-                // server treats all packets sent during the first 30 seconds as invalid packets due to server crash, this will move clients to the disconnect screen
-                if (DateTime.UtcNow < WorldManager.WorldStartTime.AddSeconds(30d))
-                    SendCharacterError(CharacterError.ServerCrash);
-
                 return;
             }
 
