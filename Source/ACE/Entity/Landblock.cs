@@ -101,7 +101,7 @@ namespace ACE.Entity
             // TODO: Load spawn data
 
             var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
-            var factoryObjects = GenericObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))

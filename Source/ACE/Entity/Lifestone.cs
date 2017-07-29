@@ -8,14 +8,14 @@ using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
-    public class Lifestone : UsableObject
+    public class Lifestone : WorldObject
     {
         public Lifestone(AceObject aceO)
             : base(aceO)
         {
         }
 
-        public override void OnUse(ObjectGuid playerId)
+        public override void HandleActionOnUse(ObjectGuid playerId)
         {
             // All data on a lifestone is constant -- therefore we just run in context of player
             ActionChain chain = new ActionChain();

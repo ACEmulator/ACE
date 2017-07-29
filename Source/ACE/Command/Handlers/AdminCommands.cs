@@ -986,7 +986,9 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            ////var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+
+            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
         }

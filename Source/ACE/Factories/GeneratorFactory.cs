@@ -139,7 +139,7 @@ namespace ACE.Factories
                         default:
                             baseObject.Location = pos;
                             if (baseObject.Location != null)
-                                results.Add(new DebugObject(GuidManager.NewItemGuid(), baseObject));
+                                results.Add(new GenericObject(GuidManager.NewItemGuid(), baseObject));
                             break;
                     }
                 }

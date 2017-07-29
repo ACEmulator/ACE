@@ -231,6 +231,12 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
+        public uint? WeenieType
+        {
+            get { return GetIntProperty(PropertyInt.WeenieType); }
+            set { SetIntProperty(PropertyInt.WeenieType, value); }
+        }
+
         public uint? ItemType
         {
             get { return GetIntProperty(PropertyInt.ItemType); }
