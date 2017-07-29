@@ -34,11 +34,18 @@ namespace ACE.Network
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
         private ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
 
-        private DateTime nextResync = DateTime.UtcNow;
-        private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
         private DateTime nextSend = DateTime.UtcNow;
-        private bool sendAck = true;
+
+        // Resync will be started after ConnectResponse, and should immediately be sent then, so no delay here.
+        // Fun fact: even though we send the server time in the ConnectRequest, client doesn't seem to use it?  Therefore we must TimeSync early so client doesn't see a skew when we send it later.
         private bool sendResync = false;
+        private DateTime nextResync = DateTime.UtcNow;
+
+        // Ack should be sent after a 2 second delay, so start enabled with the delay.
+        // Sending this too early seems to cause issues with clients disconnecting.
+        private bool sendAck = true;
+        private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
+        
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence = 0;
 
@@ -243,7 +250,7 @@ namespace ACE.Network
             }
 
             // This should be set on the second packet to the server from the client.
-            // This comletes the three-way handshake.
+            // This completes the three-way handshake.
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
                 sendResync = true;
