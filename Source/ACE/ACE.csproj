@@ -123,10 +123,8 @@
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
-    <Compile Include="Factories\CommonObjectFactory.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
-    <Compile Include="Factories\GenericObjectFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />

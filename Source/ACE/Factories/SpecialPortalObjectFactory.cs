@@ -28,11 +28,11 @@ namespace ACE.Factories
         {
             AceObject aceO = DatabaseManager.World.GetAceObjectByWeenie((ushort)weenieClassId);
 
-            aceO.AceObjectId = CommonObjectFactory.DynamicObjectId;
-
             aceO.AceObjectPropertiesPositions.Add(PositionType.Location, newPosition);
 
             WorldObject portal = new Portal(aceO);
+
+            portal.Guid = GuidManager.NewItemGuid();
 
             LandblockManager.AddObject(portal);
 
