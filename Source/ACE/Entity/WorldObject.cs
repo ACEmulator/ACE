@@ -2727,17 +2727,17 @@ namespace ACE.Entity
                 Frozen = true;
         }
 
-        public virtual void OnUse(ObjectGuid playerId)
+        public virtual void HandleActionOnUse(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.
         }
 
-        public virtual void InternalOnUse(Session session)
+        public virtual void OnUse(Session session)
         {
             // todo: implement.  default is probably to do nothing.
         }
 
-        public virtual void OnCollide(ObjectGuid playerId)
+        public virtual void HandleActionOnCollide(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.
         }

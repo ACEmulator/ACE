@@ -163,12 +163,12 @@ namespace ACE.Entity
             get { return IsTieable; }
         }
 
-        public override void OnCollide(ObjectGuid playerId)
+        public override void HandleActionOnCollide(ObjectGuid playerId)
         {
-            OnUse(playerId);
+            HandleActionOnUse(playerId);
         }
 
-        public override void OnUse(ObjectGuid playerId)
+        public override void HandleActionOnUse(ObjectGuid playerId)
         {
             string serverMessage;
 

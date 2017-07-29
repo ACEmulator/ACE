@@ -15,7 +15,7 @@ namespace ACE.Entity
         {
         }
 
-        public override void OnUse(ObjectGuid playerId)
+        public override void HandleActionOnUse(ObjectGuid playerId)
         {
             // All data on a lifestone is constant -- therefore we just run in context of player
             ActionChain chain = new ActionChain();

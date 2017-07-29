@@ -2345,11 +2345,10 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (GetInventoryItem(usedItemId) != null)
+                WorldObject iwo = GetInventoryItem(usedItemId);
+                if (iwo != null)
                 {
-                    WorldObject iwo = GetInventoryItem(usedItemId);
-                    ////iwo = iwo.GetObjectFromWeenieType(); // is this right? is this even needed?
-                    iwo.InternalOnUse(Session);
+                    iwo.OnUse(Session);
                 }
                 else
                 {
@@ -2361,7 +2360,7 @@ namespace ACE.Entity
                         {
                             if (wo != null)
                             {
-                                wo.OnUse(Guid);
+                                wo.HandleActionOnUse(Guid);
                             }
                         });
                         onUseChain.EnqueueChain();

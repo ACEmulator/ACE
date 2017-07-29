@@ -177,7 +177,7 @@ namespace ACE.Entity
             set;
         }
 
-        public override void OnUse(ObjectGuid playerId)
+        public override void HandleActionOnUse(ObjectGuid playerId)
         {
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
@@ -206,7 +206,7 @@ namespace ACE.Entity
                     moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.2f));
                     moveToDoorChain.AddDelaySeconds(0.50);
 
-                    moveToDoorChain.AddAction(this, () => OnUse(playerId));
+                    moveToDoorChain.AddAction(this, () => HandleActionOnUse(playerId));
 
                     moveToDoorChain.EnqueueChain();
                 }
