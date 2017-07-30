@@ -16,106 +16,92 @@ namespace ACE.Database
         private enum ShardPreparedStatement
         {
             // these are for the world database, but there's a lot of overlap
-            // so we're just going to reserve 0-100 for them here
-            TeleportLocationSelect = 0,
-            GetWeenieClass = 1,
-            GetObjectsByLandblock = 2,
-            GetCreaturesByLandblock = 3,
-            GetPaletteOverridesByObject = 7,
-            GetAnimationOverridesByObject = 8,
-            GetTextureOverridesByObject = 9,
-            GetCreatureDataByWeenie = 10,
-            InsertCreatureStaticLocation = 11,
-            GetCreatureGeneratorByLandblock = 12,
-            GetCreatureGeneratorData = 13,
-            GetPortalObjectsByAceObjectId = 14,
-            GetItemsByTypeId = 15,
-            GetAceObjectPropertiesInt = 16,
-            GetAceObjectPropertiesBigInt = 17,
-            GetAceObjectPropertiesDouble = 18,
-            GetAceObjectPropertiesBool = 19,
-            GetAceObjectPropertiesString = 20,
-            GetAceObjectPropertiesDid = 21,
-            GetAceObjectPropertiesIid = 22,
-            GetAceObjectPropertiesPositions = 23,
-            GetAceObjectPropertiesAttributes = 24,
-            GetAceObjectPropertiesAttributes2nd = 25,
-            GetAceObjectPropertiesSkills = 26,
+            GetObjectsByLandblock,
+            GetPaletteOverridesByObject,
+            GetAnimationOverridesByObject,
+            GetTextureOverridesByObject,
+            GetAceObjectPropertiesInt,
+            GetAceObjectPropertiesBigInt,
+            GetAceObjectPropertiesDouble,
+            GetAceObjectPropertiesBool,
+            GetAceObjectPropertiesString,
+            GetAceObjectPropertiesDid,
+            GetAceObjectPropertiesIid,
+            GetAceObjectPropertiesPositions,
+            GetAceObjectPropertiesAttributes,
+            GetAceObjectPropertiesAttributes2nd,
+            GetAceObjectPropertiesSkills,
+            GetAceObjectPropertiesSpell,
+            GetAceObjectPropertiesSpellBarPositions,
 
-            SaveAceObject = 27,
-            DeleteAceObject = 28,
-            GetAceObject = 29,
-            UpdateAceObject = 30,
-            GetAceObjectPropertiesSpell = 31,
+            SaveAceObject,
+            DeleteAceObject,
+            GetAceObject,
+            UpdateAceObject,
 
-            AddFriend = 101,
-            DeleteFriend = 102,
-            GetFriends = 103,
-            DeleteAllFriends = 104,
+            GetCharacters,
+            IsCharacterNameAvailable,
 
-            GetCharacters = 105,
-            // ThisNumberIsFreeForUseAgain = 106,
-            IsCharacterNameAvailable = 107,
-            // keep on going, you get the idea
+            DeletePaletteOverridesByObject,
+            DeleteAnimationOverridesByObject,
+            DeleteTextureOverridesByObject,
+            DeleteAceObjectPropertiesInt,
+            DeleteAceObjectPropertiesBigInt,
+            DeleteAceObjectPropertiesDouble,
+            DeleteAceObjectPropertiesBool,
+            DeleteAceObjectPropertiesString,
+            DeleteAceObjectPropertiesDid,
+            DeleteAceObjectPropertiesIid,
+            DeleteAceObjectPropertiesPositions,
+            DeleteAceObjectPropertiesAttributes,
+            DeleteAceObjectPropertiesAttributes2nd,
+            DeleteAceObjectPropertiesSkills,
+            DeleteAceObjectPropertiesSpell,
+            DeleteAceObjectPropertiesSpellBarPositions,
 
-            DeletePaletteOverridesByObject = 108,
-            DeleteAnimationOverridesByObject = 109,
-            DeleteTextureOverridesByObject = 110,
-            DeleteAceObjectPropertiesInt = 111,
-            DeleteAceObjectPropertiesBigInt = 112,
-            DeleteAceObjectPropertiesDouble = 113,
-            DeleteAceObjectPropertiesBool = 114,
-            DeleteAceObjectPropertiesString = 115,
-            DeleteAceObjectPropertiesDid = 116,
-            DeleteAceObjectPropertiesIid = 117,
-            DeleteAceObjectPropertiesPositions = 118,
-            DeleteAceObjectPropertiesAttributes = 119,
-            DeleteAceObjectPropertiesAttributes2nd = 120,
-            DeleteAceObjectPropertiesSkills = 121,
-            DeleteAceObjectPropertiesSpell = 158,
-            InsertPaletteOverridesByObject = 122,
-            InsertAnimationOverridesByObject = 123,
-            InsertTextureOverridesByObject = 124,
-            InsertAceObjectPropertiesInt = 125,
-            InsertAceObjectPropertiesBigInt = 126,
-            InsertAceObjectPropertiesDouble = 127,
-            InsertAceObjectPropertiesBool = 128,
-            InsertAceObjectPropertiesString = 129,
-            InsertAceObjectPropertiesDid = 130,
-            InsertAceObjectPropertiesIid = 131,
-            InsertAceObjectPropertiesPositions = 132,
-            InsertAceObjectPropertiesAttributes = 133,
-            InsertAceObjectPropertiesAttributes2nd = 134,
-            InsertAceObjectPropertiesSkills = 135,
-            InsertAceObjectPropertiesSpells = 159,
+            InsertPaletteOverridesByObject,
+            InsertAnimationOverridesByObject,
+            InsertTextureOverridesByObject,
+            InsertAceObjectPropertiesInt,
+            InsertAceObjectPropertiesBigInt,
+            InsertAceObjectPropertiesDouble,
+            InsertAceObjectPropertiesBool,
+            InsertAceObjectPropertiesString,
+            InsertAceObjectPropertiesDid,
+            InsertAceObjectPropertiesIid,
+            InsertAceObjectPropertiesPositions,
+            InsertAceObjectPropertiesAttributes,
+            InsertAceObjectPropertiesAttributes2nd,
+            InsertAceObjectPropertiesSkills,
+            InsertAceObjectPropertiesSpells,
+            InsertAceObjectPropertiesSpellBarPositions,
 
             // note, this section is all "Property" singular
-            UpdateAceObjectPropertyInt = 136,
-            UpdateAceObjectPropertyBigInt = 137,
-            UpdateAceObjectPropertyDouble = 138,
-            UpdateAceObjectPropertyBool = 139,
-            UpdateAceObjectPropertyString = 140,
-            UpdateAceObjectPropertyDid = 141,
-            UpdateAceObjectPropertyIid = 142,
-            UpdateAceObjectPropertyPosition = 143,
-            UpdateAceObjectPropertyAttribute = 144,
-            UpdateAceObjectPropertyAttribute2nd = 145,
-            UpdateAceObjectPropertySkill = 146,
+            UpdateAceObjectPropertyInt,
+            UpdateAceObjectPropertyBigInt,
+            UpdateAceObjectPropertyDouble,
+            UpdateAceObjectPropertyBool,
+            UpdateAceObjectPropertyString,
+            UpdateAceObjectPropertyDid,
+            UpdateAceObjectPropertyIid,
+            UpdateAceObjectPropertyPosition,
+            UpdateAceObjectPropertyAttribute,
+            UpdateAceObjectPropertyAttribute2nd,
+            UpdateAceObjectPropertySkill,
 
-            // note, this section is all "Property" singular
-            DeleteAceObjectPropertyInt = 147,
-            DeleteAceObjectPropertyBigInt = 148,
-            DeleteAceObjectPropertyDouble = 149,
-            DeleteAceObjectPropertyBool = 150,
-            DeleteAceObjectPropertyString = 151,
-            DeleteAceObjectPropertyDid = 152,
-            DeleteAceObjectPropertyIid = 153,
-            DeleteAceObjectPropertyPosition = 154,
-            DeleteAceObjectPropertyAttribute = 155,
-            DeleteAceObjectPropertyAttribute2nd = 156,
-            DeleteAceObjectPropertySkill = 157,
+            DeleteAceObjectPropertyInt,
+            DeleteAceObjectPropertyBigInt,
+            DeleteAceObjectPropertyDouble,
+            DeleteAceObjectPropertyBool,
+            DeleteAceObjectPropertyString,
+            DeleteAceObjectPropertyDid,
+            DeleteAceObjectPropertyIid,
+            DeleteAceObjectPropertyPosition,
+            DeleteAceObjectPropertyAttribute,
+            DeleteAceObjectPropertyAttribute2nd,
+            DeleteAceObjectPropertySkill,
             // Used to get max values from DB
-            GetCurrentId = 200,
+            GetCurrentId,
         }
 
         protected override Type PreparedStatementType
@@ -162,6 +148,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesAttributes2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.GetList);
 
             // Delete statements
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.DeleteList);
@@ -179,6 +166,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeletePaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.DeleteList);
 
             // Insert statements
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.InsertList);
@@ -196,6 +184,8 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesSpells, typeof(AceObjectPropertiesSpell), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.InsertList);
+
             // Updates
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.Update);
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.Update);
@@ -313,7 +303,7 @@ namespace ACE.Database
 
         private void LoadIntoObject(AceObject aceObject)
         {
-            // this flag determines whether subequent calls to "save" trigger an insert or an update
+            // this flag determines when the subsequentnt calls to "save" trigger an insert or an update
             aceObject.HasEverBeenSavedToDatabase = true;
 
             // TODO: still to implement - load spells, friends, allegiance info, spell comps, spell bars
@@ -336,6 +326,7 @@ namespace ACE.Database
             aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
                 x => new CreatureSkill(aceObject, x));
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
+            aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
@@ -478,6 +469,13 @@ namespace ACE.Database
             return objects;
         }
 
+        private List<AceObjectPropertiesSpellBarPositions> GetAceObjectPropertiesSpellBarPositions(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.GetAceObjectPropertiesSpellBarPositions, criteria);
+            return objects;
+        }
+
         private List<TextureMapOverride> GetAceObjectTextureMaps(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
@@ -616,6 +614,9 @@ namespace ACE.Database
             DeleteAceObjectPropertiesSpells(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesSpells(transaction, aceObject.AceObjectId, aceObject.SpellIdProperties);
 
+            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
+            SaveAceObjectPropertiesSpellBarPositions(transaction, aceObject.SpellsInSpellBars);
+
             DeleteAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
             SaveAceObjectAnimations(transaction, aceObject.AceObjectId, aceObject.AnimationOverrides);
 
@@ -628,7 +629,7 @@ namespace ACE.Database
 
             SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesSkills);
 
-            // prositions are special.  the object is actually fully replaced, so we can't do dirty tracking on it (for now)
+            // positions are special.  the object is actually fully replaced, so we can't do dirty tracking on it (for now)
             // as a result, we delete them all then reinsert them all
             DeleteAceObjectPropertiesPositions(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesPositions(transaction, aceObject.AceObjectId,
@@ -650,7 +651,7 @@ namespace ACE.Database
             return true;
         }
 
-        // FIXME(ddevec): These are a lot of functions that essentially do the same thing... but the SharedPreparedStatement.--- makes them a pain to tempalte/reduce
+        // FIXME(ddevec): These are a lot of functions that essentially do the same thing... but the SharedPreparedStatement.--- makes them a pain to template/reduce
         private bool SaveAceObjectPropertiesInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt> properties)
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
@@ -873,6 +874,12 @@ namespace ACE.Database
             return true;
         }
 
+        private bool SaveAceObjectPropertiesSpellBarPositions(DatabaseTransaction transaction, List<AceObjectPropertiesSpellBarPositions> properties)
+        {
+            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.InsertAceObjectPropertiesSpellBarPositions, properties);
+            return true;
+        }
+
         private bool SaveAceObjectPalettes(DatabaseTransaction transaction, uint aceObjectId, List<PaletteOverride> properties)
         {
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.InsertPaletteOverridesByObject, properties);
@@ -994,6 +1001,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.DeleteAceObjectPropertiesSpell, criteria);
+            return true;
+        }
+
+        private bool DeleteAceObjectPropertiesSpellBarPositions(DatabaseTransaction transaction, uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.DeleteAceObjectPropertiesSpellBarPositions, criteria);
             return true;
         }
 
