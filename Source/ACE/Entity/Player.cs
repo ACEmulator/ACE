@@ -203,12 +203,18 @@ namespace ACE.Entity
         public void HandleActionAddSpellToSpellBar(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
             // The spell bar magic happens here. First, let's mind our race conditions....
-            // No need for action chain here - internal to us, no other object can change us.
-            AceObject.SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
-                                                { AceObjectId = AceObject.AceObjectId,
-                                                  SpellId = spellId,
-                                                  SpellBarId = spellBarId,
-                                                  SpellBarPositionId = spellBarPositionId });
+            ActionChain addSpellBarChain = new ActionChain();
+            addSpellBarChain.AddAction(this, () =>
+            {
+                AceObject.SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
+                {
+                    AceObjectId = AceObject.AceObjectId,
+                    SpellId = spellId,
+                    SpellBarId = spellBarId,
+                    SpellBarPositionId = spellBarPositionId
+                });
+            });
+            addSpellBarChain.EnqueueChain();
         }
 
         /// <summary>
@@ -219,16 +225,20 @@ namespace ACE.Entity
         public void HandleActionRemoveSpellToSpellBar(uint spellId, uint spellBarId)
         {
             // More spell bar magic happens here. First, let's mind our race conditions....
-            // No need for action chain here - internal to us, no other object can change us.
-            AceObject.SpellsInSpellBars.Remove(AceObject.SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
-            // Now I have to reorder
-            var sorted = AceObject.SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
-            uint newSpellBarPosition = 0;
-            foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
+            ActionChain removeSpellBarChain = new ActionChain();
+            removeSpellBarChain.AddAction(this, () =>
             {
-                spells.SpellBarPositionId = newSpellBarPosition;
-                newSpellBarPosition++;
-            }
+                AceObject.SpellsInSpellBars.Remove(AceObject.SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
+                // Now I have to reorder
+                var sorted = AceObject.SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
+                uint newSpellBarPosition = 0;
+                foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
+                {
+                    spells.SpellBarPositionId = newSpellBarPosition;
+                    newSpellBarPosition++;
+                }
+            });
+            removeSpellBarChain.EnqueueChain();
         }
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
