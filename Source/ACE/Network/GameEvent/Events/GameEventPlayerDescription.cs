@@ -307,7 +307,7 @@ namespace ACE.Network.GameEvent.Events
 
             // TODO: Refactor this to set all of these flags based on data. Og II
             CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
-            if (aceObj.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
+            if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
             optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
             Writer.Write((uint)optionFlags);
@@ -324,7 +324,7 @@ namespace ACE.Network.GameEvent.Events
                 for (int i = 0; i <= 7; i++)
                 {
                     var sorted =
-                        aceObj.SpellsInSpellBars.FindAll(x => x.AceObjectId == aceObj.AceObjectId && x.SpellBarId == i)
+                        Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == aceObj.AceObjectId && x.SpellBarId == i)
                             .OrderBy(s => s.SpellBarPositionId);
                     Writer.Write(sorted.Count());
                     foreach (AceObjectPropertiesSpellBarPositions spells in sorted)

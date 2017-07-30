@@ -70,6 +70,18 @@ namespace ACE.Entity
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
+        public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars
+        {
+            get
+            {
+                return AceObject.SpellsInSpellBars;
+            }
+            set
+            {
+                AceObject.SpellsInSpellBars = value;
+            }
+        }
+
         public void SetCharacterOptions1(uint options1)
         {
             Character.CharacterOptions1Mapping = options1;
@@ -206,7 +218,7 @@ namespace ACE.Entity
             ActionChain addSpellBarChain = new ActionChain();
             addSpellBarChain.AddAction(this, () =>
             {
-                AceObject.SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
+                SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
                 {
                     AceObjectId = AceObject.AceObjectId,
                     SpellId = spellId,
@@ -228,9 +240,9 @@ namespace ACE.Entity
             ActionChain removeSpellBarChain = new ActionChain();
             removeSpellBarChain.AddAction(this, () =>
             {
-                AceObject.SpellsInSpellBars.Remove(AceObject.SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
+                SpellsInSpellBars.Remove(SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
                 // Now I have to reorder
-                var sorted = AceObject.SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
+                var sorted = SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
                 uint newSpellBarPosition = 0;
                 foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
                 {
