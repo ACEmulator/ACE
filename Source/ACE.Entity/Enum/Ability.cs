@@ -5,38 +5,39 @@ namespace ACE.Entity.Enum
     [Flags]
     public enum Ability : uint
     {
-        None            = 0,
-        Strength        = 1,
-        Endurance       = 2,
-        Coordination    = 4,        
-        Quickness       = 8,
-        Focus           = 16,
-        Self            = 32,
+        None            = 0x000,
+        Strength        = 0x001,
+        Endurance       = 0x002,
+        Coordination    = 0X004,
+        Quickness       = 0x008,
+        Focus           = 0x010,
+        Self            = 0x020,
 
         [AbilityRegen(0.5)]
         [AbilityFormula(Endurance, 2)]
-        Health          = 64,
+        Health          = 0x040,
 
         [AbilityRegen(1.0)]
         [AbilityFormula(Endurance)]
-        Stamina         = 128,
+        Stamina         = 0x080,
 
         [AbilityRegen(0.7)]
         [AbilityFormula(Self)]
-        Mana            = 256
+        Mana            = 0x100,
+        Full = Strength | Endurance | Quickness | Coordination | Focus | Self | Health | Stamina | Mana
     }
 
     public static class AbilityExtensions
     {
         public static AbilityFormulaAttribute GetFormula(this Ability ability)
         {
-            return Enum.EnumHelper.GetAttributeOfType<AbilityFormulaAttribute>(ability);
+            return ability.GetAttributeOfType<AbilityFormulaAttribute>();
         }
 
         // FIXME(ddevec): This will eventually be a formula...
         public static double GetRegenRate(this Ability ability)
         {
-            return Enum.EnumHelper.GetAttributeOfType<AbilityRegenAttribute>(ability).Rate;
+            return ability.GetAttributeOfType<AbilityRegenAttribute>().Rate;
         }
     }
 }

@@ -1,10 +1,8 @@
-﻿using ACE.Network.GameEvent.Events;
-
-namespace ACE.Network.GameAction.Actions
+﻿namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionGetAndWieldItem
     {
-        [GameAction(GameActionType.EvtInventoryGetAndWieldItem)]
+        [GameAction(GameActionType.GetAndWieldItem)]
         public static void Handle(ClientMessage message, Session session)
         {
             uint itemGuid = message.Payload.ReadUInt32();

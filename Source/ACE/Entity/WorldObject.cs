@@ -2468,16 +2468,21 @@ namespace ACE.Entity
                     }
                     else
                     {
+                        // Adding these debug lines - don't think we can hit these, but want to make sure. Og II
+                        log.Debug($"Our flag is set but we have no data length. {this.Guid.Full:X}");
                         writer.Write(0u);
                     }
                 }
                 else
                 {
+                    log.Debug($"Our flag is set but our current motion state is null. {this.Guid.Full:X}");
                     writer.Write(0u);
                 }
             }
             else if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
                 writer.Write((AnimationFrame ?? 0u));
+            // TODO: Keep an eye on this, are we sure the client does not just ignore it?   I would think they way it reads by buffer length that this would blow up.
+            // probably an edge case - just watch this - Og II
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
                 Location.Serialize(writer);

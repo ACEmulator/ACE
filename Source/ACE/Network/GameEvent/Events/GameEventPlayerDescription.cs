@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.Network.GameEvent.Events
 {
+    using System.Diagnostics;
+
     public class GameEventPlayerDescription : GameEventMessage
     {
         [Flags]
@@ -30,37 +31,6 @@ namespace ACE.Network.GameEvent.Events
             Skill       = 0x0002,
             Spell       = 0x0100,
             Enchantment = 0x0200
-        }
-
-        [Flags]
-        private enum DescriptionAttributeFlag
-        {
-            None         = 0x0000,
-            Strength     = 0x0001,
-            Endurance    = 0x0002,
-            Quickness    = 0x0004,
-            Coordination = 0x0008,
-            Focus        = 0x0010,
-            Self         = 0x0020,
-            Health       = 0x0040,
-            Stamina      = 0x0080,
-            Mana         = 0x0100,
-            // server always sends full mask (any cases where this shouldn't happen?)
-            Full = Strength | Endurance | Quickness | Coordination | Focus | Self | Health | Stamina | Mana
-        }
-
-        [Flags]
-        private enum DescriptionOptionFlag
-        {
-            None             = 0x0000,
-            Shortcut         = 0x0001,
-            Component        = 0x0008,
-            SpellTab         = 0x0010,
-            Unk20            = 0x0020,
-            CharacterOption2 = 0x0040,
-            Unk100           = 0x0100,
-            WindowLayout     = 0x0200,
-            Unk400           = 0x0400,
         }
 
         public GameEventPlayerDescription(Session session)
@@ -94,6 +64,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var uintProperty in notNull)
                 {
                     Writer.Write((uint)uintProperty.PropertyId);
+                    Debug.Assert(uintProperty.PropertyValue != null, "uintProperty.PropertyValue != null");
                     Writer.Write(uintProperty.PropertyValue.Value);
                 }
             }
@@ -110,6 +81,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var uint64Property in notNull)
                 {
                     Writer.Write((uint)uint64Property.PropertyId);
+                    Debug.Assert(uint64Property.PropertyValue != null, "uint64Property.PropertyValue != null");
                     Writer.Write(uint64Property.PropertyValue.Value);
                 }
             }
@@ -141,6 +113,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var doubleProperty in notNull)
                 {
                     Writer.Write((uint)doubleProperty.PropertyId);
+                    Debug.Assert(doubleProperty.PropertyValue != null, "doubleProperty.PropertyValue != null");
                     Writer.Write(doubleProperty.PropertyValue.Value);
                 }
             }
@@ -171,6 +144,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var didProperty in propertiesDid)
                 {
                     Writer.Write(didProperty.PropertyId);
+                    Debug.Assert(didProperty.PropertyValue != null, "didProperty.PropertyValue != null");
                     Writer.Write(didProperty.PropertyValue.Value);
                 }
             }
@@ -186,6 +160,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var iidProperty in propertiesIid)
                 {
                     Writer.Write(iidProperty.PropertyId);
+                    Debug.Assert(iidProperty.PropertyValue != null, "iidProperty.PropertyValue != null");
                     Writer.Write(iidProperty.PropertyValue.Value);
                 }
             }
@@ -214,52 +189,52 @@ namespace ACE.Network.GameEvent.Events
 
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
-                var attributeFlags = DescriptionAttributeFlag.Full;
+                var attributeFlags = Ability.Full;
                 Writer.Write((uint)attributeFlags);
 
-                if ((attributeFlags & DescriptionAttributeFlag.Strength) != 0)
+                if ((attributeFlags & Ability.Strength) != 0)
                 {
                     Writer.Write(this.Session.Player.Strength.Ranks); // ranks
                     Writer.Write(this.Session.Player.Strength.Base);
                     Writer.Write(this.Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Endurance) != 0)
+                if ((attributeFlags & Ability.Endurance) != 0)
                 {
                     Writer.Write(this.Session.Player.Endurance.Ranks); // ranks
                     Writer.Write(this.Session.Player.Endurance.Base);
                     Writer.Write(this.Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Quickness) != 0)
+                if ((attributeFlags & Ability.Quickness) != 0)
                 {
                     Writer.Write(this.Session.Player.Quickness.Ranks); // ranks
                     Writer.Write(this.Session.Player.Quickness.Base);
                     Writer.Write(this.Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Coordination) != 0)
+                if ((attributeFlags & Ability.Coordination) != 0)
                 {
                     Writer.Write(this.Session.Player.Coordination.Ranks); // ranks
                     Writer.Write(this.Session.Player.Coordination.Base);
                     Writer.Write(this.Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Focus) != 0)
+                if ((attributeFlags & Ability.Focus) != 0)
                 {
                     Writer.Write(this.Session.Player.Focus.Ranks); // ranks
                     Writer.Write(this.Session.Player.Focus.Base);
                     Writer.Write(this.Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Self) != 0)
+                if ((attributeFlags & Ability.Self) != 0)
                 {
                     Writer.Write(this.Session.Player.Self.Ranks); // ranks
                     Writer.Write(this.Session.Player.Self.Base);
                     Writer.Write(this.Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Health) != 0)
+                if ((attributeFlags & Ability.Health) != 0)
                 {
                     Writer.Write(this.Session.Player.Health.Ranks); // ranks
                     Writer.Write(0u); // init_level - always appears to be 0
@@ -267,7 +242,7 @@ namespace ACE.Network.GameEvent.Events
                     Writer.Write(this.Session.Player.Health.Current); // current value
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Stamina) != 0)
+                if ((attributeFlags & Ability.Stamina) != 0)
                 {
                     Writer.Write(this.Session.Player.Stamina.Ranks); // ranks
                     Writer.Write(0u); // init_level - always appears to be 0
@@ -275,7 +250,7 @@ namespace ACE.Network.GameEvent.Events
                     Writer.Write(this.Session.Player.Stamina.Current); // current value
                 }
 
-                if ((attributeFlags & DescriptionAttributeFlag.Mana) != 0)
+                if ((attributeFlags & Ability.Mana) != 0)
                 {
                     Writer.Write(this.Session.Player.Mana.Ranks); // ranks
                     Writer.Write(0u); // init_level - always appears to be 0
@@ -329,7 +304,12 @@ namespace ACE.Network.GameEvent.Events
 
             // FIXME(ddevec): We have duplicated data everywhere.  There is an AceObject CharacterOption flag, and a Player.CharacterOptions...
             //    Which one is right?  I have no idea.  Right now the aceObject works...  we should probably do a refactoring once we've restored functionality
-            var optionFlags = DescriptionOptionFlag.CharacterOption2;
+
+            // TODO: Refactor this to set all of these flags based on data. Og II
+            CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
+            if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
+            optionFlags |= CharacterOptionDataFlag.SpellLists8;
+
             Writer.Write((uint)optionFlags);
             /*
             Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
@@ -339,28 +319,33 @@ namespace ACE.Network.GameEvent.Events
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
             }*/
-
-            Writer.Write(0u);
-
-            /*if ((optionFlags & DescriptionOptionFlag.SpellTab) != 0)
+            if ((optionFlags & CharacterOptionDataFlag.SpellLists8) != 0)
             {
-                // additional spell tabs 2-7
-                writer.Write(0u);
-                writer.Write(0u);
-                writer.Write(0u);
-                writer.Write(0u);
-                writer.Write(0u);
-                writer.Write(0u);
-            }*/
+                for (int i = 0; i <= 7; i++)
+                {
+                    var sorted =
+                        Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == aceObj.AceObjectId && x.SpellBarId == i)
+                            .OrderBy(s => s.SpellBarPositionId);
+                    Writer.Write(sorted.Count());
+                    foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
+                    {
+                        Writer.Write(spells.SpellId);
+                    }
+                }
+            }
+            else
+            {
+                Writer.Write(0u);
+            }
 
             /*if ((optionFlags & DescriptionOptionFlag.Component) != 0)
             {
             }*/
 
-            if ((optionFlags & DescriptionOptionFlag.Unk20) != 0)
+            if ((optionFlags & CharacterOptionDataFlag.SpellbookFilters) != 0)
                 Writer.Write(0u);
 
-            if ((optionFlags & DescriptionOptionFlag.CharacterOption2) != 0)
+            if ((optionFlags & CharacterOptionDataFlag.CharacterOptions2) != 0)
                 // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
                 Writer.Write(aceObj.CharacterOptions2Mapping);
 
