@@ -1426,6 +1426,12 @@ namespace ACE.Entity
             set { AceObject.Afk = value; }
         }
 
+        public bool? NpcLooksLikeObject
+        {
+            get { return AceObject.NpcLooksLikeObject; }
+            set { AceObject.NpcLooksLikeObject = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
@@ -2729,12 +2735,40 @@ namespace ACE.Entity
 
         public virtual void HandleActionOnUse(ObjectGuid playerId)
         {
-            // todo: implement.  default is probably to do nothing.
+            // Do Nothing by default
+            if (CurrentLandblock != null)
+            {
+                ActionChain chain = new ActionChain();
+                CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+                {
+                    Player player = wo as Player;
+                    if (player == null)
+                    {
+                        return;
+                    }
+
+#if DEBUG
+                    var errorMessage = new GameMessageSystemChat($"Default HandleActionOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+                    player.Session.Network.EnqueueSend(errorMessage);
+#endif
+
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                });
+                chain.EnqueueChain();
+            }
         }
 
         public virtual void OnUse(Session session)
         {
-            // todo: implement.  default is probably to do nothing.
+            // Do Nothing by default
+#if DEBUG
+            var errorMessage = new GameMessageSystemChat($"Default OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+            session.Network.EnqueueSend(errorMessage);
+#endif
+
+            var sendUseDoneEvent = new GameEventUseDone(session);
+            session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
         public virtual void HandleActionOnCollide(ObjectGuid playerId)

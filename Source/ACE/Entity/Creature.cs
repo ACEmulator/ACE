@@ -506,7 +506,8 @@ namespace ACE.Entity
             base.SerializeIdentifyObjectResponse(writer, success, flags);
 
             // TODO: There are probably other checks that need to be made here
-            if (GetType().Name != "DebugObject")
+            bool hideCreatureProfile = NpcLooksLikeObject ?? false;
+            if (!hideCreatureProfile)
             {
                 WriteIdentifyObjectCreatureProfile(writer, this, success);
             }

@@ -1223,6 +1223,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
         }
 
+        public bool? NpcLooksLikeObject
+        {
+            get { return GetBoolProperty(PropertyBool.NpcLooksLikeObject); }
+            set { SetBoolProperty(PropertyBool.NpcLooksLikeObject, value); }
+        }
+
+        public uint? AllowedActivator
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.AllowedActivator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.AllowedActivator, value); }
+        }
+
         #region Positions  
         public Position Location
         {

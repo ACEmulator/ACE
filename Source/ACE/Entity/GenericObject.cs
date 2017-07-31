@@ -25,36 +25,14 @@ namespace ACE.Entity
         ////    // TODO: Implement
         ////}
 
-        public override void HandleActionOnUse(ObjectGuid playerId)
-        {
-            // TODO: Implement
+        ////public override void HandleActionOnUse(ObjectGuid playerId)
+        ////{
+        ////    // TODO: Implement            
+        ////}
 
-            if (CurrentLandblock != null)
-            {
-                ActionChain chain = new ActionChain();
-                CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
-                {
-                    Player player = wo as Player;
-                    if (player == null)
-                    {
-                        return;
-                    }
-
-                    var errorMessage = new GameMessageSystemChat($"Generic OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-
-                    player.Session.Network.EnqueueSend(errorMessage, sendUseDoneEvent);
-                });
-                chain.EnqueueChain();
-            }
-        }
-
-        public override void OnUse(Session session)
-        {
-            var errorMessage = new GameMessageSystemChat($"Generic InternalOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-            var sendUseDoneEvent = new GameEventUseDone(session);
-
-            session.Network.EnqueueSend(errorMessage, sendUseDoneEvent);
-        }
+        ////public override void OnUse(Session session)
+        ////{
+        ////    // TODO: Implement   
+        ////}
     }
 }
