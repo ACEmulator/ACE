@@ -38,7 +38,7 @@ namespace ACE.Network.GameMessages
         CharacterCreate                 = 0xF656,
         CharacterEnterWorld             = 0xF657,
         CharacterList                   = 0xF658,
-        CharacterError                  = 0xF659,        
+        CharacterError                  = 0xF659,
         ObjectCreate                    = 0xF745,
         PlayerCreate                    = 0xF746,
         ObjectDelete                    = 0xF747,

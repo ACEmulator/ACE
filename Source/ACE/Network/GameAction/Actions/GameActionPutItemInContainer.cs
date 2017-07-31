@@ -8,8 +8,8 @@ namespace ACE.Network.GameAction.Actions
         {
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            var loc = message.Payload.ReadUInt32();
-            session.Player.HandleActionPutItemInContainer(itemGuid, containerGuid, loc);
+            var placement = message.Payload.ReadUInt32();
+            session.Player.HandleActionPutItemInContainer(itemGuid, containerGuid, placement);
         }
     }
 }

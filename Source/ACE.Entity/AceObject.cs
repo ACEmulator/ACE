@@ -351,6 +351,15 @@ namespace ACE.Entity
             set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
         }
 
+        /// <summary>
+        /// If in a container, then what slot am I currently in.
+        /// </summary>
+        public uint? Placement
+        {
+            get { return GetIntProperty(PropertyInt.Placement); }
+            set { SetIntProperty(PropertyInt.Placement, value); }
+        }
+
         public uint? WielderIID
         {
             get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }

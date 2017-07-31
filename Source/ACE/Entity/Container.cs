@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net;
 using ACE.Database;
+using ACE.Entity.Actions;
 
 namespace ACE.Entity
 {
-    using global::ACE.Entity.Actions;
-
     public class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -61,9 +60,14 @@ namespace ACE.Entity
             {
                 if (!inventory.ContainsKey(inventoryItem.Guid))
                 {
+                    var shiftList = inventory.Where(p => p.Value.Placement >= inventoryItem.Placement);
+                    foreach (var keyValuePair in shiftList)
+                    {
+                        keyValuePair.Value.Placement++;
+                    }
                     inventory.Add(inventoryItem.Guid, inventoryItem);
                     // I take a point in time snapshot of the item to save.
-                    AceObject saveableCopy = inventoryItem.SnapShotOfAceObject();
+                    var saveableCopy = inventoryItem.SnapShotOfAceObject();
                     DatabaseManager.Shard.SaveObject(saveableCopy, null);
                     Burden = UpdateBurden();
                 }

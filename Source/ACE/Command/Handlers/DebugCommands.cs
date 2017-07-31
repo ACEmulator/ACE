@@ -13,6 +13,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
 using System.Collections.Generic;
+using ACE.Database;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
@@ -825,8 +826,10 @@ namespace ACE.Command.Handlers
             {
                 foreach (uint weenieId in weaponsTest)
                 {
-                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                    AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
+                    WorldObject loot = new GenericObject(lootAceObject);
                     loot.ContainerId = session.Player.Guid.Full;
+                    loot.Placement = 0;
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     session.Player.UpdatePlayerBurden();
@@ -849,11 +852,13 @@ namespace ACE.Command.Handlers
             {
                 foreach (uint weenieId in splitsTest)
                 {
-                    WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                    AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
+                    WorldObject loot = new GenericObject(lootAceObject);
                     var valueEach = loot.Value / loot.StackSize;
                     loot.StackSize = loot.MaxStackSize;
                     loot.Value = loot.StackSize * valueEach;
                     loot.ContainerId = session.Player.Guid.Full;
+                    loot.Placement = 0;
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     session.Network.EnqueueSend(

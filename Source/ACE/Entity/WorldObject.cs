@@ -432,6 +432,12 @@ namespace ACE.Entity
             set { AceObject.ContainerIID = value; }
         }
 
+        public uint? Placement
+        {
+            get { return AceObject.Placement; }
+            set { AceObject.Placement = value; }
+        }
+
         public uint? WielderId
         {
             get { return AceObject.WielderIID; }
@@ -1494,6 +1500,7 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQx;
 
             inventoryItem.ContainerId = null;
+            inventoryItem.Placement = null;
             inventoryItem.WielderId = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
@@ -1501,13 +1508,14 @@ namespace ACE.Entity
             // inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag(); Leaving here for just a bit Og II
         }
 
-        internal void SetInventoryForOffWorld(WorldObject inventoryItem)
+        internal void SetInventoryForContainer(WorldObject inventoryItem, uint placement)
         {
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             // TODO: Create enums for this.
             inventoryItem.AnimationFrame = 1;
+            inventoryItem.Placement = placement;
             inventoryItem.Location = null;
         }
 

@@ -1015,8 +1015,12 @@ namespace ACE.Command.Handlers
             WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
             if (testContainer.ItemCapacity > 1)
             {
-                Container loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
+                AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
+                Container loot = new Container(lootAceObject)
+                {
+                    ContainerId = session.Player.Guid.Full,
+                    Placement = 0
+                };
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
                 session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
@@ -1027,6 +1031,7 @@ namespace ACE.Command.Handlers
                 AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
                 WorldObject loot = new GenericObject(lootAceObject);
                 loot.ContainerId = session.Player.Guid.Full;
+                loot.Placement = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
                 session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),

@@ -1842,7 +1842,7 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void HandleUnequip(Container container, WorldObject item, uint location, ActionChain inContainerChain)
+        private void HandleUnequip(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
             UpdateAppearance(container, item.Guid.Full);
@@ -1857,6 +1857,7 @@ namespace ACE.Entity
                 inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
+                item.Placement = placement;
             }
             else
             {
@@ -1874,7 +1875,7 @@ namespace ACE.Entity
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                                 new GameMessageObjDescEvent(this),
-                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                                                 new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return;
@@ -1882,7 +1883,7 @@ namespace ACE.Entity
             HandleSwitchToMeleeCombatMode(CombatMode);
         }
 
-        private void HandleMove(WorldObject item, Container container, uint location)
+        private void HandleMove(WorldObject item, Container container, uint placement)
         {
             // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
             if (item.ContainerId != container.Guid.Full)
@@ -1900,10 +1901,11 @@ namespace ACE.Entity
                 }
                 if (previousContainer != null)
                     previousContainer.RemoveFromInventory(item.Guid);
-                container.AddToInventory(item);
                 item.ContainerId = container.Guid.Full;
+                item.Placement = placement;
+                container.AddToInventory(item);
             }
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, location),
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                                         new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
         }
 
@@ -1987,7 +1989,7 @@ namespace ACE.Entity
             splitItemsChain.EnqueueChain();
         }
 
-        private void HandlePickupItem(Container container, ObjectGuid itemGuid, uint location, PropertyInstanceId iidPropertyId)
+        private void HandlePickupItem(Container container, ObjectGuid itemGuid, uint placement, PropertyInstanceId iidPropertyId)
         {
             // Logical operations:
             // !! FIXME: How to handle repeat on condition?
@@ -2033,7 +2035,7 @@ namespace ACE.Entity
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
-                    SetInventoryForOffWorld(item);
+                    SetInventoryForContainer(item, placement);
                     // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
                     var motion = new UniversalMotion(MotionStance.Standing);
                     if (iidPropertyId == PropertyInstanceId.Container)
@@ -2042,7 +2044,7 @@ namespace ACE.Entity
                             new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
-                            new GameMessagePutObjectInContainer(Session, container.Guid, item, location));
+                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
                     }
                     else
                     {
@@ -2050,7 +2052,7 @@ namespace ACE.Entity
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
                                                     new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                                    new GameEventWieldItem(Session, itemGuid.Full, location));
+                                                    new GameEventWieldItem(Session, itemGuid.Full, placement));
                     }
 
                     CurrentLandblock.EnqueueBroadcast(
@@ -2287,7 +2289,7 @@ namespace ACE.Entity
                 });
             wieldChain.EnqueueChain();
         }
-        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint location = 0)
+        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
             WorldObject inventoryItem;
@@ -2309,7 +2311,7 @@ namespace ACE.Entity
                         if (GetInventoryItem(itemGuid) == null)
                         {
                             // This is a pickup into our main pack.
-                            HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Container);
+                            HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
                             return;
                         }
 
@@ -2327,12 +2329,12 @@ namespace ACE.Entity
                         // Was I equiped?   If so, lets take care of that and unequip
                         if (inventoryItem.WielderId != null)
                         {
-                            HandleUnequip(container, inventoryItem, location, inContainerChain);
+                            HandleUnequip(container, inventoryItem, placement, inContainerChain);
                             return;
                         }
 
                         // if were are still here, this needs to do a pack pack or main pack move.
-                        HandleMove(inventoryItem, container, location);
+                        HandleMove(inventoryItem, container, placement);
                     });
             inContainerChain.EnqueueChain();
         }
