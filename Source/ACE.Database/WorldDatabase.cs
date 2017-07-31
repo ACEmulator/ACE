@@ -39,7 +39,10 @@ namespace ACE.Database
             GetAceObjectPropertiesPosition = 24,
             GetAceObjectPropertiesSpell = 25,
             GetAceObjectGeneratorLinks = 26,
-            GetMaxId = 27
+            GetMaxId = 27,
+            GetAceObjectPropertiesAttributes,
+            GetAceObjectPropertiesAttributes2nd,
+            GetAceObjectPropertiesSkills
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -71,6 +74,11 @@ namespace ACE.Database
             //     WorldPreparedStatement.GetItemsByTypeId,
             //     typeof(AceObject),
             //     ConstructedStatementType.GetList);
+
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesAttributes, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesAttributes2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.GetList);
+            ////ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.GetList);
+
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBigInt, typeof(AceObjectPropertiesInt64), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBool, typeof(AceObjectPropertiesBool), ConstructedStatementType.GetList);
@@ -255,6 +263,12 @@ namespace ACE.Database
             bao.SpellIdProperties = GetAceObjectPropertiesSpell(bao.AceObjectId);
             bao.GeneratorLinks = GetAceObjectGeneratorLinks(bao.AceObjectId);
             bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+            bao.AceObjectPropertiesAttributes = GetAceObjectPropertiesAttribute(bao.AceObjectId).ToDictionary(x => (Ability)x.AttributeId,
+                x => new CreatureAbility(x));
+            bao.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(bao.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId,
+                x => new CreatureVital(bao, x));
+            ////bao.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(bao.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
+            ////    x => new CreatureSkill(bao, x));
             return bao;
         }
 
@@ -311,6 +325,42 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesSpell>(WorldPreparedStatement.GetAceObjectPropertiesSpell, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesSkill> GetAceObjectPropertiesSkill(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesSkill>(WorldPreparedStatement.GetAceObjectPropertiesSkills, criteria);
+            ////objects.ForEach(o =>
+            ////{
+            ////    o.HasEverBeenSavedToDatabase = true;
+            ////    o.IsDirty = false;
+            ////});
+            return objects;
+        }
+
+        private List<AceObjectPropertiesAttribute> GetAceObjectPropertiesAttribute(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesAttribute>(WorldPreparedStatement.GetAceObjectPropertiesAttributes, criteria);
+            ////objects.ForEach(o =>
+            ////{
+            ////    o.HasEverBeenSavedToDatabase = true;
+            ////    o.IsDirty = false;
+            ////});
+            return objects;
+        }
+
+        private List<AceObjectPropertiesAttribute2nd> GetAceObjectPropertiesAttribute2nd(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesAttribute2nd>(WorldPreparedStatement.GetAceObjectPropertiesAttributes2nd, criteria);
+            ////objects.ForEach(o =>
+            ////{
+            ////    o.HasEverBeenSavedToDatabase = true;
+            ////    o.IsDirty = false;
+            ////});
             return objects;
         }
 

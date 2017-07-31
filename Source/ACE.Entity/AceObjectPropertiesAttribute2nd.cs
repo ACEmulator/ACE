@@ -12,7 +12,7 @@ namespace ACE.Entity
         private ushort _ranks = 0;
         private uint _value = 0;
         
-        [DbField("attribute2ndid", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
+        [DbField("attribute2ndId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort Attribute2ndId { get; set; }
 
         [DbField("attribute2ndValue", (int)MySqlDbType.UInt24)]

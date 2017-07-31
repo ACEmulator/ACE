@@ -20,9 +20,6 @@ namespace ACE.Entity
         {
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
 
-            // TODO: Loading creatures out of world database does not include the data for their attributes. FIXME
-            // Strength.Base = weenie.Strength;
-
             UseRadius = 1;
             IsAlive = true;
             SetupVitals();
