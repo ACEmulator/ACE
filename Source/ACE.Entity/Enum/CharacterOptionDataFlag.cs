@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace ACE.Entity.Enum
 {
     // Thanks to tfarley (aclogview) for these enums
+    [Flags]
     public enum CharacterOptionDataFlag : uint
     {
         Shortcut                    = 0x00000001,

@@ -3,7 +3,7 @@
     // Death feels is less morbid then suicide as a human, used "Die" instead.
     public static class GameActionDie
     {
-        [GameAction(GameActionType.EvtCharacterSuicide)]
+        [GameAction(GameActionType.Suicide)]
         public static void Handle(ClientMessage message, Session session)
         {
             session.Player.HandleActionKill(session.Player.Guid);
