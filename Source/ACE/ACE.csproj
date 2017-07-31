@@ -147,8 +147,10 @@
     <Compile Include="Network\Enum\SessionState.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAddSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMagicRemoveSpellId.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSoulEmote.cs" />

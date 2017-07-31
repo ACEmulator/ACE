@@ -70,6 +70,18 @@ namespace ACE.Entity
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
 
+        public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars
+        {
+            get
+            {
+                return AceObject.SpellsInSpellBars;
+            }
+            set
+            {
+                AceObject.SpellsInSpellBars = value;
+            }
+        }
+
         public void SetCharacterOptions1(uint options1)
         {
             Character.CharacterOptions1Mapping = options1;
@@ -192,6 +204,53 @@ namespace ACE.Entity
                     Session.Network.EnqueueSend(learnMessage);
                 });
             learnSpellChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method implements player spell bar management for - adding a spell to a specific spell bar (0 based) at a specific slot (0 based).
+        /// </summary>
+        /// <param name="spellId"></param>
+        /// <param name="spellBarPositionId"></param>
+        /// <param name="spellBarId"></param>
+        public void HandleActionAddSpellToSpellBar(uint spellId, uint spellBarPositionId, uint spellBarId)
+        {
+            // The spell bar magic happens here. First, let's mind our race conditions....
+            ActionChain addSpellBarChain = new ActionChain();
+            addSpellBarChain.AddAction(this, () =>
+            {
+                SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
+                {
+                    AceObjectId = AceObject.AceObjectId,
+                    SpellId = spellId,
+                    SpellBarId = spellBarId,
+                    SpellBarPositionId = spellBarPositionId
+                });
+            });
+            addSpellBarChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method implements player spell bar management for - removing a spell to a specific spell bar (0 based)
+        /// </summary>
+        /// <param name="spellId"></param>
+        /// <param name="spellBarId"></param>
+        public void HandleActionRemoveSpellToSpellBar(uint spellId, uint spellBarId)
+        {
+            // More spell bar magic happens here. First, let's mind our race conditions....
+            ActionChain removeSpellBarChain = new ActionChain();
+            removeSpellBarChain.AddAction(this, () =>
+            {
+                SpellsInSpellBars.Remove(SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
+                // Now I have to reorder
+                var sorted = SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
+                uint newSpellBarPosition = 0;
+                foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
+                {
+                    spells.SpellBarPositionId = newSpellBarPosition;
+                    newSpellBarPosition++;
+                }
+            });
+            removeSpellBarChain.EnqueueChain();
         }
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions

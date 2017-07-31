@@ -1736,6 +1736,8 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesSpell> SpellIdProperties { get; set; } = new List<AceObjectPropertiesSpell>();
 
+        public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars { get; set; } = new List<AceObjectPropertiesSpellBarPositions>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
@@ -1794,6 +1796,7 @@ namespace ACE.Entity
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
             ret.SpellIdProperties = CloneList(SpellIdProperties);
+            ret.SpellsInSpellBars = CloneList(SpellsInSpellBars);
 
             return ret;
         }
