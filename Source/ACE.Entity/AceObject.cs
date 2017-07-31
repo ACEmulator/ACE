@@ -29,7 +29,7 @@ namespace ACE.Entity
         /// <summary>
         /// flag to indicate whether or not this instance came from the database
         /// or was created by the game engine.  use case: when calling "SaveObject"
-        /// in the database, we need to know whether to insert or update.  There's 
+        /// in the database, we need to know whether to insert or update.  There's
         /// really no other way to tell at present.
         /// </summary>
         public bool HasEverBeenSavedToDatabase { get; set; } = false;
@@ -1223,7 +1223,7 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
         }
 
-        #region Positions  
+        #region Positions
         public Position Location
         {
             get { return GetPosition(PositionType.Location); }
@@ -1781,8 +1781,7 @@ namespace ACE.Entity
             ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
             ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
-            ret.SpellIdProperties = CloneList(SpellIdProperties);
-
+            ret.SpellIdProperties = CloneList(SpellIdProperties);            
             return ret;
         }
 
@@ -1795,6 +1794,20 @@ namespace ACE.Entity
         {
             AceObject ret = (AceObject)Clone();
             ret.AceObjectId = guid;
+            // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
+            ret.HasEverBeenSavedToDatabase = false;
+            ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
+            ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
+            ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
+            ret.IntProperties.ForEach(c => c.AceObjectId = guid);
+            ret.Int64Properties.ForEach(c => c.AceObjectId = guid);
+            ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
+            ret.BoolProperties.ForEach(c => c.AceObjectId = guid);
+            ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.StringProperties.ForEach(c => c.AceObjectId = guid);
+            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             return ret;
         }
 

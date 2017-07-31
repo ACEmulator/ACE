@@ -375,7 +375,10 @@ namespace ACE.Network.GameEvent.Events
             /*if ((optionFlags & DescriptionOptionFlag.Unk400) != 0)
             {
             }*/
-
+            // TODO: Pick up here - this is the correct format - create select to pull all inventory in that is in my main pacl Og II
+            ////Writer.Write(1u);
+            ////Writer.Write(0xE0000001);
+            ////Writer.Write(0u);
             Writer.Write(0u);
             Writer.Write(0u);
         }

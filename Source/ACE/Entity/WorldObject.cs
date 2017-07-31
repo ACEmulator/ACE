@@ -14,7 +14,6 @@ using log4net;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1318,7 +1317,7 @@ namespace ACE.Entity
         /// TODO: implement
         /// </summary>
         public double LastAnimatedTicks { get; set; }
-       
+
         public virtual void PlayScript(Session session) { }
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
@@ -1341,7 +1340,7 @@ namespace ACE.Entity
             get { return (MotionStance?)AceObject.DefaultCombatStyle; }
             set { AceObject.DefaultCombatStyle = (uint?)value; }
         }
-      
+
         public uint? GeneratorId
         {
             get { return AceObject.GeneratorIID; }
@@ -1364,7 +1363,7 @@ namespace ACE.Entity
         {
             get { return AceObject.ItemMaxMana; }
             set { AceObject.ItemMaxMana = value; }
-        }        
+        }
 
         public bool? AdvocateState
         {
@@ -2370,6 +2369,11 @@ namespace ACE.Entity
             return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
         }
 
+        public AceObject SnapShotOfAceObject()
+        {
+            return (AceObject)AceObject.Clone();
+        }
+
         /// <summary>
         /// Runs all actions pending on this WorldObject
         /// </summary>
@@ -2440,7 +2444,7 @@ namespace ACE.Entity
 
             return physicsDescriptionFlag;
         }
-        
+
         // todo: return bytes of data for network write ? ?
         public void SerializePhysicsData(BinaryWriter writer)
         {
@@ -2468,7 +2472,7 @@ namespace ACE.Entity
                     }
                 }
                 else
-                {                  
+                {
                     writer.Write(0u);
                 }
             }

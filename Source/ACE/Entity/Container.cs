@@ -1,11 +1,13 @@
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
-using ACE.Network.Enum;
 using log4net;
+using ACE.Database;
 
 namespace ACE.Entity
 {
+    using global::ACE.Entity.Actions;
+
     public class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -18,7 +20,7 @@ namespace ACE.Entity
             // persisted when burden is actually changed ie via application of salvage.   All burden for containers should be a sum of
             // burden.  For example a pack is 65 bu.   It should always be 65 bu empty or full.   However we should report burden as below calculation
             // base burden + burden of contents as calculation. Og II
-            get { return (ushort?)(base.Burden  + UpdateBurden()) ?? (ushort?)0; }
+            get { return (ushort?)(base.Burden + UpdateBurden()) ?? (ushort?)0; }
         }
 
         public Container(ItemType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
@@ -54,11 +56,19 @@ namespace ACE.Entity
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
-            if (!inventory.ContainsKey(inventoryItem.Guid))
+            ActionChain actionChain = new ActionChain();
+            actionChain.AddAction(this, () =>
             {
-                inventory.Add(inventoryItem.Guid, inventoryItem);
-                Burden = UpdateBurden();
-            }
+                if (!inventory.ContainsKey(inventoryItem.Guid))
+                {
+                    inventory.Add(inventoryItem.Guid, inventoryItem);
+                    // I take a point in time snapshot of the item to save.
+                    AceObject saveableCopy = inventoryItem.SnapShotOfAceObject();
+                    DatabaseManager.Shard.SaveObject(saveableCopy, null);
+                    Burden = UpdateBurden();
+                }
+            });
+            actionChain.EnqueueChain();
         }
 
         public bool HasItem(ObjectGuid inventoryItemGuid, bool includeSubContainers = true)

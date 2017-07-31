@@ -443,7 +443,7 @@ namespace ACE.Command.Handlers
         public static void HandleMRT(Session session, params string[] parameters)
         {
             // @mrt - Toggles the ability to bypass housing boundaries.
-            session.Player.HandleMRT();        
+            session.Player.HandleMRT();
         }
 
         // limbo [on / off]
@@ -1024,7 +1024,8 @@ namespace ACE.Command.Handlers
             }
             else
             {
-                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+                AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
+                WorldObject loot = new GenericObject(lootAceObject);
                 loot.ContainerId = session.Player.Guid.Full;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
