@@ -2,12 +2,13 @@
 
 ### 2017-08-01
 [Ripley]
-* NOTE: The following changes require ACE-World database v0.1.7 or newer...
+* NOTE: The following changes require ACE-World database v0.1.8 or newer...
 * Added NpcLooksLikeObject check for Creature assessment profile fix provided by @OptimShi.
 * Moved Default do nothing UseDone to WorldObject and removed it from GenericObject.
 * Added Cow weenie object.
 * Added Cow, Creature, and Container to the WorldObjectFactory.
 * Say Hi to the cow in Holtburg.
+* Load attributes stored in world database into objects.
 
 ### 2017-07-29
 [Ripley]
