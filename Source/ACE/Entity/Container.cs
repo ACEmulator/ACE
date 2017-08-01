@@ -52,27 +52,49 @@ namespace ACE.Entity
         {
         }
 
+        public virtual void ContainerPlacement(WorldObject inventoryItem)
+        {
+            var removedItem = inventory.Remove(inventoryItem.Guid);
+            var invList = inventory.OrderBy(o => o.Value.Placement);
+            uint place = 0;
+            AceObject saveableCopy;
+            foreach (var keyValuePair in invList)
+            {
+                if (place == inventoryItem.Placement)
+                    place++;
+
+                if (keyValuePair.Value.Placement != place)
+                {
+                    keyValuePair.Value.Placement = place;
+                    saveableCopy = keyValuePair.Value.SnapShotOfAceObject();
+                    saveableCopy.ClearDirtyFlags();
+                    saveableCopy.Placement = place;
+                    DatabaseManager.Shard.SaveObject(saveableCopy, null);
+                }
+                place++;
+            }
+            if (!removedItem) return;
+            inventory.Add(inventoryItem.Guid, inventoryItem);
+            saveableCopy = inventoryItem.SnapShotOfAceObject();
+            saveableCopy.ClearDirtyFlags();
+            saveableCopy.Placement = inventoryItem.Placement;
+            DatabaseManager.Shard.SaveObject(saveableCopy, null);
+        }
+
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
             ActionChain actionChain = new ActionChain();
-            AceObject saveableCopy;
             actionChain.AddAction(this, () =>
             {
+                // If I do not get a placment, then I set 0 first slot.
+                ContainerPlacement(inventoryItem);
                 if (!inventory.ContainsKey(inventoryItem.Guid))
                 {
-                    var shiftList = inventory.Where(p => p.Value.Placement >= inventoryItem.Placement);
-                    foreach (var keyValuePair in shiftList)
-                    {
-                        saveableCopy = keyValuePair.Value.SnapShotOfAceObject();
-                        saveableCopy.ClearDirtyFlags();
-                        keyValuePair.Value.Placement = keyValuePair.Value.Placement + 1;
-                        DatabaseManager.Shard.SaveObject(saveableCopy, null);
-                    }
                     inventory.Add(inventoryItem.Guid, inventoryItem);
                     // I take a point in time snapshot of the item to save.
                     // This is the first time saving to the database.
-                    saveableCopy = inventoryItem.SnapShotOfAceObject();
+                    var saveableCopy = inventoryItem.SnapShotOfAceObject();
                     DatabaseManager.Shard.SaveObject(saveableCopy, null);
                     Burden = UpdateBurden();
                 }

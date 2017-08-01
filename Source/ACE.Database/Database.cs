@@ -198,11 +198,12 @@ namespace ACE.Database
                                 {
                                     command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
                                 }
-#if DBDEBUG1
+#if DBDEBUG
                                 string debugString = "CFS - " + command.CommandText + " - ";
                                 foreach (MySqlParameter p in command.Parameters)
                                 {
-                                    debugString += p.Value.ToString() + " ";
+                                    if (p?.Value != null)
+                                        debugString += p.Value + " ";
                                 }
                                 log.Debug(debugString);
 #endif
@@ -867,7 +868,8 @@ namespace ACE.Database
 #if DBDEBUG
                         log.Debug(preparedStatement.Query);
 #endif
-                        for (int i = 0; i < preparedStatement.Types.Count; i++) {
+                        for (int i = 0; i < preparedStatement.Types.Count; i++)
+                        {
 #if DBDEBUG
                             log.Debug(preparedStatement.Types[i]);
                             foreach (MySqlParameter p in command.Parameters)
