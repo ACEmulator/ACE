@@ -89,10 +89,10 @@ namespace ACE.Entity
 
         public double RespawnTime { get; set; }
 
-        public Creature(AceObject aceObject, ObjectGuid guid)
-            : base(aceObject, guid)
-        {
-        }
+        ////public Creature(AceObject aceObject, ObjectGuid guid)
+        ////    : base(aceObject, guid)
+        ////{
+        ////}
 
         protected void SetupVitals()
         {
@@ -113,6 +113,10 @@ namespace ACE.Entity
         public Creature(AceObject baseObject)
             : base(baseObject)
         {
+            if (RadarColor == Enum.RadarColor.White || Attackable == false)
+            {
+                NpcLooksLikeObject = true;
+            }
         }
 
         public virtual ActionChain GetOnKillChain(Session killerSession)
@@ -501,12 +505,15 @@ namespace ACE.Entity
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
-            flags |= IdentifyResponseFlags.CreatureProfile;
+            bool hideCreatureProfile = NpcLooksLikeObject ?? false;
+
+            if (!hideCreatureProfile)
+            {
+                flags |= IdentifyResponseFlags.CreatureProfile;
+            }
 
             base.SerializeIdentifyObjectResponse(writer, success, flags);
 
-            // TODO: There are probably other checks that need to be made here
-            bool hideCreatureProfile = NpcLooksLikeObject ?? false;
             if (!hideCreatureProfile)
             {
                 WriteIdentifyObjectCreatureProfile(writer, this, success);

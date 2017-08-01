@@ -15,10 +15,10 @@ namespace ACE.Entity
         {
         }
 
-        public GenericObject(ObjectGuid guid, AceObject aceObject)
-            : base(guid, aceObject)
-        {
-        }
+        ////public GenericObject(ObjectGuid guid, AceObject aceObject)
+        ////    : base(guid, aceObject)
+        ////{
+        ////}
 
         ////public override void HandleActionOnCollide(ObjectGuid playerId)
         ////{
