@@ -56,6 +56,7 @@ namespace ACE.Entity
         public virtual void AddToInventory(WorldObject inventoryItem)
         {
             ActionChain actionChain = new ActionChain();
+            AceObject saveableCopy;
             actionChain.AddAction(this, () =>
             {
                 if (!inventory.ContainsKey(inventoryItem.Guid))
@@ -63,11 +64,15 @@ namespace ACE.Entity
                     var shiftList = inventory.Where(p => p.Value.Placement >= inventoryItem.Placement);
                     foreach (var keyValuePair in shiftList)
                     {
-                        keyValuePair.Value.Placement++;
+                        saveableCopy = keyValuePair.Value.SnapShotOfAceObject();
+                        saveableCopy.ClearDirtyFlags();
+                        keyValuePair.Value.Placement = keyValuePair.Value.Placement + 1;
+                        DatabaseManager.Shard.SaveObject(saveableCopy, null);
                     }
                     inventory.Add(inventoryItem.Guid, inventoryItem);
                     // I take a point in time snapshot of the item to save.
-                    var saveableCopy = inventoryItem.SnapShotOfAceObject();
+                    // This is the first time saving to the database.
+                    saveableCopy = inventoryItem.SnapShotOfAceObject();
                     DatabaseManager.Shard.SaveObject(saveableCopy, null);
                     Burden = UpdateBurden();
                 }

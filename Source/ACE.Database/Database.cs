@@ -197,13 +197,15 @@ namespace ACE.Database
                                 for (int i = 0; i < query.Item2.Length; i++)
                                 {
                                     command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
-#if DBDEBUG
-                                    foreach (MySqlParameter p in command.Parameters)
-                                    {
-                                        log.Debug(p.Value);
-                                    }
-#endif
                                 }
+#if DBDEBUG1
+                                string debugString = "CFS - " + command.CommandText + " - ";
+                                foreach (MySqlParameter p in command.Parameters)
+                                {
+                                    debugString += p.Value.ToString() + " ";
+                                }
+                                log.Debug(debugString);
+#endif
                                 command.ExecuteNonQuery();
                             }
                         }

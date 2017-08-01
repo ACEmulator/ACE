@@ -1444,7 +1444,8 @@ namespace ACE.Entity
 
                 md = md.ConvertToClientAccepted(holdKey, Skills[Skill.Run]);
                 UniversalMotion newMotion = new UniversalMotion(stance, md);
-                if (holdKey != 0)
+                // This is a hack to make walking work correctly.   Og II
+                if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
                     newMotion.IsAutonomous = true;
                 // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
                 // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
