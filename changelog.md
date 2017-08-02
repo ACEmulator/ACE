@@ -8,7 +8,9 @@
 * implemented placement IntProperty 65 used to track slot in Container
 * Created supporting methods to manage pack order
 * Enhanced the debug log message for DBDEBUG 
-* Small tem fix to stutter when attempting to shift walk or shift jump.   We still need to really understand autonomous
+* Small temp fix to stutter when attempting to shift walk or shift jump.   We still need to really understand autonomous
+* Modified vw_ace_object to expose ability to pull by container.   They share a code base between world and shard so in this instance must stay in sync. 
+* WIP Started working on inventory loading.
 * This is still WIP - just posting now to get feedback
 * TODO.   
 * 1 implement clist (content list) for character description
