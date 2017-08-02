@@ -113,9 +113,10 @@ namespace ACE.Entity
         public Creature(AceObject baseObject)
             : base(baseObject)
         {
-            if (RadarColor == Enum.RadarColor.White || Attackable == false)
+            if (Attackable == false)
             {
-                NpcLooksLikeObject = true;
+                if (RadarColor != Enum.RadarColor.Yellow || (RadarColor == Enum.RadarColor.Yellow && CreatureType == null))
+                        NpcLooksLikeObject = true;
             }
         }
 

@@ -1235,6 +1235,12 @@ namespace ACE.Entity
             set { SetInstanceIdProperty(PropertyInstanceId.AllowedActivator, value); }
         }
 
+        public uint? CreatureType
+        {
+            get { return GetIntProperty(PropertyInt.CreatureType); }
+            set { SetIntProperty(PropertyInt.CreatureType, value); }
+        }
+
         #region Positions  
         public Position Location
         {

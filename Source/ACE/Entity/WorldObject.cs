@@ -1432,6 +1432,12 @@ namespace ACE.Entity
             set { AceObject.NpcLooksLikeObject = value; }
         }
 
+        public CreatureType? CreatureType
+        {
+            get { return (CreatureType?)AceObject.CreatureType; }
+            set { AceObject.CreatureType = (uint)value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
@@ -1683,6 +1689,9 @@ namespace ACE.Entity
                         break;
                     case "itemtype":
                         debugOutput += $"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")" + "\n";
+                        break;
+                    case "creaturetype":
+                        debugOutput += $"{prop.Name} = {obj.CreatureType.ToString()}" + " (" + (uint)obj.CreatureType + ")" + "\n";
                         break;
                     case "containertype":
                         debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";
