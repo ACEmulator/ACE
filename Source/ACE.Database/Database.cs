@@ -199,7 +199,7 @@ namespace ACE.Database
                                     command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
                                 }
 #if DBDEBUG
-                                string debugString = "CFS - " + command.CommandText + " - ";
+                                string debugString = "QUERY LINE - " + command.CommandText + " - ";
                                 foreach (MySqlParameter p in command.Parameters)
                                 {
                                     if (p?.Value != null)

@@ -431,6 +431,7 @@ namespace ACE.Entity
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
+            // TODO: This is where we will create all inventory objects for the player Og II
             SendFriendStatusUpdates();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.

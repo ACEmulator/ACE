@@ -1,5 +1,22 @@
 # ACEmulator Change Log
 
+### 2017-08-01
+[Og II]
+
+* Start inventory save.   
+* Updated Clone so it you pass a new guid, it resets all the associated child tables.
+* implemented placement IntProperty 65 used to track slot in Container
+* Created supporting methods to manage pack order
+* Enhanced the debug log message for DBDEBUG 
+* Small tem fix to stutter when attempting to shift walk or shift jump.   We still need to really understand autonomous
+* This is still WIP - just posting now to get feedback
+* TODO.   
+* 1 implement clist (content list) for character description
+* 2 implement sending CreateObject calls for all items in your main pack that we listed in clist. 
+* 3 implement view contents 1 per each container we have
+* 4 Add logic to drop item to manage shard data clean up - maybe via landblock.
+
+
 ### 2017-07-30
 [Og II]
 * Added spellbar management and persistance.   This continues the work for learning and persisting spells.   
