@@ -39,17 +39,6 @@ namespace ACE.Factories
         {
             WeenieType objWeenieType = (WeenieType?)aceO.WeenieType ?? WeenieType.Generic;
 
-            ////if (aceO.GeneratorStatus ?? false)  // Generator
-            ////{
-            ////    ////aceO.Location = aceO.Location.InFrontOf(-2.0);
-            ////    ////aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
-            ////    ////results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
-            ////    ////aceO.GeneratorEnteredWorld = true;
-            ////    ////var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
-            ////    ////objectList.ForEach(o => results.Add(o));
-            ////    continue;
-            ////}
-
             switch (objWeenieType)
             {
                 case WeenieType.LifeStone:
@@ -65,21 +54,10 @@ namespace ACE.Factories
             }
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId)
-        {
-            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-
-            return CreateWorldObject(aceObject);
-        }
-
         public static WorldObject CreateNewWorldObject(uint weenieId)
         {
-            // AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-
-            WorldObject wo = CreateWorldObject(weenieId);
-
-            wo.Guid = GuidManager.NewItemGuid(); // Assign new Guid
-
+            AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
+            WorldObject wo = CreateWorldObject(aceObject);
             return wo;
         }
     }

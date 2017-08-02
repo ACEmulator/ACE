@@ -4,7 +4,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Managers;
 using ACE.Network;
-using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Factories;
@@ -826,8 +825,7 @@ namespace ACE.Command.Handlers
             {
                 foreach (uint weenieId in weaponsTest)
                 {
-                    AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
-                    WorldObject loot = new GenericObject(lootAceObject);
+                    WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
                     loot.ContainerId = session.Player.Guid.Full;
                     loot.Placement = 0;
                     session.Player.AddToInventory(loot);
@@ -852,8 +850,7 @@ namespace ACE.Command.Handlers
             {
                 foreach (uint weenieId in splitsTest)
                 {
-                    AceObject lootAceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
-                    WorldObject loot = new GenericObject(lootAceObject);
+                    WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
                     var valueEach = loot.Value / loot.StackSize;
                     loot.StackSize = loot.MaxStackSize;
                     loot.Value = loot.StackSize * valueEach;

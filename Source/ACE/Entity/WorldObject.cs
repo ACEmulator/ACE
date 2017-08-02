@@ -1435,8 +1435,7 @@ namespace ACE.Entity
 
         protected WorldObject(ObjectGuid guid)
         {
-            AceObject = new AceObject();
-            AceObject.AceObjectId = guid.Full;
+            AceObject = new AceObject { AceObjectId = guid.Full };
             Guid = guid;
 
             Sequences = new SequenceManager();

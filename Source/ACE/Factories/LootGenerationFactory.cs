@@ -52,7 +52,7 @@ namespace ACE.Factories
             var weenieList = DatabaseManager.World.GetRandomWeeniesOfType(typeId, numItems);
             for (int i = 0; i < numItems; i++)
             {
-                WorldObject wo = CreateTestWorldObject(player, weenieList[i].WeenieClassId);
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(weenieList[i].WeenieClassId);
                 wo.ContainerId = player.Guid.Full;
                 player.HandleAddToInventory(wo);
             }

@@ -1807,9 +1807,11 @@ namespace ACE.Entity
         public object Clone(uint guid)
         {
             AceObject ret = (AceObject)Clone();
-            ret.AceObjectId = guid;
+            ret.AceObjectId = guid;            
             // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
             ret.HasEverBeenSavedToDatabase = false;
+            ret.IsDirty = true;
+
             ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
             ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
             ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
@@ -1822,10 +1824,12 @@ namespace ACE.Entity
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);            
             return ret;
         }
 
-        public void ClearDirtyFlags()
+       public void ClearDirtyFlags()
         {
             this.IsDirty = false;
             this.HasEverBeenSavedToDatabase = true;
