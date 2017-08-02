@@ -235,13 +235,26 @@ namespace ACE.Network.Handlers
             character.NumCharacterTitles = 1;
 
             // stats
-            // TODO - Validate this is equal to 330 (Total Attribute Credits)
-            character.StrengthAbility.Base = (ushort)reader.ReadUInt32();
-            character.EnduranceAbility.Base = (ushort)reader.ReadUInt32();
-            character.CoordinationAbility.Base = (ushort)reader.ReadUInt32();
-            character.QuicknessAbility.Base = (ushort)reader.ReadUInt32();
-            character.FocusAbility.Base = (ushort)reader.ReadUInt32();
-            character.SelfAbility.Base = (ushort)reader.ReadUInt32();
+            uint totalAttributeCredits = cg.HeritageGroups[(int)character.Heritage].AttributeCredits;
+            uint usedAttributeCredits = 0;
+            // Validate this is equal to actual attribute credits (330 for all but "Olthoi", which have 60
+            character.StrengthAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += character.StrengthAbility.Base;
+
+            character.EnduranceAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += character.EnduranceAbility.Base;
+
+            character.CoordinationAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += character.CoordinationAbility.Base;
+
+            character.QuicknessAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += character.QuicknessAbility.Base;
+
+            character.FocusAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += character.FocusAbility.Base;
+
+            character.SelfAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += character.SelfAbility.Base;
 
             // data we don't care about
             uint characterSlot = reader.ReadUInt32();
@@ -252,7 +265,7 @@ namespace ACE.Network.Handlers
             character.Stamina.Current = character.Stamina.MaxValue;
             character.Mana.Current = character.Mana.MaxValue;
 
-            // set initial skill credit amount. 52 for all but "OlthoiAcid", which have 68
+            // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             character.AvailableSkillCredits = cg.HeritageGroups[(int)character.Heritage].SkillCredits;
 
             uint numOfSkills = reader.ReadUInt32();
@@ -320,6 +333,19 @@ namespace ACE.Network.Handlers
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
                 }));
             }));
+        }
+
+        /// <summary>
+        /// Checks if the total credits is more than this class is allowed.
+        /// </summary>
+        /// <returns>The original value or the max allowed.</returns>
+        private static ushort ValidateAttributeCredits(uint attributeValue, uint allAttributes, uint maxAttributes) {
+            if ((attributeValue + allAttributes) > maxAttributes)
+            {
+                return (ushort)(maxAttributes - allAttributes);
+            }
+            else
+                return (ushort)attributeValue;
         }
 
         private static void CharacterCreateSetDefaultCharacterOptions(AceCharacter character)
