@@ -18,18 +18,21 @@
 * 3 implement view contents 1 per each container we have
 * 4 Add logic to drop item to manage shard data clean up - maybe via landblock.
 
+### 2017-07-31
+[OptimShi]
+* Added check to ensure a player can't spend more attribute credits than they should at character creation.
 
 ### 2017-07-30
 [Og II]
-* Added spellbar management and persistance.   This continues the work for learning and persisting spells.   
+* Added spell bar management and persistence.   This continues the work for learning and persisting spells.   
 * Cleaned up some of the enum duplication in GameEventPlayerDescription.cs
-* Added some debug code around universial motion.
+* Added some debug code around universal motion.
 * Added some debug asserts in PlayerDescription 
 * To test - use @learnspell to get some spells in your spell book if you do not have any.   They will persist with your character. 
 * You can also unlearn them and they will be removed.
 * Now, drag your spells into any configuration in your spell bars you like.   You can add them, remove them or reorder them.
 * They will be saved on our periodic save, or when you log out or you can force a save with the debug command @save-now.
-* Added table to persist spellbar configuration.
+* Added table to persist spell bar configuration.
 * That's all for this PR.   
 
 ### 2017-07-29
