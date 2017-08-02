@@ -364,6 +364,7 @@ namespace ACE.Network.GameEvent.Events
             ////Writer.Write(1u);
             ////Writer.Write(0xE0000001);
             ////Writer.Write(0u);
+            
             Writer.Write(0u);
             Writer.Write(0u);
         }

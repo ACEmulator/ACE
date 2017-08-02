@@ -38,6 +38,7 @@ namespace ACE.Database
             DeleteAceObject,
             GetAceObject,
             UpdateAceObject,
+            GetAceObjectsByContainerId,
 
             GetCharacters,
             IsCharacterNameAvailable,
@@ -137,6 +138,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectsByContainerId, typeof(CachedWorldObject), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
@@ -282,6 +284,13 @@ namespace ACE.Database
             return objects;
         }
 
+        public List<AceObject> GetInventoryByContainerId(uint containerId)
+        {
+            var criteria = new Dictionary<string, object> { { "containerId", containerId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWorldObject>(ShardPreparedStatement.GetAceObjectsByContainerId, criteria);
+            return objects.Select(inventoryItem => GetObject(inventoryItem.AceObjectId)).ToList();
+        }
+
         public AceCharacter GetCharacter(uint id)
         {
             AceCharacter character = new AceCharacter(id);
@@ -306,7 +315,7 @@ namespace ACE.Database
             // this flag determines when the subsequentnt calls to "save" trigger an insert or an update
             aceObject.HasEverBeenSavedToDatabase = true;
 
-            // TODO: still to implement - load spells, friends, allegiance info, spell comps, spell bars
+            // TODO: still to implement - load spells, friends, allegiance info, spell comps
             aceObject.IntProperties = GetAceObjectPropertiesInt(aceObject.AceObjectId);
             aceObject.Int64Properties = GetAceObjectPropertiesBigInt(aceObject.AceObjectId);
             aceObject.BoolProperties = GetAceObjectPropertiesBool(aceObject.AceObjectId);
@@ -327,6 +336,7 @@ namespace ACE.Database
                 x => new CreatureSkill(aceObject, x));
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
             aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
+            aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)

@@ -427,7 +427,7 @@ namespace ACE.Entity
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
 
             TotalLogins++;
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));            
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();

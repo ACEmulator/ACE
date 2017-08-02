@@ -87,7 +87,7 @@ namespace ACE.Entity
             ActionChain actionChain = new ActionChain();
             actionChain.AddAction(this, () =>
             {
-                // If I do not get a placment, then I set 0 first slot.
+                // If I do not get a placement, then I set 0 first slot.
                 ContainerPlacement(inventoryItem);
                 if (!inventory.ContainsKey(inventoryItem.Guid))
                 {
