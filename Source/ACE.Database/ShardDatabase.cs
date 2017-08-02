@@ -336,7 +336,7 @@ namespace ACE.Database
                 x => new CreatureSkill(aceObject, x));
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
             aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
-            aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
+            // aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
