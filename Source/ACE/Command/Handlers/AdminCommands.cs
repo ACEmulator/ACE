@@ -1009,28 +1009,12 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            // TODO: we have to be able to identify containers - you can create a wo and see if it has
-            // an item capacity but that seems a bit wasteful.   TBD on best method.   Limited number so
-
-            WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            if (testContainer.ItemCapacity > 1)
-            {
-                Container loot = LootGenerationFactory.CreateTestContainerObject(session.Player, weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
-            else
-            {
-                WorldObject loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
+            WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+            loot.ContainerId = session.Player.Guid.Full;
+            session.Player.AddToInventory(loot);
+            session.Player.TrackObject(loot);
+            session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
         }
 
         // cm <material type> <quantity> <ave. workmanship>

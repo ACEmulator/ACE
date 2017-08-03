@@ -27,7 +27,9 @@ namespace ACE.Factories
 
                 if (aceO.Location != null)
                 {
-                    results.Add(CreateWorldObject(aceO));
+                    WorldObject wo = CreateWorldObject(aceO);
+                    if (wo != null)
+                        results.Add(wo);
                 }
             }
             return results;

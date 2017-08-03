@@ -1443,7 +1443,6 @@ namespace ACE.Entity
         protected WorldObject(ObjectGuid guid)
         {
             AceObject = new AceObject();
-            AceObject.AceObjectId = guid.Full;
             Guid = guid;
 
             Sequences = new SequenceManager();
@@ -1481,8 +1480,8 @@ namespace ACE.Entity
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
             : this(guid)
         {
-            Guid = guid;
             AceObject = aceObject;
+            Guid = guid;
 
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 

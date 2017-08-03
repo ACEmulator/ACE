@@ -117,14 +117,17 @@ namespace ACE.Factories
                 {
                     WorldObject wo = WorldObjectFactory.CreateWorldObject((uint)generator.ActivationCreateClass);
 
-                    wo.Location = pos;
-                    if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
-                        wo.Guid = GuidManager.NewNonStaticGuid();
-                    else
-                        wo.Guid = GuidManager.NewItemGuid();
-                    wo.GeneratorId = generator.AceObjectId;
+                    if (wo != null)
+                    {
+                        wo.Location = pos;
+                        if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
+                            wo.Guid = GuidManager.NewNonStaticGuid();
+                        else
+                            wo.Guid = GuidManager.NewItemGuid();
+                        wo.GeneratorId = generator.AceObjectId;
 
-                    results.Add(wo);
+                        results.Add(wo);
+                    }
                 }
             }
 
