@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-08-01
+### 2017-08-02
 [Ripley]
 * NOTE: The following changes require ACE-World database v0.1.8 or newer...
 * Added NpcLooksLikeObject check for Creature assessment profile fix provided by @OptimShi.
@@ -9,6 +9,10 @@
 * Added Cow, Creature, and Container to the WorldObjectFactory.
 * Say Hi to the cow in Holtburg.
 * Load attributes stored in world database into objects.
+
+### 2017-07-31
+[OptimShi]
+* Added check to ensure a player can't spend more attribute credits than they should at character creation.
 
 ### 2017-07-30
 [Og II]
