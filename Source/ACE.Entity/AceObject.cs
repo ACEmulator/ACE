@@ -1223,6 +1223,24 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
         }
 
+        #region Books
+        public string BookAuthorName
+        {
+            get { return GetStringProperty(PropertyString.BookAuthorName); }
+            set { SetStringProperty(PropertyString.BookAuthorName, value); }
+        }
+        public string BookAuthorAccount
+        {
+            get { return GetStringProperty(PropertyString.BookAuthorAccount); }
+            set { SetStringProperty(PropertyString.BookAuthorAccount, value); }
+        }
+        public uint? BookAuthorId
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.BookAuthorId); }
+            set { SetInstanceIdProperty(PropertyInstanceId.BookAuthorId, value); }
+        }
+        #endregion
+
         #region Positions  
         public Position Location
         {

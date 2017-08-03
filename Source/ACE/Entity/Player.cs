@@ -1010,6 +1010,45 @@ namespace ACE.Entity
             chain.EnqueueChain();
         }
 
+        public void HandleActionReadBookPage(ObjectGuid bookId, uint pageNum)
+        {
+            // TODO: Do we want to throttle this request, like appraisals?
+            ActionChain bookChain = new ActionChain();
+
+            // The object can be in two spots... on the player or on the landblock
+            // First check the player
+            bookChain.AddAction(this, () =>
+            {
+                WorldObject wo = GetInventoryItem(bookId);
+                // book is in the player's inventory...
+                if (wo != null)
+                {
+                    wo.ReadBookPage(Session, pageNum);
+                }
+                else
+                {
+                    ActionChain chain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(chain, bookId, (WorldObject cwo) =>
+                    {
+                        cwo.ReadBookPage(Session, pageNum);
+                    });
+                    chain.EnqueueChain();
+                }
+            });
+            bookChain.EnqueueChain();
+            /*
+                PageData pageData = new PageData();
+                pageData.AuthorID = authorID;
+                pageData.AuthorName = authorName;
+                pageData.AuthorAccount = authorAccount;
+                pageData.PageIdx = 0;
+                pageData.PageText = "You can hold down the MOUSE WHEEL BUTTON and drag your mouse to change your view.\n\nOn your NUMERIC KEYPAD, the[Keypad 0] key resets your view, and[Keypad.] key shifts to a first - person view.\n\nThe numeric keypad has many other camera controls -  try them out!Remember to press[Keypad 0] to reset your view.";
+
+                var BookDataResponse = new GameEventBookPageDataResponse(session, aceObjectId, pageData);
+                session.Network.EnqueueSend(BookDataResponse);
+            */
+        }
+
         // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
         /*
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)

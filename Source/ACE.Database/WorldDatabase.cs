@@ -324,7 +324,6 @@ namespace ACE.Database
             return objects;
         }
 
-
         public AceObject GetObject(uint aceObjectId)
         {
             throw new NotImplementedException();

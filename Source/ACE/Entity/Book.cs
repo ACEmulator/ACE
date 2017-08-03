@@ -6,12 +6,13 @@ namespace ACE.Entity
 {
     public sealed class Book : WorldObject
     {
-        // private byte portalSocietyId;
+        private AceObject ao;
 
         public Book(AceObject aceO)
             : base(aceO)
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+            // var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+            ao = aceO;
         }
 
         public override void HandleActionOnUse(ObjectGuid playerId)
@@ -26,18 +27,25 @@ namespace ACE.Entity
                 }
 
                 // TODO - GET THESE FROM THE DATABASE
-                uint aceObjectId = 2012229680;
-                uint pages = 1;
-                string authorName = "Training Master";
-                string authorAccount = "beer good";
-                uint authorID = 0xFFFFFFFF;
+                uint aceObjectId = Guid.Full;
+                uint pages = (uint)PropertiesBook.Count;
+                string authorName = ao.BookAuthorName;
+                string authorAccount = ao.BookAuthorAccount;
+                uint authorID;
+                if (ao.BookAuthorId == null)
+                    authorID = 0xFFFFFFFF;
+                else
+                    authorID = (uint)ao.BookAuthorId;
 
                 List<PageData> pageData = new List<PageData>();
-                PageData myPage = new PageData();
-                myPage.AuthorID = authorID;
-                myPage.AuthorName = authorName;
-                myPage.AuthorAccount = authorAccount;
-                pageData.Add(myPage);
+                foreach (KeyValuePair<uint, AceObjectPropertiesBook> p in PropertiesBook)
+                {
+                    PageData myPage = new PageData();
+                    myPage.AuthorID = p.Value.AuthorId;
+                    myPage.AuthorName = p.Value.AuthorName;
+                    myPage.AuthorAccount = p.Value.AuthorAccount;
+                    pageData.Add(myPage);
+                }
 
                 var BookDataResponse = new GameEventBookDataResponse(player.Session, aceObjectId, pages, pageData, "", 0, "");
                 player.Session.Network.EnqueueSend(BookDataResponse);

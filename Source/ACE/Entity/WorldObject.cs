@@ -82,6 +82,11 @@ namespace ACE.Entity
             get { return AceObject.SpellIdProperties; }
         }
 
+        public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook
+        {
+            get { return AceObject.BookProperties; }
+        }
+
         #region ObjDesc
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
@@ -1523,6 +1528,34 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
             examiner.Network.EnqueueSend(new GameMessageSystemChat($"{DebugOutputString(GetType(), this)}", ChatMessageType.System));
 #endif
+        }
+
+        public void ReadBookPage(Session reader, uint pageNum)
+        {
+            PageData pageData = new PageData();
+            AceObjectPropertiesBook bookPage = PropertiesBook[pageNum];
+
+            pageData.AuthorID = bookPage.AuthorId;
+            pageData.AuthorName = bookPage.AuthorName;
+            pageData.AuthorAccount = bookPage.AuthorAccount;
+            pageData.PageIdx = pageNum;
+            pageData.PageText = bookPage.PageText;
+
+            // TODO - check for PropertyBool.IgnoreAuthor flag
+
+            var bookDataResponse = new GameEventBookPageDataResponse(reader, guid.Full, pageData);
+            reader.Network.EnqueueSend(bookDataResponse);
+            /*
+                PageData pageData = new PageData();
+                pageData.AuthorID = authorID;
+                pageData.AuthorName = authorName;
+                pageData.AuthorAccount = authorAccount;
+                pageData.PageIdx = 0;
+                pageData.PageText = "You can hold down the MOUSE WHEEL BUTTON and drag your mouse to change your view.\n\nOn your NUMERIC KEYPAD, the[Keypad 0] key resets your view, and[Keypad.] key shifts to a first - person view.\n\nThe numeric keypad has many other camera controls -  try them out!Remember to press[Keypad 0] to reset your view.";
+
+                var BookDataResponse = new GameEventBookPageDataResponse(session, aceObjectId, pageData);
+                session.Network.EnqueueSend(BookDataResponse);
+            */
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

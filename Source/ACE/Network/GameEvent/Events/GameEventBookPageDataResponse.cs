@@ -15,7 +15,7 @@ namespace ACE.Network.GameEvent.Events
             Writer.WriteString16L(pageData.AuthorAccount);
             Writer.Write(0xFFFF0002); // flags
             Writer.Write(1); // textIncluded
-            Writer.Write(1); // ignoreAuthor
+            Writer.Write(0); // ignoreAuthor
             Writer.WriteString16L(pageData.PageText);
         }
     }
