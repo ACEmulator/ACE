@@ -1728,6 +1728,9 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        // uint references the page
+        public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
+
         public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
 
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
@@ -1785,6 +1788,7 @@ namespace ACE.Entity
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
             ret.SpellIdProperties = CloneList(SpellIdProperties);
             ret.SpellsInSpellBars = CloneList(SpellsInSpellBars);
+            ret.BookProperties = CloneDict(BookProperties);
 
             return ret;
         }
@@ -1816,6 +1820,7 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
+            this.BookProperties.Values.ToList().ForEach(x => x.ClearDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
