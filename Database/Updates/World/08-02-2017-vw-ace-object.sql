@@ -12,7 +12,8 @@ SELECT
    , `aopi`.`propertyValue`           AS `itemType`
    , `ap`.`positionId`                AS `positionId`
    , `ap`.`positionType`              AS `positionType`
-   , `ap`.`landblockRaw`              AS `landblock`
+   , `ap`.`landblockRaw`              AS `landblockRaw`
+   , `ap`.`landblock`                 AS `landblock`
    , `ap`.`posX`                      AS `posX`
    , `ap`.`posY`                      AS `posY`
    , `ap`.`posZ`                      AS `posZ`
@@ -22,7 +23,7 @@ SELECT
    , `ap`.`qZ`                        AS `qZ`
    , `aopi2`.`propertyValue`          AS `containerId`
 FROM (((((`ace_object` `ao`
-        JOIN `ace_weenie_class` `awc`
+        JOIN `ace_world`.`ace_weenie_class` `awc`
           ON ((`ao`.`weenieClassId` = `awc`.`weenieClassId`)))
        JOIN `ace_object_properties_string` `aops`
          ON (((`ao`.`aceObjectId` = `aops`.`aceObjectId`)

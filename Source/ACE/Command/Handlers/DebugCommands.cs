@@ -818,7 +818,8 @@ namespace ACE.Command.Handlers
             "Creates 1 of each weapon class in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46 };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>

@@ -1905,8 +1905,7 @@ namespace ACE.Entity
                     previousContainer.RemoveFromInventory(item.Guid);
                 item.ContainerId = container.Guid.Full;
             }
-            item.Placement = placement;
-            container.AddToInventory(item);
+            container.AddToInventory(item, placement);
             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                                         new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
         }

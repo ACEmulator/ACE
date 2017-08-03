@@ -12,7 +12,8 @@ SELECT
    , `aopi`.`propertyValue`           AS `itemType`
    , `ap`.`positionId`                AS `positionId`
    , `ap`.`positionType`              AS `positionType`
-   , `ap`.`landblockRaw`              AS `landblock`
+   , `ap`.`landblockRaw`              AS `landblockRaw`
+   , `ap`.`landblock`                 AS `landblock`
    , `ap`.`posX`                      AS `posX`
    , `ap`.`posY`                      AS `posY`
    , `ap`.`posZ`                      AS `posZ`
@@ -21,19 +22,19 @@ SELECT
    , `ap`.`qY`                        AS `qY`
    , `ap`.`qZ`                        AS `qZ`
    , `aopi2`.`propertyValue`          AS `containerId`
-FROM (((((`ace_shard`.`ace_object` `ao`
+FROM (((((`ace_object` `ao`
         JOIN `ace_world`.`ace_weenie_class` `awc`
           ON ((`ao`.`weenieClassId` = `awc`.`weenieClassId`)))
-       JOIN `ace_shard`.`ace_object_properties_string` `aops`
+       JOIN `ace_object_properties_string` `aops`
          ON (((`ao`.`aceObjectId` = `aops`.`aceObjectId`)
               AND (`aops`.`strPropertyId` = 1))))
-      JOIN `ace_shard`.`ace_object_properties_int` `aopi`
+      JOIN `ace_object_properties_int` `aopi`
         ON (((`ao`.`aceObjectId` = `aopi`.`aceObjectId`)
              AND (`aopi`.`intPropertyId` = 1))))
-     JOIN `ace_shard`.`ace_position` `ap`
+     JOIN `ace_position` `ap`
        ON (((`ao`.`aceObjectId` = `ap`.`aceObjectId`)
             AND (`ap`.`positionType` = 1))))
-    LEFT JOIN `ace_shard`.`ace_object_properties_int` `aopi2`
+    LEFT JOIN `ace_object_properties_int` `aopi2`
       ON (((`ao`.`aceObjectId` = `aopi2`.`aceObjectId`)
            AND (`aopi2`.`intPropertyId` = 65))))$$
 

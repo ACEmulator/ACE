@@ -574,6 +574,15 @@ namespace ACE.Database
 
             SaveObjectInternal(transaction, aceObject);
 
+            // Do we have any inventory to save?
+            if (aceObject.Inventory.Count <= 0)
+                return transaction.Commit().Result;
+
+            foreach (AceObject invItem in aceObject.Inventory)
+            {
+                SaveObjectInternal(transaction, invItem);
+            }
+
             return transaction.Commit().Result;
         }
 

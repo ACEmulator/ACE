@@ -6,10 +6,8 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
-using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Factories;
-using System.Collections.Generic;
 using ACE.Entity.Enum.Properties;
 using log4net;
 
