@@ -1831,6 +1831,13 @@ namespace ACE.Entity
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);    
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            
+            // We're not seemingly changing the guids for the Dictionaries below from Clone(), is this bad?
+            ////ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
+            ////ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
+            ////ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
+            ////ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
+
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             return ret;
