@@ -188,10 +188,6 @@ namespace ACE.Entity
                     return;
                 }
 
-                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
-                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
-
                 ////if (playerDistanceTo >= 2500)
                 ////{
                 ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
@@ -199,17 +195,8 @@ namespace ACE.Entity
                 ////    return;
                 ////}
 
-                if (playerDistanceTo >= radiusSquared)
-                {
-                    ActionChain moveToDoorChain = new ActionChain();
-
-                    moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.2f));
-                    moveToDoorChain.AddDelaySeconds(0.50);
-
-                    moveToDoorChain.AddAction(this, () => HandleActionOnUse(playerId));
-
-                    moveToDoorChain.EnqueueChain();
-                }
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
                 else
                 {
                     ActionChain checkDoorChain = new ActionChain();

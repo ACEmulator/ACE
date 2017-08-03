@@ -1,3 +1,4 @@
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
@@ -1436,6 +1437,29 @@ namespace ACE.Entity
         {
             get { return (CreatureType?)AceObject.CreatureType; }
             set { AceObject.CreatureType = (uint)value; }
+        }
+
+        public AceObject Weenie
+        {
+            get { return Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId); }
+        }
+
+        public SetupModel CSetup
+        {
+            get { return SetupModel.ReadFromDat(SetupTableId.Value); }
+        }
+
+        public float UseRadiusSquared
+        {
+            get { return ((UseRadius ?? 0) + CSetup.Radius) * ((UseRadius ?? 0) + CSetup.Radius); }
+        }
+
+        public bool IsWithinUseRadiusOf(WorldObject wo)
+        {
+            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+                return false;
+            else
+                return true;
         }
 
         public SequenceManager Sequences { get; }
