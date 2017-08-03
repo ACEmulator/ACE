@@ -256,9 +256,9 @@ namespace ACE.Entity
                 return;
 
             if (!DefaultOpen)
-                Close(new ObjectGuid(0));
+                Close(ObjectGuid.Invalid);
             else
-                Open(new ObjectGuid(0));
+                Open(ObjectGuid.Invalid);
 
             ResetTimestamp++;
         }
