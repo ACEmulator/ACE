@@ -1036,17 +1036,6 @@ namespace ACE.Entity
                 }
             });
             bookChain.EnqueueChain();
-            /*
-                PageData pageData = new PageData();
-                pageData.AuthorID = authorID;
-                pageData.AuthorName = authorName;
-                pageData.AuthorAccount = authorAccount;
-                pageData.PageIdx = 0;
-                pageData.PageText = "You can hold down the MOUSE WHEEL BUTTON and drag your mouse to change your view.\n\nOn your NUMERIC KEYPAD, the[Keypad 0] key resets your view, and[Keypad.] key shifts to a first - person view.\n\nThe numeric keypad has many other camera controls -  try them out!Remember to press[Keypad 0] to reset your view.";
-
-                var BookDataResponse = new GameEventBookPageDataResponse(session, aceObjectId, pageData);
-                session.Network.EnqueueSend(BookDataResponse);
-            */
         }
 
         // FIXME(ddevec): Reintroduce after getting vendor code stuck in.

@@ -1431,6 +1431,12 @@ namespace ACE.Entity
             set { AceObject.Afk = value; }
         }
 
+        public bool? IgnoreAuthor
+        {
+            get { return AceObject.IgnoreAuthor; }
+            set { AceObject.IgnoreAuthor = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
@@ -1540,22 +1546,11 @@ namespace ACE.Entity
             pageData.AuthorAccount = bookPage.AuthorAccount;
             pageData.PageIdx = pageNum;
             pageData.PageText = bookPage.PageText;
-
+            pageData.IgnoreAuthor = false;
             // TODO - check for PropertyBool.IgnoreAuthor flag
 
             var bookDataResponse = new GameEventBookPageDataResponse(reader, guid.Full, pageData);
             reader.Network.EnqueueSend(bookDataResponse);
-            /*
-                PageData pageData = new PageData();
-                pageData.AuthorID = authorID;
-                pageData.AuthorName = authorName;
-                pageData.AuthorAccount = authorAccount;
-                pageData.PageIdx = 0;
-                pageData.PageText = "You can hold down the MOUSE WHEEL BUTTON and drag your mouse to change your view.\n\nOn your NUMERIC KEYPAD, the[Keypad 0] key resets your view, and[Keypad.] key shifts to a first - person view.\n\nThe numeric keypad has many other camera controls -  try them out!Remember to press[Keypad 0] to reset your view.";
-
-                var BookDataResponse = new GameEventBookPageDataResponse(session, aceObjectId, pageData);
-                session.Network.EnqueueSend(BookDataResponse);
-            */
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

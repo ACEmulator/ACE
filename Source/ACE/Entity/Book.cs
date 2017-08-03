@@ -47,7 +47,13 @@ namespace ACE.Entity
                     pageData.Add(myPage);
                 }
 
-                var BookDataResponse = new GameEventBookDataResponse(player.Session, aceObjectId, pages, pageData, "", 0, "");
+                bool ignoreAuthor;
+                if (IgnoreAuthor == null)
+                    ignoreAuthor = false;
+                else
+                    ignoreAuthor = (bool)IgnoreAuthor;
+
+                var BookDataResponse = new GameEventBookDataResponse(player.Session, aceObjectId, pages, pageData, "", 0, "", ignoreAuthor);
                 player.Session.Network.EnqueueSend(BookDataResponse);
 
                 var sendUseDoneEvent = new GameEventUseDone(player.Session);

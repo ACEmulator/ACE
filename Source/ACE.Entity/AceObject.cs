@@ -1187,6 +1187,12 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.Afk, value); }
         }
 
+        public bool? IgnoreAuthor
+        {
+            get { return GetBoolProperty(PropertyBool.IgnoreAuthor); }
+            set { SetBoolProperty(PropertyBool.IgnoreAuthor, value); }
+        }
+
         public bool? WieldOnUse
         {
             get { return GetBoolProperty(PropertyBool.WieldOnUse); }
