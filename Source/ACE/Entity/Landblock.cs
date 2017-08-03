@@ -104,13 +104,10 @@ namespace ACE.Entity
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
-                if (fo != null)
+                if (!worldObjects.ContainsKey(fo.Guid))
                 {
-                    if (!worldObjects.ContainsKey(fo.Guid))
-                    {
-                        worldObjects.Add(fo.Guid, fo);
-                        fo.SetParent(this);
-                    }
+                    worldObjects.Add(fo.Guid, fo);
+                    fo.SetParent(this);
                 }
             });
 

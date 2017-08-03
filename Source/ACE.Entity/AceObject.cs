@@ -1832,11 +1832,8 @@ namespace ACE.Entity
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);    
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             
-            // We're not seemingly changing the guids for the Dictionaries below from Clone(), is this bad?
-            ////ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
-            ////ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
-            ////ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
-            ////ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
+            // No need to change Dictionary guids per DDEVEC
+            // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
 
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
