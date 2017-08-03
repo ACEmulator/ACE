@@ -25,8 +25,6 @@ namespace ACE.Entity
         public Door(AceObject aceO)
             : base(aceO)
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
-
             // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
             // PhysicsState = 0;
             // ReportCollision = true;
@@ -61,15 +59,6 @@ namespace ACE.Entity
 
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
-
-            if (AceObject.Use == null)
-                Use = weenie.Use;
-            if (AceObject.UseMessage == null)
-                UseMessage = weenie.UseMessage;
-            if (AceObject.LongDesc == null)
-                LongDesc = weenie.LongDesc;
-            if (AceObject.ShortDesc == null)
-                ShortDesc = weenie.ShortDesc;
         }
 
         private bool IsOpen

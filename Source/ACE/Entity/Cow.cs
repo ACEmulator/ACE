@@ -18,8 +18,6 @@ namespace ACE.Entity
         public Cow(AceObject aceO)
             : base(aceO)
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
-
             UseRadius = 1;
             IsAlive = true;
             SetupVitals();
