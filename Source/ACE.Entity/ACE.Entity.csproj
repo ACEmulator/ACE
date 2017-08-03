@@ -165,6 +165,7 @@
     <Compile Include="LevelingChart.cs" />
     <Compile Include="ObjectGuid.cs" />
     <Compile Include="ObjectInfo.cs" />
+    <Compile Include="PageData.cs" />
     <Compile Include="PaletteOverride.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
