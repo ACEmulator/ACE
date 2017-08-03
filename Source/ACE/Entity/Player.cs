@@ -427,7 +427,7 @@ namespace ACE.Entity
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
 
             TotalLogins++;
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));            
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
@@ -467,6 +467,8 @@ namespace ACE.Entity
         {
             // Clone Character
             AceObject obj = (AceObject)Character.Clone();
+
+            //TODO: Og II this is where I need to load aceobject.inventory with the container.inventory
 
             // immediately after cloning, clear all dirty flags and HasBeenSavedToDatabase
             Character.ClearDirtyFlags();
