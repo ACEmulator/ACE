@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-07-31
+[OptimShi]
+* Added check to ensure a player can't spend more attribute credits than they should at character creation.
+
 ### 2017-07-30
 [Og II]
 * Added spellbar management and persistance.   This continues the work for learning and persisting spells.   
