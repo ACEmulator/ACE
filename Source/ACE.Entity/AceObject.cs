@@ -1735,7 +1735,7 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars { get; set; } = new List<AceObjectPropertiesSpellBarPositions>();
 
-        public List<AceObject> Inventory { get; set; } = new List<AceObject>();
+        public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
@@ -1794,10 +1794,8 @@ namespace ACE.Entity
                 AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
                 SpellIdProperties = CloneList(SpellIdProperties),
                 SpellsInSpellBars = CloneList(SpellsInSpellBars),
-                Inventory = CloneList(Inventory)
+                Inventory = CloneDict(Inventory),
             };
-
-
             // Then clone our properties
             return ret;
         }
@@ -1829,6 +1827,7 @@ namespace ACE.Entity
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
+            // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
             return ret;
         }
 
@@ -1847,7 +1846,7 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
-            this.Inventory.ForEach(x => x.ClearDirtyFlags());
+            this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable

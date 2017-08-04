@@ -46,6 +46,11 @@ namespace ACE.Entity
             get { return AceObject.IntProperties; }
         }
 
+        protected Dictionary<ObjectGuid, AceObject> Inventory
+        {
+            get { return AceObject.Inventory; }
+        }
+
         public List<AceObjectPropertiesInt64> PropertiesInt64
         {
             get { return AceObject.Int64Properties; }
@@ -1504,7 +1509,6 @@ namespace ACE.Entity
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
             inventoryItem.AnimationFrame = 0x65;
-            // inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag(); Leaving here for just a bit Og II
         }
 
         internal void SetInventoryForContainer(WorldObject inventoryItem, uint placement)

@@ -2361,8 +2361,9 @@ namespace ACE.Entity
                                                 new GameMessageObjDescEvent(this),
                                                 new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                 }
-                SetInventoryForWorld(inventoryItem);
+
                 RemoveFromInventory(itemGuid);
+                SetInventoryForWorld(inventoryItem);
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
 
                 var motion = new UniversalMotion(MotionStance.Standing);
@@ -2396,6 +2397,7 @@ namespace ACE.Entity
                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                     CurrentLandblock.AddWorldObject(inventoryItem);
+                    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
 
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                 });

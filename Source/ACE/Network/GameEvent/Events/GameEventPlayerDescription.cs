@@ -362,7 +362,7 @@ namespace ACE.Network.GameEvent.Events
             }*/
 
             Writer.Write((uint)aceObj.Inventory.Count);
-            foreach (var inv in aceObj.Inventory)
+            foreach (var inv in aceObj.Inventory.Values)
             {
                 Writer.Write(inv.AceObjectId);
                 // FIXME: This needs to be 0, 1 or 2 0 = world object, 1 = container, 2 = foci

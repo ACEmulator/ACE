@@ -285,11 +285,11 @@ namespace ACE.Database
             return objects;
         }
 
-        public List<AceObject> GetInventoryByContainerId(uint containerId)
+        public Dictionary<ObjectGuid, AceObject> GetInventoryByContainerId(uint containerId)
         {
             var criteria = new Dictionary<string, object> { { "containerId", containerId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedInventoryObject>(ShardPreparedStatement.GetAceObjectsByContainerId, criteria);
-            return objects.Select(inventoryItem => GetObject(inventoryItem.AceObjectId)).ToList();
+            return objects.ToDictionary(x => new ObjectGuid(x.AceObjectId), x => GetObject(x.AceObjectId));
         }
 
         public AceCharacter GetCharacter(uint id)
@@ -579,9 +579,27 @@ namespace ACE.Database
             if (aceObject.Inventory.Count <= 0)
                 return transaction.Commit().Result;
 
-            foreach (AceObject invItem in aceObject.Inventory)
+            foreach (AceObject invItem in aceObject.Inventory.Values)
             {
                 SaveObjectInternal(transaction, invItem);
+            }
+
+            return transaction.Commit().Result;
+        }
+
+        public bool DeleteObject(AceObject aceObject)
+        {
+            DatabaseTransaction transaction = BeginTransaction();
+
+            DeleteObjectInternal(transaction, aceObject);
+
+            // Do we have any  - if not, we are done here?
+            if (aceObject.Inventory.Count <= 0)
+                return transaction.Commit().Result;
+
+            foreach (AceObject invItem in aceObject.Inventory.Values)
+            {
+                DeleteObjectInternal(transaction, invItem);
             }
 
             return transaction.Commit().Result;
@@ -609,6 +627,8 @@ namespace ACE.Database
             DeleteAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId);
             DeleteAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId);
             DeleteAceObjectPropertiesSkill(transaction, aceObject.AceObjectId);
+            DeleteAceObjectPropertiesSpells(transaction, aceObject.AceObjectId);
+            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
 
             DeleteAceObjectBase(transaction, aceObject);
 
