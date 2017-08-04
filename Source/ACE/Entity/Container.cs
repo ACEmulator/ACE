@@ -52,60 +52,26 @@ namespace ACE.Entity
         {
         }
 
-        public virtual void PlaceItemInContainer(WorldObject inventoryItem, uint placement)
-        {
-            if (inventory.ContainsKey(inventoryItem.Guid))
-            {
-                // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
-                inventory.Where(i => i.Value.Placement > (uint)inventory[inventoryItem.Guid].Placement).ToList().ForEach(i => i.Value.Placement--);
-                inventory.Remove(inventoryItem.Guid);
-            }
-            // If not going on the very end (next open slot), make a hole.
-            inventory.Where(i => i.Value.Placement >= placement).ToList().ForEach(i => i.Value.Placement++);
-            inventoryItem.Placement = placement;
-            inventory.Add(inventoryItem.Guid, inventoryItem);
-
-            ////uint place = 0;
-            ////AceObject saveableCopy;
-            ////foreach (var keyValuePair in invList)
-            ////{
-            ////    if (place == inventoryItem.Placement)
-            ////        place++;
-
-            ////    if (keyValuePair.Value.Placement != place)
-            ////    {
-            ////        keyValuePair.Value.Placement = place;
-            ////        saveableCopy = keyValuePair.Value.SnapShotOfAceObject();
-            ////        saveableCopy.ClearDirtyFlags();
-            ////        saveableCopy.Placement = place;
-            ////        DatabaseManager.Shard.SaveObject(saveableCopy, null);
-            ////    }
-            ////    place++;
-            ////}
-            ////if (!removedItem) return;
-            ////inventory.Add(inventoryItem.Guid, inventoryItem);
-            ////saveableCopy = inventoryItem.SnapShotOfAceObject();
-            ////saveableCopy.ClearDirtyFlags();
-            ////saveableCopy.Placement = inventoryItem.Placement;
-            ////DatabaseManager.Shard.SaveObject(saveableCopy, null);
-        }
-
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem, uint placement = 0)
         {
             ActionChain actionChain = new ActionChain();
             actionChain.AddAction(this, () =>
             {
-                PlaceItemInContainer(inventoryItem, placement);
-                if (!inventory.ContainsKey(inventoryItem.Guid))
+                if (inventory.ContainsKey(inventoryItem.Guid))
                 {
-                    inventory.Add(inventoryItem.Guid, inventoryItem);
-                    // I take a point in time snapshot of the item to save.
-                    // This is the first time saving to the database.
-                    var saveableCopy = inventoryItem.SnapShotOfAceObject();
-                    DatabaseManager.Shard.SaveObject(saveableCopy, null);
-                    Burden = UpdateBurden();
+                    // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
+                    inventory.Where(i => i.Value.Placement > (uint)inventory[inventoryItem.Guid].Placement).ToList().ForEach(i => i.Value.Placement--);
+                    inventory.Remove(inventoryItem.Guid);
                 }
+                // If not going on the very end (next open slot), make a hole.
+                inventory.Where(i => i.Value.Placement >= placement).ToList().ForEach(i => i.Value.Placement++);
+                inventoryItem.Placement = placement;
+                inventory.Add(inventoryItem.Guid, inventoryItem);
+                // FIXME: I know there must be a better way, but not sure how to do it.
+                // For now, sync up underlying aceObject
+                AceObject.Inventory.Clear();
+                inventory.ToList().ForEach(i => AceObject.Inventory.Add(i.Value.SnapShotOfAceObject()));
             });
             actionChain.EnqueueChain();
         }

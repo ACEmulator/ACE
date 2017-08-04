@@ -1769,33 +1769,36 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            AceObject ret = new AceObject();
-            ret.AceObjectId = AceObjectId;
+            AceObject ret = new AceObject
+            {
+                AceObjectId = AceObjectId,
+                WeenieClassId = WeenieClassId,
+                AceObjectDescriptionFlags = AceObjectDescriptionFlags,
+                PhysicsDescriptionFlag = PhysicsDescriptionFlag,
+                WeenieHeaderFlags = WeenieHeaderFlags,
+                HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase,
+                PaletteOverrides = CloneList(PaletteOverrides),
+                TextureOverrides = CloneList(TextureOverrides),
+                AnimationOverrides = CloneList(AnimationOverrides),
+                IntProperties = CloneList(IntProperties),
+                Int64Properties = CloneList(Int64Properties),
+                DoubleProperties = CloneList(DoubleProperties),
+                BoolProperties = CloneList(BoolProperties),
+                DataIdProperties = CloneList(DataIdProperties),
+                InstanceIdProperties = CloneList(InstanceIdProperties),
+                StringProperties = CloneList(StringProperties),
+                GeneratorLinks = CloneList(GeneratorLinks),
+                AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
+                AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
+                AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
+                AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
+                SpellIdProperties = CloneList(SpellIdProperties),
+                SpellsInSpellBars = CloneList(SpellsInSpellBars),
+                Inventory = CloneList(Inventory)
+            };
 
-            ret.WeenieClassId = WeenieClassId;
-            ret.AceObjectDescriptionFlags = AceObjectDescriptionFlags;
-            ret.PhysicsDescriptionFlag = PhysicsDescriptionFlag;
-            ret.WeenieHeaderFlags = WeenieHeaderFlags;
-            ret.HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase;
 
             // Then clone our properties
-            ret.PaletteOverrides = CloneList(PaletteOverrides);
-            ret.TextureOverrides = CloneList(TextureOverrides);
-            ret.AnimationOverrides = CloneList(AnimationOverrides);
-            ret.IntProperties = CloneList(IntProperties);
-            ret.Int64Properties = CloneList(Int64Properties);
-            ret.DoubleProperties = CloneList(DoubleProperties);
-            ret.BoolProperties = CloneList(BoolProperties);
-            ret.DataIdProperties = CloneList(DataIdProperties);
-            ret.InstanceIdProperties = CloneList(InstanceIdProperties);
-            ret.StringProperties = CloneList(StringProperties);
-            ret.GeneratorLinks = CloneList(GeneratorLinks);
-            ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
-            ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
-            ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
-            ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
-            ret.SpellIdProperties = CloneList(SpellIdProperties);
-            ret.SpellsInSpellBars = CloneList(SpellsInSpellBars);
             return ret;
         }
 
@@ -1807,7 +1810,7 @@ namespace ACE.Entity
         public object Clone(uint guid)
         {
             AceObject ret = (AceObject)Clone();
-            ret.AceObjectId = guid;            
+            ret.AceObjectId = guid;
             // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
             ret.HasEverBeenSavedToDatabase = false;
             ret.IsDirty = true;
@@ -1825,7 +1828,7 @@ namespace ACE.Entity
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
-            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);            
+            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             return ret;
         }
 
