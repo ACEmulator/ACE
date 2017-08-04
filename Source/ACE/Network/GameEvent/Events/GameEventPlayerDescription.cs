@@ -360,12 +360,26 @@ namespace ACE.Network.GameEvent.Events
             /*if ((optionFlags & DescriptionOptionFlag.Unk400) != 0)
             {
             }*/
-            // TODO: Pick up here - this is the correct format - create select to pull all inventory in that is in my main pacl Og II
-            ////Writer.Write(1u);
-            ////Writer.Write(0xE0000001);
-            ////Writer.Write(0u);
-            
-            Writer.Write(0u);
+
+            Writer.Write((uint)aceObj.Inventory.Count);
+            foreach (var inv in aceObj.Inventory)
+            {
+                Writer.Write(inv.AceObjectId);
+                // FIXME: This needs to be 0, 1 or 2 0 = world object, 1 = container, 2 = foci
+                // setting to 0 for now.   Og II
+                Writer.Write(0u);
+            }
+
+            // TODO: This is where what we have equipped is sent.
+            // format is count
+            // foreach (var wieldedItem in aceObj.WieldedItem)
+            // {
+            //    Writer.Write(wieldedItem.AceObjectId)
+            //    Writer.Write(wieldedItem.CurrentWieldedLocation);
+            //    Writer.Write(wieldedItem.ClothingPriority);
+            // }
+            // Replace with this code the place holder 0u that follows Og II
+
             Writer.Write(0u);
         }
     }

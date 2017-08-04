@@ -138,7 +138,8 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
-            ConstructStatement(ShardPreparedStatement.GetAceObjectsByContainerId, typeof(CachedWorldObject), ConstructedStatementType.GetList);
+
+            ConstructStatement(ShardPreparedStatement.GetAceObjectsByContainerId, typeof(CachedInventoryObject), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
@@ -287,7 +288,7 @@ namespace ACE.Database
         public List<AceObject> GetInventoryByContainerId(uint containerId)
         {
             var criteria = new Dictionary<string, object> { { "containerId", containerId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWorldObject>(ShardPreparedStatement.GetAceObjectsByContainerId, criteria);
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedInventoryObject>(ShardPreparedStatement.GetAceObjectsByContainerId, criteria);
             return objects.Select(inventoryItem => GetObject(inventoryItem.AceObjectId)).ToList();
         }
 
@@ -336,7 +337,7 @@ namespace ACE.Database
                 x => new CreatureSkill(aceObject, x));
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
             aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
-            // aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
+            aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)

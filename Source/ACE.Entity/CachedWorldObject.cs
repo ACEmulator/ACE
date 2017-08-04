@@ -14,8 +14,5 @@ namespace ACE.Entity
 
         [DbField("itemType", (int)MySqlDbType.UInt32, ListGet = true)]
         public uint ItemType { get; set; }
-
-        [DbField("containerId", (int)MySqlDbType.UInt32, ListGet = true)]
-        public uint ContainerId { get; set; }
     }
 }

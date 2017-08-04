@@ -89,11 +89,6 @@ namespace ACE.Entity
 
         public double RespawnTime { get; set; }
 
-        public Creature(AceObject aceObject, ObjectGuid guid)
-            : base(aceObject, guid)
-        {
-        }
-
         protected void SetupVitals()
         {
             if (Health.Current != Health.MaxValue)

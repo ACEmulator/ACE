@@ -2,8 +2,9 @@ using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
-using ACE.Database;
 using ACE.Entity.Actions;
+using ACE.Network;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -40,16 +41,19 @@ namespace ACE.Entity
             WeenieFlags = weenieFlag;
             Location = position;
             WeenieClassId = weenieClassId;
+            aceObject.Inventory.ForEach(i => inventory.Add(new ObjectGuid(i.AceObjectId), new GenericObject(i)));
         }
 
         public Container(AceObject aceObject)
             : base(aceObject)
         {
+            aceObject.Inventory.ForEach(i => inventory.Add(new ObjectGuid(i.AceObjectId), new GenericObject(i)));
         }
 
-        public Container(AceObject aceObject, ObjectGuid guid)
-            : base(guid, aceObject)
+        public void SendInventory(Session session)
         {
+            foreach (var invItem in inventory.Values)
+               session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
         }
 
         // Inventory Management Functions

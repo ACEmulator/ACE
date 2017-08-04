@@ -9,7 +9,8 @@
 * Created supporting methods to manage pack order
 * Enhanced the debug log message for DBDEBUG 
 * Small temp fix to stutter when attempting to shift walk or shift jump.   We still need to really understand autonomous
-* Modified vw_ace_object to expose ability to pull by container.   They share a code base between world and shard so in this instance must stay in sync. 
+* Created new view vw_ace_inventory _object to expose ability to pull inventory by container.   
+* added index to ace_object_properties_iid table to avoid table scan on getting inventory by containerId
 * WIP Started working on inventory loading.
 * This is still WIP - just posting now to get feedback
 * TODO.   

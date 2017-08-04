@@ -1847,6 +1847,7 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
+            this.Inventory.ForEach(x => x.ClearDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable

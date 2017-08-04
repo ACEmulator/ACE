@@ -432,6 +432,7 @@ namespace ACE.Entity
             // SendSelf will trigger the entrance into portal space
             SendSelf();
             // TODO: This is where we will create all inventory objects for the player Og II
+
             SendFriendStatusUpdates();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
@@ -1376,7 +1377,7 @@ namespace ACE.Entity
         {
             Session.Network.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
             // TODO: gear and equip
-
+            SendInventory(Session);
             var player = new GameEventPlayerDescription(Session);
             var title = new GameEventCharacterTitle(Session);
             var friends = new GameEventFriendsListUpdate(Session);
