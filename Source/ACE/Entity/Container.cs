@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net;
 using ACE.Entity.Actions;
+using ACE.Factories;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 
@@ -82,7 +83,7 @@ namespace ACE.Entity
             if (!includeSubContainers)
                 return Inventory.ContainsKey(inventoryItemGuid);
 
-            var containers = Inventory.Where(wo => wo.Value.ItemsCapacity > 0).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
             return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(inventoryItemGuid));
         }
 
@@ -141,14 +142,14 @@ namespace ACE.Entity
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             if (Inventory.ContainsKey(objectGuid))
-                return new GenericObject(Inventory[objectGuid]);
+                return WorldObjectFactory.CreateWorldObject(Inventory[objectGuid]);
 
-            var containers = Inventory.Where(wo => wo.Value.ItemsCapacity > 0).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
 
             foreach (var cnt in containers)
             {
                 if (cnt.Value.Inventory.ContainsKey(objectGuid))
-                    return new GenericObject(cnt.Value.Inventory[objectGuid]);
+                    return WorldObjectFactory.CreateWorldObject(cnt.Value.Inventory[objectGuid]);
             }
             return null;
         }
