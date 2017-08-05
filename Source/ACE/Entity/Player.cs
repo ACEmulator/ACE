@@ -2103,7 +2103,7 @@ namespace ACE.Entity
 
             foreach (var w in wieldeditems)
             {
-                var wo = w.Value;
+                var wo = GetInventoryItem(w.Key);
                 ClothingTable item;
                 if (wo.ClothingBase != null) item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
                 else
@@ -2397,7 +2397,7 @@ namespace ACE.Entity
                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                     CurrentLandblock.AddWorldObject(inventoryItem);
-                    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);                    
+                    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
 
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                 });

@@ -133,10 +133,9 @@ namespace ACE.Entity
             }
         }
 
-        public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
+        public virtual List<KeyValuePair<ObjectGuid, AceObject>> GetCurrentlyWieldedItems()
         {
-            // return Inventory.Where(wo => wo.Value.IntProperties != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
-            return null;
+            return Inventory.Where(ao => ao.Value.WielderIID != null && ao.Value.CurrentWieldedLocation < (uint)EquipMask.WristWearLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
