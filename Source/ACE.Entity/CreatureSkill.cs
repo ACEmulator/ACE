@@ -110,6 +110,12 @@ namespace ACE.Entity
             _backer.HasEverBeenSavedToDatabase = true;
         }
 
+        public void SetDirtyFlags()
+        {
+            _backer.IsDirty = true;
+            _backer.HasEverBeenSavedToDatabase = false;
+        }
+
         public object Clone()
         {
             return new CreatureSkill(this.character, (AceObjectPropertiesSkill)_backer.Clone());

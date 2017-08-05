@@ -25,7 +25,7 @@ namespace ACE.Entity
                 _value = value;
                 IsDirty = true;
             }
-        }        
+        }
         public object Clone()
         {
             return MemberwiseClone();

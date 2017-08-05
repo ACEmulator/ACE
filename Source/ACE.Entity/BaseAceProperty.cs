@@ -17,5 +17,11 @@ namespace ACE.Entity
             this.IsDirty = false;
             this.HasEverBeenSavedToDatabase = true;
         }
+
+        public void SetDirtyFlags()
+        {
+            this.IsDirty = true;
+            this.HasEverBeenSavedToDatabase = false;
+        }
     }
 }

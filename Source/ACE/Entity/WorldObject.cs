@@ -2385,6 +2385,11 @@ namespace ACE.Entity
             return (AceObject)AceObject.Clone();
         }
 
+        public void InitializeAceObjectForSave()
+        {
+            AceObject.SetDirtyFlags();
+        }
+
         /// <summary>
         /// Runs all actions pending on this WorldObject
         /// </summary>

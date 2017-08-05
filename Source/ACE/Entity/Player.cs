@@ -2397,7 +2397,7 @@ namespace ACE.Entity
                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                     CurrentLandblock.AddWorldObject(inventoryItem);
-                    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
+                    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);                    
 
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                 });

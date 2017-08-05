@@ -1508,13 +1508,19 @@ namespace ACE.Entity
 
         private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value)
         {
+            // FIXME: It seems like every set gets called twice.
+            // It is allowing us to save a key value pair with a null value Og II
             if (dict.ContainsKey(key))
             {
-                dict[key] = value;
+                if (value != null)
+                    dict[key] = value;
+                else
+                    dict.Remove(key);
             }
             else
             {
-                dict.Add(key, value);
+                if (value != null)
+                    dict.Add(key, value);
             }
         }
 
@@ -1810,8 +1816,7 @@ namespace ACE.Entity
             AceObject ret = (AceObject)Clone();
             ret.AceObjectId = guid;
             // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
-            ret.HasEverBeenSavedToDatabase = false;
-            ret.IsDirty = true;
+            ret.SetDirtyFlags();
 
             ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
             ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
@@ -1847,6 +1852,24 @@ namespace ACE.Entity
             this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
             this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
+        }
+
+        public void SetDirtyFlags()
+        {
+            this.IsDirty = true;
+            this.HasEverBeenSavedToDatabase = false;
+
+            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            this.IntProperties.ForEach(x => x.SetDirtyFlags());
+            this.Int64Properties.ForEach(x => x.SetDirtyFlags());
+            this.DoubleProperties.ForEach(x => x.SetDirtyFlags());
+            this.BoolProperties.ForEach(x => x.SetDirtyFlags());
+            this.DataIdProperties.ForEach(x => x.SetDirtyFlags());
+            this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
+            this.StringProperties.ForEach(x => x.SetDirtyFlags());
+            this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable

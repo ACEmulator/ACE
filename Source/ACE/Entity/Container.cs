@@ -70,6 +70,7 @@ namespace ACE.Entity
                 // If not going on the very end (next open slot), make a hole.
                 Inventory.Where(i => i.Value.Placement >= placement).ToList().ForEach(i => i.Value.Placement++);
                 inventoryItem.Placement = placement;
+                inventoryItem.Location = null;
                 var aceO = inventoryItem.SnapShotOfAceObject();
                 Inventory.Add(inventoryItem.Guid, aceO);
             });
