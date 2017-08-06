@@ -2753,5 +2753,35 @@ namespace ACE.Entity
 
             moveToObjectChain.EnqueueChain();
         }
+
+        public bool CheckMagicSkillLevel(MagicSchool school, uint power)
+        {
+            bool ret = false;
+            CreatureSkill creatureSkill = Skills[Skill.Run];
+
+            switch (school)
+            {
+                case MagicSchool.CreatureEnchantment:
+                    creatureSkill = Skills[Skill.CreatureEnchantment];
+                    break;
+                case MagicSchool.WarMagic:
+                    creatureSkill = Skills[Skill.WarMagic];
+                    break;
+                case MagicSchool.ItemEnchantment:
+                    creatureSkill = Skills[Skill.ItemEnchantment];
+                    break;
+                case MagicSchool.LifeMagic:
+                    creatureSkill = Skills[Skill.LifeMagic];
+                    break;
+                case MagicSchool.VoidMagic:
+                    creatureSkill = Skills[Skill.VoidMagic];
+                    break;
+            }
+
+            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.ActiveValue >= (power - 50))
+                ret = true;
+
+            return ret;
+        }
     }
 }

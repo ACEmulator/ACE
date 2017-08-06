@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-08-06
+[Ripley]
+* Added Scroll weenie object.
+
 ### 2017-08-02
 [Ripley]
 * NOTE: The following changes require ACE-World database v0.1.8 or newer...

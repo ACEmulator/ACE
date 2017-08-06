@@ -22,14 +22,15 @@ namespace ACE.Entity
         public Scroll(AceObject aceObject)
             : base(aceObject)
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
-
             SpellTable table = SpellTable.ReadFromDat();
 
             Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
             Use += $"{table.Spells[SpellId].Desc}";
 
             LongDesc = "Use this item to attempt to learn its spell.";
+
+            Power = table.Spells[SpellId].Power;
+            School = table.Spells[SpellId].School;
         }
 
         private uint SpellId
@@ -37,25 +38,73 @@ namespace ACE.Entity
             get { return (uint)Spell.Value; }
         }
 
+        private uint Power
+        {
+            get;
+            set;
+        }
+
+        private MagicSchool School
+        {
+            get;
+            set;
+        }
+
         public override void OnUse(Session session)
         {
-            // TODO: Implement skill check
             bool success = true;
+            string failReason = "You are unable to read the scroll.";
+
+            switch (Power)
+            {
+                // research: http://asheron.wikia.com/wiki/Announcements_-_2002/06_-_Castling
+                case 50:  // Level 2
+                case 100: // Level 3
+                case 150: // Level 4
+                case 200: // Level 5
+                case 250: // Level 6
+                    if (session.Player.CheckMagicSkillLevel(School, Power))
+                        success = true;
+                    else
+                    {
+                        success = false;
+                        failReason = "You are not skilled enough in the inscribed spell's school of magic to understand the writing on this scroll.";
+                    }
+                    break;
+                default: // Level 1 or Level 7+ never fail
+                    success = true;
+                    break;
+            }
+
+            if (!session.Player.UnknownSpell(SpellId))
+            {
+                success = false;
+                failReason = "You already know the spell inscribed upon this scroll.";
+            }
+
+            ActionChain readScrollChain = new ActionChain();
+            readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading));
+            readScrollChain.AddDelaySeconds(2);
+
             if (success)
             {
-                ActionChain readScrollChain = new ActionChain();
-                readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading));
-                readScrollChain.AddDelaySeconds(2);
                 readScrollChain.AddAction(session.Player, () => session.Player.HandleActionLearnSpell(SpellId));
                 readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
                 var removeObjMessage = new GameMessageRemoveObject(this);
                 var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);
                 readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(destroyMessage, removeObjMessage));
                 readScrollChain.AddAction(session.Player, () => session.Player.RemoveFromInventory(Guid));
-                var sendUseDoneEvent = new GameEventUseDone(session.Player.Session);
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(sendUseDoneEvent));
-                readScrollChain.EnqueueChain();
             }
+            else
+            {
+                readScrollChain.AddDelaySeconds(2);
+                readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
+                var failMessage = new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic);
+                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(failMessage));
+            }
+            var sendUseDoneEvent = new GameEventUseDone(session.Player.Session);
+            readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(sendUseDoneEvent));
+            readScrollChain.EnqueueChain();
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
