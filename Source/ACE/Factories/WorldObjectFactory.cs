@@ -47,6 +47,8 @@ namespace ACE.Factories
                     return new Door(aceO);
                 case WeenieType.Portal:
                     return new Portal(aceO);
+                case WeenieType.Container:
+                    return new Container(aceO);
                 // case WeenieType.PKModifier:
                 //    return new PKModifier(AceObject);
                 default:

@@ -3,7 +3,7 @@
 namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// This data is sent as loc in the player discription message F7B0 -0013
+    /// This data is sent as loc in the player description message F7B0 -0013
     /// </summary>
     [Flags]
     public enum EquipMask : uint

@@ -2,11 +2,10 @@
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using System.Diagnostics;
 
 namespace ACE.Network.GameEvent.Events
 {
-    using System.Diagnostics;
-
     public class GameEventPlayerDescription : GameEventMessage
     {
         [Flags]
@@ -361,13 +360,22 @@ namespace ACE.Network.GameEvent.Events
             {
             }*/
 
+            // Write total count.
             Writer.Write((uint)aceObj.Inventory.Count);
-            foreach (var inv in aceObj.Inventory.Values)
+            // write out all of the non-containers and foci
+            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType != (uint)WeenieType.Container && i.Value.WeenieType != (uint)WeenieType.Foci))
             {
-                Writer.Write(inv.AceObjectId);
-                // FIXME: This needs to be 0, 1 or 2 0 = world object, 1 = container, 2 = foci
-                // setting to 0 for now.   Og II
-                Writer.Write(0u);
+                Writer.Write(inv.Value.AceObjectId);
+                Writer.Write((uint)ContainerType.NonContainer);
+            }
+            // Containers and foci go in side slots, they come last with their own placment order.
+            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container || i.Value.WeenieType == (uint)WeenieType.Foci))
+            {
+                Writer.Write(inv.Value.AceObjectId);
+                if ((WeenieType)inv.Value.WeenieType == WeenieType.Container)
+                    Writer.Write((uint)ContainerType.Container);
+                if ((WeenieType)inv.Value.WeenieType == WeenieType.Foci)
+                    Writer.Write((uint)ContainerType.Foci);
             }
 
             // TODO: This is where what we have equipped is sent.

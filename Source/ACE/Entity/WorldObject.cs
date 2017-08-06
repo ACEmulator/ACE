@@ -1460,7 +1460,8 @@ namespace ACE.Entity
                 : this(new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
-
+            SetWeenieHeaderFlag();
+            SetWeenieHeaderFlag2();
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
             RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them

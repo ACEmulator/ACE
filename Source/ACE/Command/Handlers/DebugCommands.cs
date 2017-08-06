@@ -370,7 +370,7 @@ namespace ACE.Command.Handlers
             ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, trainingWandTarget);
+            WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
 
             ActionChain chain = new Entity.Actions.ActionChain();
 
@@ -818,8 +818,7 @@ namespace ACE.Command.Handlers
             "Creates 1 of each weapon class in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>
@@ -831,6 +830,33 @@ namespace ACE.Command.Handlers
                     loot.Placement = 0;
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
+                    session.Player.UpdatePlayerBurden();
+                    session.Network.EnqueueSend(
+                        new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+                }
+            });
+            chain.EnqueueChain();
+        }
+
+        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
+        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Creates sample items, foci and containers in your inventory.")]
+        public static void HandleInv(Session session, params string[] parameters)
+        {
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46, 15268, 15269, 15270, 15271, 12748, 5893, 136 };
+            ActionChain chain = new ActionChain();
+
+            chain.AddAction(session.Player, () =>
+            {
+                foreach (uint weenieId in weaponsTest)
+                {
+                    WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+                    loot.ContainerId = session.Player.Guid.Full;
+                    loot.Placement = 0;
+                    session.Player.AddToInventory(loot);
+                    session.Player.TrackObject(loot);
+                    chain.AddDelaySeconds(0.25);
                     session.Player.UpdatePlayerBurden();
                     session.Network.EnqueueSend(
                         new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),

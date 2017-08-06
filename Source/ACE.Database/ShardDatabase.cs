@@ -306,7 +306,7 @@ namespace ACE.Database
 
         public AceObject GetObject(uint aceObjectId)
         {
-            AceObject aceObject = new AceObject(aceObjectId);
+            AceObject aceObject = GetAceObject(aceObjectId);
             LoadIntoObject(aceObject);
             return aceObject;
         }
@@ -338,6 +338,12 @@ namespace ACE.Database
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
             aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
             aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
+            // Ok now, check to see if we loaded any containers that themselves may have items ... Og II
+            foreach (var invItem in aceObject.Inventory)
+            {
+                if (invItem.Value.WeenieType == (uint)WeenieType.Container)
+                    invItem.Value.Inventory = GetInventoryByContainerId(invItem.Key.Full);
+            }
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
@@ -513,7 +519,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public AceObject GetWorldObject(uint objId)
+        public AceObject GetAceObject(uint objId)
         {
             AceObject ret = new AceObject();
             var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
@@ -540,7 +546,7 @@ namespace ACE.Database
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {
-                var o = GetWorldObject(cwo.AceObjectId);
+                var o = GetAceObject(cwo.AceObjectId);
                 o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
                 o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
                 o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
@@ -582,6 +588,12 @@ namespace ACE.Database
             foreach (AceObject invItem in aceObject.Inventory.Values)
             {
                 SaveObjectInternal(transaction, invItem);
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+                foreach (AceObject contInvItem in invItem.Inventory.Values)
+                {
+                    SaveObjectInternal(transaction, contInvItem);
+                }
             }
 
             return transaction.Commit().Result;

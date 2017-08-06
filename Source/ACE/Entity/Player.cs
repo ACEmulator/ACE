@@ -477,6 +477,7 @@ namespace ACE.Entity
             // These don't usually get saved back to the object so setting here for now.
             // Realisticly speaking, I think it will be possible to eliminate WeenieHeaderFlags and PhysicsDescriptionFlag from the datbase
             // AceObjectDescriptionFlag possibly could be eliminated as well... -Ripley
+            // actually we do use those without creating a wo - so it would be needed to keep them in the database Og II
             obj.WeenieHeaderFlags = (uint)WeenieFlags;
             obj.PhysicsDescriptionFlag = (uint)PhysicsDescriptionFlag;
 
@@ -1244,7 +1245,7 @@ namespace ACE.Entity
             // Not in friend list
             if (friendToRemove == null)
             {
-                ChatPacket.SendServerMessage(Session, "That chracter is not in your friends list!", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
                 return;
             }
 
@@ -1375,14 +1376,17 @@ namespace ACE.Entity
 
         private void SendSelf()
         {
-            Session.Network.EnqueueSend(new GameMessageCreateObject(this), new GameMessagePlayerCreate(Guid));
-            // TODO: gear and equip
-            SendInventory(Session);
             var player = new GameEventPlayerDescription(Session);
             var title = new GameEventCharacterTitle(Session);
             var friends = new GameEventFriendsListUpdate(Session);
 
             Session.Network.EnqueueSend(player, title, friends);
+            Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
+
+            // Find all the containers and send a view contents event.
+            Session.Player.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container).ToList().ForEach(i => Session.Network.EnqueueSend(new GameEventViewContents(Session, i.Value)));
+
+            SendInventory(Session);
         }
 
         public void Teleport(Position newPosition)
@@ -2296,7 +2300,6 @@ namespace ACE.Entity
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
-            WorldObject inventoryItem;
             inContainerChain.AddAction(
                 this,
                 () =>
@@ -2328,7 +2331,7 @@ namespace ACE.Entity
                         }
 
                         // Ok, I know my container and I know I must have the inventory item so let's get it.
-                        inventoryItem = GetInventoryItem(itemGuid);
+                        WorldObject inventoryItem = GetInventoryItem(itemGuid);
 
                         // Was I equiped?   If so, lets take care of that and unequip
                         if (inventoryItem.WielderId != null)

@@ -1010,27 +1010,35 @@ namespace ACE.Command.Handlers
             // TODO: we have to be able to identify containers - you can create a wo and see if it has
             // an item capacity but that seems a bit wasteful.   TBD on best method.   Limited number so
 
-            WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-            if (testContainer.ItemCapacity > 1)
-            {
-                Container loot = (Container)WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
-                loot.Placement = 0;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
-            else
-            {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
-                loot.Placement = 0;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
+            ////WorldObject testContainer = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
+            ////if (testContainer.WeenieType == WeenieType.Container)
+            ////{
+            ////    Container loot = (Container)WorldObjectFactory.CreateNewWorldObject(weenieId);
+            ////    loot.ContainerId = session.Player.Guid.Full;
+            ////    loot.Placement = 0;
+            ////    session.Player.AddToInventory(loot);
+            ////    session.Player.TrackObject(loot);
+            ////    session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+            ////        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+            ////}
+            ////else
+            ////{
+            ////    WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+            ////    loot.ContainerId = session.Player.Guid.Full;
+            ////    loot.Placement = 0;
+            ////    session.Player.AddToInventory(loot);
+            ////    session.Player.TrackObject(loot);
+            ////    session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+            ////        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+            ////}
+
+            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+            loot.ContainerId = session.Player.Guid.Full;
+            loot.Placement = 0;
+            session.Player.AddToInventory(loot);
+            session.Player.TrackObject(loot);
+            session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
         }
 
         // cm <material type> <quantity> <ave. workmanship>

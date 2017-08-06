@@ -1,13 +1,10 @@
 ﻿using ACE.Entity.Actions;
-
 using ACE.Entity;
 using ACE.Database;
 using ACE.Managers;
-using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Factories
 {
@@ -29,30 +26,14 @@ namespace ACE.Factories
             return LandblockManager.GetAddObjectChain(inventoryItem);
         }
 
-        public static Container CreateTestContainerObject(Player player, uint weenieId)
-        {
-            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            Container wo = new Container(aceObject);
-            player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.Guid.Full));
-            return wo;
-        }
-
-        public static WorldObject CreateTestWorldObject(Player player, uint weenieId)
-        {
-            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-            if (aceObject.ItemsCapacity >= 1)
-            {
-                return CreateTestContainerObject(player, weenieId);
-            }
-            return new GenericObject(GuidManager.NewItemGuid(), aceObject);
-        }
-
         public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)
         {
             var weenieList = DatabaseManager.World.GetRandomWeeniesOfType(typeId, numItems);
             for (int i = 0; i < numItems; i++)
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(weenieList[i].WeenieClassId);
+                if (wo.WeenieType == WeenieType.Container)
+                    player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.SnapShotOfAceObject()));
                 wo.ContainerId = player.Guid.Full;
                 player.HandleAddToInventory(wo);
             }
