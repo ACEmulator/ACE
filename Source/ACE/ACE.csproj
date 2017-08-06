@@ -106,6 +106,7 @@
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\Creature.cs" />
+    <Compile Include="Entity\Cow.cs" />
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />

@@ -1232,7 +1232,26 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
         }
 
-        #region Positions
+        public bool? NpcLooksLikeObject
+        {
+            get { return GetBoolProperty(PropertyBool.NpcLooksLikeObject); }
+            set { SetBoolProperty(PropertyBool.NpcLooksLikeObject, value); }
+        }
+
+        public uint? AllowedActivator
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.AllowedActivator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.AllowedActivator, value); }
+        }
+
+        public uint? CreatureType
+        {
+            get { return GetIntProperty(PropertyInt.CreatureType); }
+            set { SetIntProperty(PropertyInt.CreatureType, value); }
+        }
+
+        #region Positions  
+
         public Position Location
         {
             get { return GetPosition(PositionType.Location); }
@@ -1833,6 +1852,8 @@ namespace ACE.Entity
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
+            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             return ret;
         }
 

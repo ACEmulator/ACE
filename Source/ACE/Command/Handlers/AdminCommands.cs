@@ -996,6 +996,7 @@ namespace ACE.Command.Handlers
             "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
+            // TODO and FIXME: move to Player (eventually Admin) class, wrap in actionchain
             ushort weenieId;
             try
             {

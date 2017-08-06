@@ -1,3 +1,4 @@
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
@@ -1436,6 +1437,41 @@ namespace ACE.Entity
             set { AceObject.Afk = value; }
         }
 
+        public bool? NpcLooksLikeObject
+        {
+            get { return AceObject.NpcLooksLikeObject; }
+            set { AceObject.NpcLooksLikeObject = value; }
+        }
+
+        public CreatureType? CreatureType
+        {
+            get { return (CreatureType?)AceObject.CreatureType; }
+            set { AceObject.CreatureType = (uint)value; }
+        }
+
+        public AceObject Weenie
+        {
+            get { return Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId); }
+        }
+
+        public SetupModel CSetup
+        {
+            get { return SetupModel.ReadFromDat(SetupTableId.Value); }
+        }
+
+        public float UseRadiusSquared
+        {
+            get { return ((UseRadius ?? 0) + CSetup.Radius) * ((UseRadius ?? 0) + CSetup.Radius); }
+        }
+
+        public bool IsWithinUseRadiusOf(WorldObject wo)
+        {
+            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+                return false;
+            else
+                return true;
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
@@ -1479,8 +1515,8 @@ namespace ACE.Entity
         protected WorldObject(ObjectGuid guid, AceObject aceObject)
             : this(guid)
         {
-            Guid = guid;
             AceObject = aceObject;
+            Guid = guid;
 
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
@@ -1688,6 +1724,9 @@ namespace ACE.Entity
                         break;
                     case "itemtype":
                         debugOutput += $"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")" + "\n";
+                        break;
+                    case "creaturetype":
+                        debugOutput += $"{prop.Name} = {obj.CreatureType.ToString()}" + " (" + (uint)obj.CreatureType + ")" + "\n";
                         break;
                     case "containertype":
                         debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";
@@ -2755,12 +2794,40 @@ namespace ACE.Entity
 
         public virtual void HandleActionOnUse(ObjectGuid playerId)
         {
-            // todo: implement.  default is probably to do nothing.
+            // Do Nothing by default
+            if (CurrentLandblock != null)
+            {
+                ActionChain chain = new ActionChain();
+                CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+                {
+                    Player player = wo as Player;
+                    if (player == null)
+                    {
+                        return;
+                    }
+
+#if DEBUG
+                    var errorMessage = new GameMessageSystemChat($"Default HandleActionOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+                    player.Session.Network.EnqueueSend(errorMessage);
+#endif
+
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                });
+                chain.EnqueueChain();
+            }
         }
 
         public virtual void OnUse(Session session)
         {
-            // todo: implement.  default is probably to do nothing.
+            // Do Nothing by default
+#if DEBUG
+            var errorMessage = new GameMessageSystemChat($"Default OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+            session.Network.EnqueueSend(errorMessage);
+#endif
+
+            var sendUseDoneEvent = new GameEventUseDone(session);
+            session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
         public virtual void HandleActionOnCollide(ObjectGuid playerId)

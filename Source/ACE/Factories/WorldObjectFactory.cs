@@ -27,9 +27,9 @@ namespace ACE.Factories
 
                 if (aceO.Location != null)
                 {
-                    ////WorldObject wo = new GenericObject(aceO);
-
-                    results.Add(CreateWorldObject(aceO));
+                    WorldObject wo = CreateWorldObject(aceO);
+                    if (wo != null)
+                        results.Add(wo);
                 }
             }
             return results;
@@ -50,16 +50,43 @@ namespace ACE.Factories
                 case WeenieType.Container:
                     return new Container(aceO);
                 // case WeenieType.PKModifier:
-                //    return new PKModifier(AceObject);
+                //    return new PKModifier(aceO);
+                case WeenieType.Cow:
+                    return new Cow(aceO);
+                case WeenieType.Creature:
+                    return new Creature(aceO);
+                case WeenieType.Container:
+                    return new Container(aceO);
                 default:
                     return new GenericObject(aceO);
             }
         }
 
+        public static WorldObject CreateWorldObject(uint weenieId)
+        {
+            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
+
+            return CreateWorldObject(aceObject);
+        }
+
+        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
+        {
+            AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
+
+            return CreateWorldObject(aceObject);
+        }
+
         public static WorldObject CreateNewWorldObject(uint weenieId)
         {
-            AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
-            WorldObject wo = CreateWorldObject(aceObject);
+            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
+
+            return wo;
+        }
+
+        public static WorldObject CreateNewWorldObject(uint weenieId, ObjectGuid guid)
+        {
+			AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
+            WorldObject wo = CreateWorldObject(weenieId, guid);
             return wo;
         }
     }
