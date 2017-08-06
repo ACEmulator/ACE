@@ -588,6 +588,7 @@ namespace ACE.Database
             foreach (AceObject invItem in aceObject.Inventory.Values)
             {
                 SaveObjectInternal(transaction, invItem);
+                // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
                 if (invItem.WeenieType != (uint)WeenieType.Container)
                     continue;
                 foreach (AceObject contInvItem in invItem.Inventory.Values)
@@ -612,6 +613,13 @@ namespace ACE.Database
             foreach (AceObject invItem in aceObject.Inventory.Values)
             {
                 DeleteObjectInternal(transaction, invItem);
+                // Was the item I just deleted a container?   If so, we need to delete the items in the container as well. Og II
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+                foreach (AceObject contInvItem in invItem.Inventory.Values)
+                {
+                    DeleteObjectInternal(transaction, contInvItem);
+                }
             }
 
             return transaction.Commit().Result;
