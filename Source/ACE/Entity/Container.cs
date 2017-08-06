@@ -63,28 +63,28 @@ namespace ACE.Entity
                 if (Inventory.ContainsKey(inventoryItem.Guid))
                 {
                     // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
-                    if (inventoryItem.WeenieType != WeenieType.Container && inventoryItem.WeenieType != WeenieType.Foci)
+                    if (inventoryItem.WeenieType != WeenieType.Container && inventoryItem.RequiresPackSlot == false)
                         Inventory.Where(i => Inventory[inventoryItem.Guid].Placement != null &&
                                              i.Value.Placement > (uint)Inventory[inventoryItem.Guid].Placement &&
                                              i.Value.WeenieType != (uint)WeenieType.Container &&
-                                             i.Value.WeenieType != (uint)WeenieType.Foci).ToList().ForEach(i => i.Value.Placement--);
+                                             i.Value.RequiresBackpackSlot == false).ToList().ForEach(i => i.Value.Placement--);
                     else
                         Inventory.Where(i => Inventory[inventoryItem.Guid].Placement != null &&
                                              i.Value.Placement > (uint)Inventory[inventoryItem.Guid].Placement &&
                                              i.Value.WeenieType == (uint)WeenieType.Container ||
-                                             i.Value.WeenieType == (uint)WeenieType.Foci).ToList().ForEach(i => i.Value.Placement--);
+                                             i.Value.RequiresBackpackSlot == true).ToList().ForEach(i => i.Value.Placement--);
 
                     Inventory.Remove(inventoryItem.Guid);
                 }
                 // If not going on the very end (next open slot), make a hole.
-                if (inventoryItem.WeenieType != WeenieType.Container && inventoryItem.WeenieType != WeenieType.Foci)
+                if (inventoryItem.WeenieType != WeenieType.Container && inventoryItem.RequiresPackSlot == false)
                     Inventory.Where(i => i.Value.Placement >= placement &&
                                          i.Value.WeenieType != (uint)WeenieType.Container &&
-                                         i.Value.WeenieType != (uint)WeenieType.Foci).ToList().ForEach(i => i.Value.Placement++);
+                                         inventoryItem.RequiresPackSlot == false).ToList().ForEach(i => i.Value.Placement++);
                 else
                     Inventory.Where(i => i.Value.Placement >= placement &&
                      i.Value.WeenieType == (uint)WeenieType.Container ||
-                     i.Value.WeenieType == (uint)WeenieType.Foci).ToList().ForEach(i => i.Value.Placement++);
+                     i.Value.RequiresBackpackSlot == true).ToList().ForEach(i => i.Value.Placement++);
 
                 inventoryItem.Placement = placement;
                 inventoryItem.Location = null;

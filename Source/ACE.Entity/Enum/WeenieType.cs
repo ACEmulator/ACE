@@ -75,7 +75,6 @@ namespace ACE.Entity.Enum
         SocialManager,
         Pet,
         PetDevice,
-        CombatPet,
-        Foci
+        CombatPet        
     }
 }

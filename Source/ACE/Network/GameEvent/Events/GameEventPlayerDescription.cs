@@ -363,18 +363,18 @@ namespace ACE.Network.GameEvent.Events
             // Write total count.
             Writer.Write((uint)aceObj.Inventory.Count);
             // write out all of the non-containers and foci
-            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType != (uint)WeenieType.Container && i.Value.WeenieType != (uint)WeenieType.Foci))
+            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType != (uint)WeenieType.Container && i.Value.RequiresBackpackSlot == false))
             {
                 Writer.Write(inv.Value.AceObjectId);
                 Writer.Write((uint)ContainerType.NonContainer);
             }
             // Containers and foci go in side slots, they come last with their own placment order.
-            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container || i.Value.WeenieType == (uint)WeenieType.Foci))
+            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container || i.Value.RequiresBackpackSlot == true))
             {
                 Writer.Write(inv.Value.AceObjectId);
                 if ((WeenieType)inv.Value.WeenieType == WeenieType.Container)
                     Writer.Write((uint)ContainerType.Container);
-                if ((WeenieType)inv.Value.WeenieType == WeenieType.Foci)
+                if (inv.Value.RequiresBackpackSlot == true && (WeenieType)inv.Value.WeenieType != WeenieType.Container)
                     Writer.Write((uint)ContainerType.Foci);
             }
 

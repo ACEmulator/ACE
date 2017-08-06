@@ -17,18 +17,10 @@ namespace ACE.Network.GameEvent.Events
             {
                 Writer.Write(inv.AceObjectId);
                 Debug.Assert(inv.WeenieType != null, "container.WeenieType != null");
-                switch ((WeenieType)inv.WeenieType)
-                {
-                    case WeenieType.Container:
-                        Writer.Write((uint)ContainerType.Container);
-                        break;
-                    case WeenieType.Foci:
-                        Writer.Write((uint)ContainerType.Foci);
-                        break;
-                    default:
-                        Writer.Write((uint)ContainerType.NonContainer);
-                        break;
-                }
+                if ((WeenieType)inv.WeenieType == WeenieType.Container)
+                    Writer.Write((uint)ContainerType.Container);
+                else
+                    Writer.Write((uint)ContainerType.NonContainer);
             }
         }
     }
