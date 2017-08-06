@@ -47,8 +47,6 @@ namespace ACE.Factories
                     return new Door(aceO);
                 case WeenieType.Portal:
                     return new Portal(aceO);
-                case WeenieType.Container:
-                    return new Container(aceO);
                 // case WeenieType.PKModifier:
                 //    return new PKModifier(aceO);
                 case WeenieType.Cow:
@@ -72,21 +70,12 @@ namespace ACE.Factories
         public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
         {
             AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
-
             return CreateWorldObject(aceObject);
         }
 
         public static WorldObject CreateNewWorldObject(uint weenieId)
         {
             WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
-
-            return wo;
-        }
-
-        public static WorldObject CreateNewWorldObject(uint weenieId, ObjectGuid guid)
-        {
-			AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(GuidManager.NewItemGuid().Full);
-            WorldObject wo = CreateWorldObject(weenieId, guid);
             return wo;
         }
     }

@@ -7,11 +7,11 @@
         CreatureType                             = 2,
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
-        EncumbranceVal                           = 5,
+        EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
         ItemsCapacity                            = 6,
         ContainersCapacity                       = 7,
         Mass                                     = 8,
-        ValidLocations                           = 9,
+        ValidLocations                           = 9, // LOCATIONS_INT
         CurrentWieldedLocation                   = 10,
         MaxStackSize                             = 11,
         StackSize                                = 12,
