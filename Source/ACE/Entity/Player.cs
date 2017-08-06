@@ -933,6 +933,13 @@ namespace ACE.Entity
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
             ActionChain examineChain = new ActionChain();
 
+            if (examinationId.Full == 0)
+            {
+                // Deselect the formerly selected Target
+                // selectedTarget = ObjectGuid.Invalid;
+                return;
+            }
+
             // The object can be in two spots... on the player or on the landblock
             // First check the player
             examineChain.AddAction(this, () =>

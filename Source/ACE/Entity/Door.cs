@@ -136,17 +136,20 @@ namespace ACE.Entity
             set;
         }
 
-        private string LongDesc
-        {
-            get;
-            set;
-        }
+        ////public override string Use
+        ////{
+        ////    get
+        ////    {
+        ////        string status;
+        ////        if (IsOpen)
+        ////            status = "close";
+        ////        else
+        ////            status = "open";
 
-        private string Use
-        {
-            get;
-            set;
-        }
+        ////        return $"Use this item to {status} it.";
+        ////    }
+        ////    // set;
+        ////}
 
         private string UseMessage
         {

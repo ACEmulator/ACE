@@ -55,6 +55,8 @@ namespace ACE.Factories
                     return new Creature(aceO);
                 case WeenieType.Container:
                     return new Container(aceO);
+                case WeenieType.Scroll:
+                    return new Scroll(aceO);
                 default:
                     return new GenericObject(aceO);
             }

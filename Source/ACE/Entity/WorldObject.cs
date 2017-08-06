@@ -1462,6 +1462,18 @@ namespace ACE.Entity
                 return true;
         }
 
+        public string LongDesc
+        {
+            get { return AceObject.LongDesc; }
+            set { AceObject.LongDesc = value; }
+        }
+
+        public string Use
+        {
+            get { return AceObject.Use; }
+            set { AceObject.Use = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
