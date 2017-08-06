@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// TODO: Refactor into Generator.cs?
 namespace ACE.Factories
 {
     /// <summary>
@@ -114,33 +115,18 @@ namespace ACE.Factories
                 // else spawn the objects directly from this generator
                 else
                 {
-                    AceObject baseObject = DatabaseManager.World.GetAceObjectByWeenie((uint)generator.ActivationCreateClass);
-                    baseObject.GeneratorIID = generator.AceObjectId;
+                    WorldObject wo = WorldObjectFactory.CreateWorldObject((uint)generator.ActivationCreateClass);
 
-                    // Determine the ObjectType and call the specific Factory
-                    ItemType ot = (ItemType)baseObject.ItemType;
-                    switch (ot)
+                    if (wo != null)
                     {
-                        case ItemType.Creature:
-                            // TODO: enhance this if we need to spawn NPCs too, else it is just monsters for this tpye
-                            results.Add(MonsterFactory.SpawnMonster(baseObject, pos));
-                            break;
+                        wo.Location = pos;
+                        if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
+                            wo.Guid = GuidManager.NewNonStaticGuid();
+                        else
+                            wo.Guid = GuidManager.NewItemGuid();
+                        wo.GeneratorId = generator.AceObjectId;
 
-                        case ItemType.Portal:
-                            // TODO: enable generators to spawn portals, i.e. for Humming Crystal Portal
-                            // results.Add();
-                            break;
-
-                        case ItemType.Misc:
-                            // TODO: enable generators to spawn misc items: i.e. Campfire
-                            // results.Add();
-                            break;
-
-                        default:
-                            baseObject.Location = pos;
-                            if (baseObject.Location != null)
-                                results.Add(new GenericObject(GuidManager.NewItemGuid(), baseObject));
-                            break;
+                        results.Add(wo);
                     }
                 }
             }

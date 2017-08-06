@@ -25,8 +25,6 @@ namespace ACE.Entity
         public Door(AceObject aceO)
             : base(aceO)
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
-
             // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
             // PhysicsState = 0;
             // ReportCollision = true;
@@ -61,15 +59,6 @@ namespace ACE.Entity
 
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
-
-            if (AceObject.Use == null)
-                Use = weenie.Use;
-            if (AceObject.UseMessage == null)
-                UseMessage = weenie.UseMessage;
-            if (AceObject.LongDesc == null)
-                LongDesc = weenie.LongDesc;
-            if (AceObject.ShortDesc == null)
-                ShortDesc = weenie.ShortDesc;
         }
 
         private bool IsOpen
@@ -188,10 +177,6 @@ namespace ACE.Entity
                     return;
                 }
 
-                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
-                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
-
                 ////if (playerDistanceTo >= 2500)
                 ////{
                 ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
@@ -199,17 +184,8 @@ namespace ACE.Entity
                 ////    return;
                 ////}
 
-                if (playerDistanceTo >= radiusSquared)
-                {
-                    ActionChain moveToDoorChain = new ActionChain();
-
-                    moveToDoorChain.AddChain(player.CreateMoveToChain(Guid, 0.2f));
-                    moveToDoorChain.AddDelaySeconds(0.50);
-
-                    moveToDoorChain.AddAction(this, () => HandleActionOnUse(playerId));
-
-                    moveToDoorChain.EnqueueChain();
-                }
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
                 else
                 {
                     ActionChain checkDoorChain = new ActionChain();
@@ -280,9 +256,9 @@ namespace ACE.Entity
                 return;
 
             if (!DefaultOpen)
-                Close(new ObjectGuid(0));
+                Close(ObjectGuid.Invalid);
             else
-                Open(new ObjectGuid(0));
+                Open(ObjectGuid.Invalid);
 
             ResetTimestamp++;
         }
