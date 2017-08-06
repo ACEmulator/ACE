@@ -1,4 +1,4 @@
-﻿// WeenieType.Generic
+﻿// WeenieType.Scroll
 
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
@@ -26,20 +26,6 @@ namespace ACE.Entity
 
             SpellTable table = SpellTable.ReadFromDat();
 
-            ////string scrollType = "";
-
-            ////switch (table.Spells[SpellId].Power)
-            ////{
-            ////    case 8:
-            ////        scrollType = "Inscription";
-            ////        break;
-            ////    default:
-            ////        scrollType = "Scroll";
-            ////        break;
-            ////}
-
-            ////Name = $"{scrollType} of {table.Spells[SpellId].Name}";
-
             Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
             Use += $"{table.Spells[SpellId].Desc}";
 
@@ -50,21 +36,6 @@ namespace ACE.Entity
         {
             get { return (uint)Spell.Value; }
         }
-
-        ////public Scroll(ObjectGuid guid, AceObject aceObject)
-        ////    : base(guid, aceObject)
-        ////{
-        ////}
-
-        ////public override void HandleActionOnCollide(ObjectGuid playerId)
-        ////{
-        ////    // TODO: Implement
-        ////}
-
-        ////public override void HandleActionOnUse(ObjectGuid playerId)
-        ////{
-        ////    // TODO: Implement            
-        ////}
 
         public override void OnUse(Session session)
         {
