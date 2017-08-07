@@ -436,14 +436,6 @@ namespace ACE.Command.Handlers
             }
         }
 
-        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Teleports you to current position with PositionZ set to +8000.")]
-        public static void SpaceJump(Session session, params string[] parameters)
-        {
-            Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
-            session.Player.Teleport(newPosition);
-        }
-
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
@@ -460,17 +452,6 @@ namespace ACE.Command.Handlers
         public static void HandleSaveNow(Session session, params string[] parameters)
         {
             session.SaveSession();
-        }
-
-        /// <summary>
-        /// Returns the Player's GUID
-        /// </summary>
-        /// <remarks>Added a quick way to access the player GUID.</remarks>
-        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Shows you your GUIDs.")]
-        public static void HandleWhoAmI(Session session, params string[] parameters)
-        {
-            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
         }
 
         // @testspell 0 10 10 10 10 20
@@ -765,34 +746,11 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to learn a spell.
-        /// </summary>
-        /// <param name="session">Pass the current player session.</param>
-        /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
-        [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
-            "@learnspell")]
-        public static void HandleLearnSpell(Session session, params string[] parameters)
-        {
-            if (parameters?.Length > 0)
-            {
-                uint spellId = (uint)int.Parse(parameters[0]);
-                session.Player.HandleActionLearnSpell(spellId);
-            }
-            else
-            {
-                const string message = "Invalid Syntax\n";
-                GameMessageSystemChat errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(errorMessage);
-            }
-        }
-
-        /// <summary>
         /// Debug command to print out all of the active players connected too the server.
         /// </summary>
         [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0,
-            "Displays all of the active players connected too the serve.",
-            "@players")]
+            "Displays all of the active players connected too the server.",
+            "")]
         public static void HandleListPlayers(Session session, params string[] parameters)
         {
             uint playerCounter = 0;

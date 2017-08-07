@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-08-07
+[Ripley]
+* Wired up World Broadcast commands.
+* Cleaned up a few other commands that were not needed or found in other catagories.
+
 ### 2017-08-02
 [Ripley]
 * NOTE: The following changes require ACE-World database v0.1.8 or newer...

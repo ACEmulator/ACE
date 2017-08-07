@@ -457,12 +457,13 @@ namespace ACE.Command.Handlers
         }
 
         // myiid
-        [CommandHandler("myiid", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("myiid", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+            "Displays your Instance ID(IID)")]
         public static void HandleMyIID(Session session, params string[] parameters)
         {
             // @myiid - Displays your Instance ID(IID).
 
-            // TODO: output
+            session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full.ToString("X")})", ChatMessageType.Broadcast));
         }
 
         // myserver
@@ -719,8 +720,7 @@ namespace ACE.Command.Handlers
         // tele [name] longitude latitude
         [CommandHandler("tele", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2,
             "This command teleports yourself (or the specified character) to the given longitude and latitude.",
-            "longitude latitude\n" +
-            "No commas accepted between coordinates, for example: @tele 0.0N 0.0E")]
+            "[longitude latitude]\n")]
         public static void HandleTele(Session session, params string[] parameters)
         {
             // Used PhatAC source to implement most of this.  Thanks Pea!
@@ -786,8 +786,7 @@ namespace ACE.Command.Handlers
         // teleto [char]
         [CommandHandler("teleto", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a player",
-            "[Player's Name]\n" +
-            "@teleto Playername")]
+            "[Player's Name]\n")]
         public static void HandleTeleto(Session session, params string[] parameters)
         {
             // @teleto - Teleports you to the specified character.
@@ -905,7 +904,11 @@ namespace ACE.Command.Handlers
         }
 
         // gamecast <message>
-        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
+            "Sends a world-wide broadcast.",
+            "<message>\n" +
+            "This command sends a world-wide broadcast to everyone in the game. Text is prefixed with 'Broadcast from (admin-name)> '.\n" +
+            "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
         public static void HandleGamecast(Session session, params string[] parameters)
         {
             // > Broadcast from usage: @gamecast<message>
@@ -913,16 +916,26 @@ namespace ACE.Command.Handlers
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecast - Sends a world-wide broadcast.
 
-            // TODO: output
+            session.Player.HandleActionWorldBroadcast($"Broadcast from {session.Player.Name}> {string.Join(" ", parameters)}", ChatMessageType.WorldBroadcast);
         }
 
         // add <spell>
-        [CommandHandler("add", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("add", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Adds the specified spell to your own spellbook.",
+            "<spellid>")]
         public static void HandleAdd(Session session, params string[] parameters)
         {
             // @add spell - Adds the specified spell to your own spellbook.
 
-            // TODO: output
+            Spell spellId = 0;
+
+            if (Enum.TryParse(parameters[0], true, out spellId))
+            {
+                if (Enum.IsDefined(typeof(Spell), spellId))
+                {
+                    session.Player.HandleActionLearnSpell((uint)spellId);
+                }
+            }
         }
 
         // adminhouse
@@ -986,8 +999,6 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            ////var loot = LootGenerationFactory.CreateTestWorldObject(session.Player, weenieId);
-
             var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
@@ -1193,24 +1204,35 @@ namespace ACE.Command.Handlers
         }
 
         // idlist
-        [CommandHandler("idlist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("idlist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Shows the next ID that will be allocated from SQL.")]
         public static void HandleIDlist(Session session, params string[] parameters)
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            // TODO: output
+            ObjectGuid currentItemGuid = GuidManager.CurrentItemGuid();
+            ObjectGuid currentPlayerGuid = GuidManager.CurrentPlayerGuid();
+            string message = $"The next Item GUID to be allocated is expected to be: {currentItemGuid.Full + 1} (0x{(currentItemGuid.Full + 1).ToString("X")})\n";
+            message += $"The next Player GUID to be allocated is expected to be: {currentPlayerGuid.Full + 1} (0x{(currentPlayerGuid.Full + 1).ToString("X")})";
+            var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
+            session.Network.EnqueueSend(sysChatMsg);
         }
 
         // gamecastlocalemote <message>
-        [CommandHandler("gamecastlocalemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void Handlegamecastlocalemote(Session session, params string[] parameters)
+        [CommandHandler("gamecastlocalemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Sends text to all players within chat range, formatted exactly as entered.",
+            "<message>\n" +
+            "Sends text to all players within chat range, formatted exactly as entered, with no prefix of any kind.\n" +
+            "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
+        public static void HandleGameCastLocalEmote(Session session, params string[] parameters)
         {
             // usage: @gamecastlocalemote<message>
             // Sends text to all players within chat range, formatted exactly as entered, with no prefix of any kind.
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastlocalemote - Sends text to all players within chat range, formatted exactly as entered.
 
-            // TODO: output
+            // Since we only have one server, this command will just call the other one
+            HandleGameCastEmote(session, parameters);
         }
 
         // location
@@ -1330,8 +1352,12 @@ namespace ACE.Command.Handlers
         }
 
         // gamecastlocal <message>
-        [CommandHandler("gamecastlocal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void Handlegamecastlocal(Session session, params string[] parameters)
+        [CommandHandler("gamecastlocal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Sends a server-wide broadcast.",
+            "<message>\n" +
+            "This command sends the specified text to every player on the current server.\n" +
+            "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
+        public static void HandleGameCastLocal(Session session, params string[] parameters)
         {
             // Local Server Broadcast from
             // usage: @gamecastlocal<message>
@@ -1339,7 +1365,8 @@ namespace ACE.Command.Handlers
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastlocal Sends a server-wide broadcast.
 
-            // TODO: output
+            // Since we only have one server, this command will just call the other one
+            HandleGamecast(session, parameters);
         }
 
         // sticky { on | off }
@@ -1372,15 +1399,35 @@ namespace ACE.Command.Handlers
         }
 
         // gamecastemote <message>
-        [CommandHandler("gamecastemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void Handlegamecastemote(Session session, params string[] parameters)
+        [CommandHandler("gamecastemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Sends text to all players, formatted exactly as entered.",
+            "<message>\n" +
+            "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
+        public static void HandleGameCastEmote(Session session, params string[] parameters)
         {
             // usage: "@gamecastemote <message>" or "@we <message"
             // Sends text to all players, formatted exactly as entered, with no prefix of any kind.
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastemote - Sends text to all players, formatted exactly as entered.
 
-            // TODO: output
+            string msg = string.Join(" ", parameters);
+            msg = msg.Replace("\\n", "\n");
+            session.Player.HandleActionWorldBroadcast($"{msg}", ChatMessageType.WorldBroadcast);
+        }
+
+        // we <message>
+        [CommandHandler("we", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Sends text to all players, formatted exactly as entered.",
+            "<message>\n" +
+            "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
+        public static void HandleWe(Session session, params string[] parameters)
+        {
+            // usage: "@gamecastemote <message>" or "@we <message"
+            // Sends text to all players, formatted exactly as entered, with no prefix of any kind.
+            // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
+            // @gamecastemote - Sends text to all players, formatted exactly as entered.
+
+            HandleGameCastEmote(session, parameters);
         }
 
         // dumpattackers
@@ -1454,110 +1501,6 @@ namespace ACE.Command.Handlers
             // @stormthresh - Sets how many character can be in a landblock before we do a portal storm.
 
             // TODO: output
-        }
-
-        /// <summary>
-        /// Cancels an in-progress shutdown event.
-        /// </summary>
-        [CommandHandler("cancel-shutdown", AccessLevel.Admin, CommandHandlerFlag.None, 0,
-            "Stops an active server shutdown.",
-            "@cancel-shutdown")]
-        public static void HandleCancelShutdown(Session session, params string[] parameters)
-        {
-            ServerManager.CancelShutdown();
-        }
-
-        /// <summary>
-        /// Increase or decrease the server shutdown interval in seconds
-        /// </summary>
-        [CommandHandler("set-shutdown-interval", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Changes the delay before the server will shutdown.",
-            "@set-shutdown-interval < 0-99999 >")]
-        public static void HandleSetShutdownInterval(Session session, params string[] parameters)
-        {
-            if (parameters?.Length > 0)
-            {
-                uint newShutdownInterval = 0;
-                // delay server shutdown for up to x minutes
-                // limit to uint length 65535
-                string parseInt = parameters[0].Length > 5 ? parameters[0].Substring(0, 5) : parameters[0];
-                if (uint.TryParse(parseInt, out newShutdownInterval))
-                {
-                    // newShutdownInterval is represented as a time element
-                    if (newShutdownInterval > uint.MaxValue) newShutdownInterval = uint.MaxValue;
-
-                    // set the interval
-                    ServerManager.SetShutdownInterval(Convert.ToUInt32(newShutdownInterval));
-
-                    // message the admin
-                    ChatPacket.SendServerMessage(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.Broadcast);
-                    return;
-                }
-            }
-            ChatPacket.SendServerMessage(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
-        }
-
-        /// <summary>
-        /// Immediately begins the shutdown process by setting the shutdown interval to 0 before executing the shutdown method
-        /// </summary>
-        [CommandHandler("stop-now", AccessLevel.Admin, CommandHandlerFlag.None, -1,
-            "Shuts the server down, immediately!",
-            "\nThis command will attempt to safely logoff all players, before shutting down the server.")]
-        public static void ShutdownServerNow(Session session, params string[] parameters)
-        {
-            ServerManager.SetShutdownInterval(0);
-            ShutdownServer(session, parameters);
-        }
-
-        /// <summary>
-        /// Function to shutdown the server from console or in-game.
-        /// </summary>
-        [CommandHandler("shutdown", AccessLevel.Admin, CommandHandlerFlag.None, 0,
-            "Begins the server shutdown process. Optionally displays a shutdown message, if a string is passed.",
-            "< Optional Shutdown Message >\n" +
-            "\tUse @cancel-shutdown too abort an active shutdown!\n" +
-            "\tSet the shutdown delay with @set-shutdown-interval < 0-99999 >")]
-        public static void ShutdownServer(Session session, params string[] parameters)
-        {
-            // inform the world that a shutdown is about to take place
-            string shutdownInitiator = (session == null ? "Server" : session.Player.Name.ToString());
-            string shutdownText = "";
-            string adminShutdownText = "";
-            TimeSpan timeTillShutdown = TimeSpan.FromSeconds(ServerManager.ShutdownInterval);
-            string timeRemaining = (timeTillShutdown.TotalSeconds > 120 ? $"The server will go down in {(int)timeTillShutdown.TotalMinutes} minutes."
-                : $"The server will go down in {timeTillShutdown.TotalSeconds} seconds.");
-
-            // add admin shutdown text
-            if (parameters?.Length > 0)
-            {
-                foreach (var word in parameters)
-                {
-                    if (adminShutdownText.Length > 0)
-                        adminShutdownText += " " + (string)word;
-                    else
-                        adminShutdownText += (string)word;
-                }
-            }
-
-            shutdownText += $"{shutdownInitiator} initiated a complete server shutdown @ {DateTime.UtcNow} UTC";
-
-            // output to console (log in the future)
-            Console.WriteLine(shutdownText);
-            Console.WriteLine(timeRemaining);
-
-            if (adminShutdownText.Length > 0)
-                Console.WriteLine("Admin message: " + adminShutdownText);
-
-            // send a message to each player that the server will go down in x interval
-            foreach (var player in WorldManager.GetAll())
-            {
-                // send server shutdown message and time remaining till shutdown
-                player.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.Broadcast));
-
-                if (adminShutdownText.Length > 0)
-                    player.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
-            }
-            ServerManager.BeginShutdown();
-        }
+        }       
     }
 }
