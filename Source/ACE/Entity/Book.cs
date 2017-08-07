@@ -1,6 +1,7 @@
 ﻿using ACE.Network.GameEvent.Events;
 using ACE.Entity.Actions;
 using System.Collections.Generic;
+using ACE.Network;
 
 namespace ACE.Entity
 {
@@ -26,7 +27,6 @@ namespace ACE.Entity
                     return;
                 }
 
-                // TODO - GET THESE FROM THE DATABASE
                 uint aceObjectId = Guid.Full;
                 uint pages = (uint)PropertiesBook.Count;
                 string authorName = ao.BookAuthorName;
@@ -53,8 +53,8 @@ namespace ACE.Entity
                 else
                     ignoreAuthor = (bool)IgnoreAuthor;
 
-                var BookDataResponse = new GameEventBookDataResponse(player.Session, aceObjectId, pages, pageData, "", 0, "", ignoreAuthor);
-                player.Session.Network.EnqueueSend(BookDataResponse);
+                var bookDataResponse = new GameEventBookDataResponse(player.Session, aceObjectId, pages, pageData, "", 0, "", ignoreAuthor);
+                player.Session.Network.EnqueueSend(bookDataResponse);
 
                 var sendUseDoneEvent = new GameEventUseDone(player.Session);
                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
@@ -62,6 +62,40 @@ namespace ACE.Entity
 
             // Run on the player
             chain.EnqueueChain();
+        }
+
+        public override void OnUse(Session session) {
+            uint aceObjectId = Guid.Full;
+            uint pages = (uint)PropertiesBook.Count;
+            string authorName = ao.BookAuthorName;
+            string authorAccount = ao.BookAuthorAccount;
+            uint authorID;
+            if (ao.BookAuthorId == null)
+                authorID = 0xFFFFFFFF;
+            else
+                authorID = (uint)ao.BookAuthorId;
+
+            List<PageData> pageData = new List<PageData>();
+            foreach (KeyValuePair<uint, AceObjectPropertiesBook> p in PropertiesBook)
+            {
+                PageData myPage = new PageData();
+                myPage.AuthorID = p.Value.AuthorId;
+                myPage.AuthorName = p.Value.AuthorName;
+                myPage.AuthorAccount = p.Value.AuthorAccount;
+                pageData.Add(myPage);
+            }
+
+            bool ignoreAuthor;
+            if (IgnoreAuthor == null)
+                ignoreAuthor = false;
+            else
+                ignoreAuthor = (bool)IgnoreAuthor;
+
+            var bookDataResponse = new GameEventBookDataResponse(session, aceObjectId, pages, pageData, "", 0, "", ignoreAuthor);
+            session.Network.EnqueueSend(bookDataResponse);
+
+            var sendUseDoneEvent = new GameEventUseDone(session);
+            session.Network.EnqueueSend(sendUseDoneEvent);
         }
     }
 }

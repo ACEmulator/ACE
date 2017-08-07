@@ -19,7 +19,7 @@ namespace ACE.Network.GameEvent.Events
                 Writer.WriteString16L("");
             Writer.Write(0xFFFF0002); // flags
             Writer.Write(1); // textIncluded - Will also be the case, even if we are sending an empty string.
-            if (pageData.IgnoreAuthor)
+            if (pageData.IgnoreAuthor == true)
                 Writer.Write(1); // ignoreAuthor
             else
                 Writer.Write(0); // ignoreAuthor

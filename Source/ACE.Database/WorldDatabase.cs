@@ -258,6 +258,7 @@ namespace ACE.Database
             bao.SpellIdProperties = GetAceObjectPropertiesSpell(bao.AceObjectId);
             bao.GeneratorLinks = GetAceObjectGeneratorLinks(bao.AceObjectId);
             bao.AceObjectPropertiesPositions = GetAceObjectPositions(bao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+            bao.BookProperties = GetAceObjectPropertiesBook(bao.AceObjectId).ToDictionary(x => x.Page);
             return bao;
         }
 

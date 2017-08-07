@@ -38,7 +38,7 @@ namespace ACE.Network.GameEvent.Events
                 if (pageData[i].PageText != null) // This will always be null for this event.
                 {
                     Writer.Write(1); // Text Included
-                    if (ignoreAuthor)
+                    if (ignoreAuthor == true)
                         Writer.Write(1); // Ignore Author
                     else
                         Writer.Write(0); // Ignore Author
