@@ -884,6 +884,12 @@ namespace ACE.Entity
                 AceObject.RequiresBackpackSlot = value;
             }
         }
+
+        public bool UseBackpackSlot
+        {
+            get { return AceObject.UseBackpackSlot; }
+        }
+
         ////Retained               = 0x01000000,
         public bool Retained
         {

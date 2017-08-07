@@ -1220,6 +1220,12 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.RequiresBackpackSlot, value); }
         }
 
+        public bool UseBackpackSlot
+        {
+            get { return (GetBoolProperty(PropertyBool.RequiresBackpackSlot) ?? false) ||
+                          GetIntProperty(PropertyInt.WeenieType) == (uint)Enum.WeenieType.Container; }
+        }
+
         public uint? ItemCurMana
         {
             get { return GetIntProperty(PropertyInt.ItemCurMana); }
@@ -1250,7 +1256,7 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CreatureType, value); }
         }
 
-        #region Positions  
+        #region Positions
 
         public Position Location
         {

@@ -11,24 +11,24 @@ namespace ACE.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None           = 0x0000,
-            PropertyInt32  = 0x0001,
-            PropertyBool   = 0x0002,
+            None = 0x0000,
+            PropertyInt32 = 0x0001,
+            PropertyBool = 0x0002,
             PropertyDouble = 0x0004,
-            PropertyDid    = 0x0008,
+            PropertyDid = 0x0008,
             PropertyString = 0x0010,
-            Position       = 0x0020,
-            PropertyIid    = 0x0040,
-            PropertyInt64  = 0x0080,
+            Position = 0x0020,
+            PropertyIid = 0x0040,
+            PropertyInt64 = 0x0080,
         }
 
         [Flags]
         private enum DescriptionVectorFlag
         {
-            None        = 0x0000,
-            Attribute   = 0x0001,
-            Skill       = 0x0002,
-            Spell       = 0x0100,
+            None = 0x0000,
+            Attribute = 0x0001,
+            Skill = 0x0002,
+            Spell = 0x0100,
             Enchantment = 0x0200
         }
 
@@ -307,7 +307,7 @@ namespace ACE.Network.GameEvent.Events
             // TODO: Refactor this to set all of these flags based on data. Og II
             CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
             if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
-            optionFlags |= CharacterOptionDataFlag.SpellLists8;
+                optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
             Writer.Write((uint)optionFlags);
             /*
@@ -363,18 +363,18 @@ namespace ACE.Network.GameEvent.Events
             // Write total count.
             Writer.Write((uint)aceObj.Inventory.Count);
             // write out all of the non-containers and foci
-            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType != (uint)WeenieType.Container && i.Value.RequiresBackpackSlot == false))
+            foreach (var inv in aceObj.Inventory.Where(i => !i.Value.UseBackpackSlot))
             {
                 Writer.Write(inv.Value.AceObjectId);
                 Writer.Write((uint)ContainerType.NonContainer);
             }
             // Containers and foci go in side slots, they come last with their own placment order.
-            foreach (var inv in aceObj.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container || i.Value.RequiresBackpackSlot == true))
+            foreach (var inv in aceObj.Inventory.Where(i => i.Value.UseBackpackSlot))
             {
                 Writer.Write(inv.Value.AceObjectId);
                 if ((WeenieType)inv.Value.WeenieType == WeenieType.Container)
                     Writer.Write((uint)ContainerType.Container);
-                if (inv.Value.RequiresBackpackSlot == true && (WeenieType)inv.Value.WeenieType != WeenieType.Container)
+                else
                     Writer.Write((uint)ContainerType.Foci);
             }
 
