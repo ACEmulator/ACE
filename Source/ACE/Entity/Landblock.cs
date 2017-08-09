@@ -56,7 +56,6 @@ namespace ACE.Entity
         // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
         //    -- Therefore broadcasting between landblocks doesn't require locking O_o
         private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
-        private readonly ConcurrentQueue<GameMessage> broadcastGlobalQueue = new ConcurrentQueue<GameMessage>();
 
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
         // private byte cellGridMaxY = 8; // todo: load from cell.dat
@@ -510,25 +509,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Enqueues a message for global broadcast, thread safe
-        /// </summary>
-        /// <param name="msg"></param>
-        public void EnqueueGlobalBroadcast(params GameMessage[] msgs)
-        {
-            // Atomically checks and sets the broadcastQueued bit --
-            //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
-            if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
-            {
-                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendGlobalBroadcasts()));
-            }
-
-            foreach (GameMessage msg in msgs)
-            {
-                broadcastGlobalQueue.Enqueue(msg);
-            }
-        }
-
-        /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast a motion.
         /// </summary>
         /// <param name="wo"></param>
@@ -622,17 +602,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast global message.
-        /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="message"></param>
-        public void EnqueueBroadcastGlobalChat(string message, ChatMessageType messageType = ChatMessageType.WorldBroadcast)
-        {
-            GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
-            EnqueueGlobalBroadcast(sysMessage);
-        }
-
-        /// <summary>
         /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
         /// </summary>
         private void SendBroadcasts()
@@ -663,37 +632,6 @@ namespace ACE.Entity
                         {
                             p.Session.Network.EnqueueSend(msg);
                         }
-                    }
-                }
-            }
-
-            // Sets broadcastQueued to 0, so we're ready to re-queue broadcasts later
-            broadcastQueued = 0;
-        }
-
-        /// <summary>
-        /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
-        /// </summary>
-        private void SendGlobalBroadcasts()
-        {
-            while (!broadcastGlobalQueue.IsEmpty)
-            {
-                GameMessage msg;
-                bool success = broadcastGlobalQueue.TryDequeue(out msg);
-                if (!success)
-                {
-                    log.Error("Unexpected TryDequeue Failure!");
-                    break;
-                }
-
-                // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
-
-                foreach (Landblock lb in LandblockManager.ActiveLandblocks)
-                {
-                    List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
-                    foreach (Player p in allPlayers)
-                    {
-                        p.Session.Network.EnqueueSend(msg);
                     }
                 }
             }
