@@ -73,40 +73,40 @@ namespace ACE.Entity
                     break;
             }
 
-            propertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
+            ScrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
 
             var useString = new AceObjectPropertiesString();
             useString.AceObjectId = Guid.Full;
             useString.PropertyId = (ushort)PropertyString.Use;
             useString.PropertyValue = Use;
-            propertiesString.Add(useString);
+            ScrollPropertiesString.Add(useString);
 
             var longDescString = new AceObjectPropertiesString();
             longDescString.AceObjectId = Guid.Full;
             longDescString.PropertyId = (ushort)PropertyString.LongDesc;
             longDescString.PropertyValue = LongDesc;
-            propertiesString.Add(longDescString);
+            ScrollPropertiesString.Add(longDescString);
 
             var propSpell = new AceObjectPropertiesSpell();
             propSpell.AceObjectId = Guid.Full;
             propSpell.SpellId = SpellId;
-            propertiesSpellId.Add(propSpell);
+            ScrollPropertiesSpellId.Add(propSpell);
         }
 
-        private List<AceObjectPropertiesInt> propertiesInt
+        private List<AceObjectPropertiesInt> ScrollPropertiesInt
         {
             get;
             set;
         }
 
-        private List<AceObjectPropertiesString> propertiesString
+        private List<AceObjectPropertiesString> ScrollPropertiesString
         {
             get;
             set;
         }
 
-        private List<AceObjectPropertiesSpell> propertiesSpellId
+        private List<AceObjectPropertiesSpell> ScrollPropertiesSpellId
         {
             get;
             set;
@@ -190,9 +190,9 @@ namespace ACE.Entity
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {          
             WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
-            WriteIdentifyObjectIntProperties(writer, idFlags, propertiesInt);
-            WriteIdentifyObjectStringsProperties(writer, idFlags, propertiesString);
-            WriteIdentifyObjectSpellIdProperties(writer, idFlags, propertiesSpellId);
+            WriteIdentifyObjectIntProperties(writer, idFlags, ScrollPropertiesInt);
+            WriteIdentifyObjectStringsProperties(writer, idFlags, ScrollPropertiesString);
+            WriteIdentifyObjectSpellIdProperties(writer, idFlags, ScrollPropertiesSpellId);
         }
     }
 }
