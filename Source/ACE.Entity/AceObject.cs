@@ -1229,6 +1229,24 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
         }
 
+        public bool? NpcLooksLikeObject
+        {
+            get { return GetBoolProperty(PropertyBool.NpcLooksLikeObject); }
+            set { SetBoolProperty(PropertyBool.NpcLooksLikeObject, value); }
+        }
+
+        public uint? AllowedActivator
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.AllowedActivator); }
+            set { SetInstanceIdProperty(PropertyInstanceId.AllowedActivator, value); }
+        }
+
+        public uint? CreatureType
+        {
+            get { return GetIntProperty(PropertyInt.CreatureType); }
+            set { SetIntProperty(PropertyInt.CreatureType, value); }
+        }
+
         #region Books
         public string BookAuthorName
         {
@@ -1826,25 +1844,47 @@ namespace ACE.Entity
         {
             AceObject ret = (AceObject)Clone();
             ret.AceObjectId = guid;
+            // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
+            ret.HasEverBeenSavedToDatabase = false;
+            ret.IsDirty = true;
+
+            ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
+            ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
+            ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
+            ret.IntProperties.ForEach(c => c.AceObjectId = guid);
+            ret.Int64Properties.ForEach(c => c.AceObjectId = guid);
+            ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
+            ret.BoolProperties.ForEach(c => c.AceObjectId = guid);
+            ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.StringProperties.ForEach(c => c.AceObjectId = guid);    
+            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+
+            // No need to change Dictionary guids per DDEVEC
+            // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
+
+            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
+            ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
 
         public void ClearDirtyFlags()
         {
-            this.IsDirty = false;
-            this.HasEverBeenSavedToDatabase = true;
+            IsDirty = false;
+            HasEverBeenSavedToDatabase = true;
 
-            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            this.IntProperties.ForEach(x => x.ClearDirtyFlags());
-            this.Int64Properties.ForEach(x => x.ClearDirtyFlags());
-            this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
-            this.BoolProperties.ForEach(x => x.ClearDirtyFlags());
-            this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
-            this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
-            this.StringProperties.ForEach(x => x.ClearDirtyFlags());
-            this.BookProperties.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            IntProperties.ForEach(x => x.ClearDirtyFlags());
+            Int64Properties.ForEach(x => x.ClearDirtyFlags());
+            DoubleProperties.ForEach(x => x.ClearDirtyFlags());
+            BoolProperties.ForEach(x => x.ClearDirtyFlags());
+            DataIdProperties.ForEach(x => x.ClearDirtyFlags());
+            InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
+            StringProperties.ForEach(x => x.ClearDirtyFlags());
+            BookProperties.Values.ToList().ForEach(x => x.ClearDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable

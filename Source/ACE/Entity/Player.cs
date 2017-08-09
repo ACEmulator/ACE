@@ -2762,5 +2762,17 @@ namespace ACE.Entity
         {
             CurrentLandblock.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
+
+        public void DoMoveTo(WorldObject wo)
+        {
+            ActionChain moveToObjectChain = new ActionChain();
+
+            moveToObjectChain.AddChain(CreateMoveToChain(wo.Guid, 0.2f));
+            moveToObjectChain.AddDelaySeconds(0.50);
+
+            moveToObjectChain.AddAction(wo, () => wo.HandleActionOnUse(Guid));
+
+            moveToObjectChain.EnqueueChain();
+        }
     }
 }

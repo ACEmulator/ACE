@@ -2,7 +2,19 @@
 
 ### 2017-08-08
 [OptimShi]
+* NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.
 * Added ability to read books, notes, etc. (Currently read-only)
+* Added Database Update scripts to Shard and World for new ace_object_properties_book
+
+### 2017-08-02
+[Ripley]
+* NOTE: The following changes require ACE-World database v0.1.8 or newer...
+* Added NpcLooksLikeObject check for Creature assessment profile fix provided by @OptimShi.
+* Moved Default do nothing UseDone to WorldObject and removed it from GenericObject.
+* Added Cow weenie object.
+* Added Cow, Creature, and Container to the WorldObjectFactory.
+* Say Hi to the cow in Holtburg.
+* Load attributes stored in world database into objects.
 
 ### 2017-07-31
 [OptimShi]
@@ -19,7 +31,7 @@
 * Now, drag your spells into any configuration in your spell bars you like.   You can add them, remove them or reorder them.
 * They will be saved on our periodic save, or when you log out or you can force a save with the debug command @save-now.
 * Added table to persist spellbar configuration.
-* That's all for this PR.   
+* That's all for this PR.
 
 ### 2017-07-29
 [Ripley]
