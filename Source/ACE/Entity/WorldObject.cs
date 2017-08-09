@@ -83,6 +83,11 @@ namespace ACE.Entity
             get { return AceObject.SpellIdProperties; }
         }
 
+        public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook
+        {
+            get { return AceObject.BookProperties; }
+        }
+
         #region ObjDesc
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
@@ -1427,6 +1432,12 @@ namespace ACE.Entity
             set { AceObject.Afk = value; }
         }
 
+        public bool? IgnoreAuthor
+        {
+            get { return AceObject.IgnoreAuthor; }
+            set { AceObject.IgnoreAuthor = value; }
+        }
+
         public bool? NpcLooksLikeObject
         {
             get { return AceObject.NpcLooksLikeObject; }
@@ -1558,6 +1569,23 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
             examiner.Network.EnqueueSend(new GameMessageSystemChat($"{DebugOutputString(GetType(), this)}", ChatMessageType.System));
 #endif
+        }
+
+        public void ReadBookPage(Session reader, uint pageNum)
+        {
+            PageData pageData = new PageData();
+            AceObjectPropertiesBook bookPage = PropertiesBook[pageNum];
+
+            pageData.AuthorID = bookPage.AuthorId;
+            pageData.AuthorName = bookPage.AuthorName;
+            pageData.AuthorAccount = bookPage.AuthorAccount;
+            pageData.PageIdx = pageNum;
+            pageData.PageText = bookPage.PageText;
+            pageData.IgnoreAuthor = false;
+            // TODO - check for PropertyBool.IgnoreAuthor flag
+
+            var bookDataResponse = new GameEventBookPageDataResponse(reader, guid.Full, pageData);
+            reader.Network.EnqueueSend(bookDataResponse);
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

@@ -1187,6 +1187,12 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.Afk, value); }
         }
 
+        public bool? IgnoreAuthor
+        {
+            get { return GetBoolProperty(PropertyBool.IgnoreAuthor); }
+            set { SetBoolProperty(PropertyBool.IgnoreAuthor, value); }
+        }
+
         public bool? WieldOnUse
         {
             get { return GetBoolProperty(PropertyBool.WieldOnUse); }
@@ -1240,6 +1246,24 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.CreatureType); }
             set { SetIntProperty(PropertyInt.CreatureType, value); }
         }
+
+        #region Books
+        public string BookAuthorName
+        {
+            get { return GetStringProperty(PropertyString.BookAuthorName); }
+            set { SetStringProperty(PropertyString.BookAuthorName, value); }
+        }
+        public string BookAuthorAccount
+        {
+            get { return GetStringProperty(PropertyString.BookAuthorAccount); }
+            set { SetStringProperty(PropertyString.BookAuthorAccount, value); }
+        }
+        public uint? BookAuthorId
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.BookAuthorId); }
+            set { SetInstanceIdProperty(PropertyInstanceId.BookAuthorId, value); }
+        }
+        #endregion
 
         #region Positions  
         public Position Location
@@ -1746,6 +1770,9 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        // uint references the page
+        public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
+
         public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
 
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
@@ -1803,6 +1830,7 @@ namespace ACE.Entity
             ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
             ret.SpellIdProperties = CloneList(SpellIdProperties);
             ret.SpellsInSpellBars = CloneList(SpellsInSpellBars);
+            ret.BookProperties = CloneDict(BookProperties);
 
             return ret;
         }
@@ -1831,12 +1859,13 @@ namespace ACE.Entity
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);    
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
-            
+
             // No need to change Dictionary guids per DDEVEC
             // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
 
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
+            ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
 
@@ -1855,6 +1884,7 @@ namespace ACE.Entity
             DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             StringProperties.ForEach(x => x.ClearDirtyFlags());
+            BookProperties.Values.ToList().ForEach(x => x.ClearDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
