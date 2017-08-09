@@ -2759,7 +2759,7 @@ namespace ACE.Entity
         public bool CanReadScroll(MagicSchool school, uint power)
         {
             bool ret = false;
-            CreatureSkill creatureSkill; //= Skills[Skill.Run];
+            CreatureSkill creatureSkill;
 
             switch (school)
             {
