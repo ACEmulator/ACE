@@ -19,6 +19,17 @@ namespace ACE.Entity
         private static readonly UniversalMotion motionReading = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Reading));
         private static readonly UniversalMotion motionReady = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Ready));
 
+        private const uint spellLevel1 = 0;
+        private const uint spellLevel2 = 50;
+        private const uint spellLevel3 = 100;
+        private const uint spellLevel4 = 150;
+        private const uint spellLevel5 = 200;
+        private const uint spellLevel6 = 250;
+        private const uint spellLevel7 = 300;
+        private const uint spellLevel8 = 350;
+
+        private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.IntStatsTable | IdentifyResponseFlags.StringStatsTable | IdentifyResponseFlags.SpellBook;
+
         public Scroll(AceObject aceObject)
             : base(aceObject)
         {
@@ -31,6 +42,74 @@ namespace ACE.Entity
 
             Power = table.Spells[SpellId].Power;
             School = table.Spells[SpellId].School;
+
+            Burden = 30;
+
+            switch (Power)
+            {
+                case spellLevel1:
+                    Value = 1;
+                    break;
+                case spellLevel2:
+                    Value = 5;
+                    break;
+                case spellLevel3:
+                    Value = 20;
+                    break;
+                case spellLevel4:
+                    Value = 100;
+                    break;
+                case spellLevel5:
+                    Value = 200;
+                    break;
+                case spellLevel6:
+                    Value = 1000;
+                    break;
+                case spellLevel7:
+                    Value = 2000;
+                    break;
+                case spellLevel8:
+                    Value = 60000;
+                    break;
+            }
+
+            propertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
+                                                          || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
+
+            var useString = new AceObjectPropertiesString();
+            useString.AceObjectId = Guid.Full;
+            useString.PropertyId = (ushort)PropertyString.Use;
+            useString.PropertyValue = Use;
+            propertiesString.Add(useString);
+
+            var longDescString = new AceObjectPropertiesString();
+            longDescString.AceObjectId = Guid.Full;
+            longDescString.PropertyId = (ushort)PropertyString.LongDesc;
+            longDescString.PropertyValue = LongDesc;
+            propertiesString.Add(longDescString);
+
+            var propSpell = new AceObjectPropertiesSpell();
+            propSpell.AceObjectId = Guid.Full;
+            propSpell.SpellId = SpellId;
+            propertiesSpellId.Add(propSpell);
+        }
+
+        private List<AceObjectPropertiesInt> propertiesInt
+        {
+            get;
+            set;
+        }
+
+        private List<AceObjectPropertiesString> propertiesString
+        {
+            get;
+            set;
+        }
+
+        private List<AceObjectPropertiesSpell> propertiesSpellId
+        {
+            get;
+            set;
         }
 
         private uint SpellId
@@ -38,6 +117,7 @@ namespace ACE.Entity
             get { return (uint)Spell.Value; }
         }
 
+        // Minimum Skill Level for 50% fizzle rate
         private uint Power
         {
             get;
@@ -58,12 +138,12 @@ namespace ACE.Entity
             switch (Power)
             {
                 // research: http://asheron.wikia.com/wiki/Announcements_-_2002/06_-_Castling
-                case 50:  // Level 2
-                case 100: // Level 3
-                case 150: // Level 4
-                case 200: // Level 5
-                case 250: // Level 6
-                    if (session.Player.CheckMagicSkillLevel(School, Power))
+                case spellLevel2: // Level 2
+                case spellLevel3: // Level 3
+                case spellLevel4: // Level 4
+                case spellLevel5: // Level 5
+                case spellLevel6: // Level 6
+                    if (session.Player.CanReadScroll(School, Power))
                         success = true;
                     else
                     {
@@ -109,49 +189,10 @@ namespace ACE.Entity
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {          
-            var propertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
-                                                          || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
-
-            if (propertiesInt.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.IntStatsTable;
-            }
-
-            var propertiesString = new List<AceObjectPropertiesString>();
-
-            var useString = new AceObjectPropertiesString();            
-            useString.AceObjectId = Guid.Full;
-            useString.PropertyId = (ushort)PropertyString.Use;
-            useString.PropertyValue = Use;
-            propertiesString.Add(useString);
-
-            var longDescString = new AceObjectPropertiesString();
-            longDescString.AceObjectId = Guid.Full;
-            longDescString.PropertyId = (ushort)PropertyString.LongDesc;
-            longDescString.PropertyValue = LongDesc;
-            propertiesString.Add(longDescString);
-
-            var propertiesSpellId = new List<AceObjectPropertiesSpell>();
-
-            var propSpell = new AceObjectPropertiesSpell();
-            propSpell.AceObjectId = Guid.Full;
-            propSpell.SpellId = SpellId;
-            propertiesSpellId.Add(propSpell);
-
-            if (propertiesSpellId.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.SpellBook;
-            }
-
-            if (propertiesString.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.StringStatsTable;
-            }
-
-            WriteIdentifyObjectHeader(writer, flags, success);
-            WriteIdentifyObjectIntProperties(writer, flags, propertiesInt);
-            WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
-            WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
+            WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
+            WriteIdentifyObjectIntProperties(writer, idFlags, propertiesInt);
+            WriteIdentifyObjectStringsProperties(writer, idFlags, propertiesString);
+            WriteIdentifyObjectSpellIdProperties(writer, idFlags, propertiesSpellId);
         }
     }
 }

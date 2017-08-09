@@ -2754,10 +2754,12 @@ namespace ACE.Entity
             moveToObjectChain.EnqueueChain();
         }
 
-        public bool CheckMagicSkillLevel(MagicSchool school, uint power)
+        private const uint magicSkillCheckMargin = 50;
+
+        public bool CanReadScroll(MagicSchool school, uint power)
         {
             bool ret = false;
-            CreatureSkill creatureSkill = Skills[Skill.Run];
+            CreatureSkill creatureSkill; //= Skills[Skill.Run];
 
             switch (school)
             {
@@ -2776,9 +2778,13 @@ namespace ACE.Entity
                 case MagicSchool.VoidMagic:
                     creatureSkill = Skills[Skill.VoidMagic];
                     break;
+                default:
+                    // Undefined magic school, something bad happened.
+                    Debug.Assert((int)school > 5 || school <= 0, "Undefined magic school?");
+                    return false;
             }
 
-            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.ActiveValue >= (power - 50))
+            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.ActiveValue >= (power - magicSkillCheckMargin))
                 ret = true;
 
             return ret;
