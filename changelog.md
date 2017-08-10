@@ -4,7 +4,7 @@
 [OptimShi]
 * Added MotionTable parsing to DatLoader.
 * Added GetSpellFormula() function to SpellTable. Will return component id's based on players account name for any given spell.
-* Fixed some logic issues in the SpellCompnentsTable
+* Fixed some logic issues in the SpellComponentsTable
 
 ### 2017-08-08
 [OptimShi]
