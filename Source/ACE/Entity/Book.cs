@@ -12,6 +12,7 @@ namespace ACE.Entity
         public Book(AceObject aceO)
             : base(aceO)
         {
+            Pages = (uint)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc
@@ -50,8 +51,8 @@ namespace ACE.Entity
         /// <param name="session"></param>
         private void BookUseHandler(Session session)
         {
-            uint aceObjectId = Guid.Full;
-            uint pages = 0;
+            uint maxChars = MaxCharactersPerPage ?? 1000;
+            uint maxPages = MaxPages ?? 1;
 
             string authorName;
             if (ScribeName != null)
@@ -70,12 +71,11 @@ namespace ACE.Entity
             List<PageData> pageData = new List<PageData>();
             foreach (KeyValuePair<uint, AceObjectPropertiesBook> p in PropertiesBook)
             {
-                PageData myPage = new PageData();
-                myPage.AuthorID = p.Value.AuthorId;
-                myPage.AuthorName = p.Value.AuthorName;
-                myPage.AuthorAccount = p.Value.AuthorAccount;
-                pageData.Add(myPage);
-                pages++;
+                PageData newPage = new PageData();
+                newPage.AuthorID = p.Value.AuthorId;
+                newPage.AuthorName = p.Value.AuthorName;
+                newPage.AuthorAccount = p.Value.AuthorAccount;
+                pageData.Add(newPage);
             }
 
             bool ignoreAuthor = IgnoreAuthor ?? false;
@@ -86,7 +86,7 @@ namespace ACE.Entity
             else
                 inscription = "";
 
-            var bookDataResponse = new GameEventBookDataResponse(session, aceObjectId, pages, pageData, inscription, authorID, authorName, ignoreAuthor);
+            var bookDataResponse = new GameEventBookDataResponse(session, Guid.Full, maxChars, maxPages, pageData, inscription, authorID, authorName, ignoreAuthor);
             session.Network.EnqueueSend(bookDataResponse);
 
             var sendUseDoneEvent = new GameEventUseDone(session);
