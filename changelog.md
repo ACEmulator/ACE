@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-08-10
+[OptimShi]
+* Added MotionTable parsing to DatLoader.
+* Added GetSpellFormula() function to SpellTable. Will return component id's based on players account name for any given spell.
+* Fixed some logic issues in the SpellCompnentsTable
+
 ### 2017-08-08
 [OptimShi]
 * NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.
