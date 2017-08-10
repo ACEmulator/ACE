@@ -51,6 +51,7 @@
 
         // values over 9000 are ones that we have added and should not be sent to the client
         Account = 9001,
-        Friend = 9002
+        Friend = 9002,
+        BookAuthorId = 9003
     }
 }
