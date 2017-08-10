@@ -6,6 +6,10 @@
 * Added ability to read books, notes, etc. (Currently read-only)
 * Added Database Update scripts to Shard and World for new ace_object_properties_book
 
+### 2017-08-06
+[Ripley]
+* Added Scroll weenie object.
+
 ### 2017-08-02
 [Ripley]
 * NOTE: The following changes require ACE-World database v0.1.8 or newer...
