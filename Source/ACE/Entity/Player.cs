@@ -933,6 +933,13 @@ namespace ACE.Entity
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
             ActionChain examineChain = new ActionChain();
 
+            if (examinationId.Full == 0)
+            {
+                // Deselect the formerly selected Target
+                // selectedTarget = ObjectGuid.Invalid;
+                return;
+            }
+
             // The object can be in two spots... on the player or on the landblock
             // First check the player
             examineChain.AddAction(this, () =>
@@ -2745,6 +2752,42 @@ namespace ACE.Entity
             moveToObjectChain.AddAction(wo, () => wo.HandleActionOnUse(Guid));
 
             moveToObjectChain.EnqueueChain();
+        }
+
+        private const uint magicSkillCheckMargin = 50;
+
+        public bool CanReadScroll(MagicSchool school, uint power)
+        {
+            bool ret = false;
+            CreatureSkill creatureSkill;
+
+            switch (school)
+            {
+                case MagicSchool.CreatureEnchantment:
+                    creatureSkill = Skills[Skill.CreatureEnchantment];
+                    break;
+                case MagicSchool.WarMagic:
+                    creatureSkill = Skills[Skill.WarMagic];
+                    break;
+                case MagicSchool.ItemEnchantment:
+                    creatureSkill = Skills[Skill.ItemEnchantment];
+                    break;
+                case MagicSchool.LifeMagic:
+                    creatureSkill = Skills[Skill.LifeMagic];
+                    break;
+                case MagicSchool.VoidMagic:
+                    creatureSkill = Skills[Skill.VoidMagic];
+                    break;
+                default:
+                    // Undefined magic school, something bad happened.
+                    Debug.Assert((int)school > 5 || school <= 0, "Undefined magic school?");
+                    return false;
+            }
+
+            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.ActiveValue >= (power - magicSkillCheckMargin))
+                ret = true;
+
+            return ret;
         }
     }
 }
