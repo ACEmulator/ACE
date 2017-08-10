@@ -1017,6 +1017,34 @@ namespace ACE.Entity
             chain.EnqueueChain();
         }
 
+        public void HandleActionReadBookPage(ObjectGuid bookId, uint pageNum)
+        {
+            // TODO: Do we want to throttle this request, like appraisals?
+            ActionChain bookChain = new ActionChain();
+
+            // The object can be in two spots... on the player or on the landblock
+            // First check the player
+            bookChain.AddAction(this, () =>
+            {
+                WorldObject wo = GetInventoryItem(bookId);
+                // book is in the player's inventory...
+                if (wo != null)
+                {
+                    wo.ReadBookPage(Session, pageNum);
+                }
+                else
+                {
+                    ActionChain chain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(chain, bookId, (WorldObject cwo) =>
+                    {
+                        cwo.ReadBookPage(Session, pageNum);
+                    });
+                    chain.EnqueueChain();
+                }
+            });
+            bookChain.EnqueueChain();
+        }
+
         // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
         /*
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)

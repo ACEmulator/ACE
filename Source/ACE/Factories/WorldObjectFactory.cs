@@ -47,6 +47,8 @@ namespace ACE.Factories
                     return new Door(aceO);
                 case WeenieType.Portal:
                     return new Portal(aceO);
+                case WeenieType.Book:
+                    return new Book(aceO);
                 // case WeenieType.PKModifier:
                 //    return new PKModifier(aceO);
                 case WeenieType.Cow:

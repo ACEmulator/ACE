@@ -1,3 +1,7 @@
+8/03/2017
+---------
+- Added 08-08-03-2017-ace_object_properties_book to store page/book data.
+
 6/17/2017
 --------
 - Added 01-2017-07-06-LoginTimestamp - This adds the `loginTimestamp` field to the `vw_ace_character` view.
