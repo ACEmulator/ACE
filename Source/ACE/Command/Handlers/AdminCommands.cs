@@ -1210,11 +1210,9 @@ namespace ACE.Command.Handlers
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            ObjectGuid currentItemGuid = GuidManager.CurrentItemGuid();
-            ObjectGuid currentPlayerGuid = GuidManager.CurrentPlayerGuid();
+            ObjectGuid nextItemGuid = GuidManager.NextItemGuid();
+            ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
 
-            ObjectGuid nextItemGuid = new ObjectGuid(currentItemGuid.Full + 1);
-            ObjectGuid nextPlayerGuid = new ObjectGuid(currentPlayerGuid.Full + 1);
             string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full).ToString("X")})\n";
             message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full).ToString("X")})";
             var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);

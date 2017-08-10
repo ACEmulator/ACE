@@ -171,19 +171,19 @@ namespace ACE.Managers
         }
 
         /// <summary>
-        /// Returns Most Recently assigned Guid for Items / Player Items, to be used only for informational purposes.
+        /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Items / Player Items, to be used only for informational purposes.
         /// </summary>
         /// <returns></returns>
-        public static ObjectGuid CurrentItemGuid()
+        public static ObjectGuid NextItemGuid()
         {
             return new ObjectGuid(itemAlloc.Current());
         }
 
         /// <summary>
-        /// Returns Most Recently assigned Guid for Players, to be used only for informational purposes.
+        /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Players, to be used only for informational purposes.
         /// </summary>
         /// <returns></returns>
-        public static ObjectGuid CurrentPlayerGuid()
+        public static ObjectGuid NextPlayerGuid()
         {
             return new ObjectGuid(playerAlloc.Current());
         }
