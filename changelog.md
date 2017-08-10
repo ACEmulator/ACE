@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-08-10
+[Ripley]
+* Minor changes to Book weenie.
+
 ### 2017-08-08
 [OptimShi]
 * NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.

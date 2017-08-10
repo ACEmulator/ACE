@@ -1,8 +1,9 @@
-﻿using ACE.Network.GameEvent.Events;
+﻿// WeenieType.Book
+
+using ACE.Network.GameEvent.Events;
 using ACE.Entity.Actions;
 using System.Collections.Generic;
 using ACE.Network;
-using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -13,7 +14,6 @@ namespace ACE.Entity
         public Book(AceObject aceO)
             : base(aceO)
         {
-            // var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             ao = aceO;
         }
 
@@ -30,20 +30,8 @@ namespace ACE.Entity
                 }
 
                 // Make sure player is within the use radius of the item.
-                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
-                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-                float playerDistanceTo = player.Location.SquaredDistanceTo(Location);
-                if (playerDistanceTo >= radiusSquared)
-                {
-                    ActionChain moveToBookChain = new ActionChain();
-
-                    moveToBookChain.AddChain(player.CreateMoveToChain(Guid, 0.2f));
-                    moveToBookChain.AddDelaySeconds(0.50); // Not sure what this is for, but it is copied from Door.cs
-
-                    moveToBookChain.AddAction(this, () => HandleActionOnUse(playerId));
-
-                    moveToBookChain.EnqueueChain();
-                }
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
                 else
                 {
                     BookUseHandler(player.Session);
@@ -66,14 +54,25 @@ namespace ACE.Entity
         private void BookUseHandler(Session session)
         {
             uint aceObjectId = Guid.Full;
-            uint pages = (uint)PropertiesBook.Count;
-            string authorName = ao.BookAuthorName;
-            string authorAccount = ao.BookAuthorAccount;
+            uint pages = 0;
+
+            string authorName;
+            if (ao.ScribeName != null)
+                authorName = ao.ScribeName;
+            else
+                authorName = "";
+
+            string authorAccount;
+            if (ao.ScribeAccount != null)
+                authorAccount = ao.ScribeAccount;
+            else
+                authorAccount = "";
+
             uint authorID;
-            if (ao.BookAuthorId == null)
+            if (ao.Scribe == null)
                 authorID = 0xFFFFFFFF;
             else
-                authorID = (uint)ao.BookAuthorId;
+                authorID = (uint)ao.Scribe;
 
             List<PageData> pageData = new List<PageData>();
             foreach (KeyValuePair<uint, AceObjectPropertiesBook> p in PropertiesBook)
@@ -83,15 +82,18 @@ namespace ACE.Entity
                 myPage.AuthorName = p.Value.AuthorName;
                 myPage.AuthorAccount = p.Value.AuthorAccount;
                 pageData.Add(myPage);
+                pages++;
             }
 
-            bool ignoreAuthor;
-            if (IgnoreAuthor == null)
-                ignoreAuthor = false;
-            else
-                ignoreAuthor = (bool)IgnoreAuthor;
+            bool ignoreAuthor = IgnoreAuthor ?? false;
 
-            var bookDataResponse = new GameEventBookDataResponse(session, aceObjectId, pages, pageData, "", 0, "", ignoreAuthor);
+            string inscription;
+            if (Inscription != null)
+                inscription = Inscription;
+            else
+                inscription = "";
+
+            var bookDataResponse = new GameEventBookDataResponse(session, aceObjectId, pages, pageData, inscription, authorID, authorName, ignoreAuthor);
             session.Network.EnqueueSend(bookDataResponse);
 
             var sendUseDoneEvent = new GameEventUseDone(session);

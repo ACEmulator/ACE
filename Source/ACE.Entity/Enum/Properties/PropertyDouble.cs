@@ -177,6 +177,6 @@
         WeaponAuraOffense = 168,
         WeaponAuraDefense = 169,
         WeaponAuraElemental = 170,
-        WeaponAuraManaConv = 171,
+        WeaponAuraManaConv = 171
     }
 }

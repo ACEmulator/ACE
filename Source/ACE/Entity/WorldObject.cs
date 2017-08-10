@@ -1485,6 +1485,12 @@ namespace ACE.Entity
             set { AceObject.Use = value; }
         }
 
+        public string Inscription
+        {
+            get { return AceObject.Inscription; }
+            set { AceObject.Inscription = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
