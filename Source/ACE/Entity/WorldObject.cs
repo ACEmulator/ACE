@@ -1491,6 +1491,24 @@ namespace ACE.Entity
             set { AceObject.Inscription = value; }
         }
 
+        public string ScribeAccount
+        {
+            get { return AceObject.ScribeAccount; }
+            set { AceObject.ScribeAccount = value; }
+        }
+
+        public string ScribeName
+        {
+            get { return AceObject.ScribeName; }
+            set { AceObject.ScribeName = value; }
+        }
+
+        public uint? Scribe
+        {
+            get { return AceObject.ScribeIID; }
+            set { AceObject.ScribeIID = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)

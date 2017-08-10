@@ -1264,7 +1264,7 @@ namespace ACE.Entity
             get { return GetStringProperty(PropertyString.ScribeAccount); }
             set { SetStringProperty(PropertyString.ScribeAccount, value); }
         }
-        public uint? Scribe
+        public uint? ScribeIID
         {
             get { return GetInstanceIdProperty(PropertyInstanceId.Scribe); }
             set { SetInstanceIdProperty(PropertyInstanceId.Scribe, value); }

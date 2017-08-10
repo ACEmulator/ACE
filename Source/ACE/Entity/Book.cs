@@ -9,12 +9,9 @@ namespace ACE.Entity
 {
     public sealed class Book : WorldObject
     {
-        private AceObject ao;
-
         public Book(AceObject aceO)
             : base(aceO)
         {
-            ao = aceO;
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc
@@ -57,22 +54,18 @@ namespace ACE.Entity
             uint pages = 0;
 
             string authorName;
-            if (ao.ScribeName != null)
-                authorName = ao.ScribeName;
+            if (ScribeName != null)
+                authorName = ScribeName;
             else
                 authorName = "";
 
             string authorAccount;
-            if (ao.ScribeAccount != null)
-                authorAccount = ao.ScribeAccount;
+            if (ScribeAccount != null)
+                authorAccount = ScribeAccount;
             else
                 authorAccount = "";
 
-            uint authorID;
-            if (ao.Scribe == null)
-                authorID = 0xFFFFFFFF;
-            else
-                authorID = (uint)ao.Scribe;
+            uint authorID = Scribe ?? 0xFFFFFFFF;
 
             List<PageData> pageData = new List<PageData>();
             foreach (KeyValuePair<uint, AceObjectPropertiesBook> p in PropertiesBook)
