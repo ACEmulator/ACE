@@ -845,5 +845,14 @@ namespace ACE.Command.Handlers
             chain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventStartBarber(session)));
             chain.EnqueueChain();
         }
+
+        // addspell <spell>
+        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Adds the specified spell to your own spellbook.",
+            "<spellid>")]
+        public static void HandleAddSpell(Session session, params string[] parameters)
+        {
+            AdminCommands.HandleAdd(session, parameters);
+        }
     }
 }
