@@ -112,6 +112,7 @@
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
     <Compile Include="Entity\Generator.cs" />
+    <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
     <Compile Include="Entity\Monster.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
+    <Compile Include="Entity\Book.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
@@ -130,7 +132,6 @@
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
-    <Compile Include="Factories\SpellObjectFactory.cs" />
     <Compile Include="Factories\WorldObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
@@ -151,6 +152,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionAddSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionBookPageData.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMagicRemoveSpellId.cs" />
@@ -198,6 +200,8 @@
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelList.cs" />

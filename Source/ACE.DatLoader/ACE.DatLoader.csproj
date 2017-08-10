@@ -48,9 +48,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CellDatDatabase.cs" />
+    <Compile Include="Entity\AnimData.cs" />
     <Compile Include="Entity\BuildInfo.cs" />
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
+    <Compile Include="Entity\MotionData.cs" />
     <Compile Include="Entity\RestrictionTable.cs" />
     <Compile Include="Entity\SpellBase.cs" />
     <Compile Include="Entity\SpellComponentBase.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="FileTypes\CharGen.cs" />
     <Compile Include="FileTypes\GeneratorTable.cs" />
     <Compile Include="FileTypes\ClothingTable.cs" />
+    <Compile Include="FileTypes\MotionTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="FileTypes\SpellComponentsTable.cs" />

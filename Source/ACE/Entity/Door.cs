@@ -136,18 +136,6 @@ namespace ACE.Entity
             set;
         }
 
-        private string LongDesc
-        {
-            get;
-            set;
-        }
-
-        private string Use
-        {
-            get;
-            set;
-        }
-
         private string UseMessage
         {
             get;

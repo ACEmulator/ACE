@@ -1,9 +1,19 @@
 # ACEmulator Change Log
 
+### 2017-08-08
+[OptimShi]
+* NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.
+* Added ability to read books, notes, etc. (Currently read-only)
+* Added Database Update scripts to Shard and World for new ace_object_properties_book
+
 ### 2017-08-07
 [Ripley]
 * Wired up World Broadcast commands.
 * Cleaned up a few other commands that were not needed or found in other catagories.
+
+### 2017-08-06
+[Ripley]
+* Added Scroll weenie object.
 
 ### 2017-08-02
 [Ripley]
