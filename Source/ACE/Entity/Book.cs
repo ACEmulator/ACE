@@ -13,6 +13,7 @@ namespace ACE.Entity
             : base(aceO)
         {
             Pages = (uint)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
+            MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc

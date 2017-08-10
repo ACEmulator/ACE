@@ -1,5 +1,4 @@
 ﻿using ACE.Entity;
-using System.Collections.Generic;
 
 namespace ACE.Network.GameEvent.Events
 {
