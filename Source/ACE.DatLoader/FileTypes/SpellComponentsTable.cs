@@ -25,7 +25,7 @@ namespace ACE.DatLoader.FileTypes
                 uint numComps = datReader.ReadUInt16(); // Should be 163 or 0xA3
                 datReader.AlignBoundary();
                 // loop through the entire file...
-                for(uint i = 0; i < numComps; i++)
+                for (uint i = 0; i < numComps; i++)
                 {
                     SpellComponentBase newComp = new SpellComponentBase();
                     uint compId = datReader.ReadUInt32();

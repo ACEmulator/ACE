@@ -162,11 +162,10 @@ namespace ACE.DatLoader.FileTypes
             {
                 case 1:
                     return RandomizeVersion1(spell, accountName);
-                    
                 case 2:
                     return RandomizeVersion2(spell, accountName);
                 case 3:
-                     return RandomizeVersion3(spell, accountName);
+                    return RandomizeVersion3(spell, accountName);
                 default:
                     return spell.Formula;
             }
@@ -175,7 +174,7 @@ namespace ACE.DatLoader.FileTypes
         private static List<uint> RandomizeVersion1(SpellBase spell, string accountName)
         {
             List<uint> comps = spell.Formula;
-            bool hasTaper1 = false; ;
+            bool hasTaper1 = false;
             bool hasTaper2 = false;
             bool hasTaper3 = false;
 
@@ -225,7 +224,6 @@ namespace ACE.DatLoader.FileTypes
                 comps[6] = (powder + 2 * talisman + potion + herb + scarab) * (seed / (talisman + scarab)) % 0xC + LOWEST_TAPER_ID;
             }
 
-
             return comps;
         }
 
@@ -267,7 +265,7 @@ namespace ACE.DatLoader.FileTypes
 
             // Some spells don't have the full number of comps. 2697 ("Aerfalle's Touch"), is one example.
             uint compHash7;
-            if(comps.Count < 8)
+            if (comps.Count < 8)
                 compHash7 = (seed6 + 0) % 0xC;
             else
                 compHash7 = (seed6 + comps[7]) % 0xC;
