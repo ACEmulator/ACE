@@ -6,6 +6,11 @@
 * Added ability to read books, notes, etc. (Currently read-only)
 * Added Database Update scripts to Shard and World for new ace_object_properties_book
 
+### 2017-08-07
+[Ripley]
+* Wired up World Broadcast commands.
+* Cleaned up a few other commands that were not needed or found in other catagories.
+
 ### 2017-08-06
 [Ripley]
 * Added Scroll weenie object.

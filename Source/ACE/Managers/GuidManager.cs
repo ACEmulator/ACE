@@ -97,6 +97,11 @@ namespace ACE.Managers
                     return ret;
                 }
             }
+
+            public uint Current()
+            {
+                return current;
+            }
         }
 
         public static uint InvalidGuid { get; } = uint.MaxValue;
@@ -163,6 +168,24 @@ namespace ACE.Managers
         public static ObjectGuid NewItemGuid()
         {
             return new ObjectGuid(itemAlloc.Alloc());
+        }
+
+        /// <summary>
+        /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Items / Player Items, to be used only for informational purposes.
+        /// </summary>
+        /// <returns></returns>
+        public static ObjectGuid NextItemGuid()
+        {
+            return new ObjectGuid(itemAlloc.Current());
+        }
+
+        /// <summary>
+        /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Players, to be used only for informational purposes.
+        /// </summary>
+        /// <returns></returns>
+        public static ObjectGuid NextPlayerGuid()
+        {
+            return new ObjectGuid(playerAlloc.Current());
         }
     }
 }
