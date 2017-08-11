@@ -59,5 +59,7 @@
         KillQuest3                      = 50,
         UseSendsSignal                  = 51,
         GearPlatingName                 = 52
+
+        // values over 9000 are ones that we have added and should not be sent to the client
     }
 }

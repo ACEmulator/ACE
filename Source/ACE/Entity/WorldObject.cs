@@ -87,6 +87,11 @@ namespace ACE.Entity
             get { return AceObject.SpellIdProperties; }
         }
 
+        public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook
+        {
+            get { return AceObject.BookProperties; }
+        }
+
         #region ObjDesc
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
 
@@ -1443,6 +1448,12 @@ namespace ACE.Entity
             set { AceObject.Afk = value; }
         }
 
+        public bool? IgnoreAuthor
+        {
+            get { return AceObject.IgnoreAuthor; }
+            set { AceObject.IgnoreAuthor = value; }
+        }
+
         public bool? NpcLooksLikeObject
         {
             get { return AceObject.NpcLooksLikeObject; }
@@ -1476,6 +1487,60 @@ namespace ACE.Entity
                 return false;
             else
                 return true;
+        }
+
+        public string LongDesc
+        {
+            get { return AceObject.LongDesc; }
+            set { AceObject.LongDesc = value; }
+        }
+
+        public string Use
+        {
+            get { return AceObject.Use; }
+            set { AceObject.Use = value; }
+        }
+
+        public string Inscription
+        {
+            get { return AceObject.Inscription; }
+            set { AceObject.Inscription = value; }
+        }
+
+        public string ScribeAccount
+        {
+            get { return AceObject.ScribeAccount; }
+            set { AceObject.ScribeAccount = value; }
+        }
+
+        public string ScribeName
+        {
+            get { return AceObject.ScribeName; }
+            set { AceObject.ScribeName = value; }
+        }
+
+        public uint? Scribe
+        {
+            get { return AceObject.ScribeIID; }
+            set { AceObject.ScribeIID = value; }
+        }
+
+        public uint? Pages
+        {
+            get { return AceObject.AppraisalPages; }
+            set { AceObject.AppraisalPages = value; }
+        }
+
+        public uint? MaxPages
+        {
+            get { return AceObject.AppraisalMaxPages; }
+            set { AceObject.AppraisalMaxPages = value; }
+        }
+
+        public uint? MaxCharactersPerPage
+        {
+            get { return AceObject.AvailableCharacter; }
+            set { AceObject.AvailableCharacter = value; }
         }
 
         public SequenceManager Sequences { get; }
@@ -1576,6 +1641,23 @@ namespace ACE.Entity
             examiner.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
             examiner.Network.EnqueueSend(new GameMessageSystemChat($"{DebugOutputString(GetType(), this)}", ChatMessageType.System));
 #endif
+        }
+
+        public void ReadBookPage(Session reader, uint pageNum)
+        {
+            PageData pageData = new PageData();
+            AceObjectPropertiesBook bookPage = PropertiesBook[pageNum];
+
+            pageData.AuthorID = bookPage.AuthorId;
+            pageData.AuthorName = bookPage.AuthorName;
+            pageData.AuthorAccount = bookPage.AuthorAccount;
+            pageData.PageIdx = pageNum;
+            pageData.PageText = bookPage.PageText;
+            pageData.IgnoreAuthor = false;
+            // TODO - check for PropertyBool.IgnoreAuthor flag
+
+            var bookDataResponse = new GameEventBookPageDataResponse(reader, guid.Full, pageData);
+            reader.Network.EnqueueSend(bookDataResponse);
         }
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

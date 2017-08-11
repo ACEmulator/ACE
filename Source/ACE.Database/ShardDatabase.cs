@@ -33,6 +33,7 @@ namespace ACE.Database
             GetAceObjectPropertiesSkills,
             GetAceObjectPropertiesSpell,
             GetAceObjectPropertiesSpellBarPositions,
+            GetAceObjectPropertiesBook,
 
             SaveAceObject,
             DeleteAceObject,
@@ -152,6 +153,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSkills, typeof(AceObjectPropertiesSkill), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesBook, typeof(AceObjectPropertiesBook), ConstructedStatementType.GetList);
 
             // Delete statements
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.DeleteList);
@@ -344,6 +346,7 @@ namespace ACE.Database
                 if (invItem.Value.WeenieType == (uint)WeenieType.Container)
                     invItem.Value.Inventory = GetInventoryByContainerId(invItem.Key.Full);
             }
+            aceObject.BookProperties = GetAceObjectPropertiesBook(aceObject.AceObjectId).ToDictionary(x => x.Page);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
@@ -490,6 +493,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.GetAceObjectPropertiesSpellBarPositions, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesBook> GetAceObjectPropertiesBook(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesBook>(ShardPreparedStatement.GetAceObjectPropertiesBook, criteria);
             return objects;
         }
 

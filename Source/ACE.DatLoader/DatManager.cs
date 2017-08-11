@@ -48,7 +48,7 @@ namespace ACE.DatLoader
             }
             catch (FileNotFoundException ex)
             {
-                log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
+                log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
                 log.Info($"Exception: {ex.Message}");
             }
         }

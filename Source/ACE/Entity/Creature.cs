@@ -549,5 +549,19 @@ namespace ACE.Entity
                 // Writer.Write(0u);
             }
         }
+
+        public void HandleActionWorldBroadcast(string message, ChatMessageType messageType)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(this, () => DoWorldBroadcast(message, messageType));
+            chain.EnqueueChain();
+        }
+
+        public void DoWorldBroadcast(string message, ChatMessageType messageType)
+        {
+            GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
+
+            WorldManager.BroadcastToAll(sysMessage);
+        }
     }
 }

@@ -1196,6 +1196,12 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.Afk, value); }
         }
 
+        public bool? IgnoreAuthor
+        {
+            get { return GetBoolProperty(PropertyBool.IgnoreAuthor); }
+            set { SetBoolProperty(PropertyBool.IgnoreAuthor, value); }
+        }
+
         public bool? WieldOnUse
         {
             get { return GetBoolProperty(PropertyBool.WieldOnUse); }
@@ -1256,8 +1262,50 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CreatureType, value); }
         }
 
-        #region Positions
+        public string Inscription
+        {
+            get { return GetStringProperty(PropertyString.Inscription); }
+            set { SetStringProperty(PropertyString.Inscription, value); }
+        }
 
+        #region Books
+        public string ScribeName
+        {
+            get { return GetStringProperty(PropertyString.ScribeName); }
+            set { SetStringProperty(PropertyString.ScribeName, value); }
+        }
+        public string ScribeAccount
+        {
+            get { return GetStringProperty(PropertyString.ScribeAccount); }
+            set { SetStringProperty(PropertyString.ScribeAccount, value); }
+        }
+        public uint? ScribeIID
+        {
+            get { return GetInstanceIdProperty(PropertyInstanceId.Scribe); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Scribe, value); }
+        }
+
+        public uint? AppraisalPages
+        {
+            get { return GetIntProperty(PropertyInt.AppraisalPages); }
+            set { SetIntProperty(PropertyInt.AppraisalPages, value); }
+        }
+
+        public uint? AppraisalMaxPages
+        {
+            get { return GetIntProperty(PropertyInt.AppraisalMaxPages); }
+            set { SetIntProperty(PropertyInt.AppraisalMaxPages, value); }
+        }
+#endregion
+
+        // TODO: This might be wrong place to store the data being stored here.
+        public uint? AvailableCharacter
+        {
+            get { return GetIntProperty(PropertyInt.AvailableCharacter); }
+            set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
+        }
+
+        #region Positions
         public Position Location
         {
             get { return GetPosition(PositionType.Location); }
@@ -1770,6 +1818,9 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
+        // uint references the page
+        public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
+
         public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
 
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
@@ -1827,7 +1878,6 @@ namespace ACE.Entity
                 SpellsInSpellBars = CloneList(SpellsInSpellBars),
                 Inventory = CloneDict(Inventory),
             };
-            // Then clone our properties
             return ret;
         }
 
@@ -1858,8 +1908,12 @@ namespace ACE.Entity
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
+
+            // No need to change Dictionary guids per DDEVEC
+            // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
+            ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
 

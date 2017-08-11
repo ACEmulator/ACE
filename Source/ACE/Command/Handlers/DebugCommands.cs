@@ -436,14 +436,6 @@ namespace ACE.Command.Handlers
             }
         }
 
-        [CommandHandler("spacejump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Teleports you to current position with PositionZ set to +8000.")]
-        public static void SpaceJump(Session session, params string[] parameters)
-        {
-            Position newPosition = new Position(session.Player.Location.LandblockId.Landblock, session.Player.Location.PositionX, session.Player.Location.PositionY, session.Player.Location.PositionZ + 8000f, session.Player.Location.RotationX, session.Player.Location.RotationY, session.Player.Location.RotationZ, session.Player.Location.RotationW);
-            session.Player.Teleport(newPosition);
-        }
-
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
         public static void CreatePortal(Session session, params string[] parameters)
@@ -471,36 +463,6 @@ namespace ACE.Command.Handlers
         public static void HandleWhoAmI(Session session, params string[] parameters)
         {
             ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
-        }
-
-        // @testspell 0 10 10 10 10 20
-        [CommandHandler("testspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
-            "Launch a spell projectile.",
-            "templateid x y z friction elasticity\n" +
-            "Example: @testspell 0 10 10 10 10 20")]
-        public static void TestSpell(Session session, params string[] parameters)
-        {
-            uint templatid;
-            float x, y, z;
-            float friction;
-            float electicity;
-            try
-            {
-                templatid = Convert.ToUInt32(parameters[0]);
-                x = float.Parse(parameters[1], CultureInfo.InvariantCulture.NumberFormat);
-                y = float.Parse(parameters[2], CultureInfo.InvariantCulture.NumberFormat);
-                z = float.Parse(parameters[3], CultureInfo.InvariantCulture.NumberFormat);
-                friction = float.Parse(parameters[4], CultureInfo.InvariantCulture.NumberFormat);
-                electicity = float.Parse(parameters[5], CultureInfo.InvariantCulture.NumberFormat);
-            }
-            catch (Exception)
-            {
-                ChatPacket.SendServerMessage(session, $"Invalid Spell Parameters", ChatMessageType.Broadcast);
-                return;
-            }
-
-            AceVector3 velocity = new AceVector3(x, y, z);
-            LandblockManager.AddObject(SpellObjectFactory.CreateSpell(templatid, session.Player.Location.InFrontOf(2.0f), velocity, friction, electicity));
         }
 
         // Kill a player - equivalent to legal virtual murder, by admin
@@ -765,34 +727,11 @@ namespace ACE.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to learn a spell.
-        /// </summary>
-        /// <param name="session">Pass the current player session.</param>
-        /// <param name="parameters">A single uint spell id within between 1 and 6340. (Not all spell ids are valid.)</param>
-        [CommandHandler("learnspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "[(uint)spellid] - Adds the specificed spell to your spellbook (non-persistant).",
-            "@learnspell")]
-        public static void HandleLearnSpell(Session session, params string[] parameters)
-        {
-            if (parameters?.Length > 0)
-            {
-                uint spellId = (uint)int.Parse(parameters[0]);
-                session.Player.HandleActionLearnSpell(spellId);
-            }
-            else
-            {
-                const string message = "Invalid Syntax\n";
-                GameMessageSystemChat errorMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(errorMessage);
-            }
-        }
-
-        /// <summary>
         /// Debug command to print out all of the active players connected too the server.
         /// </summary>
         [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0,
-            "Displays all of the active players connected too the serve.",
-            "@players")]
+            "Displays all of the active players connected too the server.",
+            "")]
         public static void HandleListPlayers(Session session, params string[] parameters)
         {
             uint playerCounter = 0;
@@ -934,6 +873,15 @@ namespace ACE.Command.Handlers
             ActionChain chain = new ActionChain();
             chain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventStartBarber(session)));
             chain.EnqueueChain();
+        }
+
+        // addspell <spell>
+        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Adds the specified spell to your own spellbook.",
+            "<spellid>")]
+        public static void HandleAddSpell(Session session, params string[] parameters)
+        {
+            AdminCommands.HandleAdd(session, parameters);
         }
     }
 }

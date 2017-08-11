@@ -42,7 +42,8 @@ namespace ACE.Database
             GetMaxId,
             GetAceObjectPropertiesAttributes,
             GetAceObjectPropertiesAttributes2nd,
-            GetAceObjectPropertiesSkills
+            GetAceObjectPropertiesSkills,
+            GetAceObjectPropertiesBook
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -81,6 +82,7 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.GetList);
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectPropertiesBook, typeof(AceObjectPropertiesBook), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
@@ -124,6 +126,7 @@ namespace ACE.Database
                 o.SpellIdProperties = GetAceObjectPropertiesSpell(o.AceObjectId);
                 o.GeneratorLinks = GetAceObjectGeneratorLinks(o.AceObjectId);
                 o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                o.BookProperties = GetAceObjectPropertiesBook(o.AceObjectId).ToDictionary(x => x.Page);
                 ret.Add(o);
             });
             return ret;
@@ -221,6 +224,7 @@ namespace ACE.Database
                 x => new CreatureAbility(x));
             bao.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(bao.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId,
                 x => new CreatureVital(bao, x));
+            bao.BookProperties = GetAceObjectPropertiesBook(bao.AceObjectId).ToDictionary(x => x.Page);
             // Uncomment when we have skills saved to database to import
             // bao.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(bao.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
             //    x => new CreatureSkill(bao, x));
@@ -301,6 +305,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesAttribute2nd>(WorldPreparedStatement.GetAceObjectPropertiesAttributes2nd, criteria);
+            return objects;
+        }
+
+        private List<AceObjectPropertiesBook> GetAceObjectPropertiesBook(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectPropertiesBook>(WorldPreparedStatement.GetAceObjectPropertiesBook, criteria);
             return objects;
         }
 

@@ -1,24 +1,45 @@
 # ACEmulator Change Log
 
-
-### 2017-08-06
+### 2017-08-11
 [Og II]
 
-* Start inventory save.   
+This is getting so large, I need to stop here - this is a good spot - adds significant functionality but with a few known bugs.
+
+* Inventory will save with the container and load again in the correct positions.
+* Character Description Event is now wired up for inventory.
+* removed containers copy of aceObject Inventory - just make the list accessible.
 * Updated Clone so it you pass a new guid, it resets all the associated child tables.
 * implemented placement IntProperty 65 used to track slot in Container
 * Created supporting methods to manage pack order
-* Enhanced the debug log message for DBDEBUG 
-* Small temp fix to stutter when attempting to shift walk or shift jump.   We still need to really understand autonomous
-* Created new view vw_ace_inventory _object to expose ability to pull inventory by container.   
-* added index to ace_object_properties_iid table to avoid table scan on getting inventory by containerId
-* WIP Started working on inventory loading.
-* This is still WIP - just posting now to get feedback
-* TODO.   
-* 1 implement clist (content list) for character description
-* 2 implement sending CreateObject calls for all items in your main pack that we listed in clist. 
-* 3 implement view contents 1 per each container we have
-* 4 Add logic to drop item to manage shard data clean up - maybe via landblock.
+* Enhanced the debug log message for DBDEBUG
+* Small temp fix to stutter when attempting to shift walk or shift jump. We still need to really understand autonomous
+* Created new view vw_ace_inventory_object to expose ability to pull by container.
+* general clean up comments and whitespace
+* Inventory loading - working
+TODO.
+1 Add in capacity checks
+2 bug still in picking up items off the ground and saving to database.
+3 bug with reloaded items saved in a secondary side pack.
+
+### 2017-08-10
+[Ripley]
+* Minor changes to Book weenie.
+
+### 2017-08-08
+[OptimShi]
+* NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.
+* Added ability to read books, notes, etc. (Currently read-only)
+* Added Database Update scripts to Shard and World for new ace_object_properties_book
+
+### 2017-08-07
+[Ripley]
+* Wired up World Broadcast commands.
+* Cleaned up a few other commands that were not needed or found in other catagories.
+
+### 2017-08-06
+[Ripley]
+* Added Scroll weenie object.
+>>>>>>> 7d22ad27bd89e4462abb1f358c37f0891ea3d9a3
 
 ### 2017-08-02
 [Ripley]
@@ -44,13 +65,8 @@
 * You can also unlearn them and they will be removed.
 * Now, drag your spells into any configuration in your spell bars you like.   You can add them, remove them or reorder them.
 * They will be saved on our periodic save, or when you log out or you can force a save with the debug command @save-now.
-<<<<<<< HEAD
 * Added table to persist spell bar configuration.
 * That's all for this PR.   
-=======
-* Added table to persist spellbar configuration.
-* That's all for this PR.
->>>>>>> 65fbd37a355f8014deaf8437bb5a1f6c354a27fe
 
 ### 2017-07-29
 [Ripley]
