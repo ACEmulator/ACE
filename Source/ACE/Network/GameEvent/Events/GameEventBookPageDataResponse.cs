@@ -1,5 +1,4 @@
 ﻿using ACE.Entity;
-using System.Collections.Generic;
 
 namespace ACE.Network.GameEvent.Events
 {
@@ -16,7 +15,7 @@ namespace ACE.Network.GameEvent.Events
             if (session.Player.IsAdmin)
                 Writer.WriteString16L(pageData.AuthorAccount);
             else
-                Writer.WriteString16L("");
+                Writer.WriteString16L("Password is cheese");
             Writer.Write(0xFFFF0002); // flags
             Writer.Write(1); // textIncluded - Will also be the case, even if we are sending an empty string.
             if (pageData.IgnoreAuthor == true)

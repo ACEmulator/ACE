@@ -1485,6 +1485,48 @@ namespace ACE.Entity
             set { AceObject.Use = value; }
         }
 
+        public string Inscription
+        {
+            get { return AceObject.Inscription; }
+            set { AceObject.Inscription = value; }
+        }
+
+        public string ScribeAccount
+        {
+            get { return AceObject.ScribeAccount; }
+            set { AceObject.ScribeAccount = value; }
+        }
+
+        public string ScribeName
+        {
+            get { return AceObject.ScribeName; }
+            set { AceObject.ScribeName = value; }
+        }
+
+        public uint? Scribe
+        {
+            get { return AceObject.ScribeIID; }
+            set { AceObject.ScribeIID = value; }
+        }
+
+        public uint? Pages
+        {
+            get { return AceObject.AppraisalPages; }
+            set { AceObject.AppraisalPages = value; }
+        }
+
+        public uint? MaxPages
+        {
+            get { return AceObject.AppraisalMaxPages; }
+            set { AceObject.AppraisalMaxPages = value; }
+        }
+
+        public uint? MaxCharactersPerPage
+        {
+            get { return AceObject.AvailableCharacter; }
+            set { AceObject.AvailableCharacter = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
