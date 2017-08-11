@@ -131,8 +131,7 @@ namespace ACE.DatLoader
         /// </summary>
         public string ReadObfuscatedString()
         {
-            int stringlength = this.ReadByte();
-            Offset += 1; // unknown, seems to be mostly 00
+            int stringlength = this.ReadInt16();
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             for (var i = 0; i < stringlength; i++)
@@ -142,7 +141,7 @@ namespace ACE.DatLoader
             }
             
             Offset += stringlength;
-            return System.Text.Encoding.ASCII.GetString(thestring);
+            return System.Text.Encoding.Default.GetString(thestring);
         }
 
         public string ReadString(int stringlength)
@@ -150,7 +149,7 @@ namespace ACE.DatLoader
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
-            return System.Text.Encoding.ASCII.GetString(thestring);
+            return System.Text.Encoding.Default.GetString(thestring);
         }
 
         public void AlignBoundary()

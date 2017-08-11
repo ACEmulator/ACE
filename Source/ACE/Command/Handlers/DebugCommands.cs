@@ -876,5 +876,33 @@ namespace ACE.Command.Handlers
             chain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventStartBarber(session)));
             chain.EnqueueChain();
         }
+        /// <summary>
+        /// Debug console command to test the GetSpellFormula function.
+        /// </summary>
+        [CommandHandler("spell", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
+        public static void Spell(Session session, params string[] parameters)
+        {
+            if (parameters?.Length != 2)
+            {
+                Console.WriteLine("spell <accountname> <spellid>");
+                return;
+            }
+
+            uint spellid;
+            if (!uint.TryParse(parameters[1], out spellid))
+            {
+                Console.WriteLine("spell <accountname> <spellid>");
+                return;
+            }
+
+            DatLoader.FileTypes.SpellComponentsTable comps = DatLoader.FileTypes.SpellComponentsTable.ReadFromDat();
+
+            System.Collections.Generic.List<uint> formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(spellid, parameters[0]);
+            for (int i = 0; i < formula.Count; i++)
+            {
+                Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
+            }
+            Console.WriteLine();
+        }
     }
 }

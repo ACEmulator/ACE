@@ -108,6 +108,7 @@ namespace ACE.DatLoader.FileTypes
         /// <returns></returns>
         private static List<uint> DecryptFormula(List<uint> rawComps, string name, string desc)
         {
+            // TODO : Find out why some strings with extended characters (eg rsquo, ASCII-146, 0x92) do not work properly with this
             List<uint> comps = new List<uint>();
             uint nameHash = ComputeHash(name);
             uint descHash = ComputeHash(desc);
@@ -263,8 +264,14 @@ namespace ACE.DatLoader.FileTypes
             uint compHash2 = (seed3 + comps[2]) % 0xC;
             uint compHash4 = (seed4 + comps[4]) % 0xC;
             uint compHash5 = (seed5 + comps[5]) % 0xC;
-            uint compHash7 = (seed6 + comps[7]) % 0xC;
-            
+
+            // Some spells don't have the full number of comps. 2697 ("Aerfalle's Touch"), is one example.
+            uint compHash7;
+            if(comps.Count < 8)
+                compHash7 = (seed6 + 0) % 0xC;
+            else
+                compHash7 = (seed6 + comps[7]) % 0xC;
+
             comps[3] = (compHash0 + compHash1 + compHash2 + compHash4 + compHash5 + compHash2 * compHash5 + compHash0 * compHash1 + compHash7 * (compHash4 + 1)) % 0xC + LOWEST_TAPER_ID;
             comps[6] = (compHash0 + compHash1 + compHash2 + compHash4 + key % 0x65039 % 0xC + compHash7 * (compHash4 * (compHash0 * compHash1 * compHash2 * compHash5 + 7) + 1) + compHash5 + 4 * compHash0 * compHash1 + compHash0 * compHash1 + 11 * compHash2 * compHash5) % 0xC + LOWEST_TAPER_ID;
 
