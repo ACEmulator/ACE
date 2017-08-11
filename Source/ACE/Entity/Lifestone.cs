@@ -37,19 +37,19 @@ namespace ACE.Entity
                 {
                     ActionChain useObjectChain = new ActionChain();
 
-                    useObjectChain.AddAction(this, () =>
+                    useObjectChain.AddAction(player, () =>
                     {
                         Activate(player);
                     });
 
                     useObjectChain.AddDelaySeconds(5); // TODO: get animation frames length and put that delay here
 
-                    useObjectChain.AddAction(this, () => player.SetCharacterPosition(PositionType.Sanctuary, player.Location));
+                    useObjectChain.AddAction(player, () => player.SetCharacterPosition(PositionType.Sanctuary, player.Location));
 
-                    useObjectChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have attuned your spirit to this Lifestone. You will resurrect here after you die.", ChatMessageType.Magic)));
+                    useObjectChain.AddAction(player, () => player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have attuned your spirit to this Lifestone. You will resurrect here after you die.", ChatMessageType.Magic)));
 
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    useObjectChain.AddAction(this, () => player.Session.Network.EnqueueSend(sendUseDoneEvent));
+                    useObjectChain.AddAction(player, () => player.Session.Network.EnqueueSend(sendUseDoneEvent));
 
                     useObjectChain.EnqueueChain();
                 }
