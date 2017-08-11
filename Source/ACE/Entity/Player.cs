@@ -1,22 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using ACE.Database;
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Entity.Enum.Properties;
-using ACE.Network;
-using ACE.Network.GameMessages;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent.Events;
-using ACE.Managers;
-using log4net;
-using ACE.Network.Sequence;
-using ACE.Network.Motion;
+﻿using ACE.Database;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
+using ACE.Common;
+using ACE.Entity.Actions;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Managers;
+using ACE.Network;
+using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
+using ACE.Network.Sequence;
+
+using log4net;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace ACE.Entity
 {
@@ -305,7 +308,7 @@ namespace ACE.Entity
         {
             var newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
             newMotion.DistanceFrom = 0.60f;
-            newMotion.MovementTypes = MovementTypes.MoveToObject;
+            newMotion.MovementTypes = movementType;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
             CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
         }
@@ -1433,6 +1436,7 @@ namespace ACE.Entity
             teleportChain.AddAction(this, () =>
             {
                 InWorld = true;
+                LastPortalTeleportTimestamp++;
             });
 
             return teleportChain;
@@ -1450,6 +1454,7 @@ namespace ACE.Entity
             ExternalUpdatePosition(newPosition);
             InWorld = false;
 
+            LastTeleportStartTimestamp++;
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
             lock (clientObjectList)
@@ -2516,6 +2521,49 @@ namespace ACE.Entity
             return moveToChain;
         }
 
+        public ActionChain CreateCollideWithChain(ObjectGuid target)
+        {
+            ActionChain moveToChain = new ActionChain();
+            // While !at(thing) moveToThing
+            ActionChain moveToBody = new ActionChain();
+            moveToChain.AddAction(this, () =>
+            {
+                Position dest = CurrentLandblock.GetPosition(target);
+                if (dest == null)
+                {
+                    log.Error("FIXME: Need the ability to cancel actions on error");
+                    return;
+                }
+
+                OnAutonomousMove(CurrentLandblock.GetPosition(target),
+                                         Sequences, MovementTypes.MoveToPosition, target);
+            });
+
+            // poll for arrival every .1 seconds
+            moveToBody.AddDelaySeconds(.1);
+
+            moveToChain.AddLoop(this, () =>
+            {
+                bool valid;
+                float outdistance;
+                // Break loop if CurrentLandblock == null (we portaled or logged out), or if we arrive at the item
+                if (CurrentLandblock == null)
+                {
+                    return false;
+                }
+
+                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out valid);
+                if (!valid)
+                {
+                    // If one of the items isn't on a landblock
+                    ret = false;
+                }
+                return ret;
+            }, moveToBody);
+
+            return moveToChain;
+        }
+
         public void HandleActionSmiteAllNearby()
         {
             // Create smite action chain... then send it
@@ -2778,6 +2826,17 @@ namespace ACE.Entity
             moveToObjectChain.AddDelaySeconds(0.50);
 
             moveToObjectChain.AddAction(wo, () => wo.HandleActionOnUse(Guid));
+
+            moveToObjectChain.EnqueueChain();
+        }
+
+        public void DoCollideWith(WorldObject wo)
+        {
+            ActionChain moveToObjectChain = new ActionChain();
+
+            moveToObjectChain.AddChain(CreateCollideWithChain(wo.Guid));
+
+            moveToObjectChain.AddAction(wo, () => wo.HandleActionOnCollide(Guid));
 
             moveToObjectChain.EnqueueChain();
         }

@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-08-10
+[Ripley]
+* Made changes to Cow, Door, Lifestone, Portal weenies.
+* Added plethora of timestamps for eventual use in WorldObject. Some of these likely will/can be move to more appropriate places after more weenie objects are built out.
+
 ### 2017-08-08
 [OptimShi]
 * NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.

@@ -1,63 +1,70 @@
-﻿using ACE.Network.GameEvent.Events;
+﻿// WeenieType.Lifestone
+
+using ACE.Common;
+using ACE.Entity.Actions;
+using ACE.Entity.Enum;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
     public class Lifestone : WorldObject
     {
+        private static readonly UniversalMotion motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+
         public Lifestone(AceObject aceO)
             : base(aceO)
         {
+            if (Use == null)
+                Use = "Use this item to set your resurrection point.";
         }
-
+       
         public override void HandleActionOnUse(ObjectGuid playerId)
         {
-            // All data on a lifestone is constant -- therefore we just run in context of player
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
             {
                 Player player = wo as Player;
-                string serverMessage = null;
-                // validate within use range, taking into account the radius of the model itself, as well
-                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
-                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-
-                // Run this animation...
-                // Player Enqueue:
-                var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
-
-                var animationEvent = new GameMessageUpdateMotion(player.Guid,
-                                                                 player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                                 player.Sequences, motionSanctuary);
-
-                // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-                var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);
-
-                if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
+                if (player == null)
                 {
-                    serverMessage = "You wandered too far to attune with the Lifestone!";
+                    return;
                 }
+
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
                 else
                 {
-                    player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+                    ActionChain useObjectChain = new ActionChain();
 
-                    // create the outbound server message
-                    serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                    player.HandleActionMotion(motionSanctuary);
-                    player.Session.Network.EnqueueSend(soundEvent);
+                    useObjectChain.AddAction(this, () =>
+                    {
+                        Activate(player);
+                    });
+
+                    useObjectChain.AddDelaySeconds(5); // TODO: get animation frames length and put that delay here
+
+                    useObjectChain.AddAction(this, () => player.SetCharacterPosition(PositionType.Sanctuary, player.Location));
+
+                    useObjectChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have attuned your spirit to this Lifestone. You will resurrect here after you die.", ChatMessageType.Magic)));
+
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    useObjectChain.AddAction(this, () => player.Session.Network.EnqueueSend(sendUseDoneEvent));
+
+                    useObjectChain.EnqueueChain();
                 }
-
-                var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
-                // always send useDone event
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
             });
             chain.EnqueueChain();
+        }
+
+        private void Activate(Player activator)
+        {
+            CurrentLandblock.EnqueueBroadcastMotion(activator, motionSanctuary);
+
+            CurrentLandblock.EnqueueBroadcastSound(this, Sound.LifestoneOn); // This event was present for a pcap in the training dungeon.. Why? The sound already comes with animationEvent...
+
+            if (activator.Guid.Full > 0)
+                UseTimestamp++;
         }
     }
 }

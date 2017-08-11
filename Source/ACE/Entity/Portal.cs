@@ -103,7 +103,6 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             // check to see if this ace object has a destination.  if so, defer to it.
             if (aceO.Destination != null)
             {
@@ -112,15 +111,15 @@ namespace ACE.Entity
             else
             {
                 // but if not, portals roll up to the weenie
-                Destination = weenie.Destination;
+                Destination = Weenie.Destination;
             }
 
-            MinimumLevel = weenie.MinLevel ?? 0;
-            MaximumLevel = weenie.MaxLevel ?? 0;
-            IsTieable = ((weenie.PortalBitmask ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
-            IsSummonable = ((weenie.PortalBitmask ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
-            AppraisalPortalDestination = weenie.AppraisalPortalDestination;
-            PortalShowDestination = weenie.PortalShowDestination ?? false;
+            MinimumLevel = Weenie.MinLevel ?? 0;
+            MaximumLevel = Weenie.MaxLevel ?? 0;
+            IsTieable = ((Weenie.PortalBitmask ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
+            IsSummonable = ((Weenie.PortalBitmask ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
+            AppraisalPortalDestination = Weenie.AppraisalPortalDestination;
+            PortalShowDestination = Weenie.PortalShowDestination ?? false;
         }
 
         public string AppraisalPortalDestination
@@ -172,9 +171,6 @@ namespace ACE.Entity
         {
             string serverMessage;
 
-            // validate within use range :: set to a fixed value as static Portals are normally OnCollide usage
-            var rangeCheck = 5.0f;
-
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
             {
@@ -183,14 +179,15 @@ namespace ACE.Entity
                 {
                     return;
                 }
-                // Can check location by guid
-                // NOTE: Must use CurrentLandblock.GetPosition() for the portal's position...
-                if (CurrentLandblock.GetPosition(Guid).SquaredDistanceTo(player.Location) < rangeCheck)
+
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoCollideWith(this);
+                else
                 {
                     if (Destination != null)
                     {
 #if DEBUG
-                        serverMessage = "Checking requirements for " + this.Name;
+                        serverMessage = "Checking requirements for " + Name;
                         var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                         player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
@@ -300,6 +297,8 @@ namespace ACE.Entity
                             // always send useDone event
                             var sendUseDoneEvent = new GameEventUseDone(player.Session);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent);
+
+                            UseTimestamp++;
                         }
                         else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
                         {
@@ -326,12 +325,6 @@ namespace ACE.Entity
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
                         player.Session.Network.EnqueueSend(failedUsePortalMessage, sendUseDoneEvent);
                     }
-                }
-                else
-                {
-                    // always send useDone event
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
                 }
             });
             // Run on the player

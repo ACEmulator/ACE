@@ -1,21 +1,21 @@
+using ACE.Common;
 using ACE.DatLoader.FileTypes;
+using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Entity.Actions;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Sequence;
+using ACE.Network.GameMessages;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
+using ACE.Network.Sequence;
 
 using log4net;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1467,7 +1467,8 @@ namespace ACE.Entity
 
         public bool IsWithinUseRadiusOf(WorldObject wo)
         {
-            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+            float squaredDistanceTo = Location.SquaredDistanceTo(wo.Location);
+            if (squaredDistanceTo >= wo.UseRadiusSquared)
                 return false;
             else
                 return true;
@@ -2851,6 +2852,251 @@ namespace ACE.Entity
         public virtual void HandleActionOnCollide(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.
+        }
+
+        private double? useTimestamp;
+        public double? UseTimestamp
+        {
+            get { return useTimestamp; }
+            set { useTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? resetTimestamp;
+        public double? ResetTimestamp
+        {
+            get { return resetTimestamp; }
+            set { resetTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? lastPortalTeleportTimestamp;
+        public double? LastPortalTeleportTimestamp
+        {
+            get { return lastPortalTeleportTimestamp; }
+            set { lastPortalTeleportTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? deathTimestamp;
+        public double? DeathTimestamp
+        {
+            get { return deathTimestamp; }
+            set { deathTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? motionTimestamp;
+        public double? MotionTimestamp
+        {
+            get { return motionTimestamp; }
+            set { motionTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? regenerationTimestamp;
+        public double? RegenerationTimestamp
+        {
+            get { return regenerationTimestamp; }
+            set { regenerationTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? pkTimestamp;
+        public double? PkTimestamp
+        {
+            get { return pkTimestamp; }
+            set { pkTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? victimTimestamp;
+        public double? VictimTimestamp
+        {
+            get { return victimTimestamp; }
+            set { victimTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? abuseLoggingTimestamp;
+        public double? AbuseLoggingTimestamp
+        {
+            get { return abuseLoggingTimestamp; }
+            set { abuseLoggingTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? releasedTimestamp;
+        public double? ReleasedTimestamp
+        {
+            get { return releasedTimestamp; }
+            set { releasedTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? itemManaUpdateTimestamp;
+        public double? ItemManaUpdateTimestamp
+        {
+            get { return itemManaUpdateTimestamp; }
+            set { itemManaUpdateTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? allegianceAppraisalTimestamp;
+        public double? AllegianceAppraisalTimestamp
+        {
+            get { return allegianceAppraisalTimestamp; }
+            set { allegianceAppraisalTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? attackTimestamp;
+        public double? AttackTimestamp
+        {
+            get { return attackTimestamp; }
+            set { attackTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? checkpointTimestamp;
+        public double? CheckpointTimestamp
+        {
+            get { return checkpointTimestamp; }
+            set { checkpointTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? soldTimestamp;
+        public double? SoldTimestamp
+        {
+            get { return soldTimestamp; }
+            set { soldTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? frozenTimestamp;
+        public double? FrozenTimestamp
+        {
+            get { return frozenTimestamp; }
+            set { frozenTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? allegianceSwearTimestamp;
+        public double? AllegianceSwearTimestamp
+        {
+            get { return allegianceSwearTimestamp; }
+            set { allegianceSwearTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? spamTimestamp;
+        public double? SpamTimestamp
+        {
+            get { return spamTimestamp; }
+            set { spamTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? gagTimestamp;
+        public double? GagTimestamp
+        {
+            get { return gagTimestamp; }
+            set { gagTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? generatorUpdateTimestamp;
+        public double? GeneratorUpdateTimestamp
+        {
+            get { return generatorUpdateTimestamp; }
+            set { generatorUpdateTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? deathSpamTimestamp;
+        public double? DeathSpamTimestamp
+        {
+            get { return deathSpamTimestamp; }
+            set { deathSpamTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? lifestoneProtectionTimestamp;
+        public double? LifestoneProtectionTimestamp
+        {
+            get { return lifestoneProtectionTimestamp; }
+            set { lifestoneProtectionTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? tradeTimestamp;
+        public double? TradeTimestamp
+        {
+            get { return tradeTimestamp; }
+            set { tradeTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? lastTeleportStartTimestamp;
+        public double? LastTeleportStartTimestamp
+        {
+            get { return lastTeleportStartTimestamp; }
+            set { lastTeleportStartTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? eventSpamTimestamp;
+        public double? EventSpamTimestamp
+        {
+            get { return eventSpamTimestamp; }
+            set { eventSpamTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? allegianceInfoSpamTimestamp;
+        public double? AllegianceInfoSpamTimestamp
+        {
+            get { return allegianceInfoSpamTimestamp; }
+            set { allegianceInfoSpamTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? nextSpellcastTimestamp;
+        public double? NextSpellcastTimestamp
+        {
+            get { return nextSpellcastTimestamp; }
+            set { nextSpellcastTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? appraisalRequestedTimestamp;
+        public double? AppraisalRequestedTimestamp
+        {
+            get { return appraisalRequestedTimestamp; }
+            set { appraisalRequestedTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? appraisalHeartbeatDueTimestamp;
+        public double? AppraisalHeartbeatDueTimestamp
+        {
+            get { return appraisalHeartbeatDueTimestamp; }
+            set { appraisalHeartbeatDueTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? lastPkAttackTimestamp;
+        public double? LastPkAttackTimestamp
+        {
+            get { return lastPkAttackTimestamp; }
+            set { lastPkAttackTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? fellowshipUpdateTimestamp;
+        public double? FellowshipUpdateTimestamp
+        {
+            get { return fellowshipUpdateTimestamp; }
+            set { fellowshipUpdateTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? limboStartTimestamp;
+        public double? LimboStartTimestamp
+        {
+            get { return limboStartTimestamp; }
+            set { limboStartTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? startMissileAttackTimestamp;
+        public double? StartMissileAttackTimestamp
+        {
+            get { return startMissileAttackTimestamp; }
+            set { startMissileAttackTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? lastRareUsedTimestamp;
+        public double? LastRareUsedTimestamp
+        {
+            get { return lastRareUsedTimestamp; }
+            set { lastRareUsedTimestamp = Time.GetTimestamp(); }
+        }
+
+        private double? allegianceGagTimestamp;
+        public double? AllegianceGagTimestamp
+        {
+            get { return allegianceGagTimestamp; }
+            set { allegianceGagTimestamp = Time.GetTimestamp(); }
         }
     }
 }
