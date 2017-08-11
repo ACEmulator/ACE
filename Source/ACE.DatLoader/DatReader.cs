@@ -123,7 +123,7 @@ namespace ACE.DatLoader
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
-            return System.Text.Encoding.ASCII.GetString(thestring);
+            return System.Text.Encoding.Default.GetString(thestring);
         }
 
         /// <summary>
