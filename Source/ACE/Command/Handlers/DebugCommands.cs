@@ -879,19 +879,19 @@ namespace ACE.Command.Handlers
         /// <summary>
         /// Debug console command to test the GetSpellFormula function.
         /// </summary>
-        [CommandHandler("spell", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
-        public static void Spell(Session session, params string[] parameters)
+        [CommandHandler("getspellformula", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
+        public static void GetSpellFormula(Session session, params string[] parameters)
         {
             if (parameters?.Length != 2)
             {
-                Console.WriteLine("spell <accountname> <spellid>");
+                Console.WriteLine("getspellformula <accountname> <spellid>");
                 return;
             }
 
             uint spellid;
             if (!uint.TryParse(parameters[1], out spellid))
             {
-                Console.WriteLine("spell <accountname> <spellid>");
+                Console.WriteLine("getspellformula <accountname> <spellid>");
                 return;
             }
 
