@@ -1,63 +1,97 @@
-﻿using ACE.Network.GameEvent.Events;
+﻿// WeenieType.Lifestone
+
+using ACE.Entity.Actions;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
+using System.Collections.Generic;
+using System.IO;
 
 namespace ACE.Entity
 {
     public class Lifestone : WorldObject
     {
-        public Lifestone(AceObject aceO)
-            : base(aceO)
+        private static readonly UniversalMotion motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+
+        private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.StringStatsTable;
+
+        public Lifestone(AceObject aceObject)
+            : base(aceObject)
         {
+            if (Use == null)
+                Use = "Use this item to set your resurrection point.";
+
+            var useString = new AceObjectPropertiesString();
+            useString.AceObjectId = Guid.Full;
+            useString.PropertyId = (ushort)PropertyString.Use;
+            useString.PropertyValue = Use;
+            lifestonePropertiesString.Add(useString);
         }
 
+        private List<AceObjectPropertiesString> lifestonePropertiesString = new List<AceObjectPropertiesString>();
+        
         public override void HandleActionOnUse(ObjectGuid playerId)
         {
-            // All data on a lifestone is constant -- therefore we just run in context of player
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
             {
                 Player player = wo as Player;
-                string serverMessage = null;
-                // validate within use range, taking into account the radius of the model itself, as well
-                SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
-                float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-
-                // Run this animation...
-                // Player Enqueue:
-                var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
-
-                var animationEvent = new GameMessageUpdateMotion(player.Guid,
-                                                                 player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                                 player.Sequences, motionSanctuary);
-
-                // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-                var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);
-
-                if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
+                if (player == null)
                 {
-                    serverMessage = "You wandered too far to attune with the Lifestone!";
+                    return;
                 }
+
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
                 else
                 {
-                    player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+                    ActionChain useObjectChain = new ActionChain();
 
-                    // create the outbound server message
-                    serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                    player.HandleActionMotion(motionSanctuary);
-                    player.Session.Network.EnqueueSend(soundEvent);
+                    useObjectChain.AddAction(player, () =>
+                    {
+                        Activate(player);
+                    });
+
+                    useObjectChain.AddDelaySeconds(5); // TODO: get animation frames length and put that delay here
+
+                    useObjectChain.AddAction(player, () =>
+                    {
+                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        if (player.IsWithinUseRadiusOf(this))
+                        {
+                            player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+                            var msg = new GameMessageSystemChat("You have attuned your spirit to this Lifestone. You will resurrect here after you die.", ChatMessageType.Magic);
+                            player.Session.Network.EnqueueSend(msg, sendUseDoneEvent);
+                        }
+                        else
+                        {
+                            var failMsg = new GameMessageSystemChat("You wandered too far to attune with the Lifestone!", ChatMessageType.Magic);
+                            player.Session.Network.EnqueueSend(failMsg, sendUseDoneEvent);
+                        }
+                    });
+
+                    useObjectChain.EnqueueChain();
                 }
-
-                var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
-                // always send useDone event
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
             });
             chain.EnqueueChain();
+        }
+
+        private void Activate(Player activator)
+        {
+            CurrentLandblock.EnqueueBroadcastMotion(activator, motionSanctuary);
+
+            CurrentLandblock.EnqueueBroadcastSound(this, Sound.LifestoneOn); // This event was present for a pcap in the training dungeon.. Why? The sound already comes with animationEvent...
+
+            if (activator.Guid.Full > 0)
+                UseTimestamp++;
+        }
+
+        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
+        {
+            WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a lifestone.
+            WriteIdentifyObjectStringsProperties(writer, idFlags, lifestonePropertiesString);
         }
     }
 }

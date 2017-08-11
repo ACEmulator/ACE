@@ -73,44 +73,32 @@ namespace ACE.Entity
                     break;
             }
 
-            ScrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
+            scrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
 
             var useString = new AceObjectPropertiesString();
             useString.AceObjectId = Guid.Full;
             useString.PropertyId = (ushort)PropertyString.Use;
             useString.PropertyValue = Use;
-            ScrollPropertiesString.Add(useString);
+            scrollPropertiesString.Add(useString);
 
             var longDescString = new AceObjectPropertiesString();
             longDescString.AceObjectId = Guid.Full;
             longDescString.PropertyId = (ushort)PropertyString.LongDesc;
             longDescString.PropertyValue = LongDesc;
-            ScrollPropertiesString.Add(longDescString);
+            scrollPropertiesString.Add(longDescString);
 
             var propSpell = new AceObjectPropertiesSpell();
             propSpell.AceObjectId = Guid.Full;
             propSpell.SpellId = SpellId;
-            ScrollPropertiesSpellId.Add(propSpell);
+            scrollPropertiesSpellId.Add(propSpell);
         }
 
-        private List<AceObjectPropertiesInt> ScrollPropertiesInt
-        {
-            get;
-            set;
-        }
+        private List<AceObjectPropertiesInt> scrollPropertiesInt = new List<AceObjectPropertiesInt>();
 
-        private List<AceObjectPropertiesString> ScrollPropertiesString
-        {
-            get;
-            set;
-        }
+        private List<AceObjectPropertiesString> scrollPropertiesString = new List<AceObjectPropertiesString>();
 
-        private List<AceObjectPropertiesSpell> ScrollPropertiesSpellId
-        {
-            get;
-            set;
-        }
+        private List<AceObjectPropertiesSpell> scrollPropertiesSpellId = new List<AceObjectPropertiesSpell>();
 
         private uint SpellId
         {
@@ -190,9 +178,9 @@ namespace ACE.Entity
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {          
             WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
-            WriteIdentifyObjectIntProperties(writer, idFlags, ScrollPropertiesInt);
-            WriteIdentifyObjectStringsProperties(writer, idFlags, ScrollPropertiesString);
-            WriteIdentifyObjectSpellIdProperties(writer, idFlags, ScrollPropertiesSpellId);
+            WriteIdentifyObjectIntProperties(writer, idFlags, scrollPropertiesInt);
+            WriteIdentifyObjectStringsProperties(writer, idFlags, scrollPropertiesString);
+            WriteIdentifyObjectSpellIdProperties(writer, idFlags, scrollPropertiesSpellId);
         }
     }
 }
