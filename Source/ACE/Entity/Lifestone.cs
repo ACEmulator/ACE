@@ -56,12 +56,21 @@ namespace ACE.Entity
 
                     useObjectChain.AddDelaySeconds(5); // TODO: get animation frames length and put that delay here
 
-                    useObjectChain.AddAction(player, () => player.SetCharacterPosition(PositionType.Sanctuary, player.Location));
-
-                    useObjectChain.AddAction(player, () => player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have attuned your spirit to this Lifestone. You will resurrect here after you die.", ChatMessageType.Magic)));
-
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    useObjectChain.AddAction(player, () => player.Session.Network.EnqueueSend(sendUseDoneEvent));
+                    useObjectChain.AddAction(player, () =>
+                    {
+                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        if (player.IsWithinUseRadiusOf(this))
+                        {
+                            player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+                            var msg = new GameMessageSystemChat("You have attuned your spirit to this Lifestone. You will resurrect here after you die.", ChatMessageType.Magic);
+                            player.Session.Network.EnqueueSend(msg, sendUseDoneEvent);
+                        }
+                        else
+                        {
+                            var failMsg = new GameMessageSystemChat("You wandered too far to attune with the Lifestone!", ChatMessageType.Magic);
+                            player.Session.Network.EnqueueSend(failMsg, sendUseDoneEvent);
+                        }
+                    });
 
                     useObjectChain.EnqueueChain();
                 }
