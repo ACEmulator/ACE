@@ -1,11 +1,13 @@
 ﻿// WeenieType.Lifestone
 
-using ACE.Common;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
+using System.Collections.Generic;
+using System.IO;
 
 namespace ACE.Entity
 {
@@ -13,13 +15,23 @@ namespace ACE.Entity
     {
         private static readonly UniversalMotion motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
-        public Lifestone(AceObject aceO)
-            : base(aceO)
+        private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.StringStatsTable;
+
+        public Lifestone(AceObject aceObject)
+            : base(aceObject)
         {
             if (Use == null)
                 Use = "Use this item to set your resurrection point.";
+
+            var useString = new AceObjectPropertiesString();
+            useString.AceObjectId = Guid.Full;
+            useString.PropertyId = (ushort)PropertyString.Use;
+            useString.PropertyValue = Use;
+            lifestonePropertiesString.Add(useString);
         }
-       
+
+        private List<AceObjectPropertiesString> lifestonePropertiesString = new List<AceObjectPropertiesString>();
+        
         public override void HandleActionOnUse(ObjectGuid playerId)
         {
             ActionChain chain = new ActionChain();
@@ -65,6 +77,12 @@ namespace ACE.Entity
 
             if (activator.Guid.Full > 0)
                 UseTimestamp++;
+        }
+
+        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
+        {
+            WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a lifestone.
+            WriteIdentifyObjectStringsProperties(writer, idFlags, lifestonePropertiesString);
         }
     }
 }
