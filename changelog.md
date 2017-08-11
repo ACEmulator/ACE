@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-08-10
+[Ripley]
+* Minor changes to Book weenie.
+
 [OptimShi]
 * Added MotionTable parsing to DatLoader.
 * Added GetSpellFormula() function to SpellTable. Will return component id's based on players account name for any given spell.
@@ -11,6 +14,11 @@
 * NOTE: The following change requires ACE-World database v0.1.9 or newer to make use of.
 * Added ability to read books, notes, etc. (Currently read-only)
 * Added Database Update scripts to Shard and World for new ace_object_properties_book
+
+### 2017-08-07
+[Ripley]
+* Wired up World Broadcast commands.
+* Cleaned up a few other commands that were not needed or found in other catagories.
 
 ### 2017-08-06
 [Ripley]

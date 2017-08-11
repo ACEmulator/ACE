@@ -12,6 +12,7 @@
         MaximumLuminance = 7,
         InteractionReqs = 8,
 
+        // values over 9000 are ones that we have added and should not be sent to the client
         DeleteTime = 9001
     }
 }

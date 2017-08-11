@@ -1247,21 +1247,46 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CreatureType, value); }
         }
 
+        public string Inscription
+        {
+            get { return GetStringProperty(PropertyString.Inscription); }
+            set { SetStringProperty(PropertyString.Inscription, value); }
+        }
+
         #region Books
-        public string BookAuthorName
+        public string ScribeName
         {
-            get { return GetStringProperty(PropertyString.BookAuthorName); }
-            set { SetStringProperty(PropertyString.BookAuthorName, value); }
+            get { return GetStringProperty(PropertyString.ScribeName); }
+            set { SetStringProperty(PropertyString.ScribeName, value); }
         }
-        public string BookAuthorAccount
+        public string ScribeAccount
         {
-            get { return GetStringProperty(PropertyString.BookAuthorAccount); }
-            set { SetStringProperty(PropertyString.BookAuthorAccount, value); }
+            get { return GetStringProperty(PropertyString.ScribeAccount); }
+            set { SetStringProperty(PropertyString.ScribeAccount, value); }
         }
-        public uint? BookAuthorId
+        public uint? ScribeIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.BookAuthorId); }
-            set { SetInstanceIdProperty(PropertyInstanceId.BookAuthorId, value); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Scribe); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Scribe, value); }
+        }
+
+        public uint? AppraisalPages
+        {
+            get { return GetIntProperty(PropertyInt.AppraisalPages); }
+            set { SetIntProperty(PropertyInt.AppraisalPages, value); }
+        }
+
+        public uint? AppraisalMaxPages
+        {
+            get { return GetIntProperty(PropertyInt.AppraisalMaxPages); }
+            set { SetIntProperty(PropertyInt.AppraisalMaxPages, value); }
+        }
+
+        // TODO: This might be wrong place to store the data being stored here.
+        public uint? AvailableCharacter
+        {
+            get { return GetIntProperty(PropertyInt.AvailableCharacter); }
+            set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
         }
         #endregion
 

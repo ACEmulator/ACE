@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ACE.Common;
 using ACE.Entity;
 using ACE.Network;
+using ACE.Network.GameMessages;
 
 using ACE.Entity.Actions;
 
@@ -214,6 +215,25 @@ namespace ACE.Managers
                     return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
                 return sessions.Where(s => s.Player != null).ToList();
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Broadcasts GameMessage to all online sessions.
+        /// </summary>
+        public static void BroadcastToAll(GameMessage msg)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                foreach (Session session in sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList())
+                {
+                    session.Network.EnqueueSend(msg);
+                }
             }
             finally
             {

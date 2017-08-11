@@ -85,6 +85,7 @@
     <Compile Include="Command\CommandHandlerResponse.cs" />
     <Compile Include="Command\CommandManager.cs" />
     <Compile Include="Command\Handlers\AccountCommands.cs" />
+    <Compile Include="Command\Handlers\ShardCommands.cs" />
     <Compile Include="Command\Handlers\AdminCommands.cs" />
     <Compile Include="Command\Handlers\CharacterCommands.cs" />
     <Compile Include="Command\Handlers\ConsoleCommands.cs" />
