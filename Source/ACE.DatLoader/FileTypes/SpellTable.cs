@@ -99,24 +99,26 @@ namespace ACE.DatLoader.FileTypes
             }
         }
 
+        private const uint HIGHEST_COMP_ID = 198; // "Essence of Kemeroi", for Void Spells -- not actually ever in game!
+
         /// <summary>
         /// Does the math based on the crypto keys (name and description) for the spell formula.
         /// </summary>
-        /// <param name="rawComps"></param>
-        /// <param name="name"></param>
-        /// <param name="desc"></param>
-        /// <returns></returns>
         private static List<uint> DecryptFormula(List<uint> rawComps, string name, string desc)
         {
-            // TODO : Find out why some strings with extended characters (eg rsquo, ASCII-146, 0x92) do not work properly with this
             List<uint> comps = new List<uint>();
+            // uint testDescHash = ComputeHash(" – 200");
             uint nameHash = ComputeHash(name);
             uint descHash = ComputeHash(desc);
-
+            
             uint key = (nameHash % 0x12107680) + (descHash % 0xBEADCF45); 
             for (int i = 0; i < rawComps.Count; i++)
             {
-                uint comp = rawComps[i] - key;
+                uint comp = (rawComps[i] - key);
+
+                // This seems to correct issues with certain spells with extended characters.
+                if (comp > HIGHEST_COMP_ID) // highest comp ID is 198 - "Essence of Kemeroi", for Void Spells
+                    comp = comp & 0xFF;
                 comps.Add(comp);
             }
 
@@ -134,11 +136,12 @@ namespace ACE.DatLoader.FileTypes
 
             if (strToHash.Length > 0)
             {
-                foreach (char c in strToHash)
+                byte[] str = Encoding.Default.GetBytes(strToHash);
+                foreach (byte c in str)                
                 {
                     result = c + (result << 4);
                     if ((result & 0xF0000000) != 0)
-                        result = (result ^ ((result & 0xF0000000) >> 24)) & 0xFFFFFFF;
+                        result = (result ^ ((result & 0xF0000000) >> 24)) & 0x0FFFFFFF;
                 }
             }
 

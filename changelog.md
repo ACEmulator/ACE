@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-08-11
+[OptimShi]
+* Fixed bug with the components in spells that had extended characters (>7bit) in their name or description.
+
 ### 2017-08-10
 [Ripley]
 * Minor changes to Book weenie.

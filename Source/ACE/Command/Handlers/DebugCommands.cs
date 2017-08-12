@@ -875,8 +875,10 @@ namespace ACE.Command.Handlers
             }
 
             DatLoader.FileTypes.SpellComponentsTable comps = DatLoader.FileTypes.SpellComponentsTable.ReadFromDat();
-
+            DatLoader.FileTypes.SpellTable spellTable = DatLoader.FileTypes.SpellTable.ReadFromDat();
+            string spellName = spellTable.Spells[spellid].Name;
             System.Collections.Generic.List<uint> formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(spellid, parameters[0]);
+            Console.WriteLine("Formula for " + spellName);
             for (int i = 0; i < formula.Count; i++)
             {
                 Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
