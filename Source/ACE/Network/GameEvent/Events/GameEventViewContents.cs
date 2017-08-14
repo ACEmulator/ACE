@@ -1,13 +1,27 @@
-﻿namespace ACE.Network.GameEvent.Events
+﻿using ACE.Entity;
+using ACE.Entity.Enum;
+
+namespace ACE.Network.GameEvent.Events
 {
+    using System.Diagnostics;
+
     public class GameEventViewContents : GameEventMessage
     {
-        public GameEventViewContents(Session session, uint objectId)
+        public GameEventViewContents(Session session, AceObject container)
             : base(GameEventType.ViewContents, GameMessageGroup.Group09, session)
         {
-            // TODO: build this out with container contents list.    Stubbing for now.   Og II
-            Writer.Write(objectId);
-            Writer.Write(0u);
+            Writer.Write(container.AceObjectId);
+
+            Writer.Write((uint)container.Inventory.Count);
+            foreach (AceObject inv in container.Inventory.Values)
+            {
+                Writer.Write(inv.AceObjectId);
+                Debug.Assert(inv.WeenieType != null, "container.WeenieType != null");
+                if ((WeenieType)inv.WeenieType == WeenieType.Container)
+                    Writer.Write((uint)ContainerType.Container);
+                else
+                    Writer.Write((uint)ContainerType.NonContainer);
+            }
         }
     }
 }

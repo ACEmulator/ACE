@@ -6,11 +6,10 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using ACE.Database;
-using ACE.Network.Enum;
 using ACE.DatLoader.FileTypes;
 using ACE.Factories;
-using System.Collections.Generic;
 using ACE.Entity.Enum.Properties;
+using ACE.Network.Enum;
 using log4net;
 
 namespace ACE.Command.Handlers
@@ -443,7 +442,7 @@ namespace ACE.Command.Handlers
         public static void HandleMRT(Session session, params string[] parameters)
         {
             // @mrt - Toggles the ability to bypass housing boundaries.
-            session.Player.HandleMRT();        
+            session.Player.HandleMRT();
         }
 
         // limbo [on / off]
@@ -1023,6 +1022,7 @@ namespace ACE.Command.Handlers
 
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
             loot.ContainerId = session.Player.Guid.Full;
+            loot.Placement = 0;
             session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
             session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),

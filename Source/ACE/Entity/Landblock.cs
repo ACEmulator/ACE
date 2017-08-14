@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using ACE.Entity.Events;
 using ACE.Managers;
 using log4net;
@@ -776,7 +777,8 @@ namespace ACE.Entity
         /// <param name="chain"></param>
         /// <param name="wo"></param>
         /// <param name="container"></param>
-        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container)
+        /// <param name="placeent"></param>
+        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container, uint placeent = 0)
         {
             // Find owner of wo
             Landblock lb = GetOwner(wo);
@@ -792,14 +794,14 @@ namespace ACE.Entity
             }
         }
 
-        public void ScheduleItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container)
+        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, uint placement = 0)
         {
             // Find owner of wo
             Landblock lb = GetOwner(wo);
 
             if (lb != null)
             {
-                chain.AddAction(lb.motionQueue, () => ItemTransferInternal(wo, container));
+                chain.AddAction(lb.motionQueue, () => ItemTransferInternal(wo, container, placement));
             }
             else
             {
@@ -808,7 +810,7 @@ namespace ACE.Entity
             }
         }
 
-        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container)
+        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container, uint placement = 0)
         {
             WorldObject wo = GetObject(woGuid);
 
@@ -819,14 +821,17 @@ namespace ACE.Entity
 
             RemoveWorldObjectInternal(woGuid, false);
             wo.ContainerId = container.Guid.Full;
-            container.AddToInventory(wo);
+            // We are coming off the world we need to be ready to save.
+            wo.Location = null;
+            wo.InitializeAceObjectForSave();
+            container.AddToInventory(wo, placement);
         }
 
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid)
+        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             Container container = GetObject(containerGuid) as Container;
 
-            ItemTransferContainerInternal(woGuid, container);
+            ItemTransferContainerInternal(woGuid, container, placement);
         }
 
         private void Log(string message)

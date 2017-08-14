@@ -74,21 +74,12 @@ namespace ACE.Factories
         public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
         {
             AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
-
             return CreateWorldObject(aceObject);
         }
 
         public static WorldObject CreateNewWorldObject(uint weenieId)
         {
             WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
-
-            return wo;
-        }
-
-        public static WorldObject CreateNewWorldObject(uint weenieId, ObjectGuid guid)
-        {
-            WorldObject wo = CreateWorldObject(weenieId, guid);
-
             return wo;
         }
     }

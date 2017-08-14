@@ -13,6 +13,8 @@ namespace ACE.Database
 
         void SaveObject(AceObject aceObject, Action<bool> callback);
 
+        void DeleteObject(AceObject aceObject, Action<bool> callback);
+
         void GetCharacters(uint accountId, Action<List<CachedCharacter>> callback);
 
         /// <summary>
@@ -36,7 +38,7 @@ namespace ACE.Database
 
         void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback);
 
-        void RenameCharacter(string currentName, string newName, Action<uint> callback);        
+        void RenameCharacter(string currentName, string newName, Action<uint> callback);
 
         void GetCharacter(uint id, Action<AceCharacter> callback);
     }

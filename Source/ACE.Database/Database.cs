@@ -197,13 +197,16 @@ namespace ACE.Database
                                 for (int i = 0; i < query.Item2.Length; i++)
                                 {
                                     command.Parameters.Add("", query.Item1.Types[i]).Value = query.Item2[i];
-#if DBDEBUG
-                                    foreach (MySqlParameter p in command.Parameters)
-                                    {
-                                        log.Debug(p.Value);
-                                    }
-#endif
                                 }
+#if DBDEBUG
+                                string debugString = "QUERY LINE - " + command.CommandText + " - ";
+                                foreach (MySqlParameter p in command.Parameters)
+                                {
+                                    if (p?.Value != null)
+                                        debugString += p.Value + " ";
+                                }
+                                log.Debug(debugString);
+#endif
                                 command.ExecuteNonQuery();
                             }
                         }
@@ -865,7 +868,8 @@ namespace ACE.Database
 #if DBDEBUG
                         log.Debug(preparedStatement.Query);
 #endif
-                        for (int i = 0; i < preparedStatement.Types.Count; i++) {
+                        for (int i = 0; i < preparedStatement.Types.Count; i++)
+                        {
 #if DBDEBUG
                             log.Debug(preparedStatement.Types[i]);
                             foreach (MySqlParameter p in command.Parameters)

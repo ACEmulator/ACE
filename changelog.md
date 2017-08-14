@@ -1,5 +1,26 @@
 # ACEmulator Change Log
 
+### 2017-08-11
+[Og II]
+
+This is getting so large, I need to stop here - this is a good spot - adds significant functionality but with a few known bugs.
+
+* Inventory will save with the container and load again in the correct positions.
+* Character Description Event is now wired up for inventory.
+* removed containers copy of aceObject Inventory - just make the list accessible.
+* Updated Clone so it you pass a new guid, it resets all the associated child tables.
+* implemented placement IntProperty 65 used to track slot in Container
+* Created supporting methods to manage pack order
+* Enhanced the debug log message for DBDEBUG
+* Small temp fix to stutter when attempting to shift walk or shift jump. We still need to really understand autonomous
+* Created new view vw_ace_inventory_object to expose ability to pull by container.
+* general clean up comments and whitespace
+* Inventory loading - working
+TODO.
+1 Add in capacity checks
+2 bug still in picking up items off the ground and saving to database.
+3 bug with reloaded items saved in a secondary side pack.
+
 ### 2017-08-10
 [Ripley]
 * Minor changes to Book weenie.
@@ -35,16 +56,16 @@
 
 ### 2017-07-30
 [Og II]
-* Added spellbar management and persistance.   This continues the work for learning and persisting spells.   
+* Added spell bar management and persistence.   This continues the work for learning and persisting spells.   
 * Cleaned up some of the enum duplication in GameEventPlayerDescription.cs
-* Added some debug code around universial motion.
+* Added some debug code around universal motion.
 * Added some debug asserts in PlayerDescription 
 * To test - use @learnspell to get some spells in your spell book if you do not have any.   They will persist with your character. 
 * You can also unlearn them and they will be removed.
 * Now, drag your spells into any configuration in your spell bars you like.   You can add them, remove them or reorder them.
 * They will be saved on our periodic save, or when you log out or you can force a save with the debug command @save-now.
-* Added table to persist spellbar configuration.
-* That's all for this PR.
+* Added table to persist spell bar configuration.
+* That's all for this PR.   
 
 ### 2017-07-29
 [Ripley]
