@@ -112,12 +112,12 @@ namespace ACE.Network.GameAction.Actions
             teleportTimestamp = message.Payload.ReadUInt16();
             forcePositionTimestamp = message.Payload.ReadUInt16();
             message.Payload.ReadByte();
-
-            session.Player.RequestUpdatePosition(position);
-
             // FIXME(ddevec): If speed values in the motion need to be updated by the player, this will likely need to be adjusted
             // Send the motion to the player
+
             session.Player.RequestUpdateMotion(currentHoldkey, md, commands);
+
+            session.Player.RequestUpdatePosition(position);
         }
     }
 }

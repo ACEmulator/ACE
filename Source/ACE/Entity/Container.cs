@@ -1,8 +1,11 @@
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
-using ACE.Network.Enum;
 using log4net;
+using ACE.Entity.Actions;
+using ACE.Factories;
+using ACE.Network;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -10,25 +13,13 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly Dictionary<ObjectGuid, WorldObject> inventory = new Dictionary<ObjectGuid, WorldObject>();
-
         public override ushort? Burden
         {
             // FIXME : this is a temp fix, it works, but we need to refactor burden correctly.   It should only be
             // persisted when burden is actually changed ie via application of salvage.   All burden for containers should be a sum of
             // burden.  For example a pack is 65 bu.   It should always be 65 bu empty or full.   However we should report burden as below calculation
             // base burden + burden of contents as calculation. Og II
-            get { return (ushort?)(base.Burden  + UpdateBurden()) ?? (ushort?)0; }
-        }
-
-        public Container(ItemType type, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(guid)
-        {
-            Name = name;
-            DescriptionFlags = descriptionFlag;
-            WeenieFlags = weenieFlag;
-            Location = position;
-            WeenieClassId = weenieClassId;
+            get { return (ushort?)(base.Burden + UpdateBurden()) ?? (ushort?)0; }
         }
 
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
@@ -46,52 +37,90 @@ namespace ACE.Entity
         {
         }
 
-        public Container(AceObject aceObject, ObjectGuid guid)
-            : base(guid, aceObject)
+        public void SendInventory(Session session)
         {
+            foreach (AceObject invItem in Inventory.Values)
+            {
+                WorldObject inv = WorldObjectFactory.CreateWorldObject(invItem);
+                session.Network.EnqueueSend(new GameMessageCreateObject(inv));
+                // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+                foreach (AceObject itemsInContainer in invItem.Inventory.Values)
+                {
+                    WorldObject contItem = WorldObjectFactory.CreateWorldObject(itemsInContainer);
+                    session.Network.EnqueueSend(new GameMessageCreateObject(contItem));
+                }
+            }
         }
 
         // Inventory Management Functions
-        public virtual void AddToInventory(WorldObject inventoryItem)
+        public virtual void AddToInventory(WorldObject inventoryItem, uint placement = 0)
         {
-            if (!inventory.ContainsKey(inventoryItem.Guid))
+            ActionChain actionChain = new ActionChain();
+            actionChain.AddAction(this, () =>
             {
-                inventory.Add(inventoryItem.Guid, inventoryItem);
-                Burden = UpdateBurden();
-            }
+                if (Inventory.ContainsKey(inventoryItem.Guid))
+                {
+                    // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
+                    if (inventoryItem.UseBackpackSlot)
+                        Inventory.Where(i => Inventory[inventoryItem.Guid].Placement != null &&
+                                             i.Value.Placement > (uint)Inventory[inventoryItem.Guid].Placement &&
+                                             i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement--);
+                    else
+                        Inventory.Where(i => Inventory[inventoryItem.Guid].Placement != null &&
+                                             i.Value.Placement > (uint)Inventory[inventoryItem.Guid].Placement &&
+                                             !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement--);
+
+                    Inventory.Remove(inventoryItem.Guid);
+                }
+                // If not going on the very end (next open slot), make a hole.
+                if (inventoryItem.UseBackpackSlot)
+                    Inventory.Where(i => i.Value.Placement >= placement &&
+                                         i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
+                else
+                    Inventory.Where(i => i.Value.Placement >= placement &&
+                     !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
+
+                inventoryItem.Placement = placement;
+                inventoryItem.Location = null;
+                AceObject aceO = inventoryItem.SnapShotOfAceObject();
+                Inventory.Add(inventoryItem.Guid, aceO);
+            });
+            actionChain.EnqueueChain();
         }
 
         public bool HasItem(ObjectGuid inventoryItemGuid, bool includeSubContainers = true)
         {
             if (!includeSubContainers)
-                return inventory.ContainsKey(inventoryItemGuid);
+                return Inventory.ContainsKey(inventoryItemGuid);
 
-            var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
-            return containers.Any(cnt => ((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid));
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
+            return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(inventoryItemGuid));
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
-            if (inventory.ContainsKey(inventoryItemGuid))
+            if (Inventory.ContainsKey(inventoryItemGuid))
             {
-                inventory.Remove(inventoryItemGuid);
+                Inventory.Where(i =>
+                    {
+                        var placement = Inventory[inventoryItemGuid].Placement;
+                        return placement != null && i.Value.Placement > (uint)placement;
+                    }).ToList().ForEach(i => i.Value.Placement--);
+                Inventory.Remove(inventoryItemGuid);
                 Burden = UpdateBurden();
             }
             else
             {
                 // Ok maybe it is inventory in one of our packs
-                var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
-
-                foreach (var cnt in containers)
-                {
-                    if (((Container)cnt.Value).inventory.ContainsKey(inventoryItemGuid))
+                var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
+                containers.ForEach(x => Inventory.Where(i =>
                     {
-                        ((Container)cnt.Value).inventory.Remove(inventoryItemGuid);
-                        // update pack burden
-                        ((Container)cnt.Value).Burden = ((Container)cnt.Value).UpdateBurden();
-                        break;
-                    }
-                }
+                        var placement = Inventory[i.Key].Placement;
+                        return placement != null && i.Value.Placement > (uint)placement;
+                    }).ToList().ForEach(i => i.Value.Placement--));
+                containers.ForEach(i => Inventory.Remove(i.Key));
                 Burden = UpdateBurden();
             }
         }
@@ -99,10 +128,6 @@ namespace ACE.Entity
         public ushort UpdateBurden()
         {
             ushort calculatedBurden = 0;
-            foreach (KeyValuePair<ObjectGuid, WorldObject> entry in inventory)
-            {
-                calculatedBurden += entry.Value.Burden ?? 0;
-            }
             return calculatedBurden;
         }
 
@@ -129,26 +154,19 @@ namespace ACE.Entity
             }
         }
 
-        public virtual List<KeyValuePair<ObjectGuid, WorldObject>> GetCurrentlyWieldedItems()
+        public virtual List<KeyValuePair<ObjectGuid, AceObject>> GetCurrentlyWieldedItems()
         {
-            return inventory.Where(wo => wo.Value.WielderId != null && wo.Value.CurrentWieldedLocation < EquipMask.WristWearLeft).ToList();
+            return Inventory.Where(ao => ao.Value.WielderIID != null && ao.Value.CurrentWieldedLocation < (uint)EquipMask.WristWearLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
-            var containers = inventory.Where(wo => wo.Value.ItemCapacity > 0).ToList();
+            if (Inventory.ContainsKey(objectGuid))
+                return WorldObjectFactory.CreateWorldObject(Inventory[objectGuid]);
 
-            if (inventory.ContainsKey(objectGuid))
-                return inventory[objectGuid];
-            foreach (var cnt in containers)
-            {
-                if (((Container)cnt.Value).inventory.ContainsKey(objectGuid))
-                    return ((Container)cnt.Value).inventory[objectGuid];
-            }
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
 
-            if (inventory.ContainsKey(objectGuid))
-                return inventory[objectGuid];
-            return null;
+            return (from cnt in containers where cnt.Value.Inventory.ContainsKey(objectGuid) select WorldObjectFactory.CreateWorldObject(cnt.Value.Inventory[objectGuid])).FirstOrDefault();
         }
     }
 }

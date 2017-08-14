@@ -15,7 +15,6 @@ using log4net;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -46,6 +45,11 @@ namespace ACE.Entity
         public List<AceObjectPropertiesInt> PropertiesInt
         {
             get { return AceObject.IntProperties; }
+        }
+
+        protected Dictionary<ObjectGuid, AceObject> Inventory
+        {
+            get { return AceObject.Inventory; }
         }
 
         public List<AceObjectPropertiesInt64> PropertiesInt64
@@ -437,6 +441,12 @@ namespace ACE.Entity
         {
             get { return AceObject.ContainerIID; }
             set { AceObject.ContainerIID = value; }
+        }
+
+        public uint? Placement
+        {
+            get { return AceObject.Placement; }
+            set { AceObject.Placement = value; }
         }
 
         public uint? WielderId
@@ -879,6 +889,12 @@ namespace ACE.Entity
                 AceObject.RequiresBackpackSlot = value;
             }
         }
+
+        public bool UseBackpackSlot
+        {
+            get { return AceObject.UseBackpackSlot; }
+        }
+
         ////Retained               = 0x01000000,
         public bool Retained
         {
@@ -1531,7 +1547,7 @@ namespace ACE.Entity
 
         protected WorldObject(ObjectGuid guid)
         {
-            AceObject = new AceObject();
+            AceObject = new AceObject { AceObjectId = guid.Full };
             Guid = guid;
 
             Sequences = new SequenceManager();
@@ -1551,7 +1567,8 @@ namespace ACE.Entity
                 : this(new ObjectGuid(aceObject.AceObjectId))
         {
             AceObject = aceObject;
-
+            SetWeenieHeaderFlag();
+            SetWeenieHeaderFlag2();
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
             RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
@@ -1595,20 +1612,21 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQx;
 
             inventoryItem.ContainerId = null;
+            inventoryItem.Placement = null;
             inventoryItem.WielderId = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
             inventoryItem.AnimationFrame = 0x65;
-            // inventoryItem.WeenieFlags = inventoryItem.SetWeenieHeaderFlag(); Leaving here for just a bit Og II
         }
 
-        internal void SetInventoryForOffWorld(WorldObject inventoryItem)
+        internal void SetInventoryForContainer(WorldObject inventoryItem, uint placement)
         {
             if (inventoryItem.Location != null)
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             // TODO: Create enums for this.
             inventoryItem.AnimationFrame = 1;
+            inventoryItem.Placement = placement;
             inventoryItem.Location = null;
         }
 
@@ -2488,6 +2506,16 @@ namespace ACE.Entity
         public AceObject NewAceObjectFromCopy()
         {
             return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
+        }
+
+        public AceObject SnapShotOfAceObject()
+        {
+            return (AceObject)AceObject.Clone();
+        }
+
+        public void InitializeAceObjectForSave()
+        {
+            AceObject.SetDirtyFlags();
         }
 
         /// <summary>

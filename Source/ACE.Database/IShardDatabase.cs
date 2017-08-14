@@ -34,5 +34,7 @@ namespace ACE.Database
         AceCharacter GetCharacter(uint id);
 
         bool SaveObject(AceObject aceObject);
+
+        bool DeleteObject(AceObject aceObject);
     }
 }

@@ -39,6 +39,7 @@ namespace ACE.Database
             DeleteAceObject,
             GetAceObject,
             UpdateAceObject,
+            GetAceObjectsByContainerId,
 
             GetCharacters,
             IsCharacterNameAvailable,
@@ -138,6 +139,8 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesString, typeof(AceObjectPropertiesString), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesIid, typeof(AceObjectPropertiesInstanceId), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
+
+            ConstructStatement(ShardPreparedStatement.GetAceObjectsByContainerId, typeof(CachedInventoryObject), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
@@ -284,6 +287,13 @@ namespace ACE.Database
             return objects;
         }
 
+        public Dictionary<ObjectGuid, AceObject> GetInventoryByContainerId(uint containerId)
+        {
+            var criteria = new Dictionary<string, object> { { "containerId", containerId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedInventoryObject>(ShardPreparedStatement.GetAceObjectsByContainerId, criteria);
+            return objects.ToDictionary(x => new ObjectGuid(x.AceObjectId), x => GetObject(x.AceObjectId));
+        }
+
         public AceCharacter GetCharacter(uint id)
         {
             AceCharacter character = new AceCharacter(id);
@@ -298,7 +308,7 @@ namespace ACE.Database
 
         public AceObject GetObject(uint aceObjectId)
         {
-            AceObject aceObject = new AceObject(aceObjectId);
+            AceObject aceObject = GetAceObject(aceObjectId);
             LoadIntoObject(aceObject);
             return aceObject;
         }
@@ -308,7 +318,7 @@ namespace ACE.Database
             // this flag determines when the subsequentnt calls to "save" trigger an insert or an update
             aceObject.HasEverBeenSavedToDatabase = true;
 
-            // TODO: still to implement - load spells, friends, allegiance info, spell comps, spell bars
+            // TODO: still to implement - load spells, friends, allegiance info, spell comps
             aceObject.IntProperties = GetAceObjectPropertiesInt(aceObject.AceObjectId);
             aceObject.Int64Properties = GetAceObjectPropertiesBigInt(aceObject.AceObjectId);
             aceObject.BoolProperties = GetAceObjectPropertiesBool(aceObject.AceObjectId);
@@ -329,6 +339,13 @@ namespace ACE.Database
                 x => new CreatureSkill(aceObject, x));
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
             aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
+            aceObject.Inventory = GetInventoryByContainerId(aceObject.AceObjectId);
+            // Ok now, check to see if we loaded any containers that themselves may have items ... Og II
+            foreach (var invItem in aceObject.Inventory)
+            {
+                if (invItem.Value.WeenieType == (uint)WeenieType.Container)
+                    invItem.Value.Inventory = GetInventoryByContainerId(invItem.Key.Full);
+            }
             aceObject.BookProperties = GetAceObjectPropertiesBook(aceObject.AceObjectId).ToDictionary(x => x.Page);
         }
 
@@ -512,7 +529,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public AceObject GetWorldObject(uint objId)
+        public AceObject GetAceObject(uint objId)
         {
             AceObject ret = new AceObject();
             var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
@@ -539,7 +556,7 @@ namespace ACE.Database
             List<AceObject> ret = new List<AceObject>();
             objects.ForEach(cwo =>
             {
-                var o = GetWorldObject(cwo.AceObjectId);
+                var o = GetAceObject(cwo.AceObjectId);
                 o.DataIdProperties = GetAceObjectPropertiesDid(o.AceObjectId);
                 o.InstanceIdProperties = GetAceObjectPropertiesIid(o.AceObjectId);
                 o.IntProperties = GetAceObjectPropertiesInt(o.AceObjectId);
@@ -574,6 +591,47 @@ namespace ACE.Database
 
             SaveObjectInternal(transaction, aceObject);
 
+            // Do we have any inventory to save - if not, we are done here?
+            if (aceObject.Inventory.Count <= 0)
+                return transaction.Commit().Result;
+
+            foreach (AceObject invItem in aceObject.Inventory.Values)
+            {
+                SaveObjectInternal(transaction, invItem);
+                // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+                foreach (AceObject contInvItem in invItem.Inventory.Values)
+                {
+                    SaveObjectInternal(transaction, contInvItem);
+                }
+            }
+
+            return transaction.Commit().Result;
+        }
+
+        public bool DeleteObject(AceObject aceObject)
+        {
+            DatabaseTransaction transaction = BeginTransaction();
+
+            DeleteObjectInternal(transaction, aceObject);
+
+            // Do we have any  - if not, we are done here?
+            if (aceObject.Inventory.Count <= 0)
+                return transaction.Commit().Result;
+
+            foreach (AceObject invItem in aceObject.Inventory.Values)
+            {
+                DeleteObjectInternal(transaction, invItem);
+                // Was the item I just deleted a container?   If so, we need to delete the items in the container as well. Og II
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+                foreach (AceObject contInvItem in invItem.Inventory.Values)
+                {
+                    DeleteObjectInternal(transaction, contInvItem);
+                }
+            }
+
             return transaction.Commit().Result;
         }
 
@@ -599,6 +657,8 @@ namespace ACE.Database
             DeleteAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId);
             DeleteAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId);
             DeleteAceObjectPropertiesSkill(transaction, aceObject.AceObjectId);
+            DeleteAceObjectPropertiesSpells(transaction, aceObject.AceObjectId);
+            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
 
             DeleteAceObjectBase(transaction, aceObject);
 

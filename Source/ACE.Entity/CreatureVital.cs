@@ -173,6 +173,12 @@ namespace ACE.Entity
             _backer.HasEverBeenSavedToDatabase = true;
         }
 
+        public void SetDirtyFlags()
+        {
+            _backer.IsDirty = true;
+            _backer.HasEverBeenSavedToDatabase = false;
+        }
+
         public object Clone()
         {
             return new CreatureVital(creature, (AceObjectPropertiesAttribute2nd)_backer.Clone());

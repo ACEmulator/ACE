@@ -195,6 +195,16 @@ namespace ACE.Database
             }));
         }
 
+        public void DeleteObject(AceObject aceObject, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.DeleteObject(aceObject);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
         public void GetCurrentId(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>

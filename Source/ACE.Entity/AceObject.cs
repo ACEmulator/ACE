@@ -29,7 +29,7 @@ namespace ACE.Entity
         /// <summary>
         /// flag to indicate whether or not this instance came from the database
         /// or was created by the game engine.  use case: when calling "SaveObject"
-        /// in the database, we need to know whether to insert or update.  There's 
+        /// in the database, we need to know whether to insert or update.  There's
         /// really no other way to tell at present.
         /// </summary>
         public bool HasEverBeenSavedToDatabase { get; set; } = false;
@@ -349,6 +349,15 @@ namespace ACE.Entity
         {
             get { return GetInstanceIdProperty(PropertyInstanceId.Container); }
             set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
+        }
+
+        /// <summary>
+        /// If in a container, then what slot am I currently in.
+        /// </summary>
+        public uint? Placement
+        {
+            get { return GetIntProperty(PropertyInt.Placement); }
+            set { SetIntProperty(PropertyInt.Placement, value); }
         }
 
         public uint? WielderIID
@@ -1217,6 +1226,12 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.RequiresBackpackSlot, value); }
         }
 
+        public bool UseBackpackSlot
+        {
+            get { return (GetBoolProperty(PropertyBool.RequiresBackpackSlot) ?? false) ||
+                          GetIntProperty(PropertyInt.WeenieType) == (uint)Enum.WeenieType.Container; }
+        }
+
         public uint? ItemCurMana
         {
             get { return GetIntProperty(PropertyInt.ItemCurMana); }
@@ -1281,6 +1296,7 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.AppraisalMaxPages); }
             set { SetIntProperty(PropertyInt.AppraisalMaxPages, value); }
         }
+#endregion
 
         // TODO: This might be wrong place to store the data being stored here.
         public uint? AvailableCharacter
@@ -1288,9 +1304,8 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.AvailableCharacter); }
             set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
         }
-        #endregion
 
-        #region Positions  
+        #region Positions
         public Position Location
         {
             get { return GetPosition(PositionType.Location); }
@@ -1566,13 +1581,19 @@ namespace ACE.Entity
 
         private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value)
         {
+            // FIXME: It seems like every set gets called twice.
+            // It is allowing us to save a key value pair with a null value Og II
             if (dict.ContainsKey(key))
             {
-                dict[key] = value;
+                if (value != null)
+                    dict[key] = value;
+                else
+                    dict.Remove(key);
             }
             else
             {
-                dict.Add(key, value);
+                if (value != null)
+                    dict.Add(key, value);
             }
         }
 
@@ -1793,6 +1814,8 @@ namespace ACE.Entity
 
         public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars { get; set; } = new List<AceObjectPropertiesSpellBarPositions>();
 
+        public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         // uint references the page
@@ -1828,35 +1851,33 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            AceObject ret = new AceObject();
-            ret.AceObjectId = AceObjectId;
-
-            ret.WeenieClassId = WeenieClassId;
-            ret.AceObjectDescriptionFlags = AceObjectDescriptionFlags;
-            ret.PhysicsDescriptionFlag = PhysicsDescriptionFlag;
-            ret.WeenieHeaderFlags = WeenieHeaderFlags;
-            ret.HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase;
-
-            // Then clone our properties
-            ret.PaletteOverrides = CloneList(PaletteOverrides);
-            ret.TextureOverrides = CloneList(TextureOverrides);
-            ret.AnimationOverrides = CloneList(AnimationOverrides);
-            ret.IntProperties = CloneList(IntProperties);
-            ret.Int64Properties = CloneList(Int64Properties);
-            ret.DoubleProperties = CloneList(DoubleProperties);
-            ret.BoolProperties = CloneList(BoolProperties);
-            ret.DataIdProperties = CloneList(DataIdProperties);
-            ret.InstanceIdProperties = CloneList(InstanceIdProperties);
-            ret.StringProperties = CloneList(StringProperties);
-            ret.GeneratorLinks = CloneList(GeneratorLinks);
-            ret.AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes);
-            ret.AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd);
-            ret.AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills);
-            ret.AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions);
-            ret.SpellIdProperties = CloneList(SpellIdProperties);
-            ret.SpellsInSpellBars = CloneList(SpellsInSpellBars);
-            ret.BookProperties = CloneDict(BookProperties);
-
+            AceObject ret = new AceObject
+            {
+                AceObjectId = AceObjectId,
+                WeenieClassId = WeenieClassId,
+                AceObjectDescriptionFlags = AceObjectDescriptionFlags,
+                PhysicsDescriptionFlag = PhysicsDescriptionFlag,
+                WeenieHeaderFlags = WeenieHeaderFlags,
+                HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase,
+                PaletteOverrides = CloneList(PaletteOverrides),
+                TextureOverrides = CloneList(TextureOverrides),
+                AnimationOverrides = CloneList(AnimationOverrides),
+                IntProperties = CloneList(IntProperties),
+                Int64Properties = CloneList(Int64Properties),
+                DoubleProperties = CloneList(DoubleProperties),
+                BoolProperties = CloneList(BoolProperties),
+                DataIdProperties = CloneList(DataIdProperties),
+                InstanceIdProperties = CloneList(InstanceIdProperties),
+                StringProperties = CloneList(StringProperties),
+                GeneratorLinks = CloneList(GeneratorLinks),
+                AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
+                AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
+                AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
+                AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
+                SpellIdProperties = CloneList(SpellIdProperties),
+                SpellsInSpellBars = CloneList(SpellsInSpellBars),
+                Inventory = CloneDict(Inventory),
+            };
             return ret;
         }
 
@@ -1870,8 +1891,7 @@ namespace ACE.Entity
             AceObject ret = (AceObject)Clone();
             ret.AceObjectId = guid;
             // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
-            ret.HasEverBeenSavedToDatabase = false;
-            ret.IsDirty = true;
+            ret.SetDirtyFlags();
 
             ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
             ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
@@ -1882,34 +1902,55 @@ namespace ACE.Entity
             ret.BoolProperties.ForEach(c => c.AceObjectId = guid);
             ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.StringProperties.ForEach(c => c.AceObjectId = guid);    
+            ret.StringProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
+            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
+            // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
 
             // No need to change Dictionary guids per DDEVEC
             // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
-
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
 
-        public void ClearDirtyFlags()
+       public void ClearDirtyFlags()
         {
-            IsDirty = false;
-            HasEverBeenSavedToDatabase = true;
+            this.IsDirty = false;
+            this.HasEverBeenSavedToDatabase = true;
 
-            AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            IntProperties.ForEach(x => x.ClearDirtyFlags());
-            Int64Properties.ForEach(x => x.ClearDirtyFlags());
-            DoubleProperties.ForEach(x => x.ClearDirtyFlags());
-            BoolProperties.ForEach(x => x.ClearDirtyFlags());
-            DataIdProperties.ForEach(x => x.ClearDirtyFlags());
-            InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
-            StringProperties.ForEach(x => x.ClearDirtyFlags());
-            BookProperties.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            this.IntProperties.ForEach(x => x.ClearDirtyFlags());
+            this.Int64Properties.ForEach(x => x.ClearDirtyFlags());
+            this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
+            this.BoolProperties.ForEach(x => x.ClearDirtyFlags());
+            this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
+            this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
+            this.StringProperties.ForEach(x => x.ClearDirtyFlags());
+            this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
+        }
+
+        public void SetDirtyFlags()
+        {
+            this.IsDirty = true;
+            this.HasEverBeenSavedToDatabase = false;
+
+            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            this.IntProperties.ForEach(x => x.SetDirtyFlags());
+            this.Int64Properties.ForEach(x => x.SetDirtyFlags());
+            this.DoubleProperties.ForEach(x => x.SetDirtyFlags());
+            this.BoolProperties.ForEach(x => x.SetDirtyFlags());
+            this.DataIdProperties.ForEach(x => x.SetDirtyFlags());
+            this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
+            this.StringProperties.ForEach(x => x.SetDirtyFlags());
+            this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
