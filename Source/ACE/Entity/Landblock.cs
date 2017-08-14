@@ -794,7 +794,7 @@ namespace ACE.Entity
             }
         }
 
-        public void ScheduleItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, uint placement = 0)
+        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, uint placement = 0)
         {
             // Find owner of wo
             Landblock lb = GetOwner(wo);
@@ -836,7 +836,7 @@ namespace ACE.Entity
 
         private void Log(string message)
         {
-            log.Debug($"LB {id.Landblock:X}: {message}");
+            log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
         }
     }
 }

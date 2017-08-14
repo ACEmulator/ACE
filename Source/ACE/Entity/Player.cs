@@ -2065,7 +2065,7 @@ namespace ACE.Entity
             // Ask landblock to transfer item
             // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
             if (container.Guid.IsPlayer())
-                CurrentLandblock.ScheduleItemTransfer(pickUpItemChain, itemGuid, container.Guid);
+                CurrentLandblock.QueueItemTransfer(pickUpItemChain, itemGuid, container.Guid);
             else
                 CurrentLandblock.ScheduleItemTransferInContainer(pickUpItemChain, itemGuid, (Container)GetInventoryItem(container.Guid));
 

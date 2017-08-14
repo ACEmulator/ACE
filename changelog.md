@@ -39,7 +39,6 @@ TODO.
 ### 2017-08-06
 [Ripley]
 * Added Scroll weenie object.
->>>>>>> 7d22ad27bd89e4462abb1f358c37f0891ea3d9a3
 
 ### 2017-08-02
 [Ripley]
