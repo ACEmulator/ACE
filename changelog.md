@@ -1,10 +1,12 @@
 # ACEmulator Change Log
 
 ### 2017-08-11
+
+[OptimShi]
+* Fixed bug with the components in spells that had extended characters (>7bit) in their name or description.
+
 [Og II]
-
 This is getting so large, I need to stop here - this is a good spot - adds significant functionality but with a few known bugs.
-
 * Inventory will save with the container and load again in the correct positions.
 * Character Description Event is now wired up for inventory.
 * removed containers copy of aceObject Inventory - just make the list accessible.
@@ -16,14 +18,19 @@ This is getting so large, I need to stop here - this is a good spot - adds signi
 * Created new view vw_ace_inventory_object to expose ability to pull by container.
 * general clean up comments and whitespace
 * Inventory loading - working
-TODO.
-1 Add in capacity checks
-2 bug still in picking up items off the ground and saving to database.
-3 bug with reloaded items saved in a secondary side pack.
+TODO:
+* Add in capacity checks
+* bug still in picking up items off the ground and saving to database.
+* bug with reloaded items saved in a secondary side pack.
 
 ### 2017-08-10
 [Ripley]
 * Minor changes to Book weenie.
+
+[OptimShi]
+* Added MotionTable parsing to DatLoader.
+* Added GetSpellFormula() function to SpellTable. Will return component id's based on players account name for any given spell.
+* Fixed some logic issues in the SpellComponentsTable
 
 ### 2017-08-08
 [OptimShi]

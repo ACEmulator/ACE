@@ -883,5 +883,36 @@ namespace ACE.Command.Handlers
         {
             AdminCommands.HandleAdd(session, parameters);
         }
+
+        /// <summary>
+        /// Debug console command to test the GetSpellFormula function.
+        /// </summary>
+        [CommandHandler("getspellformula", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
+        public static void GetSpellFormula(Session session, params string[] parameters)
+        {
+            if (parameters?.Length != 2)
+            {
+                Console.WriteLine("getspellformula <accountname> <spellid>");
+                return;
+            }
+
+            uint spellid;
+            if (!uint.TryParse(parameters[1], out spellid))
+            {
+                Console.WriteLine("getspellformula <accountname> <spellid>");
+                return;
+            }
+
+            DatLoader.FileTypes.SpellComponentsTable comps = DatLoader.FileTypes.SpellComponentsTable.ReadFromDat();
+            DatLoader.FileTypes.SpellTable spellTable = DatLoader.FileTypes.SpellTable.ReadFromDat();
+            string spellName = spellTable.Spells[spellid].Name;
+            System.Collections.Generic.List<uint> formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(spellid, parameters[0]);
+            Console.WriteLine("Formula for " + spellName);
+            for (int i = 0; i < formula.Count; i++)
+            {
+                Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
+            }
+            Console.WriteLine();
+        }
     }
 }

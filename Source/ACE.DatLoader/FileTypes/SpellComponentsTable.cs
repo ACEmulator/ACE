@@ -22,9 +22,10 @@ namespace ACE.DatLoader.FileTypes
                 SpellComponentsTable comps = new SpellComponentsTable();
 
                 comps.FileId = datReader.ReadUInt32();
-                uint unknown = datReader.ReadUInt32();
+                uint numComps = datReader.ReadUInt16(); // Should be 163 or 0xA3
+                datReader.AlignBoundary();
                 // loop through the entire file...
-                while (datReader.Offset < datReader.Buffer.Length)
+                for (uint i = 0; i < numComps; i++)
                 {
                     SpellComponentBase newComp = new SpellComponentBase();
                     uint compId = datReader.ReadUInt32();
@@ -32,6 +33,7 @@ namespace ACE.DatLoader.FileTypes
                     datReader.AlignBoundary();
                     newComp.Category = datReader.ReadUInt32();
                     newComp.Icon = datReader.ReadUInt32();
+                    newComp.Type = datReader.ReadUInt32();
                     newComp.Gesture = datReader.ReadUInt32();
                     newComp.Time = datReader.ReadSingle();
                     newComp.Text = datReader.ReadObfuscatedString();
