@@ -18,6 +18,9 @@ namespace ACE.Entity
         [DbField("authorId", (int)MySqlDbType.UInt32)]
         public uint AuthorId { get; set; } = 0xFFFFFFFF;
 
+        [DbField("ignoreAuthor", (int)MySqlDbType.UInt32)]
+        public uint IgnoreAuthor { get; set; } = 0;
+
         [DbField("pageText", (int)MySqlDbType.VarChar)]
         public string PageText { get; set; }
 
