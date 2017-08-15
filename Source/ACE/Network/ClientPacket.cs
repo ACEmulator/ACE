@@ -10,10 +10,8 @@ namespace ACE.Network
         public BinaryReader Payload { get; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
 
-        public ClientPacket(byte[] data, bool debug = false)
+        public ClientPacket(byte[] data)
         {
-            Direction = (debug ? PacketDirection.Server : PacketDirection.Client);
-
             using (var stream = new MemoryStream(data))
             {
                 using (var reader = new BinaryReader(stream))

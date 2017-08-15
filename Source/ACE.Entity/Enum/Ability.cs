@@ -37,7 +37,7 @@ namespace ACE.Entity.Enum
         // FIXME(ddevec): This will eventually be a formula...
         public static double GetRegenRate(this Ability ability)
         {
-            return ability.GetAttributeOfType<AbilityRegenAttribute>().Rate;
+            return 0;// ability.GetAttributeOfType<AbilityRegenAttribute>().Rate;
         }
     }
 }
