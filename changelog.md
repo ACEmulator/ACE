@@ -1,5 +1,8 @@
 # ACEmulator Change Log
 
+### 2017-08-15
+* Fixed book properties not cloning properly.
+
 ### 2017-08-11
 
 [OptimShi]

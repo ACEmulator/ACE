@@ -1876,6 +1876,7 @@ namespace ACE.Entity
                 AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
                 SpellIdProperties = CloneList(SpellIdProperties),
                 SpellsInSpellBars = CloneList(SpellsInSpellBars),
+                BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
             };
             return ret;
