@@ -8,7 +8,8 @@ namespace ACE.DatLoader.Entity
         public AnimationHookType HookType { get; set; }
         public uint Direction { get; set; }
         private IHook _hook = null;
-        public IHook Hook { get { return _hook; } set { _hook = value; } }
+        public IHook Hook { get { return _hook; } set { _hook = value; } }
+
         public static AnimationHook Read(DatReader datReader)
         {
             AnimationHook h = new AnimationHook();
