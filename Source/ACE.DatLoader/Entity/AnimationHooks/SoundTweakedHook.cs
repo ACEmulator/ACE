@@ -8,10 +8,10 @@ namespace ACE.DatLoader.Entity.AnimationHooks
 {
     public class SoundTweakedHook : IHook
     {
-        public uint SoundID { get; set; }
-        public float Priority { get; set; }
-        public float Probability { get; set; }
-        public float Volume { get; set; }
+        public uint SoundID { get; private set; }
+        public float Priority { get; private set; }
+        public float Probability { get; private set; }
+        public float Volume { get; private set; }
 
         public static SoundTweakedHook ReadHookType(DatReader datReader)
         {

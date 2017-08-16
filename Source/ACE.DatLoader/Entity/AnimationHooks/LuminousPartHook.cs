@@ -2,10 +2,10 @@
 {
     public class LuminousPartHook : IHook
     {
-        public uint Part { get; set; }
-        public float Start { get; set; }
-        public float End { get; set; }
-        public float Time { get; set; }
+        public uint Part { get; private set; }
+        public float Start { get; private set; }
+        public float End { get; private set; }
+        public float Time { get; private set; }
 
         public static LuminousPartHook ReadHookType(DatReader datReader)
         {

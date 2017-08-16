@@ -2,7 +2,7 @@
 {
     public class NoDrawHook : IHook
     {
-        public uint NoDraw { get; set; }
+        public uint NoDraw { get; private set; }
 
         public static NoDrawHook ReadHookType(DatReader datReader)
         {

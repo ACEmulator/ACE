@@ -8,8 +8,8 @@ namespace ACE.DatLoader.Entity.AnimationHooks
 {
     public class CallPESHook : IHook
     {
-        public uint PES { get; set; }
-        public float Pause { get; set; }
+        public uint PES { get; private set; }
+        public float Pause { get; private set; }
 
         public static CallPESHook ReadHookType(DatReader datReader)
         {

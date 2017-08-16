@@ -2,9 +2,9 @@
 {
     public class LuminousHook : IHook
     {
-        public float Start { get; set; }
-        public float End { get; set; }
-        public float Time { get; set; }
+        public float Start { get; private set; }
+        public float End { get; private set; }
+        public float Time { get; private set; }
 
         public static LuminousHook ReadHookType(DatReader datReader)
         {

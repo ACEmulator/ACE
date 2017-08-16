@@ -33,9 +33,7 @@ namespace ACE.DatLoader.Entity
             uint numHooks = datReader.ReadUInt32();
             for (uint i = 0; i < numHooks; i++)
             {
-                AnimationHook ah = new AnimationHook();
-                ah = AnimationHook.Read(datReader);
-                a.Hooks.Add(ah);
+                a.Hooks.Add(AnimationHook.Read(datReader));
             }
 
             return a;

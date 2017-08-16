@@ -2,7 +2,7 @@
 {
     public class SoundTableHook : IHook
     {
-        public uint SoundType { get; set; }
+        public uint SoundType { get; private set; }
 
         public static SoundTableHook ReadHookType(DatReader datReader)
         {

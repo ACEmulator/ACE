@@ -8,7 +8,7 @@ namespace ACE.DatLoader.Entity.AnimationHooks
 {
     public class DefaultScriptPartHook : IHook
     {
-        public uint PartIndex { get; set; }
+        public uint PartIndex { get; private set; }
 
         public static DefaultScriptPartHook ReadHookType(DatReader datReader)
         {

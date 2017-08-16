@@ -2,7 +2,7 @@
 {
     public class ReplaceObjectHook : IHook
     {
-        public AnimationPartChange APChange { get; set; }
+        public AnimationPartChange APChange { get; private set; }
 
         public static ReplaceObjectHook ReadHookType(DatReader datReader)
         {

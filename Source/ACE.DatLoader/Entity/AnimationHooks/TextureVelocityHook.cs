@@ -8,8 +8,8 @@ namespace ACE.DatLoader.Entity.AnimationHooks
 {
     public class TextureVelocityHook : IHook
     {
-        public float USpeed { get; set; }
-        public float VSpeed { get; set; }
+        public float USpeed { get; private set; }
+        public float VSpeed { get; private set; }
 
         public static TextureVelocityHook ReadHookType(DatReader datReader)
         {

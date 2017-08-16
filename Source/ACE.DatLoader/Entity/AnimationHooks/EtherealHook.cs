@@ -2,7 +2,7 @@
 {
     public class EtherealHook : IHook
     {
-        public int Ethereal;
+        public int Ethereal { get; private set; }
 
         public static EtherealHook ReadHookType(DatReader datReader)
         {

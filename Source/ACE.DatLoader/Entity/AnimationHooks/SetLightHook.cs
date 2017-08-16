@@ -8,7 +8,7 @@ namespace ACE.DatLoader.Entity.AnimationHooks
 {
     public class SetLightHook : IHook
     {
-        public int LightsOn { get; set; }
+        public int LightsOn { get; private set; }
 
         public static SetLightHook ReadHookType(DatReader datReader)
         {

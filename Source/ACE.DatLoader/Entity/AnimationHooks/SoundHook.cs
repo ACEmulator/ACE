@@ -2,7 +2,7 @@
 {
     public class SoundHook : IHook
     {
-        public uint Id { get; set; }
+        public uint Id { get; private set; }
 
         public static SoundHook ReadHookType(DatReader datReader)
         {

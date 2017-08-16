@@ -2,7 +2,7 @@
 {
     public class DestroyParticleHook : IHook
     {
-        public uint EmitterId { get; set; }
+        public uint EmitterId { get; private set; }
 
         public static DestroyParticleHook ReadHookType(DatReader datReader)
         {

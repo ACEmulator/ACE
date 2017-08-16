@@ -2,7 +2,7 @@
 {
     public class StopParticleHook : IHook
     {
-        public uint EmitterId { get; set; }
+        public uint EmitterId { get; private set; }
 
         public static StopParticleHook ReadHookType(DatReader datReader)
         {

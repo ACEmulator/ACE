@@ -40,16 +40,8 @@ namespace ACE.DatLoader.FileTypes
                 { 
                     for (uint i = 0; i < a.NumFrames; i++)
                     {
-                        Position p = new Position();
                         // Origin
-                        p.PositionX = datReader.ReadUInt32();
-                        p.PositionY = datReader.ReadUInt32();
-                        p.PositionZ = datReader.ReadUInt32();
-                        p.RotationW = datReader.ReadUInt32();
-                        p.RotationX = datReader.ReadUInt32();
-                        p.RotationY = datReader.ReadUInt32();
-                        p.RotationZ = datReader.ReadUInt32();
-                        a.PosFrames.Add(p);
+                        a.PosFrames.Add(PositionExtensions.ReadPosition(datReader));
                     }
                 }
 

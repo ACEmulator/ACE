@@ -80,6 +80,7 @@
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
     <Compile Include="Entity\MotionData.cs" />
+    <Compile Include="Entity\PositionExtensions.cs" />
     <Compile Include="Entity\RestrictionTable.cs" />
     <Compile Include="Entity\SpellBase.cs" />
     <Compile Include="Entity\SpellComponentBase.cs" />
