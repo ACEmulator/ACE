@@ -1,7 +1,9 @@
 # ACEmulator Change Log
 
 ### 2017-08-15
+[OptimShi]
 * Fixed book properties not cloning properly.
+* Added Animation parsing from the client_portal.dat and all relevant hooks and properties.
 
 ### 2017-08-11
 
