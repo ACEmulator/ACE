@@ -96,6 +96,7 @@
     <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AmmoType.cs" />
+    <Compile Include="Enum\AnimationHookType.cs" />
     <Compile Include="Enum\CharacterOptionDataFlag.cs" />
     <Compile Include="Enum\CombatMode.cs" />
     <Compile Include="Enum\CombatUse.cs" />
