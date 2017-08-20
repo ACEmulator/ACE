@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -66,6 +66,21 @@ namespace ACE.Entity
         public uint Level
         {
             get { return Character.Level; }
+        }
+
+        /// <summary>
+        ///  The fellowship that this player belongs to
+        /// </summary>
+        public Fellowship Fellowship;
+
+        public void CreateFellowship(string fellowshipName, bool shareXP)
+        {
+            this.Fellowship = new Fellowship(this, fellowshipName, shareXP);
+        }
+
+        public void LeaveFellowship()
+        {
+            // todo ?
         }
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }

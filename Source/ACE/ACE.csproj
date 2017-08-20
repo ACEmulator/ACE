@@ -111,6 +111,7 @@
     <Compile Include="Entity\Door.cs" />
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
+    <Compile Include="Entity\Fellowship.cs" />
     <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
@@ -147,12 +148,14 @@
     <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionCreateFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionBookPageData.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionQuitFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMagicRemoveSpellId.cs" />
@@ -235,6 +238,8 @@
     <Compile Include="Network\GameMessages\GameMessageAttribute.cs" />
     <Compile Include="Network\GameMessages\GameMessageOpcode.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageBootAccount.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageFellowshipFullUpdate.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessageFellowshipQuit.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePropertyBool.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSoulEmote.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageObjDescEvent.cs" />
