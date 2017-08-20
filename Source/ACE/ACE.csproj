@@ -155,6 +155,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionAdvocateTeleport.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionBookPageData.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionFellowshipUpdateRequest.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQuitFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
