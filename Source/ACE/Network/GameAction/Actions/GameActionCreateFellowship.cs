@@ -19,7 +19,7 @@ namespace ACE.Network.GameAction.Actions
             var fellowshipName = message.Payload.ReadString16L();
 
             session.Player.CreateFellowship(fellowshipName, true);
-            session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(session, session.Player.Fellowship));            
+            session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(session));            
         }
     }
 }
