@@ -7,5 +7,13 @@
 
         public PacketFragmentHeader Header { get; protected set; }
         public byte[] Data { get; protected set; }
+
+        public int Length
+        {
+            get
+            {
+                return Data.Length + (int)PacketFragmentHeader.HeaderSize;
+            }
+        }
     }
 }

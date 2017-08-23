@@ -10,8 +10,6 @@ namespace ACE.Network
     {
         public BinaryWriter BodyWriter { get; private set; }
 
-        private List<ServerPacketFragment> fragments = new List<ServerPacketFragment>();
-
         private uint issacXor = 0u;
         private bool issacXorSet = false;
         public uint IssacXor
@@ -37,11 +35,6 @@ namespace ACE.Network
             BodyWriter = new BinaryWriter(Data);
         }
 
-        public void AddFragment(ServerPacketFragment fragment)
-        {
-            fragments.Add(fragment);
-        }
-
         public byte[] GetPayload()
         {
             uint headerChecksum = 0u;
@@ -60,7 +53,7 @@ namespace ACE.Network
                         writer.Write(body);
                         bodyChecksum = Hash32.Calculate(body, body.Length);
                     }
-                    foreach (ServerPacketFragment fragment in fragments)
+                    foreach (ServerPacketFragment fragment in Fragments)
                     {
                         fragmentChecksum += fragment.GetPayload(writer);
                     }
