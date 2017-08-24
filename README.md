@@ -11,11 +11,12 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 ## Recommended Tools
 * SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
 * Hex Editor (Hexplorer or 010 Editor are both good)
-* ACLogView [on Github](https://github.com/tfarley/aclogview)
+* ACLogView [on Github](https://github.com/ACEmulator/aclogview)
 * StyleCop Visual Studio Extension [on visualstudio.com](https://marketplace.visualstudio.com/items?itemName=ChrisDahlberg.StyleCop)
 
 ## Getting Started
 
+* For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"
 * Install MySQL (MariaDB is preferred, but either will work)
   [MySQL minimum required version 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
   [MariaDB minimum required version 10.2+](https://mariadb.org/download/)
