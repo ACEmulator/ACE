@@ -22,8 +22,18 @@ namespace ACE.Entity
             get { return (ushort?)(base.Burden + UpdateBurden()) ?? (ushort?)0; }
         }
 
+        protected Dictionary<ObjectGuid, AceObject> Inventory
+        {
+            get { return AceObject.Inventory; }
+        }
+
+        protected Dictionary<ObjectGuid, AceObject> WieldedItems
+        {
+            get { return AceObject.WieldedItems; }
+        }
+
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-            : base(guid, aceObject)
+            : this(aceObject)
         {
             Name = name;
             DescriptionFlags = descriptionFlag;
@@ -99,7 +109,7 @@ namespace ACE.Entity
             return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(inventoryItemGuid));
         }
 
-        public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
+        public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid, bool remove = true)
         {
             if (Inventory.ContainsKey(inventoryItemGuid))
             {
@@ -108,6 +118,8 @@ namespace ACE.Entity
                         var placement = Inventory[inventoryItemGuid].Placement;
                         return placement != null && i.Value.Placement > (uint)placement;
                     }).ToList().ForEach(i => i.Value.Placement--);
+                if (!remove)
+                    return;
                 Inventory.Remove(inventoryItemGuid);
                 Burden = UpdateBurden();
             }
@@ -120,6 +132,8 @@ namespace ACE.Entity
                         var placement = Inventory[i.Key].Placement;
                         return placement != null && i.Value.Placement > (uint)placement;
                     }).ToList().ForEach(i => i.Value.Placement--));
+                if (!remove)
+                    return;
                 containers.ForEach(i => Inventory.Remove(i.Key));
                 Burden = UpdateBurden();
             }
@@ -136,7 +150,7 @@ namespace ACE.Entity
             // TODO: need to make pack aware - just coding for main pack now.
             ObjectGuid itemGuid = new ObjectGuid(itemId);
             WorldObject inventoryItem = GetInventoryItem(itemGuid);
-            if (inventoryItem.ContainerId != container.Guid.Full)
+            if (inventoryItem.ContainerId != container.Guid.Full && inventoryItem.ContainerId != null)
             {
                 RemoveFromInventory(itemGuid);
                 container.AddToInventory(inventoryItem);

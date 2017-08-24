@@ -1898,7 +1898,13 @@ namespace ACE.Entity
                 // Magic numbers - need to understand and fix.
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
-                inContainerChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageRemoveObject(item)));
+                inContainerChain.AddAction(this, () =>
+                    {
+                        CurrentLandblock.EnqueueBroadcast(
+                            Location,
+                            Landblock.MaxObjectRange,
+                            new GameMessageRemoveObject(item));
+                    });
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
                 item.Placement = placement;
@@ -1912,15 +1918,16 @@ namespace ACE.Entity
                 item.ContainerId = container.Guid.Full;
             }
 
-            inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
-                new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
-                new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
-                new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0)));
+            // if (oldLocation != null && WieldedItems.ContainsKey(oldLocation.Value))
+            //    WieldedItems.Remove(oldLocation.Value);
+            // new GameMessageCreateObject(item), new GameMessageObjDescEvent(this),
+            inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
+                                                                               new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0),
+                                                                               new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder)));
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                                new GameMessageObjDescEvent(this),
-                                                new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                                                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(item),
+                                                                                  new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
+                                                                                  new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return;
             HandleSwitchToPeaceMode(CombatMode);
@@ -2192,6 +2199,7 @@ namespace ACE.Entity
                 {
                     ObjectGuid itemGuid = new ObjectGuid(itemId);
                     WorldObject item = GetInventoryItem(itemGuid);
+
                     if (item != null)
                     {
                         if ((EquipMask)location > EquipMask.FingerWearLeft)
@@ -2254,6 +2262,8 @@ namespace ACE.Entity
                             item.CurrentWieldedLocation = (EquipMask)location;
                         }
                         UpdateAppearance(container, itemId);
+                        // if (WieldedItems.ContainsKey((EquipMask)item.CurrentWieldedLocation))
+                        WieldedItems.Add(item.Guid, item.SnapShotOfAceObject());
                         if ((EquipMask)location == EquipMask.MissileAmmo)
                             Session.Network.EnqueueSend(
                                 new GameEventWieldItem(Session, itemGuid.Full, location),
@@ -2332,6 +2342,7 @@ namespace ACE.Entity
                 });
             wieldChain.EnqueueChain();
         }
+
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();

@@ -47,11 +47,6 @@ namespace ACE.Entity
             get { return AceObject.IntProperties; }
         }
 
-        protected Dictionary<ObjectGuid, AceObject> Inventory
-        {
-            get { return AceObject.Inventory; }
-        }
-
         public List<AceObjectPropertiesInt64> PropertiesInt64
         {
             get { return AceObject.Int64Properties; }

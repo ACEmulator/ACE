@@ -7,7 +7,7 @@ namespace ACE.Entity
     public class AceObjectPropertiesInstanceId : BaseAceProperty, ICloneable
     {
         private uint? _value = 0;
-        
+
         [DbField("iidPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public uint PropertyId { get; set; }
 
@@ -27,7 +27,7 @@ namespace ACE.Entity
                 IsDirty = true;
             }
         }
-        
+
         public object Clone()
         {
             return MemberwiseClone();

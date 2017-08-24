@@ -40,6 +40,7 @@ namespace ACE.Database
             GetAceObject,
             UpdateAceObject,
             GetAceObjectsByContainerId,
+            GetAceObjectsByWielderId,
 
             GetCharacters,
             IsCharacterNameAvailable,
@@ -141,6 +142,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetAceObjectsByContainerId, typeof(CachedInventoryObject), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectsByWielderId, typeof(CachedWieldedObject), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
@@ -294,6 +296,13 @@ namespace ACE.Database
             return objects.ToDictionary(x => new ObjectGuid(x.AceObjectId), x => GetObject(x.AceObjectId));
         }
 
+        public Dictionary<ObjectGuid, AceObject> GetItemsByWielderId(uint wielderId)
+        {
+            var criteria = new Dictionary<string, object> { { "wielderId", wielderId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWieldedObject>(ShardPreparedStatement.GetAceObjectsByWielderId, criteria);
+            return objects.ToDictionary(x => new ObjectGuid(x.AceObjectId), x => GetObject(x.AceObjectId));
+        }
+
         public AceCharacter GetCharacter(uint id)
         {
             AceCharacter character = new AceCharacter(id);
@@ -347,6 +356,7 @@ namespace ACE.Database
                     invItem.Value.Inventory = GetInventoryByContainerId(invItem.Key.Full);
             }
             aceObject.BookProperties = GetAceObjectPropertiesBook(aceObject.AceObjectId).ToDictionary(x => x.Page);
+            aceObject.WieldedItems = GetItemsByWielderId(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
