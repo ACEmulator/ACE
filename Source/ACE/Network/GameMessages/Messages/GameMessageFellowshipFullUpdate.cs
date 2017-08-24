@@ -14,71 +14,56 @@ namespace ACE.Network.GameMessages.Messages
         public GameMessageFellowshipFullUpdate(Session session)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
         {
+            // This is a naive, bare-bones implementation of 0x02BE, FullFellowshipUpdate.
+            // 0x02BE is fairly complicated, so the following code is at least valuable as an example of a valid server response.
+
+            // todo: The current implementation has race conditions,
+            // and there are questions that must be answered before it can be fixed.
+            // We need to figure out who "owns" the fellowship data.
+            // Does everyone get a turn to read from and modify the fellowship data, and if so, how is this managed?
+
+            // Currently, creating and leaving a fellowship is supported.
+            // Any other fellowship function is not yet supported.
+
             Fellowship fellowship = session.Player.Fellowship;
-            ActionChain chain = new ActionChain();
-            chain.AddAction(session.Player, () =>
+
+            Writer.Write(session.Player.Guid.Full);
+            Writer.Write(session.GameEventSequence++);
+            Writer.Write((uint)GameEvent.GameEventType.FellowshipFullUpdate);
+
+            // the current number of fellowship members
+            Writer.Write((UInt16)fellowship.FellowshipMembers.Count);
+
+            // todo: figure out what these two bytes are for
+            Writer.Write((byte)0x10);
+            Writer.Write((byte)0x00);
+
+            // --- FellowInfo ---
+
+            ActionChain fellowChain = new ActionChain();
+            foreach (Player fellow in fellowship.FellowshipMembers)
             {
-                Writer.Write(session.Player.Guid.Full);
-                Writer.Write(session.GameEventSequence++);
-                Writer.Write((uint)GameEvent.GameEventType.FellowshipFullUpdate);
+                // Write data associated with each fellowship member
+                WriteFellow(fellow);
+            }
+            Writer.WriteString16L(fellowship.FellowshipName);
 
-                // the current number of fellowship members
-                Writer.Write((UInt16)fellowship.FellowshipMembers.Count);
+            // guid of fellowship leader
+            Writer.Write(fellowship.FellowshipLeaderGuid);
 
-                // ????
-                Writer.Write((byte)0x10);
-                Writer.Write((byte)0x00);
+            // todo: Does this fellowship share XP?
+            Writer.Write(Convert.ToUInt32(fellowship.ShareXP));
 
-                // --- FellowInfo ---
-                
-                foreach (Player fellow in fellowship.FellowshipMembers)
-                {
-                    if (fellow.Guid.Full != session.Player.Guid.Full)
-                    {
-                        chain.AddAction(fellow, () => { WriteFellow(fellow); });
-                    } else
-                    {
-                        WriteFellow(fellow);
-                    }
-                }
+            // todo: Is this an open fellowship?
+            Writer.Write(Convert.ToUInt32(fellowship.Open));
 
-                Writer.WriteString16L(fellowship.FellowshipName);
+            // todo: fellows departed?
+            Writer.Write(0u);
+            Writer.Write(0u);
 
-                // guid of fellowship leader
-                Writer.Write(fellowship.FellowshipLeaderGuid);
-
-                // todo: xp share?
-                Writer.Write((byte)0x01);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-
-                // todo: open fellow?
-                Writer.Write((byte)0x01);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-
-                // todo: fellows departed?
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-
-                Writer.Write(0u);
-
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x20);
-                Writer.Write((byte)0x00);
-
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x00);
-                Writer.Write((byte)0x20);
-                Writer.Write((byte)0x00);
-            });
-
-            chain.EnqueueChain();
+            // End of meaningful data?
+            Writer.Write((uint)0x00200000);
+            Writer.Write((uint)0x00200000);
         }
 
         public void WriteFellow(Player fellow)
@@ -98,11 +83,8 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write(fellow.Stamina.Current);
             Writer.Write(fellow.Mana.Current);
 
-            // todo: share loot?
-            Writer.Write((byte)0x01);
-            Writer.Write((byte)0x00);
-            Writer.Write((byte)0x00);
-            Writer.Write((byte)0x00);
+            // todo: share loot with this fellow?
+            Writer.Write((uint)0x1);
 
             Writer.WriteString16L(fellow.Name);
         }
