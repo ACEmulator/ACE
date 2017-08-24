@@ -73,14 +73,10 @@ namespace ACE.Entity
         /// </summary>
         public Fellowship Fellowship;
 
+        // todo: Figure out if this is the best place to do this, and whether there are concurrency issues associated with it.
         public void CreateFellowship(string fellowshipName, bool shareXP)
         {
             this.Fellowship = new Fellowship(this, fellowshipName, shareXP);
-        }
-
-        public void LeaveFellowship()
-        {
-            // todo ?
         }
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }

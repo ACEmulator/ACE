@@ -46,15 +46,10 @@ namespace ACE.Network.GameMessages.Messages
                 // Write data associated with each fellowship member
                 WriteFellow(fellow);
             }
+
             Writer.WriteString16L(fellowship.FellowshipName);
-
-            // guid of fellowship leader
             Writer.Write(fellowship.FellowshipLeaderGuid);
-
-            // todo: Does this fellowship share XP?
             Writer.Write(Convert.ToUInt32(fellowship.ShareXP));
-
-            // todo: Is this an open fellowship?
             Writer.Write(Convert.ToUInt32(fellowship.Open));
 
             // todo: fellows departed?
