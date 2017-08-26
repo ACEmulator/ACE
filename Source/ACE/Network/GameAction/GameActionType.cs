@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.GameAction
+namespace ACE.Network.GameAction
 {
     public enum GameActionType
     {
@@ -52,11 +52,11 @@
         Sell                                 = 0x0060,
         TeleToLifestone                      = 0x0063,
         LoginComplete                        = 0x00A1,
-        Create                               = 0x00A2,
-        Quit                                 = 0x00A3,
+        CreateFellowship                     = 0x00A2,
+        QuitFellowship                       = 0x00A3,
         Dismiss                              = 0x00A4,
         Recruit                              = 0x00A5,
-        UpdateRequest                        = 0x00A6,
+        FellowshipUpdateRequest              = 0x00A6,
         BookData                             = 0x00AA,
         BookModifyPage                       = 0x00AB,
         BookAddPage                          = 0x00AC,
