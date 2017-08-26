@@ -1,8 +1,15 @@
 # ACEmulator Change Log
 
+
 ### 2917-08-24
 [rtmruczek]
 * Added support for creating and leaving a Fellowship. The current implementation is racy, but serves as an example for future work on Fellowships.
+
+### 2017-08-16
+[Zegeger]
+* Rewrote packetizer code to fix incorrect multi-fragment messages (basically we shouldn't send optional headers when a single fragment fills the full packet)
+* In general this made the packetizer much cleaner and more organized
+* In the process I added support for premptive tail sending.  Essentially for multifragment packets, the last fragment will likely be much smaller then the full packet size, so it could fit in an earlier message among other fragments.  We see this can occur in production network traces (eg the last index arrives as the first fragment of the message). Previously we did not do this, but now we can.
 
 ### 2017-08-15
 [OptimShi]

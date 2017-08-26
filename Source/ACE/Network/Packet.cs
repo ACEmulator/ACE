@@ -11,7 +11,6 @@ namespace ACE.Network
 
         public PacketHeader Header { get; protected set; }
         public MemoryStream Data { get; protected set; }
-        public PacketDirection Direction { get; protected set; } = PacketDirection.None;
         public List<PacketFragment> Fragments { get; } = new List<PacketFragment>();
     }
 }
