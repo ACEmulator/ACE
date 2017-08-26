@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2917-08-24
+[rtmruczek]
+* Added support for creating and leaving a Fellowship. The current implementation is racy, but serves as an example for future work on Fellowships.
+
 ### 2017-08-15
 [OptimShi]
 * Fixed book properties not cloning properly.
