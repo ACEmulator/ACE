@@ -17,6 +17,6 @@ namespace ACE.Database
 
         uint GetCurrentId(uint min, uint max);
 
-        List<AceObject> GetObjectsByLandblockInstances(ushort landblock);
+        List<AceObject> GetWeenieInstancesByLandblock(ushort landblock);
     }
 }

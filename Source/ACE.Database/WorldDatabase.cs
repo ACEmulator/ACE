@@ -44,7 +44,7 @@ namespace ACE.Database
             GetAceObjectPropertiesAttributes2nd,
             GetAceObjectPropertiesSkills,
             GetAceObjectPropertiesBook,
-            GetLandblockObjectInstances
+            GetWeenieInstancesByLandblock
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -89,7 +89,7 @@ namespace ACE.Database
 
             ConstructMaxQueryStatement(WorldPreparedStatement.GetMaxId, "ace_object", "aceObjectId");
 
-            ConstructGetListStatement(WorldPreparedStatement.GetLandblockObjectInstances, typeof(LandblockObjectInstance), criteria2);
+            ConstructGetListStatement(WorldPreparedStatement.GetWeenieInstancesByLandblock, typeof(WeenieObjectInstance), criteria2);
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -135,10 +135,10 @@ namespace ACE.Database
             return ret;
         }
 
-        public List<AceObject> GetObjectsByLandblockInstances(ushort landblock)
+        public List<AceObject> GetWeenieInstancesByLandblock(ushort landblock)
         {
             var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var instances = ExecuteConstructedGetListStatement<WorldPreparedStatement, LandblockObjectInstance>(WorldPreparedStatement.GetLandblockObjectInstances, criteria);
+            var instances = ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieObjectInstance>(WorldPreparedStatement.GetWeenieInstancesByLandblock, criteria);
             List<AceObject> ret = new List<AceObject>();
             instances.ForEach(instance =>
             {

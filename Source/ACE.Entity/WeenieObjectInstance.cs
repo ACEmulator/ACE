@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_landblock")]
-    public class LandblockObjectInstance
+    public class WeenieObjectInstance
     {
         // not needed to be loaded into object
         // [DbField("instanceId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true)]
