@@ -1886,6 +1886,15 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
+        private void AddToEquipped(ObjectGuid itemGuid)
+        {
+            if (Inventory.ContainsKey(itemGuid))
+            {
+                WieldedItems.Add(itemGuid, Inventory[itemGuid]);
+                Inventory.Remove(itemGuid);
+            }
+        }
+
         private void HandleUnequip(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
@@ -2098,6 +2107,7 @@ namespace ACE.Entity
                     }
                     else
                     {
+                        AddToEquipped(itemGuid);
                         UpdateAppearance(container, itemGuid.Full);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),

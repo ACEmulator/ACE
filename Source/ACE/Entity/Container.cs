@@ -32,6 +32,8 @@ namespace ACE.Entity
             get { return AceObject.WieldedItems; }
         }
 
+        protected Dictionary<EquipMask, WorldObject> WieldedObjects { get; set; }
+
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : this(aceObject)
         {
