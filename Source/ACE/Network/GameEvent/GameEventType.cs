@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.GameEvent
+namespace ACE.Network.GameEvent
 {
     public enum GameEventType
     {
@@ -83,7 +83,7 @@
         AdminQueryPluginResponse               = 0x02B3,
         SalvageOperationsResult                = 0x02B4,
         Tell                                   = 0x02BD,
-        FellowshipFullupdate                   = 0x02BE,
+        FellowshipFullUpdate                   = 0x02BE,
         FellowshipDisband                      = 0x02BF,
         FellowshipUpdate                       = 0x02C0,
         MagicUpdateSpell                       = 0x02C1,
