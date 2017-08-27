@@ -99,7 +99,7 @@ namespace ACE.Entity
         /// <summary>
         /// Table Field - Flags
         /// </summary>
-        // [DbField("weenieHeaderFlags2", (int)MySqlDbType.UInt32)] // this field isn't stored in database
+        [DbField("weenieHeaderFlags2", (int)MySqlDbType.UInt32)]
         public uint WeenieHeaderFlags2
         {
             get { return _weenieHeaderFlags2; }
