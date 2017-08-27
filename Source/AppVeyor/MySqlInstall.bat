@@ -12,9 +12,9 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 
 REM Skipping for now, process too slow.
 REM Download latest ACE-World database, extract and import it
-REM appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.2.0/ACE-World-db-v0.2.0.sql.zip
-REM 7z x ACE-World-db-v0.2.0.sql.zip
-REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-db-v0.2.0.sql
+appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.2.0/ACE-World-db-v0.2.0.sql.zip
+7z x ACE-World-db-v0.2.0.sql.zip
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-db-v0.2.0.sql
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
