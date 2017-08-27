@@ -43,7 +43,8 @@ namespace ACE.Database
             GetAceObjectPropertiesAttributes,
             GetAceObjectPropertiesAttributes2nd,
             GetAceObjectPropertiesSkills,
-            GetAceObjectPropertiesBook
+            GetAceObjectPropertiesBook,
+            GetLandblockObjectInstances
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -87,6 +88,8 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
             ConstructMaxQueryStatement(WorldPreparedStatement.GetMaxId, "ace_object", "aceObjectId");
+
+            ConstructGetListStatement(WorldPreparedStatement.GetLandblockObjectInstances, typeof(LandblockObjectInstance), criteria2);
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -128,6 +131,48 @@ namespace ACE.Database
                 o.AceObjectPropertiesPositions = GetAceObjectPositions(o.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
                 o.BookProperties = GetAceObjectPropertiesBook(o.AceObjectId).ToDictionary(x => x.Page);
                 ret.Add(o);
+            });
+            return ret;
+        }
+
+        public List<AceObject> GetObjectsByLandblockInstances(ushort landblock)
+        {
+            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
+            var instances = ExecuteConstructedGetListStatement<WorldPreparedStatement, LandblockObjectInstance>(WorldPreparedStatement.GetLandblockObjectInstances, criteria);
+            List<AceObject> ret = new List<AceObject>();
+            instances.ForEach(instance =>
+            {
+                // Create a new AceObject from Weenie.
+                AceObject ao = GetWorldObject(instance.WeenieClassId);
+
+                // Load in the object's properties from the weenie.
+                ao.DataIdProperties = GetAceObjectPropertiesDid(ao.AceObjectId);
+                ao.InstanceIdProperties = GetAceObjectPropertiesIid(ao.AceObjectId);
+                ao.IntProperties = GetAceObjectPropertiesInt(ao.AceObjectId);
+                ao.Int64Properties = GetAceObjectPropertiesBigInt(ao.AceObjectId);
+                ao.BoolProperties = GetAceObjectPropertiesBool(ao.AceObjectId);
+                ao.DoubleProperties = GetAceObjectPropertiesDouble(ao.AceObjectId);
+                ao.StringProperties = GetAceObjectPropertiesString(ao.AceObjectId);
+                ao.TextureOverrides = GetAceObjectTextureMaps(ao.AceObjectId);
+                ao.AnimationOverrides = GetAceObjectAnimations(ao.AceObjectId);
+                ao.PaletteOverrides = GetAceObjectPalettes(ao.AceObjectId);
+                ao.SpellIdProperties = GetAceObjectPropertiesSpell(ao.AceObjectId);
+                ao.GeneratorLinks = GetAceObjectGeneratorLinks(ao.AceObjectId);
+                ao.AceObjectPropertiesPositions = GetAceObjectPositions(ao.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+                ao.BookProperties = GetAceObjectPropertiesBook(ao.AceObjectId).ToDictionary(x => x.Page);
+
+                // Set the object's current location for this instance.
+                ao.Location = new Position(instance.LandblockRaw, 
+                    instance.PositionX, instance.PositionY, instance.PositionZ, 
+                    instance.RotationX, instance.RotationY, instance.RotationZ, instance.RotationW);
+
+                // Use the guid recorded by the PCAP.
+                // This step could eventually be removed if we want to let the GuidManager handle assigning guids for static objects, ignoring the recorded guids.
+                string cmsClone = ao.CurrentMotionState; // Make a copy of the CurrentMotionState for cloning
+                ao = (AceObject)ao.Clone(instance.PreassignedGuid); // Clone AceObject and assign the recorded Guid
+                ao.CurrentMotionState = cmsClone; // Restore CurrentMotionState from original weenie
+
+                ret.Add(ao);
             });
             return ret;
         }

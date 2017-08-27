@@ -101,7 +101,7 @@ namespace ACE.Entity
             // TODO: Load portal.dat contents (as/if needed)
             // TODO: Load spawn data
 
-            var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
+            var objects = DatabaseManager.World.GetObjectsByLandblockInstances(this.id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {

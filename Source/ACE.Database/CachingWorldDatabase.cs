@@ -48,6 +48,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetObjectsByLandblock(landblock);
         }
 
+        public List<AceObject> GetObjectsByLandblockInstances(ushort landblock)
+        {
+            return _wrappedDatabase.GetObjectsByLandblockInstances(landblock);
+        }
+
         public List<TeleportLocation> GetPointsOfInterest()
         {
             return _wrappedDatabase.GetPointsOfInterest();
