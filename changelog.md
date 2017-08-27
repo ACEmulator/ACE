@@ -2,6 +2,7 @@
 
 ### 2017-08-27
 [Ripley]
+
 **NOTE: The following changes require ACE-World version 0.2.0 or greater.**
 * Changed Landblock initailization code to use ace_landblock instances.
   This change reduces database size and creation time significantly as well as faciltates easier worldbuilding operations going forward.
