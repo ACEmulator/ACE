@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace ACE.DatLoader.FileTypes
 {
+    /// <summary>
+    /// This is the client_portal.dat file starting with 0x13 -- There is only one of these, which is why REGION_ID is a constant.
+    /// </summary>
     public class RegionDesc
     {
         private const uint REGION_ID = 0x13000000;

@@ -5,7 +5,6 @@
 * Added Region (0x13...) parsing from the client_portal.dat
 * Added Scene (0x12...) parsing from the client_portal.dat
 
-
 ### 2017-08-24
 [rtmruczek]
 * Added support for creating and leaving a Fellowship. The current implementation is racy, but serves as an example for future work on Fellowships.

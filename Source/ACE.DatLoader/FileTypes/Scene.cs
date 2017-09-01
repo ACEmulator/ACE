@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace ACE.DatLoader.FileTypes
 {
+    /// <summary>
+    /// These are client_portal.dat files starting with 0x12. 
+    /// </summary>
     public class Scene
     {
         public uint SceneId { get; set; }
