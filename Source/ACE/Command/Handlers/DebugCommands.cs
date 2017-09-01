@@ -914,5 +914,11 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine();
         }
+
+        [CommandHandler("region", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Reads the RegionDesc file from the client_portal.dat")]
+        public static void Diag(Session session, params string[] parameters)
+        {
+            DatLoader.FileTypes.RegionDesc region = DatLoader.FileTypes.RegionDesc.ReadFromDat();
+        }
     }
 }
