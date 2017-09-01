@@ -8,14 +8,14 @@ namespace ACE.DatLoader.Entity
 {
     public class LandDefs
     {
-        public List<uint> LandHeightTable { get; set; } = new List<uint>();
+        public List<float> LandHeightTable { get; set; } = new List<float>();
 
         public static LandDefs Read(DatReader datReader)
         {
             LandDefs obj = new LandDefs();
             for (int i = 0; i < 256; i++)
             {
-                obj.LandHeightTable.Add(datReader.ReadUInt32());
+                obj.LandHeightTable.Add(datReader.ReadSingle());
             }
             return obj;
         }

@@ -15,7 +15,7 @@ namespace ACE.DatLoader.Entity
         {
             Season obj = new Season();
             obj.StartDate = datReader.ReadUInt32();
-            obj.Name = datReader.ReadPString(2);
+            obj.Name = datReader.ReadPString();
             datReader.AlignBoundary();
             return obj;
         }

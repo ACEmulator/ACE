@@ -9,7 +9,7 @@ namespace ACE.DatLoader.FileTypes
 {
     public class RegionDesc
     {
-        const uint REGION_ID = 0x13000000;
+        private const uint REGION_ID = 0x13000000;
 
         public uint FileId { get; set; }
         public uint BLoaded { get; set; }
@@ -20,6 +20,10 @@ namespace ACE.DatLoader.FileTypes
         public GameTime GameTime { get; set; }
         public uint PNext { get; set; }
         public SkyDesc SkyInfo { get; set; }
+        public SoundDesc SoundInfo { get; set; }
+        public SceneDesc SceneInfo { get; set; }
+        public TerrainDesc TerrainInfo { get; set; }
+        public RegionMisc RegionMisc { get; set; }
 
         public static RegionDesc ReadFromDat()
         {
@@ -36,7 +40,7 @@ namespace ACE.DatLoader.FileTypes
                 region.FileId = datReader.ReadUInt32();
                 region.BLoaded = datReader.ReadUInt32();
                 region.TimeStamp = datReader.ReadUInt32();
-                region.RegionName = datReader.ReadPString(2); // "Dereth"
+                region.RegionName = datReader.ReadPString(); // "Dereth"
                 datReader.AlignBoundary();
                 region.PartsMask = datReader.ReadUInt32();
 
@@ -51,11 +55,19 @@ namespace ACE.DatLoader.FileTypes
                 if ((region.PNext & 0x10) > 0)
                     region.SkyInfo = SkyDesc.Read(datReader);
 
+                if ((region.PNext & 0x01) > 0)
+                    region.SoundInfo = SoundDesc.Read(datReader);
 
+                if ((region.PNext & 0x02) > 0)
+                    region.SceneInfo = SceneDesc.Read(datReader);
+
+                region.TerrainInfo = TerrainDesc.Read(datReader);
+
+                if ((region.PNext & 0x0200) > 0)
+                    region.RegionMisc = RegionMisc.Read(datReader);
 
                 DatManager.PortalDat.FileCache[REGION_ID] = region;
                 return region;
-
             }
         }
     }

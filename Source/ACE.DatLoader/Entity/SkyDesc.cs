@@ -24,6 +24,5 @@ namespace ACE.DatLoader.Entity
 
             return obj;
         }
-
     }
 }

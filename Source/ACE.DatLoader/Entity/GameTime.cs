@@ -24,7 +24,7 @@ namespace ACE.DatLoader.Entity
             obj.ZeroYear = datReader.ReadUInt32();
             obj.DayLength = datReader.ReadUInt32();
             obj.DaysPerYear = datReader.ReadUInt32();
-            obj.YearSpec = datReader.ReadPString(2);
+            obj.YearSpec = datReader.ReadPString();
             datReader.AlignBoundary();
 
             uint numTimesOfDay = datReader.ReadUInt32();
@@ -36,7 +36,7 @@ namespace ACE.DatLoader.Entity
             uint numDaysOfTheWeek = datReader.ReadUInt32();
             for (uint i = 0; i < numDaysOfTheWeek; i++)
             {
-                obj.DaysOfTheWeek.Add(datReader.ReadPString(2));
+                obj.DaysOfTheWeek.Add(datReader.ReadPString());
                 datReader.AlignBoundary();
             }
 
@@ -48,6 +48,5 @@ namespace ACE.DatLoader.Entity
 
             return obj;
         }
-
     }
 }

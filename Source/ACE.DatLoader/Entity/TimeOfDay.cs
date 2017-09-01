@@ -17,7 +17,7 @@ namespace ACE.DatLoader.Entity
             TimeOfDay obj = new TimeOfDay();
             obj.Start = datReader.ReadUInt32();
             obj.IsNight = datReader.ReadUInt32();
-            obj.Name = datReader.ReadPString(2);
+            obj.Name = datReader.ReadPString();
             datReader.AlignBoundary();
             return obj;
         }
