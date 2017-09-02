@@ -48,6 +48,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetObjectsByLandblock(landblock);
         }
 
+        public List<AceObject> GetWeenieInstancesByLandblock(ushort landblock)
+        {
+            return _wrappedDatabase.GetWeenieInstancesByLandblock(landblock);
+        }
+
         public List<TeleportLocation> GetPointsOfInterest()
         {
             return _wrappedDatabase.GetPointsOfInterest();

@@ -1,10 +1,10 @@
 CREATE DATABASE  IF NOT EXISTS `ace_world` /*!40100 DEFAULT CHARACTER SET utf8 */;
 USE `ace_world`;
--- MySQL dump 10.13  Distrib 5.7.12, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.17, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ace_world
 -- ------------------------------------------------------
--- Server version	5.7.17-log
+-- Server version	5.7.19-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -18,6 +18,43 @@ USE `ace_world`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `ace_landblock`
+--
+
+DROP TABLE IF EXISTS `ace_landblock`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_landblock` (
+  `instanceId` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `landblock` int(5) GENERATED ALWAYS AS ((`landblockRaw` >> 16)) VIRTUAL,
+  `weenieClassId` int(10) unsigned NOT NULL,
+  `preassignedGuid` int(10) unsigned DEFAULT NULL,
+  `landblockRaw` int(10) unsigned NOT NULL,
+  `posX` float NOT NULL,
+  `posY` float NOT NULL,
+  `posZ` float NOT NULL,
+  `qW` float NOT NULL,
+  `qX` float NOT NULL,
+  `qY` float NOT NULL,
+  `qZ` float NOT NULL,
+  PRIMARY KEY (`instanceId`),
+  UNIQUE KEY `instanceId_UNIQUE` (`instanceId`),
+  UNIQUE KEY `preassignedGuid_UNIQUE` (`preassignedGuid`),
+  KEY `fk_lb_weenie_idx` (`weenieClassId`),
+  CONSTRAINT `fk_weenie_lb` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ace_landblock`
+--
+
+LOCK TABLES `ace_landblock` WRITE;
+/*!40000 ALTER TABLE `ace_landblock` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_landblock` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `ace_object`
 --
 
@@ -29,6 +66,7 @@ CREATE TABLE `ace_object` (
   `aceObjectDescriptionFlags` int(10) unsigned NOT NULL,
   `weenieClassId` int(10) unsigned NOT NULL,
   `weenieHeaderFlags` int(10) unsigned DEFAULT NULL,
+  `weenieHeaderFlags2` int(10) unsigned DEFAULT NULL,
   `physicsDescriptionFlag` int(10) unsigned DEFAULT NULL,
   `currentMotionState` text,
   PRIMARY KEY (`aceObjectId`),
@@ -97,6 +135,34 @@ CREATE TABLE `ace_object_generator_link` (
 LOCK TABLES `ace_object_generator_link` WRITE;
 /*!40000 ALTER TABLE `ace_object_generator_link` DISABLE KEYS */;
 /*!40000 ALTER TABLE `ace_object_generator_link` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ace_object_inventory`
+--
+
+DROP TABLE IF EXISTS `ace_object_inventory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_object_inventory` (
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
+  `weenieClassId` int(10) unsigned NOT NULL DEFAULT '0',
+  `destinationType` tinyint(5) NOT NULL DEFAULT '0',
+  `palette` tinyint(5) NOT NULL DEFAULT '0',
+  KEY `fk_Inventory_AceObject_idx` (`aceObjectId`),
+  KEY `fk_Inventory_Weenie_idx` (`weenieClassId`),
+  CONSTRAINT `fk_Inventory_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_Inventory_Weenie` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ace_object_inventory`
+--
+
+LOCK TABLES `ace_object_inventory` WRITE;
+/*!40000 ALTER TABLE `ace_object_inventory` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_object_inventory` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -206,6 +272,37 @@ CREATE TABLE `ace_object_properties_bigint` (
 LOCK TABLES `ace_object_properties_bigint` WRITE;
 /*!40000 ALTER TABLE `ace_object_properties_bigint` DISABLE KEYS */;
 /*!40000 ALTER TABLE `ace_object_properties_bigint` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ace_object_properties_book`
+--
+
+DROP TABLE IF EXISTS `ace_object_properties_book`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_object_properties_book` (
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
+  `page` int(10) unsigned NOT NULL DEFAULT '0',
+  `authorName` varchar(255) NOT NULL,
+  `authorAccount` varchar(255) NOT NULL,
+  `authorId` int(10) unsigned NOT NULL DEFAULT '0',
+  `ignoreAuthor` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `pageText` text NOT NULL,
+  PRIMARY KEY (`aceObjectId`,`page`),
+  UNIQUE KEY `ace_object__property_book_id` (`aceObjectId`,`page`),
+  KEY `aceObjectId` (`aceObjectId`),
+  CONSTRAINT `fk_Prop_Book_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ace_object_properties_book`
+--
+
+LOCK TABLES `ace_object_properties_book` WRITE;
+/*!40000 ALTER TABLE `ace_object_properties_book` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_object_properties_book` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -638,4 +735,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-07-10 23:50:40
+-- Dump completed on 2017-08-27 15:45:35

@@ -101,7 +101,11 @@ namespace ACE.Entity
             // TODO: Load portal.dat contents (as/if needed)
             // TODO: Load spawn data
 
-            var objects = DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock);
+            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
+            // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense 
+            //        I don't know for sure however that it does yet. More research on them is required -Ripley
+            objects.AddRange(DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
+
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {

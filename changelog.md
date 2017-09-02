@@ -5,6 +5,15 @@
 * Added Region (0x13...) parsing from the client_portal.dat
 * Added Scene (0x12...) parsing from the client_portal.dat
 
+### 2017-08-27
+[Ripley]
+
+**NOTE: The following changes require ACE-World version 0.2.0 or greater.**
+* Changed Landblock initailization code to use ace_landblock instances.
+  This change reduces database size and creation time significantly as well as faciltates easier worldbuilding operations going forward.
+* Uncommented weenieHeaderFlags2 from AceObject.
+* Rebased Shard and World SQL scripts and removed update scripts.
+
 ### 2017-08-24
 [rtmruczek]
 * Added support for creating and leaving a Fellowship. The current implementation is racy, but serves as an example for future work on Fellowships.
@@ -21,7 +30,6 @@
 * Added Animation parsing from the client_portal.dat and all relevant hooks and properties.
 
 ### 2017-08-11
-
 [OptimShi]
 * Fixed bug with the components in spells that had extended characters (>7bit) in their name or description.
 
