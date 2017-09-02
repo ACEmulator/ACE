@@ -117,9 +117,22 @@ namespace ACE.DatLoader
         /// <summary>
         /// Returns a string as defined by the first byte's length
         /// </summary>
+        public string ReadPStringBase()
+        {
+            int stringlength = ReadByte();
+            byte[] thestring = new byte[stringlength];
+            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
+            Offset += stringlength;
+            return System.Text.Encoding.Default.GetString(thestring);
+        }
+
+        /// <summary>
+        /// Returns a string as defined by the first 2-byte's length
+        /// </summary>
         public string ReadPString()
         {
-            int stringlength = this.ReadByte();
+            int stringlength = this.ReadInt16();
+                        
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;

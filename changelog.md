@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-09-01
+[OptimShi]
+* Added Region (0x13...) parsing from the client_portal.dat
+* Added Scene (0x12...) parsing from the client_portal.dat
+
 ### 2017-08-27
 [Ripley]
 
