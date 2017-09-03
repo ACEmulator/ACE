@@ -108,6 +108,7 @@
     <Compile Include="Enum\CharacterOptions2.cs" />
     <Compile Include="Enum\CoverageMask.cs" />
     <Compile Include="Enum\CreatureType.cs" />
+    <Compile Include="Enum\EmitterType.cs" />
     <Compile Include="Enum\EquipMask.cs" />
     <Compile Include="Enum\IdentifyResponseFlags.cs" />
     <Compile Include="Enum\IdLookupType.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="Enum\MotionStance.cs" />
     <Compile Include="Enum\MovementStateFlag.cs" />
     <Compile Include="Enum\MovementTypes.cs" />
+    <Compile Include="Enum\ParticleType.cs" />
     <Compile Include="Enum\PhysicsDescriptionFlag.cs" />
     <Compile Include="Enum\PlayerKillerStatus.cs" />
     <Compile Include="Enum\PlayScript.cs" />

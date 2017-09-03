@@ -1,7 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-09-03
+[OptimShi]
+* Added Wave (0x0A...) parsing from the client_portal.dat and an export-wave function to save as a playable .wav file.
+* Added GfxObjDegradeInfo (0x11..) parsing from the client_portal.dat 
+* Added CombatManeuverTable (0x30...) parsing from the client_portal.dat 
+* Added ParticleEmitterInfo (0x32...) parsing from the client_portal.dat 
 
-### 2917-08-24
+### 2017-08-24
 [rtmruczek]
 * Added support for creating and leaving a Fellowship. The current implementation is racy, but serves as an example for future work on Fellowships.
 

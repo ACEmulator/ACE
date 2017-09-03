@@ -79,6 +79,8 @@
     <Compile Include="Entity\BuildInfo.cs" />
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
+    <Compile Include="Entity\CombatManeuver.cs" />
+    <Compile Include="Entity\GfxObjInfo.cs" />
     <Compile Include="Entity\MotionData.cs" />
     <Compile Include="Entity\PositionExtensions.cs" />
     <Compile Include="Entity\RestrictionTable.cs" />
@@ -87,6 +89,7 @@
     <Compile Include="Entity\Stab.cs" />
     <Compile Include="FileTypes\Animation.cs" />
     <Compile Include="FileTypes\CLandblockInfo.cs" />
+    <Compile Include="FileTypes\CombatManeuverTable.cs" />
     <Compile Include="FileTypes\EnvCell.cs" />
     <Compile Include="DatDatabaseType.cs" />
     <Compile Include="DatDatabaseTypeAttribute.cs" />
@@ -126,10 +129,12 @@
     <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\MotionTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
+    <Compile Include="FileTypes\ParticleEmitterInfo.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="FileTypes\SpellComponentsTable.cs" />
     <Compile Include="FileTypes\SpellTable.cs" />
     <Compile Include="FileTypes\XpTable.cs" />
+    <Compile Include="FileTypes\GfxObjDegradeInfo.cs" />
     <Compile Include="PortalDatDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

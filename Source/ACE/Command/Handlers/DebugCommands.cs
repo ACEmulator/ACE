@@ -914,5 +914,14 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine();
         }
+
+        /// <summary>
+        /// Debug console command to test the GetSpellFormula function.
+        /// </summary>
+        [CommandHandler("pes", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Combat Maneuver Table")]
+        public static void CMT(Session session, params string[] parameters)
+        {
+            DatLoader.FileTypes.ParticleEmitterInfo cmt = DatLoader.FileTypes.ParticleEmitterInfo.ReadFromDat(0x32000117);
+        }
     }
 }
