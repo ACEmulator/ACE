@@ -115,15 +115,16 @@ namespace ACE.Factories
                 // else spawn the objects directly from this generator
                 else
                 {
-                    WorldObject wo = WorldObjectFactory.CreateWorldObject((uint)generator.ActivationCreateClass);
+                    // TODO: Re-evaluate guid assignment here, is it a bad thing items and creatures are in the same pool? Probably.
+                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)generator.ActivationCreateClass);
 
                     if (wo != null)
                     {
                         wo.Location = pos;
-                        if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
-                            wo.Guid = GuidManager.NewNonStaticGuid();
-                        else
-                            wo.Guid = GuidManager.NewItemGuid();
+                        // if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
+                        //    wo.Guid = GuidManager.NewNonStaticGuid();
+                        // else
+                        //    wo.Guid = GuidManager.NewItemGuid();
                         wo.GeneratorId = generator.AceObjectId;
 
                         results.Add(wo);
