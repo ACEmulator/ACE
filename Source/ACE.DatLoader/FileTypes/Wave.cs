@@ -9,6 +9,8 @@ namespace ACE.DatLoader.FileTypes
     public class Wave
     {
         public uint Id { get; set; }
+        public byte[] Header { get; set; }
+        public byte[] Data { get; set; }
 
         public static Wave ReadFromDat(uint fileId)
         {
@@ -24,6 +26,12 @@ namespace ACE.DatLoader.FileTypes
 
                 obj.Id = datReader.ReadUInt32();
 
+                int headerSize = datReader.ReadInt32() - 2; // not sure why this is required, it just is.
+                int dataSize = datReader.ReadInt32();
+
+                obj.Header = datReader.ReadBytes(headerSize);
+                obj.Data = datReader.ReadBytes(dataSize);
+
                 // Store this object in the FileCache
                 DatManager.PortalDat.FileCache[fileId] = obj;
 
@@ -38,12 +46,33 @@ namespace ACE.DatLoader.FileTypes
         {
             Wave wav = ReadFromDat(fileId);
 
-            FileStream f = new FileStream("a.wav", FileMode.Create);
-            BinaryWriter wr = new BinaryWriter(f);
+            string filename = Path.Combine(directory, fileId.ToString("X8") + ".wav");
 
-            // TODO - Handle file save logic here
+            // Good summary of the header for a WAV file and what all this means
+            // http://www.topherlee.com/software/pcm-tut-wavformat.html
 
+            FileStream f = new FileStream(filename, FileMode.Create);
+            BinaryWriter binaryWriter = new BinaryWriter(f);
+
+            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+
+            uint filesize = (uint)(wav.Header.Length + wav.Data.Length + 20); // 20 is added for all the extra we're adding for the WAV header format
+            binaryWriter.Write(filesize);
+
+            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+
+            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("fmt"));
+            binaryWriter.Write((byte)0x20); // Null ending to the fmt
+
+            binaryWriter.Write((int)0x10); // 16 ... length of all the above
+
+            binaryWriter.Write(wav.Header);
+
+            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+            binaryWriter.Write((uint)wav.Data.Length);
+            binaryWriter.Write(wav.Data);
+    
+            f.Close();
         }
-
     }
 }

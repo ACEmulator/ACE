@@ -2,7 +2,7 @@
 
 ### 2017-09-03
 [OptimShi]
-* Added Wave (0x0A...) parsing from the client_portal.dat and an export-wave function to save as a playable .wav file.
+* Added Wave (0x0A...) parsing from the client_portal.dat and a "wave-export" console function to save as a playable .wav file.
 * Added GfxObjDegradeInfo (0x11..) parsing from the client_portal.dat 
 * Added CombatManeuverTable (0x30...) parsing from the client_portal.dat 
 * Added ParticleEmitterInfo (0x32...) parsing from the client_portal.dat 
