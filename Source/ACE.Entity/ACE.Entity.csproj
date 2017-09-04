@@ -79,6 +79,7 @@
     <Compile Include="AceObjectPropertiesString.cs" />
     <Compile Include="AceObjectPropertiesPosition.cs" />
     <Compile Include="BaseAceProperty.cs" />
+    <Compile Include="WeenieObjectInstance.cs" />
     <Compile Include="CachedWeenieClass.cs" />
     <Compile Include="CachedInventoryObject.cs" />
     <Compile Include="CachedWorldObject.cs" />

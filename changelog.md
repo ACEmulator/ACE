@@ -1,11 +1,28 @@
 # ACEmulator Change Log
 
 ### 2017-09-03
+[Ripley]
+* Changed GeneratorFactory to use WorldObjectFactory.CreateNewWorldObject insted of CreateWorldObject for now.
+
 [OptimShi]
 * Added Wave (0x0A...) parsing from the client_portal.dat and a "wave-export" console function to save as a playable .wav file.
 * Added GfxObjDegradeInfo (0x11..) parsing from the client_portal.dat 
 * Added CombatManeuverTable (0x30...) parsing from the client_portal.dat 
 * Added ParticleEmitterInfo (0x32...) parsing from the client_portal.dat 
+
+### 2017-09-01
+[OptimShi]
+* Added Region (0x13...) parsing from the client_portal.dat
+* Added Scene (0x12...) parsing from the client_portal.dat
+
+### 2017-08-27
+[Ripley]
+
+**NOTE: The following changes require ACE-World version 0.2.0 or greater.**
+* Changed Landblock initailization code to use ace_landblock instances.
+  This change reduces database size and creation time significantly as well as faciltates easier worldbuilding operations going forward.
+* Uncommented weenieHeaderFlags2 from AceObject.
+* Rebased Shard and World SQL scripts and removed update scripts.
 
 ### 2017-08-24
 [rtmruczek]
@@ -23,7 +40,6 @@
 * Added Animation parsing from the client_portal.dat and all relevant hooks and properties.
 
 ### 2017-08-11
-
 [OptimShi]
 * Fixed bug with the components in spells that had extended characters (>7bit) in their name or description.
 
