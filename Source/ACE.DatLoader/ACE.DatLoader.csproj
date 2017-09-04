@@ -81,6 +81,8 @@
     <Compile Include="Entity\BuildInfo.cs" />
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
+    <Compile Include="Entity\CombatManeuver.cs" />
+    <Compile Include="Entity\GfxObjInfo.cs" />
     <Compile Include="Entity\DayGroup.cs" />
     <Compile Include="Entity\GameTime.cs" />
     <Compile Include="Entity\LandDefs.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="Entity\TMTerrainDesc.cs" />
     <Compile Include="FileTypes\Animation.cs" />
     <Compile Include="FileTypes\CLandblockInfo.cs" />
+    <Compile Include="FileTypes\CombatManeuverTable.cs" />
     <Compile Include="FileTypes\EnvCell.cs" />
     <Compile Include="DatDatabaseType.cs" />
     <Compile Include="DatDatabaseTypeAttribute.cs" />
@@ -150,12 +153,15 @@
     <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\MotionTable.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
+    <Compile Include="FileTypes\ParticleEmitterInfo.cs" />
     <Compile Include="FileTypes\RegionDesc.cs" />
     <Compile Include="FileTypes\Scene.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="FileTypes\SpellComponentsTable.cs" />
     <Compile Include="FileTypes\SpellTable.cs" />
+    <Compile Include="FileTypes\Wave.cs" />
     <Compile Include="FileTypes\XpTable.cs" />
+    <Compile Include="FileTypes\GfxObjDegradeInfo.cs" />
     <Compile Include="PortalDatDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
