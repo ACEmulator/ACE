@@ -913,6 +913,16 @@ namespace ACE.Command.Handlers
                 Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
             }
             Console.WriteLine();
+        }        
+        
+        /// <summary>
+        /// Debug console command to test the GetSpellFormula function.
+        /// </summary>
+        [CommandHandler("physics", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
+        public static void Physics(Session session, params string[] parameters)
+        {
+            DatLoader.FileTypes.PhysicsScriptTable pst = DatLoader.FileTypes.PhysicsScriptTable.ReadFromDat(0x34000004);
+            DatLoader.FileTypes.PhysicsScript ps = DatLoader.FileTypes.PhysicsScript.ReadFromDat(0x33000008);
         }
     }
 }
