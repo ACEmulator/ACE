@@ -155,6 +155,7 @@
     <Compile Include="FileTypes\GeneratorTable.cs" />
     <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\MotionTable.cs" />
+    <Compile Include="FileTypes\Palette.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\ParticleEmitterInfo.cs" />
     <Compile Include="FileTypes\PhysicsScript.cs" />
