@@ -82,6 +82,7 @@
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
     <Compile Include="Entity\CombatManeuver.cs" />
+    <Compile Include="Entity\Contract.cs" />
     <Compile Include="Entity\GfxObjInfo.cs" />
     <Compile Include="Entity\DayGroup.cs" />
     <Compile Include="Entity\GameTime.cs" />
@@ -89,12 +90,15 @@
     <Compile Include="Entity\LandSurf.cs" />
     <Compile Include="Entity\MotionData.cs" />
     <Compile Include="Entity\ObjectDesc.cs" />
+    <Compile Include="Entity\PhysicsScriptData.cs" />
+    <Compile Include="Entity\PhysicsScriptTableData.cs" />
     <Compile Include="Entity\PositionExtensions.cs" />
     <Compile Include="Entity\RegionMisc.cs" />
     <Compile Include="Entity\RestrictionTable.cs" />
     <Compile Include="Entity\RoadAlphaMap.cs" />
     <Compile Include="Entity\SceneDesc.cs" />
     <Compile Include="Entity\SceneType.cs" />
+    <Compile Include="Entity\ScriptAndModData.cs" />
     <Compile Include="Entity\Season.cs" />
     <Compile Include="Entity\SkyDesc.cs" />
     <Compile Include="Entity\SkyObject.cs" />
@@ -114,6 +118,7 @@
     <Compile Include="FileTypes\Animation.cs" />
     <Compile Include="FileTypes\CLandblockInfo.cs" />
     <Compile Include="FileTypes\CombatManeuverTable.cs" />
+    <Compile Include="FileTypes\ContractTable.cs" />
     <Compile Include="FileTypes\EnvCell.cs" />
     <Compile Include="DatDatabaseType.cs" />
     <Compile Include="DatDatabaseTypeAttribute.cs" />
@@ -152,8 +157,11 @@
     <Compile Include="FileTypes\GeneratorTable.cs" />
     <Compile Include="FileTypes\ClothingTable.cs" />
     <Compile Include="FileTypes\MotionTable.cs" />
+    <Compile Include="FileTypes\Palette.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
     <Compile Include="FileTypes\ParticleEmitterInfo.cs" />
+    <Compile Include="FileTypes\PhysicsScript.cs" />
+    <Compile Include="FileTypes\PhysicsScriptTable.cs" />
     <Compile Include="FileTypes\RegionDesc.cs" />
     <Compile Include="FileTypes\Scene.cs" />
     <Compile Include="FileTypes\SetupModel.cs" />

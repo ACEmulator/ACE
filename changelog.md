@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-09-05
+[OptimShi]
+* Added Palette (0x04...) parsing from the client_portal.dat.
+* Added PhysicsScript (0x33...) parsing from the client_portal.dat.
+* Added PhysicsScriptTable (0x34...) parsing from the client_portal.dat.
+
 ### 2017-09-03
 [Ripley]
 * Changed GeneratorFactory to use WorldObjectFactory.CreateNewWorldObject insted of CreateWorldObject for now.
