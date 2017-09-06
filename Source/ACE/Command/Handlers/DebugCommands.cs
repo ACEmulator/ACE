@@ -913,6 +913,6 @@ namespace ACE.Command.Handlers
                 Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
             }
             Console.WriteLine();
-        }        
+        }
     }
 }
