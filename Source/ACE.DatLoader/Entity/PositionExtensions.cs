@@ -8,7 +8,7 @@ namespace ACE.DatLoader.Entity
     public static class PositionExtensions
     {
         /// <summary>
-        /// Reads and returns a full position with X,Y,Z and Quternion W,X,Y,Z values.
+        /// Reads and returns a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
         public static Position ReadPosition(DatReader datReader)
         {
@@ -24,6 +24,17 @@ namespace ACE.DatLoader.Entity
         {
             Position p = new Position();
             p.ReadFrame(datReader);
+            return p;
+        }
+
+        /// <summary>
+        /// Reads and returns a full position with Landblock, X,Y,Z and Quaternion W,X,Y,Z values.
+        /// </summary>
+        public static Position ReadLandblockPosition(DatReader datReader)
+        {
+            Position p = new Position();
+            p.Cell = datReader.ReadUInt32();
+            p.Read(datReader);
             return p;
         }
 

@@ -82,6 +82,7 @@
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
     <Compile Include="Entity\CombatManeuver.cs" />
+    <Compile Include="Entity\Contract.cs" />
     <Compile Include="Entity\GfxObjInfo.cs" />
     <Compile Include="Entity\DayGroup.cs" />
     <Compile Include="Entity\GameTime.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="FileTypes\Animation.cs" />
     <Compile Include="FileTypes\CLandblockInfo.cs" />
     <Compile Include="FileTypes\CombatManeuverTable.cs" />
+    <Compile Include="FileTypes\ContractTable.cs" />
     <Compile Include="FileTypes\EnvCell.cs" />
     <Compile Include="DatDatabaseType.cs" />
     <Compile Include="DatDatabaseTypeAttribute.cs" />
