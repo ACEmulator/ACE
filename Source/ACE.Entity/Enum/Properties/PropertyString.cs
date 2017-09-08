@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyString : ushort
     {
@@ -14,6 +16,8 @@
         Template                        = 5,
         AttackersName                   = 6,
         Inscription                     = 7,
+
+        [Description("Scribe Name")]
         ScribeName                      = 8,
         VendorsName                     = 9,
         Fellowship                      = 10,

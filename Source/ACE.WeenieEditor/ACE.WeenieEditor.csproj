@@ -87,6 +87,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComboBoxHelpers.cs" />
+    <Compile Include="EditMode.cs" />
+    <Compile Include="EnumComboBoxItem.cs" />
     <Compile Include="fDatabaseSettings.cs">
       <SubType>Form</SubType>
     </Compile>
