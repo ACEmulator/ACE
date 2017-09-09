@@ -1,10 +1,10 @@
 CREATE DATABASE  IF NOT EXISTS `ace_shard` /*!40100 DEFAULT CHARACTER SET utf8 */;
 USE `ace_shard`;
--- MySQL dump 10.13  Distrib 5.7.12, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.17, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ace_shard
 -- ------------------------------------------------------
--- Server version	5.7.17-log
+-- Server version	5.7.19-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -29,6 +29,7 @@ CREATE TABLE `ace_object` (
   `aceObjectDescriptionFlags` int(10) unsigned NOT NULL,
   `weenieClassId` int(10) unsigned NOT NULL,
   `weenieHeaderFlags` int(10) unsigned DEFAULT NULL,
+  `weenieHeaderFlags2` int(10) unsigned DEFAULT NULL,
   `physicsDescriptionFlag` int(10) unsigned DEFAULT NULL,
   `currentMotionState` text,
   PRIMARY KEY (`aceObjectId`)
@@ -179,6 +180,37 @@ LOCK TABLES `ace_object_properties_bigint` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `ace_object_properties_book`
+--
+
+DROP TABLE IF EXISTS `ace_object_properties_book`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_object_properties_book` (
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
+  `page` int(10) unsigned NOT NULL DEFAULT '0',
+  `authorName` varchar(255) NOT NULL,
+  `authorAccount` varchar(255) NOT NULL,
+  `authorId` int(10) unsigned NOT NULL DEFAULT '0',
+  `ignoreAuthor` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `pageText` text NOT NULL,
+  PRIMARY KEY (`aceObjectId`,`page`),
+  UNIQUE KEY `ace_object__property_book_id` (`aceObjectId`,`page`),
+  KEY `aceObjectId` (`aceObjectId`),
+  CONSTRAINT `fk_Prop_Book_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ace_object_properties_book`
+--
+
+LOCK TABLES `ace_object_properties_book` WRITE;
+/*!40000 ALTER TABLE `ace_object_properties_book` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_object_properties_book` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `ace_object_properties_bool`
 --
 
@@ -273,6 +305,7 @@ CREATE TABLE `ace_object_properties_iid` (
   `propertyValue` int(10) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_iid_id` (`aceObjectId`,`iidPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
+  KEY `aopiid_propertyValue` (`propertyValue`),
   CONSTRAINT `fk_Prop_Iid_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -363,6 +396,32 @@ CREATE TABLE `ace_object_properties_spell` (
 LOCK TABLES `ace_object_properties_spell` WRITE;
 /*!40000 ALTER TABLE `ace_object_properties_spell` DISABLE KEYS */;
 /*!40000 ALTER TABLE `ace_object_properties_spell` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ace_object_properties_spellbar_positions`
+--
+
+DROP TABLE IF EXISTS `ace_object_properties_spellbar_positions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_object_properties_spellbar_positions` (
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
+  `spellId` int(10) unsigned NOT NULL DEFAULT '0',
+  `spellBarId` int(10) unsigned NOT NULL DEFAULT '0',
+  `spellBarPositionId` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`aceObjectId`,`spellId`,`spellBarId`),
+  CONSTRAINT `fk_sb_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ace_object_properties_spellbar_positions`
+--
+
+LOCK TABLES `ace_object_properties_spellbar_positions` WRITE;
+/*!40000 ALTER TABLE `ace_object_properties_spellbar_positions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_object_properties_spellbar_positions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -505,6 +564,20 @@ SET character_set_client = utf8;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Temporary view structure for view `vw_ace_inventory_object`
+--
+
+DROP TABLE IF EXISTS `vw_ace_inventory_object`;
+/*!50001 DROP VIEW IF EXISTS `vw_ace_inventory_object`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `vw_ace_inventory_object` AS SELECT 
+ 1 AS `containerId`,
+ 1 AS `aceObjectId`,
+ 1 AS `placement`*/;
+SET character_set_client = @saved_cs_client;
+
+--
 -- Temporary view structure for view `vw_ace_object`
 --
 
@@ -554,6 +627,24 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = @saved_col_connection */;
 
 --
+-- Final view structure for view `vw_ace_inventory_object`
+--
+
+/*!50001 DROP VIEW IF EXISTS `vw_ace_inventory_object`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `vw_ace_inventory_object` AS (select `aopiid`.`propertyValue` AS `containerId`,`aopiid`.`aceObjectId` AS `aceObjectId`,`aopi`.`propertyValue` AS `placement` from (`ace_object_properties_iid` `aopiid` join `ace_object_properties_int` `aopi` on(((`aopiid`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 65)))) where (`aopiid`.`iidPropertyId` = 2) order by `aopiid`.`propertyValue`,`aopi`.`propertyValue`) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
 -- Final view structure for view `vw_ace_object`
 --
 
@@ -580,4 +671,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-07-10 23:50:29
+-- Dump completed on 2017-08-27 15:43:26

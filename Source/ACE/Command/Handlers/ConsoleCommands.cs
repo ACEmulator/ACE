@@ -4,6 +4,7 @@ using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.DatLoader;
+using System.Collections.Generic;
 
 namespace ACE.Command.Handlers
 {
@@ -70,6 +71,31 @@ namespace ACE.Command.Handlers
         {
             Diagnostics.Diagnostics.LandBlockDiag = true;
             Diagnostics.Common.Monitor.ShowDialog();
+        }
+
+        /// <summary>
+        /// Export all wav files to a specific directory.
+        /// </summary>
+        [CommandHandler("wave-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Export Wave Files")]
+        public static void CMT(Session session, params string[] parameters)
+        {
+            if (parameters?.Length != 1)
+            {
+                Console.WriteLine("wave-export <export-directory-without-spaces>");
+                return;
+            }
+
+            string exportDir = parameters[0];
+
+            Console.WriteLine($"Exporting portal.dat WAV files to {exportDir}.  This may take a while.");
+            foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
+            {
+                if (entry.Value.GetFileType() == DatFileType.Wave)
+                {
+                    DatLoader.FileTypes.Wave.ExportWave(entry.Value.ObjectId, exportDir);
+                }
+            }
+            Console.WriteLine($"Export to {exportDir} complete.");
         }
     }
 }

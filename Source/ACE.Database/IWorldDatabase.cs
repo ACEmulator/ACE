@@ -16,5 +16,7 @@ namespace ACE.Database
         AceObject GetAceObjectByWeenie(uint weenieClassId);
 
         uint GetCurrentId(uint min, uint max);
+
+        List<AceObject> GetWeenieInstancesByLandblock(ushort landblock);
     }
 }

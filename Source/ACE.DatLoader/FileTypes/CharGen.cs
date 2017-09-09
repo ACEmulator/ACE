@@ -30,7 +30,7 @@ namespace ACE.DatLoader.FileTypes
                 int numStarterAreas = datReader.ReadByte();
                 for (int i = 0; i < numStarterAreas; i++)
                 {
-                    string starterAreaName = datReader.ReadPString();
+                    string starterAreaName = datReader.ReadPStringBase();
 
                     int numAreas = datReader.ReadByte();
                     List<Loc> starterAreas = new List<Loc>();
@@ -50,7 +50,7 @@ namespace ACE.DatLoader.FileTypes
                 {
                     HeritageGroupCG heritage = new HeritageGroupCG();
                     int heritageIndex = datReader.ReadInt32();
-                    heritage.Name = datReader.ReadPString();
+                    heritage.Name = datReader.ReadPStringBase();
                     heritage.IconImage = datReader.ReadUInt32();
                     heritage.SetupID = datReader.ReadUInt32();
                     heritage.EnvironmentSetupID = datReader.ReadUInt32();
@@ -82,7 +82,7 @@ namespace ACE.DatLoader.FileTypes
                     for (int j = 0; j < templateCount; j++)
                     {
                         TemplateCG template = new TemplateCG();
-                        template.Name = datReader.ReadPString();
+                        template.Name = datReader.ReadPStringBase();
                         template.IconImage = datReader.ReadUInt32();
                         template.Title = datReader.ReadUInt32();
                         // Attributes
@@ -113,7 +113,7 @@ namespace ACE.DatLoader.FileTypes
                     {
                         SexCG sex = new SexCG();
                         int genderID = datReader.ReadInt32();
-                        sex.Name = datReader.ReadPString();
+                        sex.Name = datReader.ReadPStringBase();
                         sex.Scale = datReader.ReadUInt32();
                         sex.SetupID = datReader.ReadUInt32();
                         sex.SoundTable = datReader.ReadUInt32();
@@ -180,7 +180,7 @@ namespace ACE.DatLoader.FileTypes
                         for (int k = 0; k < numHeadGear; k++)
                         {
                             GearCG headgear = new GearCG();
-                            headgear.Name = datReader.ReadPString();
+                            headgear.Name = datReader.ReadPStringBase();
                             headgear.ClothingTable = datReader.ReadUInt32();
                             headgear.WeenieDefault = datReader.ReadUInt32();
                             sex.HeadgearList.Add(headgear);
@@ -190,7 +190,7 @@ namespace ACE.DatLoader.FileTypes
                         for (int k = 0; k < numShirts; k++)
                         {
                             GearCG shirt = new GearCG();
-                            shirt.Name = datReader.ReadPString();
+                            shirt.Name = datReader.ReadPStringBase();
                             shirt.ClothingTable = datReader.ReadUInt32();
                             shirt.WeenieDefault = datReader.ReadUInt32();
                             sex.ShirtList.Add(shirt);
@@ -200,7 +200,7 @@ namespace ACE.DatLoader.FileTypes
                         for (int k = 0; k < numPants; k++)
                         {
                             GearCG pants = new GearCG();
-                            pants.Name = datReader.ReadPString();
+                            pants.Name = datReader.ReadPStringBase();
                             pants.ClothingTable = datReader.ReadUInt32();
                             pants.WeenieDefault = datReader.ReadUInt32();
                             sex.PantsList.Add(pants);
@@ -210,7 +210,7 @@ namespace ACE.DatLoader.FileTypes
                         for (int k = 0; k < numFootwear; k++)
                         {
                             GearCG footwear = new GearCG();
-                            footwear.Name = datReader.ReadPString();
+                            footwear.Name = datReader.ReadPStringBase();
                             footwear.ClothingTable = datReader.ReadUInt32();
                             footwear.WeenieDefault = datReader.ReadUInt32();
                             sex.FootwearList.Add(footwear);
