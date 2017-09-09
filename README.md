@@ -3,6 +3,7 @@
 Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl7cb9xq5am/branch/master?svg=true)](https://ci.appveyor.com/project/ACEmulator/ace/branch/master)
 
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
+**The ACEmu project is for learning purposes and we only make use of the game client for interoperability with the server.**
  * MySQL and MariaDB are used as the database engine.
  * Latest client supported.
  * Currently intended for developers that wish to contribute to the ACEmulator project.
