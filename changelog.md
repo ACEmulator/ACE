@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-09-09
+[Og II]
+* Added verbage to the readme stating the educational purpose of this project. 
+
 ### 2017-09-05
 [OptimShi]
 * Added Palette (0x04...) parsing from the client_portal.dat.
