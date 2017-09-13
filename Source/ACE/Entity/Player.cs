@@ -20,7 +20,7 @@ using System.Diagnostics;
 
 namespace ACE.Entity
 {
-    public sealed class Player : Creature
+    public sealed class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -103,7 +103,7 @@ namespace ACE.Entity
             Character.CharacterOptions2Mapping = options2;
         }
 
-        private Dictionary<Skill, CreatureSkill> Skills
+        public Dictionary<Skill, CreatureSkill> Skills
         {
             get { return AceObject.AceObjectPropertiesSkills; }
         }
@@ -1122,6 +1122,13 @@ namespace ACE.Entity
                 TrackObject(wo);
                 UpdatePlayerBurden();
             }).EnqueueChain();
+        }
+
+        public void HandleAddToInventoryEx(WorldObject wo)
+        {
+            AddToInventory(wo);
+            TrackObject(wo);
+            UpdatePlayerBurden();
         }
 
         /// <summary>
@@ -2392,6 +2399,16 @@ namespace ACE.Entity
             inContainerChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// Context: only call when in the player action loop
+        /// </summary>
+        public void DestroyInventoryItem(WorldObject wo)
+        {
+            RemoveFromInventory(wo.Guid);
+            Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+        }
+
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
             ActionChain dropChain = new ActionChain();
@@ -2455,6 +2472,30 @@ namespace ACE.Entity
             });
 
             dropChain.EnqueueChain();
+        }
+        
+        public void HandleActionUseOnTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
+        {
+            CurrentLandblock.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                WorldObject invSource = GetInventoryItem(sourceObjectId);
+                WorldObject invTarget = GetInventoryItem(targetObjectId);
+
+                if (invTarget != null)
+                {
+                    // inventory on inventory, we can do this now
+                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
+                }
+                else
+                {
+                    ActionChain chain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(chain, targetObjectId, (WorldObject theTarget) =>
+                    {
+                        RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
+                    });
+                    chain.EnqueueChain();
+                }
+            }));
         }
 
         public void HandleActionUse(ObjectGuid usedItemId)
