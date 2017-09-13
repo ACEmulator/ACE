@@ -151,6 +151,7 @@
     <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionConfirmation.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionCreateFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
@@ -213,6 +214,8 @@
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelList.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventConfirmationDone.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventConfirmationRequest.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDeathNotice.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDisplayParameterizedStatusMessage.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitle.cs" />

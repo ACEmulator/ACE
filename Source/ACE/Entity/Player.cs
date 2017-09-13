@@ -2476,7 +2476,7 @@ namespace ACE.Entity
         
         public void HandleActionUseOnTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
         {
-            CurrentLandblock.EnqueueAction(new ActionEventDelegate(() =>
+            ActionChain chain = new ActionChain(this, () =>
             {
                 WorldObject invSource = GetInventoryItem(sourceObjectId);
                 WorldObject invTarget = GetInventoryItem(targetObjectId);
@@ -2488,14 +2488,15 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    ActionChain chain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(chain, targetObjectId, (WorldObject theTarget) =>
+                    ActionChain landblockChain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(landblockChain, targetObjectId, (WorldObject theTarget) =>
                     {
                         RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
                     });
-                    chain.EnqueueChain();
+                    landblockChain.EnqueueChain();
                 }
-            }));
+            });
+            chain.EnqueueChain();
         }
 
         public void HandleActionUse(ObjectGuid usedItemId)
@@ -2879,6 +2880,11 @@ namespace ACE.Entity
                 ret = true;
 
             return ret;
+        }
+
+        public void SendUseDoneEvent()
+        {
+            Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
     }
 }

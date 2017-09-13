@@ -1,6 +1,7 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using log4net;
@@ -35,6 +36,7 @@ namespace ACE.Managers
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft);
                 player.Session.Network.EnqueueSend(message);
+                player.SendUseDoneEvent();
                 return;
             }
 
@@ -53,6 +55,7 @@ namespace ACE.Managers
                     if (!player.Skills.ContainsKey(skillId))
                     {
                         log.Info("Unexpectedly missing skill in Recipe usage");
+                        player.SendUseDoneEvent();
                         return;
                     }
 
@@ -107,7 +110,7 @@ namespace ACE.Managers
                                 player.HandleAddToInventoryEx(newObject2);
                             }
 
-                            var text = string.Format(recipe.SuccessMessage, source.Name, target.Name, newObject1.Name, newObject2?.Name);
+                            var text = string.Format(recipe.SuccessMessage, source.Name, target.Name, newObject1?.Name, newObject2?.Name);
                             var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(message);
                         }
@@ -126,9 +129,13 @@ namespace ACE.Managers
                     case RecipeType.None:
                         return;
                 }
-            });
 
-            craftChain.AddAction(player, () => player.HandleActionMotion(new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Ready))));
+                player.SendUseDoneEvent();
+            });
+            
+            // unnecessary?
+            // craftChain.AddAction(player, () => player.HandleActionMotion(new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Ready))));
+
             craftChain.EnqueueChain();
         }
     }
