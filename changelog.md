@@ -2,6 +2,11 @@
 
 ### 2017-09-09
 [Og II]
+* Added one new game action, and two new event message handlers - as well as the associated enums.   This work is around crafting dialogs.
+
+
+### 2017-09-09
+[Og II]
 * Added verbiage to the readme stating the educational purpose of this project. 
 
 ### 2017-09-05

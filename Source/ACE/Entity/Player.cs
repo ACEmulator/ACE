@@ -17,6 +17,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -2455,6 +2456,11 @@ namespace ACE.Entity
             });
 
             dropChain.EnqueueChain();
+        }
+
+        public void HandleActionConfirmationResponse(ConfirmationType confromationType, uint context, int response)
+        {
+            // Do something here.
         }
 
         public void HandleActionUse(ObjectGuid usedItemId)
