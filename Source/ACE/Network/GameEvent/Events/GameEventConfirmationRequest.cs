@@ -8,11 +8,14 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventConfirmationRequest : GameEventMessage
     {
-        public GameEventConfirmationRequest(Session session, string message)
+        public GameEventConfirmationRequest(Session session, int confirmationType, uint context, string text)
             : base(GameEventType.CharacterConfirmationRequest, GameMessageGroup.Group09, session)
         {
-            // TODO: implement
             // TODO: verify GameMessageGroup with pcap data
+
+            Writer.Write(confirmationType);
+            Writer.Write(context);
+            Writer.WriteString16L(text);
         }
     }
 }
