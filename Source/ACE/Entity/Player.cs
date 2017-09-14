@@ -1124,8 +1124,11 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void HandleAddToInventoryEx(WorldObject wo)
+        public void AddNewItemToInventory(uint weenieClassId)
         {
+            var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+            wo.ContainerId = Guid.Full;
+            wo.Placement = 0;
             AddToInventory(wo);
             TrackObject(wo);
             UpdatePlayerBurden();

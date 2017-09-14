@@ -54,7 +54,7 @@ namespace ACE.Managers
                     // this shouldn't happen, but sanity check for unexpected nulls
                     if (!player.Skills.ContainsKey(skillId))
                     {
-                        log.Info("Unexpectedly missing skill in Recipe usage");
+                        log.Warn("Unexpectedly missing skill in Recipe usage");
                         player.SendUseDoneEvent();
                         return;
                     }
@@ -95,25 +95,22 @@ namespace ACE.Managers
                             WorldObject newObject2 = null;
 
                             if ((recipe.ResultFlags & (uint)RecipeResult.CreateNewItem1) > 0 && recipe.Item1Wcid != null)
-                            {
-                                newObject1 = Factories.WorldObjectFactory.CreateNewWorldObject(recipe.Item1Wcid.Value);
-                                newObject1.ContainerId = player.Guid.Full;
-                                newObject1.Placement = 0;
-                                player.HandleAddToInventoryEx(newObject1);
-                            }
+                                player.AddNewItemToInventory(recipe.Item1Wcid.Value);
 
                             if ((recipe.ResultFlags & (uint)RecipeResult.CreateNewItem2) > 0 && recipe.Item2Wcid != null)
-                            {
-                                newObject2 = Factories.WorldObjectFactory.CreateNewWorldObject(recipe.Item2Wcid.Value);
-                                newObject2.ContainerId = player.Guid.Full;
-                                newObject2.Placement = 0;
-                                player.HandleAddToInventoryEx(newObject2);
-                            }
+                                player.AddNewItemToInventory(recipe.Item2Wcid.Value);
 
                             var text = string.Format(recipe.SuccessMessage, source.Name, target.Name, newObject1?.Name, newObject2?.Name);
                             var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(message);
                         }
+                        else
+                        {
+                            var text = string.Format(recipe.FailMessage, source.Name, target.Name);
+                            var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
+                        }
+
+                        // TODO: tiered failures (Pyreal Ingots + glyphs, Cooking/Dyeing, etc)
 
                         break;
                     case RecipeType.Dyeing:
@@ -133,9 +130,6 @@ namespace ACE.Managers
                 player.SendUseDoneEvent();
             });
             
-            // unnecessary?
-            // craftChain.AddAction(player, () => player.HandleActionMotion(new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Ready))));
-
             craftChain.EnqueueChain();
         }
     }
