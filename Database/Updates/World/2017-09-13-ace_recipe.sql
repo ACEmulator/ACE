@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `ace_recipe`;
 
 CREATE TABLE `ace_recipe` (
   `recipeId` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'surrogate key',
-  `recipeType` TINYINT(3) UNSIGNED NOT NULL, 'see RecipeType enum in code'
+  `recipeType` TINYINT(3) UNSIGNED NOT NULL COMMENT 'see RecipeType enum in code',
   `sourceWcid` INT(10) UNSIGNED NOT NULL COMMENT 'the object being used',
   `targetWcid` INT(10) UNSIGNED NOT NULL COMMENT 'the target of use',
   `skillId` SMALLINT(6) UNSIGNED DEFAULT NULL COMMENT 'skill required for the formula, if any',
@@ -12,13 +12,9 @@ CREATE TABLE `ace_recipe` (
   `successMessage` TEXT DEFAULT NULL,
   `failMessage` TEXT DEFAULT NULL,
   `alternateMessage` TEXT DEFAULT NULL,
-  `resultFlags` INT(10) UNSIGNED DEFAULT NULL, 'bitmask of what happens.  see RecipeResults enum in code'
+  `resultFlags` INT(10) UNSIGNED DEFAULT NULL COMMENT 'bitmask of what happens.  see RecipeResults enum in code',
   `item1Wcid` INT(10) UNSIGNED DEFAULT NULL,
   `item2Wcid` INT(10) UNSIGNED DEFAULT NULL,
   PRIMARY KEY (`recipeId`)
 ) ENGINE=INNODB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
