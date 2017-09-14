@@ -56,5 +56,11 @@ namespace ACE.Entity
 
         [DbField("item2Wcid", (int)MySqlDbType.UInt32)]
         public uint? Item2Wcid { get; set; }
+
+        /// <summary>
+        /// enum source: ACE.Entity.Enum.Properties.PropertyAttribute
+        /// </summary>
+        [DbField("healingAttribute", (int)MySqlDbType.UInt16)]
+        public ushort? HealingAttribute { get; set; }
     }
 }

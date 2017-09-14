@@ -123,16 +123,17 @@ namespace ACE.Entity
             return new CreatureSkill(this.character, (AceObjectPropertiesSkill)_backer.Clone());
         }
 
-        public bool SkillCheck(uint difficulty, bool requiresTraining = false)
+        public double GetPercentSuccess(uint difficulty)
         {
-            if (requiresTraining && Status == SkillStatus.Untrained)
-                return false;
+            return GetPercentSuccess(ActiveValue, difficulty);
+        }
 
-            float delta = (float)(ActiveValue - difficulty);
-            var scalar = 1 + Math.Pow(Math.E, 0.03 * delta);
-            var percentSuccess = 1 - (1 / scalar);
-
-            return _random.NextDouble() < percentSuccess;
+        public static double GetPercentSuccess(uint skillLevel, uint difficulty)
+        {
+            float delta = (float)(skillLevel - difficulty);
+            var scalar = 1d + Math.Pow(Math.E, 0.03 * delta);
+            var percentSuccess = 1d - (1d / scalar);
+            return percentSuccess;
         }
     }
 }

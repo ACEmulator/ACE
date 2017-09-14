@@ -1543,6 +1543,18 @@ namespace ACE.Entity
             set { AceObject.AvailableCharacter = value; }
         }
 
+        public uint? Boost
+        {
+            get { return AceObject.Boost; }
+            set { AceObject.Boost = value; }
+        }
+
+        public double? HealkitMod
+        {
+            get { return AceObject.HealkitMod; }
+            set { AceObject.HealkitMod = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)

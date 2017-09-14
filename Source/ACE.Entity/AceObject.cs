@@ -1305,6 +1305,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
         }
 
+        public uint? Boost
+        {
+            get { return GetIntProperty(PropertyInt.BoostValue); }
+            set { SetIntProperty(PropertyInt.BoostValue, value); }
+        }
+
+        public double? HealkitMod
+        {
+            get { return GetDoubleProperty(PropertyDouble.HealkitMod); }
+            set { SetDoubleProperty(PropertyDouble.HealkitMod, value); }
+        }
+
         #region Positions
         public Position Location
         {

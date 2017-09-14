@@ -2489,6 +2489,11 @@ namespace ACE.Entity
                     // inventory on inventory, we can do this now
                     RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
                 }
+                else if (targetObjectId == Guid)
+                {
+                    // using something on ourselves
+                    RecipeManager.UseObjectOnTarget(this, invSource, this);
+                }
                 else
                 {
                     ActionChain landblockChain = new ActionChain();
