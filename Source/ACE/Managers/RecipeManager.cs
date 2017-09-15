@@ -21,6 +21,8 @@ namespace ACE.Managers
         private static Random _random = new Random();
         private static RecipeCache _recipeCache = null;
 
+        private static List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
+
         public static void Initialize()
         {
             // build the cache
@@ -46,7 +48,6 @@ namespace ACE.Managers
                     HandleCreateItemRecipe(player, source, target, recipe);
                     break;
                 case RecipeType.Dyeing:
-                    
                     break;
                 case RecipeType.Healing:
                     HandleHealingRecipe(player, source, target, recipe);
@@ -109,7 +110,7 @@ namespace ACE.Managers
                     else
                     {
                         source.Structure--;
-                        player.Session.Network.EnqueueSend(new GameMessageUpdateObject(source));
+                        source.SendPartialUpdates(player.Session, _updateStructure);
                     }
                 }
 
@@ -120,7 +121,7 @@ namespace ACE.Managers
                     else
                     {
                         target.Structure--;
-                        player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
+                        target.SendPartialUpdates(player.Session, _updateStructure);
                     }
                 }
 
@@ -246,7 +247,7 @@ namespace ACE.Managers
                     else
                     {
                         source.Structure--;
-                        player.Session.Network.EnqueueSend(new GameMessageUpdateObject(source));
+                        source.SendPartialUpdates(player.Session, _updateStructure);
                     }
                 }
 
@@ -272,16 +273,14 @@ namespace ACE.Managers
                     uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
                     targetPlayer.Vitals[vital].Current += actualRestored;
                     
-                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, Vital.Health, targetPlayer.Vitals[vital].Current);
+                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
                     player.Session.Network.EnqueueSend(updateVital);
 
                     if (targetPlayer.Guid != player.Guid)
                     {
                         // tell the other player they got healed
-                        targetPlayer.Session.Network.EnqueueSend(updateVital);
-                        updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, Vital.Health, targetPlayer.Vitals[vital].Current);
-                        player.Session.Network.EnqueueSend(updateVital);
-                        targetPlayer.Session.Network.EnqueueSend(updateVital);
+                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+                        targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
                     }
 
                     string name = "yourself";

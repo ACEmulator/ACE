@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="AbilityFormulaAttribute.cs" />
     <Compile Include="AbilityRegenAttribute.cs" />
+    <Compile Include="AbilityVitalAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
@@ -78,8 +79,10 @@
     <Compile Include="AceObjectPropertiesInt.cs" />
     <Compile Include="AceObjectPropertiesString.cs" />
     <Compile Include="AceObjectPropertiesPosition.cs" />
+    <Compile Include="AceObjectPropertyId.cs" />
     <Compile Include="BaseAceProperty.cs" />
     <Compile Include="Enum\BSPType.cs" />
+    <Compile Include="Enum\AceObjectPropertyType.cs" />
     <Compile Include="Enum\EmoteCategory.cs" />
     <Compile Include="Enum\EmoteType.cs" />
     <Compile Include="Enum\RecipeResult.cs" />
