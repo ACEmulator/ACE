@@ -49,7 +49,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="StyleCop, Version=5.0.0.0, Culture=neutral, PublicKeyToken=f904653c63bc2738, processorArchitecture=MSIL">
-      <HintPath>..\packages\StyleCop.5.0.0-beta01\lib\net40\StyleCop.dll</HintPath>
+      <HintPath>..\packages\StyleCop.5.0.0\lib\net40\StyleCop.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -80,6 +80,12 @@
     <Compile Include="AceObjectPropertiesPosition.cs" />
     <Compile Include="BaseAceProperty.cs" />
     <Compile Include="Enum\BSPType.cs" />
+    <Compile Include="Enum\EmoteCategory.cs" />
+    <Compile Include="Enum\EmoteType.cs" />
+    <Compile Include="Enum\RecipeResult.cs" />
+    <Compile Include="Enum\RecipeType.cs" />
+    <Compile Include="Recipe.cs" />
+    <Compile Include="ServerOnlyAttribute.cs" />
     <Compile Include="WeenieObjectInstance.cs" />
     <Compile Include="CachedWeenieClass.cs" />
     <Compile Include="CachedInventoryObject.cs" />
@@ -90,12 +96,10 @@
     <Compile Include="CharacterOptions1Attribute.cs" />
     <Compile Include="CharacterOptions2Attribute.cs" />
     <Compile Include="CachedCharacter.cs" />
-    <Compile Include="Character.cs" />
     <Compile Include="CharacterLevel.cs" />
     <Compile Include="CreatureSkill.cs" />
     <Compile Include="CreatureAbility.cs" />
     <Compile Include="CreatureVital.cs" />
-    <Compile Include="DbObject.cs" />
     <Compile Include="Enum\Ability.cs" />
     <Compile Include="Enum\AmmoType.cs" />
     <Compile Include="Enum\AnimationHookType.cs" />

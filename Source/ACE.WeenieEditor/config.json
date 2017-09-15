@@ -1,0 +1,7 @@
+﻿{
+    "rootUsername": "root",
+    "rootPassword": "",
+    "serverIp": "127.0.0.1",
+    "serverPort": "3306",
+    "worldDatabaseName": "ace_world"
+}

@@ -33,6 +33,7 @@ namespace ACE
             SocketManager.Initialize();
             WorldManager.Initialize();
             CommandManager.Initialize();
+            RecipeManager.Initialize();
 
             DatabaseManager.Start();
         }

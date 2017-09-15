@@ -7,6 +7,7 @@ namespace ACE.Entity
     public class CreatureSkill : ICloneable
     {
         private AceObjectPropertiesSkill _backer;
+        private Random _random = new Random();
 
         // because skill values are determined from stats, we need a reference to the character
         // so we can calculate.  this could be refactored into a better pattern, but it will
@@ -76,6 +77,7 @@ namespace ACE.Entity
                 _backer.IsDirty = true;
             }
         }
+
         public uint ActiveValue
         {
             // FIXME(ddevec) -- buffs?:
@@ -119,6 +121,18 @@ namespace ACE.Entity
         public object Clone()
         {
             return new CreatureSkill(this.character, (AceObjectPropertiesSkill)_backer.Clone());
+        }
+
+        public bool SkillCheck(uint difficulty, bool requiresTraining = false)
+        {
+            if (requiresTraining && Status == SkillStatus.Untrained)
+                return false;
+
+            float delta = (float)(ActiveValue - difficulty);
+            var scalar = 1 + Math.Pow(Math.E, 0.03 * delta);
+            var percentSuccess = 1 - (1 / scalar);
+
+            return _random.NextDouble() < percentSuccess;
         }
     }
 }

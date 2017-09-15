@@ -5,6 +5,17 @@
 * Added GfxObject (0x01...) parsing from the client_portal.dat.
 * Added Environment (0x0D...) parsing from the client_portal.dat.
 
+### 2017-09-13
+[Mogwai]
+* Started work on the Weenie Editor
+* Added table for crafting recipes
+* Added basic support for crafting
+* Added confirmation messages for crafting
+
+### 2017-09-09
+[Og II]
+* Added verbiage to the readme stating the educational purpose of this project. 
+
 ### 2017-09-05
 [OptimShi]
 * Added Palette (0x04...) parsing from the client_portal.dat.
