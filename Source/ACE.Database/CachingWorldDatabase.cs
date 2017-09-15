@@ -67,5 +67,10 @@ namespace ACE.Database
         {
             return _wrappedDatabase.GetCurrentId(min, max);
         }
+
+        public List<Recipe> GetAllRecipes()
+        {
+            return _wrappedDatabase.GetAllRecipes();
+        }
     }
 }

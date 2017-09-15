@@ -18,5 +18,7 @@ namespace ACE.Database
         uint GetCurrentId(uint min, uint max);
 
         List<AceObject> GetWeenieInstancesByLandblock(ushort landblock);
+
+        List<Recipe> GetAllRecipes();
     }
 }

@@ -40,7 +40,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="StyleCop, Version=5.0.0.0, Culture=neutral, PublicKeyToken=f904653c63bc2738, processorArchitecture=MSIL">
-      <HintPath>..\packages\StyleCop.5.0.0-beta01\lib\net40\StyleCop.dll</HintPath>
+      <HintPath>..\packages\StyleCop.5.0.0\lib\net40\StyleCop.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -78,11 +78,20 @@
     <Compile Include="Entity\AnimationHooks\TransparentPartHook.cs" />
     <Compile Include="Entity\AnimData.cs" />
     <Compile Include="Entity\AttackCone.cs" />
+    <Compile Include="Entity\BSPTree.cs" />
+    <Compile Include="Entity\BSPLeaf.cs" />
+    <Compile Include="Entity\BSPNode.cs" />
+    <Compile Include="Entity\BSPPortal.cs" />
     <Compile Include="Entity\BuildInfo.cs" />
     <Compile Include="Entity\CBldPortal.cs" />
     <Compile Include="Entity\CellPortal.cs" />
+    <Compile Include="Entity\CellStruct.cs" />
     <Compile Include="Entity\CombatManeuver.cs" />
     <Compile Include="Entity\Contract.cs" />
+    <Compile Include="Entity\Plane.cs" />
+    <Compile Include="Entity\Polygon.cs" />
+    <Compile Include="Entity\PortalPoly.cs" />
+    <Compile Include="Entity\SWVertex.cs" />
     <Compile Include="Entity\GfxObjInfo.cs" />
     <Compile Include="Entity\DayGroup.cs" />
     <Compile Include="Entity\GameTime.cs" />
@@ -115,6 +124,8 @@
     <Compile Include="Entity\TexMerge.cs" />
     <Compile Include="Entity\TimeOfDay.cs" />
     <Compile Include="Entity\TMTerrainDesc.cs" />
+    <Compile Include="Entity\CVertexArray.cs" />
+    <Compile Include="Entity\Vec2Duv.cs" />
     <Compile Include="FileTypes\Animation.cs" />
     <Compile Include="FileTypes\CLandblockInfo.cs" />
     <Compile Include="FileTypes\CombatManeuverTable.cs" />
@@ -154,8 +165,10 @@
     <Compile Include="Entity\TextureMapChange.cs" />
     <Compile Include="FileTypes\CellLandblock.cs" />
     <Compile Include="FileTypes\CharGen.cs" />
+    <Compile Include="FileTypes\Environment.cs" />
     <Compile Include="FileTypes\GeneratorTable.cs" />
     <Compile Include="FileTypes\ClothingTable.cs" />
+    <Compile Include="FileTypes\GfxObj.cs" />
     <Compile Include="FileTypes\MotionTable.cs" />
     <Compile Include="FileTypes\Palette.cs" />
     <Compile Include="FileTypes\PaletteSet.cs" />
@@ -167,6 +180,7 @@
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="FileTypes\SpellComponentsTable.cs" />
     <Compile Include="FileTypes\SpellTable.cs" />
+    <Compile Include="FileTypes\Surface.cs" />
     <Compile Include="FileTypes\Wave.cs" />
     <Compile Include="FileTypes\XpTable.cs" />
     <Compile Include="FileTypes\GfxObjDegradeInfo.cs" />

@@ -1,5 +1,18 @@
 # ACEmulator Change Log
 
+### 2017-09-14
+[OptimShi]
+* Added GfxObject (0x01...) parsing from the client_portal.dat.
+* Added Surface (0x08...) parsing from the client_portal.dat.
+* Added Environment (0x0D...) parsing from the client_portal.dat.
+
+### 2017-09-13
+[Mogwai]
+* Started work on the Weenie Editor
+* Added table for crafting recipes
+* Added basic support for crafting
+* Added confirmation messages for crafting
+
 ### 2017-09-09
 [Og II]
 * Added verbiage to the readme stating the educational purpose of this project. 

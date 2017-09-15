@@ -18,5 +18,13 @@ namespace ACE.DatLoader.Entity
             this.Origin = origin;
             this.Radius = radius;
         }
+
+        public static CSphere Read(DatReader datReader)
+        {
+            CSphere obj = new CSphere();
+            obj.Origin = new AceVector3(datReader.ReadSingle(), datReader.ReadSingle(), datReader.ReadSingle());
+            obj.Radius = datReader.ReadSingle();
+            return obj;
+        }
     }
 }

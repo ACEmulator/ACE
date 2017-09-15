@@ -21,7 +21,6 @@ namespace ACE.DatLoader.Entity
         public Position LocationNPCEnd { get; set; }
         public Position LocationQuestArea { get; set; }
 
-
         public static Contract Read(DatReader datReader)
         {
             Contract obj = new Contract();
