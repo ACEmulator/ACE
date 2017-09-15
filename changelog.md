@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-09-14
+[OptimShi]
+* Added GfxObject (0x01...) parsing from the client_portal.dat.
+* Added Environment (0x0D...) parsing from the client_portal.dat.
+
 ### 2017-09-05
 [OptimShi]
 * Added Palette (0x04...) parsing from the client_portal.dat.
