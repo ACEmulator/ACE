@@ -180,6 +180,7 @@
     <Compile Include="FileTypes\SetupModel.cs" />
     <Compile Include="FileTypes\SpellComponentsTable.cs" />
     <Compile Include="FileTypes\SpellTable.cs" />
+    <Compile Include="FileTypes\Surface.cs" />
     <Compile Include="FileTypes\Wave.cs" />
     <Compile Include="FileTypes\XpTable.cs" />
     <Compile Include="FileTypes\GfxObjDegradeInfo.cs" />
