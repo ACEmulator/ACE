@@ -100,6 +100,20 @@ namespace ACE.DatLoader
             return data;
         }
 
+        public short ReadPackedByte()
+        {
+            short data = ReadByte();
+            
+            if ((data & 0x80) > 0)
+            {
+                short lowbyte = ReadByte();
+                short hiByte = (short)((data & 0x7f) << 8);
+                data = (short)(hiByte | lowbyte);
+            }
+
+            return data;
+        }
+
         public byte[] ReadBytes(int length)
         {
             byte[] data = new byte[length];
