@@ -1,4 +1,5 @@
 ﻿using ACE.Common;
+using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
@@ -23,5 +24,9 @@ namespace ACE.Entity
             this.IsDirty = true;
             this.HasEverBeenSavedToDatabase = false;
         }
+
+        public virtual uint PropertyId { get; set; }
+
+        public virtual AceObjectPropertyType PropertyType { get; }
     }
 }

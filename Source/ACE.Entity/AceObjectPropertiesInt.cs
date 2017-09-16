@@ -1,5 +1,6 @@
 ﻿using System;
 using ACE.Common;
+using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
@@ -8,7 +9,7 @@ namespace ACE.Entity
     {
         private uint? _value = 0;
         [DbField("intPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
-        public uint PropertyId { get; set; }
+        public override uint PropertyId { get; set; }
 
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
         public byte Index { get; set; } = 0;
@@ -26,6 +27,10 @@ namespace ACE.Entity
                 IsDirty = true;
             }
         }
+        
+        public override AceObjectPropertyType PropertyType
+        { get { return AceObjectPropertyType.PropertyInt; } }
+
         public object Clone()
         {
             return MemberwiseClone();

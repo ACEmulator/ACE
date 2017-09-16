@@ -29,6 +29,12 @@ namespace ACE.Network.Sequence
         PrivateUpdatePropertyDataID = 18,
         PrivateUpdateAttribute2ndLevelHealth = 19,
         PrivateUpdateAttribute2ndLevelStamina = 20,
-        PrivateUpdateAttribute2ndLevelMana = 21
+        PrivateUpdateAttribute2ndLevelMana = 21,
+
+        PublicUpdatePropertyInt,
+        PublicUpdatePropertyInt64,
+        PublicUpdatePropertyBool,
+        PublicUpdatePropertyDouble,
+        PublicUpdatePropertyDataId,
     }
 }

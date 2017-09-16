@@ -1305,6 +1305,18 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
         }
 
+        public uint? Boost
+        {
+            get { return GetIntProperty(PropertyInt.BoostValue); }
+            set { SetIntProperty(PropertyInt.BoostValue, value); }
+        }
+
+        public double? HealkitMod
+        {
+            get { return GetDoubleProperty(PropertyDouble.HealkitMod); }
+            set { SetDoubleProperty(PropertyDouble.HealkitMod, value); }
+        }
+
         #region Positions
         public Position Location
         {
@@ -1621,7 +1633,7 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
         }
 
-        protected CreatureSkill GetSkillProperty(Skill skill)
+        public CreatureSkill GetSkillProperty(Skill skill)
         {
             CreatureSkill ret;
             bool success = AceObjectPropertiesSkills.TryGetValue(skill, out ret);
@@ -1645,7 +1657,7 @@ namespace ACE.Entity
             return AceObjectPropertiesSkills.Values.ToList();
         }
 
-        protected uint? GetIntProperty(PropertyInt property)
+        public uint? GetIntProperty(PropertyInt property)
         {
             return IntProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -1677,7 +1689,7 @@ namespace ACE.Entity
             }
         }
 
-        protected ulong? GetInt64Property(PropertyInt64 property)
+        public ulong? GetInt64Property(PropertyInt64 property)
         {
             return Int64Properties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -1709,7 +1721,7 @@ namespace ACE.Entity
             }
         }
 
-        protected double? GetDoubleProperty(PropertyDouble property)
+        public double? GetDoubleProperty(PropertyDouble property)
         {
             return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
         }
@@ -1754,7 +1766,7 @@ namespace ACE.Entity
             }
         }
 
-        protected string GetStringProperty(PropertyString property)
+        public string GetStringProperty(PropertyString property)
         {
             return StringProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
