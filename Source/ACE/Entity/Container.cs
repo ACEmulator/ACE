@@ -9,6 +9,8 @@ using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
+    using global::ACE.Database;
+
     public class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -116,8 +118,9 @@ namespace ACE.Entity
             return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(inventoryItemGuid));
         }
 
-        public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid, bool remove = true)
+        public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
+            WorldObject inventoryItem = GetInventoryItem(inventoryItemGuid);
             if (Inventory.ContainsKey(inventoryItemGuid))
             {
                 Inventory.Where(i =>
@@ -125,8 +128,6 @@ namespace ACE.Entity
                         var placement = Inventory[inventoryItemGuid].Placement;
                         return placement != null && i.Value.Placement > (uint)placement;
                     }).ToList().ForEach(i => i.Value.Placement--);
-                if (!remove)
-                    return;
                 Inventory.Remove(inventoryItemGuid);
                 Burden = UpdateBurden();
             }
@@ -139,11 +140,12 @@ namespace ACE.Entity
                         var placement = Inventory[i.Key].Placement;
                         return placement != null && i.Value.Placement > (uint)placement;
                     }).ToList().ForEach(i => i.Value.Placement--));
-                if (!remove)
-                    return;
                 containers.ForEach(i => Inventory.Remove(i.Key));
                 Burden = UpdateBurden();
             }
+            // Clean up the database
+            if (inventoryItem != null)
+                DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
         }
 
         public ushort UpdateBurden()

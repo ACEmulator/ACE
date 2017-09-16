@@ -2235,6 +2235,7 @@ namespace ACE.Entity
 
                     if (item != null)
                     {
+                        item.WielderId = container.Guid.Full;
                         if ((EquipMask)location > EquipMask.FingerWearLeft)
                         {
                             // We are going into a weapon, wand or shield slot.
@@ -2294,9 +2295,10 @@ namespace ACE.Entity
                         {
                             item.CurrentWieldedLocation = (EquipMask)location;
                         }
-                        UpdateAppearance(container, itemId);
-                        // if (WieldedItems.ContainsKey((EquipMask)item.CurrentWieldedLocation))
                         WieldedItems.Add(item.Guid, item.SnapShotOfAceObject());
+                        UpdateAppearance(container, itemId);
+                        RemoveFromInventory(item.Guid);
+
                         if ((EquipMask)location == EquipMask.MissileAmmo)
                             Session.Network.EnqueueSend(
                                 new GameEventWieldItem(Session, itemGuid.Full, location),
@@ -2443,7 +2445,7 @@ namespace ACE.Entity
             // First start drop animation
             dropChain.AddAction(this, () =>
             {
-                var inventoryItem = GetInventoryItem(itemGuid);
+                WorldObject inventoryItem = GetInventoryItem(itemGuid);
                 if (inventoryItem == null)
                     return;
                 if (inventoryItem.WielderId != null)
@@ -2489,7 +2491,6 @@ namespace ACE.Entity
                     inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                     CurrentLandblock.AddWorldObject(inventoryItem);
-                    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
 
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
                 });
@@ -2499,7 +2500,7 @@ namespace ACE.Entity
 
             dropChain.EnqueueChain();
         }
-        
+
         public void HandleActionUseOnTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
         {
             ActionChain chain = new ActionChain(this, () =>

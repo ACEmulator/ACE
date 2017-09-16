@@ -602,19 +602,27 @@ namespace ACE.Database
             SaveObjectInternal(transaction, aceObject);
 
             // Do we have any inventory to save - if not, we are done here?
-            if (aceObject.Inventory.Count <= 0)
-                return transaction.Commit().Result;
-
-            foreach (AceObject invItem in aceObject.Inventory.Values)
+            if (aceObject.Inventory.Count > 0)
             {
-                SaveObjectInternal(transaction, invItem);
-                // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
-                if (invItem.WeenieType != (uint)WeenieType.Container)
-                    continue;
-                foreach (AceObject contInvItem in invItem.Inventory.Values)
+                foreach (AceObject invItem in aceObject.Inventory.Values)
                 {
-                    SaveObjectInternal(transaction, contInvItem);
+                    SaveObjectInternal(transaction, invItem);
+                    // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
+                    if (invItem.WeenieType != (uint)WeenieType.Container)
+                        continue;
+                    foreach (AceObject contInvItem in invItem.Inventory.Values)
+                    {
+                        SaveObjectInternal(transaction, contInvItem);
+                    }
                 }
+            }
+
+            // Do we have any wielded items to save - if not, we are done here?
+            if (aceObject.WieldedItems.Count <= 0)
+                return transaction.Commit().Result;
+            foreach (AceObject wieldedItem in aceObject.WieldedItems.Values)
+            {
+                SaveObjectInternal(transaction, wieldedItem);
             }
 
             return transaction.Commit().Result;
@@ -629,7 +637,6 @@ namespace ACE.Database
             // Do we have any  - if not, we are done here?
             if (aceObject.Inventory.Count <= 0)
                 return transaction.Commit().Result;
-
             foreach (AceObject invItem in aceObject.Inventory.Values)
             {
                 DeleteObjectInternal(transaction, invItem);
@@ -641,7 +648,6 @@ namespace ACE.Database
                     DeleteObjectInternal(transaction, contInvItem);
                 }
             }
-
             return transaction.Commit().Result;
         }
 
