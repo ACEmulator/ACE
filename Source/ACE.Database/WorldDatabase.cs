@@ -44,7 +44,8 @@ namespace ACE.Database
             GetAceObjectPropertiesAttributes2nd,
             GetAceObjectPropertiesSkills,
             GetAceObjectPropertiesBook,
-            GetWeenieInstancesByLandblock
+            GetWeenieInstancesByLandblock,
+            GetAllRecipes
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -90,6 +91,8 @@ namespace ACE.Database
             ConstructMaxQueryStatement(WorldPreparedStatement.GetMaxId, "ace_object", "aceObjectId");
 
             ConstructGetListStatement(WorldPreparedStatement.GetWeenieInstancesByLandblock, typeof(WeenieObjectInstance), criteria2);
+
+            ConstructGetListStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), new HashSet<string>());
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -400,6 +403,12 @@ namespace ACE.Database
         public uint GetCurrentId(uint min, uint max)
         {
             return GetMaxGuid(WorldPreparedStatement.GetMaxId, min, max);
+        }
+
+        public List<Recipe> GetAllRecipes()
+        {
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, Recipe>(WorldPreparedStatement.GetAllRecipes, new Dictionary<string, object>());
+            return objects;
         }
     }
 }

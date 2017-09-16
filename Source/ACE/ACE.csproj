@@ -67,7 +67,7 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="StyleCop, Version=5.0.0.0, Culture=neutral, PublicKeyToken=f904653c63bc2738, processorArchitecture=MSIL">
-      <HintPath>..\packages\StyleCop.5.0.0-beta01\lib\net40\StyleCop.dll</HintPath>
+      <HintPath>..\packages\StyleCop.5.0.0\lib\net40\StyleCop.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -113,6 +113,7 @@
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
     <Compile Include="Entity\Fellowship.cs" />
     <Compile Include="Entity\Generator.cs" />
+    <Compile Include="Entity\IPlayer.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
@@ -135,6 +136,8 @@
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
     <Compile Include="Factories\WorldObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
+    <Compile Include="Managers\RecipeCache.cs" />
+    <Compile Include="Managers\RecipeManager.cs" />
     <Compile Include="Managers\GuidManager.cs" />
     <Compile Include="Managers\LandblockManager.cs" />
     <Compile Include="Managers\ServerManager.cs" />
@@ -145,9 +148,11 @@
     <Compile Include="Network\ConnectionListener.cs" />
     <Compile Include="Network\Enum\AddFriendResult.cs" />
     <Compile Include="Network\Enum\CharacterGenerationVerificationResponse.cs" />
+    <Compile Include="Network\Enum\ConfirmationType.cs" />
     <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionConfirmation.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionCreateFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddFriend.cs" />
@@ -195,6 +200,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionTalk.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToMarketplace.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTell.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionUseWithTarget.cs" />
     <Compile Include="Network\GameAction\GameActionAttribute.cs" />
     <Compile Include="Network\GameAction\GameActionType.cs" />
     <Compile Include="Entity\Player.cs" />
@@ -209,6 +215,8 @@
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelList.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventConfirmationDone.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventConfirmationRequest.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDeathNotice.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventDisplayParameterizedStatusMessage.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventCharacterTitle.cs" />

@@ -250,7 +250,7 @@ namespace ACE.Database
 
         protected virtual Type PreparedStatementType { get; }
 
-        public void Initialize(string host, uint port, string user, string password, string database)
+        public void Initialize(string host, uint port, string user, string password, string database, bool autoReconnect = true)
         {
             var connectionBuilder = new MySqlConnectionStringBuilder()
             {
@@ -280,7 +280,10 @@ namespace ACE.Database
                     log.Error($"Exception: {exception.Message}");
                     log.Error($"Attempting to reconnect to {database} database on {host}:{port} in 5 seconds...");
 
-                    Thread.Sleep(5000);
+                    if (autoReconnect)
+                        Thread.Sleep(5000);
+                    else
+                        throw;
                 }
             }
 

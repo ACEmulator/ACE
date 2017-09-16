@@ -48,7 +48,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="StyleCop, Version=5.0.0.0, Culture=neutral, PublicKeyToken=f904653c63bc2738, processorArchitecture=MSIL">
-      <HintPath>..\packages\StyleCop.5.0.0-beta01\lib\net40\StyleCop.dll</HintPath>
+      <HintPath>..\packages\StyleCop.5.0.0\lib\net40\StyleCop.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
