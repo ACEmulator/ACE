@@ -82,6 +82,11 @@ namespace ACE.Entity
             set { AceObject.Mana = value; }
         }
 
+        public Dictionary<Ability, CreatureVital> Vitals
+        {
+            get { return AceObject.AceObjectPropertiesAttributes2nd; }
+        }
+
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>

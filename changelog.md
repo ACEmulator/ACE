@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-09-15
+[Mogwai]
+* Modified recipe table to support heal kits
+* Implemented heal kit usage (known bugs around sequences and GameMessagePublicUpdatePropertyInt as well as current health)
+
 ### 2017-09-14
 [OptimShi]
 * Added GfxObject (0x01...) parsing from the client_portal.dat.

@@ -1543,6 +1543,18 @@ namespace ACE.Entity
             set { AceObject.AvailableCharacter = value; }
         }
 
+        public uint? Boost
+        {
+            get { return AceObject.Boost; }
+            set { AceObject.Boost = value; }
+        }
+
+        public double? HealkitMod
+        {
+            get { return AceObject.HealkitMod; }
+            set { AceObject.HealkitMod = value; }
+        }
+
         public SequenceManager Sequences { get; }
 
         protected WorldObject(ObjectGuid guid)
@@ -2084,7 +2096,7 @@ namespace ACE.Entity
             // content of these 2 is the same? TODO: Validate that?
             SerializeCreateObject(writer);
         }
-
+        
         // This fully replaces the PhysicsState of the WO, use sparingly?
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
@@ -2238,6 +2250,24 @@ namespace ACE.Entity
             return weenieHeaderFlag2;
         }
 
+        public virtual void SendPartialUpdates(Session targetSession, List<AceObjectPropertyId> properties)
+        {
+            foreach (var property in properties)
+            {
+                switch (property.PropertyType)
+                {
+                    case AceObjectPropertyType.PropertyInt:
+                        uint? value = this.AceObject.GetIntProperty((PropertyInt)property.PropertyId);
+                        if (value != null) 
+                            targetSession.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(targetSession.Player.Sequences, (PropertyInt)property.PropertyId, value.Value));
+                        break;
+                    default:
+                        log.Debug($"Unsupported property in SendPartialUpdates: id {property.PropertyId}, type {property.PropertyType}.");
+                        break;
+                }
+            }
+        }
+        
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
@@ -2334,9 +2364,7 @@ namespace ACE.Entity
                 writer.Write(HouseOwner ?? 0u);
 
             if ((WeenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
-            {
                 writer.Write(HouseRestrictions ?? 0u);
-            }
 
             if ((WeenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
                 writer.Write(HookItemType ?? 0);
