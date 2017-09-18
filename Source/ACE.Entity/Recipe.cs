@@ -51,11 +51,17 @@ namespace ACE.Entity
         [DbField("resultFlags", (int)MySqlDbType.UInt32)]
         public uint ResultFlags { get; set; }
 
-        [DbField("item1Wcid", (int)MySqlDbType.UInt32)]
-        public uint? Item1Wcid { get; set; }
+        [DbField("successItem1Wcid", (int)MySqlDbType.UInt32)]
+        public uint? SuccessItem1Wcid { get; set; }
 
-        [DbField("item2Wcid", (int)MySqlDbType.UInt32)]
-        public uint? Item2Wcid { get; set; }
+        [DbField("successItem2Wcid", (int)MySqlDbType.UInt32)]
+        public uint? SuccessItem2Wcid { get; set; }
+
+        [DbField("failureItem1Wcid", (int)MySqlDbType.UInt32)]
+        public uint? FailureItem1Wcid { get; set; }
+
+        [DbField("failureItem2Wcid", (int)MySqlDbType.UInt32)]
+        public uint? FailureItem2Wcid { get; set; }
 
         /// <summary>
         /// enum source: ACE.Entity.Enum.Properties.PropertyAttribute

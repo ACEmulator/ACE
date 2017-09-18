@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-09-18
+[Mogwai]
+* Modified recipe table to items resulting from failure
+* Updated recipe manager to create the appropriate items on failure
+
 ### 2017-09-15
 [Mogwai]
 * Modified recipe table to support heal kits
