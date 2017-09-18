@@ -34,7 +34,7 @@ namespace ACE.Entity
             get { return AceObject.WieldedItems; }
         }
 
-        protected Dictionary<EquipMask, WorldObject> WieldedObjects { get; set; }
+        protected Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
 
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : this(aceObject)
@@ -49,6 +49,7 @@ namespace ACE.Entity
         public Container(AceObject aceObject)
             : base(aceObject)
         {
+            WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
         }
 
         public void SendInventory(Session session)
@@ -109,13 +110,13 @@ namespace ACE.Entity
             Inventory.Add(inventoryItem.Guid, aceO);
         }
 
-        public bool HasItem(ObjectGuid inventoryItemGuid, bool includeSubContainers = true)
+        public bool HasItem(ObjectGuid itemGuid, bool includeSubContainers = true)
         {
             if (!includeSubContainers)
-                return Inventory.ContainsKey(inventoryItemGuid);
+                return Inventory.ContainsKey(itemGuid) || WieldedItems.ContainsKey(itemGuid);
 
             var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
-            return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(inventoryItemGuid));
+            return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(itemGuid));
         }
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
@@ -144,8 +145,8 @@ namespace ACE.Entity
                 Burden = UpdateBurden();
             }
             // Clean up the database
-            if (inventoryItem != null)
-                DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
+            ////if (inventoryItem != null)
+            ////    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
         }
 
         public ushort UpdateBurden()
