@@ -201,8 +201,8 @@ namespace ACE.Entity
         /// </summary>
         public uint? ParentId
         {
-            get { return WielderId; }
-            set { WielderId = value; }
+            get { return AceObject.ParentIID; }
+            set { AceObject.ParentIID = value; }
         }
 
         public uint? ParentLocation
@@ -2091,7 +2091,7 @@ namespace ACE.Entity
             // content of these 2 is the same? TODO: Validate that?
             SerializeCreateObject(writer);
         }
-        
+
         // This fully replaces the PhysicsState of the WO, use sparingly?
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
@@ -2253,7 +2253,7 @@ namespace ACE.Entity
                 {
                     case AceObjectPropertyType.PropertyInt:
                         uint? value = this.AceObject.GetIntProperty((PropertyInt)property.PropertyId);
-                        if (value != null) 
+                        if (value != null)
                             targetSession.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(targetSession.Player.Sequences, (PropertyInt)property.PropertyId, value.Value));
                         break;
                     default:
@@ -2262,7 +2262,7 @@ namespace ACE.Entity
                 }
             }
         }
-        
+
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);

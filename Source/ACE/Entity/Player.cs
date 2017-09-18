@@ -1446,7 +1446,7 @@ namespace ACE.Entity
             // Find all the containers and send a view contents event.
             Session.Player.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container).ToList().ForEach(i => Session.Network.EnqueueSend(new GameEventViewContents(Session, i.Value)));
 
-            SendInventory(Session);
+            SendInventoryAndWieldedItems(Session);
         }
 
         public void Teleport(Position newPosition)
@@ -1882,7 +1882,7 @@ namespace ACE.Entity
                 }
             }
 
-            UpdateAppearance(this, null);
+            UpdateAppearance(this);
 
             // Broadcast updated character appearance
             CurrentLandblock.EnqueueBroadcast(
@@ -1916,14 +1916,25 @@ namespace ACE.Entity
             if (Inventory.ContainsKey(itemGuid))
             {
                 WieldedItems.Add(itemGuid, Inventory[itemGuid]);
-                Inventory.Remove(itemGuid);
+                if (!WieldedObjects.ContainsKey(itemGuid))
+                    WieldedObjects.Add(itemGuid, new GenericObject(WieldedItems[itemGuid]));
+                RemoveFromInventory(itemGuid);
             }
+        }
+
+        private void RemoveFromEquipped(ObjectGuid itemGuid)
+        {
+            if (Inventory.ContainsKey(itemGuid))
+                WieldedItems.Remove(itemGuid);
+
+            if (!WieldedObjects.ContainsKey(itemGuid))
+                WieldedObjects.Remove(itemGuid);
         }
 
         private void HandleUnequip(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
-            UpdateAppearance(container, item.Guid.Full);
+
             if (item.CurrentWieldedLocation > EquipMask.FingerWearLeft)
             {
                 // We are coming from a weapon, wand or shield slot.
@@ -1951,9 +1962,9 @@ namespace ACE.Entity
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
             }
+            RemoveFromEquipped(item.Guid);
 
-            WieldedItems.Remove(item.Guid);
-            WieldedObjects.Remove(item.Guid);
+            UpdateAppearance(container);
 
             inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
                                                                                new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0),
@@ -2133,7 +2144,7 @@ namespace ACE.Entity
                     else
                     {
                         AddToEquipped(itemGuid);
-                        UpdateAppearance(container, itemGuid.Full);
+                        UpdateAppearance(container);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
                                                     new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
@@ -2173,20 +2184,17 @@ namespace ACE.Entity
             pickUpItemChain.EnqueueChain();
         }
 
-        public void UpdateAppearance(Container container, uint? itemId)
+        public void UpdateAppearance(Container container)
         {
-            if (itemId != null)
-                UpdateWieldedItem(container, (uint)itemId);
             ClearObjDesc();
             AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
-            var wieldeditems = GetCurrentlyWieldedItems();
+            List<KeyValuePair<ObjectGuid, WorldObject>> wieldeditems = WieldedObjects.ToList();
             var coverage = new List<uint>();
 
             foreach (var w in wieldeditems)
             {
-                var wo = GetInventoryItem(w.Key);
                 ClothingTable item;
-                if (wo.ClothingBase != null) item = ClothingTable.ReadFromDat((uint)wo.ClothingBase);
+                if (w.Value.ClothingBase != null) item = ClothingTable.ReadFromDat((uint)w.Value.ClothingBase);
                 else
                 {
                     ChatPacket.SendServerMessage(Session, "We have not implemented the visual appearance for that item yet. ", ChatMessageType.AdminTell);
@@ -2207,7 +2215,7 @@ namespace ACE.Entity
                             AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                     }
 
-                    foreach (ModelPalette p in wo.GetPalettes)
+                    foreach (ModelPalette p in w.Value.GetPalettes)
                         AddPalette(p.PaletteId, p.Offset, p.Length);
                 }
             }
@@ -2303,8 +2311,8 @@ namespace ACE.Entity
                         item.WielderId = container.Guid.Full;
                         item.ContainerId = null;
                         item.Placement = null;
-                        UpdateAppearance(container, itemId);
-                        RemoveFromInventory(item.Guid);
+                        AddToEquipped(itemGuid);
+                        UpdateAppearance(container);
 
                         if ((EquipMask)location == EquipMask.MissileAmmo)
                             Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, location), new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
@@ -2362,9 +2370,6 @@ namespace ACE.Entity
                                     new GameMessageObjDescEvent(this));
                             }
                         }
-                        AceObject itemAo = item.SnapShotOfAceObject();
-                        WieldedItems.Add(item.Guid, itemAo);
-                        WieldedObjects.Add(item.Guid, new GenericObject(itemAo));
                     }
                     else
                     {
@@ -2445,15 +2450,15 @@ namespace ACE.Entity
                 WorldObject inventoryItem = GetInventoryItem(itemGuid);
                 if (inventoryItem == null)
                     return;
+                RemoveFromInventory(itemGuid);
                 if (inventoryItem.WielderId != null)
                 {
-                    UpdateAppearance(this, itemGuid.Full);
+                    UpdateAppearance(this);
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                 new GameMessageObjDescEvent(this),
                                                 new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                 }
 
-                RemoveFromInventory(itemGuid);
                 SetInventoryForWorld(inventoryItem);
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
 
@@ -2476,21 +2481,21 @@ namespace ACE.Entity
                 // Play drop sound
                 // Put item on landblock
                 chain.AddAction(this, () =>
-                {
-                    motion = new UniversalMotion(MotionStance.Standing);
-                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
-                        new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                        new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
+            {
+                motion = new UniversalMotion(MotionStance.Standing);
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
+                new GameMessagePutObjectIn3d(Session, this, itemGuid),
+                new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
 
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                    inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
+            // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+            inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                    CurrentLandblock.AddWorldObject(inventoryItem);
+                CurrentLandblock.AddWorldObject(inventoryItem);
 
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
-                });
+                Session.Network.EnqueueSend(new GameMessageUpdateObject(inventoryItem));
+            });
 
                 chain.EnqueueChain();
             });

@@ -52,7 +52,7 @@ namespace ACE.Entity
             WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
         }
 
-        public void SendInventory(Session session)
+        public void SendInventoryAndWieldedItems(Session session)
         {
             foreach (AceObject invItem in Inventory.Values)
             {
@@ -66,6 +66,12 @@ namespace ACE.Entity
                     WorldObject contItem = WorldObjectFactory.CreateWorldObject(itemsInContainer);
                     session.Network.EnqueueSend(new GameMessageCreateObject(contItem));
                 }
+            }
+
+            foreach (AceObject wieldedItem in WieldedItems.Values)
+            {
+                WorldObject item = WorldObjectFactory.CreateWorldObject(wieldedItem);
+                session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
         }
 
@@ -121,7 +127,6 @@ namespace ACE.Entity
 
         public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
         {
-            WorldObject inventoryItem = GetInventoryItem(inventoryItemGuid);
             if (Inventory.ContainsKey(inventoryItemGuid))
             {
                 Inventory.Where(i =>
@@ -144,43 +149,12 @@ namespace ACE.Entity
                 containers.ForEach(i => Inventory.Remove(i.Key));
                 Burden = UpdateBurden();
             }
-            // Clean up the database
-            ////if (inventoryItem != null)
-            ////    DatabaseManager.Shard.DeleteObject(inventoryItem.SnapShotOfAceObject(), null);
         }
 
         public ushort UpdateBurden()
         {
             ushort calculatedBurden = 0;
             return calculatedBurden;
-        }
-
-        public void UpdateWieldedItem(Container container, uint itemId)
-        {
-            // TODO: need to make pack aware - just coding for main pack now.
-            ObjectGuid itemGuid = new ObjectGuid(itemId);
-            WorldObject inventoryItem = GetInventoryItem(itemGuid);
-            if (inventoryItem.ContainerId != container.Guid.Full && inventoryItem.ContainerId != null)
-            {
-                RemoveFromInventory(itemGuid);
-                container.AddToInventory(inventoryItem);
-            }
-            switch (inventoryItem.ContainerId)
-            {
-                case null:
-                    inventoryItem.ContainerId = container.Guid.Full;
-                    inventoryItem.WielderId = null;
-                    break;
-                default:
-                    inventoryItem.ContainerId = null;
-                    inventoryItem.WielderId = container.Guid.Full;
-                    break;
-            }
-        }
-
-        public virtual List<KeyValuePair<ObjectGuid, AceObject>> GetCurrentlyWieldedItems()
-        {
-            return Inventory.Where(ao => ao.Value.WielderIID != null && ao.Value.CurrentWieldedLocation < (uint)EquipMask.WristWearLeft).ToList();
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
