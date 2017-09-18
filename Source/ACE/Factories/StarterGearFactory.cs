@@ -18,7 +18,7 @@ namespace ACE.Factories
         {
             StarterGearConfiguration config;
             var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "starterGear.json";
+            var resourceName = "ACE.starterGear.json";
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             using (StreamReader reader = new StreamReader(stream))
@@ -30,9 +30,9 @@ namespace ACE.Factories
             return config;
         }
 
-        public static void GrantStarterItems(IPlayer player)
+        public static StarterGearConfiguration GetStarterGearConfiguration()
         {
-            // TODO: implement
+            return _config;
         }
     }
 }

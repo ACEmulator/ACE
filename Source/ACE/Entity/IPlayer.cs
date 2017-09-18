@@ -13,5 +13,9 @@ namespace ACE.Entity
     public interface IPlayer
     {
         WorldObject GetInventoryItem(ObjectGuid objectGuid);
+
+        WorldObject AddNewItemToInventory(uint weenieClassId);
+
+        void AddToInventoryEx(WorldObject inventoryItem, uint placement = 0);
     }
 }

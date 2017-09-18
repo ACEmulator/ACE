@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-09-18
+[Mogwai]
+* Starter clothing done.  other stuff WIP.
+
 ### 2017-09-15
 [Mogwai]
 * Modified recipe table to support heal kits
