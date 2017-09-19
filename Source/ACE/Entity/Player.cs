@@ -2401,11 +2401,11 @@ namespace ACE.Entity
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
-            ////inContainerChain.AddAction(
-            ////    this,
-            ////    () =>
-            ////        {
-            Container container;
+            inContainerChain.AddAction(
+                this,
+                () =>
+                    {
+                        Container container;
 
             if (containerGuid.IsPlayer())
                 container = this;
@@ -2444,8 +2444,8 @@ namespace ACE.Entity
 
             // if were are still here, this needs to do a pack pack or main pack move.
             HandleMove(inventoryItem, container, placement);
-            ////        });
-            ////inContainerChain.EnqueueChain();
+                    });
+            inContainerChain.EnqueueChain();
         }
 
         /// <summary>
