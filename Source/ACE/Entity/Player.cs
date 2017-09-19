@@ -446,7 +446,7 @@ namespace ACE.Entity
 
             TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
-            
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
@@ -2268,10 +2268,77 @@ namespace ACE.Entity
             }
         }
 
+        private void SetParentPlacementChild(Container container, ref WorldObject item, uint location, out uint placementId, out uint childLocation)
+        {
+            placementId = 0;
+            childLocation = 0;
+
+            if ((EquipMask)location > EquipMask.FingerWearLeft)
+            {
+                // We are going into a weapon, wand or shield slot.
+                switch ((EquipMask)location)
+                {
+                    case EquipMask.MissileWeapon:
+                    {
+                        if (item.DefaultCombatStyle == MotionStance.BowAttack
+                            || item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
+                            item.DefaultCombatStyle == MotionStance.AtlatlCombat)
+                        {
+                            childLocation = 2;
+                            placementId = 3;
+                        }
+                        else
+                        {
+                            placementId = 1;
+                            childLocation = 1;
+                        }
+                        break;
+                    }
+                    case EquipMask.Shield:
+                    {
+                        if (item.ItemType == ItemType.Armor)
+                        {
+                            childLocation = 3;
+                            placementId = 6;
+                        }
+                        else
+                        {
+                            childLocation = 8;
+                            placementId = 1;
+                        }
+                        break;
+                    }
+                    case EquipMask.Held:
+                    {
+                        placementId = 1;
+                        childLocation = 1;
+                        break;
+                    }
+                    default:
+                    {
+                        placementId = 1;
+                        childLocation = 1;
+                        break;
+                    }
+                }
+                Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)location));
+                item.ParentId = container.Guid.Full;
+                // Magic numbers - need to understand and fix.
+                item.ParentLocation = 1;
+                item.CurrentWieldedLocation = (EquipMask)location;
+                item.Location = Location;
+            }
+            else
+            {
+                item.CurrentWieldedLocation = (EquipMask)location;
+                item.ParentId = null;
+                item.ParentLocation = null;
+                item.Location = null;
+            }
+        }
+
         public void HandleActionWieldItem(Container container, uint itemId, uint location)
         {
-            uint placementId = 0;
-            uint childLocation = 0;
             ActionChain wieldChain = new ActionChain();
             wieldChain.AddAction(
                 this,
@@ -2282,72 +2349,16 @@ namespace ACE.Entity
 
                     if (item != null)
                     {
-                        if ((EquipMask)location > EquipMask.FingerWearLeft)
-                        {
-                            // We are going into a weapon, wand or shield slot.
-                            switch ((EquipMask)location)
-                            {
-                                case EquipMask.MissileWeapon:
-                                    {
-                                        if (item.DefaultCombatStyle == MotionStance.BowAttack
-                                            || item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
-                                            item.DefaultCombatStyle == MotionStance.AtlatlCombat)
-                                        {
-                                            childLocation = 2;
-                                            placementId = 3;
-                                        }
-                                        else
-                                        {
-                                            placementId = 1;
-                                            childLocation = 1;
-                                        }
-                                        break;
-                                    }
-                                case EquipMask.Shield:
-                                    {
-                                        if (item.ItemType == ItemType.Armor)
-                                        {
-                                            childLocation = 3;
-                                            placementId = 6;
-                                        }
-                                        else
-                                        {
-                                            childLocation = 8;
-                                            placementId = 1;
-                                        }
-                                        break;
-                                    }
-                                case EquipMask.Held:
-                                    {
-                                        placementId = 1;
-                                        childLocation = 1;
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        placementId = 1;
-                                        childLocation = 1;
-                                        break;
-                                    }
-                            }
-                            Children.Add(new EquippedItem(itemGuid.Full, (EquipMask)location));
-                            item.ParentId = container.Guid.Full;
-                            // Magic numbers - need to understand and fix.
-                            item.ParentLocation = 1;
-                            item.CurrentWieldedLocation = (EquipMask)location;
-                            item.Location = Location;
-                        }
-                        else
-                        {
-                            item.CurrentWieldedLocation = (EquipMask)location;
-                            item.ParentId = null;
-                            item.ParentLocation = null;
-                            item.Location = null;
-                        }
+                        uint placementId;
+                        uint childLocation;
 
+                        SetParentPlacementChild(container, ref item, location, out placementId, out childLocation);
+
+                        // Set wielder and unset container
                         item.WielderId = container.Guid.Full;
                         item.ContainerId = null;
                         item.Placement = null;
+
                         AddToEquipped(itemGuid);
                         UpdateAppearance(container);
 
