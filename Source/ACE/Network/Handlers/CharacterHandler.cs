@@ -521,8 +521,6 @@ namespace ACE.Network.Handlers
                 if (skillStatus == SkillStatus.Trained)
                 {
                     character.TrainSkill(skill, skillCost.TrainingCost);
-                    character.AceObjectPropertiesSkills[skill].ExperienceSpent = 526;
-                    character.AceObjectPropertiesSkills[skill].Ranks = 5;
                 }
                 if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     character.UntrainSkill(skill, skillCost.TrainingCost);
@@ -556,35 +554,35 @@ namespace ACE.Network.Handlers
                         character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
                         grantedItems.Add(item.WeenieId);
                     }
-                }
 
-                var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == character.Heritage);
-                if (heritageLoot != null)
-                {
-                    foreach (var item in heritageLoot.Gear)
+                    var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == character.Heritage);
+                    if (heritageLoot != null)
                     {
-                        if (grantedItems.Contains(item.WeenieId))
+                        foreach (var item in heritageLoot.Gear)
                         {
-                            var existingItem = character.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
-                            if ((existingItem?.MaxStackSize ?? 1) <= 1)
+                            if (grantedItems.Contains(item.WeenieId))
+                            {
+                                var existingItem = character.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
+                                if ((existingItem?.MaxStackSize ?? 1) <= 1)
+                                    continue;
+
+                                existingItem.StackSize += item.StackSize;
                                 continue;
+                            }
 
-                            existingItem.StackSize += item.StackSize;
-                            continue;
+                            var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
+                            loot.Placement = 0;
+                            loot.ContainerIID = id;
+                            loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
+                            character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
+                            grantedItems.Add(item.WeenieId);
                         }
-
-                        var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
-                        loot.Placement = 0;
-                        loot.ContainerIID = id;
-                        loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
-                        character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
-                        grantedItems.Add(item.WeenieId);
                     }
-                }
 
-                foreach (var spell in skillGear.Spells)
-                {
-                    character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                    foreach (var spell in skillGear.Spells)
+                    {
+                        character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                    }
                 }
             }
             
