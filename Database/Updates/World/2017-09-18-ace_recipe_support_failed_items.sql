@@ -15,7 +15,7 @@ CREATE TABLE `ace_recipe` (
   `resultFlags` INT(10) UNSIGNED DEFAULT NULL COMMENT 'bitmask of what happens.  see RecipeResults enum in code',
   `successItem1Wcid` INT(10) UNSIGNED DEFAULT NULL,
   `successItem2Wcid` INT(10) UNSIGNED DEFAULT NULL,
-  `failureItemIWcid` INT(10) UNSIGNED DEFAULT NULL,
+  `failureItem1Wcid` INT(10) UNSIGNED DEFAULT NULL,
   `failureItem2Wcid` INT(10) UNSIGNED DEFAULT NULL,
   `healingAttribute` SMALLINT(6) UNSIGNED DEFAULT NULL COMMENT 'used by recipeType = Healing. health = 64, stam = 128, mana = 256. if null, will default to health. source enum: ACE.Entity.Enum.Ability',
   PRIMARY KEY (`recipeId`)
