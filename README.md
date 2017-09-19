@@ -53,8 +53,21 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 ## FAQ
 
 #### 1. StyleCop.MSBuild.targets not found
-* _Problem_: When opening the solution, you get a "The imported project "{project path}\ACE\Source\packages\StyleCop.MSBuild.5.0.0-beta01\build\StyleCop.MSBuild.targets" was not found. Confirm that the path in the <Import> declaration is correct, and that the file exists on disk" error.
-* _Solution_: Right click "Solution 'ACE'" in the Solution Explorer and select "Restore Nuget Packages".  After it restores, right click "ACE (load failed)" and select "Reload Project."
+* _Problem_
+> When opening the solution, you get a "The imported project "{project path}\ACE\Source\packages\StyleCop.MSBuild.5.0.0-beta01\build\StyleCop.MSBuild.targets" was not found. Confirm that the path in the <Import> declaration is correct, and that the file exists on disk" error.
+* _Solution_
+> Right click "Solution 'ACE'" in the Solution Explorer and select "Restore Nuget Packages".  After it restores, right click "ACE (load failed)" and select "Reload Project."
+
+#### 2. My PR failed because AppVeyor timed out - "Build execution time has reached the maximum allowed time for your plan (60 minutes)."
+* _Problem_
+>When you submit a PR, we have automation in place that automatically kicks off a build in AppVeyor.  These builds sometimes time out.  The most common cause is because a Debug.Assert statement was hit that popped up a UI dialog on AppVeyor.  However, because it's just running a command line tool, there's no way to click the popup.  Even worse, there's now way for you to even see what it says.
+* _Solution_: 
+> 1) Right click your solution in Visual Studio, select "Rebuild Solution" and make sure there are no compliation errors.
+> 2) Installed with Visual Studio 2015 is "Developer Command Prompt for VS2015".  Open it up, and change to your "ACE\Source" directory.
+> 3) Run the following command  and you'll be able to see the popup triggering the build failure.  
+   `vstest.console /inIsolation "ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64`
+
+
 
 ## Other Resources
 * [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php)
