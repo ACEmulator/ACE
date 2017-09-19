@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-09-9
+[Og II]
+* WIP persist wielded items.   I am posting this looking for some help.
+
 ### 2017-09-18
 [Mogwai]
 * Starter clothing done.  other stuff WIP.
