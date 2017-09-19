@@ -973,12 +973,23 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    ActionChain chain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(chain, examinationId, (WorldObject cwo) =>
+                    // We could be wielded - let's check that next.
+                    if (WieldedObjects.TryGetValue(examinationId, out wo))
                     {
-                        cwo.Examine(Session);
-                    });
-                    chain.EnqueueChain();
+                        wo.Examine(Session);
+                    }
+                    else
+                    {
+                        ActionChain chain = new ActionChain();
+                        CurrentLandblock.ChainOnObject(
+                            chain,
+                            examinationId,
+                            (WorldObject cwo) =>
+                                {
+                                    cwo.Examine(Session);
+                                });
+                        chain.EnqueueChain();
+                    }
                 }
             });
             examineChain.EnqueueChain();
@@ -2407,43 +2418,43 @@ namespace ACE.Entity
                     {
                         Container container;
 
-            if (containerGuid.IsPlayer())
-                container = this;
-            else
-            {
-                // Ok I am going into player backpack (container) with something I have somewhere
-                container = (Container)GetInventoryItem(containerGuid);
-            }
+                        if (containerGuid.IsPlayer())
+                            container = this;
+                        else
+                        {
+                            // Ok I am going into player backpack (container) with something I have somewhere
+                            container = (Container)GetInventoryItem(containerGuid);
+                        }
 
-            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-            if (!HasItem(itemGuid))
-            {
-                // This is a pickup into our main pack.
-                HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                return;
-            }
+                        // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                        if (!HasItem(itemGuid))
+                        {
+                            // This is a pickup into our main pack.
+                            HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                            return;
+                        }
 
-            if (containerGuid.IsPlayer())
-                container = this;
-            else
-            {
-                // Ok I am going into player backpack (container) with something I have somewhere
-                container = (Container)GetInventoryItem(containerGuid);
-            }
+                        if (containerGuid.IsPlayer())
+                            container = this;
+                        else
+                        {
+                            // Ok I am going into player backpack (container) with something I have somewhere
+                            container = (Container)GetInventoryItem(containerGuid);
+                        }
 
-            // Ok, I know my container and I know I must have the item so let's get it.
-            WorldObject inventoryItem = GetInventoryItem(itemGuid);
+                        // Ok, I know my container and I know I must have the item so let's get it.
+                        WorldObject inventoryItem = GetInventoryItem(itemGuid);
 
-            // Was I equiped?   If so, lets take care of that and unequip
-            if (inventoryItem == null)
-            {
-                if (WieldedObjects.TryGetValue(itemGuid, out inventoryItem))
-                    HandleUnequip(container, inventoryItem, placement, inContainerChain);
-                return;
-            }
+                        // Was I equiped?   If so, lets take care of that and unequip
+                        if (inventoryItem == null)
+                        {
+                            if (WieldedObjects.TryGetValue(itemGuid, out inventoryItem))
+                                HandleUnequip(container, inventoryItem, placement, inContainerChain);
+                            return;
+                        }
 
-            // if were are still here, this needs to do a pack pack or main pack move.
-            HandleMove(inventoryItem, container, placement);
+                        // if were are still here, this needs to do a pack pack or main pack move.
+                        HandleMove(inventoryItem, container, placement);
                     });
             inContainerChain.EnqueueChain();
         }
