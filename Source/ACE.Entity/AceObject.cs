@@ -472,7 +472,7 @@ namespace ACE.Entity
         // Wielder is Parent, No such thing as PropertyInstanceId.Parent
         public uint? ParentIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
             set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
         }
 

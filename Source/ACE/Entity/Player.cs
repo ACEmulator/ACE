@@ -436,6 +436,8 @@ namespace ACE.Entity
                 ObjScale = Character.DefaultScale;
 
             AddCharacterBaseModelData();
+            InitializeEquippedObjects();
+            UpdateAppearance(this);
             Burden = UpdateBurden();
 
             // Save the the LoginTimestamp
@@ -1026,12 +1028,20 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    ActionChain idChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                    // We could be wielded - let's check that next.
+                    if (WieldedObjects.TryGetValue(queryId, out wo))
                     {
-                        cwo.QueryItemMana(Session);
-                    });
-                    idChain.EnqueueChain();
+                        wo.QueryItemMana(Session);
+                    }
+                    else
+                    {
+                        ActionChain idChain = new ActionChain();
+                        CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                        {
+                            cwo.QueryItemMana(Session);
+                        });
+                        idChain.EnqueueChain();
+                    }
                 }
             });
             chain.EnqueueChain();
@@ -1922,6 +1932,15 @@ namespace ACE.Entity
             }
         }
 
+        private void InitializeEquippedObjects()
+        {
+            foreach (var wi in WieldedItems)
+            {
+                ObjectGuid wiGuid = new ObjectGuid(wi.Value.AceObjectId);
+                WieldedObjects.Add(wiGuid, new GenericObject(WieldedItems[wiGuid]));
+            }
+        }
+
         private void RemoveFromEquipped(ObjectGuid itemGuid)
         {
             if (Inventory.ContainsKey(itemGuid))
@@ -1956,12 +1975,12 @@ namespace ACE.Entity
             }
             else
             {
-                item.ParentId = null;
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
                 item.Location = null;
                 item.ContainerId = container.Guid.Full;
             }
+
             RemoveFromEquipped(item.Guid);
 
             UpdateAppearance(container);
@@ -2382,51 +2401,51 @@ namespace ACE.Entity
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
-            inContainerChain.AddAction(
-                this,
-                () =>
-                    {
-                        Container container;
+            ////inContainerChain.AddAction(
+            ////    this,
+            ////    () =>
+            ////        {
+            Container container;
 
-                        if (containerGuid.IsPlayer())
-                            container = this;
-                        else
-                        {
-                            // Ok I am going into player backpack (container) with something I have somewhere
-                            container = (Container)GetInventoryItem(containerGuid);
-                        }
+            if (containerGuid.IsPlayer())
+                container = this;
+            else
+            {
+                // Ok I am going into player backpack (container) with something I have somewhere
+                container = (Container)GetInventoryItem(containerGuid);
+            }
 
-                        // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                        if (!HasItem(itemGuid))
-                        {
-                            // This is a pickup into our main pack.
-                            HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                            return;
-                        }
+            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+            if (!HasItem(itemGuid))
+            {
+                // This is a pickup into our main pack.
+                HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                return;
+            }
 
-                        if (containerGuid.IsPlayer())
-                            container = this;
-                        else
-                        {
-                            // Ok I am going into player backpack (container) with something I have somewhere
-                            container = (Container)GetInventoryItem(containerGuid);
-                        }
+            if (containerGuid.IsPlayer())
+                container = this;
+            else
+            {
+                // Ok I am going into player backpack (container) with something I have somewhere
+                container = (Container)GetInventoryItem(containerGuid);
+            }
 
-                        // Ok, I know my container and I know I must have the item either in inventory or wielded so let's get it.
-                        WorldObject inventoryItem = GetInventoryItem(itemGuid);
+            // Ok, I know my container and I know I must have the item so let's get it.
+            WorldObject inventoryItem = GetInventoryItem(itemGuid);
 
-                        // Was I equiped?   If so, lets take care of that and unequip
-                        if (inventoryItem == null)
-                        {
-                            if (WieldedObjects.TryGetValue(itemGuid, out inventoryItem))
-                                HandleUnequip(container, inventoryItem, placement, inContainerChain);
-                            return;
-                        }
+            // Was I equiped?   If so, lets take care of that and unequip
+            if (inventoryItem == null)
+            {
+                if (WieldedObjects.TryGetValue(itemGuid, out inventoryItem))
+                    HandleUnequip(container, inventoryItem, placement, inContainerChain);
+                return;
+            }
 
-                        // if were are still here, this needs to do a pack pack or main pack move.
-                        HandleMove(inventoryItem, container, placement);
-                    });
-            inContainerChain.EnqueueChain();
+            // if were are still here, this needs to do a pack pack or main pack move.
+            HandleMove(inventoryItem, container, placement);
+            ////        });
+            ////inContainerChain.EnqueueChain();
         }
 
         /// <summary>
@@ -2488,8 +2507,8 @@ namespace ACE.Entity
                 new GameMessagePutObjectIn3d(Session, this, itemGuid),
                 new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
 
-            // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-            inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                 CurrentLandblock.AddWorldObject(inventoryItem);

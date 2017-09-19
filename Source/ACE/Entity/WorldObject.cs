@@ -201,8 +201,8 @@ namespace ACE.Entity
         /// </summary>
         public uint? ParentId
         {
-            get { return AceObject.ParentIID; }
-            set { AceObject.ParentIID = value; }
+            get { return AceObject.WielderIID; }
+            set { AceObject.WielderIID = value; }
         }
 
         public uint? ParentLocation
@@ -2579,7 +2579,7 @@ namespace ACE.Entity
             if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
-            if (ParentId != null)
+            if (ParentId != null && ParentLocation != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
             if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
