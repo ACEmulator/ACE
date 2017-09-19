@@ -13,7 +13,9 @@ namespace ACE.Entity.Enum
         TargetItemDestroyed      = 2,
         SourceItemUsesDecrement  = 4,
         TargetItemUsesDecrement  = 8,
-        CreateNewItem1           = 16,
-        CreateNewItem2           = 32
+        SuccessItem1             = 16,
+        SuccessItem2             = 32,
+        FailureItem1             = 64,
+        FailureItem2             = 128
     }
 }

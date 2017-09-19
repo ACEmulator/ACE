@@ -43,7 +43,7 @@ namespace ACE.DatLoader.Entity
             obj.PhysicsBSP = BSPTree.Read(datReader, BSPType.Physics);
 
             uint hasDrawingBSP = datReader.ReadUInt32();
-            if(hasDrawingBSP != 0)
+            if (hasDrawingBSP != 0)
                 obj.DrawingBSP = BSPTree.Read(datReader, BSPType.Drawing);
 
             datReader.AlignBoundary();

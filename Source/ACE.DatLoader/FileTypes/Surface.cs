@@ -34,7 +34,8 @@ namespace ACE.DatLoader.FileTypes
                 {
                     obj.OrigTextureId = datReader.ReadUInt32();
                     obj.OrigPaletteId = datReader.ReadUInt32();
-                }else
+                }
+                else
                 {
                     obj.ColorValue = datReader.ReadUInt32();
                 }

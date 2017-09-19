@@ -56,7 +56,6 @@ namespace ACE.DatLoader.Entity
                     break;
             }
 
-
             if (treeType == BSPType.Cell)
                 return obj;
 
