@@ -517,10 +517,13 @@ namespace ACE.Network.Handlers
                 {
                     character.TrainSkill(skill, skillCost.TrainingCost);
                     character.SpecializeSkill(skill, skillCost.SpecializationCost);
+                    // oddly enough, specialized skills don't get any free ranks like trained do
                 }
                 if (skillStatus == SkillStatus.Trained)
                 {
                     character.TrainSkill(skill, skillCost.TrainingCost);
+                    character.AceObjectPropertiesSkills[skill].Ranks = 5;
+                    character.AceObjectPropertiesSkills[skill].ExperienceSpent = 526;
                 }
                 if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     character.UntrainSkill(skill, skillCost.TrainingCost);
