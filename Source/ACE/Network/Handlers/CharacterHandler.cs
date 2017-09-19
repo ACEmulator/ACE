@@ -141,7 +141,6 @@ namespace ACE.Network.Handlers
             CharGen cg = CharGen.ReadFromDat();
             var reader = message.Payload;
             AceCharacter character = new AceCharacter(id);
-            var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
 
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = reader.ReadUInt32();
@@ -213,6 +212,7 @@ namespace ACE.Network.Handlers
                 hat.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
                 hat.TextureOverrides = new List<TextureMapOverride>();
                 hat.AnimationOverrides = new List<AnimationOverride>();
+                hat.SpellIdProperties = new List<AceObjectPropertiesSpell>();
 
                 hat.IconDID = headgearIconId;
                 
@@ -275,6 +275,7 @@ namespace ACE.Network.Handlers
             shirt.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
             shirt.TextureOverrides = new List<TextureMapOverride>();
             shirt.AnimationOverrides = new List<AnimationOverride>();
+            shirt.SpellIdProperties = new List<AceObjectPropertiesSpell>();
             shirt.IconDID = shirtIconId;
             shirt.Placement = 0;
             shirt.ContainerIID = id;
@@ -342,6 +343,7 @@ namespace ACE.Network.Handlers
             pants.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
             pants.TextureOverrides = new List<TextureMapOverride>();
             pants.AnimationOverrides = new List<AnimationOverride>();
+            pants.SpellIdProperties = new List<AceObjectPropertiesSpell>();
             pants.IconDID = pantsIconId;
             pants.Placement = 0;
             pants.ContainerIID = id;
@@ -404,6 +406,7 @@ namespace ACE.Network.Handlers
             shoes.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
             shoes.TextureOverrides = new List<TextureMapOverride>();
             shoes.AnimationOverrides = new List<AnimationOverride>();
+            shoes.SpellIdProperties = new List<AceObjectPropertiesSpell>();
             shoes.IconDID = footwearIconId;
             shoes.Placement = 0;
             shoes.ContainerIID = id;
@@ -456,7 +459,7 @@ namespace ACE.Network.Handlers
             } // end footwear
 
             character.Inventory.Add(new ObjectGuid(shoes.AceObjectId), shoes);
-
+            
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.
             var templateOption = reader.ReadInt32();
@@ -509,9 +512,7 @@ namespace ACE.Network.Handlers
                 skill = (Skill)i;
                 skillCost = skill.GetCost();
                 skillStatus = (SkillStatus)reader.ReadUInt32();
-                // character.TrainSkill(skill, skillCost.TrainingCost);
-                // if (skillStatus == SkillStatus.Specialized)
-                //     character.SpecializeSkill(skill, skillCost.SpecializationCost);
+
                 if (skillStatus == SkillStatus.Specialized)
                 {
                     character.TrainSkill(skill, skillCost.TrainingCost);
@@ -520,12 +521,73 @@ namespace ACE.Network.Handlers
                 if (skillStatus == SkillStatus.Trained)
                 {
                     character.TrainSkill(skill, skillCost.TrainingCost);
-                    // TODO : Train to rank 5, the training "bonus", total of 526 XP
+                    character.AceObjectPropertiesSkills[skill].ExperienceSpent = 526;
+                    character.AceObjectPropertiesSkills[skill].Ranks = 5;
                 }
                 if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     character.UntrainSkill(skill, skillCost.TrainingCost);
             }
 
+            // grant starter items based on skills
+            var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
+            List<uint> grantedItems = new List<uint>();
+
+            foreach (var skillGear in starterGearConfig.Skills)
+            {
+                var charSkill = character.AceObjectPropertiesSkills[(Skill)skillGear.SkillId];
+                if (charSkill.Status == SkillStatus.Trained || charSkill.Status == SkillStatus.Specialized)
+                {
+                    foreach (var item in skillGear.Gear)
+                    {
+                        if (grantedItems.Contains(item.WeenieId))
+                        {
+                            var existingItem = character.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
+                            if ((existingItem?.MaxStackSize ?? 1) <= 1)
+                                continue;
+
+                            existingItem.StackSize += item.StackSize;
+                            continue;
+                        }
+
+                        var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
+                        loot.Placement = 0;
+                        loot.ContainerIID = id;
+                        loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
+                        character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
+                        grantedItems.Add(item.WeenieId);
+                    }
+                }
+
+                var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == character.Heritage);
+                if (heritageLoot != null)
+                {
+                    foreach (var item in heritageLoot.Gear)
+                    {
+                        if (grantedItems.Contains(item.WeenieId))
+                        {
+                            var existingItem = character.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
+                            if ((existingItem?.MaxStackSize ?? 1) <= 1)
+                                continue;
+
+                            existingItem.StackSize += item.StackSize;
+                            continue;
+                        }
+
+                        var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
+                        loot.Placement = 0;
+                        loot.ContainerIID = id;
+                        loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
+                        character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
+                        grantedItems.Add(item.WeenieId);
+                    }
+                }
+
+                foreach (var spell in skillGear.Spells)
+                {
+                    character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                }
+            }
+            
             character.Name = reader.ReadString16L();
             character.DisplayName = character.Name; // unsure
 

@@ -943,6 +943,7 @@ namespace ACE.Database
 
         private bool SaveAceObjectPropertiesSpells(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesSpell> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.InsertAceObjectPropertiesSpells, properties);
             return true;
         }
