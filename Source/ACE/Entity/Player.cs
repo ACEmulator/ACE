@@ -17,6 +17,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -445,10 +446,9 @@ namespace ACE.Entity
 
             TotalLogins++;
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
-
+            
             // SendSelf will trigger the entrance into portal space
             SendSelf();
-            // TODO: This is where we will create all inventory objects for the player Og II
 
             SendFriendStatusUpdates();
 
@@ -1149,7 +1149,12 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void AddNewItemToInventory(uint weenieClassId)
+        /// <summary>
+        /// Adds a new object to the player's inventory of the specified weenie class.  intended use case: giving items to players
+        /// while they are playing.  this calls all the necessary helper functions to have the item be tracked and sent to the client.
+        /// </summary>
+        /// <returns>the object created</returns>
+        public WorldObject AddNewItemToInventory(uint weenieClassId)
         {
             var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             wo.ContainerId = Guid.Full;
@@ -1157,6 +1162,8 @@ namespace ACE.Entity
             AddToInventory(wo);
             TrackObject(wo);
             UpdatePlayerBurden();
+
+            return wo;
         }
 
         /// <summary>

@@ -605,6 +605,14 @@ namespace ACE.Database
             if (aceObject.Inventory.Count > 0)
             {
                 foreach (AceObject invItem in aceObject.Inventory.Values)
+
+                SaveObjectInternal(transaction, invItem);
+
+                // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+
+                foreach (AceObject contInvItem in invItem.Inventory.Values)
                 {
                     SaveObjectInternal(transaction, invItem);
                     // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
@@ -950,12 +958,14 @@ namespace ACE.Database
 
         private bool SaveAceObjectTextureMaps(DatabaseTransaction transaction, uint aceObjectId, List<TextureMapOverride> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, TextureMapOverride>(ShardPreparedStatement.InsertTextureOverridesByObject, properties);
             return true;
         }
 
         private bool SaveAceObjectPropertiesSpells(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesSpell> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.InsertAceObjectPropertiesSpells, properties);
             return true;
         }
@@ -968,12 +978,14 @@ namespace ACE.Database
 
         private bool SaveAceObjectPalettes(DatabaseTransaction transaction, uint aceObjectId, List<PaletteOverride> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.InsertPaletteOverridesByObject, properties);
             return true;
         }
 
         private bool SaveAceObjectAnimations(DatabaseTransaction transaction, uint aceObjectId, List<AnimationOverride> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AnimationOverride>(ShardPreparedStatement.InsertAnimationOverridesByObject, properties);
             return true;
         }

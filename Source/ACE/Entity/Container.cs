@@ -86,6 +86,10 @@ namespace ACE.Entity
             actionChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// Adds a new item to the inventory collection AND NOTHING ELSE.  will not send updates to the client.  The
+        /// primary use case here is as a helper function or for adding items prior to login (ie, char gen)
+        /// </summary>
         public virtual void AddToInventoryEx(WorldObject inventoryItem, uint placement = 0)
         {
             if (Inventory.ContainsKey(inventoryItem.Guid))
