@@ -1462,6 +1462,17 @@ namespace ACE.Entity
             return IsOnline;
         }
 
+        private void SetChildren()
+        {
+            foreach (WorldObject wieldedObject in WieldedObjects.Values)
+            {
+                WorldObject wo = wieldedObject;
+                uint placementId;
+                uint childLocation;
+                SetParentPlacementChild(this, ref wo, (uint)wo.CurrentWieldedLocation, out placementId, out childLocation);
+            }
+        }
+
         private void SendSelf()
         {
             var player = new GameEventPlayerDescription(Session);
@@ -1469,6 +1480,9 @@ namespace ACE.Entity
             var friends = new GameEventFriendsListUpdate(Session);
 
             Session.Network.EnqueueSend(player, title, friends);
+
+            SetChildren();
+
             Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
 
             // Find all the containers and send a view contents event.
@@ -2008,7 +2022,8 @@ namespace ACE.Entity
             inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
                                                                                new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0),
                                                                                new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
-                                                                               new GameMessageObjDescEvent(this)));
+                                                                               new GameMessageCreateObject(item),
+                                                                               new GameMessagePutObjectInContainer(Session, container.Guid, item, placement)));
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(item),
                                                                                   new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
@@ -2332,10 +2347,9 @@ namespace ACE.Entity
                             break;
                         }
                 }
-                Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)location));
+                container.Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)childLocation));
                 item.ParentId = container.Guid.Full;
-                // Magic numbers - need to understand and fix.
-                item.ParentLocation = 1;
+                item.ParentLocation = childLocation;
                 item.CurrentWieldedLocation = (EquipMask)location;
                 item.Location = Location;
             }

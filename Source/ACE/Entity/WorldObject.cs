@@ -2678,8 +2678,7 @@ namespace ACE.Entity
                 foreach (var child in Children)
                 {
                     writer.Write(child.Guid);
-                    // TODO: FIX THIS!
-                    writer.Write(1u); // This is going to be child.ParentLocation when we get to it
+                    writer.Write((uint)child.EquipMask);
                 }
             }
 
