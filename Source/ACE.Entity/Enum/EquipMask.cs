@@ -49,6 +49,7 @@ namespace ACE.Entity.Enum
         ReadySlot           = Held | TwoHanded | TrinketOne | Cloak | SigilOne | SigilTwo,
         Weapon              = SigilTwo | TrinketOne | Held,
         WeaponReadySlot     = SigilOne | SigilTwo | TrinketOne | Held,
+        Selectable          = MeleeWeapon | Shield | MissileWeapon | MissileAmmo | Held | TwoHanded,
         All                 = 0x7FFFFFFF,
         CanGoInReadySlot    = 0x7FFFFFFF
     }

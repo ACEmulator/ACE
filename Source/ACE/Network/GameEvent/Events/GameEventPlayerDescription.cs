@@ -384,7 +384,7 @@ namespace ACE.Network.GameEvent.Events
             {
                 Writer.Write(wieldedItem.Value.AceObjectId);
                 Writer.Write((uint)wieldedItem.Value.CurrentWieldedLocation);
-                Writer.Write((uint)wieldedItem.Value.ClothingPriority);
+                Writer.Write(wieldedItem.Value.ClothingPriority ?? 0u);
             }
         }
     }
