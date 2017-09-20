@@ -1,8 +1,14 @@
 # ACEmulator Change Log
 
-### 2017-09-9
+
+### 2017-09-21
 [Og II]
 * WIP persist wielded items.   I am posting this looking for some help.
+
+### 2017-09-20
+[Ripley]
+* Added a minimum UseRadius to Doors. This prevents the radius being so small as to require you to be inside the door to open/close it.
+
 
 ### 2017-09-18
 [Mogwai]
