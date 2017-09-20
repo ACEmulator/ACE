@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-09-20
+[Ripley]
+* Added a minimum UseRadius to Doors. This prevents the radius being so small as to require you to be inside the door to open/close it.
+
 ### 2017-09-18
 [Mogwai]
 * Starter clothing done.  other stuff WIP.
