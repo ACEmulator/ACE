@@ -902,7 +902,7 @@ namespace ACE.Database
                     if (prop.PropertyValue == null)
                     {
                         // delete it
-                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertiesDid, prop);
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertyDid, prop);
                         properties.Remove(prop);
                     }
                     else
@@ -932,7 +932,7 @@ namespace ACE.Database
                     if (prop.PropertyValue == null)
                     {
                         // delete it
-                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertiesIid, prop);
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertyIid, prop);
                         properties.Remove(prop);
                     }
                     else

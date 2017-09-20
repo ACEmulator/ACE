@@ -1961,10 +1961,10 @@ namespace ACE.Entity
 
         private void RemoveFromEquipped(ObjectGuid itemGuid)
         {
-            if (Inventory.ContainsKey(itemGuid))
+            if (WieldedItems.ContainsKey(itemGuid))
                 WieldedItems.Remove(itemGuid);
 
-            if (!WieldedObjects.ContainsKey(itemGuid))
+            if (WieldedObjects.ContainsKey(itemGuid))
                 WieldedObjects.Remove(itemGuid);
         }
 
@@ -1999,17 +1999,21 @@ namespace ACE.Entity
                 item.ContainerId = container.Guid.Full;
             }
 
-            RemoveFromEquipped(item.Guid);
-
-            UpdateAppearance(container);
+            inContainerChain.AddAction(this, () =>
+            {
+                RemoveFromEquipped(item.Guid);
+                UpdateAppearance(container);
+            });
 
             inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
                                                                                new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0),
-                                                                               new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder)));
+                                                                               new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
+                                                                               new GameMessageObjDescEvent(this)));
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(item),
                                                                                   new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
-                                                                                  new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
+                                                                                  new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
+                                                                                  new GameMessageObjDescEvent(this));
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return;
             HandleSwitchToPeaceMode(CombatMode);
@@ -2279,47 +2283,47 @@ namespace ACE.Entity
                 switch ((EquipMask)location)
                 {
                     case EquipMask.MissileWeapon:
-                    {
-                        if (item.DefaultCombatStyle == MotionStance.BowAttack
-                            || item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
-                            item.DefaultCombatStyle == MotionStance.AtlatlCombat)
                         {
-                            childLocation = 2;
-                            placementId = 3;
+                            if (item.DefaultCombatStyle == MotionStance.BowAttack
+                                || item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
+                                item.DefaultCombatStyle == MotionStance.AtlatlCombat)
+                            {
+                                childLocation = 2;
+                                placementId = 3;
+                            }
+                            else
+                            {
+                                placementId = 1;
+                                childLocation = 1;
+                            }
+                            break;
                         }
-                        else
+                    case EquipMask.Shield:
+                        {
+                            if (item.ItemType == ItemType.Armor)
+                            {
+                                childLocation = 3;
+                                placementId = 6;
+                            }
+                            else
+                            {
+                                childLocation = 8;
+                                placementId = 1;
+                            }
+                            break;
+                        }
+                    case EquipMask.Held:
                         {
                             placementId = 1;
                             childLocation = 1;
+                            break;
                         }
-                        break;
-                    }
-                    case EquipMask.Shield:
-                    {
-                        if (item.ItemType == ItemType.Armor)
-                        {
-                            childLocation = 3;
-                            placementId = 6;
-                        }
-                        else
-                        {
-                            childLocation = 8;
-                            placementId = 1;
-                        }
-                        break;
-                    }
-                    case EquipMask.Held:
-                    {
-                        placementId = 1;
-                        childLocation = 1;
-                        break;
-                    }
                     default:
-                    {
-                        placementId = 1;
-                        childLocation = 1;
-                        break;
-                    }
+                        {
+                            placementId = 1;
+                            childLocation = 1;
+                            break;
+                        }
                 }
                 Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)location));
                 item.ParentId = container.Guid.Full;
@@ -2430,50 +2434,43 @@ namespace ACE.Entity
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
-            inContainerChain.AddAction(
-                this,
-                () =>
+            inContainerChain.AddAction(this, () =>
+            {
+                Container container;
+
+                if (containerGuid.IsPlayer())
+                    container = this;
+                else
+                {
+                    // Ok I am going into player pack - not the main pack.
+                    container = (Container)GetInventoryItem(containerGuid);
+                }
+
+                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                if (!HasItem(itemGuid))
+                {
+                    // This is a pickup into our main pack.
+                    HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                    return;
+                }
+
+                // Ok, I know my container and I know I must have the item so let's get it.
+                WorldObject item = GetInventoryItem(itemGuid);
+
+                // Was I equiped?   If so, lets take care of that and unequip
+                if (item == null)
+                {
+                    if (WieldedObjects.TryGetValue(itemGuid, out item))
                     {
-                        Container container;
+                        HandleUnequip(container, item, placement, inContainerChain);
+                        AddToInventory(item, placement);
+                    }
+                    return;
+                }
 
-                        if (containerGuid.IsPlayer())
-                            container = this;
-                        else
-                        {
-                            // Ok I am going into player backpack (container) with something I have somewhere
-                            container = (Container)GetInventoryItem(containerGuid);
-                        }
-
-                        // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                        if (!HasItem(itemGuid))
-                        {
-                            // This is a pickup into our main pack.
-                            HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                            return;
-                        }
-
-                        if (containerGuid.IsPlayer())
-                            container = this;
-                        else
-                        {
-                            // Ok I am going into player backpack (container) with something I have somewhere
-                            container = (Container)GetInventoryItem(containerGuid);
-                        }
-
-                        // Ok, I know my container and I know I must have the item so let's get it.
-                        WorldObject inventoryItem = GetInventoryItem(itemGuid);
-
-                        // Was I equiped?   If so, lets take care of that and unequip
-                        if (inventoryItem == null)
-                        {
-                            if (WieldedObjects.TryGetValue(itemGuid, out inventoryItem))
-                                HandleUnequip(container, inventoryItem, placement, inContainerChain);
-                            return;
-                        }
-
-                        // if were are still here, this needs to do a pack pack or main pack move.
-                        HandleMove(inventoryItem, container, placement);
-                    });
+                // if were are still here, this needs to do a pack pack or main pack move.
+                HandleMove(item, container, placement);
+            });
             inContainerChain.EnqueueChain();
         }
 

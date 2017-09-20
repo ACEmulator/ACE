@@ -120,10 +120,11 @@ namespace ACE.Entity
             Inventory.Add(inventoryItem.Guid, aceO);
         }
 
-        public bool HasItem(ObjectGuid itemGuid, bool includeSubContainers = true)
+        public bool HasItem(ObjectGuid itemGuid)
         {
-            if (!includeSubContainers)
-                return Inventory.ContainsKey(itemGuid) || WieldedItems.ContainsKey(itemGuid);
+            bool foundItem = Inventory.ContainsKey(itemGuid) || WieldedItems.ContainsKey(itemGuid);
+            if (foundItem)
+                return true;
 
             var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
             return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(itemGuid));
