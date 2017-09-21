@@ -1953,15 +1953,18 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void AddToEquipped(ObjectGuid itemGuid)
+        private void AddToEquipped(ObjectGuid itemGuid, ObjectGuid equipTarget)
         {
-            if (Inventory.ContainsKey(itemGuid))
+            if (!Inventory.ContainsKey(itemGuid)) return;
+            WieldedItems.Add(itemGuid, Inventory[itemGuid]);
+            if (!WieldedObjects.ContainsKey(itemGuid))
             {
-                WieldedItems.Add(itemGuid, Inventory[itemGuid]);
-                if (!WieldedObjects.ContainsKey(itemGuid))
-                    WieldedObjects.Add(itemGuid, new GenericObject(WieldedItems[itemGuid]));
-                RemoveFromInventory(itemGuid);
+                WieldedObjects.Add(itemGuid, new GenericObject(WieldedItems[itemGuid]));
+                WieldedObjects[itemGuid].Placement = null;
+                WieldedObjects[itemGuid].ContainerId = null;
+                WieldedObjects[itemGuid].WielderId = equipTarget.Full;
             }
+            RemoveFromInventory(itemGuid);
         }
 
         private void InitializeEquippedObjects()
@@ -2199,7 +2202,7 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        AddToEquipped(itemGuid);
+                        AddToEquipped(itemGuid, container.Guid);
                         UpdateAppearance(container);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
@@ -2377,12 +2380,7 @@ namespace ACE.Entity
 
                         SetParentPlacementChild(container, ref item, location, out placementId, out childLocation);
 
-                        // Set wielder and unset container
-                        item.WielderId = container.Guid.Full;
-                        item.ContainerId = null;
-                        item.Placement = null;
-
-                        AddToEquipped(itemGuid);
+                        AddToEquipped(itemGuid, container.Guid);
                         UpdateAppearance(container);
 
                         if ((EquipMask)location == EquipMask.MissileAmmo)

@@ -133,36 +133,41 @@ namespace ACE.Entity
             return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(itemGuid));
         }
 
-        public virtual void RemoveFromInventory(ObjectGuid inventoryItemGuid)
+        /// <summary>
+        /// Remove item from inventory directory.   Also, defragment the placement values.
+        /// </summary>
+        /// <param name="itemGuid"></param>
+        public virtual void RemoveFromInventory(ObjectGuid itemGuid)
         {
-            if (Inventory.ContainsKey(inventoryItemGuid))
-            {
-                Inventory.Where(i =>
-                    {
-                        var placement = Inventory[inventoryItemGuid].Placement;
-                        return placement != null && i.Value.Placement > (uint)placement;
-                    }).ToList().ForEach(i => i.Value.Placement--);
-                Inventory.Remove(inventoryItemGuid);
-                Burden = UpdateBurden();
-            }
+            if (!HasItem(itemGuid)) return;
+
+            uint placement = Inventory[itemGuid].Placement ?? 0u;
+            uint? containerId = GetContainer(itemGuid);
+            if (containerId == null) return;
+
+            ObjectGuid containerGuid = new ObjectGuid((uint)containerId);
+            AceObject container;
+            if (containerGuid.IsPlayer())
+                container = this.AceObject;
             else
-            {
-                // Ok maybe it is inventory in one of our packs
-                var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
-                containers.ForEach(x => Inventory.Where(i =>
-                    {
-                        var placement = Inventory[i.Key].Placement;
-                        return placement != null && i.Value.Placement > (uint)placement;
-                    }).ToList().ForEach(i => i.Value.Placement--));
-                containers.ForEach(i => Inventory.Remove(i.Key));
-                Burden = UpdateBurden();
-            }
+                container = Inventory[containerGuid];
+
+            container.Inventory.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
+            container.Inventory[itemGuid].ContainerIID = null;
+            container.Inventory[itemGuid].Placement = null;
+            container.Inventory.Remove(itemGuid);
+            Burden = UpdateBurden();
         }
 
         public ushort UpdateBurden()
         {
             ushort calculatedBurden = 0;
             return calculatedBurden;
+        }
+
+        public uint? GetContainer(ObjectGuid itemGuid)
+        {
+            return GetInventoryItem(itemGuid).ContainerId;
         }
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)

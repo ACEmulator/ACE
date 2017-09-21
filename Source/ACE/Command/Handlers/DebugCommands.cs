@@ -780,7 +780,7 @@ namespace ACE.Command.Handlers
         public static void HandleWeapons(Session session, params string[] parameters)
         {
             // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 120, 134, 300, 307 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 120, 134, 300, 307, 36561 };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>
@@ -790,6 +790,11 @@ namespace ACE.Command.Handlers
                     WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
                     loot.ContainerId = session.Player.Guid.Full;
                     loot.Placement = 0;
+                    // TODO: Og II
+                    // Need this hack because weenies are not cleaned up.   Can be removed once weenies are fixed.
+                    loot.WielderId = null;
+                    loot.CurrentWieldedLocation = null;
+
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     session.Player.UpdatePlayerBurden();
@@ -797,12 +802,14 @@ namespace ACE.Command.Handlers
                         new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
                         new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
                 }
+                // Force a save for our test items.   Og II
+                session.SaveSession();
             });
             chain.EnqueueChain();
         }
 
-        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
-        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
+            [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Creates sample items, foci and containers in your inventory.")]
         public static void HandleInv(Session session, params string[] parameters)
         {
