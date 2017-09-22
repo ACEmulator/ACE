@@ -1953,18 +1953,19 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void AddToEquipped(ObjectGuid itemGuid, ObjectGuid equipTarget)
+        private void AddToEquipped(ObjectGuid itemGuid, ObjectGuid equipTarget, EquipMask currentWieldedLocation)
         {
             if (!Inventory.ContainsKey(itemGuid)) return;
             WieldedItems.Add(itemGuid, Inventory[itemGuid]);
+            RemoveFromInventory(itemGuid);
             if (!WieldedObjects.ContainsKey(itemGuid))
             {
                 WieldedObjects.Add(itemGuid, new GenericObject(WieldedItems[itemGuid]));
                 WieldedObjects[itemGuid].Placement = null;
                 WieldedObjects[itemGuid].ContainerId = null;
                 WieldedObjects[itemGuid].WielderId = equipTarget.Full;
+                WieldedObjects[itemGuid].CurrentWieldedLocation = currentWieldedLocation;
             }
-            RemoveFromInventory(itemGuid);
         }
 
         private void InitializeEquippedObjects()
@@ -1989,14 +1990,17 @@ namespace ACE.Entity
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
-            if (item.CurrentWieldedLocation > EquipMask.FingerWearLeft)
+            if ((oldLocation & EquipMask.Selectable) != 0)
             {
                 // We are coming from a weapon, wand or shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+
+                // Set all of the wielded items to null
                 item.ParentId = null;
-                // Magic numbers - need to understand and fix.
                 item.ParentLocation = null;
                 item.CurrentWieldedLocation = null;
+                item.Location = null;
+
                 inContainerChain.AddAction(this, () =>
                     {
                         CurrentLandblock.EnqueueBroadcast(
@@ -2004,7 +2008,7 @@ namespace ACE.Entity
                             Landblock.MaxObjectRange,
                             new GameMessageRemoveObject(item));
                     });
-                item.Location = null;
+
                 item.ContainerId = container.Guid.Full;
                 item.Placement = placement;
             }
@@ -2202,7 +2206,7 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        AddToEquipped(itemGuid, container.Guid);
+                        AddToEquipped(itemGuid, container.Guid, (EquipMask)placement);
                         UpdateAppearance(container);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
@@ -2380,7 +2384,7 @@ namespace ACE.Entity
 
                         SetParentPlacementChild(container, ref item, location, out placementId, out childLocation);
 
-                        AddToEquipped(itemGuid, container.Guid);
+                        AddToEquipped(itemGuid, container.Guid, (EquipMask)location);
                         UpdateAppearance(container);
 
                         if ((EquipMask)location == EquipMask.MissileAmmo)

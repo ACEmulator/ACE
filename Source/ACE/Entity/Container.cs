@@ -9,8 +9,6 @@ using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
-    using global::ACE.Database;
-
     public class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -50,6 +48,12 @@ namespace ACE.Entity
             : base(aceObject)
         {
             WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
+            foreach (var wieldedItem in WieldedItems)
+            {
+                ObjectGuid wiGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
+                if (!WieldedItems.ContainsKey(wiGuid))
+                    WieldedObjects.Add(wiGuid, new GenericObject(WieldedItems[wiGuid]));
+            }
         }
 
         public void SendInventoryAndWieldedItems(Session session)
