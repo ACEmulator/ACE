@@ -1990,17 +1990,16 @@ namespace ACE.Entity
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
+            // Set all of the wielded items to null
+            item.ParentLocation = null;
+            item.CurrentWieldedLocation = null;
+            item.Location = null;
+            item.WielderId = null;
+
             if ((oldLocation & EquipMask.Selectable) != 0)
             {
                 // We are coming from a weapon, wand or shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
-
-                // Set all of the wielded items to null
-                item.ParentId = null;
-                item.ParentLocation = null;
-                item.CurrentWieldedLocation = null;
-                item.Location = null;
-
                 inContainerChain.AddAction(this, () =>
                     {
                         CurrentLandblock.EnqueueBroadcast(
@@ -2008,17 +2007,11 @@ namespace ACE.Entity
                             Landblock.MaxObjectRange,
                             new GameMessageRemoveObject(item));
                     });
+            }
 
-                item.ContainerId = container.Guid.Full;
-                item.Placement = placement;
-            }
-            else
-            {
-                item.ParentLocation = null;
-                item.CurrentWieldedLocation = null;
-                item.Location = null;
-                item.ContainerId = container.Guid.Full;
-            }
+            // Set the container stuff
+            item.ContainerId = container.Guid.Full;
+            item.Placement = placement;
 
             inContainerChain.AddAction(this, () =>
             {
@@ -2355,7 +2348,6 @@ namespace ACE.Entity
                         }
                 }
                 container.Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)childLocation));
-                item.ParentId = container.Guid.Full;
                 item.ParentLocation = childLocation;
                 item.CurrentWieldedLocation = (EquipMask)location;
                 item.Location = Location;
@@ -2363,7 +2355,6 @@ namespace ACE.Entity
             else
             {
                 item.CurrentWieldedLocation = (EquipMask)location;
-                item.ParentId = null;
                 item.ParentLocation = null;
                 item.Location = null;
             }

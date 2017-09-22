@@ -196,15 +196,6 @@ namespace ACE.Entity
             set { AceObject.PhysicsEffectTableDID = value; }
         }
 
-        /// <summary>
-        /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
-        /// </summary>
-        public uint? ParentId
-        {
-            get { return AceObject.WielderIID; }
-            set { AceObject.WielderIID = value; }
-        }
-
         public uint? ParentLocation
         {
             get { return AceObject.ParentLocation; }
@@ -2579,7 +2570,7 @@ namespace ACE.Entity
             if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
-            if (ParentId != null && ParentLocation != null)
+            if (WielderId != null && ParentLocation != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
             if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
@@ -2668,8 +2659,8 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
-                writer.Write((uint)ParentId);
-                writer.Write((uint)ParentLocation);
+                writer.Write(WielderId ?? 0u);
+                writer.Write(ParentLocation ?? 0u);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
