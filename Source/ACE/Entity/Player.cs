@@ -1462,6 +1462,9 @@ namespace ACE.Entity
             return IsOnline;
         }
 
+        /// <summary>
+        /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
+        /// </summary>
         private void SetChildren()
         {
             foreach (WorldObject wieldedObject in WieldedObjects.Values)
@@ -1469,7 +1472,10 @@ namespace ACE.Entity
                 WorldObject wo = wieldedObject;
                 uint placementId;
                 uint childLocation;
-                SetParentPlacementChild(this, ref wo, (uint)wo.CurrentWieldedLocation, out placementId, out childLocation);
+                if (wo.CurrentWieldedLocation != null)
+                    SetChild(this, ref wo, (uint)wo.CurrentWieldedLocation, out placementId, out childLocation);
+                else
+                    log.Debug($"Error - item set as child that should not be set - no currentWieldedLocation {wo.Name} - {wo.Guid.Full:X}");
             }
         }
 
@@ -1968,6 +1974,10 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method is used by player initialization code to load in the wielded objects to the wo dictionary from the aceObjects.
+        /// This is used for quick access to equiped items to allow mana ticks, spell durations etc. Og II
+        /// </summary>
         private void InitializeEquippedObjects()
         {
             foreach (var wi in WieldedItems)
@@ -1995,10 +2005,11 @@ namespace ACE.Entity
             item.CurrentWieldedLocation = null;
             item.Location = null;
             item.WielderId = null;
+            RemoveFromEquipped(item.Guid);
 
             if ((oldLocation & EquipMask.Selectable) != 0)
             {
-                // We are coming from a weapon, wand or shield slot.
+                // We are coming from a hand shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
                 inContainerChain.AddAction(this, () =>
                     {
@@ -2015,7 +2026,7 @@ namespace ACE.Entity
 
             inContainerChain.AddAction(this, () =>
             {
-                RemoveFromEquipped(item.Guid);
+                AddToInventory(item, placement);
                 UpdateAppearance(container);
             });
 
@@ -2295,14 +2306,14 @@ namespace ACE.Entity
             }
         }
 
-        public void SetParentPlacementChild(Container container, ref WorldObject item, uint location, out uint placementId, out uint childLocation)
+        public void SetChild(Container container, ref WorldObject item, uint placement, out uint placementId, out uint childLocation)
         {
             placementId = 0;
             childLocation = 0;
-            if (((EquipMask)location & EquipMask.Selectable) != 0)
+            if (((EquipMask)placement & EquipMask.Selectable) != 0)
             {
                 // We are going into a weapon, wand or shield slot.
-                switch ((EquipMask)location)
+                switch ((EquipMask)placement)
                 {
                     case EquipMask.MissileWeapon:
                         {
@@ -2349,18 +2360,21 @@ namespace ACE.Entity
                 }
                 container.Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)childLocation));
                 item.ParentLocation = childLocation;
-                item.CurrentWieldedLocation = (EquipMask)location;
                 item.Location = Location;
             }
             else
             {
-                item.CurrentWieldedLocation = (EquipMask)location;
+                if (container.Children.Contains(new EquippedItem(item.Guid.Full, (EquipMask)childLocation)))
+                {
+                    container.Children.Remove(new EquippedItem(item.Guid.Full, (EquipMask)childLocation));
+                    log.Debug($"Error - item set as child that should not be set {item.Name} - {item.Guid.Full:X}");
+                }
                 item.ParentLocation = null;
                 item.Location = null;
             }
         }
 
-        public void HandleActionWieldItem(Container container, uint itemId, uint location)
+        public void HandleActionWieldItem(Container container, uint itemId, uint placement)
         {
             ActionChain wieldChain = new ActionChain();
             wieldChain.AddAction(this, () =>
@@ -2372,33 +2386,34 @@ namespace ACE.Entity
                     {
                         uint placementId;
                         uint childLocation;
+                        item.CurrentWieldedLocation = (EquipMask)placement;
 
-                        SetParentPlacementChild(container, ref item, location, out placementId, out childLocation);
+                        SetChild(container, ref item, placement, out placementId, out childLocation);
 
-                        AddToEquipped(itemGuid, container.Guid, (EquipMask)location);
+                        AddToEquipped(itemGuid, container.Guid, (EquipMask)placement);
                         UpdateAppearance(container);
 
-                        if ((EquipMask)location == EquipMask.MissileAmmo)
-                            Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, location), new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
+                        if ((EquipMask)placement == EquipMask.MissileAmmo)
+                            Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement), new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
                         else
                         {
-                            if (((EquipMask)location & EquipMask.Selectable) != 0)
+                            if (((EquipMask)placement & EquipMask.Selectable) != 0)
                             {
                                 Session.Network.EnqueueSend(new GameMessageCreateObject(item),
                                     new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
-                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameEventWieldItem(Session, itemGuid.Full, placement),
                                     new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                     new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
                                     new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                    new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, location));
+                                    new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, placement));
                                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                     new GameMessageCreateObject(item),
                                     new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
-                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameEventWieldItem(Session, itemGuid.Full, placement),
                                     new GameMessageObjDescEvent(item));
                                 if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                                     return;
-                                switch ((EquipMask)location)
+                                switch ((EquipMask)placement)
                                 {
                                     case EquipMask.MissileWeapon:
                                         SetCombatMode(CombatMode.Missile);
@@ -2414,7 +2429,7 @@ namespace ACE.Entity
                             else
                             {
                                 Session.Network.EnqueueSend(
-                                    new GameEventWieldItem(Session, itemGuid.Full, location),
+                                    new GameEventWieldItem(Session, itemGuid.Full, placement),
                                     new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                     new GameMessageUpdateInstanceId(
                                         container.Guid,
@@ -2427,7 +2442,7 @@ namespace ACE.Entity
                                     new GameMessagePrivateUpdatePropertyInt(
                                         Session.Player.Sequences,
                                         PropertyInt.CurrentWieldedLocation,
-                                        location));
+                                        placement));
                                 CurrentLandblock.EnqueueBroadcast(
                                     Location,
                                     Landblock.MaxObjectRange,
@@ -2437,52 +2452,60 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        HandlePickupItem(container, itemGuid, location, PropertyInstanceId.Wielder);
+                        HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Wielder);
                     }
                 });
+            // TODO: debug code remove OG II
+            wieldChain.AddAction(this, () => { Session.SaveSession(); });
+
             wieldChain.EnqueueChain();
         }
 
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
-            inContainerChain.AddAction(this, () =>
-            {
-                Container container;
-
-                if (containerGuid.IsPlayer())
-                    container = this;
-                else
-                {
-                    // Ok I am going into player pack - not the main pack.
-                    container = (Container)GetInventoryItem(containerGuid);
-                }
-
-                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                if (!HasItem(itemGuid))
-                {
-                    // This is a pickup into our main pack.
-                    HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                    return;
-                }
-
-                // Ok, I know my container and I know I must have the item so let's get it.
-                WorldObject item = GetInventoryItem(itemGuid);
-
-                // Was I equiped?   If so, lets take care of that and unequip
-                if (item == null)
-                {
-                    if (WieldedObjects.TryGetValue(itemGuid, out item))
+            inContainerChain.AddAction(
+                this,
+                () =>
                     {
-                        HandleUnequip(container, item, placement, inContainerChain);
-                        AddToInventory(item, placement);
-                    }
-                    return;
-                }
+                        Container container;
 
-                // if were are still here, this needs to do a pack pack or main pack move.
-                HandleMove(item, container, placement);
-            });
+                        if (containerGuid.IsPlayer())
+                            container = this;
+                        else
+                        {
+                            // Ok I am going into player pack - not the main pack.
+                            container = (Container)GetInventoryItem(containerGuid);
+                        }
+
+                        // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                        if (!HasItem(itemGuid))
+                        {
+                            // This is a pickup into our main pack.
+                            HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                            return;
+                        }
+
+                        // Ok, I know my container and I know I must have the item so let's get it.
+                        WorldObject item = GetInventoryItem(itemGuid);
+
+                        // Was I equiped?   If so, lets take care of that and unequip
+                        if (item == null)
+                        {
+                            if (WieldedObjects.TryGetValue(itemGuid, out item))
+                            {
+                                HandleUnequip(container, item, placement, inContainerChain);
+                                AddToInventory(item, placement);
+                            }
+                            return;
+                        }
+
+                        // if were are still here, this needs to do a pack pack or main pack move.
+                        HandleMove(item, container, placement);
+                    });
+            // TODO: debug code remove OG II
+            inContainerChain.AddAction(this, () => { Session.SaveSession(); });
+
             inContainerChain.EnqueueChain();
         }
 

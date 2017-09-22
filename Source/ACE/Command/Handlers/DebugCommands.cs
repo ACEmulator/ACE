@@ -803,8 +803,11 @@ namespace ACE.Command.Handlers
                         new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
                 }
                 // Force a save for our test items.   Og II
-                session.SaveSession();
             });
+
+            // TODO: debug code remove OG II
+            chain.AddAction(session.Player, session.SaveSession);
+
             chain.EnqueueChain();
         }
 

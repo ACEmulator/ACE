@@ -1612,6 +1612,7 @@ namespace ACE.Entity
             inventoryItem.ContainerId = null;
             inventoryItem.Placement = null;
             inventoryItem.WielderId = null;
+            inventoryItem.CurrentWieldedLocation = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
             inventoryItem.AnimationFrame = 0x65;

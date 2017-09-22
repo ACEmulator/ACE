@@ -75,9 +75,12 @@ namespace ACE.Entity
             foreach (WorldObject wieldedObject in WieldedObjects.Values)
             {
                 WorldObject item = wieldedObject;
-                uint placementId;
-                uint childLocation;
-                session.Player.SetParentPlacementChild(this, ref item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
+                if (item.CurrentWieldedLocation != null)
+                {
+                    uint placementId;
+                    uint childLocation;
+                    session.Player.SetChild(this, ref item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
+                }
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
         }
