@@ -2306,8 +2306,8 @@ namespace ACE.Entity
                 {
                     case EquipMask.MissileWeapon:
                         {
-                            if (item.DefaultCombatStyle == MotionStance.BowAttack
-                                || item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
+                            if (item.DefaultCombatStyle == MotionStance.BowAttack ||
+                                item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
                                 item.DefaultCombatStyle == MotionStance.AtlatlCombat)
                             {
                                 childLocation = 2;
@@ -2315,8 +2315,8 @@ namespace ACE.Entity
                             }
                             else
                             {
-                                placementId = 1;
                                 childLocation = 1;
+                                placementId = 1;
                             }
                             break;
                         }
@@ -2336,14 +2336,14 @@ namespace ACE.Entity
                         }
                     case EquipMask.Held:
                         {
-                            placementId = 1;
                             childLocation = 1;
+                            placementId = 1;
                             break;
                         }
                     default:
                         {
-                            placementId = 1;
                             childLocation = 1;
+                            placementId = 1;
                             break;
                         }
                 }
