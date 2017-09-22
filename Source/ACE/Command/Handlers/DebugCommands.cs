@@ -737,7 +737,7 @@ namespace ACE.Command.Handlers
                     palOption = Int32.Parse(parameters[1]);
 
                 if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
-                    session.Player.TestEquipItem(session, modelId, palOption);
+                    session.Player.TestWieldItem(session, modelId, palOption);
                 else
                     ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
                         ChatMessageType.Broadcast);

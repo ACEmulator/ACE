@@ -437,7 +437,7 @@ namespace ACE.Entity
                 ObjScale = Character.DefaultScale;
 
             AddCharacterBaseModelData();
-            InitializeEquippedObjects();
+            InitializeWieldedObjects();
             UpdateAppearance(this);
             Burden = UpdateBurden();
 
@@ -1959,7 +1959,7 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
-        private void AddToEquipped(ObjectGuid itemGuid, ObjectGuid equipTarget, EquipMask currentWieldedLocation)
+        private void AddToWieldedObjects(ObjectGuid itemGuid, ObjectGuid wielder, EquipMask currentWieldedLocation)
         {
             if (!Inventory.ContainsKey(itemGuid)) return;
             WieldedItems.Add(itemGuid, Inventory[itemGuid]);
@@ -1969,7 +1969,7 @@ namespace ACE.Entity
                 WieldedObjects.Add(itemGuid, new GenericObject(WieldedItems[itemGuid]));
                 WieldedObjects[itemGuid].Placement = null;
                 WieldedObjects[itemGuid].ContainerId = null;
-                WieldedObjects[itemGuid].WielderId = equipTarget.Full;
+                WieldedObjects[itemGuid].WielderId = wielder.Full;
                 WieldedObjects[itemGuid].CurrentWieldedLocation = currentWieldedLocation;
             }
         }
@@ -1978,7 +1978,7 @@ namespace ACE.Entity
         /// This method is used by player initialization code to load in the wielded objects to the wo dictionary from the aceObjects.
         /// This is used for quick access to equiped items to allow mana ticks, spell durations etc. Og II
         /// </summary>
-        private void InitializeEquippedObjects()
+        private void InitializeWieldedObjects()
         {
             foreach (var wi in WieldedItems)
             {
@@ -1987,7 +1987,7 @@ namespace ACE.Entity
             }
         }
 
-        private void RemoveFromEquipped(ObjectGuid itemGuid)
+        private void RemoveFromWieldedItems(ObjectGuid itemGuid)
         {
             if (WieldedItems.ContainsKey(itemGuid))
                 WieldedItems.Remove(itemGuid);
@@ -1996,7 +1996,7 @@ namespace ACE.Entity
                 WieldedObjects.Remove(itemGuid);
         }
 
-        private void HandleUnequip(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
+        private void HandleUnwieldItem(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
@@ -2005,7 +2005,7 @@ namespace ACE.Entity
             item.CurrentWieldedLocation = null;
             item.Location = null;
             item.WielderId = null;
-            RemoveFromEquipped(item.Guid);
+            RemoveFromWieldedItems(item.Guid);
 
             if ((oldLocation & EquipMask.Selectable) != 0)
             {
@@ -2210,7 +2210,7 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        AddToEquipped(itemGuid, container.Guid, (EquipMask)placement);
+                        AddToWieldedObjects(itemGuid, container.Guid, (EquipMask)placement);
                         UpdateAppearance(container);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
@@ -2246,6 +2246,9 @@ namespace ACE.Entity
                     // CurrentLandblock.EnqueueBroadcast(self shame);
                 }
             });
+
+            // TODO: debug code remove OG II
+            pickUpItemChain.AddAction(this, () => { Session.SaveSession(); });
 
             // Set chain to run
             pickUpItemChain.EnqueueChain();
@@ -2358,15 +2361,15 @@ namespace ACE.Entity
                             break;
                         }
                 }
-                container.Children.Add(new EquippedItem(item.Guid.Full, (EquipMask)childLocation));
+                container.Children.Add(new WieldedItem(item.Guid.Full, (EquipMask)childLocation));
                 item.ParentLocation = childLocation;
                 item.Location = Location;
             }
             else
             {
-                if (container.Children.Contains(new EquippedItem(item.Guid.Full, (EquipMask)childLocation)))
+                if (container.Children.Contains(new WieldedItem(item.Guid.Full, (EquipMask)childLocation)))
                 {
-                    container.Children.Remove(new EquippedItem(item.Guid.Full, (EquipMask)childLocation));
+                    container.Children.Remove(new WieldedItem(item.Guid.Full, (EquipMask)childLocation));
                     log.Debug($"Error - item set as child that should not be set {item.Name} - {item.Guid.Full:X}");
                 }
                 item.ParentLocation = null;
@@ -2388,9 +2391,19 @@ namespace ACE.Entity
                         uint childLocation;
                         item.CurrentWieldedLocation = (EquipMask)placement;
 
+                        EquipMask x = (EquipMask)Inventory[itemGuid].CurrentWieldedLocation;
+
+                        if (item.CurrentWieldedLocation != x)
+                            return;
+
                         SetChild(container, ref item, placement, out placementId, out childLocation);
 
-                        AddToEquipped(itemGuid, container.Guid, (EquipMask)placement);
+                        AddToWieldedObjects(itemGuid, container.Guid, (EquipMask)placement);
+                        x = (EquipMask)WieldedItems[itemGuid].CurrentWieldedLocation;
+
+                        if (WieldedObjects[itemGuid].CurrentWieldedLocation != x)
+                            return;
+
                         UpdateAppearance(container);
 
                         if ((EquipMask)placement == EquipMask.MissileAmmo)
@@ -2493,10 +2506,7 @@ namespace ACE.Entity
                         if (item == null)
                         {
                             if (WieldedObjects.TryGetValue(itemGuid, out item))
-                            {
-                                HandleUnequip(container, item, placement, inContainerChain);
-                                AddToInventory(item, placement);
-                            }
+                                HandleUnwieldItem(container, item, placement, inContainerChain);
                             return;
                         }
 
@@ -2533,7 +2543,7 @@ namespace ACE.Entity
                     // check to see if this item is wielded
                     if (!WieldedObjects.TryGetValue(itemGuid, out item))
                         return;
-                    RemoveFromEquipped(itemGuid);
+                    RemoveFromWieldedItems(itemGuid);
                     UpdateAppearance(this);
                     ObjectGuid clearWielder = new ObjectGuid(0);
                     Session.Network.EnqueueSend(
@@ -2744,7 +2754,7 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void TestEquipItem(Session session, uint modelId, int palOption)
+        public void TestWieldItem(Session session, uint modelId, int palOption)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
             // ClothingTable item = ClothingTable.ReadFromDat(0x10000867); // Cloak
