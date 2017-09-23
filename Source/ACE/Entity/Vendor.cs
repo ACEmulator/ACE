@@ -64,7 +64,10 @@ namespace ACE.Entity
             player.GiveCoin(5000);
             player.SendUseDoneEvent();
 
-            // player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, saveditems));         
+            List<VendorItems> items = new List<VendorItems>();
+            items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.AceObjectId);
+
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, items));         
         }
 
         private void Reset()

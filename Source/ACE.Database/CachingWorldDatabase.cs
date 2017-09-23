@@ -72,5 +72,10 @@ namespace ACE.Database
         {
             return _wrappedDatabase.GetAllRecipes();
         }
+
+        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId)
+        {
+            return _wrappedDatabase.GetVendorWeenieInventoryById(aceObjectId);
+        }
     }
 }

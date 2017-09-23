@@ -45,7 +45,8 @@ namespace ACE.Database
             GetAceObjectPropertiesSkills,
             GetAceObjectPropertiesBook,
             GetWeenieInstancesByLandblock,
-            GetAllRecipes
+            GetAllRecipes,
+            GetVendorWeenieInventoryById
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -93,6 +94,8 @@ namespace ACE.Database
             ConstructGetListStatement(WorldPreparedStatement.GetWeenieInstancesByLandblock, typeof(WeenieObjectInstance), criteria2);
 
             ConstructGetListStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), new HashSet<string>());
+
+            ConstructGetListStatement(WorldPreparedStatement.GetVendorWeenieInventoryById, typeof(VendorItems), criteria1);
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -408,6 +411,13 @@ namespace ACE.Database
         public List<Recipe> GetAllRecipes()
         {
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, Recipe>(WorldPreparedStatement.GetAllRecipes, new Dictionary<string, object>());
+            return objects;
+        }
+
+        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, VendorItems>(WorldPreparedStatement.GetVendorWeenieInventoryById, new Dictionary<string, object>());
             return objects;
         }
     }
