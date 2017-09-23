@@ -2401,6 +2401,7 @@ namespace ACE.Entity
                                                             new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, placement));
 
                                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageCreateObject(item),
+                                                                                                      new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                                                                                       new GameEventWieldItem(Session, itemGuid.Full, placement),
                                                                                                       new GameMessageObjDescEvent(item));
 
