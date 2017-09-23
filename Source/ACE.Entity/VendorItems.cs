@@ -12,7 +12,7 @@ namespace ACE.Entity
     [DbTable("ace_object_inventory")]
     public class VendorItems
     {
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32)]
+        [DbField("aceObjectId", (int)MySqlDbType.Int32, IsCriteria = true)]
         public uint AceObjectId { get; set; }
 
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
