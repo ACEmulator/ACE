@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -2419,6 +2419,15 @@ namespace ACE.Entity
             RemoveFromInventory(wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+        }
+
+        /// <summary>
+        /// Sets Players Coin / Currancy Value
+        /// </summary>
+        /// <param name="value"></param>
+        public void GiveCoin(uint value)
+        {
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
         }
 
         public void HandleActionDropItem(ObjectGuid itemGuid)

@@ -134,6 +134,7 @@
     <Compile Include="Entity\StarterHeritage.cs" />
     <Compile Include="Entity\StarterItem.cs" />
     <Compile Include="Entity\StarterSpell.cs" />
+    <Compile Include="Entity\Vendor.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
@@ -216,6 +217,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
