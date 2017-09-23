@@ -9,16 +9,19 @@ namespace ACE.Entity
     /// <summary>
     /// This Class is used to add children
     /// </summary>
-    public class WieldedItem
+    public class HeldItem
     {
         public uint Guid { get; }
 
+        public uint LocationId { get; }
+
         public EquipMask EquipMask { get; }
 
-        public WieldedItem(uint guid, EquipMask equipmask)
+        public HeldItem(uint guid, uint locationId, EquipMask equipmask)
         {
             Guid = guid;
             EquipMask = equipmask;
+            LocationId = locationId;
         }
     }
 }

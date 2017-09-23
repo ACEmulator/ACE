@@ -27,6 +27,7 @@ namespace ACE.Entity
             get { return AceObject.Inventory; }
         }
 
+        // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
         protected Dictionary<ObjectGuid, AceObject> WieldedItems
         {
             get { return AceObject.WieldedItems; }
@@ -44,15 +45,18 @@ namespace ACE.Entity
             WeenieClassId = weenieClassId;
         }
 
+        /// <summary>
+        /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
+        /// </summary>
+        /// <param name="aceObject"></param>
         public Container(AceObject aceObject)
             : base(aceObject)
         {
             WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
             foreach (var wieldedItem in WieldedItems)
             {
-                ObjectGuid wiGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                if (!WieldedItems.ContainsKey(wiGuid))
-                    WieldedObjects.Add(wiGuid, new GenericObject(WieldedItems[wiGuid]));
+                ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
+                WieldedObjects.Add(woGuid, new GenericObject(WieldedItems[woGuid]));
             }
         }
 
@@ -75,12 +79,10 @@ namespace ACE.Entity
             foreach (WorldObject wieldedObject in WieldedObjects.Values)
             {
                 WorldObject item = wieldedObject;
-                if (item.CurrentWieldedLocation != null)
-                {
-                    uint placementId;
-                    uint childLocation;
-                    session.Player.SetChild(this, ref item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
-                }
+                uint placementId;
+                uint childLocation;
+                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
+                    session.Player.SetChild(this, item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
         }
@@ -132,7 +134,7 @@ namespace ACE.Entity
 
         public bool HasItem(ObjectGuid itemGuid)
         {
-            bool foundItem = Inventory.ContainsKey(itemGuid) || WieldedItems.ContainsKey(itemGuid);
+            bool foundItem = Inventory.ContainsKey(itemGuid) || WieldedObjects.ContainsKey(itemGuid);
             if (foundItem)
                 return true;
 
@@ -146,7 +148,7 @@ namespace ACE.Entity
         /// <param name="itemGuid"></param>
         public virtual void RemoveFromInventory(ObjectGuid itemGuid)
         {
-            if (!HasItem(itemGuid)) return;
+            if (!Inventory.ContainsKey(itemGuid)) return;
 
             uint placement = Inventory[itemGuid].Placement ?? 0u;
             uint? containerId = GetContainer(itemGuid);
@@ -183,8 +185,13 @@ namespace ACE.Entity
                 return WorldObjectFactory.CreateWorldObject(Inventory[objectGuid]);
 
             var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
+            WorldObject item = (from cnt in containers where cnt.Value.Inventory.ContainsKey(objectGuid) select WorldObjectFactory.CreateWorldObject(cnt.Value.Inventory[objectGuid])).FirstOrDefault();
 
-            return (from cnt in containers where cnt.Value.Inventory.ContainsKey(objectGuid) select WorldObjectFactory.CreateWorldObject(cnt.Value.Inventory[objectGuid])).FirstOrDefault();
+            // It is not in inventory - main pack or container - last check the wielded items.
+            if (item == null)
+                WieldedObjects.TryGetValue(objectGuid, out item);
+
+            return item;
         }
     }
 }

@@ -202,7 +202,7 @@ namespace ACE.Entity
             set { AceObject.ParentLocation = value; }
         }
 
-        public List<WieldedItem> Children { get; } = new List<WieldedItem>();
+        public List<HeldItem> Children { get; } = new List<HeldItem>();
 
         public float? ObjScale
         {

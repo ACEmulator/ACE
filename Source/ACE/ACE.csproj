@@ -267,6 +267,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageSetStackSize.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
+    <Compile Include="Network\Handlers\ControlHandler.cs" />
     <Compile Include="Network\Motion\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />

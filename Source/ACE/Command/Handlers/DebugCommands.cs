@@ -804,10 +804,6 @@ namespace ACE.Command.Handlers
                 }
                 // Force a save for our test items.   Og II
             });
-
-            // TODO: debug code remove OG II
-            chain.AddAction(session.Player, session.SaveSession);
-
             chain.EnqueueChain();
         }
 
