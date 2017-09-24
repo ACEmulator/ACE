@@ -1627,6 +1627,8 @@ namespace ACE.Entity
             inventoryItem.AnimationFrame = 1;
             inventoryItem.Placement = placement;
             inventoryItem.Location = null;
+            inventoryItem.ParentLocation = null;
+            inventoryItem.CurrentWieldedLocation = null;
         }
 
         public void Examine(Session examiner)

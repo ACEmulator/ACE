@@ -60,33 +60,6 @@ namespace ACE.Entity
             }
         }
 
-        public void SendInventoryAndWieldedItems(Session session)
-        {
-            foreach (AceObject invItem in Inventory.Values)
-            {
-                WorldObject inv = WorldObjectFactory.CreateWorldObject(invItem);
-                session.Network.EnqueueSend(new GameMessageCreateObject(inv));
-                // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
-                if (invItem.WeenieType != (uint)WeenieType.Container)
-                    continue;
-                foreach (AceObject itemsInContainer in invItem.Inventory.Values)
-                {
-                    WorldObject contItem = WorldObjectFactory.CreateWorldObject(itemsInContainer);
-                    session.Network.EnqueueSend(new GameMessageCreateObject(contItem));
-                }
-            }
-
-            foreach (WorldObject wieldedObject in WieldedObjects.Values)
-            {
-                WorldObject item = wieldedObject;
-                uint placementId;
-                uint childLocation;
-                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
-                    session.Player.SetChild(this, item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
-                session.Network.EnqueueSend(new GameMessageCreateObject(item));
-            }
-        }
-
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem, uint placement = 0)
         {

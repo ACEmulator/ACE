@@ -17,6 +17,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -338,8 +339,8 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
-
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -1983,6 +1984,12 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(msg);
         }
 
+        /// <summary>
+        /// This method clears all properties used by container and sets the needed wielder properties.   Removes from Inventory and addes to wielded items.
+        /// </summary>
+        /// <param name="item">The world object we are wielding</param>
+        /// <param name="wielder">Who is wielding the item</param>
+        /// <param name="currentWieldedLocation">What wield location are we going into</param>
         private void AddToWieldedObjects(WorldObject item, ObjectGuid wielder, EquipMask currentWieldedLocation)
         {
             RemoveFromInventory(item.Guid);
@@ -1997,21 +2004,52 @@ namespace ACE.Entity
                 WieldedObjects.Add(item.Guid, item);
         }
 
+        /// <summary>
+        /// Removes items from the Wielded Objects dictionary.   It does not add it to inventory as you could be unwielding to the ground or a chest.
+        /// </summary>
+        /// <param name="itemGuid">Guid of the item to be unwielded.</param>
         private void RemoveFromWieldedObjects(ObjectGuid itemGuid)
         {
             if (WieldedObjects.ContainsKey(itemGuid))
                 WieldedObjects.Remove(itemGuid);
         }
 
+        public void SendInventoryAndWieldedItems(Session session)
+        {
+            foreach (AceObject invItem in Inventory.Values)
+            {
+                WorldObject inv = WorldObjectFactory.CreateWorldObject(invItem);
+                session.Network.EnqueueSend(new GameMessageCreateObject(inv));
+                // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
+                if (invItem.WeenieType != (uint)WeenieType.Container)
+                    continue;
+                foreach (AceObject itemsInContainer in invItem.Inventory.Values)
+                {
+                    WorldObject contItem = WorldObjectFactory.CreateWorldObject(itemsInContainer);
+                    session.Network.EnqueueSend(new GameMessageCreateObject(contItem));
+                }
+            }
+
+            foreach (WorldObject wieldedObject in WieldedObjects.Values)
+            {
+                WorldObject item = wieldedObject;
+                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
+                {
+                    uint placementId;
+                    uint childLocation;
+                    session.Player.SetChild(this, item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
+                }
+                session.Network.EnqueueSend(new GameMessageCreateObject(item));
+            }
+        }
+
         private void HandleUnwieldItem(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
-            // Set all of the wielded items to null
-            item.ParentLocation = null;
-            item.CurrentWieldedLocation = null;
-            item.Location = null;
-            item.WielderId = null;
+            item.ContainerId = container.Guid.Full;
+            SetInventoryForContainer(item, placement);
+
             RemoveFromWieldedObjects(item.Guid);
             UpdateAppearance(container);
 
@@ -2019,13 +2057,6 @@ namespace ACE.Entity
             {
                 // We are coming from a hand shield slot.
                 Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
-                inContainerChain.AddAction(this, () =>
-                    {
-                        CurrentLandblock.EnqueueBroadcast(
-                            Location,
-                            Landblock.MaxObjectRange,
-                            new GameMessageRemoveObject(item));
-                    });
             }
 
             // Set the container stuff
@@ -2037,14 +2068,14 @@ namespace ACE.Entity
                 AddToInventory(item, placement);
             });
 
-            inContainerChain.AddAction(this, () => Session.Network.EnqueueSend(new GameMessageCreateObject(item),
-                                                                               new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container),
-                                                                               new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
-                                                                               new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, 0)));
-
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(container),
-                                                                                  new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                                                                                  new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, new ObjectGuid(0)),
+                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0),
+                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid),
+                                            new GameMessagePickupEvent(item),
+                                            new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
+                                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
+                                            new GameMessageObjDescEvent(container));
 
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return;
@@ -2074,7 +2105,7 @@ namespace ACE.Entity
             }
             container.AddToInventory(item, placement);
             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                                        new GameMessageUpdateInstanceId(item.Guid, container.Guid, PropertyInstanceId.Container));
+                                        new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid));
         }
 
         /// <summary>
@@ -2392,18 +2423,13 @@ namespace ACE.Entity
 
                                 UpdateAppearance(container);
 
-                                Session.Network.EnqueueSend(new GameMessageCreateObject(item),
-                                                            new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
-                                                            new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                                            new GameMessageUpdateInstanceId(container.Guid, new ObjectGuid(0), PropertyInstanceId.Container),
-                                                            new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                                            new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CurrentWieldedLocation, placement));
-
-                                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageCreateObject(item),
-                                                                                                      new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
-                                                                                                      new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                                                                      new GameMessageObjDescEvent(item));
+                                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                                new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
+                                                                new GameEventWieldItem(Session, itemGuid.Full, placement),
+                                                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
+                                                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
+                                                                new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement));
 
                                 if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                                     return;
@@ -2424,25 +2450,13 @@ namespace ACE.Entity
                             {
                                 UpdateAppearance(container);
 
-                                Session.Network.EnqueueSend(
-                                    new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                    new GameMessageUpdateInstanceId(
-                                        container.Guid,
-                                        new ObjectGuid(0),
-                                        PropertyInstanceId.Container),
-                                    new GameMessageUpdateInstanceId(
-                                        container.Guid,
-                                        itemGuid,
-                                        PropertyInstanceId.Wielder),
-                                    new GameMessagePrivateUpdatePropertyInt(
-                                        Session.Player.Sequences,
-                                        PropertyInt.CurrentWieldedLocation,
-                                        placement));
-                                CurrentLandblock.EnqueueBroadcast(
-                                    Location,
-                                    Landblock.MaxObjectRange,
-                                    new GameMessageObjDescEvent(this));
+                                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                            new GameEventWieldItem(Session, itemGuid.Full, placement),
+                                                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
+                                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
+                                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement),
+                                                            new GameMessageObjDescEvent(container));
                             }
                         }
                     }
