@@ -65,7 +65,7 @@ namespace ACE.Entity
             player.SendUseDoneEvent();
 
             List<VendorItems> items = new List<VendorItems>();
-            items = DatabaseManager.World.GetVendorWeenieInventoryById(WeenieClassId);
+            items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.AceObjectId);
 
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, items));         
         }
