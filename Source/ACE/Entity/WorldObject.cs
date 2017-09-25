@@ -1,4 +1,4 @@
-using ACE.DatLoader.FileTypes;
+﻿using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
@@ -2267,13 +2267,25 @@ namespace ACE.Entity
                 }
             }
         }
-        
+
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
-            writer.WriteGuid(Guid);
+            SerializeCreateObject(writer, false);
+        }
 
-            SerializeModelData(writer);
-            SerializePhysicsData(writer);
+        public virtual void SerializeGameDataOnly(BinaryWriter writer)
+        {
+            SerializeCreateObject(writer, true);
+        }
+
+        public virtual void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)
+        {
+            if (!gamedataonly)
+            {
+                writer.WriteGuid(Guid);
+                SerializeModelData(writer);
+                SerializePhysicsData(writer);
+            }
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);

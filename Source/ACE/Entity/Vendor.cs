@@ -16,22 +16,12 @@ namespace ACE.Entity
     public class Vendor : WorldObject
     {
         private List<AceObject> defaultItemsForSale = new List<AceObject>();
+        private bool inventoryloaded = false;
 
         // todo : SO : Turning to player movement states  - looks at @og
         public Vendor(AceObject aceO)
             : base(aceO)
         {
-            // Load Vendor Inventory from database.
-            List<VendorItems> items = new List<VendorItems>();
-            items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId);
-
-            foreach (VendorItems item in items)
-            {
-                AceObject obj = new AceObject();
-                obj = DatabaseManager.World.GetAceObjectByWeenie(item.WeenieClassId);
-                defaultItemsForSale.Add(obj);
-            }
-
         }
 
         public override void HandleActionOnUse(ObjectGuid playerId)
@@ -50,19 +40,13 @@ namespace ACE.Entity
                 else
                 {
                     // add to action chain  ?
+                    LoadInventory();
                     UseVendor(player);
 
-                    ActionChain vendorChain = new ActionChain();
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
 
-                    vendorChain.AddAction(this, () =>
-                    {
-                        ActionChain openVendor = new ActionChain();
-                        openVendor.AddAction(this, () => Reset());
-                        openVendor.EnqueueChain();
-
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    });
+                    Reset();
                 }
             });
             chain.EnqueueChain();
@@ -70,15 +54,30 @@ namespace ACE.Entity
 
         private void UseVendor(Player player)
         {
-            // load inventory for vendor from db..
-            // List<AceObject> saveditems =  ;
-
             // give player starting money
             player.GiveCoin(5000);
             player.SendUseDoneEvent();
 
             // todo: send more then default items.
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));         
+        }
+
+        private void LoadInventory()
+        {
+            // Load Vendor Inventory from database.
+            if (!inventoryloaded)
+            {
+                List<VendorItems> items = new List<VendorItems>();
+                items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId);
+                foreach (VendorItems item in items)
+                {
+                    AceObject obj = new AceObject();
+                    obj = DatabaseManager.World.GetAceObjectByWeenie(item.WeenieClassId);
+                    if (obj != null)
+                        defaultItemsForSale.Add(obj);
+                }
+                inventoryloaded = true;
+            }
         }
 
         private void Reset()

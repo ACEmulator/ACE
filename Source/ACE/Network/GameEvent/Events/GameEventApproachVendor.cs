@@ -27,18 +27,17 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write((uint)0); // trade number .. is this a timestamp type val?
             Writer.WriteString16L("");
             Writer.Write((uint)items.Count); // number of items
-
             Writer.Write((uint)0xFFFFFFFF); // old weenie
 
-            int iid = 0;
+            int iid = 1;
             foreach (AceObject obj in items)
             {
-                //Render Stream.
-                iid++;
-                Writer.Write((uint)iid);
-                // I need to Serialize the game data to the network stream of obj ?
+                // Serialize Stream.
+                Writer.Write(iid++);
+                GenericObject go = new GenericObject(obj);
+                go.SerializeGameDataOnly(Writer);
             }
-
+            Writer.Align();
         }
     }
 }
