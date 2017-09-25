@@ -31,9 +31,7 @@ namespace ACE.Entity
         protected Dictionary<ObjectGuid, AceObject> WieldedItems
         {
             get { return AceObject.WieldedItems; }
-        }
-
-        protected Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
+        }     
 
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : this(aceObject)
@@ -57,6 +55,13 @@ namespace ACE.Entity
             {
                 ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
                 WieldedObjects.Add(woGuid, new GenericObject(WieldedItems[woGuid]));
+            }
+
+            InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
+            foreach (var inventoryItem in Inventory)
+            {
+                ObjectGuid woGuid = new ObjectGuid(inventoryItem.Value.AceObjectId);
+                InventoryObjects.Add(woGuid, new GenericObject(Inventory[woGuid]));
             }
         }
 
@@ -107,12 +112,12 @@ namespace ACE.Entity
 
         public bool HasItem(ObjectGuid itemGuid)
         {
-            bool foundItem = Inventory.ContainsKey(itemGuid) || WieldedObjects.ContainsKey(itemGuid);
+            bool foundItem = InventoryObjects.ContainsKey(itemGuid) || WieldedObjects.ContainsKey(itemGuid);
             if (foundItem)
                 return true;
 
-            var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
-            return containers.Any(cnt => (cnt.Value).Inventory.ContainsKey(itemGuid));
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            return containers.Any(cnt => (cnt.Value).InventoryObjects.ContainsKey(itemGuid));
         }
 
         /// <summary>
@@ -154,11 +159,19 @@ namespace ACE.Entity
 
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
-            if (Inventory.ContainsKey(objectGuid))
-                return WorldObjectFactory.CreateWorldObject(Inventory[objectGuid]);
+            WorldObject inventoryItem;
+            if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
+                return inventoryItem;
 
-            var containers = Inventory.Where(wo => wo.Value.WeenieType == (uint)WeenieType.Container).ToList();
-            WorldObject item = (from cnt in containers where cnt.Value.Inventory.ContainsKey(objectGuid) select WorldObjectFactory.CreateWorldObject(cnt.Value.Inventory[objectGuid])).FirstOrDefault();
+            WorldObject item = null;
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in containers)
+            {
+                if (container.Value.InventoryObjects.TryGetValue(objectGuid, out item))
+                {
+                    break;
+                }
+            }
 
             // It is not in inventory - main pack or container - last check the wielded items.
             if (item == null)

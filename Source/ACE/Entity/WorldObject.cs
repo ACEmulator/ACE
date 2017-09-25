@@ -41,6 +41,10 @@ namespace ACE.Entity
 
         protected AceObject AceObject { get; set; }
 
+        protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
+
+        protected internal Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; set; }
+
         // we need to expose this read only for examine to work. Og II
         public List<AceObjectPropertiesInt> PropertiesInt
         {
