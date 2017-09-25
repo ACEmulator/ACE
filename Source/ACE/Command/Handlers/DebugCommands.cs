@@ -779,8 +779,8 @@ namespace ACE.Command.Handlers
             "Creates 1 of each weapon class in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 120, 134, 300, 307, 36561 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            // HashSet<uint> weaponsTest = new HashSet<uint>() { 120, 134, 300, 307, 36561 };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>
@@ -807,9 +807,9 @@ namespace ACE.Command.Handlers
             chain.EnqueueChain();
         }
 
-            // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
-            [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates sample items, foci and containers in your inventory.")]
+        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
+        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+        "Creates sample items, foci and containers in your inventory.")]
         public static void HandleInv(Session session, params string[] parameters)
         {
             HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46, 15268, 15269, 15270, 15271, 12748, 5893, 136 };

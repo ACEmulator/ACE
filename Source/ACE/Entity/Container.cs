@@ -50,14 +50,14 @@ namespace ACE.Entity
             foreach (var inventoryItem in Inventory)
             {
                 ObjectGuid woGuid = new ObjectGuid(inventoryItem.Value.AceObjectId);
-                InventoryObjects.Add(woGuid, new GenericObject(Inventory[woGuid]));
+                InventoryObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(inventoryItem.Value));
                 if (InventoryObjects[woGuid].WeenieType == WeenieType.Container)
                 {
                     InventoryObjects[woGuid].InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
                     foreach (var item in Inventory[woGuid].Inventory)
                     {
                         ObjectGuid cwoGuid = new ObjectGuid(item.Value.AceObjectId);
-                        InventoryObjects[woGuid].InventoryObjects.Add(cwoGuid, new GenericObject(item.Value.Inventory[cwoGuid]));
+                        InventoryObjects[woGuid].InventoryObjects.Add(cwoGuid, WorldObjectFactory.CreateWorldObject(item.Value));
                     }
                 }
             }
@@ -66,12 +66,7 @@ namespace ACE.Entity
         // Inventory Management Functions
         public virtual void AddToInventory(WorldObject inventoryItem, uint placement = 0)
         {
-            ActionChain actionChain = new ActionChain();
-            actionChain.AddAction(this, () =>
-            {
-                AddToInventoryEx(inventoryItem, placement);
-            });
-            actionChain.EnqueueChain();
+            AddToInventoryEx(inventoryItem, placement);
         }
 
         /// <summary>
@@ -126,34 +121,26 @@ namespace ACE.Entity
             if (!InventoryObjects.ContainsKey(itemGuid)) return;
 
             uint placement = InventoryObjects[itemGuid].Placement ?? 0u;
-            uint? containerId = GetContainer(itemGuid);
-            if (containerId == null) return;
-
-            ObjectGuid containerGuid = new ObjectGuid((uint)containerId);
-            Container container;
-            if (containerGuid.IsPlayer())
-                container = this;
-            else
-                container = (Container)InventoryObjects[containerGuid];
-
-            container.InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
-            container.InventoryObjects[itemGuid].ContainerId = null;
-            container.InventoryObjects[itemGuid].Placement = null;
-            container.InventoryObjects.Remove(itemGuid);
+            InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
+            InventoryObjects[itemGuid].ContainerId = null;
+            InventoryObjects[itemGuid].Placement = null;
+            InventoryObjects.Remove(itemGuid);
             Burden = UpdateBurden();
         }
 
         public ushort UpdateBurden()
         {
+            // TODO: reimplement this.   Og II
             ushort calculatedBurden = 0;
             return calculatedBurden;
         }
 
-        public uint? GetContainer(ObjectGuid itemGuid)
-        {
-            return GetInventoryItem(itemGuid).ContainerId;
-        }
-
+        /// <summary>
+        /// This method is used to get anything in our posession.   Inventory in main or any packs,
+        /// as well as wielded items.   If we have it, this will return it.
+        /// </summary>
+        /// <param name="objectGuid"></param>
+        /// <returns></returns>
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             WorldObject inventoryItem;

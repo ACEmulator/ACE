@@ -1498,6 +1498,8 @@ namespace ACE.Entity
         /// </summary>
         private void SetChildren()
         {
+            Children.Clear();
+
             foreach (WorldObject wieldedObject in WieldedObjects.Values)
             {
                 WorldObject wo = wieldedObject;
@@ -1522,9 +1524,6 @@ namespace ACE.Entity
 
             Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid),
                                         new GameMessageCreateObject(this));
-
-            // Find all the containers and send a view contents event.
-            Session.Player.Inventory.Where(i => i.Value.WeenieType == (uint)WeenieType.Container).ToList().ForEach(i => Session.Network.EnqueueSend(new GameEventViewContents(Session, i.Value)));
 
             SendInventoryAndWieldedItems(Session);
         }
@@ -2005,7 +2004,8 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// This method clears all properties used by container and sets the needed wielder properties.   Removes from Inventory and addes to wielded items.
+        /// This method removes an item from Inventory and adds it to wielded items.
+        /// It also clears all properties used when an object is contained and sets the needed properties to be wielded Og II
         /// </summary>
         /// <param name="item">The world object we are wielding</param>
         /// <param name="wielder">Who is wielding the item</param>
@@ -2025,7 +2025,8 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Removes items from the Wielded Objects dictionary.   It does not add it to inventory as you could be unwielding to the ground or a chest.
+        /// This method is used to remove an item from the Wielded Objects dictionary.
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II
         /// </summary>
         /// <param name="itemGuid">Guid of the item to be unwielded.</param>
         private void RemoveFromWieldedObjects(ObjectGuid itemGuid)
@@ -2034,6 +2035,12 @@ namespace ACE.Entity
                 WieldedObjects.Remove(itemGuid);
         }
 
+        /// <summary>
+        /// This method iterates through your main pack, any packs and finds all the items contained
+        /// It also iterates over your wielded items - it sends create object messages needed by the login process
+        /// it is called from SendSelf as part of the login message traffic.   Og II
+        /// </summary>
+        /// <param name="session"></param>
         public void SendInventoryAndWieldedItems(Session session)
         {
             foreach (WorldObject invItem in InventoryObjects.Values)
@@ -2042,6 +2049,8 @@ namespace ACE.Entity
                 // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
                 if (invItem.WeenieType != WeenieType.Container)
                     continue;
+
+                Session.Network.EnqueueSend(new GameEventViewContents(Session, invItem.SnapShotOfAceObject()));
                 foreach (WorldObject itemsInContainer in invItem.InventoryObjects.Values)
                 {
                     session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
@@ -2061,6 +2070,16 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method is called in response to a put item in container message.  It is used when the item going
+        /// into a container was wielded.   It sets the appropriate properties, sends out response messages
+        /// and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
+        /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="item"></param>
+        /// <param name="placement"></param>
+        /// <param name="inContainerChain"></param>
         private void HandleUnwieldItem(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
@@ -2099,35 +2118,58 @@ namespace ACE.Entity
                 return;
             HandleSwitchToPeaceMode(CombatMode);
             HandleSwitchToMeleeCombatMode(CombatMode);
+
+            // FIXME:This is a hack.   There is some strangeness going on with dirty flags.
+            // If you wield and unwield items, move them from slot to slot - something is not working right when it does a save.
+            // it might be that you set and unset weilder / container and the underlying ace object is now out of sync with dirty flags Og II
+            DatabaseManager.Shard.SaveObject(this.SnapShotOfAceObject(), null);
         }
 
+        /// <summary>
+        /// Method is called in response to put item in container message.   This use case is we are just
+        /// reorginizing our items.   It is either a in pack slot to slot move, or we could be going from one
+        /// pack (container) to another. Og II
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="container"></param>
+        /// <param name="placement"></param>
         private void HandleMove(WorldObject item, Container container, uint placement)
         {
-            // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
-            if (item.ContainerId != container.Guid.Full)
+            ActionChain moveChain = new ActionChain();
+            moveChain.AddAction(this, () =>
             {
-                Container previousContainer = null;
-                if (item.ContainerId != null)
+                // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
+                if (item.ContainerId != container.Guid.Full)
                 {
-                    var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
-                    if (previousContainerGuid == Guid)
-                        previousContainer = this;
-                    else
+                    Container previousContainer = null;
+                    if (item.ContainerId != null)
                     {
-                        previousContainer = (Container)GetInventoryItem(previousContainerGuid);
+                        var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
+                        if (previousContainerGuid == Guid)
+                            previousContainer = this;
+                        else
+                        {
+                            previousContainer = (Container)GetInventoryItem(previousContainerGuid);
+                        }
                     }
+                    if (previousContainer != null)
+                        previousContainer.RemoveFromInventory(item.Guid);
+                    item.ContainerId = container.Guid.Full;
+                    item.Placement = placement;
                 }
-                if (previousContainer != null)
-                    previousContainer.RemoveFromInventory(item.Guid);
-                item.ContainerId = container.Guid.Full;
-            }
-            container.AddToInventory(item, placement);
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                                        new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid));
+                container.AddToInventory(item, placement);
+                Session.Network.EnqueueSend(
+                    new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
+                    new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
+                        container.Guid));
+            });
+            moveChain.EnqueueChain();
         }
 
         /// <summary>
         /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
+        /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting
+        /// item. Og II
         /// </summary>
         /// <param name="stackId"></param>
         /// <param name="containerId"></param>
@@ -2136,6 +2178,7 @@ namespace ACE.Entity
         /// <returns></returns>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
         {
+            // TODO: add the complementary method to combine items Og II
             ActionChain splitItemsChain = new ActionChain();
             splitItemsChain.AddAction(this, () =>
                 {
@@ -2206,6 +2249,16 @@ namespace ACE.Entity
             splitItemsChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// This method is used to pick items off the world - out of 3D space and into our inventory or to a wielded slot.
+        /// It checks the use case needed, sends the appropriate response messages.   In addition, it will move to objects
+        /// that are out of range in the attemp to pick them up.   It will call update apperiance if needed and you have 
+        /// wielded an item from the ground. Og II
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="itemGuid"></param>
+        /// <param name="placement"></param>
+        /// <param name="iidPropertyId"></param>
         private void HandlePickupItem(Container container, ObjectGuid itemGuid, uint placement, PropertyInstanceId iidPropertyId)
         {
             // Logical operations:
@@ -2305,6 +2358,11 @@ namespace ACE.Entity
             pickUpItemChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// This method was developed by OptimShi.   It looks at currently wielded items and does the appropriate
+        /// model replacements.   It then sends all uncovered  body parts. Og II
+        /// </summary>
+        /// <param name="container"></param>
         public void UpdateAppearance(Container container)
         {
             ClearObjDesc();
@@ -2360,11 +2418,21 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method sets properties needed for items that will be child items.
+        /// Items here are only items equipped in the hands.  This deals with the orientation
+        /// and positioning for visual apperence of the child items held by the parent. Og II
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="item"></param>
+        /// <param name="placement"></param>
+        /// <param name="placementId"></param>
+        /// <param name="childLocation"></param>
         public void SetChild(Container container, WorldObject item, uint placement, out uint placementId, out uint childLocation)
         {
             placementId = 0;
             childLocation = 0;
-
+            // TODO:   I think there is a state missing - it is one of the edge cases.   I need to revist this.   Og II
             switch ((EquipMask)placement)
             {
                 case EquipMask.MissileWeapon:
@@ -2411,9 +2479,10 @@ namespace ACE.Entity
                     }
             }
             if (item.CurrentWieldedLocation != null)
-                container.Children.Add(new HeldItem(item.Guid.Full, placementId, (EquipMask)item.CurrentWieldedLocation));
+                container.Children.Add(new HeldItem(item.Guid.Full, childLocation, (EquipMask)item.CurrentWieldedLocation));
             item.ParentLocation = childLocation;
             item.Location = Location;
+            item.AnimationFrame = placementId;
         }
 
         public void HandleActionWieldItem(Container container, uint itemId, uint placement)
@@ -2500,6 +2569,8 @@ namespace ACE.Entity
                         else
                         {
                             // Ok I am going into player pack - not the main pack.
+
+                            // TODO pick up here - I have a generic object for a container, need to find out why.
                             container = (Container)GetInventoryItem(containerGuid);
                         }
 

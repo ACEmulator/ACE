@@ -1644,6 +1644,7 @@ namespace ACE.Entity
             inventoryItem.Location = null;
             inventoryItem.ParentLocation = null;
             inventoryItem.CurrentWieldedLocation = null;
+            inventoryItem.WielderId = null;
         }
 
         public void Examine(Session examiner)
@@ -2687,7 +2688,7 @@ namespace ACE.Entity
                 foreach (var child in Children)
                 {
                     writer.Write(child.Guid);
-                    writer.Write((uint)child.EquipMask);
+                    writer.Write(child.LocationId);
                 }
             }
 
