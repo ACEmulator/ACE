@@ -36,7 +36,7 @@ namespace ACE.Network.GameEvent.Events
                 //Render Stream.
                 iid++;
                 Writer.Write((uint)iid);
-                // I need to render a bunch of stuff from game data of obj ?
+                // I need to Serialize the game data to the network stream of obj ?
             }
 
         }
