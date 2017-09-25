@@ -22,17 +22,6 @@ namespace ACE.Entity
             get { return (ushort?)(base.Burden + UpdateBurden()) ?? (ushort?)0; }
         }
 
-        protected Dictionary<ObjectGuid, AceObject> Inventory
-        {
-            get { return AceObject.Inventory; }
-        }
-
-        // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
-        protected Dictionary<ObjectGuid, AceObject> WieldedItems
-        {
-            get { return AceObject.WieldedItems; }
-        }     
-
         public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
             : this(aceObject)
         {
@@ -62,6 +51,15 @@ namespace ACE.Entity
             {
                 ObjectGuid woGuid = new ObjectGuid(inventoryItem.Value.AceObjectId);
                 InventoryObjects.Add(woGuid, new GenericObject(Inventory[woGuid]));
+                if (InventoryObjects[woGuid].WeenieType == WeenieType.Container)
+                {
+                    InventoryObjects[woGuid].InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
+                    foreach (var item in Inventory[woGuid].Inventory)
+                    {
+                        ObjectGuid cwoGuid = new ObjectGuid(item.Value.AceObjectId);
+                        InventoryObjects[woGuid].InventoryObjects.Add(cwoGuid, new GenericObject(item.Value.Inventory[cwoGuid]));
+                    }
+                }
             }
         }
 
@@ -82,32 +80,31 @@ namespace ACE.Entity
         /// </summary>
         public virtual void AddToInventoryEx(WorldObject inventoryItem, uint placement = 0)
         {
-            if (Inventory.ContainsKey(inventoryItem.Guid))
+            if (InventoryObjects.ContainsKey(inventoryItem.Guid))
             {
                 // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
                 if (inventoryItem.UseBackpackSlot)
-                    Inventory.Where(i => Inventory[inventoryItem.Guid].Placement != null &&
-                                         i.Value.Placement > (uint)Inventory[inventoryItem.Guid].Placement &&
+                    InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].Placement != null &&
+                                         i.Value.Placement > (uint)InventoryObjects[inventoryItem.Guid].Placement &&
                                          i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement--);
                 else
-                    Inventory.Where(i => Inventory[inventoryItem.Guid].Placement != null &&
-                                         i.Value.Placement > (uint)Inventory[inventoryItem.Guid].Placement &&
+                    InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].Placement != null &&
+                                         i.Value.Placement > (uint)InventoryObjects[inventoryItem.Guid].Placement &&
                                          !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement--);
 
-                Inventory.Remove(inventoryItem.Guid);
+                InventoryObjects.Remove(inventoryItem.Guid);
             }
             // If not going on the very end (next open slot), make a hole.
             if (inventoryItem.UseBackpackSlot)
-                Inventory.Where(i => i.Value.Placement >= placement &&
+                InventoryObjects.Where(i => i.Value.Placement >= placement &&
                                      i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
             else
-                Inventory.Where(i => i.Value.Placement >= placement &&
+                InventoryObjects.Where(i => i.Value.Placement >= placement &&
                  !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
 
             inventoryItem.Placement = placement;
             inventoryItem.Location = null;
-            AceObject aceO = inventoryItem.SnapShotOfAceObject();
-            Inventory.Add(inventoryItem.Guid, aceO);
+            InventoryObjects.Add(inventoryItem.Guid, inventoryItem);
         }
 
         public bool HasItem(ObjectGuid itemGuid)
@@ -126,23 +123,23 @@ namespace ACE.Entity
         /// <param name="itemGuid"></param>
         public virtual void RemoveFromInventory(ObjectGuid itemGuid)
         {
-            if (!Inventory.ContainsKey(itemGuid)) return;
+            if (!InventoryObjects.ContainsKey(itemGuid)) return;
 
-            uint placement = Inventory[itemGuid].Placement ?? 0u;
+            uint placement = InventoryObjects[itemGuid].Placement ?? 0u;
             uint? containerId = GetContainer(itemGuid);
             if (containerId == null) return;
 
             ObjectGuid containerGuid = new ObjectGuid((uint)containerId);
-            AceObject container;
+            Container container;
             if (containerGuid.IsPlayer())
-                container = this.AceObject;
+                container = this;
             else
-                container = Inventory[containerGuid];
+                container = (Container)InventoryObjects[containerGuid];
 
-            container.Inventory.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
-            container.Inventory[itemGuid].ContainerIID = null;
-            container.Inventory[itemGuid].Placement = null;
-            container.Inventory.Remove(itemGuid);
+            container.InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
+            container.InventoryObjects[itemGuid].ContainerId = null;
+            container.InventoryObjects[itemGuid].Placement = null;
+            container.InventoryObjects.Remove(itemGuid);
             Burden = UpdateBurden();
         }
 

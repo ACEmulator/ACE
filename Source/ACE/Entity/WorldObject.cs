@@ -45,6 +45,17 @@ namespace ACE.Entity
 
         protected internal Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; set; }
 
+        protected internal Dictionary<ObjectGuid, AceObject> Inventory
+        {
+            get { return AceObject.Inventory; }
+        }
+
+        // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
+        protected internal Dictionary<ObjectGuid, AceObject> WieldedItems
+        {
+            get { return AceObject.WieldedItems; }
+        }
+
         // we need to expose this read only for examine to work. Og II
         public List<AceObjectPropertiesInt> PropertiesInt
         {

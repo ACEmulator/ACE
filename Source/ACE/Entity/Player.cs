@@ -1419,6 +1419,24 @@ namespace ACE.Entity
             }
         }
 
+        public void SnapshotInventoryItems()
+        {
+            Inventory.Clear();
+            foreach (var wo in InventoryObjects)
+            {
+                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject());
+
+                if (wo.Value.WeenieType == WeenieType.Container)
+                {
+                    wo.Value.Inventory.Clear();
+                    foreach (var item in wo.Value.InventoryObjects)
+                    {
+                        wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject());
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
@@ -1433,6 +1451,8 @@ namespace ACE.Entity
                 // Let's get a snapshot of our wielded items prior to save.
 
                 SnapshotWieldedItems();
+
+                SnapshotInventoryItems();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 #if DEBUG
@@ -2016,17 +2036,15 @@ namespace ACE.Entity
 
         public void SendInventoryAndWieldedItems(Session session)
         {
-            foreach (AceObject invItem in Inventory.Values)
+            foreach (WorldObject invItem in InventoryObjects.Values)
             {
-                WorldObject inv = WorldObjectFactory.CreateWorldObject(invItem);
-                session.Network.EnqueueSend(new GameMessageCreateObject(inv));
+                session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
                 // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
-                if (invItem.WeenieType != (uint)WeenieType.Container)
+                if (invItem.WeenieType != WeenieType.Container)
                     continue;
-                foreach (AceObject itemsInContainer in invItem.Inventory.Values)
+                foreach (WorldObject itemsInContainer in invItem.InventoryObjects.Values)
                 {
-                    WorldObject contItem = WorldObjectFactory.CreateWorldObject(itemsInContainer);
-                    session.Network.EnqueueSend(new GameMessageCreateObject(contItem));
+                    session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
                 }
             }
 

@@ -215,7 +215,7 @@ namespace ACE.Network.Handlers
                 hat.SpellIdProperties = new List<AceObjectPropertiesSpell>();
 
                 hat.IconDID = headgearIconId;
-                
+
                 if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
                 {
                     // Add the model and texture(s)
@@ -263,7 +263,7 @@ namespace ACE.Network.Handlers
                         }
                     }
                 }
-                
+
                 // character.Inventory.Add(new ObjectGuid(hat.AceObjectId), hat);
             }
 
@@ -334,7 +334,7 @@ namespace ACE.Network.Handlers
             }
 
             character.Inventory.Add(new ObjectGuid(shirt.AceObjectId), shirt);
-            
+
             uint pantsWeenie = sex.GetPantsWeenie(appearance.PantsStyle);
             ClothingTable pantsCT = ClothingTable.ReadFromDat(sex.GetPantsClothingTable(appearance.PantsStyle));
             uint pantsIconId = pantsCT.GetIcon(appearance.PantsColor);
@@ -459,7 +459,7 @@ namespace ACE.Network.Handlers
             } // end footwear
 
             character.Inventory.Add(new ObjectGuid(shoes.AceObjectId), shoes);
-            
+
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.
             var templateOption = reader.ReadInt32();
@@ -588,7 +588,7 @@ namespace ACE.Network.Handlers
                     }
                 }
             }
-            
+
             character.Name = reader.ReadString16L();
             character.DisplayName = character.Name; // unsure
 
