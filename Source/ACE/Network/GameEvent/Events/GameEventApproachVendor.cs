@@ -7,7 +7,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, ObjectGuid objectID, List<VendorItems> salelist)
+        public GameEventApproachVendor(Session session, ObjectGuid objectID, List<AceObject> items)
             : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
         {        
             Writer.Write(objectID.Full); // merchant id
@@ -26,9 +26,19 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write((uint)0); // trade id .. is this a timestamp type val?
             Writer.Write((uint)0); // trade number .. is this a timestamp type val?
             Writer.WriteString16L("");
+            Writer.Write((uint)items.Count); // number of items
 
-            int itemCount = 0;
-            Writer.Write((uint)itemCount); // number of items
+            Writer.Write((uint)0xFFFFFFFF); // old weenie
+
+            int iid = 0;
+            foreach (AceObject obj in items)
+            {
+                //Render Stream.
+                iid++;
+                Writer.Write((uint)iid);
+                // I need to render a bunch of stuff from game data of obj ?
+            }
+
         }
     }
 }

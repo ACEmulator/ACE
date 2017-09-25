@@ -15,10 +15,23 @@ namespace ACE.Entity
 {
     public class Vendor : WorldObject
     {
-        // todo : so : Turning to player movement states  - @og
+        private List<AceObject> defaultItemsForSale = new List<AceObject>();
+
+        // todo : SO : Turning to player movement states  - looks at @og
         public Vendor(AceObject aceO)
             : base(aceO)
         {
+            // Load Vendor Inventory from database.
+            List<VendorItems> items = new List<VendorItems>();
+            items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId);
+
+            foreach (VendorItems item in items)
+            {
+                AceObject obj = new AceObject();
+                obj = DatabaseManager.World.GetAceObjectByWeenie(item.WeenieClassId);
+                defaultItemsForSale.Add(obj);
+            }
+
         }
 
         public override void HandleActionOnUse(ObjectGuid playerId)
@@ -64,10 +77,8 @@ namespace ACE.Entity
             player.GiveCoin(5000);
             player.SendUseDoneEvent();
 
-            List<VendorItems> items = new List<VendorItems>();
-            items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.AceObjectId);
-
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, items));         
+            // todo: send more then default items.
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));         
         }
 
         private void Reset()
