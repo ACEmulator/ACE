@@ -40,15 +40,32 @@ namespace ACE.Entity
                 else
                 {
                     // add to action chain  ?
-                    LoadInventory();
-                    UseVendor(player);
+                    chain.AddAction(this, () =>
+                    {
+                        LoadInventory();
+                    });
 
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    if (!inventoryloaded)
+                        chain.AddDelaySeconds(2);
 
-                    Reset();
+                    chain.AddAction(this, () =>
+                    {
+                        UseVendor(player);
+                    });
+
+                    chain.AddAction(this, () =>
+                    {
+                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    });
+
+                    chain.AddAction(this, () =>
+                    {
+                        player.SendUseDoneEvent();
+                    });           
                 }
             });
+
             chain.EnqueueChain();
         }
 
@@ -56,10 +73,9 @@ namespace ACE.Entity
         {
             // give player starting money
             player.GiveCoin(5000);
-            player.SendUseDoneEvent();
 
             // todo: send more then default items.
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));         
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
         }
 
         private void LoadInventory()
