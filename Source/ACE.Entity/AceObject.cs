@@ -1948,8 +1948,8 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
-            this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
-            this.WieldedItems.ToList().ForEach(x => x.Value.ClearDirtyFlags());
+            // this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
+            // this.WieldedItems.ToList().ForEach(x => x.Value.ClearDirtyFlags());
         }
 
         public void SetDirtyFlags()
@@ -1967,8 +1967,8 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.SetDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
             this.StringProperties.ForEach(x => x.SetDirtyFlags());
-            this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
-            this.WieldedItems.ToList().ForEach(x => x.Value.SetDirtyFlags());
+            // this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
+            // this.WieldedItems.ToList().ForEach(x => x.Value.SetDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
