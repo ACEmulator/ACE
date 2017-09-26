@@ -26,8 +26,7 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write((uint)0); // trade id .. is this a timestamp type val?
             Writer.Write((uint)0); // trade number .. is this a timestamp type val?
             Writer.WriteString16L("");
-            // Writer.Write((uint)items.Count); // number of items
-            Writer.Write((uint)1);
+            Writer.Write((uint)items.Count); // number of items
 
             int iid = 1;
             foreach (AceObject obj in items)
@@ -37,7 +36,6 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(iid++);
                 GenericObject go = new GenericObject(obj);
                 go.SerializeGameDataOnly(Writer);
-                break;
             }
             Writer.Align();
         }
