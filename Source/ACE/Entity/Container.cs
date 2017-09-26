@@ -91,11 +91,9 @@ namespace ACE.Entity
             }
             // If not going on the very end (next open slot), make a hole.
             if (inventoryItem.UseBackpackSlot)
-                InventoryObjects.Where(i => i.Value.Placement >= placement &&
-                                     i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
+                InventoryObjects.Where(i => i.Value.Placement >= placement && i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
             else
-                InventoryObjects.Where(i => i.Value.Placement >= placement &&
-                 !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
+                InventoryObjects.Where(i => i.Value.Placement >= placement && !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
 
             inventoryItem.Placement = placement;
             inventoryItem.Location = null;

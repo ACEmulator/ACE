@@ -484,11 +484,6 @@ namespace ACE.Entity
             // Clone Character
             AceObject obj = (AceObject)Character.Clone();
 
-            // TODO: Og II this is where I need to load aceobject.inventory with the container.inventory
-
-            // immediately after cloning, clear all dirty flags and HasBeenSavedToDatabase
-            Character.ClearDirtyFlags();
-
             // These don't usually get saved back to the object so setting here for now.
             // Realisticly speaking, I think it will be possible to eliminate WeenieHeaderFlags and PhysicsDescriptionFlag from the datbase
             // AceObjectDescriptionFlag possibly could be eliminated as well... -Ripley
@@ -1410,6 +1405,10 @@ namespace ACE.Entity
             return new ActionChain(this, SaveCharacter);
         }
 
+        /// <summary>
+        /// This method is used to clear the wielded items list ( the list of ace objects used to save wielded items ) and loads it with a snapshot
+        /// of the aceObjects from the current list of wielded world objects. Og II
+        /// </summary>
         public void SnapshotWieldedItems()
         {
             WieldedItems.Clear();
@@ -1419,6 +1418,10 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
+        /// of the aceObjects from the current list of inventory world objects by container. Og II
+        /// </summary>
         public void SnapshotInventoryItems()
         {
             Inventory.Clear();
@@ -2088,7 +2091,8 @@ namespace ACE.Entity
             SetInventoryForContainer(item, placement);
 
             RemoveFromWieldedObjects(item.Guid);
-            UpdateAppearance(container);
+            // We will always be updating the player appearance
+            UpdateAppearance(this);
 
             if ((oldLocation & EquipMask.Selectable) != 0)
             {
@@ -2112,22 +2116,17 @@ namespace ACE.Entity
                                             new GameMessagePickupEvent(item),
                                             new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
                                             new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                                            new GameMessageObjDescEvent(container));
+                                            new GameMessageObjDescEvent(this));
 
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return;
             HandleSwitchToPeaceMode(CombatMode);
             HandleSwitchToMeleeCombatMode(CombatMode);
-
-            // FIXME:This is a hack.   There is some strangeness going on with dirty flags.
-            // If you wield and unwield items, move them from slot to slot - something is not working right when it does a save.
-            // it might be that you set and unset weilder / container and the underlying ace object is now out of sync with dirty flags Og II
-            DatabaseManager.Shard.SaveObject(this.SnapShotOfAceObject(), null);
         }
 
         /// <summary>
         /// Method is called in response to put item in container message.   This use case is we are just
-        /// reorginizing our items.   It is either a in pack slot to slot move, or we could be going from one
+        /// reorganizing our items.   It is either a in pack slot to slot move, or we could be going from one
         /// pack (container) to another. Og II
         /// </summary>
         /// <param name="item"></param>
@@ -2252,7 +2251,7 @@ namespace ACE.Entity
         /// <summary>
         /// This method is used to pick items off the world - out of 3D space and into our inventory or to a wielded slot.
         /// It checks the use case needed, sends the appropriate response messages.   In addition, it will move to objects
-        /// that are out of range in the attemp to pick them up.   It will call update apperiance if needed and you have 
+        /// that are out of range in the attemp to pick them up.   It will call update apperiance if needed and you have
         /// wielded an item from the ground. Og II
         /// </summary>
         /// <param name="container"></param>
