@@ -28,13 +28,12 @@ namespace ACE.Network.GameEvent.Events
             Writer.WriteString16L("");
             Writer.Write((uint)items.Count); // number of items
 
-            int iid = 1;
             foreach (AceObject obj in items)
             {
                 // Serialize Stream.
                 Writer.Write((uint)0xFFFFFFFF); // old weenie
-                Writer.Write(iid++);
                 GenericObject go = new GenericObject(obj);
+                Writer.Write(go.Guid.Full);
                 go.SerializeGameDataOnly(Writer);
             }
             Writer.Align();

@@ -39,30 +39,11 @@ namespace ACE.Entity
                     player.DoMoveTo(this);
                 else
                 {
-                    // add to action chain  ?
                     chain.AddAction(this, () =>
                     {
                         LoadInventory();
-                    });
-
-                    if (!inventoryloaded)
-                        chain.AddDelaySeconds(2);
-
-                    chain.AddAction(this, () =>
-                    {
                         UseVendor(player);
-                    });
-
-                    chain.AddAction(this, () =>
-                    {
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    });
-
-                    chain.AddAction(this, () =>
-                    {
-                        player.SendUseDoneEvent();
-                    });           
+                    });          
                 }
             });
 
@@ -76,6 +57,7 @@ namespace ACE.Entity
 
             // todo: send more then default items.
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
+            player.SendUseDoneEvent();
         }
 
         private void LoadInventory()
@@ -90,7 +72,9 @@ namespace ACE.Entity
                     AceObject obj = new AceObject();
                     obj = DatabaseManager.World.GetAceObjectByWeenie(item.WeenieClassId);
                     if (obj != null)
-                        defaultItemsForSale.Add(obj);
+                    {
+                        defaultItemsForSale.Add(obj);           
+                    }
                 }
                 inventoryloaded = true;
             }
