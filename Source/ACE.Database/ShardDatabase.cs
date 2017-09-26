@@ -763,7 +763,15 @@ namespace ACE.Database
                 }
                 else if (prop.PropertyValue != null)
                 {
-                    transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.InsertAceObjectPropertiesInt, prop);
+                    // FIXME: There is an issue with the dirty flags.   This is a hack to fix it until someone with more knowledge of this ORM can take a look.
+                    try
+                    {
+                        transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.InsertAceObjectPropertiesInt, prop);
+                    }
+                    catch
+                    {
+                        transaction.AddPreparedUpdateStatement<ShardPreparedStatement, AceObjectPropertiesInt>(ShardPreparedStatement.UpdateAceObjectPropertyInt, prop);
+                    }
                 }
             }
 
