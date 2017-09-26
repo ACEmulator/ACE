@@ -969,6 +969,8 @@ namespace ACE.Entity
                 }
                 else
                 {
+                    // todo: check landblock for item...
+                   
                     ActionChain chain = new ActionChain();
                     CurrentLandblock.ChainOnObject(chain, examinationId, (WorldObject cwo) =>
                     {

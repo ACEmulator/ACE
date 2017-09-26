@@ -10,12 +10,13 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 using System.Collections.Generic;
 using ACE.Database;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
     public class Vendor : WorldObject
     {
-        private List<AceObject> defaultItemsForSale = new List<AceObject>();
+        private List<WorldObject> defaultItemsForSale = new List<WorldObject>();
         private bool inventoryloaded = false;
 
         // todo : SO : Turning to player movement states  - looks at @og
@@ -69,11 +70,11 @@ namespace ACE.Entity
                 items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId);
                 foreach (VendorItems item in items)
                 {
-                    AceObject obj = new AceObject();
-                    obj = DatabaseManager.World.GetAceObjectByWeenie(item.WeenieClassId);
-                    if (obj != null)
+                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+                    if (wo != null)
                     {
-                        defaultItemsForSale.Add(obj);           
+                        wo.ContainerId = Guid.Full;
+                        defaultItemsForSale.Add(wo);
                     }
                 }
                 inventoryloaded = true;
