@@ -2015,18 +2015,18 @@ namespace ACE.Entity
         /// <param name="item">The world object we are wielding</param>
         /// <param name="wielder">Who is wielding the item</param>
         /// <param name="currentWieldedLocation">What wield location are we going into</param>
-        private void AddToWieldedObjects(WorldObject item, ObjectGuid wielder, EquipMask currentWieldedLocation)
+        private void AddToWieldedObjects(ref WorldObject item, WorldObject wielder, EquipMask currentWieldedLocation)
         {
             RemoveFromInventory(InventoryObjects, item.Guid);
             // Unset container fields
             item.Placement = null;
             item.ContainerId = null;
             // Set fields needed to be wielded.
-            item.WielderId = wielder.Full;
+            item.WielderId = wielder.Guid.Full;
             item.CurrentWieldedLocation = currentWieldedLocation;
 
-            if (!WieldedObjects.ContainsKey(item.Guid))
-                WieldedObjects.Add(item.Guid, item);
+            if (!wielder.WieldedObjects.ContainsKey(item.Guid))
+                wielder.WieldedObjects.Add(item.Guid, item);
         }
 
         /// <summary>
@@ -2129,38 +2129,33 @@ namespace ACE.Entity
         /// <summary>
         /// Method is called in response to put item in container message.   This use case is we are just
         /// reorganizing our items.   It is either a in pack slot to slot move, or we could be going from one
-        /// pack (container) to another. Og II
+        /// pack (container) to another. This method is called from an action chain.  Og II
         /// </summary>
-        /// <param name="item"></param>
-        /// <param name="container"></param>
-        /// <param name="placement"></param>
-        private void HandleMove(WorldObject item, Container container, uint placement)
+        /// <param name="item">the item we are moving</param>
+        /// <param name="container">what container are we going in</param>
+        /// <param name="placement">what is my slot position within that container</param>
+        private void HandleMove(ref WorldObject item, Container container, uint placement)
         {
-            ActionChain moveChain = new ActionChain();
-            moveChain.AddAction(this, () =>
+            if (item.ContainerId != null && item.ContainerId != container.Guid.Full)
             {
-                if (item.ContainerId != null && item.ContainerId != container.Guid.Full)
+                // We are changing containers
+                if (item.ContainerId != this.Guid.Full)
                 {
-                    // We are changing containers
-                    if (item.ContainerId != this.Guid.Full)
-                    {
-                        // The old container was not our main pack, the old container had to be in our inventory.
-                        ObjectGuid priorContainerGuid = new ObjectGuid((uint)item.ContainerId);
-                        RemoveFromInventory(InventoryObjects[priorContainerGuid].InventoryObjects, item.Guid);
-                    }
-                    else
-                        RemoveFromInventory(this.InventoryObjects, item.Guid);
+                    // The old container was not our main pack, the old container had to be in our inventory.
+                    ObjectGuid priorContainerGuid = new ObjectGuid((uint)item.ContainerId);
+                    RemoveFromInventory(InventoryObjects[priorContainerGuid].InventoryObjects, item.Guid);
                 }
+                else
+                    RemoveFromInventory(this.InventoryObjects, item.Guid);
+            }
 
-                item.ContainerId = container.Guid.Full;
-                item.Placement = placement;
-                container.AddToInventory(item, placement);
-                Session.Network.EnqueueSend(
-                    new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                    new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
-                        container.Guid));
-            });
-            moveChain.EnqueueChain();
+            item.ContainerId = container.Guid.Full;
+            item.Placement = placement;
+            container.AddToInventory(item, placement);
+            Session.Network.EnqueueSend(
+                new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
+                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
+                    container.Guid));
         }
 
         /// <summary>
@@ -2315,7 +2310,7 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        AddToWieldedObjects(item, container.Guid, (EquipMask)placement);
+                        AddToWieldedObjects(ref item, container, (EquipMask)placement);
                         UpdateAppearance(container);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
@@ -2492,7 +2487,7 @@ namespace ACE.Entity
 
                     if (item != null)
                     {
-                        AddToWieldedObjects(item, container.Guid, (EquipMask)placement);
+                        AddToWieldedObjects(ref item, container, (EquipMask)placement);
 
                         if ((EquipMask)placement == EquipMask.MissileAmmo)
                             Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement),
@@ -2590,7 +2585,7 @@ namespace ACE.Entity
                         }
 
                         // if were are still here, this needs to do a pack pack or main pack move.
-                        HandleMove(item, container, placement);
+                        HandleMove(ref item, container, placement);
                     });
             inContainerChain.EnqueueChain();
         }

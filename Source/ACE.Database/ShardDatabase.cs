@@ -609,12 +609,12 @@ namespace ACE.Database
                     SaveObjectInternal(transaction, invItem);
 
                     // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
-                    if (invItem.WeenieType != (uint)WeenieType.Container)
-                        continue;
-
-                    foreach (AceObject contInvItem in invItem.Inventory.Values)
+                    if (invItem.WeenieType == (uint)WeenieType.Container && invItem.Inventory.Count > 0)
                     {
-                        SaveObjectInternal(transaction, contInvItem);
+                        foreach (AceObject contInvItem in invItem.Inventory.Values)
+                        {
+                            SaveObjectInternal(transaction, contInvItem);
+                        }
                     }
                 }
             }
