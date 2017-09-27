@@ -2,10 +2,8 @@ using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
-using ACE.Entity.Actions;
 using ACE.Factories;
-using ACE.Network;
-using ACE.Network.GameMessages.Messages;
+using ACE.Database;
 
 namespace ACE.Entity
 {
@@ -113,17 +111,17 @@ namespace ACE.Entity
         /// <summary>
         /// Remove item from inventory directory.   Also, defragment the placement values.
         /// </summary>
+        /// <param name="inv"></param>
         /// <param name="itemGuid"></param>
-        public virtual void RemoveFromInventory(ObjectGuid itemGuid)
+        public virtual void RemoveFromInventory(Dictionary<ObjectGuid, WorldObject> inv, ObjectGuid itemGuid)
         {
-            if (!InventoryObjects.ContainsKey(itemGuid)) return;
+            if (!inv.ContainsKey(itemGuid)) return;
 
-            uint placement = InventoryObjects[itemGuid].Placement ?? 0u;
-            InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
-            InventoryObjects[itemGuid].ContainerId = null;
-            InventoryObjects[itemGuid].Placement = null;
-            InventoryObjects.Remove(itemGuid);
-            Burden = UpdateBurden();
+            uint placement = inv[itemGuid].Placement ?? 0u;
+            inv.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
+            inv[itemGuid].ContainerId = null;
+            inv[itemGuid].Placement = null;
+            inv.Remove(itemGuid);
         }
 
         public ushort UpdateBurden()

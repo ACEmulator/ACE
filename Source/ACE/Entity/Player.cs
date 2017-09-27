@@ -1458,6 +1458,8 @@ namespace ACE.Entity
                 SnapshotInventoryItems();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
+
+                // FIXME : the issue is here - I still have the inventory in two dictionaries after clone.   I am missing something Og II
 #if DEBUG
                 if (Session.Player != null)
                 {
@@ -2015,7 +2017,7 @@ namespace ACE.Entity
         /// <param name="currentWieldedLocation">What wield location are we going into</param>
         private void AddToWieldedObjects(WorldObject item, ObjectGuid wielder, EquipMask currentWieldedLocation)
         {
-            RemoveFromInventory(item.Guid);
+            RemoveFromInventory(InventoryObjects, item.Guid);
             // Unset container fields
             item.Placement = null;
             item.ContainerId = null;
@@ -2137,25 +2139,21 @@ namespace ACE.Entity
             ActionChain moveChain = new ActionChain();
             moveChain.AddAction(this, () =>
             {
-                // If this is not just a in container move - ie just moving inside the same pack, lets move the inventory
-                if (item.ContainerId != container.Guid.Full)
+                if (item.ContainerId != null && item.ContainerId != container.Guid.Full)
                 {
-                    Container previousContainer = null;
-                    if (item.ContainerId != null)
+                    // We are changing containers
+                    if (item.ContainerId != this.Guid.Full)
                     {
-                        var previousContainerGuid = new ObjectGuid((uint)item.ContainerId);
-                        if (previousContainerGuid == Guid)
-                            previousContainer = this;
-                        else
-                        {
-                            previousContainer = (Container)GetInventoryItem(previousContainerGuid);
-                        }
+                        // The old container was not our main pack, the old container had to be in our inventory.
+                        ObjectGuid priorContainerGuid = new ObjectGuid((uint)item.ContainerId);
+                        RemoveFromInventory(InventoryObjects[priorContainerGuid].InventoryObjects, item.Guid);
                     }
-                    if (previousContainer != null)
-                        previousContainer.RemoveFromInventory(item.Guid);
-                    item.ContainerId = container.Guid.Full;
-                    item.Placement = placement;
+                    else
+                        RemoveFromInventory(this.InventoryObjects, item.Guid);
                 }
+
+                item.ContainerId = container.Guid.Full;
+                item.Placement = placement;
                 container.AddToInventory(item, placement);
                 Session.Network.EnqueueSend(
                     new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
@@ -2602,7 +2600,7 @@ namespace ACE.Entity
         /// </summary>
         public void DestroyInventoryItem(WorldObject wo)
         {
-            RemoveFromInventory(wo.Guid);
+            RemoveFromInventory(InventoryObjects, wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
@@ -2631,7 +2629,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    RemoveFromInventory(itemGuid);
+                    RemoveFromInventory(InventoryObjects, itemGuid);
                 }
 
                 SetInventoryForWorld(item);
