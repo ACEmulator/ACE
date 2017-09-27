@@ -29,6 +29,8 @@ namespace ACE.Entity
         private static readonly Position MarketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
         private static readonly float PickUpDistance = .75f;
 
+        private uint coinValue = 100000;
+
         public Session Session { get; }
 
         /// <summary>
@@ -1074,58 +1076,28 @@ namespace ACE.Entity
             bookChain.EnqueueChain();
         }
 
-        // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
-        /*
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
+        {
+                ActionChain chain = new ActionChain();
+                CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).BuyItem(vendorId, items, this);
+                });
+                chain.EnqueueChain();
+        }
+
+        public void HandleActionBuyTransaction(List<WorldObject> purchaselist, uint cost)
         {
             new ActionChain(this, () =>
             {
-                // todo: lots, need vendor list, money checks, etc.
-
-                var money = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CoinValue, 4000);
-                var sound = new GameMessageSound(Guid, Sound.PickUpItem, 1);
-                var sendUseDoneEvent = new GameEventUseDone(Session);
-                Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
-
-                // send updated vendor inventory.
-                Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendorId));
-
-                // this is just some testing code for now.
-                foreach (ItemProfile item in items)
+                SpendCoin(cost);
+                SendUseDoneEvent();
+                foreach (WorldObject wo in purchaselist)
                 {
-                    // todo: something with vendor id and profile list... iid list from vendor dbs.
-                    // todo: something with amounts..
-
-                    if (item.Iid == 5)
-                    {
-                        while (item.Amount > 0)
-                        {
-                            item.Amount--;
-                            WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
-                            AddToInventory(loot);
-                            TrackObject(loot);
-                        }
-                        var rudecomment = "Who do you think you are, Johny Apple Seed ?";
-                        var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                        Session.Network.EnqueueSend(buyrudemsg);
-                    }
-                    else if (item.Iid == 10)
-                    {
-                        while (item.Amount > 0)
-                        {
-                            item.Amount--;
-                            WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
-                            AddToInventory(loot);
-                            TrackObject(loot);
-                        }
-                        var rudecomment = "That smells awful, Enjoy eating it!";
-                        var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                        Session.Network.EnqueueSend(buyrudemsg);
-                    }
+                     AddNewItemToInventory(wo.WeenieClassId);
                 }
             }).EnqueueChain();
         }
-        */
 
         public void HandleAddToInventory(WorldObject wo)
         {
@@ -2447,11 +2419,24 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
 
-        /// <summary>
-        /// Sets Players Coin / Currancy Value
-        /// </summary>
-        /// <param name="value"></param>
-        public void GiveCoin(uint value)
+        private bool SpendCoin(uint value)
+        {
+            if (coinValue - value <= 0)
+                return false;
+            else
+            {
+                SetCoin(value);
+                return true;
+            }
+        }
+
+        public bool AddCoin(uint value)
+        {
+            SetCoin(value);
+            return true;
+        }
+
+        private void SetCoin(uint value)
         {
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
         }

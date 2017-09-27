@@ -114,6 +114,7 @@
     <Compile Include="Entity\Fellowship.cs" />
     <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\IPlayer.cs" />
+    <Compile Include="Entity\ItemProfile.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
@@ -159,6 +160,7 @@
     <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionBuyItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionConfirmation.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionCreateFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
