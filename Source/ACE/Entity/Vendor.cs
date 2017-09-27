@@ -56,6 +56,10 @@ namespace ACE.Entity
             // give player starting money
             player.GiveCoin(5000);
 
+            // send object to player tracking list for interaction.
+            foreach (WorldObject wo in defaultItemsForSale)
+                player.TrackInteractiveObject(wo);
+
             // todo: send more then default items.
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
             player.SendUseDoneEvent();

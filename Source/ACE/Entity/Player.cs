@@ -47,6 +47,11 @@ namespace ACE.Entity
         private ObjectGuid selectedTarget = ObjectGuid.Invalid;
 
         /// <summary>
+        /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
+        /// </summary>
+        public Dictionary<ObjectGuid, WorldObject> InteractiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
+
+        /// <summary>
         /// Amount of times this character has left a portal this session
         /// </summary>
         public uint PortalIndex { get; set; } = 1u;
@@ -969,14 +974,18 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    // todo: check landblock for item...
-                   
-                    ActionChain chain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(chain, examinationId, (WorldObject cwo) =>
+                    // check local interactive objects for item
+                    if (InteractiveWorldObjects.ContainsKey(examinationId))
+                        InteractiveWorldObjects[examinationId].Examine(Session);
+                    else
                     {
-                        cwo.Examine(Session);
-                    });
-                    chain.EnqueueChain();
+                        ActionChain chain = new ActionChain();
+                        CurrentLandblock.ChainOnObject(chain, examinationId, (WorldObject cwo) =>
+                        {
+                            cwo.Examine(Session);
+                        });
+                        chain.EnqueueChain();
+                    }
                 }
             });
             examineChain.EnqueueChain();
@@ -1562,6 +1571,21 @@ namespace ACE.Entity
                                             Session.Player.Sequences,
                                             PropertyInt.EncumbranceVal,
                                             Session.Player.Burden ?? 0u));
+        }
+
+        /// <summary>
+        /// Tracks Interacive world object you are have interacted with recently.
+        /// </summary>
+        /// <param name="worldObject"></param>
+        public void TrackInteractiveObject(WorldObject worldObject)
+        {
+            if (worldObject.Guid == this.Guid)
+                return;
+
+            if (InteractiveWorldObjects.ContainsKey(worldObject.Guid))
+                InteractiveWorldObjects[worldObject.Guid] = worldObject;
+            else
+                InteractiveWorldObjects.Add(worldObject.Guid, worldObject);
         }
 
         /// <summary>
