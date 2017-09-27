@@ -2541,9 +2541,12 @@ namespace ACE.Entity
             return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
         }
 
-        public AceObject SnapShotOfAceObject()
+        public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
         {
-            return (AceObject)AceObject.Clone();
+            AceObject snapshot = (AceObject)AceObject.Clone();
+            if (clearDirtyFlags)
+                AceObject.ClearDirtyFlags();
+            return snapshot;
         }
 
         public void InitializeAceObjectForSave()

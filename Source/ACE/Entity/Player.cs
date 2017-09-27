@@ -1409,12 +1409,12 @@ namespace ACE.Entity
         /// This method is used to clear the wielded items list ( the list of ace objects used to save wielded items ) and loads it with a snapshot
         /// of the aceObjects from the current list of wielded world objects. Og II
         /// </summary>
-        public void SnapshotWieldedItems()
+        public void SnapshotWieldedItems(bool clearDirtyFlags = false)
         {
             WieldedItems.Clear();
             foreach (var wo in WieldedObjects)
             {
-                WieldedItems.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject());
+                WieldedItems.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
             }
         }
 
@@ -1422,19 +1422,19 @@ namespace ACE.Entity
         /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
         /// of the aceObjects from the current list of inventory world objects by container. Og II
         /// </summary>
-        public void SnapshotInventoryItems()
+        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
         {
             Inventory.Clear();
             foreach (var wo in InventoryObjects)
             {
-                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject());
+                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
 
                 if (wo.Value.WeenieType == WeenieType.Container)
                 {
                     wo.Value.Inventory.Clear();
                     foreach (var item in wo.Value.InventoryObjects)
                     {
-                        wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject());
+                        wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
                     }
                 }
             }
@@ -2418,13 +2418,13 @@ namespace ACE.Entity
         /// <summary>
         /// This method sets properties needed for items that will be child items.
         /// Items here are only items equipped in the hands.  This deals with the orientation
-        /// and positioning for visual apperence of the child items held by the parent. Og II
+        /// and positioning for visual appearance of the child items held by the parent. Og II
         /// </summary>
-        /// <param name="container"></param>
-        /// <param name="item"></param>
-        /// <param name="placement"></param>
-        /// <param name="placementId"></param>
-        /// <param name="childLocation"></param>
+        /// <param name="container">Who is the parent of this child item</param>
+        /// <param name="item">The child item - we link them together</param>
+        /// <param name="placement">Where is this on the parent - where is it equipped</param>
+        /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
+        /// <param name="childLocation">out parameter - this is another part of the orientation data for correct visual display</param>
         public void SetChild(Container container, WorldObject item, uint placement, out uint placementId, out uint childLocation)
         {
             placementId = 0;

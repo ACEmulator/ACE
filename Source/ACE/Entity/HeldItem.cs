@@ -2,8 +2,6 @@
 using ACE.Network;
 using ACE.Network.Enum;
 using System.Collections.Generic;
-using System.IO;
-
 namespace ACE.Entity
 {
     /// <summary>

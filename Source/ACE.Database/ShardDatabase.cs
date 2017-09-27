@@ -619,12 +619,13 @@ namespace ACE.Database
                 }
             }
 
-            // Do we have any wielded items to save - if not, we are done here?
-            if (aceObject.WieldedItems.Count <= 0)
-                return transaction.Commit().Result;
-            foreach (AceObject wieldedItem in aceObject.WieldedItems.Values)
+            // Do we have any wielded items to save - if so, let's save them.
+            if (aceObject.WieldedItems.Count > 0)
             {
-                SaveObjectInternal(transaction, wieldedItem);
+                foreach (AceObject wieldedItem in aceObject.WieldedItems.Values)
+                {
+                    SaveObjectInternal(transaction, wieldedItem);
+                }
             }
 
             return transaction.Commit().Result;
