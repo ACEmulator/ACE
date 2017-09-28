@@ -606,6 +606,11 @@ namespace ACE.Database
             {
                 foreach (AceObject invItem in aceObject.Inventory.Values)
                 {
+                    if (invItem.IsDirty)
+                    {
+                        DeleteObjectInternal(transaction, invItem);
+                        invItem.SetDirtyFlags();
+                    }
                     SaveObjectInternal(transaction, invItem);
 
                     // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
@@ -613,6 +618,11 @@ namespace ACE.Database
                     {
                         foreach (AceObject contInvItem in invItem.Inventory.Values)
                         {
+                            if (contInvItem.IsDirty)
+                            {
+                                DeleteObjectInternal(transaction, contInvItem);
+                                contInvItem.SetDirtyFlags();
+                            }
                             SaveObjectInternal(transaction, contInvItem);
                         }
                     }
@@ -624,6 +634,11 @@ namespace ACE.Database
             {
                 foreach (AceObject wieldedItem in aceObject.WieldedItems.Values)
                 {
+                    if (wieldedItem.IsDirty)
+                    {
+                        DeleteObjectInternal(transaction, wieldedItem);
+                        wieldedItem.SetDirtyFlags();
+                    }
                     SaveObjectInternal(transaction, wieldedItem);
                 }
             }
