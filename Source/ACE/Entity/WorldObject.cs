@@ -41,15 +41,25 @@ namespace ACE.Entity
 
         protected AceObject AceObject { get; set; }
 
+        protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
+
+        protected internal Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; set; }
+
+        protected internal Dictionary<ObjectGuid, AceObject> Inventory
+        {
+            get { return AceObject.Inventory; }
+        }
+
+        // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
+        protected internal Dictionary<ObjectGuid, AceObject> WieldedItems
+        {
+            get { return AceObject.WieldedItems; }
+        }
+
         // we need to expose this read only for examine to work. Og II
         public List<AceObjectPropertiesInt> PropertiesInt
         {
             get { return AceObject.IntProperties; }
-        }
-
-        protected Dictionary<ObjectGuid, AceObject> Inventory
-        {
-            get { return AceObject.Inventory; }
         }
 
         public List<AceObjectPropertiesInt64> PropertiesInt64
@@ -201,22 +211,13 @@ namespace ACE.Entity
             set { AceObject.PhysicsEffectTableDID = value; }
         }
 
-        /// <summary>
-        /// This is used for equiped items that are selectable.   Weapons or shields only.   Max 2
-        /// </summary>
-        public uint? ParentId
-        {
-            get { return WielderId; }
-            set { WielderId = value; }
-        }
-
         public uint? ParentLocation
         {
             get { return AceObject.ParentLocation; }
             set { AceObject.ParentLocation = value; }
         }
 
-        public List<EquippedItem> Children { get; } = new List<EquippedItem>();
+        public List<HeldItem> Children { get; } = new List<HeldItem>();
 
         public float? ObjScale
         {
@@ -1626,6 +1627,7 @@ namespace ACE.Entity
             inventoryItem.ContainerId = null;
             inventoryItem.Placement = null;
             inventoryItem.WielderId = null;
+            inventoryItem.CurrentWieldedLocation = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
             inventoryItem.AnimationFrame = 0x65;
@@ -1640,6 +1642,9 @@ namespace ACE.Entity
             inventoryItem.AnimationFrame = 1;
             inventoryItem.Placement = placement;
             inventoryItem.Location = null;
+            inventoryItem.ParentLocation = null;
+            inventoryItem.CurrentWieldedLocation = null;
+            inventoryItem.WielderId = null;
         }
 
         public void Examine(Session examiner)
@@ -2096,7 +2101,7 @@ namespace ACE.Entity
             // content of these 2 is the same? TODO: Validate that?
             SerializeCreateObject(writer);
         }
-        
+
         // This fully replaces the PhysicsState of the WO, use sparingly?
         public void SetPhysicsState(PhysicsState state, bool packet = true)
         {
@@ -2258,7 +2263,7 @@ namespace ACE.Entity
                 {
                     case AceObjectPropertyType.PropertyInt:
                         uint? value = this.AceObject.GetIntProperty((PropertyInt)property.PropertyId);
-                        if (value != null) 
+                        if (value != null)
                             targetSession.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(targetSession.Player.Sequences, (PropertyInt)property.PropertyId, value.Value));
                         break;
                     default:
@@ -2267,7 +2272,7 @@ namespace ACE.Entity
                 }
             }
         }
-        
+
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
@@ -2536,9 +2541,12 @@ namespace ACE.Entity
             return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
         }
 
-        public AceObject SnapShotOfAceObject()
+        public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
         {
-            return (AceObject)AceObject.Clone();
+            AceObject snapshot = (AceObject)AceObject.Clone();
+            if (clearDirtyFlags)
+                AceObject.ClearDirtyFlags();
+            return snapshot;
         }
 
         public void InitializeAceObjectForSave()
@@ -2584,7 +2592,7 @@ namespace ACE.Entity
             if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
-            if (ParentId != null)
+            if (WielderId != null && ParentLocation != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
             if ((ObjScale != null) && (Math.Abs((float)ObjScale) >= 0.001))
@@ -2673,8 +2681,8 @@ namespace ACE.Entity
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
-                writer.Write((uint)ParentId);
-                writer.Write((uint)ParentLocation);
+                writer.Write(WielderId ?? 0u);
+                writer.Write(ParentLocation ?? 0u);
             }
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
@@ -2683,8 +2691,7 @@ namespace ACE.Entity
                 foreach (var child in Children)
                 {
                     writer.Write(child.Guid);
-                    // TODO: FIX THIS!
-                    writer.Write(1u); // This is going to be child.ParentLocation when we get to it
+                    writer.Write(child.LocationId);
                 }
             }
 

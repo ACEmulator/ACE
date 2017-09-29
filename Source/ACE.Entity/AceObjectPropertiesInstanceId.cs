@@ -9,7 +9,7 @@ namespace ACE.Entity
     public class AceObjectPropertiesInstanceId : BaseAceProperty, ICloneable
     {
         private uint? _value = 0;
-        
+
         [DbField("iidPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public override uint PropertyId { get; set; }
 

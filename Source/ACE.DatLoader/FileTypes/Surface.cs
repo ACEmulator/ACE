@@ -3,7 +3,7 @@
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
-    /// These are client_portal.dat files starting with 0x08. 
+    /// These are client_portal.dat files starting with 0x08.
     /// As the name implies this contains surface info for an object. Either texture reference or color and whatever effects applied to it.
     /// </summary>
     public class Surface

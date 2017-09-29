@@ -10,7 +10,7 @@ namespace ACE.Entity
         private uint _xpSpent = 0;
         private ushort _ranks = 0;
         private ushort _base = 0;
-        
+
         [DbField("attributeId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort AttributeId { get; set; }
 
@@ -55,7 +55,7 @@ namespace ACE.Entity
                 IsDirty = true;
             }
         }
-        
+
         public uint ActiveValue
         {
             get

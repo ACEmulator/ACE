@@ -17,6 +17,14 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
+    internal enum TestWeenieClassIds : uint
+    {
+        Pants        = 120,
+        Tunic        = 134,
+        TrainingWand = 12748,
+        ColoBackpack = 36561
+    }
+
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
@@ -737,7 +745,7 @@ namespace ACE.Command.Handlers
                     palOption = Int32.Parse(parameters[1]);
 
                 if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
-                    session.Player.TestEquipItem(session, modelId, palOption);
+                    session.Player.TestWieldItem(session, modelId, palOption);
                 else
                     ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
                         ChatMessageType.Broadcast);
@@ -776,10 +784,15 @@ namespace ACE.Command.Handlers
 
         // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates 1 of each weapon class in your inventory.")]
+            "Creates testing items in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+
+            HashSet<uint> weaponsTest = new HashSet<uint>() { (uint)TestWeenieClassIds.Pants,
+                                                              (uint)TestWeenieClassIds.Tunic,
+                                                              (uint)TestWeenieClassIds.TrainingWand,
+                                                              (uint)TestWeenieClassIds.ColoBackpack };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>
@@ -789,6 +802,11 @@ namespace ACE.Command.Handlers
                     WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
                     loot.ContainerId = session.Player.Guid.Full;
                     loot.Placement = 0;
+                    // TODO: Og II
+                    // Need this hack because weenies are not cleaned up.   Can be removed once weenies are fixed.
+                    loot.WielderId = null;
+                    loot.CurrentWieldedLocation = null;
+
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     session.Player.UpdatePlayerBurden();
@@ -796,13 +814,15 @@ namespace ACE.Command.Handlers
                         new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
                         new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
                 }
+                // Force a save for our test items.   Og II
+                // DatabaseManager.Shard.SaveObject(session.Player.GetSavableCharacter(), null);
             });
             chain.EnqueueChain();
         }
 
         // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
         [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates sample items, foci and containers in your inventory.")]
+        "Creates sample items, foci and containers in your inventory.")]
         public static void HandleInv(Session session, params string[] parameters)
         {
             HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46, 15268, 15269, 15270, 15271, 12748, 5893, 136 };

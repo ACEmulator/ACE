@@ -1,8 +1,21 @@
 # ACEmulator Change Log
 
+
+### 2017-09-25
+[Og II]
+* Implemented persisting of wielded items.   
+* Changed inventory to manage a list of world objects instead of ace objects.   This was needed for sequence issues.
+* fixed combat animation that had been broken for a while due to prior refactoring.
+* fixed moving inventory from container to container with persistances which was broken due to prior refactoring.
+* implemented the response message to send object description.
+* cleaned up so code, aligned enums.
+* TODO.   I have a dirty flag bug that causes issues when you do container to container moves and save.   
+* Not sure if you want to accept this with a known bug - it has changed a lot and is probably holding others up.
+
 ### 2017-09-20
 [Ripley]
 * Added a minimum UseRadius to Doors. This prevents the radius being so small as to require you to be inside the door to open/close it.
+
 
 ### 2017-09-18
 [Mogwai]

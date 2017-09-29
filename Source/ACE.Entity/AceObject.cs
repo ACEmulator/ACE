@@ -1828,6 +1828,8 @@ namespace ACE.Entity
 
         public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
+        public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         // uint references the page
@@ -1890,6 +1892,7 @@ namespace ACE.Entity
                 SpellsInSpellBars = CloneList(SpellsInSpellBars),
                 BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
+                WieldedItems = CloneDict(WieldedItems),
             };
             return ret;
         }
@@ -1945,7 +1948,8 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
-            this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
+            // this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
+            // this.WieldedItems.ToList().ForEach(x => x.Value.ClearDirtyFlags());
         }
 
         public void SetDirtyFlags()
@@ -1963,7 +1967,8 @@ namespace ACE.Entity
             this.DataIdProperties.ForEach(x => x.SetDirtyFlags());
             this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
             this.StringProperties.ForEach(x => x.SetDirtyFlags());
-            this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
+            // this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
+            // this.WieldedItems.ToList().ForEach(x => x.Value.SetDirtyFlags());
         }
 
         private static List<T> CloneList<T>(IEnumerable<T> toClone) where T : ICloneable
