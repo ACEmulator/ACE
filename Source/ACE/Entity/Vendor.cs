@@ -64,7 +64,7 @@ namespace ACE.Entity
             }
 
             // todo: send more then default items.
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
             player.SendUseDoneEvent();
         }
 
@@ -142,7 +142,38 @@ namespace ACE.Entity
             player.HandleActionBuyTransaction(purchaselist, goldcost);
         
             // send updated vendor inventory
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
+            player.SendUseDoneEvent();
+        }
+
+        public void SellItems(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        {
+            // todo: do have iventory space for all money from this shit ?
+            int goldcost = 0;
+            List<WorldObject> purchaselist = new List<WorldObject>();
+
+            // que transactions.
+            foreach (ItemProfile item in items)
+            {
+                ObjectGuid objid = new ObjectGuid(item.Iid);
+
+                // check default items for id, is this unique ?
+                if (defaultItemsForSale.ContainsKey(objid))
+                {
+                    // todo: more stack logic ?
+                    while (item.Amount > 0)
+                    {
+                    }
+                }
+                // todo: vendor items sold by player
+                // todo: now check to make sure you can aford this shit and you have pack space.
+            }
+
+            // send transaction to player for granting.
+            player.HandleActionSellTransaction(purchaselist, goldcost);
+
+            // send updated vendor inventory
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
             player.SendUseDoneEvent();
         }
     }

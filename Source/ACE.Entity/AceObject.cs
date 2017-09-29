@@ -1262,6 +1262,24 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.CreatureType, value); }
         }
 
+        public uint? MerchandiseItemTypes
+        {
+            get { return GetIntProperty(PropertyInt.MerchandiseItemTypes); }
+            set { SetIntProperty(PropertyInt.MerchandiseItemTypes, value); }
+        }
+
+        public uint? MerchandiseMinValue
+        {
+            get { return GetIntProperty(PropertyInt.MerchandiseMinValue); }
+            set { SetIntProperty(PropertyInt.MerchandiseMinValue, value); }
+        }
+
+        public uint? MerchandiseMaxValue
+        {
+            get { return GetIntProperty(PropertyInt.MerchandiseMaxValue); }
+            set { SetIntProperty(PropertyInt.MerchandiseMaxValue, value); }
+        }
+
         public string Inscription
         {
             get { return GetStringProperty(PropertyString.Inscription); }

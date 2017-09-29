@@ -47,6 +47,24 @@ namespace ACE.Entity
             get { return AceObject.IntProperties; }
         }
 
+        public uint? MerchandiseItemTypes
+        {
+            get { return AceObject.MerchandiseItemTypes; }
+            set { AceObject.MerchandiseItemTypes = value; }
+        }
+
+        public uint? MerchandiseMinValue
+        {
+            get { return AceObject.MerchandiseMinValue; }
+            set { AceObject.MerchandiseMinValue = value; }
+        }
+
+        public uint? MerchandiseMaxValue
+        {
+            get { return AceObject.MerchandiseMaxValue; }
+            set { AceObject.MerchandiseMaxValue = value; }
+        }
+
         protected Dictionary<ObjectGuid, AceObject> Inventory
         {
             get { return AceObject.Inventory; }

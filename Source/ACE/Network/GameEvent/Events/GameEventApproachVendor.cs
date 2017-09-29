@@ -7,19 +7,15 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, ObjectGuid objectID, Dictionary<ObjectGuid, WorldObject> items)
+        public GameEventApproachVendor(Session session, WorldObject wo, Dictionary<ObjectGuid, WorldObject> items)
             : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
         {        
-            Writer.Write(objectID.Full); // merchant id
+            Writer.Write(wo.Guid.Full); // merchant id
 
             // bit mask ? categories / mask may need figured out more.
-            // what will the vendor offer to buy
-            ObjectDescriptionFlag buycatgegories;
-            buycatgegories = ObjectDescriptionFlag.Food;
-            Writer.Write((uint)buycatgegories);
-
-            Writer.Write((uint)0); // min_value
-            Writer.Write((uint)0); // max_value
+            Writer.Write((uint)wo.MerchandiseItemTypes);
+            Writer.Write((uint)wo.MerchandiseMinValue);
+            Writer.Write((uint)wo.MerchandiseMaxValue);
             Writer.Write((uint)1); // magic
             Writer.Write((float)0.8); // buy_price
             Writer.Write((float)10); // sell_price

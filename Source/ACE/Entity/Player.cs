@@ -1088,6 +1088,16 @@ namespace ACE.Entity
                 chain.EnqueueChain();
         }
 
+        public void HandleActionSell(ObjectGuid vendorId, List<ItemProfile> items)
+        {
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
+            {
+                (vdr as Vendor).SellItems(vendorId, items, this);
+            });
+            chain.EnqueueChain();
+        }
+
         public void HandleActionBuyTransaction(List<WorldObject> purchaselist, int cost)
         {
             new ActionChain(this, () =>
@@ -1097,6 +1107,19 @@ namespace ACE.Entity
                 foreach (WorldObject wo in purchaselist)
                 {
                      AddNewItemToInventory(wo.WeenieClassId);
+                }
+            }).EnqueueChain();
+        }
+
+        public void HandleActionSellTransaction(List<WorldObject> purchaselist, int cost)
+        {
+            new ActionChain(this, () =>
+            {
+                AddCoin((uint)cost);
+                SendUseDoneEvent();
+                foreach (WorldObject wo in purchaselist)
+                {
+                    RemoveFromInventory(wo.Guid);
                 }
             }).EnqueueChain();
         }
