@@ -17,6 +17,14 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
+    internal enum TestWeenieClassIds : uint
+    {
+        Pants        = 120,
+        Tunic        = 134,
+        TrainingWand = 12748,
+        ColoBackpack = 36561
+    }
+
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
@@ -776,11 +784,15 @@ namespace ACE.Command.Handlers
 
         // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates 1 of each weapon class in your inventory.")]
+            "Creates testing items in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
             // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 120, 134, 300, 307, 36561 };
+
+            HashSet<uint> weaponsTest = new HashSet<uint>() { (uint)TestWeenieClassIds.Pants,
+                                                              (uint)TestWeenieClassIds.Tunic,
+                                                              (uint)TestWeenieClassIds.TrainingWand,
+                                                              (uint)TestWeenieClassIds.ColoBackpack };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>

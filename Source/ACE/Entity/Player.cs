@@ -1981,11 +1981,17 @@ namespace ACE.Entity
         /// <param name="item"></param>
         public void HandleActionForceObjDescSend(ObjectGuid item)
         {
-            WorldObject wo = GetInventoryItem(item);
-            if (wo != null)
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(wo));
-            else
-                log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
+            ActionChain objDescChain = new ActionChain();
+            objDescChain.AddAction(this, () =>
+            {
+                WorldObject wo = GetInventoryItem(item);
+                if (wo != null)
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                        new GameMessageObjDescEvent(wo));
+                else
+                    log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
+            });
+            objDescChain.EnqueueChain();
         }
 
         public void HandleActionMotion(UniversalMotion motion)
