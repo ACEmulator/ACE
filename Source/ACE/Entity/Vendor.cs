@@ -51,6 +51,11 @@ namespace ACE.Entity
             chain.EnqueueChain();
         }
 
+        /// <summary>
+        /// Fired when user approaches vendor, sends all items vendor has for sale to players
+        /// local tracked item list and opens vendor inventory screen. 
+        /// </summary>
+        /// <param name="player"></param>
         private void UseVendor(Player player)
         {
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
@@ -63,6 +68,9 @@ namespace ACE.Entity
             player.SendUseDoneEvent();
         }
 
+        /// <summary>
+        /// Load Inventory for default items from database table / assignes default objects.
+        /// </summary>
         private void LoadInventory()
         {
             // Load Vendor Inventory from database.
@@ -83,6 +91,12 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Buys Items from player
+        /// </summary>
+        /// <param name="vendorid">GUID of Vendor</param>
+        /// <param name="items">Item Profile, Ammount and ID</param>
+        /// <param name="player"></param>
         public void BuyItems(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
             // do you have enough cash / iventory space for all this shit.
@@ -130,10 +144,6 @@ namespace ACE.Entity
             // send updated vendor inventory
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
             player.SendUseDoneEvent();
-        }
-
-        private void Reset()
-        {
         }
     }
 }
