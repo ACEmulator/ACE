@@ -58,8 +58,6 @@ namespace ACE.Entity
                 player.TrackInteractiveObject(wo.Value);
             }
 
-            player.AddCoin(50000);
-
             // todo: send more then default items.
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, Guid, defaultItemsForSale));
             player.SendUseDoneEvent();
@@ -85,10 +83,10 @@ namespace ACE.Entity
             }
         }
 
-        public void BuyItem(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void BuyItems(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
             // do you have enough cash / iventory space for all this shit.
-            uint goldcost = 0;
+            int goldcost = 0;
             List<WorldObject> purchaselist = new List<WorldObject>();
 
             // que transactions.
@@ -103,7 +101,7 @@ namespace ACE.Entity
                     while (item.Amount > 0)
                     {
                         item.Amount--;
-                        goldcost += defaultItemsForSale[objid].Value.Value;
+                        goldcost += (int)defaultItemsForSale[objid].Value.Value;
                         WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[objid].WeenieClassId);
                         purchaselist.Add(wo);
                     }

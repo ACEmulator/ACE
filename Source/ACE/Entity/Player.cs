@@ -452,6 +452,8 @@ namespace ACE.Entity
             
             // SendSelf will trigger the entrance into portal space
             SendSelf();
+            // Add some play money for vendors..
+            AddCoin(coinValue);
 
             SendFriendStatusUpdates();
 
@@ -1081,16 +1083,16 @@ namespace ACE.Entity
                 ActionChain chain = new ActionChain();
                 CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
                 {
-                    (vdr as Vendor).BuyItem(vendorId, items, this);
+                    (vdr as Vendor).BuyItems(vendorId, items, this);
                 });
                 chain.EnqueueChain();
         }
 
-        public void HandleActionBuyTransaction(List<WorldObject> purchaselist, uint cost)
+        public void HandleActionBuyTransaction(List<WorldObject> purchaselist, int cost)
         {
             new ActionChain(this, () =>
             {
-                SpendCoin(cost);
+                SpendCoin((uint)cost);
                 SendUseDoneEvent();
                 foreach (WorldObject wo in purchaselist)
                 {
@@ -2425,7 +2427,8 @@ namespace ACE.Entity
                 return false;
             else
             {
-                SetCoin(value);
+                coinValue = coinValue - value;
+                SetCoin(coinValue);
                 return true;
             }
         }
