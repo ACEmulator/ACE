@@ -28,7 +28,7 @@ namespace ACE.Network.GameAction.Actions
                 item.Amount = message.Payload.ReadUInt32();
                 item.Amount = item.Amount & 0xFFFFFF;
 
-                item.Iid = message.Payload.ReadUInt32();
+                item.Guid = message.Payload.ReadGuid();
                 items.Add(item);
             }
 
@@ -36,7 +36,7 @@ namespace ACE.Network.GameAction.Actions
             // uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.HandleActionSell(vendorId, items);
+            session.Player.HandleActionBeginSellTransaction(items, vendorId);
         }
     }
 }

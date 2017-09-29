@@ -1088,16 +1088,6 @@ namespace ACE.Entity
                 chain.EnqueueChain();
         }
 
-        public void HandleActionSell(ObjectGuid vendorId, List<ItemProfile> items)
-        {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
-            {
-                (vdr as Vendor).SellItems(vendorId, items, this);
-            });
-            chain.EnqueueChain();
-        }
-
         public void HandleActionBuyTransaction(List<WorldObject> purchaselist, int cost)
         {
             new ActionChain(this, () =>
@@ -1111,16 +1101,47 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void HandleActionSellTransaction(List<WorldObject> purchaselist, int cost)
+        /// <summary>
+        /// Called when the Buy Packet is received, items are listed for sale and have been sent
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="vendorId"></param>
+        public void HandleActionBeginSellTransaction(List<ItemProfile> items, ObjectGuid vendorId)
         {
             new ActionChain(this, () =>
             {
-                AddCoin((uint)cost);
-                SendUseDoneEvent();
-                foreach (WorldObject wo in purchaselist)
+                List<WorldObject> purchaselist = new List<WorldObject>();
+                // Player is selling items..
+                // check players inventory for items..
+                foreach (ItemProfile item in items)
                 {
-                    RemoveFromInventory(wo.Guid);
+                    // check to see if item is in players inventory.
+                    WorldObject wo = GetInventoryItem(item.Guid);
+                    if (wo != null)
+                        purchaselist.Add(wo);          
                 }
+
+                // Send Items to Vendor for processing..
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).StartSellItems(purchaselist, this);
+                });
+                vendorchain.EnqueueChain();
+            }).EnqueueChain();
+        }
+        public void HandleActionFinishSellTransaction(List<WorldObject> items, ObjectGuid vendorId, uint coin)
+        {
+            new ActionChain(this, () =>
+            {
+                foreach (WorldObject item in items)
+                {
+                    // check to see if item is in players inventory.
+                    WorldObject wo = GetInventoryItem(item.Guid);
+                    if (wo != null)
+                        RemoveFromInventory(wo.Guid);
+                }
+                AddCoin(coin);
             }).EnqueueChain();
         }
 

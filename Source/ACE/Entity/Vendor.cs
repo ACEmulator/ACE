@@ -106,20 +106,18 @@ namespace ACE.Entity
             // que transactions.
             foreach (ItemProfile item in items)
             {
-                ObjectGuid objid = new ObjectGuid(item.Iid);
-
                 // check default items for id
-                if (defaultItemsForSale.ContainsKey(objid))
+                if (defaultItemsForSale.ContainsKey(item.Guid))
                 {
                     // todo: more stack logic ?
                     while (item.Amount > 0)
                     {
-                        WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[objid].WeenieClassId);
+                        WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[item.Guid].WeenieClassId);
                         // can we stack this ?
                         if (item.Amount <= wo.MaxStackSize)
                         {
                             item.Amount -= wo.MaxStackSize.Value;
-                            goldcost += (int)defaultItemsForSale[objid].Value.Value * wo.MaxStackSize.Value;
+                            goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * wo.MaxStackSize.Value;
                             wo.StackSize = wo.MaxStackSize.Value;
                             purchaselist.Add(wo);
                         }
@@ -127,7 +125,7 @@ namespace ACE.Entity
                         else
                         {
                             item.Amount -= item.Amount;
-                            goldcost += (int)defaultItemsForSale[objid].Value.Value * (int)item.Amount;
+                            goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * (int)item.Amount;
                             wo.StackSize = (ushort)item.Amount;
                             purchaselist.Add(wo);
                         }
@@ -146,35 +144,18 @@ namespace ACE.Entity
             player.SendUseDoneEvent();
         }
 
-        public void SellItems(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void StartSellItems(List<WorldObject> items, Player player)
         {
-            // todo: do have iventory space for all money from this shit ?
-            int goldcost = 0;
-            List<WorldObject> purchaselist = new List<WorldObject>();
-
-            // que transactions.
-            foreach (ItemProfile item in items)
-            {
-                ObjectGuid objid = new ObjectGuid(item.Iid);
-
-                // check default items for id, is this unique ?
-                if (defaultItemsForSale.ContainsKey(objid))
-                {
-                    // todo: more stack logic ?
-                    while (item.Amount > 0)
-                    {
-                    }
-                }
-                // todo: vendor items sold by player
-                // todo: now check to make sure you can aford this shit and you have pack space.
-            }
-
-            // send transaction to player for granting.
-            player.HandleActionSellTransaction(purchaselist, goldcost);
+            // here we would add the items to the local vendor list..
+            // calculate payment.
+            uint coin = 100;
 
             // send updated vendor inventory
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
             player.SendUseDoneEvent();
+
+            // Items are sold, pay player / delete items in the inventory.
+            player.HandleActionFinishSellTransaction(items, Guid, coin);
         }
     }
 }

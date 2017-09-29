@@ -17,6 +17,7 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             ObjectGuid vendorId = new ObjectGuid(message.Payload.ReadUInt32());
+
             uint itemcount = message.Payload.ReadUInt32();
 
             List<ItemProfile> items = new List<ItemProfile>();
@@ -28,7 +29,7 @@ namespace ACE.Network.GameAction.Actions
                 item.Amount = message.Payload.ReadUInt32();
                 item.Amount = item.Amount & 0xFFFFFF;
 
-                item.Iid = message.Payload.ReadUInt32();
+                item.Guid = message.Payload.ReadGuid();
                 items.Add(item);
             }
             
