@@ -76,6 +76,11 @@ namespace ACE.Entity
             ScrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
 
+            if (ScrollPropertiesString == null)
+                ScrollPropertiesString = new List<AceObjectPropertiesString>();
+            if (ScrollPropertiesSpellId == null)
+                ScrollPropertiesSpellId = new List<AceObjectPropertiesSpell>();
+
             var useString = new AceObjectPropertiesString();
             useString.AceObjectId = Guid.Full;
             useString.PropertyId = (ushort)PropertyString.Use;

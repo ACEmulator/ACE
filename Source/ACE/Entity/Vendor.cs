@@ -97,18 +97,31 @@ namespace ACE.Entity
                 // check default items for id
                 if (defaultItemsForSale.ContainsKey(objid))
                 {
-                    // todo: stack logic ?
+                    // todo: more stack logic ?
                     while (item.Amount > 0)
                     {
-                        item.Amount--;
-                        goldcost += (int)defaultItemsForSale[objid].Value.Value;
                         WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[objid].WeenieClassId);
-                        purchaselist.Add(wo);
+                        // can we stack this ?
+                        if (item.Amount <= wo.MaxStackSize)
+                        {
+                            item.Amount -= wo.MaxStackSize.Value;
+                            goldcost += (int)defaultItemsForSale[objid].Value.Value * wo.MaxStackSize.Value;
+                            wo.StackSize = wo.MaxStackSize.Value;
+                            purchaselist.Add(wo);
+                        }
+                        // else we cant stack it or its less then max stack size.
+                        else
+                        {
+                            item.Amount -= item.Amount;
+                            goldcost += (int)defaultItemsForSale[objid].Value.Value * (int)item.Amount;
+                            wo.StackSize = (ushort)item.Amount;
+                            purchaselist.Add(wo);
+                        }
                     }
                 }
 
                 // todo: vendor items sold by player
-                // todo: now check to make sure you can aford this.       
+                // todo: now check to make sure you can aford this shit and you have pack space.
             }
 
             // send transaction to player for granting.
