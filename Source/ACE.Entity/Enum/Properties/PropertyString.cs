@@ -4,7 +4,7 @@ namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyString : ushort
     {
-        // properties marked as ServerOnly are properies we never saw in PCAPs, from here:
+        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
         // http://ac.yotesfan.com/ace_object/not_used_enums.php
         // source: @OptimShi
 
