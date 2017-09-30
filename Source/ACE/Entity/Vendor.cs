@@ -114,19 +114,32 @@ namespace ACE.Entity
                     {
                         WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[item.Guid].WeenieClassId);
                         // can we stack this ?
-                        if (item.Amount <= wo.MaxStackSize)
+                        if (wo.MaxStackSize.HasValue)
                         {
-                            item.Amount -= wo.MaxStackSize.Value;
-                            goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * wo.MaxStackSize.Value;
-                            wo.StackSize = wo.MaxStackSize.Value;
-                            purchaselist.Add(wo);
+                            if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value >= item.Amount))
+                            {
+                                item.Amount -= wo.MaxStackSize.Value;
+                                goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * wo.MaxStackSize.Value;
+                                wo.StackSize = wo.MaxStackSize.Value;
+                                purchaselist.Add(wo);
+                            }
+                            // else we cant stack it or its less then max stack size.
+                            else
+                            {
+                                item.Amount -= item.Amount;
+                                if (item.Amount > 0)
+                                    goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * item.Amount;
+                                else
+                                    goldcost += (int)defaultItemsForSale[item.Guid].Value.Value;
+                                wo.StackSize = (ushort)item.Amount;
+                                purchaselist.Add(wo);
+                            }
                         }
-                        // else we cant stack it or its less then max stack size.
                         else
                         {
+                            // single item with no stack options.
                             item.Amount -= item.Amount;
-                            goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * (int)item.Amount;
-                            wo.StackSize = (ushort)item.Amount;
+                            goldcost += (int)defaultItemsForSale[item.Guid].Value.Value;
                             purchaselist.Add(wo);
                         }
                     }

@@ -25,10 +25,10 @@ namespace ACE.Network.GameAction.Actions
             {
                 itemcount--;
                 ItemProfile item = new ItemProfile();
-                item.Amount = message.Payload.ReadUInt32();
-                item.Amount = item.Amount & 0xFFFFFF;
+                item.Amount = (int)message.Payload.ReadUInt32();
+                // item.Amount = item.Amount & 0xFFFFFF;
 
-                item.Guid = message.Payload.ReadGuid();
+                item.Guid = new ObjectGuid(message.Payload.ReadUInt32());
                 items.Add(item);
             }
 
