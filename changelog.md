@@ -4,6 +4,7 @@
 [Ripley]
 * Merged updates into WorldBase.
 * Fixed saving books to the Shard database.
+* Characters now equip items on world entry. (This will reveal bugs in clothing layer priority and model change issues)
 
 ### 2017-09-25
 [Og II]
