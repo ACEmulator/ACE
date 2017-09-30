@@ -1151,8 +1151,8 @@ namespace ACE.Entity
                     // check to see if item is in players inventory.
                     WorldObject wo = GetInventoryItem(item.Guid);
 
-                    // if (wo != null)
-                        // RemoveFromInventory(wo.Guid);
+                    if (wo != null)
+                        DestroyInventoryItem(item);
                 }
                 AddCoin(coin);
             }).EnqueueChain();
@@ -2637,6 +2637,7 @@ namespace ACE.Entity
 
         public bool AddCoin(uint value)
         {
+            coinValue += value;
             SetCoin(value);
             return true;
         }

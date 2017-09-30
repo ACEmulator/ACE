@@ -116,7 +116,7 @@ namespace ACE.Entity
                         // can we stack this ?
                         if (wo.MaxStackSize.HasValue)
                         {
-                            if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value >= item.Amount))
+                            if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= item.Amount))
                             {
                                 item.Amount -= wo.MaxStackSize.Value;
                                 goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * wo.MaxStackSize.Value;
