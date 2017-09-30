@@ -2,6 +2,12 @@
 {
     public enum PropertyBool : ushort
     {
+        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
+        // http://ac.yotesfan.com/ace_object/not_used_enums.php
+        // source: @OptimShi
+
+        // description attributes are used by the weenie editor for a cleaner display name
+
         [ServerOnly]
         Undef                            = 0,
         Stuck                            = 1,

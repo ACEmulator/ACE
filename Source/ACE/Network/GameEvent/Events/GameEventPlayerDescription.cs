@@ -3,6 +3,7 @@ using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using System.Diagnostics;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Network.GameEvent.Events
 {
@@ -51,7 +52,9 @@ namespace ACE.Network.GameEvent.Events
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
             // < 9000 to filter out our custom properties
-            var propertiesInt = aceObj.IntProperties.Where(x => x.PropertyId < 9000).ToList();
+            ////var enumValues = typeof(PropertyInt).GetFields().Select(x =>
+            ////                    new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x }).Where(x => x.att == null).ToList();
+            var propertiesInt = aceObj.IntProperties.Where(x => x.PropertyId > 9000).ToList();
             if (propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
@@ -68,6 +71,8 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
+            var enumValuesint64 = typeof(PropertyInt64).GetFields().Select(x =>
+                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x }).ToList();
             var propertiesInt64 = aceObj.Int64Properties.Where(x => x.PropertyId < 9000).ToList();
             if (propertiesInt64.Count != 0)
             {

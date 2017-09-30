@@ -13,7 +13,6 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         Undef                           = 0,
         Name                            = 1,
-
         /// <summary>
         /// default "Adventurer"
         /// </summary>
@@ -27,7 +26,6 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         AttackersName                   = 6,
         Inscription                     = 7,
-
         [Description("Scribe Name")]
         ScribeName                      = 8,
         [ServerOnly]
@@ -103,7 +101,6 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         UseSendsSignal                  = 51,
         GearPlatingName                 = 52
-
         // values over 9000 are ones that we have added and should not be sent to the client
     }
 }

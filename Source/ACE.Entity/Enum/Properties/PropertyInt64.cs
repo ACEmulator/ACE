@@ -1,18 +1,28 @@
 ﻿namespace ACE.Entity.Enum.Properties
 {
+    // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
+    // http://ac.yotesfan.com/ace_object/not_used_enums.php
+    // source: @OptimShi
+
+    // description attributes are used by the weenie editor for a cleaner display name
     public enum PropertyInt64 : ushort
     {
-        Undef = 0,
-        TotalExperience = 1,
+        [ServerOnly]
+        Undef               = 0,
+        [ServerOnly]
+        TotalExperience     = 1,
+        [ServerOnly]
         AvailableExperience = 2,
-        AugmentationCost = 3,
-        ItemTotalXp = 4,
-        ItemBaseXp = 5,
-        AvailableLuminance = 6,
-        MaximumLuminance = 7,
-        InteractionReqs = 8,
-
-        // values over 9000 are ones that we have added and should not be sent to the client
-        DeleteTime = 9001
+        AugmentationCost    = 3,
+        ItemTotalXp         = 4,
+        ItemBaseXp          = 5,
+        [ServerOnly]
+        AvailableLuminance  = 6,
+        [ServerOnly]
+        MaximumLuminance    = 7,
+        [ServerOnly]
+        InteractionReqs     = 8,
+        [ServerOnly]
+        DeleteTime          = 9001
     }
 }

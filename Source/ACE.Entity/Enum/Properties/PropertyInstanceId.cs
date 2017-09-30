@@ -2,7 +2,13 @@
 {
     public enum PropertyInstanceId : uint
     {
-        Undef                            = 0,
+        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
+        // http://ac.yotesfan.com/ace_object/not_used_enums.php
+        // source: @OptimShi
+
+        // description attributes are used by the weenie editor for a cleaner display name
+
+        Undef = 0,
         Owner                            = 1,
         Container                        = 2,
         Wielder                          = 3,

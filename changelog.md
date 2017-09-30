@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-09-30
+[Og II]
+* Added enum attributes for all of our property enums per Mogwai using the data from OptimShi found here
+* http://ac.yotesfan.com/ace_object/not_used_enums.php
+* WIP need to filer out sending of aceObject properties using this information.   I am stuck on the lambda expression.   
+* see line 74 in GameEventPlayerDescription.   Any help appreciated.
+* NOTE: the big gotcha with this is if we have any of the [ServerOnly] attributes set incorrectly, that data will not get sent to the client
+* and if you don't remember that we are filtering by that attribute you will be going what the hell is wrong.   Just an FYI
 
 ### 2017-09-25
 [Og II]
