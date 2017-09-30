@@ -178,7 +178,7 @@ namespace ACE.Entity
                 var removeObjMessage = new GameMessageRemoveObject(this);
                 var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);
                 readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(destroyMessage, removeObjMessage));
-                readScrollChain.AddAction(session.Player, () => session.Player.RemoveFromInventory(Guid));
+                readScrollChain.AddAction(session.Player, () => session.Player.RemoveFromInventory(session.Player.InventoryObjects, Guid));
             }
             else
             {
@@ -193,7 +193,7 @@ namespace ACE.Entity
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {          
+        {
             WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
             WriteIdentifyObjectIntProperties(writer, idFlags, ScrollPropertiesInt);
             WriteIdentifyObjectStringsProperties(writer, idFlags, ScrollPropertiesString);

@@ -6,7 +6,7 @@ namespace ACE.Network.GameMessages.Messages
     public class GameMessageAutonomousPosition : GameMessage
     {
         public GameMessageAutonomousPosition(WorldObject worldObject)
-            : base(GameMessageOpcode.AutonomousPosition, GameMessageGroup.Group07)
+            : base(GameMessageOpcode.AutonomousPosition, GameMessageGroup.SecureWeenieQueue)
         {
             if (worldObject is Player)
             {

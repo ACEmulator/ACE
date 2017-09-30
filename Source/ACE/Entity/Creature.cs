@@ -259,9 +259,13 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method checks to make sure we have a casting device equipped and if so, it sets
+        /// the motion state and sends the messages to switch us to spellcasting state.   Og II
+        /// </summary>
         public void HandleSwitchToMagicCombatMode()
         {
-            EquippedItem mEquipedWand = Children.Find(s => s.EquipMask == EquipMask.Held);
+            HeldItem mEquipedWand = Children.Find(s => s.EquipMask == EquipMask.Held);
             if (mEquipedWand != null)
             {
                 UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
@@ -273,11 +277,16 @@ namespace ACE.Entity
                 log.InfoFormat("Changing combat mode for {0} - could not locate a wielded magic caster", Guid);
         }
 
+        /// <summary>
+        /// This method is called if we unwield missle ammo.   It will check to see if I have arrows wielded
+        /// send the message to "hide" the arrow.
+        /// </summary>
+        /// <param name="oldCombatMode"></param>
         public void HandleUnloadMissileAmmo(CombatMode oldCombatMode)
         {
             // Before I can switch to any non missile mode, do I have missile ammo I need to remove?
             WorldObject ammo = null;
-            EquippedItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.MissileAmmo);
+            HeldItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.MissileAmmo);
 
             if (mEquipedAmmo != null)
                 ammo = GetInventoryItem(new ObjectGuid(mEquipedAmmo.Guid));
@@ -292,6 +301,12 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method sets us into peace mode.   It checks our current state to see if we have missle ammo equipped
+        /// it will make the call to hid the "ammo" as we switch to peace mode.   It will then send the message switch our stance. Og II
+        /// </summary>
+        /// <param name="oldCombatMode"></param>
+        /// <param name="isAutonomous"></param>
         public void HandleSwitchToPeaceMode(CombatMode oldCombatMode, bool isAutonomous = false)
         {
             HandleUnloadMissileAmmo(oldCombatMode);
@@ -303,12 +318,15 @@ namespace ACE.Entity
             UniversalMotion mm = new UniversalMotion(MotionStance.Standing);
             mm.MovementData.CurrentStyle = (ushort)MotionStance.Standing;
             SetMotionState(this, mm);
+            var mEquipedAmmo = WieldedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.NonCombat));
+            if (mEquipedAmmo != null)
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
         }
 
         public void HandleSwitchToMissileCombatMode(ActionChain combatModeChain)
         {
-            EquippedItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
+            HeldItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
             if (mEquipedMissile?.Guid != null)
             {
                 WorldObject missileWeapon = GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
@@ -317,7 +335,9 @@ namespace ACE.Entity
                     log.InfoFormat("Changing combat mode for {0} - could not locate wielded weapon {1}", Guid, mEquipedMissile.Guid);
                     return;
                 }
-                EquippedItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.MissileAmmo);
+
+                var mEquipedAmmo = WieldedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
+
                 MotionStance ms;
 
                 if (missileWeapon.DefaultCombatStyle != null)
@@ -337,7 +357,6 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    WorldObject ammo = GetInventoryItem(new ObjectGuid(mEquipedAmmo.Guid));
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     SetMotionState(this, mm);
                     mm.MovementData.ForwardCommand = (ushort)MotionCommand.Reload;
@@ -350,7 +369,7 @@ namespace ACE.Entity
                     SetMotionState(this, mm);
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.40);
-                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)));
+                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
                     // CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)); // used for debugging
                 }
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.Missile));
@@ -365,7 +384,7 @@ namespace ACE.Entity
             // Check to see if we were in missile combat and have an arrow hanging around we might need to remove.
             HandleUnloadMissileAmmo(olCombatMode);
 
-            EquippedItem mEquipedShieldSlot = Children.Find(s => s.EquipMask == EquipMask.Shield);
+            HeldItem mEquipedShieldSlot = Children.Find(s => s.EquipMask == EquipMask.Shield);
             if (mEquipedShieldSlot != null)
             {
                 WorldObject itemInShieldSlot = GetInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
@@ -378,8 +397,8 @@ namespace ACE.Entity
                 }
             }
 
-            EquippedItem mEquipedMelee = Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
-            EquippedItem mEquipedTwoHanded = Children.Find(s => s.EquipMask == EquipMask.TwoHanded);
+            HeldItem mEquipedMelee = Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
+            HeldItem mEquipedTwoHanded = Children.Find(s => s.EquipMask == EquipMask.TwoHanded);
             MotionStance ms = MotionStance.Invalid;
             // are we unarmed?   If so, do we have a shield?
             if (mEquipedMelee == null && mEquipedTwoHanded == null && !weaponInShieldSlot)

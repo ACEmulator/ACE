@@ -157,6 +157,7 @@ namespace ACE.Network.GameAction
         DoMovementCommand                    = 0xF61E,
         TurnTo                               = 0xF649,
         StopMovementCommand                  = 0xF661,
+        ForceObjectDescSend                  = 0xF6EA,
         ObjectCreate                         = 0xF745,
         ObjectDelete                         = 0xF747,
         MovementEvent                        = 0xF74C,
