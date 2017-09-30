@@ -122,18 +122,24 @@
     <Compile Include="Entity\Events\SpellCastArgs.cs" />
     <Compile Include="Entity\Landblock.cs" />
     <Compile Include="Entity\Landcell.cs" />
-    <Compile Include="Entity\EquippedItem.cs" />
+    <Compile Include="Entity\HeldItem.cs" />
     <Compile Include="Entity\Model.cs" />
     <Compile Include="Entity\ModelPalette.cs" />
     <Compile Include="Entity\ModelTexture.cs" />
     <Compile Include="Entity\Book.cs" />
     <Compile Include="Entity\Portal.cs" />
     <Compile Include="Entity\SpellLikeEffect.cs" />
+    <Compile Include="Entity\StarterGearConfiguration.cs" />
+    <Compile Include="Entity\StarterGearSkill.cs" />
+    <Compile Include="Entity\StarterHeritage.cs" />
+    <Compile Include="Entity\StarterItem.cs" />
+    <Compile Include="Entity\StarterSpell.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
+    <Compile Include="Factories\StarterGearFactory.cs" />
     <Compile Include="Factories\WorldObjectFactory.cs" />
     <Compile Include="Managers\AssetManager.cs" />
     <Compile Include="Managers\RecipeCache.cs" />
@@ -261,6 +267,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageSetStackSize.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePutObjectInContainer.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdateInstanceId.cs" />
+    <Compile Include="Network\Handlers\ControlHandler.cs" />
     <Compile Include="Network\Motion\MotionItem.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageAutonomousPosition.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageCharacterCreateResponse.cs" />
@@ -345,6 +352,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="starterGear.json" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">

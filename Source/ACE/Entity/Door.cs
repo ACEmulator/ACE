@@ -59,6 +59,9 @@ namespace ACE.Entity
 
             movementOpen.ForwardCommand = (ushort)MotionCommand.On;
             movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
+
+            if (UseRadius < 2)
+                UseRadius = 2;
         }
 
         private bool IsOpen

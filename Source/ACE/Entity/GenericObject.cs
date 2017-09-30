@@ -1,12 +1,4 @@
-﻿// WeenieType.Generic
-
-using ACE.Entity.Actions;
-using ACE.Entity.Enum;
-using ACE.Network;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
-
-namespace ACE.Entity
+﻿namespace ACE.Entity
 {
     public class GenericObject : WorldObject
     {
@@ -27,12 +19,12 @@ namespace ACE.Entity
 
         ////public override void HandleActionOnUse(ObjectGuid playerId)
         ////{
-        ////    // TODO: Implement            
+        ////    // TODO: Implement
         ////}
 
         ////public override void OnUse(Session session)
         ////{
-        ////    // TODO: Implement   
+        ////    // TODO: Implement
         ////}
     }
 }

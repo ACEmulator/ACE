@@ -130,11 +130,11 @@ namespace ACE.Managers
                     WorldObject newObject1 = null;
                     WorldObject newObject2 = null;
 
-                    if ((recipe.ResultFlags & (uint)RecipeResult.CreateNewItem1) > 0 && recipe.Item1Wcid != null)
-                        player.AddNewItemToInventory(recipe.Item1Wcid.Value);
+                    if ((recipe.ResultFlags & (uint)RecipeResult.SuccessItem1) > 0 && recipe.SuccessItem1Wcid != null)
+                        newObject1 = player.AddNewItemToInventory(recipe.SuccessItem1Wcid.Value);
 
-                    if ((recipe.ResultFlags & (uint)RecipeResult.CreateNewItem2) > 0 && recipe.Item2Wcid != null)
-                        player.AddNewItemToInventory(recipe.Item2Wcid.Value);
+                    if ((recipe.ResultFlags & (uint)RecipeResult.SuccessItem2) > 0 && recipe.SuccessItem2Wcid != null)
+                        newObject2 = player.AddNewItemToInventory(recipe.SuccessItem2Wcid.Value);
 
                     var text = string.Format(recipe.SuccessMessage, source.Name, target.Name, newObject1?.Name, newObject2?.Name);
                     var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
@@ -142,13 +142,20 @@ namespace ACE.Managers
                 }
                 else
                 {
-                    var text = string.Format(recipe.FailMessage, source.Name, target.Name);
+                    WorldObject newObject1 = null;
+                    WorldObject newObject2 = null;
+
+                    if ((recipe.ResultFlags & (uint)RecipeResult.FailureItem1) > 0 && recipe.FailureItem1Wcid != null)
+                        newObject1 = player.AddNewItemToInventory(recipe.FailureItem1Wcid.Value);
+
+                    if ((recipe.ResultFlags & (uint)RecipeResult.FailureItem2) > 0 && recipe.FailureItem2Wcid != null)
+                        newObject2 = player.AddNewItemToInventory(recipe.FailureItem2Wcid.Value);
+
+                    var text = string.Format(recipe.FailMessage, source.Name, target.Name, newObject1?.Name, newObject2?.Name);
                     var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
                     player.Session.Network.EnqueueSend(message);
                 }
-
-                // TODO: tiered failures (Pyreal Ingots + glyphs, Cooking/Dyeing, etc)
-
+                
                 player.SendUseDoneEvent();
             });
 

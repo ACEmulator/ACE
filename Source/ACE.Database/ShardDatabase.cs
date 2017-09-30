@@ -40,6 +40,7 @@ namespace ACE.Database
             GetAceObject,
             UpdateAceObject,
             GetAceObjectsByContainerId,
+            GetAceObjectsByWielderId,
 
             GetCharacters,
             IsCharacterNameAvailable,
@@ -141,6 +142,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.GetAceObjectPropertiesDid, typeof(AceObjectPropertiesDataId), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetAceObjectsByContainerId, typeof(CachedInventoryObject), ConstructedStatementType.GetList);
+            ConstructStatement(ShardPreparedStatement.GetAceObjectsByWielderId, typeof(CachedWieldedObject), ConstructedStatementType.GetList);
 
             ConstructStatement(ShardPreparedStatement.GetTextureOverridesByObject, typeof(TextureMapOverride), ConstructedStatementType.GetList);
             ConstructStatement(ShardPreparedStatement.GetPaletteOverridesByObject, typeof(PaletteOverride), ConstructedStatementType.GetList);
@@ -294,6 +296,13 @@ namespace ACE.Database
             return objects.ToDictionary(x => new ObjectGuid(x.AceObjectId), x => GetObject(x.AceObjectId));
         }
 
+        public Dictionary<ObjectGuid, AceObject> GetItemsByWielderId(uint wielderId)
+        {
+            var criteria = new Dictionary<string, object> { { "wielderId", wielderId } };
+            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWieldedObject>(ShardPreparedStatement.GetAceObjectsByWielderId, criteria);
+            return objects.ToDictionary(x => new ObjectGuid(x.AceObjectId), x => GetObject(x.AceObjectId));
+        }
+
         public AceCharacter GetCharacter(uint id)
         {
             AceCharacter character = new AceCharacter(id);
@@ -347,6 +356,7 @@ namespace ACE.Database
                     invItem.Value.Inventory = GetInventoryByContainerId(invItem.Key.Full);
             }
             aceObject.BookProperties = GetAceObjectPropertiesBook(aceObject.AceObjectId).ToDictionary(x => x.Page);
+            aceObject.WieldedItems = GetItemsByWielderId(aceObject.AceObjectId);
         }
 
         private List<AceObjectPropertiesPosition> GetAceObjectPostions(uint aceObjectId)
@@ -592,18 +602,44 @@ namespace ACE.Database
             SaveObjectInternal(transaction, aceObject);
 
             // Do we have any inventory to save - if not, we are done here?
-            if (aceObject.Inventory.Count <= 0)
-                return transaction.Commit().Result;
-
-            foreach (AceObject invItem in aceObject.Inventory.Values)
+            if (aceObject.Inventory.Count > 0)
             {
-                SaveObjectInternal(transaction, invItem);
-                // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
-                if (invItem.WeenieType != (uint)WeenieType.Container)
-                    continue;
-                foreach (AceObject contInvItem in invItem.Inventory.Values)
+                foreach (AceObject invItem in aceObject.Inventory.Values)
                 {
-                    SaveObjectInternal(transaction, contInvItem);
+                    if (invItem.IsDirty)
+                    {
+                        DeleteObjectInternal(transaction, invItem);
+                        invItem.SetDirtyFlags();
+                    }
+                    SaveObjectInternal(transaction, invItem);
+
+                    // Was the item I just saved a container?   If so, we need to save the items in the container as well. Og II
+                    if (invItem.WeenieType == (uint)WeenieType.Container && invItem.Inventory.Count > 0)
+                    {
+                        foreach (AceObject contInvItem in invItem.Inventory.Values)
+                        {
+                            if (contInvItem.IsDirty)
+                            {
+                                DeleteObjectInternal(transaction, contInvItem);
+                                contInvItem.SetDirtyFlags();
+                            }
+                            SaveObjectInternal(transaction, contInvItem);
+                        }
+                    }
+                }
+            }
+
+            // Do we have any wielded items to save - if so, let's save them.
+            if (aceObject.WieldedItems.Count > 0)
+            {
+                foreach (AceObject wieldedItem in aceObject.WieldedItems.Values)
+                {
+                    if (wieldedItem.IsDirty)
+                    {
+                        DeleteObjectInternal(transaction, wieldedItem);
+                        wieldedItem.SetDirtyFlags();
+                    }
+                    SaveObjectInternal(transaction, wieldedItem);
                 }
             }
 
@@ -619,7 +655,6 @@ namespace ACE.Database
             // Do we have any  - if not, we are done here?
             if (aceObject.Inventory.Count <= 0)
                 return transaction.Commit().Result;
-
             foreach (AceObject invItem in aceObject.Inventory.Values)
             {
                 DeleteObjectInternal(transaction, invItem);
@@ -631,7 +666,6 @@ namespace ACE.Database
                     DeleteObjectInternal(transaction, contInvItem);
                 }
             }
-
             return transaction.Commit().Result;
         }
 
@@ -884,7 +918,7 @@ namespace ACE.Database
                     if (prop.PropertyValue == null)
                     {
                         // delete it
-                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertiesDid, prop);
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesDataId>(ShardPreparedStatement.DeleteAceObjectPropertyDid, prop);
                         properties.Remove(prop);
                     }
                     else
@@ -914,7 +948,7 @@ namespace ACE.Database
                     if (prop.PropertyValue == null)
                     {
                         // delete it
-                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertiesIid, prop);
+                        transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObjectPropertiesInstanceId>(ShardPreparedStatement.DeleteAceObjectPropertyIid, prop);
                         properties.Remove(prop);
                     }
                     else
@@ -934,12 +968,14 @@ namespace ACE.Database
 
         private bool SaveAceObjectTextureMaps(DatabaseTransaction transaction, uint aceObjectId, List<TextureMapOverride> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, TextureMapOverride>(ShardPreparedStatement.InsertTextureOverridesByObject, properties);
             return true;
         }
 
         private bool SaveAceObjectPropertiesSpells(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesSpell> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceObjectPropertiesSpell>(ShardPreparedStatement.InsertAceObjectPropertiesSpells, properties);
             return true;
         }
@@ -952,12 +988,14 @@ namespace ACE.Database
 
         private bool SaveAceObjectPalettes(DatabaseTransaction transaction, uint aceObjectId, List<PaletteOverride> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, PaletteOverride>(ShardPreparedStatement.InsertPaletteOverridesByObject, properties);
             return true;
         }
 
         private bool SaveAceObjectAnimations(DatabaseTransaction transaction, uint aceObjectId, List<AnimationOverride> properties)
         {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AnimationOverride>(ShardPreparedStatement.InsertAnimationOverridesByObject, properties);
             return true;
         }

@@ -12,4 +12,4 @@ build:
   project: source\ACE.sln
   verbosity: minimal
 test_script:
-- cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64
+- cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64

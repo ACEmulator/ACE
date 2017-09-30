@@ -1,5 +1,6 @@
 ﻿using ACE.Entity;
 using ACE.Entity.Enum.Properties;
+using ACE.Network.Sequence;
 
 namespace ACE.Network.GameMessages.Messages
 {
@@ -14,6 +15,15 @@ namespace ACE.Network.GameMessages.Messages
             Writer.Write((uint)iidPropertyId);
             Writer.Write(itemGuid.Full); // new value of the container id
             Writer.Align(); // not sure that I need this - can someone explain when to use this?
+        }
+
+        public GameMessageUpdateInstanceId(SequenceManager sequences, ObjectGuid senderGuid, PropertyInstanceId idPropertyId, ObjectGuid value)
+            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.Group09)
+        {
+            Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInstanceId));  // wts
+            Writer.Write(senderGuid.Full);
+            Writer.Write((uint)idPropertyId);
+            Writer.Write(value.Full);
         }
     }
 }

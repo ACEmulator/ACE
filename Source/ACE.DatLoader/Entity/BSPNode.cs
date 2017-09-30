@@ -56,7 +56,6 @@ namespace ACE.DatLoader.Entity
                     break;
             }
 
-
             if (treeType == BSPType.Cell)
                 return obj;
 
@@ -68,7 +67,6 @@ namespace ACE.DatLoader.Entity
             uint numPolys = datReader.ReadUInt32();
             for (uint i = 0; i < numPolys; i++)
                 obj.InPolys.Add(datReader.ReadUInt16());
-            
             return obj;
         }
     }

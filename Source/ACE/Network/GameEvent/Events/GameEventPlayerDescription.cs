@@ -368,7 +368,7 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(inv.Value.AceObjectId);
                 Writer.Write((uint)ContainerType.NonContainer);
             }
-            // Containers and foci go in side slots, they come last with their own placment order.
+            // Containers and foci go in side slots, they come last with their own placement order.
             foreach (var inv in aceObj.Inventory.Where(i => i.Value.UseBackpackSlot))
             {
                 Writer.Write(inv.Value.AceObjectId);
@@ -379,16 +379,13 @@ namespace ACE.Network.GameEvent.Events
             }
 
             // TODO: This is where what we have equipped is sent.
-            // format is count
-            // foreach (var wieldedItem in aceObj.WieldedItem)
-            // {
-            //    Writer.Write(wieldedItem.AceObjectId)
-            //    Writer.Write(wieldedItem.CurrentWieldedLocation);
-            //    Writer.Write(wieldedItem.ClothingPriority);
-            // }
-            // Replace with this code the place holder 0u that follows Og II
-
-            Writer.Write(0u);
+            Writer.Write((uint)aceObj.WieldedItems.Count);
+            foreach (var wieldedItem in aceObj.WieldedItems)
+            {
+                Writer.Write(wieldedItem.Value.AceObjectId);
+                Writer.Write((uint)wieldedItem.Value.CurrentWieldedLocation);
+                Writer.Write(wieldedItem.Value.ClothingPriority ?? 0u);
+            }
         }
     }
 }
