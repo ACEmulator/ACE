@@ -2638,7 +2638,7 @@ namespace ACE.Entity
         public bool AddCoin(uint value)
         {
             coinValue += value;
-            SetCoin(value);
+            SetCoin(coinValue);
             return true;
         }
 
