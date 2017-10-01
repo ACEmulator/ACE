@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-10-01
+[Og II]
+* Initial work on content interactions.
+* Cleaned up the using statements on several files.
+* Aligned the enums to = sign
+* Fixed bug in universal motion using the TurnToObject
 
 ### 2017-09-25
 [Og II]
