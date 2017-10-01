@@ -1,23 +1,16 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using ACE.Entity.Events;
 using ACE.Managers;
 using log4net;
 using ACE.Database;
-using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages;
 using ACE.Network.Sequence;
-using ACE.Network.GameAction;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Network.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
@@ -102,7 +95,7 @@ namespace ACE.Entity
             // TODO: Load spawn data
 
             var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
-            // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense 
+            // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense
             //        I don't know for sure however that it does yet. More research on them is required -Ripley
             objects.AddRange(DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
 

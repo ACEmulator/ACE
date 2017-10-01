@@ -137,7 +137,9 @@ namespace ACE.Network.Motion
                     }
                 case MovementTypes.TurnToObject:
                     {
-                        writer.Write(animationTargetGuid.Full);
+                        // This had the wrong value being passed.   We had never used this
+                        // movement type yet - coded it up but had not used or tested.
+                        writer.Write(TargetGuid.Full);
                         writer.Write(Heading);
                         writer.Write(Flag);
                         writer.Write(Speed);

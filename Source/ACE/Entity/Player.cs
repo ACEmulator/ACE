@@ -17,7 +17,6 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
-using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -305,28 +304,10 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
-        /// <summary>
-        /// This signature services MoveToObject and TurnToObject
-        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
-        /// </summary>
-        /// <param name="worldObjectPosition"></param>
-        /// <param name="sequence"></param>
-        /// <param name="movementType"></param>
-        /// <returns>MovementStates</returns>
-        public void OnAutonomousMove(Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
-        {
-            var newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
-            newMotion.DistanceFrom = 0.60f;
-            newMotion.MovementTypes = MovementTypes.MoveToObject;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
-            CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
-        }
-
         public Player(Session session, AceCharacter character)
             : base(character)
         {
             Session = session;
-
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
@@ -2725,7 +2706,7 @@ namespace ACE.Entity
                     {
                         // Just forward our action to the appropriate user...
                         ActionChain onUseChain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(onUseChain, usedItemId, (WorldObject wo) =>
+                        CurrentLandblock.ChainOnObject(onUseChain, usedItemId, wo =>
                         {
                             if (wo != null)
                             {
