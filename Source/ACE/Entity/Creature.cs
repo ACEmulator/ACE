@@ -610,6 +610,7 @@ namespace ACE.Entity
         /// This is the OnUse method.   This is just an initial implemention.   I have put in the turn to action at this point.
         /// If we are out of use radius, move to the object.   Once in range, let's turn the creature toward us and get started.
         /// Note - we may need to make an NPC class vs monster as using a monster does not make them turn towrad you as I recall. Og II
+        ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
         /// </summary>
         /// <param name="playerId">Identity of the player we are interacting with</param>
         public override void HandleActionOnUse(ObjectGuid playerId)
