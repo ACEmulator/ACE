@@ -1087,17 +1087,29 @@ namespace ACE.Entity
             bookChain.EnqueueChain();
         }
 
+    #region VendorTransactions
+        /// <summary>
+        /// Fired from the client / client is sending us a buy transaction
+        /// </summary>
+        /// <param name="vendorId"></param>
+        /// <param name="items"></param>
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
                 ActionChain chain = new ActionChain();
                 CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
                 {
-                    (vdr as Vendor).BuyItems(vendorId, items, this);
+                    (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
                 });
                 chain.EnqueueChain();
         }
 
-        public void HandleActionBuyTransaction(List<WorldObject> purchaselist, int cost)
+        /// <summary>
+        ///  Vendor calls this when BuyItemsStartTransaction is complete 
+        /// </summary>
+        /// <param name="vendor"></param>
+        /// <param name="purchaselist"></param>
+        /// <param name="cost"></param>
+        public void HandleActionBuyStartTransaction(WorldObject vendor, List<WorldObject> purchaselist, int cost)
         {
             new ActionChain(this, () =>
             {
@@ -1106,11 +1118,16 @@ namespace ACE.Entity
                     foreach (WorldObject wo in purchaselist)
                     {
                         // todo: check for inventory space.
+                        // move this into a final transaction triggered by vendor to add items to player.
                         AddNewItemToInventory(wo.WeenieClassId);
                     }
-                    // send updated vendor inventory
-                    // todo: send unique items back to vendor so they can be removed from the list.
-                    HandleActionApproachVendor(this, purchaselist);
+                    // Send Items to Vendor for processing..
+                    ActionChain vendorchain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                    {
+                        (vdr as Vendor).BuyItemsCompleteTransaction(this, purchaselist);
+                    });
+                    vendorchain.EnqueueChain();
                 }
                 else
                 {
@@ -1120,7 +1137,8 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Called when the Buy Packet is received, items are listed for sale and have been sent
+        /// Vendor calls this when BeginSellTransaction is complete
+        /// items are listed for sale and have been sent to the vendor for processing
         /// </summary>
         /// <param name="items"></param>
         /// <param name="vendorId"></param>
@@ -1143,13 +1161,21 @@ namespace ACE.Entity
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
                 {
-                    (vdr as Vendor).StartSellItems(purchaselist, this);
+                    (vdr as Vendor).SellItemsStartTransaction(purchaselist, this);
                 });
                 vendorchain.EnqueueChain();
             }).EnqueueChain();
         }
-        public void HandleActionFinishSellTransaction(List<WorldObject> items, ObjectGuid vendorId, uint coin)
+
+        /// <summary>
+        /// Called from Vendor SellItemsStartTransaction items are validated for sale, and price is known
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="vendorId"></param>
+        /// <param name="coin"></param>
+        public void HandleActionSellItemsStartTransaction(List<WorldObject> items, ObjectGuid vendorId, uint coin)
         {
+            // todo: add logic to send sell list back to vendor and add a final phase of processing.
             new ActionChain(this, () =>
             {
                 foreach (WorldObject item in items)
@@ -1161,8 +1187,10 @@ namespace ACE.Entity
                         DestroyInventoryItem(item);
                 }
                 AddCoin(coin);
+                SendUseDoneEvent();
             }).EnqueueChain();
         }
+    #endregion
 
         public void HandleAddToInventory(WorldObject wo)
         {

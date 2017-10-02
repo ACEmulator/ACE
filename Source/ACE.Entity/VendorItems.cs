@@ -17,11 +17,5 @@ namespace ACE.Entity
 
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public uint WeenieClassId { get; set; }
-
-        [DbField("destinationType", (int)MySqlDbType.Byte)]
-        public uint DestinationType { get; set; }
-
-        [DbField("palette", (int)MySqlDbType.Byte)]
-        public uint Palette { get; set; }
     }
 }

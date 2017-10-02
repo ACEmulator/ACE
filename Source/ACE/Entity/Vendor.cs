@@ -25,6 +25,7 @@ namespace ACE.Entity
         {
         }
 
+    #region General Vendor functions
         public override void HandleActionOnUse(ObjectGuid playerId)
         {
             ActionChain chain = new ActionChain();
@@ -43,29 +44,12 @@ namespace ACE.Entity
                     chain.AddAction(this, () =>
                     {
                         LoadInventory();
-                        UseVendor(player);
+                        ApproachVendor(player);
                     });          
                 }
             });
 
             chain.EnqueueChain();
-        }
-
-        /// <summary>
-        /// Fired when user approaches vendor, sends all items vendor has for sale to players
-        /// local tracked item list and opens vendor inventory screen. 
-        /// </summary>
-        /// <param name="player"></param>
-        private void UseVendor(Player player)
-        {
-            List<WorldObject> vendorlist = new List<WorldObject>();
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
-            {
-                vendorlist.Add(wo.Value);
-            }
-
-            // todo: send more then default items.
-            player.TrackInteractiveObjects(vendorlist);
         }
 
         /// <summary>
@@ -92,14 +76,35 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Buys Items from player
+        /// Fired when user approaches vendor, sends all items vendor has for sale to players
+        /// local tracked item list and opens vendor inventory screen. 
+        /// </summary>
+        /// <param name="player"></param>
+        private void ApproachVendor(Player player)
+        {
+            List<WorldObject> vendorlist = new List<WorldObject>();
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
+            {
+                vendorlist.Add(wo.Value);
+            }
+
+            // todo: send more then default items.
+            player.TrackInteractiveObjects(vendorlist);
+            player.HandleActionApproachVendor(this, vendorlist);
+        }
+    #endregion
+
+    #region BuyTransaction
+
+        /// <summary>
+        /// Player has started a buy transaction
         /// </summary>
         /// <param name="vendorid">GUID of Vendor</param>
         /// <param name="items">Item Profile, Ammount and ID</param>
         /// <param name="player"></param>
-        public void BuyItems(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void BuyItemsStartTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
-            // do you have enough cash / iventory space for all this shit.
+            // todo: do you have enough cash / iventory space for all of this
             int goldcost = 0;
             List<WorldObject> purchaselist = new List<WorldObject>();
 
@@ -109,7 +114,7 @@ namespace ACE.Entity
                 // check default items for id
                 if (defaultItemsForSale.ContainsKey(item.Guid))
                 {
-                    // todo: payments ?
+                    // todo: apply multipliers correctly
                     while (item.Amount > 0)
                     {
                         WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[item.Guid].WeenieClassId);
@@ -149,22 +154,43 @@ namespace ACE.Entity
                 }
             }
 
-            // send transaction to player for granting.
-            player.HandleActionBuyTransaction(purchaselist, goldcost);
+            // send transaction to player for further processing and.
+            player.HandleActionBuyStartTransaction(this, purchaselist, goldcost);
         }
 
-        public void StartSellItems(List<WorldObject> items, Player player)
+        /// <summary>
+        /// Items have been purchased from vendor by player
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="items"></param>
+        public void BuyItemsCompleteTransaction(Player player, List<WorldObject> items)
         {
-            // todo: add unique objects to local vendor list..
+            // todo: remove unique items to vendor unique list.
+            // they where sold to a player.
+
+            List<WorldObject> vendorlist = new List<WorldObject>();
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
+            {
+                vendorlist.Add(wo.Value);
+            }
+
+            // todo: send more then default items.
+            player.TrackInteractiveObjects(vendorlist);
+            player.HandleActionApproachVendor(this, vendorlist);
+        }
+    #endregion
+
+    #region Sell Transactions
+        public void SellItemsStartTransaction(List<WorldObject> items, Player player)
+        {
             // todo: calculate payment based on vendor multipliers
             uint coin = 0;
             foreach (WorldObject item in items)
             {
                 coin += (uint)item.Value;
             }
-
-            // Items are sold, pay player / delete items in the inventory.
-            player.HandleActionFinishSellTransaction(items, Guid, coin);
+            player.HandleActionSellItemsStartTransaction(items, Guid, coin);
         }
+    #endregion
     }
 }
