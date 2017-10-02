@@ -2,7 +2,7 @@
 
 ### 2017-10-02
 [OptimShi]
-* Changed MotionComm and MotionState enums to full uint instead of short and adjusted the movement serializing functions to worth with these changes.
+* Changed MotionCommand and MotionState enums to full uint instead of short and adjusted the movement serializing functions to work with these changes.
 * Fixed bug when leaving CombatMode with no ammunition equipped (e.g. melee or magic mode)
 * Added "acecommands" tip to console start up
 
