@@ -59,6 +59,8 @@ namespace ACE.Factories
                     return new Container(aceO);
                 case WeenieType.Scroll:
                     return new Scroll(aceO);
+                case WeenieType.Coin:
+                    return new Coin(aceO);
                 default:
                     return new GenericObject(aceO);
             }
