@@ -206,15 +206,14 @@ namespace ACE.Network.Handlers
                 uint headgearIconId = headCT.GetIcon(appearance.HeadgearColor);
 
                 var hat = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(headgearWeenie).Clone(GuidManager.NewItemGuid().Full);
-                hat.WeenieClassId = headgearWeenie;
-                hat.Placement = 0;
-                hat.ContainerIID = id;
                 hat.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
                 hat.TextureOverrides = new List<TextureMapOverride>();
                 hat.AnimationOverrides = new List<AnimationOverride>();
                 hat.SpellIdProperties = new List<AceObjectPropertiesSpell>();
-
                 hat.IconDID = headgearIconId;
+                hat.Placement = 0;
+                hat.CurrentWieldedLocation = hat.ValidLocations;
+                hat.WielderIID = id;
 
                 if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
                 {
@@ -264,7 +263,7 @@ namespace ACE.Network.Handlers
                     }
                 }
 
-                // character.Inventory.Add(new ObjectGuid(hat.AceObjectId), hat);
+                character.WieldedItems.Add(new ObjectGuid(hat.AceObjectId), hat);
             }
 
             uint shirtWeenie = sex.GetShirtWeenie(appearance.ShirtStyle);
@@ -278,7 +277,8 @@ namespace ACE.Network.Handlers
             shirt.SpellIdProperties = new List<AceObjectPropertiesSpell>();
             shirt.IconDID = shirtIconId;
             shirt.Placement = 0;
-            shirt.ContainerIID = id;
+            shirt.CurrentWieldedLocation = shirt.ValidLocations;
+            shirt.WielderIID = id;
 
             if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
             {
@@ -333,7 +333,7 @@ namespace ACE.Network.Handlers
                 }
             }
 
-            character.Inventory.Add(new ObjectGuid(shirt.AceObjectId), shirt);
+            character.WieldedItems.Add(new ObjectGuid(shirt.AceObjectId), shirt);
 
             uint pantsWeenie = sex.GetPantsWeenie(appearance.PantsStyle);
             ClothingTable pantsCT = ClothingTable.ReadFromDat(sex.GetPantsClothingTable(appearance.PantsStyle));
@@ -346,7 +346,8 @@ namespace ACE.Network.Handlers
             pants.SpellIdProperties = new List<AceObjectPropertiesSpell>();
             pants.IconDID = pantsIconId;
             pants.Placement = 0;
-            pants.ContainerIID = id;
+            pants.CurrentWieldedLocation = pants.ValidLocations;
+            pants.WielderIID = id;
 
             // Get the character's initial pants
             if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
@@ -396,7 +397,7 @@ namespace ACE.Network.Handlers
                 }
             } // end pants
 
-            character.Inventory.Add(new ObjectGuid(pants.AceObjectId), pants);
+            character.WieldedItems.Add(new ObjectGuid(pants.AceObjectId), pants);
 
             uint footwearWeenie = sex.GetFootwearWeenie(appearance.FootwearStyle);
             ClothingTable footwearCT = ClothingTable.ReadFromDat(sex.GetFootwearClothingTable(appearance.FootwearStyle));
@@ -409,7 +410,8 @@ namespace ACE.Network.Handlers
             shoes.SpellIdProperties = new List<AceObjectPropertiesSpell>();
             shoes.IconDID = footwearIconId;
             shoes.Placement = 0;
-            shoes.ContainerIID = id;
+            shoes.CurrentWieldedLocation = shoes.ValidLocations;
+            shoes.WielderIID = id;
 
             if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
             {
@@ -458,7 +460,7 @@ namespace ACE.Network.Handlers
                 }
             } // end footwear
 
-            character.Inventory.Add(new ObjectGuid(shoes.AceObjectId), shoes);
+            character.WieldedItems.Add(new ObjectGuid(shoes.AceObjectId), shoes);
 
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.

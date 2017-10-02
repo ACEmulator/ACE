@@ -61,6 +61,7 @@ namespace ACE.Database
             DeleteAceObjectPropertiesSkills,
             DeleteAceObjectPropertiesSpell,
             DeleteAceObjectPropertiesSpellBarPositions,
+            DeleteAceObjectPropertiesBook,
 
             InsertPaletteOverridesByObject,
             InsertAnimationOverridesByObject,
@@ -78,6 +79,7 @@ namespace ACE.Database
             InsertAceObjectPropertiesSkills,
             InsertAceObjectPropertiesSpells,
             InsertAceObjectPropertiesSpellBarPositions,
+            InsertAceObjectPropertiesBook,
 
             // note, this section is all "Property" singular
             UpdateAceObjectPropertyInt,
@@ -174,6 +176,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesBook, typeof(AceObjectPropertiesBook), ConstructedStatementType.DeleteList);
 
             // Insert statements
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.InsertList);
@@ -192,6 +195,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.InsertAnimationOverridesByObject, typeof(AnimationOverride), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesSpells, typeof(AceObjectPropertiesSpell), ConstructedStatementType.InsertList);
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.InsertList);
+            ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesBook, typeof(AceObjectPropertiesBook), ConstructedStatementType.InsertList);
 
             // Updates
             ConstructStatement(ShardPreparedStatement.UpdateAceObjectPropertyInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.Update);
@@ -733,6 +737,9 @@ namespace ACE.Database
 
             SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesSkills);
 
+            DeleteAceObjectPropertiesBook(transaction, aceObject.AceObjectId);
+            SaveAceObjectPropertiesBook(transaction, aceObject.AceObjectId, aceObject.BookProperties);
+
             // positions are special.  the object is actually fully replaced, so we can't do dirty tracking on it (for now)
             // as a result, we delete them all then reinsert them all
             DeleteAceObjectPropertiesPositions(transaction, aceObject.AceObjectId);
@@ -1091,6 +1098,16 @@ namespace ACE.Database
             return true;
         }
 
+        private bool SaveAceObjectPropertiesBook(DatabaseTransaction transaction, uint aceObjectId, Dictionary<uint, AceObjectPropertiesBook> properties)
+        {
+            var pages = properties.Values.ToList();
+            pages.ForEach(a => a.AceObjectId = aceObjectId);
+
+            foreach (var page in pages)
+                transaction.AddPreparedInsertStatement<ShardPreparedStatement, AceObjectPropertiesBook>(ShardPreparedStatement.InsertAceObjectPropertiesBook, page);
+            return true;
+        }
+
         private bool DeleteAceObjectBase(DatabaseTransaction transaction, AceObject obj)
         {
             transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.DeleteAceObject, obj);
@@ -1208,6 +1225,13 @@ namespace ACE.Database
         {
             var critera = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSkill>(ShardPreparedStatement.DeleteAceObjectPropertiesSkills, critera);
+            return true;
+        }
+
+        private bool DeleteAceObjectPropertiesBook(DatabaseTransaction transaction, uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesBook>(ShardPreparedStatement.DeleteAceObjectPropertiesBook, criteria);
             return true;
         }
     }
