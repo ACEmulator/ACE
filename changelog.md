@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-10-02
+[Ripley]
+* Added WeenieType.Coin handler.
+* Wired up CoinValue and attached proper tracking to WeenieType.Container handler.
+  - Proper stack splitting or pickup of items that allow stacking still not handled by server.
+  - Correct mathing requires base WeenieType.Coin weenies in database be set correctly. Value/StackSize need to be set to single value initally.
+  - ACE-World will need to be updated to fix base values.
+
 ### 2017-09-30
 [Ripley]
 * Merged updates into WorldBase.
