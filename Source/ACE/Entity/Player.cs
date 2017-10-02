@@ -1450,6 +1450,27 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary> 
+        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot 
+        /// of the aceObjects from the current list of inventory world objects by container. Og II 
+        /// </summary> 
+       public void SnapshotInventoryItems(bool clearDirtyFlags = false)
+        { 
+            Inventory.Clear(); 
+            foreach (var wo in InventoryObjects)
+             {
+                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags)); 
+                if (wo.Value.WeenieType == WeenieType.Container)
+                {
+                    wo.Value.Inventory.Clear();
+                    foreach (var item in wo.Value.InventoryObjects)
+                    { 
+                        wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
+                    }
+                }
+            }
+        } 
+
         /// <summary>
         /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
@@ -1462,8 +1483,8 @@ namespace ACE.Entity
                 SetPhysicalCharacterPosition();
 
                 // Let's get a snapshot of our wielded items prior to save.
-
                 SnapshotWieldedItems();
+                SnapshotInventoryItems();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 
