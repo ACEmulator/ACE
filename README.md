@@ -3,11 +3,15 @@
 Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl7cb9xq5am/branch/master?svg=true)](https://ci.appveyor.com/project/ACEmulator/ace/branch/master)
 
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
-**The ACEmu project is for learning purposes and we only make use of the game client for interoperability with the server.**
  * MySQL and MariaDB are used as the database engine.
  * Latest client supported.
  * Currently intended for developers that wish to contribute to the ACEmulator project.
 
+***
+## Disclaimer
+**This project is for educational and non-commerical purposes only, use of the game client is for interoperability with the emulated server.**
+- Asheron's Call is a registered trademark of Turbine, Inc. and WB Games Inc.
+- ACEmulator is not associated or affiliated in any way with Turbine, Inc. or WB Games Inc.
 ***
 ## Recommended Tools
 * SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
@@ -17,10 +21,10 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 
 ## Getting Started
 
-* For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"
+**For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
 * Install MySQL (MariaDB is preferred, but either will work)
-  [MySQL minimum required version 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
-  [MariaDB minimum required version 10.2+](https://mariadb.org/download/)
+  - [MySQL minimum required version 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
+  - [MariaDB minimum required version 10.2+](https://mariadb.org/download/)
 * Create three databases named `ace_auth`, `ace_shard`, and `ace_world`.
 * Load AuthenticationBase.sql, ShardBase.sql, and WorldBase.sql for their respective databases. 
 * Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest.
@@ -70,7 +74,7 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 
 ## Other Resources
-* [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php)
+* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Recommended)
+* [Zegeger Protocol documentation](http://www.zegeger.net/decal/protocol/Protocol.php) (At times, this link may be more recently updated)
+* [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php) (outdated)
 * [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)
-* [Miach's PCAP Repository](http://aka-steve.com/AC/AC-Files/AC1%20PCAPS/All%20PCAPS/)
-* [Mag-nus Logs Repository](http://aka-steve.com/AC/AC-Files/AC1%20PCAPS/All%20Mag-nus%20Logs/)
