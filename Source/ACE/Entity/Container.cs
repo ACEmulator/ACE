@@ -41,7 +41,7 @@ namespace ACE.Entity
             foreach (var wieldedItem in WieldedItems)
             {
                 ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                WieldedObjects.Add(woGuid, new GenericObject(WieldedItems[woGuid]));
+                WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
             }
 
             InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
