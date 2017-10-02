@@ -37,11 +37,13 @@ namespace ACE.Entity
         public Container(AceObject aceObject)
             : base(aceObject)
         {
+            CoinValue = 0;
+
             WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
             foreach (var wieldedItem in WieldedItems)
             {
                 ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                WieldedObjects.Add(woGuid, new GenericObject(WieldedItems[woGuid]));
+                WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
             }
 
             InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
@@ -56,7 +58,17 @@ namespace ACE.Entity
                     {
                         ObjectGuid cwoGuid = new ObjectGuid(item.Value.AceObjectId);
                         InventoryObjects[woGuid].InventoryObjects.Add(cwoGuid, WorldObjectFactory.CreateWorldObject(item.Value));
+
+                        if (InventoryObjects[woGuid].WeenieType == WeenieType.Coin)
+                        {
+                            CoinValue += item.Value.Value ?? 0;
+                        }
                     }
+                }
+                
+                if (InventoryObjects[woGuid].WeenieType == WeenieType.Coin)
+                {
+                    CoinValue += inventoryItem.Value.Value ?? 0;
                 }
             }
         }
@@ -65,6 +77,11 @@ namespace ACE.Entity
         public virtual void AddToInventory(WorldObject inventoryItem, uint placement = 0)
         {
             AddToInventoryEx(inventoryItem, placement);
+
+            if (inventoryItem.WeenieType == WeenieType.Coin)
+            {
+                CoinValue += inventoryItem.Value ?? 0;
+            }
         }
 
         /// <summary>
@@ -121,6 +138,12 @@ namespace ACE.Entity
             inv.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
             inv[itemGuid].ContainerId = null;
             inv[itemGuid].Placement = null;
+
+            if (inv[itemGuid].WeenieType == WeenieType.Coin)
+            {
+                CoinValue -= inv[itemGuid].Value ?? 0;
+            }
+
             inv.Remove(itemGuid);
         }
 

@@ -1,11 +1,26 @@
 # ACEmulator Change Log
 
-### 2017-10-01
+### 2017-10-02
 [Og II]
 * Initial work on content interactions.
 * Cleaned up the using statements on several files.
 * Aligned the enums to = sign
 * Fixed bug in universal motion using the TurnToObject
+
+### 2017-10-02
+[Ripley]
+* Added WeenieType.Coin handler.
+* Wired up CoinValue and attached proper tracking to WeenieType.Container handler.
+  - Proper stack splitting or pickup of items that allow stacking still not handled by server.
+  - Correct mathing requires base WeenieType.Coin weenies in database be set correctly. Value/StackSize need to be set to single value initally.
+  - ACE-World will need to be updated to fix base values.
+
+### 2017-09-30
+[Ripley]
+* Merged updates into WorldBase.
+* Fixed saving books to the Shard database.
+* Characters now equip items on world entry. (This will reveal bugs in clothing layer priority and model change issues)
+
 
 ### 2017-09-25
 [Og II]
@@ -21,7 +36,6 @@
 ### 2017-09-20
 [Ripley]
 * Added a minimum UseRadius to Doors. This prevents the radius being so small as to require you to be inside the door to open/close it.
-
 
 ### 2017-09-18
 [Mogwai]
