@@ -6,19 +6,17 @@ REM execute Base Scripts
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\base\ShardBase.sql
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\base\WorldBase.sql
 
-REM execute Update Scripts for Authentication and Shard Databases
-
-REM Skipping for now, process too slow.
-REM Download latest ACE-World database, extract and import it
-appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.2.0/ACE-World-db-v0.2.0.sql.zip
-7z x ACE-World-db-v0.2.0.sql.zip
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-db-v0.2.0.sql
-
-REM execute Update Scripts for World Database
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\06-06-30-2017-generator-chains-testdata.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-09-13-ace_recipe.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-09-14-ace_recipe_support_healing.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-09-18-ace_recipe_support_failed_items.sql
+REM execute Update Scripts for Authentication Database
+REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < database\updates\auth\changeme.sql
 
 REM execute Update Scripts for Shard Database
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\08-20-2017-vw-ace-wielded-object.sql
+
+REM Download latest ACE-World database, extract and import it
+appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.2.3/ACE-World-db-v0.2.3.sql.zip
+7z x ACE-World-db-v0.2.3.sql.zip
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-db-v0.2.3.sql
+
+REM execute Update Scripts for World Database
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\06-06-30-2017-generator-chains-testdata.sql
+

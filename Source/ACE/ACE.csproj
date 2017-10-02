@@ -115,6 +115,7 @@
     <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\IPlayer.cs" />
     <Compile Include="Entity\ItemProfile.cs" />
+    <Compile Include="Entity\Coin.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />

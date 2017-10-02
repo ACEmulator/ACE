@@ -377,6 +377,8 @@ namespace ACE.Entity
             }
         }
 
+        public bool FirstEnterWorldDone = false;
+
         public uint Age
         { get { return Character.Age; } }
 
@@ -407,6 +409,8 @@ namespace ACE.Entity
                 // if (Session.AccessLevel == AccessLevel.Advocate)
                 //    character.IsAdvocate= true;
             }
+
+            FirstEnterWorldDone = false;
 
             Location = character.Location;
             IsAlive = true;
@@ -463,6 +467,8 @@ namespace ACE.Entity
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+
+            FirstEnterWorldDone = true;
         }
 
         private void AddCharacterBaseModelData()
@@ -3176,6 +3182,22 @@ namespace ACE.Entity
         public void SendUseDoneEvent()
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
+        }
+
+        private uint coinValue = 0;
+        public override uint? CoinValue
+        {
+            get { return coinValue; }
+            set
+            {
+                if (value != coinValue)
+                {
+                    base.CoinValue = value;
+                    coinValue = (uint)value;
+                    if (FirstEnterWorldDone)
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
+                }
+            }
         }
     }
 }

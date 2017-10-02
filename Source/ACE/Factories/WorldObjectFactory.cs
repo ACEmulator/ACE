@@ -61,6 +61,8 @@ namespace ACE.Factories
                     return new Scroll(aceO);
                 case WeenieType.Vendor:
                     return new Vendor(aceO);
+                case WeenieType.Coin:
+                    return new Coin(aceO);
                 default:
                     return new GenericObject(aceO);
             }
