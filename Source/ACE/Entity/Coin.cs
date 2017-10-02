@@ -1,13 +1,7 @@
 ﻿// WeenieType.Coin
 
-using ACE.DatLoader.FileTypes;
-using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Network;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
