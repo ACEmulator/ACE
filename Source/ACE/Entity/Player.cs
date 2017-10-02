@@ -28,7 +28,6 @@ namespace ACE.Entity
         // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
         private static readonly Position MarketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
         private static readonly float PickUpDistance = .75f;
-        private uint coinValue = 0;
 
         public Session Session { get; }
 
