@@ -372,7 +372,7 @@ namespace ACE.Entity
             set { AceObject.AmmoType = (uint?)value; }
         }
 
-        public uint? Value
+        public virtual uint? Value
         {
             get { return AceObject.Value; }
             set { AceObject.Value = value; }
@@ -426,7 +426,7 @@ namespace ACE.Entity
             set { AceObject.MaxStructure = value; }
         }
 
-        public ushort? StackSize
+        public virtual ushort? StackSize
         {
             get { return AceObject.StackSize; }
             set { AceObject.StackSize = value; }
@@ -1554,6 +1554,12 @@ namespace ACE.Entity
         {
             get { return AceObject.HealkitMod; }
             set { AceObject.HealkitMod = value; }
+        }
+
+        public virtual uint? CoinValue
+        {
+            get { return AceObject.CoinValue; }
+            set { AceObject.CoinValue = value; }
         }
 
         public SequenceManager Sequences { get; }
