@@ -5,6 +5,7 @@
 * Changed MotionComm and MotionState enums to full uint instead of short and adjusted the movement serializing functions to worth with these changes.
 * Fixed bug when leaving CombatMode with no ammunition equipped (e.g. melee or magic mode)
 * Added "acecommands" tip to console start up
+* Corrected an issue with the palette of head gear chosen at character creation.
 
 [Ripley]
 * Added WeenieType.Coin handler.
