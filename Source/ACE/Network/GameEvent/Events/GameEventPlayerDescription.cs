@@ -51,11 +51,7 @@ namespace ACE.Network.GameEvent.Events
 
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
-            var enumValuesInt = typeof(PropertyInt).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (ushort)x.member.GetValue(null)).ToList();
-
-            var propertiesInt = aceObj?.IntProperties.Where(x => enumValuesInt.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesInt = aceObj?.IntProperties.Where(x => ClientEnums.ClientPropertyInt.Contains((ushort)x.PropertyId)).ToList();
             if (propertiesInt != null && propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
