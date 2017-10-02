@@ -269,7 +269,7 @@ namespace ACE.Entity
             if (mEquipedWand != null)
             {
                 UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
-                mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
+                mm.MovementData.CurrentStyle = (uint)MotionStance.Spellcasting;
                 SetMotionState(this, mm);
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.Magic));
             }
@@ -316,7 +316,7 @@ namespace ACE.Entity
             // End hack
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
             UniversalMotion mm = new UniversalMotion(MotionStance.Standing);
-            mm.MovementData.CurrentStyle = (ushort)MotionStance.Standing;
+            mm.MovementData.CurrentStyle = (uint)MotionStance.Standing;
             SetMotionState(this, mm);
             var mEquipedAmmo = WieldedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.NonCombat));
@@ -359,7 +359,7 @@ namespace ACE.Entity
                 {
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     SetMotionState(this, mm);
-                    mm.MovementData.ForwardCommand = (ushort)MotionCommand.Reload;
+                    mm.MovementData.ForwardCommand = (uint)MotionCommand.Reload;
                     SetMotionState(this, mm);
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
