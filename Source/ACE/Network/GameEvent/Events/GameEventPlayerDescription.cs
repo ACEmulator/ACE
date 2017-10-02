@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -51,7 +52,8 @@ namespace ACE.Network.GameEvent.Events
 
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
-            var propertiesInt = aceObj?.IntProperties.Where(x => ClientEnums.ClientPropertyInt.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesInt = aceObj?.IntProperties.Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.PropertyId)).ToList();
+
             if (propertiesInt != null && propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
@@ -68,10 +70,8 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var enumValuesInt64 = typeof(PropertyInt64).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (ushort)x.member.GetValue(null)).ToList();
-            var propertiesInt64 = aceObj?.Int64Properties.Where(x => enumValuesInt64.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesInt64 = aceObj?.Int64Properties.Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.PropertyId)).ToList();
+
             if (propertiesInt64 != null && propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
@@ -88,10 +88,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var enumValuesBool = typeof(PropertyBool).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (ushort)x.member.GetValue(null)).ToList();
-            var propertiesBool = aceObj?.BoolProperties.Where(x => enumValuesBool.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesBool = aceObj?.BoolProperties.Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.PropertyId)).ToList();
 
             if (propertiesBool != null && propertiesBool.Count != 0)
             {
@@ -107,10 +104,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var enumValuesDouble = typeof(PropertyDouble).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (ushort)x.member.GetValue(null)).ToList();
-            var propertiesDouble = aceObj?.DoubleProperties.Where(x => enumValuesDouble.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesDouble = aceObj?.DoubleProperties.Where(x => ClientProperties.PropertiesDouble.Contains(x.PropertyId)).ToList();
 
             if (propertiesDouble != null && propertiesDouble.Count != 0)
             {
@@ -128,10 +122,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var enumValuesString = typeof(PropertyString).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (ushort)x.member.GetValue(null)).ToList();
-            var propertiesString = aceObj?.StringProperties.Where(x => enumValuesString.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesString = aceObj?.StringProperties.Where(x => ClientProperties.PropertiesString.Contains(x.PropertyId)).ToList();
 
             if (propertiesString != null && propertiesString.Count != 0)
             {
@@ -147,10 +138,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var enumValuesDid = typeof(PropertyDataId).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (uint)x.member.GetValue(null)).ToList();
-            var propertiesDid = aceObj?.DataIdProperties.Where(x => enumValuesDid.Contains((uint)x.PropertyId)).ToList();
+            var propertiesDid = aceObj?.DataIdProperties.Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.PropertyId)).ToList();
 
             if (propertiesDid != null && propertiesDid.Count != 0)
             {
@@ -167,10 +155,7 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var enumValuesIid = typeof(PropertyInstanceId).GetFields().Select(x =>
-                                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-                                .Where(x => x.att == null && x.member.Name != "value__").Select(x => (uint)x.member.GetValue(null)).ToList();
-            var propertiesIid = aceObj?.InstanceIdProperties.Where(x => enumValuesIid.Contains((uint)x.PropertyId)).ToList();
+            var propertiesIid = aceObj?.InstanceIdProperties.Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.PropertyId)).ToList();
 
             if (propertiesIid != null && propertiesIid.Count != 0)
             {

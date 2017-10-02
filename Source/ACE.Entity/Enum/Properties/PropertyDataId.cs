@@ -1,6 +1,6 @@
 ﻿namespace ACE.Entity.Enum.Properties
 {
-    public enum PropertyDataId : uint
+    public enum PropertyDataId : ushort
     {
         // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
         // http://ac.yotesfan.com/ace_object/not_used_enums.php

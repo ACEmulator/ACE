@@ -1,15 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace ACE.Entity.Enum.Properties
+﻿namespace ACE.Entity.Enum.Properties
 {
-    public static class ClientEnums
-    {
-        public static List<ushort> ClientPropertyInt = typeof(PropertyInt).GetFields().Select(x =>
-                new { att = x.GetCustomAttributes(false).OfType<ServerOnlyAttribute>().FirstOrDefault(), member = x })
-            .Where(x => x.att == null && x.member.Name != "value__").Select(x => (ushort)x.member.GetValue(null)).ToList();
-    }
-
     public enum PropertyInt : ushort
     {
         // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
