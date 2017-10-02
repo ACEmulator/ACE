@@ -28,8 +28,7 @@ namespace ACE.Entity
         // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
         private static readonly Position MarketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
         private static readonly float PickUpDistance = .75f;
-
-        private uint coinValue = 100000;
+        private uint coinValue = 0;
 
         public Session Session { get; }
 
@@ -454,8 +453,6 @@ namespace ACE.Entity
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
-            // Add some play money for vendors..
-            AddCoin(coinValue);
 
             SendFriendStatusUpdates();
 
@@ -1104,11 +1101,20 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                SpendCoin((uint)cost);
-                SendUseDoneEvent();
-                foreach (WorldObject wo in purchaselist)
+                if (SpendCoin((uint)cost))
                 {
-                     AddNewItemToInventory(wo.WeenieClassId);
+                    foreach (WorldObject wo in purchaselist)
+                    {
+                        // todo: check for inventory space.
+                        AddNewItemToInventory(wo.WeenieClassId);
+                    }
+                    // send updated vendor inventory
+                    // todo: send unique items back to vendor so they can be removed from the list.
+                    HandleActionApproachVendor(this, purchaselist);
+                }
+                else
+                {
+                    // todo: You dont have enough money to buy this + check for inventory space.
                 }
             }).EnqueueChain();
         }
@@ -1647,15 +1653,19 @@ namespace ACE.Entity
         /// Tracks Interacive world object you are have interacted with recently.
         /// </summary>
         /// <param name="worldObject"></param>
-        public void TrackInteractiveObject(WorldObject worldObject)
+        public void TrackInteractiveObjects(List<WorldObject> worldObjects)
         {
-            if (worldObject.Guid == this.Guid)
-                return;
-
-            if (InteractiveWorldObjects.ContainsKey(worldObject.Guid))
-                InteractiveWorldObjects[worldObject.Guid] = worldObject;
-            else
-                InteractiveWorldObjects.Add(worldObject.Guid, worldObject);
+            // todo: figure out a way to expire objects.. objects clearly not in range of interaction /etc
+            new ActionChain(this, () =>
+            {
+                foreach (WorldObject wo in worldObjects)
+                {
+                    if (InteractiveWorldObjects.ContainsKey(wo.Guid))
+                        InteractiveWorldObjects[wo.Guid] = wo;
+                    else
+                        InteractiveWorldObjects.Add(wo.Guid, wo);
+                }
+            }).EnqueueChain();
         }
 
         /// <summary>
@@ -2635,11 +2645,10 @@ namespace ACE.Entity
             }
         }
 
-        public bool AddCoin(uint value)
+        public void AddCoin(uint value)
         {
             coinValue += value;
             SetCoin(coinValue);
-            return true;
         }
 
         private void SetCoin(uint value)
@@ -3067,6 +3076,15 @@ namespace ACE.Entity
             ActionChain chain = new ActionChain();
             chain.AddAction(this, () => DoEmote(message));
             chain.EnqueueChain();
+        }
+
+        public void HandleActionApproachVendor(WorldObject vendor, List<WorldObject> itemsForSale)
+        {
+            new ActionChain(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
+                SendUseDoneEvent();
+            }).EnqueueChain();
         }
 
         public void DoEmote(string message)

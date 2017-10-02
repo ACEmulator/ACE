@@ -1502,6 +1502,23 @@ namespace ACE.Command.Handlers
             // @stormthresh - Sets how many character can be in a landblock before we do a portal storm.
 
             // TODO: output
-        }       
+        }
+
+        // AddCoin [value]
+        [CommandHandler("addcoin", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
+            "Gives player.",
+            "money (int)")]
+        public static void HandleAddCoin(Session session, params string[] parameters)
+        {
+            try
+            {
+                uint money = uint.Parse(parameters[0]);
+                session.Player.AddCoin(money);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
+            }
+        }
     }
 }

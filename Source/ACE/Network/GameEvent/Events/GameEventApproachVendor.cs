@@ -7,7 +7,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, WorldObject wo, Dictionary<ObjectGuid, WorldObject> items)
+        public GameEventApproachVendor(Session session, WorldObject wo, List<WorldObject> items)
             : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
         {        
             Writer.Write(wo.Guid.Full); // merchant id
@@ -24,12 +24,12 @@ namespace ACE.Network.GameEvent.Events
             Writer.WriteString16L("");
             Writer.Write((uint)items.Count); // number of items
 
-            foreach (KeyValuePair<ObjectGuid, WorldObject> obj in items)
+            foreach (WorldObject obj in items)
             {
                 // Serialize Stream.
-                Writer.Write((uint)0xFFFFFFFF); // old weenie
-                Writer.Write(obj.Value.Guid.Full);
-                obj.Value.SerializeGameDataOnly(Writer);
+                Writer.Write(0xFFFFFFFF); // old weenie
+                Writer.Write(obj.Guid.Full);
+                obj.SerializeGameDataOnly(Writer);
             }
             Writer.Align();
         }

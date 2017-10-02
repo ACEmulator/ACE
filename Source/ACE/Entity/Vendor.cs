@@ -58,14 +58,14 @@ namespace ACE.Entity
         /// <param name="player"></param>
         private void UseVendor(Player player)
         {
+            List<WorldObject> vendorlist = new List<WorldObject>();
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
             {
-                player.TrackInteractiveObject(wo.Value);
+                vendorlist.Add(wo.Value);
             }
 
             // todo: send more then default items.
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
-            player.SendUseDoneEvent();
+            player.TrackInteractiveObjects(vendorlist);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace ACE.Entity
                 // check default items for id
                 if (defaultItemsForSale.ContainsKey(item.Guid))
                 {
-                    // todo: more stack logic ?
+                    // todo: payments ?
                     while (item.Amount > 0)
                     {
                         WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[item.Guid].WeenieClassId);
@@ -126,11 +126,13 @@ namespace ACE.Entity
                             // else we cant stack it or its less then max stack size.
                             else
                             {
-                                item.Amount -= item.Amount;
                                 if (item.Amount > 0)
                                     goldcost += (int)defaultItemsForSale[item.Guid].Value.Value * item.Amount;
                                 else
+                                {
+                                    item.Amount = 0;
                                     goldcost += (int)defaultItemsForSale[item.Guid].Value.Value;
+                                }
                                 wo.StackSize = (ushort)item.Amount;
                                 purchaselist.Add(wo);
                             }
@@ -138,34 +140,28 @@ namespace ACE.Entity
                         else
                         {
                             // single item with no stack options.
-                            item.Amount -= item.Amount;
+                            item.Amount = 0;
+                            wo.StackSize = 0;
                             goldcost += (int)defaultItemsForSale[item.Guid].Value.Value;
                             purchaselist.Add(wo);
                         }
                     }
                 }
-
-                // todo: vendor items sold by player
-                // todo: now check to make sure you can aford this shit and you have pack space.
             }
 
             // send transaction to player for granting.
             player.HandleActionBuyTransaction(purchaselist, goldcost);
-        
-            // send updated vendor inventory
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
-            player.SendUseDoneEvent();
         }
 
         public void StartSellItems(List<WorldObject> items, Player player)
         {
-            // here we would add the items to the local vendor list..
-            // calculate payment.
-            uint coin = 100;
-
-            // send updated vendor inventory
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, defaultItemsForSale));
-            player.SendUseDoneEvent();
+            // todo: add unique objects to local vendor list..
+            // todo: calculate payment based on vendor multipliers
+            uint coin = 0;
+            foreach (WorldObject item in items)
+            {
+                coin += (uint)item.Value;
+            }
 
             // Items are sold, pay player / delete items in the inventory.
             player.HandleActionFinishSellTransaction(items, Guid, coin);
