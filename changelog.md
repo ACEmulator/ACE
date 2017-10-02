@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
 ### 2017-10-02
+[OptimShi]
+* Changed MotionComm and MotionState enums to full uint instead of short and adjusted the movement serializing functions to worth with these changes.
+* Fixed bug when leaving CombatMode with no ammunition equipped (e.g. melee or magic mode)
+* Added "acecommands" tip to console start up
+
 [Ripley]
 * Added WeenieType.Coin handler.
 * Wired up CoinValue and attached proper tracking to WeenieType.Container handler.

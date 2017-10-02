@@ -54,6 +54,8 @@ namespace ACE.Command
             Console.WriteLine("");
             Console.WriteLine("ACEmulator command prompt ready.");
             Console.WriteLine("");
+            Console.WriteLine("Type \"acecommands\" for help.");
+            Console.WriteLine("");
 
             for (;;)
             {
