@@ -1335,6 +1335,12 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.HealkitMod, value); }
         }
 
+        public uint? CoinValue
+        {
+            get { return GetIntProperty(PropertyInt.CoinValue); }
+            set { SetIntProperty(PropertyInt.CoinValue, value); }
+        }
+
         #region Positions
         public Position Location
         {

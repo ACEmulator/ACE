@@ -41,6 +41,7 @@ CREATE TABLE `ace_landblock` (
   UNIQUE KEY `instanceId_UNIQUE` (`instanceId`),
   UNIQUE KEY `preassignedGuid_UNIQUE` (`preassignedGuid`),
   KEY `fk_lb_weenie_idx` (`weenieClassId`),
+  KEY `fk_lb_idx` (`landblock`),
   CONSTRAINT `fk_weenie_lb` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -146,8 +147,9 @@ DROP TABLE IF EXISTS `ace_object_inventory`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ace_object_inventory` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
-  `weenieClassId` int(10) unsigned NOT NULL DEFAULT '0',
   `destinationType` tinyint(5) NOT NULL DEFAULT '0',
+  `weenieClassId` int(10) unsigned NOT NULL DEFAULT '0',
+  `stackSize` int(10) NOT NULL DEFAULT '1',
   `palette` tinyint(5) NOT NULL DEFAULT '0',
   KEY `fk_Inventory_AceObject_idx` (`aceObjectId`),
   KEY `fk_Inventory_Weenie_idx` (`weenieClassId`),
@@ -582,6 +584,43 @@ LOCK TABLES `ace_position` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `ace_recipe`
+--
+
+DROP TABLE IF EXISTS `ace_recipe`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ace_recipe` (
+  `recipeId` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'surrogate key',
+  `recipeType` tinyint(3) unsigned NOT NULL COMMENT 'see RecipeType enum in code',
+  `sourceWcid` int(10) unsigned NOT NULL COMMENT 'the object being used',
+  `targetWcid` int(10) unsigned NOT NULL COMMENT 'the target of use',
+  `skillId` smallint(6) unsigned DEFAULT NULL COMMENT 'skill required for the formula, if any',
+  `skillDifficulty` smallint(6) unsigned DEFAULT NULL COMMENT 'skill value required for 50% success',
+  `partialFailDifficulty` smallint(6) unsigned DEFAULT NULL COMMENT 'skill value for a partial botch (dyed clothing)',
+  `successMessage` text,
+  `failMessage` text,
+  `alternateMessage` text,
+  `resultFlags` int(10) unsigned DEFAULT NULL COMMENT 'bitmask of what happens.  see RecipeResults enum in code',
+  `successItem1Wcid` int(10) unsigned DEFAULT NULL,
+  `successItem2Wcid` int(10) unsigned DEFAULT NULL,
+  `failureItem1Wcid` int(10) unsigned DEFAULT NULL,
+  `failureItem2Wcid` int(10) unsigned DEFAULT NULL,
+  `healingAttribute` smallint(6) unsigned DEFAULT NULL COMMENT 'used by recipeType = Healing. health = 64, stam = 128, mana = 256. if null, will default to health. source enum: ACE.Entity.Enum.Ability',
+  PRIMARY KEY (`recipeId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ace_recipe`
+--
+
+LOCK TABLES `ace_recipe` WRITE;
+/*!40000 ALTER TABLE `ace_recipe` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_recipe` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `ace_weenie_class`
 --
 
@@ -735,4 +774,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-08-27 15:45:35
+-- Dump completed on 2017-09-29 18:59:47
