@@ -161,7 +161,7 @@ namespace ACE.Entity
                         {
                             // single item with no stack options.
                             item.Amount = 0;
-                            wo.StackSize = 0;
+                            wo.StackSize = null;
                             goldcost += defaultItemsForSale[item.Guid].Value.Value;
                             purchaselist.Add(wo);
                         }

@@ -17,8 +17,8 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write((uint)wo.MerchandiseMinValue);
             Writer.Write((uint)wo.MerchandiseMaxValue);
             Writer.Write((uint)1); // magic
-            Writer.Write((float)0.8); // buy_price
-            Writer.Write((float)10); // sell_price
+            Writer.Write((float)1); // buy_price
+            Writer.Write((float)1); // sell_price
             Writer.Write((uint)0); // trade id .. is this a timestamp type val?
             Writer.Write((uint)0); // trade number .. is this a timestamp type val?
             Writer.WriteString16L("");

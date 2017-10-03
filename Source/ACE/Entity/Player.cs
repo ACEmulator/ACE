@@ -1118,7 +1118,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if ((int)CoinValue - cost < 0)
+                if (CoinValue - cost > 0)
                 {
                     escoCoin = cost;
                     CoinValue -= cost;
