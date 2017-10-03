@@ -12,7 +12,6 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
 using System.Collections.Generic;
 using System.Linq;
-using ACE.DatLoader.Entity;
 using System.IO;
 
 namespace ACE.Entity
@@ -586,6 +585,67 @@ namespace ACE.Entity
             GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
 
             WorldManager.BroadcastToAll(sysMessage);
+        }
+
+        /// <summary>
+        /// This signature services MoveToObject and TurnToObject
+        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
+        /// Moved from player - we need to be able to move creatures as well.   Og II
+        /// </summary>
+        /// <param name="worldObjectPosition">Position in the world</param>
+        /// <param name="sequence">Sequence for the object getting the message.</param>
+        /// <param name="movementType">What type of movement are we about to execute</param>
+        /// <param name="targetGuid">Who are we moving or turning toward</param>
+        /// <returns>MovementStates</returns>
+        public void OnAutonomousMove(Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
+        {
+            UniversalMotion newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
+            newMotion.DistanceFrom = 0.60f;
+            newMotion.MovementTypes = movementType;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+            CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
+        }
+
+        /// <summary>
+        /// This is the OnUse method.   This is just an initial implemention.   I have put in the turn to action at this point.
+        /// If we are out of use radius, move to the object.   Once in range, let's turn the creature toward us and get started.
+        /// Note - we may need to make an NPC class vs monster as using a monster does not make them turn towrad you as I recall. Og II
+        ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
+        /// </summary>
+        /// <param name="playerId">Identity of the player we are interacting with</param>
+        public override void HandleActionOnUse(ObjectGuid playerId)
+        {
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, playerId, wo =>
+            {
+                Player player = wo as Player;
+                if (player == null)
+                {
+                    return;
+                }
+
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
+                else
+                {
+                    ActionChain turnToChain = new ActionChain();
+                    turnToChain.AddAction(this, () =>
+                    {
+                        OnAutonomousMove(wo.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+                    });
+                    turnToChain.EnqueueChain();
+
+                    ActionChain doneChain = new ActionChain();
+
+                    doneChain.AddAction(this, () =>
+                    {
+                        GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    });
+                    doneChain.EnqueueChain();
+                }
+            });
+            chain.EnqueueChain();
         }
     }
 }

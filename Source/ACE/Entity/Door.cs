@@ -1,12 +1,7 @@
 ﻿using ACE.Entity.Enum;
 using ACE.Entity.Actions;
-using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
-using ACE.Entity.Enum.Properties;
-using System;
-using ACE.DatLoader.FileTypes;
-using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 
 namespace ACE.Entity

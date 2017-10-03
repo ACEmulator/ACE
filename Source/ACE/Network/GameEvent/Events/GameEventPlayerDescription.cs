@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using System.Diagnostics;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Network.GameEvent.Events
 {
@@ -50,9 +52,9 @@ namespace ACE.Network.GameEvent.Events
 
             var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
-            // < 9000 to filter out our custom properties
-            var propertiesInt = aceObj.IntProperties.Where(x => x.PropertyId < 9000).ToList();
-            if (propertiesInt.Count != 0)
+            var propertiesInt = aceObj?.IntProperties.Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.PropertyId)).ToList();
+
+            if (propertiesInt != null && propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
 
@@ -68,8 +70,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesInt64 = aceObj.Int64Properties.Where(x => x.PropertyId < 9000).ToList();
-            if (propertiesInt64.Count != 0)
+            var propertiesInt64 = aceObj?.Int64Properties.Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.PropertyId)).ToList();
+
+            if (propertiesInt64 != null && propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
 
@@ -85,8 +88,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesBool = aceObj.BoolProperties.Where(x => x.PropertyId < 9000).ToList();
-            if (propertiesBool.Count != 0)
+            var propertiesBool = aceObj?.BoolProperties.Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.PropertyId)).ToList();
+
+            if (propertiesBool != null && propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
 
@@ -100,8 +104,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDouble = aceObj.DoubleProperties.Where(x => x.PropertyId < 9000).ToList();
-            if (propertiesDouble.Count != 0)
+            var propertiesDouble = aceObj?.DoubleProperties.Where(x => ClientProperties.PropertiesDouble.Contains(x.PropertyId)).ToList();
+
+            if (propertiesDouble != null && propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
 
@@ -117,8 +122,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesString = aceObj.StringProperties.Where(x => x.PropertyId < 9000).ToList();
-            if (propertiesString.Count != 0)
+            var propertiesString = aceObj?.StringProperties.Where(x => ClientProperties.PropertiesString.Contains(x.PropertyId)).ToList();
+
+            if (propertiesString != null && propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
 
@@ -132,8 +138,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDid = aceObj.DataIdProperties.Where(x => x.PropertyId < 9000 && x.PropertyValue != null).ToList();
-            if (propertiesDid.Count != 0)
+            var propertiesDid = aceObj?.DataIdProperties.Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.PropertyId)).ToList();
+
+            if (propertiesDid != null && propertiesDid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDid;
 
@@ -148,8 +155,9 @@ namespace ACE.Network.GameEvent.Events
                 }
             }
 
-            var propertiesIid = aceObj.InstanceIdProperties.Where(x => x.PropertyId < 9000 && x.PropertyValue != null).ToList();
-            if (propertiesIid.Count != 0)
+            var propertiesIid = aceObj?.InstanceIdProperties.Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.PropertyId)).ToList();
+
+            if (propertiesIid != null && propertiesIid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyIid;
 
