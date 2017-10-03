@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-10-02
 [Og II]
+* Initial work on content interactions.
+* Cleaned up the using statements on several files.
+* Aligned the enums to = sign
+* Fixed bug in universal motion using the TurnToObject
 * Added enum attributes for all of our property enums per Mogwai using the data from OptimShi found here
 * http://ac.yotesfan.com/ace_object/not_used_enums.php
 * WIP need to filer out sending of aceObject properties using this information.   I am stuck on the lambda expression.   
@@ -8,12 +13,8 @@
 * NOTE: the big gotcha with this is if we have any of the [ServerOnly] attributes set incorrectly, that data will not get sent to the client
 * and if you don't remember that we are filtering by that attribute you will be going what the hell is wrong.   Just an FYI
 
-### 2017-10-02
-[Og II]
-* Initial work on content interactions.
-* Cleaned up the using statements on several files.
-* Aligned the enums to = sign
-* Fixed bug in universal motion using the TurnToObject
+[Immortal Bob]
+* Identified and changed enum Unknown_386 to Overpower.
 
 ### 2017-10-02
 [Ripley]
@@ -35,6 +36,7 @@
 * Merged updates into WorldBase.
 * Fixed saving books to the Shard database.
 * Characters now equip items on world entry. (This will reveal bugs in clothing layer priority and model change issues)
+
 
 ### 2017-09-25
 [Og II]

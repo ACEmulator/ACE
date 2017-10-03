@@ -76,7 +76,7 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.WeaponAuraSpeed, 0);
             SetIntProperty(PropertyInt.Unknown381, 0);
             SetIntProperty(PropertyInt.Unknown382, 0);
-            SetIntProperty(PropertyInt.Unknown386, 0);
+            SetIntProperty(PropertyInt.Overpower, 0);
             SetIntProperty(PropertyInt.Unknown387, 0);
             SetIntProperty(PropertyInt.Unknown388, 0);
             SetIntProperty(PropertyInt.Unknown389, 0);
