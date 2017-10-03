@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-10-02
+[Immortal Bob]
+* Identified and changed enum Unknown_386 to Overpower.
+
+### 2017-10-02
 [Ripley]
 * Added WeenieType.Coin handler.
 * Wired up CoinValue and attached proper tracking to WeenieType.Container handler.
