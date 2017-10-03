@@ -1,6 +1,4 @@
-﻿using ACE.Common.Extensions;
-using ACE.Database;
-using ACE.Entity;
+﻿using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
 {
