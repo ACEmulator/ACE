@@ -1,6 +1,15 @@
 # ACEmulator Change Log
 
 ### 2017-10-02
+[Og II]
+* Added enum attributes for all of our property enums per Mogwai using the data from OptimShi found here
+* http://ac.yotesfan.com/ace_object/not_used_enums.php
+* WIP need to filer out sending of aceObject properties using this information.   I am stuck on the lambda expression.   
+* see line 74 in GameEventPlayerDescription.   Any help appreciated.
+* NOTE: the big gotcha with this is if we have any of the [ServerOnly] attributes set incorrectly, that data will not get sent to the client
+* and if you don't remember that we are filtering by that attribute you will be going what the hell is wrong.   Just an FYI
+
+
 [Immortal Bob]
 * Identified and changed enum Unknown_386 to Overpower.
 
@@ -11,12 +20,13 @@
   - Proper stack splitting or pickup of items that allow stacking still not handled by server.
   - Correct mathing requires base WeenieType.Coin weenies in database be set correctly. Value/StackSize need to be set to single value initally.
   - ACE-World will need to be updated to fix base values.
-
+  
 ### 2017-09-30
 [Ripley]
 * Merged updates into WorldBase.
 * Fixed saving books to the Shard database.
 * Characters now equip items on world entry. (This will reveal bugs in clothing layer priority and model change issues)
+
 
 ### 2017-09-25
 [Og II]

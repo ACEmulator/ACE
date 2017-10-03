@@ -83,6 +83,7 @@
     <Compile Include="BaseAceProperty.cs" />
     <Compile Include="CachedWieldedObject.cs" />
     <Compile Include="Enum\BSPType.cs" />
+    <Compile Include="Enum\ClientProperties.cs" />
     <Compile Include="Enum\AceObjectPropertyType.cs" />
     <Compile Include="Enum\EmoteCategory.cs" />
     <Compile Include="Enum\EmoteType.cs" />
