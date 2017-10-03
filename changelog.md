@@ -10,6 +10,8 @@
 * and if you don't remember that we are filtering by that attribute you will be going what the hell is wrong.   Just an FYI
 
 
+[Immortal Bob]
+* Identified and changed enum Unknown_386 to Overpower.
 
 ### 2017-10-02
 [Ripley]
