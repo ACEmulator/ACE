@@ -8,7 +8,7 @@ namespace ACE.Entity
 {
     public class ItemProfile
     {
-        public int Amount;
+        public uint Amount;
         public ObjectGuid Guid;
     }
 }
