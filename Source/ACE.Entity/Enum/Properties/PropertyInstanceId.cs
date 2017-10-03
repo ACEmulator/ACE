@@ -1,8 +1,14 @@
 ﻿namespace ACE.Entity.Enum.Properties
 {
-    public enum PropertyInstanceId : uint
+    public enum PropertyInstanceId : ushort
     {
-        Undef                            = 0,
+        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
+        // http://ac.yotesfan.com/ace_object/not_used_enums.php
+        // source: @OptimShi
+
+        // description attributes are used by the weenie editor for a cleaner display name
+
+        Undef = 0,
         Owner                            = 1,
         Container                        = 2,
         Wielder                          = 3,

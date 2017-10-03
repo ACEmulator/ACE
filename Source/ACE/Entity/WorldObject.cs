@@ -10,9 +10,8 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
-
+using ACE.Entity;
 using log4net;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1495,18 +1494,21 @@ namespace ACE.Entity
             get { return SetupModel.ReadFromDat(SetupTableId.Value); }
         }
 
+        /// <summary>
+        /// This is used to determine how close you need to be to use an item.
+        /// NOTE: cheat factor added for items with null use radius.   Og II
+        /// </summary>
         public float UseRadiusSquared
         {
-            get { return ((UseRadius ?? 0) + CSetup.Radius) * ((UseRadius ?? 0) + CSetup.Radius); }
+            get { return ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius); }
         }
 
-        public bool IsWithinUseRadiusOf(WorldObject wo)
-        {
-            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+    public bool IsWithinUseRadiusOf(WorldObject wo)
+    {
+        if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
                 return false;
-            else
-                return true;
-        }
+        return true;
+    }
 
         public string LongDesc
         {

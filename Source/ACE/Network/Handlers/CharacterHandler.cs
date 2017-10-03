@@ -256,8 +256,8 @@ namespace ACE.Network.Handlers
                             {
                                 AceObjectId = hat.AceObjectId,
                                 SubPaletteId = headgearPal,
-                                Length = (ushort)(palOffset),
-                                Offset = (ushort)(numColors)
+                                Length = (ushort)(numColors),
+                                Offset = (ushort)(palOffset)
                             });
                         }
                     }

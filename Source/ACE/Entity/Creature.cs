@@ -12,7 +12,6 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.Sequence;
 using System.Collections.Generic;
 using System.Linq;
-using ACE.DatLoader.Entity;
 using System.IO;
 
 namespace ACE.Entity
@@ -269,7 +268,7 @@ namespace ACE.Entity
             if (mEquipedWand != null)
             {
                 UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
-                mm.MovementData.CurrentStyle = (ushort)MotionStance.Spellcasting;
+                mm.MovementData.CurrentStyle = (uint)MotionStance.Spellcasting;
                 SetMotionState(this, mm);
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.Magic));
             }
@@ -316,9 +315,9 @@ namespace ACE.Entity
             // End hack
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
             UniversalMotion mm = new UniversalMotion(MotionStance.Standing);
-            mm.MovementData.CurrentStyle = (ushort)MotionStance.Standing;
+            mm.MovementData.CurrentStyle = (uint)MotionStance.Standing;
             SetMotionState(this, mm);
-            var mEquipedAmmo = WieldedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
+            var mEquipedAmmo = WieldedObjects.FirstOrDefault(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.NonCombat));
             if (mEquipedAmmo != null)
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
@@ -359,7 +358,7 @@ namespace ACE.Entity
                 {
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     SetMotionState(this, mm);
-                    mm.MovementData.ForwardCommand = (ushort)MotionCommand.Reload;
+                    mm.MovementData.ForwardCommand = (uint)MotionCommand.Reload;
                     SetMotionState(this, mm);
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
@@ -586,6 +585,67 @@ namespace ACE.Entity
             GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
 
             WorldManager.BroadcastToAll(sysMessage);
+        }
+
+        /// <summary>
+        /// This signature services MoveToObject and TurnToObject
+        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
+        /// Moved from player - we need to be able to move creatures as well.   Og II
+        /// </summary>
+        /// <param name="worldObjectPosition">Position in the world</param>
+        /// <param name="sequence">Sequence for the object getting the message.</param>
+        /// <param name="movementType">What type of movement are we about to execute</param>
+        /// <param name="targetGuid">Who are we moving or turning toward</param>
+        /// <returns>MovementStates</returns>
+        public void OnAutonomousMove(Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
+        {
+            UniversalMotion newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
+            newMotion.DistanceFrom = 0.60f;
+            newMotion.MovementTypes = movementType;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+            CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
+        }
+
+        /// <summary>
+        /// This is the OnUse method.   This is just an initial implemention.   I have put in the turn to action at this point.
+        /// If we are out of use radius, move to the object.   Once in range, let's turn the creature toward us and get started.
+        /// Note - we may need to make an NPC class vs monster as using a monster does not make them turn towrad you as I recall. Og II
+        ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
+        /// </summary>
+        /// <param name="playerId">Identity of the player we are interacting with</param>
+        public override void HandleActionOnUse(ObjectGuid playerId)
+        {
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, playerId, wo =>
+            {
+                Player player = wo as Player;
+                if (player == null)
+                {
+                    return;
+                }
+
+                if (!player.IsWithinUseRadiusOf(this))
+                    player.DoMoveTo(this);
+                else
+                {
+                    ActionChain turnToChain = new ActionChain();
+                    turnToChain.AddAction(this, () =>
+                    {
+                        OnAutonomousMove(wo.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+                    });
+                    turnToChain.EnqueueChain();
+
+                    ActionChain doneChain = new ActionChain();
+
+                    doneChain.AddAction(this, () =>
+                    {
+                        GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    });
+                    doneChain.EnqueueChain();
+                }
+            });
+            chain.EnqueueChain();
         }
     }
 }

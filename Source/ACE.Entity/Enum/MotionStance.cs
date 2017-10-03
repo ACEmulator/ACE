@@ -8,29 +8,29 @@ namespace ACE.Entity.Enum
 {
     /// <summary>
     /// Different commands or styles of stance.
-    /// Items that are listed as Unknown are included for completeness, but are not found in PCAPS Og II
+    /// Items that are listed as Unused are included for completeness, but are not found in PCAPS Og II
+    /// Comments are the MotionStyle Enum as listed in the client
     /// </summary>
-    public enum MotionStance
+    public enum MotionStance : uint
     {
-        Invalid              = 0x00,
-        UaNoShieldAttack     = 0x3C,
-        Standing             = 0x3D,
-        MeleeNoShieldAttack  = 0x3E,
-        BowAttack            = 0x3F,
-        MeleeShieldAttack    = 0x40,
-        CrossBowAttack       = 0x41,
-        Unknown1             = 0x42,
-        SlingAttack          = 0x43,
-        TwoHandedSwordAttack = 0x44,
-        TwoHandedStaffAttack = 0x45,
-        DualWieldAttack      = 0x46,
-        ThrownWeaponAttack   = 0x47,
-        Graze                = 0x48,
-        Spellcasting         = 0x49,
-        BowNoAmmo            = 0xE8,
-        CrossBowNoAmmo       = 0xE9,
-        AtlatlCombat         = 0x138,
-        ThrownShieldCombat   = 0x138,
-        SitCrossLegged       = 0x13B
+        Invalid              = 0x80000000,
+        UaNoShieldAttack     = 0x8000003c, // HandCombat 
+        Standing             = 0x8000003d, // NonCombat
+        MeleeNoShieldAttack  = 0x8000003e, // SwordCombat
+        BowAttack            = 0x8000003f, // BowCombat
+        MeleeShieldAttack    = 0x80000040, // SwordShieldCombat
+        CrossBowAttack       = 0x80000041, // CrossbowCombat
+        Unused               = 0x80000042, // Unused Combat
+        SlingAttack          = 0x80000043, // SlingCombat 
+        TwoHandedSwordAttack = 0x80000044, // 2HandedSwordCombat 
+        TwoHandedStaffAttack = 0x80000045, // 2HandedStaffCombat 
+        DualWieldAttack      = 0x80000046, // DualWieldCombat 
+        ThrownWeaponAttack   = 0x80000047, // ThrownWeaponCombat 
+        Graze                = 0x80000048,
+        Spellcasting         = 0x80000049, // Magic 
+        BowNoAmmo            = 0x800000e8,
+        CrossBowNoAmmo       = 0x800000e9,
+        AtlatlCombat         = 0x80000138,
+        ThrownShieldCombat   = 0x80000139,
     }
 }
