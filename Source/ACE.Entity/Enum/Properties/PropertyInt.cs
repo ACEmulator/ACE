@@ -392,7 +392,10 @@
         Unknown383                               = 383,
         Unknown384                               = 384,
         Unknown385                               = 385,
-        Unknown386                               = 386,
+        /// <summary>
+        /// Overpower chance % for endgame creatures.
+        /// </summary>
+        Overpower                                = 386,
         Unknown387                               = 387,
         Unknown388                               = 388,
         Unknown389                               = 389,
