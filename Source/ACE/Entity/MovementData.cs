@@ -27,13 +27,13 @@ namespace ACE.Entity
             }
         }
 
-        public ushort CurrentStyle { get; set; } = 0;
+        public uint CurrentStyle { get; set; } = 0;
 
-        public ushort ForwardCommand { get; set; } = 0;
+        public uint ForwardCommand { get; set; } = 0;
 
-        public ushort SideStepCommand { get; set; } = 0;
+        public uint SideStepCommand { get; set; } = 0;
 
-        public ushort TurnCommand { get; set; } = 0;
+        public uint TurnCommand { get; set; } = 0;
 
         public float TurnSpeed { get; set; } = 0f;
 
@@ -55,7 +55,7 @@ namespace ACE.Entity
             // FIXME(ddevec): -- This is hacky!  I mostly reverse engineered it from old network logs
             //   WARNING: this is ugly stuffs --
             //      I'm basically just converting based on analyzing packet stuffs, no idea where the magic #'s come from
-            if (holdKey != 0 && holdKey != 2)
+            if (holdKey != ((uint)MotionCommand.Invalid & 0xFFFF) && holdKey != ((uint)MotionCommand.HoldSidestep & 0xFFFF))
             {
                 log.WarnFormat("Unexpected hold key: {0}", holdKey.ToString("X"));
             }
@@ -92,11 +92,11 @@ namespace ACE.Entity
 
             if (ForwardCommand != 0)
             {
-                if (ForwardCommand == (ushort)MotionCommand.WalkForward)
+                if (ForwardCommand == ((uint)MotionCommand.WalkForward & 0xFFFF))
                 {
                     if (holdKey == 2)
                     {
-                        md.ForwardCommand = (ushort)MotionCommand.RunForward;
+                        md.ForwardCommand = (uint)MotionCommand.RunForward;
                         if (baseSpeed > 4f)
                         {
                             baseSpeed = 4f;
@@ -104,13 +104,13 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        md.ForwardCommand = (ushort)MotionCommand.WalkForward;
+                        md.ForwardCommand = (uint)MotionCommand.WalkForward;
                     }
                     md.ForwardSpeed = baseSpeed;
                 }
-                else if (ForwardCommand == (ushort)MotionCommand.WalkBackwards)
+                else if (ForwardCommand == ((uint)MotionCommand.WalkBackwards & 0xFFFF))
                 {
-                    md.ForwardCommand = (ushort)MotionCommand.WalkForward;
+                    md.ForwardCommand = (uint)MotionCommand.WalkForward;
                     if (holdKey != 2)
                     {
                         baseSpeed = .65f;
@@ -131,18 +131,18 @@ namespace ACE.Entity
 
             if (SideStepCommand != 0)
             {
-                if (SideStepCommand == (ushort)MotionCommand.SideStepRight)
+                if (SideStepCommand == ((uint)MotionCommand.SideStepRight & 0xFFFF))
                 {
-                    md.SideStepCommand = (ushort)MotionCommand.SideStepRight;
+                    md.SideStepCommand = (uint)MotionCommand.SideStepRight;
                     md.SideStepSpeed = baseSidestepSpeed * 3.12f / 1.25f * .5f;
                     if (md.SideStepSpeed > 3)
                     {
                         md.SideStepSpeed = 3;
                     }
                 }
-                else if (SideStepCommand == (ushort)MotionCommand.SideStepLeft)
+                else if (SideStepCommand == ((uint)MotionCommand.SideStepLeft & 0xFFFF))
                 {
-                    md.SideStepCommand = (ushort)MotionCommand.SideStepRight;
+                    md.SideStepCommand = (uint)MotionCommand.SideStepRight;
                     md.SideStepSpeed = -1 * baseSidestepSpeed * 3.12f / 1.25f * .5f;
                     if (md.SideStepSpeed < -3)
                     {
@@ -162,14 +162,14 @@ namespace ACE.Entity
                 {
                     baseTurnSpeed = 1.5f;
                 }
-                if (TurnCommand == (ushort)MotionCommand.TurnRight)
+                if (TurnCommand == ((uint)MotionCommand.TurnRight & 0xFFFF))
                 {
-                    md.TurnCommand = (ushort)MotionCommand.TurnRight;
+                    md.TurnCommand = (uint)MotionCommand.TurnRight;
                     md.TurnSpeed = baseTurnSpeed;
                 }
-                else if (TurnCommand == (ushort)MotionCommand.TurnLeft)
+                else if (TurnCommand == ((uint)MotionCommand.TurnLeft & 0xFFFF))
                 {
-                    md.TurnCommand = (ushort)MotionCommand.TurnRight;
+                    md.TurnCommand = (uint)MotionCommand.TurnRight;
                     md.TurnSpeed = -1 * baseTurnSpeed;
                 }
                 // Unknown turn command?

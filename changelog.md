@@ -1,6 +1,12 @@
 # ACEmulator Change Log
 
 ### 2017-10-02
+[OptimShi]
+* Changed MotionCommand and MotionState enums to full uint instead of short and adjusted the movement serializing functions to work with these changes.
+* Fixed bug when leaving CombatMode with no ammunition equipped (e.g. melee or magic mode)
+* Added "acecommands" tip to console start up
+* Corrected an issue with the palette of head gear chosen at character creation.
+
 [Og II]
 * Initial work on content interactions.
 * Cleaned up the using statements on several files.
@@ -16,7 +22,6 @@
 [Immortal Bob]
 * Identified and changed enum Unknown_386 to Overpower.
 
-### 2017-10-02
 [Ripley]
 * Added WeenieType.Coin handler.
 * Wired up CoinValue and attached proper tracking to WeenieType.Container handler.

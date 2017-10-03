@@ -52,8 +52,8 @@ namespace ACE.Entity
             if (IsLocked)
                 DefaultLocked = true;
 
-            movementOpen.ForwardCommand = (ushort)MotionCommand.On;
-            movementClosed.ForwardCommand = (ushort)MotionCommand.Off;
+            movementOpen.ForwardCommand = (uint)MotionCommand.On;
+            movementClosed.ForwardCommand = (uint)MotionCommand.Off;
 
             if (UseRadius < 2)
                 UseRadius = 2;

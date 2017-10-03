@@ -2264,7 +2264,7 @@ namespace ACE.Entity
             pickUpItemChain.AddAction(this, () =>
             {
                 var motion = new UniversalMotion(MotionStance.Standing);
-                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
+                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                     new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid,
@@ -2624,7 +2624,7 @@ namespace ACE.Entity
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
 
                 UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
-                motion.MovementData.ForwardCommand = (ushort)MotionCommand.Pickup;
+                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 ObjectGuid clearContainer = new ObjectGuid(0);
                 Session.Network.EnqueueSend(
                     new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
