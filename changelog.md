@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-10-03
+[OptimShi]
+* Added method to get animation timings out of MotionTable and updated several instances where we were faking it previously.
+
 ### 2017-10-02
 [OptimShi]
 * Changed MotionCommand and MotionState enums to full uint instead of short and adjusted the movement serializing functions to work with these changes.

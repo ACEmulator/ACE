@@ -1678,8 +1678,8 @@ namespace ACE.Entity
         {
             ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
 
-            // FIXME(ddevec): Constant time here for animation...
-            logoutChain.AddDelaySeconds(2);
+            float logoutAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LogOut);
+            logoutChain.AddDelaySeconds(logoutAnimationLength);
 
             // remove the player from landblock management -- after the animation has run
             logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
@@ -1836,10 +1836,10 @@ namespace ACE.Entity
                 CurrentLandblock.EnqueueBroadcastMotion(this, motionLifestoneRecall);
                 DoMotion(motionLifestoneRecall);
 
-                // FIXME(ddevec): How long is animation? we currently just wait 14 seconds
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
-                lifestoneChain.AddDelaySeconds(14);
+                float lifestoneAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LifestoneRecall);
+                lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);
 
                 // Then do teleport
                 lifestoneChain.AddChain(GetTeleportChain(Positions[PositionType.Sanctuary]));
@@ -1857,7 +1857,9 @@ namespace ACE.Entity
             ActionChain mpChain = new ActionChain();
             mpChain.AddAction(this, () => HandleActionTeleToMarketplaceInternal());
 
-            // TODO(ddevec): Read actual animation times?
+            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s 
+            // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
+            // mpChain.AddDelaySeconds(mpAnimationLength);
             mpChain.AddDelaySeconds(14);
 
             // Then do teleport
@@ -2272,7 +2274,8 @@ namespace ACE.Entity
                         Sequences, motion));
             });
             // Wait for animation to progress
-            pickUpItemChain.AddDelaySeconds(0.75);
+            float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
+            pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
             // Ask landblock to transfer item
             // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
@@ -2635,9 +2638,9 @@ namespace ACE.Entity
                 // Now wait for Drop Motion to finish -- use ActionChain
                 ActionChain chain = new ActionChain();
 
-                // TODO(ddevec): Need real animation delays...
                 // Wait for drop animation
-                chain.AddDelaySeconds(0.75);
+                float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
+                chain.AddDelaySeconds(pickupAnimationLength);
 
                 // Play drop sound
                 // Put item on landblock
