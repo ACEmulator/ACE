@@ -1151,6 +1151,7 @@ namespace ACE.Entity
                         if (SpendCoin(escoCoin))
                         {
                             escoCoin = 0;
+                            // todo: handle unique stock items.
                             foreach (WorldObject wo in purchaselist)
                             {
                                 // todo: check for inventory space.
