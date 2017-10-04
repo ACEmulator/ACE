@@ -148,6 +148,7 @@ namespace ACE.Entity
                         {
                             wo.StackSize = wo.MaxStackSize.Value;
                             purchaselist.Add(wo);
+                            fitem.Amount = fitem.Amount - wo.MaxStackSize.Value;
                         }
                         // else we cant stack but its not a single item.
                         else
@@ -161,6 +162,7 @@ namespace ACE.Entity
                             }
                             wo.StackSize = (ushort)fitem.Amount;
                             purchaselist.Add(wo);
+                            fitem.Amount = fitem.Amount - fitem.Amount;
                         }
                     }
                     else

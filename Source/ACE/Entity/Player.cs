@@ -1155,7 +1155,11 @@ namespace ACE.Entity
                             foreach (WorldObject wo in purchaselist)
                             {
                                 // todo: check for inventory space.
-                                AddNewItemToInventory(wo.WeenieClassId);
+                                wo.ContainerId = Guid.Full;
+                                wo.Placement = 0;
+                                AddToInventory(wo);
+                                TrackObject(wo);
+                                UpdatePlayerBurden();
                             }
                         }
                     }
