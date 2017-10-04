@@ -53,12 +53,12 @@ namespace ACE.Entity
         /// <summary>
         /// Used to store money during a transaction in progress.
         /// </summary>
-        private uint escoCoin = 0;
+        private uint escrowCoin = 0;
 
         /// <summary>
-        /// Temp Escoed Objects of vendors / trade / containers.. needed for id / maybe more.
+        /// Temp Escrowed Objects of vendors / trade / containers.. needed for id / maybe more.
         /// </summary>
-        private List<WorldObject> escoWorldObjects = new List<WorldObject>();
+        private List<WorldObject> escrowWorldObjects = new List<WorldObject>();
 
         /// <summary>
         /// Amount of times this character has left a portal this session
@@ -1122,8 +1122,8 @@ namespace ACE.Entity
 
                 if (CoinValue - cost > 0)
                 {
-                    // esco cash for pending transaction
-                    escoCoin = cost;
+                    // Escrow coin for pending transaction
+                    escrowCoin = cost;
                     // Send Items to Vendor for processing..
                     ActionChain vendorchain = new ActionChain();
                     CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
@@ -1145,12 +1145,12 @@ namespace ACE.Entity
             {
                 if (valid)
                 {
-                    if (CoinValue - escoCoin >= 0)
+                    if (CoinValue - escrowCoin >= 0)
                     {
                         // this is there the money is spent!
-                        if (SpendCoin(escoCoin))
+                        if (SpendCoin(escrowCoin))
                         {
-                            escoCoin = 0;
+                            escrowCoin = 0;
                             // todo: handle unique stock items.
                             foreach (WorldObject wo in purchaselist)
                             {
@@ -1161,14 +1161,14 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        escoCoin = 0;
+                        escrowCoin = 0;
                         valid = false;
                     }
                 }
                 else
                 {
                     // vendor said no go!
-                    escoCoin = 0;
+                    escrowCoin = 0;
                     valid = false;
                 }
 
@@ -1225,13 +1225,13 @@ namespace ACE.Entity
 
                 if (trust)
                 {
-                    escoWorldObjects.Clear();
+                    escrowWorldObjects.Clear();
                     foreach (WorldObject item in items)
                     {
                         // check to see if item is in players inventory.
                         WorldObject wo = GetInventoryItem(item.Guid);
                         DestroyInventoryItem(wo);
-                        escoWorldObjects.Add(wo);
+                        escrowWorldObjects.Add(wo);
                     }
                 }
 
@@ -1239,7 +1239,7 @@ namespace ACE.Entity
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
                 {
-                    (vdr as Vendor).SellItemsValidateTransaction(this, escoWorldObjects);
+                    (vdr as Vendor).SellItemsValidateTransaction(this, escrowWorldObjects);
                 });
                 vendorchain.EnqueueChain();
             }).EnqueueChain();
