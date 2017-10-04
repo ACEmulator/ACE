@@ -1106,24 +1106,20 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
-            new ActionChain(this, () =>
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
             {
-
-                // pending massive move of logic..
-
-                ActionChain chain = new ActionChain();
-                CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
-                {
-                    (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
-                });
-                chain.EnqueueChain();
-            }).EnqueueChain();
+                (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
+            });
+            chain.EnqueueChain();
         }
 
         public void HandleActionBuyStartTransaction(WorldObject vendor, List<WorldObject> purchaselist, uint cost)
         {
             new ActionChain(this, () =>
             {
+                // todo: check inventoy space.
+
                 if (CoinValue - cost > 0)
                 {
                     // esco cash for pending transaction
@@ -1147,34 +1143,40 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                // todo: check for inventory space!
-
-                if (CoinValue - escoCoin > 0)
+                if (valid)
                 {
-                    // this is there the money is spent!
-                    if (SpendCoin(escoCoin))
+                    if (CoinValue - escoCoin >= 0)
+                    {
+                        // this is there the money is spent!
+                        if (SpendCoin(escoCoin))
+                        {
+                            escoCoin = 0;
+                            foreach (WorldObject wo in purchaselist)
+                            {
+                                // todo: check for inventory space.
+                                AddNewItemToInventory(wo.WeenieClassId);
+                            }
+                        }
+                    }
+                    else
                     {
                         escoCoin = 0;
-                        foreach (WorldObject wo in purchaselist)
-                        {
-                            // todo: check for inventory space.
-                            AddNewItemToInventory(wo.WeenieClassId);
-                        }
-
-                        // Send Items to Vendor for Final processing..
-                        ActionChain vendorchain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
-                        {
-                            (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist);
-                        });
-                        vendorchain.EnqueueChain();
+                        valid = false;
                     }
                 }
                 else
                 {
+                    // vendor said no go!
                     escoCoin = 0;
-                    // todo: You dont have enough money to buy this..
+                    valid = false;
                 }
+
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
+                });
+                vendorchain.EnqueueChain();
             }).EnqueueChain();
         }
 
@@ -2770,7 +2772,7 @@ namespace ACE.Entity
 
         public void AddCoin(uint value)
         {
-            coinValue += value;
+            coinValue = coinValue + value;
             SetCoin(coinValue);
         }
 

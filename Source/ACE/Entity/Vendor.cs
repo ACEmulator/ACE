@@ -91,8 +91,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Fired when user approaches vendor, sends all items vendor has for sale to players
-        /// local tracked item list and opens vendor inventory screen. 
+        /// Sends Vendor Inventory to player
         /// </summary>
         /// <param name="player"></param>
         private void ApproachVendor(Player player)
@@ -187,6 +186,7 @@ namespace ACE.Entity
         public void BuyItemsValidateTransaction(Player player, List<WorldObject> items)
         {
             // todo: add logic for temp stock items.
+            // remove items, if transaction fails then move temp stock items back into temp stock
             player.HandleActionBuyFinalTransaction(this, items, true);
         }
 
@@ -196,13 +196,22 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="player"></param>
         /// <param name="items"></param>
-        public void BuyItemsFinalTransaction(Player player, List<WorldObject> items)
+        public void BuyItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
         {
-            // todo: remove unique temp stock items.
             List<WorldObject> vendorlist = new List<WorldObject>();
+
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
             {
                 vendorlist.Add(wo.Value);
+            }
+
+            if (valid)
+            {
+                // todo: remove unique temp stock items.
+            }
+            else
+            {
+                // todo: re-add unique temp stock items.
             }
             player.HandleActionApproachVendor(this, vendorlist);
         }
@@ -222,9 +231,9 @@ namespace ACE.Entity
             foreach (WorldObject wo in items)
             {
                 if (wo.StackSize.HasValue && wo.StackSize.Value != 0)
-                    payout += (uint)wo.Value * wo.StackSize.Value;
+                    payout = payout + ((uint)wo.Value * wo.StackSize.Value);
                 else
-                    payout += (uint)wo.Value;
+                    payout = payout + (uint)wo.Value;
             }
             player.HandleActionSellFinalTransaction(this, items, true, payout);
         }
