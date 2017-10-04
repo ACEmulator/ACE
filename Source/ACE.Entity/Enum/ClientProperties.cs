@@ -6,7 +6,7 @@ namespace ACE.Entity.Enum
 {
     /// <summary>
     /// Static selection of client enums based on attributes
-    ///  </summary>
+    /// </summary>
     public static class ClientProperties
     {
         /// <summary>
