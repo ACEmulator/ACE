@@ -1253,6 +1253,8 @@ namespace ACE.Entity
                     // payout..
                     AddCoin(payout);
 
+                    // todo: need to remove objects players clothes, armor, etc appearence
+
                     // Send Items to Vendor for Final processing..
                     ActionChain vendorchain = new ActionChain();
                     CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
