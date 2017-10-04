@@ -10,5 +10,6 @@ namespace ACE.Entity
     {
         public uint Amount;
         public ObjectGuid Guid;
+        public uint WeenieClassId;
     }
 }

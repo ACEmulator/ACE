@@ -107,9 +107,9 @@ namespace ACE.Entity
             player.TrackInteractiveObjects(vendorlist);
             player.HandleActionApproachVendor(this, vendorlist);
         }
-    #endregion
+        #endregion
 
-    #region BuyTransaction
+        #region BuyTransaction
 
         /// <summary>
         /// Player has started a buy transaction
@@ -119,52 +119,58 @@ namespace ACE.Entity
         /// <param name="player"></param>
         public void BuyItemsStartTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
-            // todo: do you have enough cash / iventory space for all of this
-            uint goldcost = 0;
-            List<WorldObject> purchaselist = new List<WorldObject>();
-
             // que transactions.
+            List<ItemProfile> filteredlist = new List<ItemProfile>();
+            List<WorldObject> purchaselist = new List<WorldObject>();
+            uint goldcost = 0;
+
+            // filter items out vendor no longer has in stock or never had in stock
             foreach (ItemProfile item in items)
             {
                 // check default items for id
                 if (defaultItemsForSale.ContainsKey(item.Guid))
                 {
-                    // todo: apply multipliers correctly
-                    while (item.Amount > 0)
+                    item.WeenieClassId = defaultItemsForSale[item.Guid].WeenieClassId;
+                    filteredlist.Add(item);
+                }
+                // todo: check stock
+            }
+
+            // convert profile to wold objects / stack logic
+            foreach (ItemProfile fitem in filteredlist)
+            {
+                while (fitem.Amount > 0)
+                {
+                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(fitem.WeenieClassId);
+                    // can we stack this ?
+                    if (wo.MaxStackSize.HasValue)
                     {
-                        WorldObject wo = WorldObjectFactory.CreateNewWorldObject(defaultItemsForSale[item.Guid].WeenieClassId);
-                        // can we stack this ?
-                        if (wo.MaxStackSize.HasValue)
+                        if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= fitem.Amount))
                         {
-                            if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= item.Amount))
-                            {
-                                item.Amount -= wo.MaxStackSize.Value;
-                                goldcost += defaultItemsForSale[item.Guid].Value.Value * wo.MaxStackSize.Value;
-                                wo.StackSize = wo.MaxStackSize.Value;
-                                purchaselist.Add(wo);
-                            }
-                            // else we cant stack it or its less then max stack size.
-                            else
-                            {
-                                if (item.Amount > 0)
-                                    goldcost += defaultItemsForSale[item.Guid].Value.Value * item.Amount;
-                                else
-                                {
-                                    item.Amount = 0;
-                                    goldcost += defaultItemsForSale[item.Guid].Value.Value;
-                                }
-                                wo.StackSize = (ushort)item.Amount;
-                                purchaselist.Add(wo);
-                            }
-                        }
-                        else
-                        {
-                            // single item with no stack options.
-                            item.Amount = 0;
-                            wo.StackSize = null;
-                            goldcost += defaultItemsForSale[item.Guid].Value.Value;
+                            wo.StackSize = wo.MaxStackSize.Value;
                             purchaselist.Add(wo);
                         }
+                        // else we cant stack but its not a single item.
+                        else
+                        {
+                            if (fitem.Amount > 0)
+                                goldcost = goldcost + ((uint)wo.Value * fitem.Amount);
+                            else
+                            {
+                                fitem.Amount = 0;
+                                goldcost = goldcost + (uint)wo.Value;
+                            }
+                            wo.StackSize = (ushort)fitem.Amount;
+                            purchaselist.Add(wo);
+                        }
+                    }
+                    else
+                    {
+                        // single item with no stack options.
+                        fitem.Amount = 0;
+                        wo.StackSize = null;
+                        goldcost = goldcost  + (uint)wo.Value;
+                        purchaselist.Add(wo);
                     }
                 }
             }
@@ -180,13 +186,8 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void BuyItemsValidateTransaction(Player player, List<WorldObject> items)
         {
-            List<WorldObject> vendorlist = new List<WorldObject>();
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
-            {
-                vendorlist.Add(wo.Value);
-            }
-
-            player.HandleActionBuyFinalTransaction(this, vendorlist, true);
+            // todo: add logic for temp stock items.
+            player.HandleActionBuyFinalTransaction(this, items, true);
         }
 
         /// <summary>
@@ -197,7 +198,7 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void BuyItemsFinalTransaction(Player player, List<WorldObject> items)
         {
-            // todo: remove unique items.
+            // todo: remove unique temp stock items.
             List<WorldObject> vendorlist = new List<WorldObject>();
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
             {

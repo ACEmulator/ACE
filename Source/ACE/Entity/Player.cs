@@ -1106,12 +1106,18 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
+            new ActionChain(this, () =>
+            {
+
+                // pending massive move of logic..
+
                 ActionChain chain = new ActionChain();
                 CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
                 {
                     (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
                 });
                 chain.EnqueueChain();
+            }).EnqueueChain();
         }
 
         public void HandleActionBuyStartTransaction(WorldObject vendor, List<WorldObject> purchaselist, uint cost)
@@ -1120,8 +1126,8 @@ namespace ACE.Entity
             {
                 if (CoinValue - cost > 0)
                 {
+                    // esco cash for pending transaction
                     escoCoin = cost;
-                    CoinValue -= cost;
                     // Send Items to Vendor for processing..
                     ActionChain vendorchain = new ActionChain();
                     CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
@@ -1141,9 +1147,11 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
+                // todo: check for inventory space!
+
                 if (CoinValue - escoCoin > 0)
                 {
-                    // there is there the money is spent!
+                    // this is there the money is spent!
                     if (SpendCoin(escoCoin))
                     {
                         escoCoin = 0;
