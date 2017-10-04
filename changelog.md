@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-10-04
+[StackOverflow]
+* Added Vendors (Go buy stuff!) - work in progress
+* Added Debug command to give coins.
+* @addcoin 100000
+* known issue with pyreals in inventory.. drop them on the ground if you want the math to be correct for now.
+
 ### 2017-10-03
 [OptimShi]
 * Added method to get animation timings out of MotionTable and updated several instances where we were faking it previously.
