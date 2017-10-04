@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity.Enum
+﻿namespace ACE.Entity.Enum
 {
     /// <summary>
     /// exported from the decompiled client.  actual usage of these is 100% speculative.

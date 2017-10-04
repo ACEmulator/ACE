@@ -1,4 +1,5 @@
-﻿using ACE.Entity;
+﻿using ACE.DatLoader.FileTypes;
+using ACE.Entity;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -72,7 +73,9 @@ namespace ACE.Managers
 
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.ClapHands));
             craftChain.AddAction(player, () => player.HandleActionMotion(motion));
-            craftChain.AddDelaySeconds(0.5);
+            float craftAnimationLength = MotionTable.GetAnimationLength((uint)player.MotionTableId, MotionCommand.ClapHands);
+            craftChain.AddDelaySeconds(craftAnimationLength);
+            // craftChain.AddDelaySeconds(0.5);
 
             craftChain.AddAction(player, () =>
             {

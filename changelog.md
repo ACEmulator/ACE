@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2017-10-03
+[OptimShi]
+* Added method to get animation timings out of MotionTable and updated several instances where we were faking it previously.
+
+[Og II]
+* Added update script to modify defaultCombatStance ace_object_properties_int to match change with @OptimShi changes of 10/02
+* Rolled back [ServerOnly] attribute on enums.   I left the mechanism in place and tagged all over 9000 as such.   Our method for determining
+* this is not correct.   We can add these back when we fully understand which are truly not needed by the client.
+
 ### 2017-10-02
 [OptimShi]
 * Changed MotionCommand and MotionState enums to full uint instead of short and adjusted the movement serializing functions to work with these changes.
