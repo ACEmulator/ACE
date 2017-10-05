@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-10-05
+[Mogwai]
+* Modified vendor stuff to use buy and sell rates from DoubleProperties
+
 ### 2017-10-04
 [Jyrus]
 * Moved handling of the Portals into the HandleOnCollide method and implemented MoveTo for OnUse for Portals.  Currently, OnUse also queues up portaling
