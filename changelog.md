@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-10-04
+[Jyrus]
+* Moved handling of the Portals into the HandleOnCollide method and implemented MoveTo for OnUse for Portals.  Currently, OnUse also queues up portaling
+	via a direct call to Portal.HandleOnCollide, which can be removed when collision is implemented.
+
 ### 2017-10-03
 [OptimShi]
 * Added method to get animation timings out of MotionTable and updated several instances where we were faking it previously.
