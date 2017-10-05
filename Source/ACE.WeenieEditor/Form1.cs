@@ -361,5 +361,24 @@ namespace ACE.WeenieEditor
 
             source.Nodes.Remove(source?.SelectedNode);
         }
+
+        private void exportWeeniesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var config = WeenieEditorConfig.Load();
+
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "Select a folder to export to.";
+            fbd.SelectedPath = config.ExportFolder;
+
+            var dr = fbd.ShowDialog(this);
+
+            if (dr == DialogResult.OK)
+            {
+                config.ExportFolder = fbd.SelectedPath;
+                config.Save();
+
+
+            }
+        }
     }
 }

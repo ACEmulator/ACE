@@ -35,6 +35,9 @@ namespace ACE.WeenieEditor
         [JsonProperty("worldDatabaseName")]
         public string WorldDatabaseName { get; set; }
 
+        [JsonProperty("exportFolder")]
+        public string ExportFolder { get; set; }
+
         public static WeenieEditorConfig Load()
         {
             WeenieEditorConfig config = null;

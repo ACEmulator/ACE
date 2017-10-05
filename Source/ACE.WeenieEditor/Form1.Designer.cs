@@ -44,6 +44,10 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tcProperties = new System.Windows.Forms.TabControl();
             this.tpSummary = new System.Windows.Forms.TabPage();
+            this.cbWeenieType = new System.Windows.Forms.ComboBox();
+            this.lblWeenidId = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.tpStrings = new System.Windows.Forms.TabPage();
             this.pEditString = new System.Windows.Forms.Panel();
             this.btnCancelString = new System.Windows.Forms.Button();
@@ -52,6 +56,12 @@
             this.cbStringProperties = new System.Windows.Forms.ComboBox();
             this.tvStrings = new System.Windows.Forms.TreeView();
             this.tpInts = new System.Windows.Forms.TabPage();
+            this.pEditInt = new System.Windows.Forms.Panel();
+            this.tbIntValue = new System.Windows.Forms.NumericUpDown();
+            this.btnCancelInt = new System.Windows.Forms.Button();
+            this.btnSaveInt = new System.Windows.Forms.Button();
+            this.cbIntProperties = new System.Windows.Forms.ComboBox();
+            this.tvInts = new System.Windows.Forms.TreeView();
             this.tpInt64s = new System.Windows.Forms.TabPage();
             this.tpDoubles = new System.Windows.Forms.TabPage();
             this.tpBools = new System.Windows.Forms.TabPage();
@@ -65,29 +75,20 @@
             this.addStringMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editStringMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteStringMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.lblWeenidId = new System.Windows.Forms.Label();
-            this.cbWeenieType = new System.Windows.Forms.ComboBox();
-            this.pEditInt = new System.Windows.Forms.Panel();
-            this.btnCancelInt = new System.Windows.Forms.Button();
-            this.btnSaveInt = new System.Windows.Forms.Button();
-            this.cbIntProperties = new System.Windows.Forms.ComboBox();
-            this.tvInts = new System.Windows.Forms.TreeView();
-            this.tbIntValue = new System.Windows.Forms.NumericUpDown();
             this.cmsInt = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addIntMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editIntMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteIntMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportWeeniesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMainMenu.SuspendLayout();
             this.tcProperties.SuspendLayout();
             this.tpSummary.SuspendLayout();
             this.tpStrings.SuspendLayout();
             this.pEditString.SuspendLayout();
             this.tpInts.SuspendLayout();
-            this.cmsString.SuspendLayout();
             this.pEditInt.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbIntValue)).BeginInit();
+            this.cmsString.SuspendLayout();
             this.cmsInt.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -109,6 +110,7 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.databaseConnectionToolStripMenuItem,
             this.testDatabaseToolStripMenuItem,
+            this.exportWeeniesToolStripMenuItem,
             this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -154,14 +156,14 @@
             // byIDToolStripMenuItem
             // 
             this.byIDToolStripMenuItem.Name = "byIDToolStripMenuItem";
-            this.byIDToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.byIDToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.byIDToolStripMenuItem.Text = "By &ID";
             this.byIDToolStripMenuItem.Click += new System.EventHandler(this.byIDToolStripMenuItem_Click);
             // 
             // byNameToolStripMenuItem
             // 
             this.byNameToolStripMenuItem.Name = "byNameToolStripMenuItem";
-            this.byNameToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.byNameToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.byNameToolStripMenuItem.Text = "By &Name";
             this.byNameToolStripMenuItem.Click += new System.EventHandler(this.byNameToolStripMenuItem_Click);
             // 
@@ -226,6 +228,41 @@
             this.tpSummary.TabIndex = 0;
             this.tpSummary.Text = "Summary";
             this.tpSummary.UseVisualStyleBackColor = true;
+            // 
+            // cbWeenieType
+            // 
+            this.cbWeenieType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbWeenieType.FormattingEnabled = true;
+            this.cbWeenieType.Location = new System.Drawing.Point(137, 39);
+            this.cbWeenieType.Name = "cbWeenieType";
+            this.cbWeenieType.Size = new System.Drawing.Size(121, 21);
+            this.cbWeenieType.TabIndex = 3;
+            // 
+            // lblWeenidId
+            // 
+            this.lblWeenidId.Location = new System.Drawing.Point(134, 22);
+            this.lblWeenidId.Name = "lblWeenidId";
+            this.lblWeenidId.Size = new System.Drawing.Size(120, 20);
+            this.lblWeenidId.TabIndex = 2;
+            this.lblWeenidId.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(8, 42);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(120, 20);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "Weenie Type:";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label1
+            // 
+            this.label1.Location = new System.Drawing.Point(8, 22);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(120, 20);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Weenie Id:";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // tpStrings
             // 
@@ -317,6 +354,76 @@
             this.tpInts.TabIndex = 2;
             this.tpInts.Text = "Int32s";
             this.tpInts.UseVisualStyleBackColor = true;
+            // 
+            // pEditInt
+            // 
+            this.pEditInt.Controls.Add(this.tbIntValue);
+            this.pEditInt.Controls.Add(this.btnCancelInt);
+            this.pEditInt.Controls.Add(this.btnSaveInt);
+            this.pEditInt.Controls.Add(this.cbIntProperties);
+            this.pEditInt.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pEditInt.Location = new System.Drawing.Point(0, 422);
+            this.pEditInt.Name = "pEditInt";
+            this.pEditInt.Size = new System.Drawing.Size(705, 41);
+            this.pEditInt.TabIndex = 8;
+            this.pEditInt.Visible = false;
+            // 
+            // tbIntValue
+            // 
+            this.tbIntValue.Location = new System.Drawing.Point(333, 13);
+            this.tbIntValue.Maximum = new decimal(new int[] {
+            -1,
+            0,
+            0,
+            0});
+            this.tbIntValue.Name = "tbIntValue";
+            this.tbIntValue.Size = new System.Drawing.Size(140, 20);
+            this.tbIntValue.TabIndex = 9;
+            // 
+            // btnCancelInt
+            // 
+            this.btnCancelInt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCancelInt.Location = new System.Drawing.Point(544, 7);
+            this.btnCancelInt.Name = "btnCancelInt";
+            this.btnCancelInt.Size = new System.Drawing.Size(76, 28);
+            this.btnCancelInt.TabIndex = 6;
+            this.btnCancelInt.Text = "&Cancel";
+            this.btnCancelInt.UseVisualStyleBackColor = true;
+            this.btnCancelInt.Click += new System.EventHandler(this.btnCancelInt_Click);
+            // 
+            // btnSaveInt
+            // 
+            this.btnSaveInt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveInt.Location = new System.Drawing.Point(626, 7);
+            this.btnSaveInt.Name = "btnSaveInt";
+            this.btnSaveInt.Size = new System.Drawing.Size(76, 28);
+            this.btnSaveInt.TabIndex = 5;
+            this.btnSaveInt.Text = "&Save";
+            this.btnSaveInt.UseVisualStyleBackColor = true;
+            this.btnSaveInt.Click += new System.EventHandler(this.btnSaveInt_Click);
+            // 
+            // cbIntProperties
+            // 
+            this.cbIntProperties.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbIntProperties.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbIntProperties.FormattingEnabled = true;
+            this.cbIntProperties.Location = new System.Drawing.Point(8, 11);
+            this.cbIntProperties.Name = "cbIntProperties";
+            this.cbIntProperties.Size = new System.Drawing.Size(319, 21);
+            this.cbIntProperties.TabIndex = 3;
+            // 
+            // tvInts
+            // 
+            this.tvInts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tvInts.Location = new System.Drawing.Point(0, 0);
+            this.tvInts.Name = "tvInts";
+            this.tvInts.Size = new System.Drawing.Size(705, 423);
+            this.tvInts.TabIndex = 7;
+            this.tvInts.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvInts_NodeMouseClick);
+            this.tvInts.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.tvInts_MouseDoubleClick);
             // 
             // tpInt64s
             // 
@@ -429,111 +536,6 @@
             this.deleteStringMenuItem.Text = "Delete";
             this.deleteStringMenuItem.Click += new System.EventHandler(this.deleteStringMenuItem_Click);
             // 
-            // label1
-            // 
-            this.label1.Location = new System.Drawing.Point(8, 22);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(120, 20);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Weenie Id:";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // label2
-            // 
-            this.label2.Location = new System.Drawing.Point(8, 42);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(120, 20);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Weenie Type:";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // lblWeenidId
-            // 
-            this.lblWeenidId.Location = new System.Drawing.Point(134, 22);
-            this.lblWeenidId.Name = "lblWeenidId";
-            this.lblWeenidId.Size = new System.Drawing.Size(120, 20);
-            this.lblWeenidId.TabIndex = 2;
-            this.lblWeenidId.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // cbWeenieType
-            // 
-            this.cbWeenieType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbWeenieType.FormattingEnabled = true;
-            this.cbWeenieType.Location = new System.Drawing.Point(137, 39);
-            this.cbWeenieType.Name = "cbWeenieType";
-            this.cbWeenieType.Size = new System.Drawing.Size(121, 21);
-            this.cbWeenieType.TabIndex = 3;
-            // 
-            // pEditInt
-            // 
-            this.pEditInt.Controls.Add(this.tbIntValue);
-            this.pEditInt.Controls.Add(this.btnCancelInt);
-            this.pEditInt.Controls.Add(this.btnSaveInt);
-            this.pEditInt.Controls.Add(this.cbIntProperties);
-            this.pEditInt.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pEditInt.Location = new System.Drawing.Point(0, 422);
-            this.pEditInt.Name = "pEditInt";
-            this.pEditInt.Size = new System.Drawing.Size(705, 41);
-            this.pEditInt.TabIndex = 8;
-            this.pEditInt.Visible = false;
-            // 
-            // btnCancelInt
-            // 
-            this.btnCancelInt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCancelInt.Location = new System.Drawing.Point(544, 7);
-            this.btnCancelInt.Name = "btnCancelInt";
-            this.btnCancelInt.Size = new System.Drawing.Size(76, 28);
-            this.btnCancelInt.TabIndex = 6;
-            this.btnCancelInt.Text = "&Cancel";
-            this.btnCancelInt.UseVisualStyleBackColor = true;
-            this.btnCancelInt.Click += new System.EventHandler(this.btnCancelInt_Click);
-            // 
-            // btnSaveInt
-            // 
-            this.btnSaveInt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveInt.Location = new System.Drawing.Point(626, 7);
-            this.btnSaveInt.Name = "btnSaveInt";
-            this.btnSaveInt.Size = new System.Drawing.Size(76, 28);
-            this.btnSaveInt.TabIndex = 5;
-            this.btnSaveInt.Text = "&Save";
-            this.btnSaveInt.UseVisualStyleBackColor = true;
-            this.btnSaveInt.Click += new System.EventHandler(this.btnSaveInt_Click);
-            // 
-            // cbIntProperties
-            // 
-            this.cbIntProperties.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbIntProperties.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbIntProperties.FormattingEnabled = true;
-            this.cbIntProperties.Location = new System.Drawing.Point(8, 11);
-            this.cbIntProperties.Name = "cbIntProperties";
-            this.cbIntProperties.Size = new System.Drawing.Size(319, 21);
-            this.cbIntProperties.TabIndex = 3;
-            // 
-            // tvInts
-            // 
-            this.tvInts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tvInts.Location = new System.Drawing.Point(0, 0);
-            this.tvInts.Name = "tvInts";
-            this.tvInts.Size = new System.Drawing.Size(705, 423);
-            this.tvInts.TabIndex = 7;
-            this.tvInts.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvInts_NodeMouseClick);
-            this.tvInts.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.tvInts_MouseDoubleClick);
-            // 
-            // tbIntValue
-            // 
-            this.tbIntValue.Location = new System.Drawing.Point(333, 13);
-            this.tbIntValue.Maximum = new decimal(new int[] {
-            -1,
-            0,
-            0,
-            0});
-            this.tbIntValue.Name = "tbIntValue";
-            this.tbIntValue.Size = new System.Drawing.Size(140, 20);
-            this.tbIntValue.TabIndex = 9;
-            // 
             // cmsInt
             // 
             this.cmsInt.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -546,23 +548,30 @@
             // addIntMenuItem
             // 
             this.addIntMenuItem.Name = "addIntMenuItem";
-            this.addIntMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addIntMenuItem.Size = new System.Drawing.Size(107, 22);
             this.addIntMenuItem.Text = "Add";
             this.addIntMenuItem.Click += new System.EventHandler(this.addIntMenuItem_Click);
             // 
             // editIntMenuItem
             // 
             this.editIntMenuItem.Name = "editIntMenuItem";
-            this.editIntMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.editIntMenuItem.Size = new System.Drawing.Size(107, 22);
             this.editIntMenuItem.Text = "Edit";
             this.editIntMenuItem.Click += new System.EventHandler(this.editIntMenuItem_Click);
             // 
             // deleteIntMenuItem
             // 
             this.deleteIntMenuItem.Name = "deleteIntMenuItem";
-            this.deleteIntMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.deleteIntMenuItem.Size = new System.Drawing.Size(107, 22);
             this.deleteIntMenuItem.Text = "Delete";
             this.deleteIntMenuItem.Click += new System.EventHandler(this.deleteIntMenuItem_Click);
+            // 
+            // exportWeeniesToolStripMenuItem
+            // 
+            this.exportWeeniesToolStripMenuItem.Name = "exportWeeniesToolStripMenuItem";
+            this.exportWeeniesToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.exportWeeniesToolStripMenuItem.Text = "&Export Weenies";
+            this.exportWeeniesToolStripMenuItem.Click += new System.EventHandler(this.exportWeeniesToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -583,9 +592,9 @@
             this.pEditString.ResumeLayout(false);
             this.pEditString.PerformLayout();
             this.tpInts.ResumeLayout(false);
-            this.cmsString.ResumeLayout(false);
             this.pEditInt.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.tbIntValue)).EndInit();
+            this.cmsString.ResumeLayout(false);
             this.cmsInt.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -644,5 +653,6 @@
         private System.Windows.Forms.ToolStripMenuItem addIntMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editIntMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteIntMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportWeeniesToolStripMenuItem;
     }
 }
