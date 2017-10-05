@@ -391,18 +391,20 @@
         GearLifeResist                           = 378,
         GearMaxHealth                            = 379,
         Unknown380                               = 380,
-        Unknown381                               = 381,
-        Unknown382                               = 382,
-        Unknown383                               = 383,
-        Unknown384                               = 384,
+        PKDamageRating                           = 381,
+        PKDamageResistRating                     = 382,
+        GearPKDamageRating                       = 383,
+        GearPKDamageResistRating                 = 384,
         Unknown385                               = 385,
         /// <summary>
         /// Overpower chance % for endgame creatures.
         /// </summary>
         Overpower                                = 386,
-        Unknown387                               = 387,
-        Unknown388                               = 388,
-        Unknown389                               = 389,
+        OverpowerResist                          = 387,
+        // Client does not display accurately
+        GearOverpower                            = 388,
+        // Client does not display accurately
+        GearOverpowerResist                      = 389,
         Unknown390                               = 390,
         [ServerOnly]
         TotalLogins                              = 9001,
