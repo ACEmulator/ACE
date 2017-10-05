@@ -257,8 +257,7 @@ namespace ACE.Entity
 
             // payout scaled by the vendor's buy rate
             payout = (uint)(payout * BuyRate);
-
-
+            
             player.HandleActionSellFinalTransaction(this, items, true, payout);
         }
 
