@@ -150,9 +150,14 @@ namespace ACE.Entity
             // convert profile to wold objects / stack logic
             foreach (ItemProfile fitem in filteredlist)
             {
+                // todo: refactor this loop and just create enough of the items in a tighter loop, then do
+                // whatever calculations are necessary outside it
                 while (fitem.Amount > 0)
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(fitem.WeenieClassId);
+
+                    // todo: alternate path for purchasing actual items, not just weenie-based items (like spell comps)
+
                     // can we stack this ?
                     if (wo.MaxStackSize.HasValue)
                     {
@@ -165,12 +170,18 @@ namespace ACE.Entity
                         // else we cant stack but its not a single item.
                         else
                         {
+                            // client automatically scales the price on it's end for the cost, but we need
+                            // to scale it here to make sure the player has the right amount of pyreals
+
                             if (fitem.Amount > 0)
-                                goldcost = goldcost + ((uint)wo.Value * fitem.Amount);
+                            {
+                                // pile on the stacks before rounding
+                                goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) * fitem.Amount + 0.1);
+                            }
                             else
                             {
                                 fitem.Amount = 0;
-                                goldcost = goldcost + (uint)wo.Value;
+                                goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) + 0.1);
                             }
                             wo.StackSize = (ushort)fitem.Amount;
                             purchaselist.Add(wo);
@@ -182,15 +193,11 @@ namespace ACE.Entity
                         // single item with no stack options.
                         fitem.Amount = 0;
                         wo.StackSize = null;
-                        goldcost = goldcost + (uint)wo.Value;
+                        goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) + 0.1);
                         purchaselist.Add(wo);
                     }
                 }
             }
-
-            // client automatically scales the price on it's end for the cost, but we need
-            // to scale it here to make sure the player has the right amount of pyreals
-            goldcost = (uint)(goldcost * SellRate);
             
             // send transaction to player for further processing and.
             player.HandleActionBuyStartTransaction(this, purchaselist, goldcost);
@@ -249,10 +256,7 @@ namespace ACE.Entity
 
             foreach (WorldObject wo in items)
             {
-                if (wo.StackSize.HasValue && wo.StackSize.Value != 0)
-                    payout = payout + ((uint)wo.Value * wo.StackSize.Value);
-                else
-                    payout = payout + (uint)wo.Value;
+                payout = payout + (uint)Math.Ceiling(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
             }
 
             // payout scaled by the vendor's buy rate
