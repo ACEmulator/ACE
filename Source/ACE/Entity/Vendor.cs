@@ -256,11 +256,9 @@ namespace ACE.Entity
 
             foreach (WorldObject wo in items)
             {
+                // payout scaled by the vendor's buy rate
                 payout = payout + (uint)Math.Ceiling(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
             }
-
-            // payout scaled by the vendor's buy rate
-            payout = (uint)(payout * BuyRate);
             
             player.HandleActionSellFinalTransaction(this, items, true, payout);
         }
