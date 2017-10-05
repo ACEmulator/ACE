@@ -757,6 +757,11 @@ namespace ACE.Entity
             return lb.worldObjects[guid].Location;
         }
 
+        public WeenieType GetWeenieType(ObjectGuid guid)
+        {
+            return worldObjects.ContainsKey(guid) ? worldObjects[guid].WeenieType : 0;
+        }
+
         public void ChainOnObject(ActionChain chain, ObjectGuid woGuid, Action<WorldObject> action)
         {
             WorldObject wo = GetObject(woGuid);
