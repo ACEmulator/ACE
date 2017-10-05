@@ -97,7 +97,7 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.LumAugSkilledCraft, 0);
             SetIntProperty(PropertyInt.LumAugSkilledSpec, 0);
             SetIntProperty(PropertyInt.LumAugAllSkills, 0);
-            SetIntProperty(PropertyInt.Unknown390, 0);
+            SetIntProperty(PropertyInt.Enlightenment, 0);
             SetIntProperty(PropertyInt.GearDamage, 0);
             SetIntProperty(PropertyInt.GearDamageResist, 0);
             SetIntProperty(PropertyInt.GearCrit, 0);
@@ -110,7 +110,6 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.GearMaxHealth, 0);
             SetIntProperty(PropertyInt.GearPKDamageRating, 0);
             SetIntProperty(PropertyInt.GearPKDamageResistRating, 0);
-            SetIntProperty(PropertyInt.Unknown389, 0);
 
             SetBoolProperty(PropertyBool.Account15Days, true);
 

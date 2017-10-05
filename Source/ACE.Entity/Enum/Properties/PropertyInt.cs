@@ -405,7 +405,8 @@
         GearOverpower                            = 388,
         // Client does not display accurately
         GearOverpowerResist                      = 389,
-        Unknown390                               = 390,
+        // Number of times a character has enlightened
+        Enlightenment                            = 390,
         [ServerOnly]
         TotalLogins                              = 9001,
         [ServerOnly]
