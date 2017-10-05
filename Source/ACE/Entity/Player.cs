@@ -1090,7 +1090,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="vendor"></param>
         /// <param name="itemsForSale"></param>
-        public void HandleActionApproachVendor(WorldObject vendor, List<WorldObject> itemsForSale)
+        public void HandleActionApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
         {
             new ActionChain(this, () =>
             {

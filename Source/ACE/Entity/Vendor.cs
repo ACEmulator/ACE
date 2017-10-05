@@ -35,7 +35,19 @@ namespace ACE.Entity
         {
         }
 
-    #region General Vendor functions
+        public double BuyRate
+        {
+            get { return AceObject.BuyRate ?? 0.8; }
+            set { AceObject.BuyRate = value; }
+        }
+
+        public double SellRate
+        {
+            get { return AceObject.SellRate ?? 1.0; }
+            set { AceObject.SellRate = value; }
+        }
+
+        #region General Vendor functions
 
         /// <summary>
         /// Fired when Client clicks on the Vendor World Object
@@ -60,7 +72,7 @@ namespace ACE.Entity
                     {
                         LoadInventory();
                         ApproachVendor(player);
-                    });          
+                    });
                 }
             });
 
@@ -170,12 +182,16 @@ namespace ACE.Entity
                         // single item with no stack options.
                         fitem.Amount = 0;
                         wo.StackSize = null;
-                        goldcost = goldcost  + (uint)wo.Value;
+                        goldcost = goldcost + (uint)wo.Value;
                         purchaselist.Add(wo);
                     }
                 }
             }
 
+            // client automatically scales the price on it's end for the cost, but we need
+            // to scale it here to make sure the player has the right amount of pyreals
+            goldcost = (uint)(goldcost * SellRate);
+            
             // send transaction to player for further processing and.
             player.HandleActionBuyStartTransaction(this, purchaselist, goldcost);
         }
@@ -230,6 +246,7 @@ namespace ACE.Entity
         {
             // todo: calculate payment based on multipliers correctly
             uint payout = 0;
+
             foreach (WorldObject wo in items)
             {
                 if (wo.StackSize.HasValue && wo.StackSize.Value != 0)
@@ -237,6 +254,11 @@ namespace ACE.Entity
                 else
                     payout = payout + (uint)wo.Value;
             }
+
+            // payout scaled by the vendor's buy rate
+            payout = (uint)(payout * BuyRate);
+
+
             player.HandleActionSellFinalTransaction(this, items, true, payout);
         }
 

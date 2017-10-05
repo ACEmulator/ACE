@@ -1504,7 +1504,19 @@ namespace ACE.Entity
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
         #endregion
+        
+        public double? BuyRate
+        {
+            get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
+            set { SetDoubleProperty(PropertyDouble.BuyPrice, value); }
+        }
 
+        public double? SellRate
+        {
+            get { return GetDoubleProperty(PropertyDouble.SellPrice); }
+            set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
+        }
+        
         protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;

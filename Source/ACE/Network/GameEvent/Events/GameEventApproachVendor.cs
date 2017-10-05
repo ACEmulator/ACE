@@ -7,18 +7,18 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, WorldObject wo, List<WorldObject> items)
+        public GameEventApproachVendor(Session session, Vendor vendor, List<WorldObject> items)
             : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
         {        
-            Writer.Write(wo.Guid.Full); // merchant id
+            Writer.Write(vendor.Guid.Full); // merchant id
 
             // bit mask ? categories / mask may need figured out more.
-            Writer.Write((uint)wo.MerchandiseItemTypes);
-            Writer.Write((uint)wo.MerchandiseMinValue);
-            Writer.Write((uint)wo.MerchandiseMaxValue);
+            Writer.Write((uint)vendor.MerchandiseItemTypes);
+            Writer.Write((uint)vendor.MerchandiseMinValue);
+            Writer.Write((uint)vendor.MerchandiseMaxValue);
             Writer.Write((uint)1); // magic
-            Writer.Write((float)1); // buy_price
-            Writer.Write((float)1); // sell_price
+            Writer.Write((float)vendor.BuyRate); // buy_price
+            Writer.Write((float)vendor.SellRate); // sell_price
             Writer.Write((uint)0); // trade id .. is this a timestamp type val?
             Writer.Write((uint)0); // trade number .. is this a timestamp type val?
             Writer.WriteString16L("");
@@ -31,6 +31,7 @@ namespace ACE.Network.GameEvent.Events
                 Writer.Write(obj.Guid.Full);
                 obj.SerializeGameDataOnly(Writer);
             }
+
             Writer.Align();
         }
     }
