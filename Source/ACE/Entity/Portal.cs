@@ -325,6 +325,7 @@ namespace ACE.Entity
                     player.DoMoveTo(this);
                 else
                 {
+                    // TODO: to be removed once physics collisions are implemented
                     HandleActionOnCollide(playerId);
                     // always send useDone event
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
