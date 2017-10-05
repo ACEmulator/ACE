@@ -92,6 +92,7 @@
     <Compile Include="Enum\SurfaceType.cs" />
     <Compile Include="Recipe.cs" />
     <Compile Include="ServerOnlyAttribute.cs" />
+    <Compile Include="VendorItems.cs" />
     <Compile Include="WeenieObjectInstance.cs" />
     <Compile Include="CachedWeenieClass.cs" />
     <Compile Include="CachedInventoryObject.cs" />

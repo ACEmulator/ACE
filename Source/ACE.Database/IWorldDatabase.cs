@@ -20,5 +20,7 @@ namespace ACE.Database
         List<AceObject> GetWeenieInstancesByLandblock(ushort landblock);
 
         List<Recipe> GetAllRecipes();
+
+        List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId);
     }
 }

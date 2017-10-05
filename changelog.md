@@ -4,6 +4,12 @@
 [Jyrus]
 * Moved handling of the Portals into the HandleOnCollide method and implemented MoveTo for OnUse for Portals.  Currently, OnUse also queues up portaling
 	via a direct call to Portal.HandleOnCollide, which can be removed when collision is implemented.
+  
+[StackOverflow]
+* Added Vendors (Go buy stuff!) - work in progress
+* Added Debug command to give coins.
+* @addcoin 100000
+* known issue with pyreals in inventory.. drop them on the ground if you want the math to be correct for now.
 
 ### 2017-10-03
 [OptimShi]

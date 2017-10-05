@@ -1,4 +1,4 @@
-using ACE.DatLoader.FileTypes;
+﻿using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
@@ -59,6 +59,24 @@ namespace ACE.Entity
         public List<AceObjectPropertiesInt> PropertiesInt
         {
             get { return AceObject.IntProperties; }
+        }
+
+        public uint? MerchandiseItemTypes
+        {
+            get { return AceObject.MerchandiseItemTypes; }
+            set { AceObject.MerchandiseItemTypes = value; }
+        }
+
+        public uint? MerchandiseMinValue
+        {
+            get { return AceObject.MerchandiseMinValue; }
+            set { AceObject.MerchandiseMinValue = value; }
+        }
+
+        public uint? MerchandiseMaxValue
+        {
+            get { return AceObject.MerchandiseMaxValue; }
+            set { AceObject.MerchandiseMaxValue = value; }
         }
 
         public List<AceObjectPropertiesInt64> PropertiesInt64
@@ -2283,10 +2301,22 @@ namespace ACE.Entity
 
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
-            writer.WriteGuid(Guid);
+            SerializeCreateObject(writer, false);
+        }
 
-            SerializeModelData(writer);
-            SerializePhysicsData(writer);
+        public virtual void SerializeGameDataOnly(BinaryWriter writer)
+        {
+            SerializeCreateObject(writer, true);
+        }
+
+        public virtual void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)
+        {
+            if (!gamedataonly)
+            {
+                writer.WriteGuid(Guid);
+                SerializeModelData(writer);
+                SerializePhysicsData(writer);
+            }
             writer.Write((uint)WeenieFlags);
             writer.WriteString16L(Name);
             writer.WritePackedDword(WeenieClassId);

@@ -114,6 +114,7 @@
     <Compile Include="Entity\Fellowship.cs" />
     <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\IPlayer.cs" />
+    <Compile Include="Entity\ItemProfile.cs" />
     <Compile Include="Entity\Coin.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="Entity\StarterHeritage.cs" />
     <Compile Include="Entity\StarterItem.cs" />
     <Compile Include="Entity\StarterSpell.cs" />
+    <Compile Include="Entity\Vendor.cs" />
     <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
@@ -159,6 +161,7 @@
     <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionBuyItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionConfirmation.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionCreateFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
@@ -172,6 +175,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMagicRemoveSpellId.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSellItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSoulEmote.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableSplitToContainer.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
@@ -217,6 +221,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionMoveToState.cs" />
     <Compile Include="Network\GameAction\GameActionPacket.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />

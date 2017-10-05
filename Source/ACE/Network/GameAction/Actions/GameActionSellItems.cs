@@ -11,13 +11,12 @@ using System.Collections.Generic;
 
 namespace ACE.Network.GameAction.Actions
 {
-    public static class GameActionBuyItems
+    public static class GameActionSellItems
     {
-        [GameAction(GameActionType.Buy)]
+        [GameAction(GameActionType.Sell)]
         public static void Handle(ClientMessage message, Session session)
         {
             ObjectGuid vendorId = new ObjectGuid(message.Payload.ReadUInt32());
-
             uint itemcount = message.Payload.ReadUInt32();
 
             List<ItemProfile> items = new List<ItemProfile>();
@@ -29,15 +28,15 @@ namespace ACE.Network.GameAction.Actions
                 item.Amount = message.Payload.ReadUInt32();
                 // item.Amount = item.Amount & 0xFFFFFF;
 
-                item.Guid = message.Payload.ReadGuid();
+                item.Guid = new ObjectGuid(message.Payload.ReadUInt32());
                 items.Add(item);
             }
-            
+
             // curancy 0 default, if else then currancy is set other then money
-            uint i_alternateCurrencyID = message.Payload.ReadUInt32();
+            // uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.HandleActionBuy(vendorId, items);
+            session.Player.HandleActionSell(items, vendorId);
         }
     }
 }
