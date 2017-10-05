@@ -1782,22 +1782,19 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Tracks Interacive world object you are have interacted with recently.
+        /// Tracks Interacive world object you are have interacted with recently.  this should be
+        /// called from the context of an action chain being executed by the landblock loop.
         /// </summary>
-        /// <param name="worldObject"></param>
         public void TrackInteractiveObjects(List<WorldObject> worldObjects)
         {
             // todo: figure out a way to expire objects.. objects clearly not in range of interaction /etc
-            new ActionChain(this, () =>
+            foreach (WorldObject wo in worldObjects)
             {
-                foreach (WorldObject wo in worldObjects)
-                {
-                    if (interactiveWorldObjects.ContainsKey(wo.Guid))
-                        interactiveWorldObjects[wo.Guid] = wo;
-                    else
-                        interactiveWorldObjects.Add(wo.Guid, wo);
-                }
-            }).EnqueueChain();
+                if (interactiveWorldObjects.ContainsKey(wo.Guid))
+                    interactiveWorldObjects[wo.Guid] = wo;
+                else
+                    interactiveWorldObjects.Add(wo.Guid, wo);
+            }
         }
 
         /// <summary>
