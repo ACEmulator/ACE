@@ -1,4 +1,4 @@
-namespace ACE.Network.GameEvent
+﻿namespace ACE.Network.GameEvent
 {
     public enum GameEventType
     {
@@ -13,6 +13,7 @@ namespace ACE.Network.GameEvent
         UpdateTitle                            = 0x002B,
         CloseGroundContainer                   = 0x0052,
         VendorInfoEvent                        = 0x0062,
+        ApproachVendor                         = 0x0062,
         StartBarber                            = 0x0075,
         InventoryServerSaveFailed              = 0x00A0,
         FellowshipQuit                         = 0x00A3,

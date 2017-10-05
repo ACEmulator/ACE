@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -44,6 +44,21 @@ namespace ACE.Entity
         /// ObjectId of the currently selected Target (only players and creatures)
         /// </summary>
         private ObjectGuid selectedTarget = ObjectGuid.Invalid;
+
+        /// <summary>
+        /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
+        /// </summary>
+        private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
+
+        /// <summary>
+        /// Used to store money during a transaction in progress.
+        /// </summary>
+        private uint escrowCoin = 0;
+
+        /// <summary>
+        /// Temp Escrowed Objects of vendors / trade / containers.. needed for id / maybe more.
+        /// </summary>
+        private List<WorldObject> escrowWorldObjects = new List<WorldObject>();
 
         /// <summary>
         /// Amount of times this character has left a portal this session
@@ -958,6 +973,8 @@ namespace ACE.Entity
                     {
                         wo.Examine(Session);
                     }
+                    if (interactiveWorldObjects.ContainsKey(examinationId))
+                        interactiveWorldObjects[examinationId].Examine(Session);
                     else
                     {
                         ActionChain chain = new ActionChain();
@@ -1066,59 +1083,198 @@ namespace ACE.Entity
             bookChain.EnqueueChain();
         }
 
-        // FIXME(ddevec): Reintroduce after getting vendor code stuck in.
-        /*
-        public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
+        #region VendorTransactions
+
+        /// <summary>
+        /// Sends updated network packets to client / vendor item list.
+        /// </summary>
+        /// <param name="vendor"></param>
+        /// <param name="itemsForSale"></param>
+        public void HandleActionApproachVendor(WorldObject vendor, List<WorldObject> itemsForSale)
         {
             new ActionChain(this, () =>
             {
-                // todo: lots, need vendor list, money checks, etc.
+                Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
+                SendUseDoneEvent();
+            }).EnqueueChain();
+        }
 
-                var money = new GameMessagePrivateUpdatePropertyInt(Session, PropertyInt.CoinValue, 4000);
-                var sound = new GameMessageSound(Guid, Sound.PickUpItem, 1);
-                var sendUseDoneEvent = new GameEventUseDone(Session);
-                Session.Network.EnqueueSend(money, sound, sendUseDoneEvent);
+        /// <summary>
+        /// Fired from the client / client is sending us a Buy transaction
+        /// </summary>
+        /// <param name="vendorId"></param>
+        /// <param name="items"></param>
+        public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
+        {
+            ActionChain chain = new ActionChain();
+            CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
+            {
+                (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
+            });
+            chain.EnqueueChain();
+        }
 
-                // send updated vendor inventory.
-                Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendorId));
+        public void HandleActionBuyStartTransaction(WorldObject vendor, List<WorldObject> purchaselist, uint cost)
+        {
+            new ActionChain(this, () =>
+            {
+                // todo: check inventoy space.
 
-                // this is just some testing code for now.
-                foreach (ItemProfile item in items)
+                if (CoinValue - cost > 0)
                 {
-                    // todo: something with vendor id and profile list... iid list from vendor dbs.
-                    // todo: something with amounts..
-
-                    if (item.Iid == 5)
+                    // Escrow coin for pending transaction
+                    escrowCoin = cost;
+                    // Send Items to Vendor for processing..
+                    ActionChain vendorchain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
                     {
-                        while (item.Amount > 0)
-                        {
-                            item.Amount--;
-                            WorldObject loot = LootGenerationFactory.CreateTestWorldObject(5090);
-                            AddToInventory(loot);
-                            TrackObject(loot);
-                        }
-                        var rudecomment = "Who do you think you are, Johny Apple Seed ?";
-                        var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                        Session.Network.EnqueueSend(buyrudemsg);
-                    }
-                    else if (item.Iid == 10)
-                    {
-                        while (item.Amount > 0)
-                        {
-                            item.Amount--;
-                            WorldObject loot = LootGenerationFactory.CreateTestWorldObject(30537);
-                            AddToInventory(loot);
-                            TrackObject(loot);
-                        }
-                        var rudecomment = "That smells awful, Enjoy eating it!";
-                        var buyrudemsg = new GameMessageSystemChat(rudecomment, ChatMessageType.Tell);
-                        Session.Network.EnqueueSend(buyrudemsg);
-                    }
+                        (vdr as Vendor).BuyItemsValidateTransaction(this, purchaselist);
+                    });
+                    vendorchain.EnqueueChain();
+                }
+                else
+                {
+                    // todo: You dont have enough money to buy this + check for inventory space.
                 }
             }).EnqueueChain();
         }
-        */
 
+        public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid)
+        {
+            new ActionChain(this, () =>
+            {
+                if (valid)
+                {
+                    if (CoinValue - escrowCoin >= 0)
+                    {
+                        // this is there the money is spent!
+                        if (SpendCoin(escrowCoin))
+                        {
+                            escrowCoin = 0;
+                            // todo: handle unique stock items.
+                            foreach (WorldObject wo in purchaselist)
+                            {
+                                // todo: check for inventory space.
+                                wo.ContainerId = Guid.Full;
+                                wo.Placement = 0;
+                                AddToInventory(wo);
+                                TrackObject(wo);
+                                UpdatePlayerBurden();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        escrowCoin = 0;
+                        valid = false;
+                    }
+                }
+                else
+                {
+                    // vendor said no go!
+                    escrowCoin = 0;
+                    valid = false;
+                }
+
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
+                });
+                vendorchain.EnqueueChain();
+            }).EnqueueChain();
+        }
+
+        /// <summary>
+        /// Client Calls this when buy is clicked.
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="vendorId"></param>
+        public void HandleActionSell(List<ItemProfile> items, ObjectGuid vendorId)
+        {
+            new ActionChain(this, () =>
+            {
+                List<WorldObject> purchaselist = new List<WorldObject>();
+                // Player is selling items..
+                // check players inventory for items..
+                foreach (ItemProfile item in items)
+                {
+                    // check to see if item is in players inventory.
+                    WorldObject wo = GetInventoryItem(item.Guid);
+                    if (wo != null)
+                        purchaselist.Add(wo);          
+                }
+
+                // Send Items to sale to Vendor for processing..
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).SellItemsStartTransaction(purchaselist, this);
+                });
+                vendorchain.EnqueueChain();
+            }).EnqueueChain();
+        }
+
+        public void HandleActionSellStartTransaction(List<WorldObject> items, ObjectGuid vendorId)
+        {
+            new ActionChain(this, () =>
+            {
+                // validate all items are in inventory
+                bool trust = true;
+                foreach (WorldObject item in items)
+                {
+                    if (GetInventoryItem(item.Guid) == null)
+                        trust = false;
+                }
+
+                if (trust)
+                {
+                    escrowWorldObjects.Clear();
+                    foreach (WorldObject item in items)
+                    {
+                        // check to see if item is in players inventory.
+                        WorldObject wo = GetInventoryItem(item.Guid);
+                        DestroyInventoryItem(wo);
+                        escrowWorldObjects.Add(wo);
+                    }
+                }
+
+                // Send Items to Vendor for processing..
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).SellItemsValidateTransaction(this, escrowWorldObjects);
+                });
+                vendorchain.EnqueueChain();
+            }).EnqueueChain();
+        }
+
+        public void HandleActionSellFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid, uint payout)
+        {
+            new ActionChain(this, () =>
+            {
+                if (valid)
+                {
+                    // payout..
+                    AddCoin(payout);
+
+                    // todo: need to remove objects players clothes, armor, etc appearence
+
+                    // Send Items to Vendor for Final processing..
+                    ActionChain vendorchain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                    {
+                        (vdr as Vendor).SellItemsFinalTransaction(this, purchaselist);
+                    });
+                    vendorchain.EnqueueChain();
+                }
+                else
+                {
+                    // todo: handle canceled transaction
+                }
+            }).EnqueueChain();
+        }
+#endregion
         public void HandleAddToInventory(WorldObject wo)
         {
             new ActionChain(this, () =>
@@ -1405,27 +1561,26 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary>
-        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
-        /// of the aceObjects from the current list of inventory world objects by container. Og II
-        /// </summary>
-        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
-        {
-            Inventory.Clear();
+        /// <summary> 
+        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot 
+        /// of the aceObjects from the current list of inventory world objects by container. Og II 
+        /// </summary> 
+       public void SnapshotInventoryItems(bool clearDirtyFlags = false)
+        { 
+            Inventory.Clear(); 
             foreach (var wo in InventoryObjects)
-            {
-                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
-
+             {
+                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags)); 
                 if (wo.Value.WeenieType == WeenieType.Container)
                 {
                     wo.Value.Inventory.Clear();
                     foreach (var item in wo.Value.InventoryObjects)
-                    {
+                    { 
                         wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
                     }
                 }
             }
-        }
+        } 
 
         /// <summary>
         /// Internal save character functionality
@@ -1439,9 +1594,7 @@ namespace ACE.Entity
                 SetPhysicalCharacterPosition();
 
                 // Let's get a snapshot of our wielded items prior to save.
-
                 SnapshotWieldedItems();
-
                 SnapshotInventoryItems();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
@@ -1626,6 +1779,22 @@ namespace ACE.Entity
                                             Session.Player.Sequences,
                                             PropertyInt.EncumbranceVal,
                                             Session.Player.Burden ?? 0u));
+        }
+
+        /// <summary>
+        /// Tracks Interacive world object you are have interacted with recently.  this should be
+        /// called from the context of an action chain being executed by the landblock loop.
+        /// </summary>
+        public void TrackInteractiveObjects(List<WorldObject> worldObjects)
+        {
+            // todo: figure out a way to expire objects.. objects clearly not in range of interaction /etc
+            foreach (WorldObject wo in worldObjects)
+            {
+                if (interactiveWorldObjects.ContainsKey(wo.Guid))
+                    interactiveWorldObjects[wo.Guid] = wo;
+                else
+                    interactiveWorldObjects.Add(wo.Guid, wo);
+            }
         }
 
         /// <summary>
@@ -2594,6 +2763,29 @@ namespace ACE.Entity
             RemoveFromInventory(InventoryObjects, wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+        }
+
+        private bool SpendCoin(uint value)
+        {
+            if (coinValue - value <= 0)
+                return false;
+            else
+            {
+                coinValue = coinValue - value;
+                SetCoin(coinValue);
+                return true;
+            }
+        }
+
+        public void AddCoin(uint value)
+        {
+            coinValue = coinValue + value;
+            SetCoin(coinValue);
+        }
+
+        private void SetCoin(uint value)
+        {
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
         }
 
         public void HandleActionDropItem(ObjectGuid itemGuid)
