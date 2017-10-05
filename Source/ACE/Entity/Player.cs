@@ -2944,8 +2944,16 @@ namespace ACE.Entity
                     return;
                 }
 
-                OnAutonomousMove(CurrentLandblock.GetPosition(target),
-                                         Sequences, MovementTypes.MoveToObject, target);
+                if (CurrentLandblock.GetWeenieType(target) == WeenieType.Portal)
+                {
+                    OnAutonomousMove(CurrentLandblock.GetPosition(target),
+                                            Sequences, MovementTypes.MoveToPosition, target);
+                }
+                else
+                {
+                    OnAutonomousMove(CurrentLandblock.GetPosition(target),
+                                            Sequences, MovementTypes.MoveToObject, target);
+                }
             });
 
             // poll for arrival every .1 seconds
