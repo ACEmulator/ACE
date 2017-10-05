@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-10-04
+[Immortalbob]
+* Identified unknown enums 381 382 383 384 387 388 389 and updated acecharacter.cs and propertyint.cs.
 
 ### 2017-10-05
 [Mogwai]

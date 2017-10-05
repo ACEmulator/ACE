@@ -74,12 +74,12 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.LifeResistRating, 0);
             SetIntProperty(PropertyInt.WeaponAuraDamage, 0);
             SetIntProperty(PropertyInt.WeaponAuraSpeed, 0);
-            SetIntProperty(PropertyInt.Unknown381, 0);
-            SetIntProperty(PropertyInt.Unknown382, 0);
+            SetIntProperty(PropertyInt.PKDamageRating, 0);
+            SetIntProperty(PropertyInt.PKDamageResistRating, 0);
             SetIntProperty(PropertyInt.Overpower, 0);
-            SetIntProperty(PropertyInt.Unknown387, 0);
-            SetIntProperty(PropertyInt.Unknown388, 0);
-            SetIntProperty(PropertyInt.Unknown389, 0);
+            SetIntProperty(PropertyInt.OverpowerResist, 0);
+            SetIntProperty(PropertyInt.GearOverpower, 0);
+            SetIntProperty(PropertyInt.GearOverpowerResist, 0);
             SetDoubleProperty(PropertyDouble.WeaponAuraOffense, 0);
             SetDoubleProperty(PropertyDouble.WeaponAuraDefense, 0);
             SetDoubleProperty(PropertyDouble.WeaponAuraElemental, 0);
@@ -97,7 +97,7 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.LumAugSkilledCraft, 0);
             SetIntProperty(PropertyInt.LumAugSkilledSpec, 0);
             SetIntProperty(PropertyInt.LumAugAllSkills, 0);
-            SetIntProperty(PropertyInt.Unknown390, 0);
+            SetIntProperty(PropertyInt.Enlightenment, 0);
             SetIntProperty(PropertyInt.GearDamage, 0);
             SetIntProperty(PropertyInt.GearDamageResist, 0);
             SetIntProperty(PropertyInt.GearCrit, 0);
@@ -108,9 +108,8 @@ namespace ACE.Entity
             SetIntProperty(PropertyInt.GearNetherResist, 0);
             SetIntProperty(PropertyInt.GearLifeResist, 0);
             SetIntProperty(PropertyInt.GearMaxHealth, 0);
-            SetIntProperty(PropertyInt.Unknown383, 0);
-            SetIntProperty(PropertyInt.Unknown384, 0);
-            SetIntProperty(PropertyInt.Unknown389, 0);
+            SetIntProperty(PropertyInt.GearPKDamageRating, 0);
+            SetIntProperty(PropertyInt.GearPKDamageResistRating, 0);
 
             SetBoolProperty(PropertyBool.Account15Days, true);
 
