@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace ACE.Network.GameAction.Actions
 {
-    public static class GameActionBuyItems
+    public static class GameActionVendorBuyItems
     {
         [GameAction(GameActionType.Buy)]
         public static void Handle(ClientMessage message, Session session)
