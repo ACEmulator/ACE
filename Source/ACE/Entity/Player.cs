@@ -1148,6 +1148,7 @@ namespace ACE.Entity
                         filteredlist.Add(item);
                     }
                     // todo check unique items
+                    // do something with unique items ? 
                 }
 
                 // convert profile to wold objects / stack logic
