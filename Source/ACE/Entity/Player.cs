@@ -1142,7 +1142,8 @@ namespace ACE.Entity
                 foreach (ItemProfile item in items)
                 {
                     // check default items for id
-                    if (vendorsLastKnownDefaultList.TryGetValue(item.Guid, out WorldObject wo))
+                    WorldObject wo;
+                    if (vendorsLastKnownDefaultList.TryGetValue(item.Guid, out wo))
                     {
                         item.WeenieClassId = wo.WeenieClassId;
                         filteredlist.Add(item);
