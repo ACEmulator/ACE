@@ -163,6 +163,7 @@ namespace ACE.Entity
         public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
         {
             // todo: calculate payment based on multipliers correctly
+            // todo: validate vendor accepts all items / filter out quest items etc like retail did
             uint payout = 0;
 
             foreach (WorldObject wo in items)
