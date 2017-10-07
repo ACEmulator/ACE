@@ -32,10 +32,10 @@ namespace ACE.Entity
                     return;
                 }
 
-/*                if (!player.IsWithinUseRadiusOf(target))
-//                    player.DoMoveTo(target);
-//                else
-                { */
+                if (!player.IsWithinUseRadiusOf(target))
+                    player.DoMoveTo(target);
+                else
+                {
                     if (Structure == 0)
                     {
                         var sendUseDoneEvent = new GameEventUseDone(player.Session);
@@ -55,7 +55,7 @@ namespace ACE.Entity
                             var message = new GameMessageSystemChat($"The {Name} cannot be used on the {target.Name}.", ChatMessageType.System);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
                         }
-                   // }
+                   }
                 }
             });
             chain.EnqueueChain();
