@@ -2874,6 +2874,16 @@ namespace ACE.Entity
                     // inventory on inventory, we can do this now
                     RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
                 }
+                else if (invSource.WeenieType == WeenieType.Key)
+                {
+                    ActionChain landblockChain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(landblockChain, targetObjectId, (WorldObject theTarget) =>
+                    {
+                        Key key = invSource as Key;
+                        key.HandleActionUseOnTarget(this, theTarget);
+                    });
+                    landblockChain.EnqueueChain();
+                }
                 else if (targetObjectId == Guid)
                 {
                     // using something on ourselves

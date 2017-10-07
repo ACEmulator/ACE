@@ -41,6 +41,7 @@ namespace ACE.Entity
             IsLocked = AceObject.Locked ?? false;
             ResetInterval = AceObject.ResetInterval ?? 30.0f;
             ResistLockpick = AceObject.ResistLockpick ?? 0;
+            LockCode = AceObject.LockCode ?? "";
 
             // If we had the base weenies this would be the way to go
             ////if (DefaultLocked)
@@ -242,11 +243,50 @@ namespace ACE.Entity
                 return;
 
             if (!DefaultOpen)
+            {
                 Close(ObjectGuid.Invalid);
+                if (DefaultLocked)
+                {
+                    IsLocked = true;
+                }
+            }
             else
                 Open(ObjectGuid.Invalid);
 
             ResetTimestamp++;
+        }
+
+        /// <summary>
+        /// Used for unlocking a door via lockpick, so contains a skill check
+        /// </summary>
+        public bool UnlockDoor(Player player)
+        {
+            CreatureSkill creatureSkill = player.Skills[Skill.Lockpick];
+            if (creatureSkill.ActiveValue >= ResistLockpick)
+            {
+                // LastUnlocker = 
+                IsLocked = false;
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
+                return true;
+            }
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Used for unlocking a door via a key
+        /// </summary>
+        public bool UnlockDoor(string keyCode)
+        {
+            if (keyCode == LockCode)
+            {
+                // LastUnlocker = 
+                IsLocked = false;
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
+                return true;
+            }
+            else
+                return false;
         }
     }
 }
