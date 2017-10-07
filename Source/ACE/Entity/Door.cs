@@ -258,11 +258,11 @@ namespace ACE.Entity
 
         /// <summary>
         /// Used for unlocking a door via lockpick, so contains a skill check
+        /// player.Skills[Skill.Lockpick].ActiveValue should be sent for the skill check
         /// </summary>
-        public bool UnlockDoor(Player player)
+        public bool UnlockDoor(uint playerLockpickSkillLvl)
         {
-            CreatureSkill creatureSkill = player.Skills[Skill.Lockpick];
-            if (creatureSkill.ActiveValue >= ResistLockpick)
+            if (playerLockpickSkillLvl >= ResistLockpick)
             {
                 // LastUnlocker = 
                 IsLocked = false;
