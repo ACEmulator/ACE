@@ -3,11 +3,10 @@
 [Jyrus]
 * Moved WeenieType keys into their own class and implemented unlocking doors via keys
 
-### 2017-10-04
+### 2017-10-05
 [Immortalbob]
 * Identified unknown enums 381 382 383 384 387 388 389 and updated acecharacter.cs and propertyint.cs.
 
-### 2017-10-05
 [Mogwai]
 * Modified vendor stuff to use buy and sell rates from DoubleProperties
 
@@ -21,6 +20,9 @@
 * Added Debug command to give coins.
 * @addcoin 100000
 * known issue with pyreals in inventory.. drop them on the ground if you want the math to be correct for now.
+
+[Immortalbob]
+* Added equipmentset.cs to house the equipment set enums for future use.
 
 ### 2017-10-03
 [OptimShi]
