@@ -1,3 +1,7 @@
+### 2017-10-06
+[StackOverflow]
+* Added Improvements to Vendor Code + Bug Fixes
+
 # ACEmulator Change Log
 ### 2017-10-06
 [Immortalbob]

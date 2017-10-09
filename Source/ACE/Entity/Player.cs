@@ -50,6 +50,12 @@ namespace ACE.Entity
         /// </summary>
         private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
+        private Dictionary<ObjectGuid, WorldObject> vendorsLastKnownDefaultList = new Dictionary<ObjectGuid, WorldObject>();
+
+        private ObjectGuid currentVendorObjectGuid;
+
+        private double currentVendorSellRate = 1.0;
+
         /// <summary>
         /// Used to store money during a transaction in progress.
         /// </summary>
@@ -1090,10 +1096,24 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="vendor"></param>
         /// <param name="itemsForSale"></param>
-        public void HandleActionApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
+        public void HandleActionApproachVendor(Vendor vendor, List<WorldObject> itemsForSale, double sellrate)
         {
             new ActionChain(this, () =>
             {
+                // track the vendor we are interacting with,
+                currentVendorObjectGuid = vendor.Guid;
+                currentVendorSellRate = sellrate;
+
+                vendorsLastKnownDefaultList.Clear();
+                // add items for sale to local players last known item list
+                foreach (WorldObject wo in itemsForSale)
+                {
+                    vendorsLastKnownDefaultList.Add(wo.Guid, wo);
+                }
+                // add for tracking and iding.
+                TrackInteractiveObjects(vendorsLastKnownDefaultList.Values.ToList());
+
+                // send vendor items to client
                 Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
                 SendUseDoneEvent();
             }).EnqueueChain();
@@ -1106,39 +1126,112 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
-            {
-                (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
-            });
-            chain.EnqueueChain();
-        }
-
-        public void HandleActionBuyStartTransaction(WorldObject vendor, List<WorldObject> purchaselist, uint cost)
-        {
             new ActionChain(this, () =>
             {
-                // todo: check inventoy space.
+                List<ItemProfile> filteredlist = new List<ItemProfile>();
+                List<WorldObject> purchaselist = new List<WorldObject>();
+                uint goldcost = 0;
 
-                if (CoinValue - cost > 0)
+                if (vendorId != currentVendorObjectGuid)
                 {
-                    // Escrow coin for pending transaction
-                    escrowCoin = cost;
-                    // Send Items to Vendor for processing..
-                    ActionChain vendorchain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                    SendUseDoneEvent();
+                    return;
+                }
+
+                // filter items out vendor does not stock
+                foreach (ItemProfile item in items)
+                {
+                    // check default items for id
+                    WorldObject wo;
+                    if (vendorsLastKnownDefaultList.TryGetValue(item.Guid, out wo))
                     {
-                        (vdr as Vendor).BuyItemsValidateTransaction(this, purchaselist);
-                    });
-                    vendorchain.EnqueueChain();
+                        item.WeenieClassId = wo.WeenieClassId;
+                        filteredlist.Add(item);
+                    }
+                    // todo check unique items
+                    // do something with unique items ? 
                 }
-                else
+
+                // convert profile to wold objects / stack logic
+                foreach (ItemProfile fitem in filteredlist)
                 {
-                    // todo: You dont have enough money to buy this + check for inventory space.
+                    // todo: refactor this loop and just create enough of the items in a tighter loop, then do
+                    // whatever calculations are necessary outside it
+                    while (fitem.Amount > 0)
+                    {
+                        WorldObject wo = Factories.WorldObjectFactory.CreateNewWorldObject(fitem.WeenieClassId);
+
+                        // todo: alternate path for purchasing actual items, not just weenie-based items (like spell comps)
+
+                        // can we stack this ?
+                        if (wo.MaxStackSize.HasValue)
+                        {
+                            if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= fitem.Amount))
+                            {
+                                wo.StackSize = wo.MaxStackSize.Value;
+                                purchaselist.Add(wo);
+                                fitem.Amount = fitem.Amount - wo.MaxStackSize.Value;
+                            }
+                            // else we cant stack but its not a single item.
+                            else
+                            {
+                                    // client automatically scales the price on it's end for the cost, but we need
+                                    // to scale it here to make sure the player has the right amount of pyreals
+
+                                    if (fitem.Amount > 0)
+                                    {
+                                        // pile on the stacks before rounding
+                                        goldcost = goldcost + (uint)Math.Floor(currentVendorSellRate * (wo.Value ?? 0) * fitem.Amount + 0.1);
+                                    }
+                                    else
+                                    {
+                                        fitem.Amount = 0;
+                                        goldcost = goldcost + (uint)Math.Floor(currentVendorSellRate * (wo.Value ?? 0) + 0.1);
+                                    }
+                                    wo.StackSize = (ushort)fitem.Amount;
+                                    purchaselist.Add(wo);
+                                    fitem.Amount = fitem.Amount - fitem.Amount;
+                                }
+                        }
+                        else
+                        {
+                            // if there multiple items of the same  type..
+                            if (fitem.Amount > 0)
+                            {
+                                // single item with no stack options.
+                                fitem.Amount = fitem.Amount - 1;
+                                wo.StackSize = null;
+                                goldcost = goldcost + (uint)Math.Floor(currentVendorSellRate * (wo.Value ?? 0) + 0.1);
+                                purchaselist.Add(wo);
+                            }
+                        }
+                    }
                 }
+
+                // check if player can afford this transaction.
+                if (CoinValue - goldcost < 0)
+                {
+                    return;
+                }
+
+                // Escrow coin for pending transaction
+                escrowCoin = goldcost;
+                // Send Items to Vendor for processing..
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).BuyItemsValidateTransaction(this, purchaselist);
+                });
+                vendorchain.EnqueueChain();
             }).EnqueueChain();
         }
 
+        /// <summary>
+        /// Fired from Vendor, Vendor returned if the transaction is valid or not.
+        /// </summary>
+        /// <param name="vendor"></param>
+        /// <param name="purchaselist"></param>
+        /// <param name="valid"></param>
         public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid)
         {
             new ActionChain(this, () =>
@@ -1147,14 +1240,14 @@ namespace ACE.Entity
                 {
                     if (CoinValue - escrowCoin >= 0)
                     {
-                        // this is there the money is spent!
+                        // money is spent!
                         if (SpendCoin(escrowCoin))
                         {
                             escrowCoin = 0;
                             // todo: handle unique stock items.
+                            // todo: handle vendor services.
                             foreach (WorldObject wo in purchaselist)
-                            {
-                                // todo: check for inventory space.
+                            { 
                                 wo.ContainerId = Guid.Full;
                                 wo.Placement = 0;
                                 AddToInventory(wo);
@@ -1186,7 +1279,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Client Calls this when buy is clicked.
+        /// Client Calls this when Sell is clicked.
         /// </summary>
         /// <param name="items"></param>
         /// <param name="vendorId"></param>
@@ -1205,38 +1298,13 @@ namespace ACE.Entity
                         purchaselist.Add(wo);          
                 }
 
-                // Send Items to sale to Vendor for processing..
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                escrowWorldObjects.Clear();
+                foreach (WorldObject item in purchaselist)
                 {
-                    (vdr as Vendor).SellItemsStartTransaction(purchaselist, this);
-                });
-                vendorchain.EnqueueChain();
-            }).EnqueueChain();
-        }
-
-        public void HandleActionSellStartTransaction(List<WorldObject> items, ObjectGuid vendorId)
-        {
-            new ActionChain(this, () =>
-            {
-                // validate all items are in inventory
-                bool trust = true;
-                foreach (WorldObject item in items)
-                {
-                    if (GetInventoryItem(item.Guid) == null)
-                        trust = false;
-                }
-
-                if (trust)
-                {
-                    escrowWorldObjects.Clear();
-                    foreach (WorldObject item in items)
-                    {
-                        // check to see if item is in players inventory.
-                        WorldObject wo = GetInventoryItem(item.Guid);
-                        DestroyInventoryItem(wo);
-                        escrowWorldObjects.Add(wo);
-                    }
+                    // there may be a better method for this...
+                    WorldObject wo = GetInventoryItem(item.Guid);
+                    DestroyInventoryItem(wo);
+                    escrowWorldObjects.Add(wo);
                 }
 
                 // Send Items to Vendor for processing..
@@ -1270,11 +1338,12 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    // todo: handle canceled transaction
+                    // todo: handle canceled transaction by vendor
                 }
             }).EnqueueChain();
         }
 #endregion
+
         public void HandleAddToInventory(WorldObject wo)
         {
             new ActionChain(this, () =>

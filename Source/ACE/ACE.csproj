@@ -161,7 +161,7 @@
     <Compile Include="Network\Enum\Spell.cs" />
     <Compile Include="Network\Enum\RemoveFriendResult.cs" />
     <Compile Include="Network\Enum\SessionState.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionBuyItems.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionVendorBuyItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionConfirmation.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionCreateFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionAddChannel.cs" />
@@ -175,7 +175,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionMagicRemoveSpellId.cs" />
-    <Compile Include="Network\GameAction\Actions\GameActionSellItems.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionVendorSellItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSoulEmote.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableSplitToContainer.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
