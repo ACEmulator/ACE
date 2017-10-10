@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-10-10
+[StackOverflow]
+* Vendor Improvements / Filtering.
+
 ### 2017-10-06
 [Immortalbob]
 * Added equipmentset.cs to house the equipment set enums for future use.
