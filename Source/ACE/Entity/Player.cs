@@ -2707,7 +2707,7 @@ namespace ACE.Entity
 
         private bool SpendCoin(uint value)
         {
-            if (coinValue - value <= 0)
+            if (coinValue - value < 0)
                 return false;
             else
             {
@@ -2720,6 +2720,12 @@ namespace ACE.Entity
         public void AddCoin(uint value)
         {
             coinValue = coinValue + value;
+            SetCoin(coinValue);
+        }
+
+        public void SetCoinValue(uint value)
+        {
+            coinValue = value;
             SetCoin(coinValue);
         }
 

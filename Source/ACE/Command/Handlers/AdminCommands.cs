@@ -1520,5 +1520,22 @@ namespace ACE.Command.Handlers
                 // Do Nothing
             }
         }
+
+        // SetCoin [value]
+        [CommandHandler("setcoin", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
+            "Sets players exact amount of coins.",
+            "money (int)")]
+        public static void HandleSetCoin(Session session, params string[] parameters)
+        {
+            try
+            {
+                uint money = uint.Parse(parameters[0]);
+                session.Player.SetCoinValue(money);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
+            }
+        }
     }
 }
