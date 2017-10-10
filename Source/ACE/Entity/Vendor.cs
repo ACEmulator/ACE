@@ -25,6 +25,8 @@ namespace ACE.Entity
     public class Vendor : WorldObject
     {
         private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+        private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+
         private bool inventoryloaded = false;
 
         // todo : SO : Turning to player movement states  - looks at @og
@@ -145,13 +147,19 @@ namespace ACE.Entity
         /// <param name="player"></param>
         private void ApproachVendor(Player player)
         {
+            // default inventory
             List<WorldObject> vendorlist = new List<WorldObject>();
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
             {
                 vendorlist.Add(wo.Value);
             }
 
-            // todo: send more then default items.
+            // unique inventory - itmes sold by other players
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in uniqueItemsForSale)
+            {
+                vendorlist.Add(wo.Value);
+            }
+
             player.TrackInteractiveObjects(vendorlist);
             player.HandleActionApproachVendor(this, vendorlist);
         }
@@ -182,16 +190,24 @@ namespace ACE.Entity
                     item.WeenieClassId = defaultItemsForSale[item.Guid].WeenieClassId;
                     filteredlist.Add(item);
                 }
-                // todo: check stock
+                // check unique items / add unique items to list
+                if (uniqueItemsForSale.ContainsKey(item.Guid))
+                {
+                    WorldObject wo;
+                    if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
+                    {
+                        purchaselist.Add(wo);
+                    }
+                }
             }
 
-            // convert profile to wold objects / stack logic
+            // convert profile to wold objects / stack logic does not include unique items.
             foreach (ItemProfile fitem in filteredlist)
             {
                 purchaselist.AddRange(ItemProfileToWorldObjects(fitem));
             }
 
-            // calculate price.
+            // calculate price. (both unique and item profile)
             foreach (WorldObject wo in purchaselist)
             {
                 goldcost = goldcost + (uint)Math.Ceiling(SellRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
@@ -209,22 +225,25 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void BuyItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
         {
-            List<WorldObject> vendorlist = new List<WorldObject>();
-
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
+            if (valid) // remove unique temp stock items.
             {
-                vendorlist.Add(wo.Value);
+                foreach (WorldObject wo in items)
+                {
+                    if (uniqueItemsForSale.ContainsKey(wo.Guid))
+                        uniqueItemsForSale.Remove(wo.Guid);
+                }
+            }
+            else // re-add unique temp stock items on failed transaction.
+            {
+                foreach (WorldObject wo in items)
+                {
+                    if (!defaultItemsForSale.ContainsKey(wo.Guid))
+                        if (uniqueItemsForSale.ContainsKey(wo.Guid))
+                            uniqueItemsForSale.Remove(wo.Guid);
+                }
             }
 
-            if (valid)
-            {
-                // todo: remove unique temp stock items.
-            }
-            else
-            {
-                // todo: re-add unique temp stock items.
-            }
-            player.HandleActionApproachVendor(this, vendorlist);
+            ApproachVendor(player);
         }
         #endregion
 
@@ -241,18 +260,23 @@ namespace ACE.Entity
                 payout = payout + (uint)Math.Floor(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
             }
 
-            player.HandleActionSellFinalTransaction(this, items, true, payout);
+            player.HandleActionSellFinalTransaction(this, true, items, payout);
         }
 
         public void SellItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
         {
-            // todo Add logic to add unique items to vendor list.
-            List<WorldObject> vendorlist = new List<WorldObject>();
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
+            if (valid)
             {
-                vendorlist.Add(wo.Value);
+                foreach (WorldObject wo in items)
+                {
+                    if (!defaultItemsForSale.ContainsKey(wo.Guid))
+                    {
+                        wo.ContainerId = Guid.Full;
+                        uniqueItemsForSale.Add(wo.Guid, wo);
+                    }                
+                }
             }
-            player.HandleActionApproachVendor(this, vendorlist);
+            ApproachVendor(player);
         }
         #endregion
     }

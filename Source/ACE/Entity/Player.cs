@@ -1075,6 +1075,58 @@ namespace ACE.Entity
 
         #region VendorTransactions
 
+        public void HandleActionVendorTransferItem(List<ObjectGuid> itemGuids, ObjectGuid vendorId)
+        {
+            ActionChain chain = new ActionChain();
+
+            chain.AddAction(this, () =>
+            {
+                List<WorldObject> purchaselist = new List<WorldObject>();
+                foreach (ObjectGuid itemGuid in itemGuids)
+                {
+                    WorldObject item = GetInventoryItem(itemGuid);
+                    if (item == null)
+                    {
+                        // check to see if this item is wielded
+                        if (!WieldedObjects.TryGetValue(itemGuid, out item))
+                            return;
+                        RemoveFromWieldedObjects(itemGuid);
+                        UpdateAppearance(this);
+                        ObjectGuid clearWielder = new ObjectGuid(0);
+                        Session.Network.EnqueueSend(
+                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    }
+                    else
+                    {
+                        RemoveFromInventory(InventoryObjects, itemGuid);
+                    }
+
+                    // SetInventoryForWorld(item);
+
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+                    ObjectGuid clearContainer = new ObjectGuid(0);
+                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
+
+                    // clean up the shard database.
+                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+
+                    purchaselist.Add(item);
+                }
+
+                // Send Items to Vendor for processing.. 
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).SellItemsValidateTransaction(this, purchaselist);
+                });
+                vendorchain.EnqueueChain();
+            });
+            chain.EnqueueChain();
+        }
+
         /// <summary>
         /// Sends updated network packets to client / vendor item list.
         /// </summary>
@@ -1161,48 +1213,22 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                List<WorldObject> purchaselist = new List<WorldObject>();
-                // Player is selling items..
-                // check players inventory for items and move items to purchase list.
+                List<ObjectGuid> objectGuids = new List<ObjectGuid>();
                 foreach (ItemProfile item in items)
                 {
-                    // check to see if item is in players inventory.
-                    WorldObject wo = GetInventoryItem(item.Guid);
-                    if (wo != null)
-                        purchaselist.Add(wo);          
+                    objectGuids.Add(item.Guid);
                 }
-
-                // Send Items to Vendor for processing..
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
-                {
-                    (vdr as Vendor).SellItemsValidateTransaction(this, purchaselist);
-                });
-                vendorchain.EnqueueChain();
+                // sends items to vendor effectivly gone until vendor says done.s
+                HandleActionVendorTransferItem(objectGuids, vendorId);
             }).EnqueueChain();
         }
 
-        public void HandleActionSellFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid, uint payout)
+        public void HandleActionSellFinalTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
         {
             new ActionChain(this, () =>
             {
-                // make sure player has all items in their inventory
-                foreach (WorldObject item in purchaselist)
-                {
-                    if (GetInventoryItem(item.Guid) == null)
-                        valid = false;
-                }
-
                 if (valid)
-                {
-                    // payout..
                     AddCoin(payout);
-
-                    foreach (WorldObject item in purchaselist)
-                    {
-                        DestroyInventoryItem(item);
-                    }
-                }
 
                 // Send Items to Vendor for Final processing..
                 ActionChain vendorchain = new ActionChain();
