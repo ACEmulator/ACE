@@ -1,5 +1,9 @@
 # ACEmulator Change Log
-### 2017-10-04
+### 2017-10-06
+[Immortalbob]
+* Added equipmentset.cs to house the equipment set enums for future use.
+
+### 2017-10-05
 [Immortalbob]
 * Identified unknown enums 381 382 383 384 387 388 389 and updated acecharacter.cs and propertyint.cs.
 
