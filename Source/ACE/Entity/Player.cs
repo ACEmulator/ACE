@@ -1119,7 +1119,7 @@ namespace ACE.Entity
                 {
                     if (CoinValue - goldcost >= 0)
                     {
-                        // this is there the money is spent!
+                        // this is where the money is spent!
                         if (SpendCoin(goldcost))
                         {
                             // todo: handle unique stock items.
