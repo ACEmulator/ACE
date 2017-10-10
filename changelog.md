@@ -1,6 +1,8 @@
 # ACEmulator Change Log
 ### 2017-10-10
 [StackOverflow]
+* Unique Vendor Items Basic Working
+[StackOverflow]
 * Vendor Improvements / Filtering.
 
 ### 2017-10-06
