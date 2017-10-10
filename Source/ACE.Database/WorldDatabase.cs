@@ -95,7 +95,7 @@ namespace ACE.Database
 
             ConstructGetListStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), new HashSet<string>());
 
-            ConstructGetListStatement(WorldPreparedStatement.GetVendorWeenieInventoryById, typeof(VendorItems), new HashSet<string> { "aceObjectId" });
+            ConstructGetListStatement(WorldPreparedStatement.GetVendorWeenieInventoryById, typeof(VendorItems), new HashSet<string> { "aceObjectId", "destinationType" });
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -414,9 +414,9 @@ namespace ACE.Database
             return objects;
         }
 
-        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId)
+        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId, DestinationType desType)
         {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId }, { "destinationType", desType } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, VendorItems>(WorldPreparedStatement.GetVendorWeenieInventoryById, criteria);
             return objects;
         }
