@@ -10,6 +10,7 @@ using ACE.Network.GameMessages.Messages;
 using ACE.Network.Packets;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using log4net;
 
 namespace ACE.Network.Handlers
@@ -27,15 +28,20 @@ namespace ACE.Network.Handlers
         {
             PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
 
-            try
+            Task t = new Task(() =>
             {
-                var result = await DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
-                AccountSelectCallback(result, session);
-            }
-            catch (IndexOutOfRangeException)
-            {
-                AccountSelectCallback(null, session);
-            }
+                try
+                {
+                    var account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
+                    AccountSelectCallback(account, session);
+                }
+                catch (Exception)
+                {
+                    AccountSelectCallback(null, session);
+                }
+            });
+
+            await t;
         }
 
         private static void AccountSelectCallback(Account account, Session session)

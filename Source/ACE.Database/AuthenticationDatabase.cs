@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -14,58 +15,66 @@ namespace ACE.Database
         private enum AuthenticationPreparedStatement
         {
             AccountInsert,
-            AccountMaxIndex,
             AccountSelect,
-            AccountUpdateAccessLevel
+            AccountUpdate,
+            AccountSelectByName
         }
 
         protected override Type PreparedStatementType => typeof(AuthenticationPreparedStatement);
 
         protected override void InitializePreparedStatements()
         {
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `accesslevel`, `password`, `salt`) VALUES (?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `accesslevel`, `password`, `salt` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, "UPDATE `account` SET `accesslevel` = ? WHERE `id` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
+            ConstructStatement(AuthenticationPreparedStatement.AccountSelect, typeof(Account), ConstructedStatementType.Get);
+            ConstructStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), ConstructedStatementType.Insert);
+            ConstructStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), ConstructedStatementType.Update);
+            ConstructStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), ConstructedStatementType.Get);
         }
-
-        public uint GetMaxId()
-        {
-            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex);
-            Debug.Assert(result != null, "Invalid prepared statement value.");
-            return result.Read<uint>(0, "MAX(`id`)") + 1;
-        }
-
+        
         public void CreateAccount(Account account)
         {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.AccessLevel, account.Password, account.Salt);
+            ExecuteConstructedInsertStatement(ConstructedStatementType.Insert, typeof(Account), account);
         }
 
         public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
         {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
+            var account = GetAccountById(accountId);
+            account.AccessLevel = accessLevel;
+            UpdateAccount(account);
         }
 
-        public async Task<Account> GetAccountByName(string accountName)
+        public void UpdateAccount(Account account)
         {
-            var result = await SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, accountName);
-
-            uint id = result.Read<uint>(0, "id");
-            string name = result.Read<string>(0, "account");
-            uint accessLevel = result.Read<uint>(0, "accesslevel");
-            string password = result.Read<string>(0, "password");
-            string salt = result.Read<string>(0, "salt");
-
-            Account account = new Account(id, name, (AccessLevel)accessLevel, salt, password);
-            return account;
+            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), account);
         }
 
+        public Account GetAccountById(uint accountId)
+        {
+            Account ret = new Account();
+            var criteria = new Dictionary<string, object> { { "accountId", accountId } };
+            bool success = ExecuteConstructedGetStatement(AuthenticationPreparedStatement.AccountSelect, typeof(Account), criteria, ret);
+            return ret;
+        }
+
+        public Account GetAccountByName(string accountName)
+        {
+            AccountByName ret = new AccountByName();
+            var criteria = new Dictionary<string, object> { { "accountName", accountName } };
+            bool success = ExecuteConstructedGetStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), criteria, ret);
+
+            if (success)
+            {
+                return GetAccountById(ret.AccountId);
+            }
+
+            return null;
+        }
+        
         public void GetAccountIdByName(string accountName, out uint id)
         {
-            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountSelect, accountName);
-            Debug.Assert(result != null, "Invalid prepared statement value.");
-
-            id = result.Read<uint>(0, "id");
+            AccountByName ret = new AccountByName();
+            var criteria = new Dictionary<string, object> { { "accountName", accountName } };
+            ExecuteConstructedGetStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), criteria, ret);
+            id = ret.AccountId;
         }
     }
 }

@@ -47,9 +47,8 @@ namespace ACE.Web
             // This is similar to the RememberMe option when you log in.
             // app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
 
-            GithubConfig githubConfig = GithubConfig.Load();
-
-            app.UseGitHubAuthentication(githubConfig.GithubClientId, githubConfig.GithubClientSecret);
+            // GithubConfig githubConfig = GithubConfig.Load();
+            // app.UseGitHubAuthentication(githubConfig.GithubClientId, githubConfig.GithubClientSecret);
         }
     }
 }

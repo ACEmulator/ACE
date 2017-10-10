@@ -5,95 +5,26 @@ using Newtonsoft.Json;
 
 namespace ACE.Common
 {
-    public struct ConfigServerNetwork
-    {
-        public string Host { get; set; }
-
-        public uint Port { get; set; }
-
-        /// <summary>
-        /// Increasing this setting will allow more Accounts to connect with this server.
-        /// </summary>
-        /// <remarks>
-        /// WARNING: Must be greater then 0 to allow users to connect.
-        /// </remarks>
-        [System.ComponentModel.DefaultValue(128)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public uint MaximumAllowedSessions { get; set; }
-
-        /// <summary>
-        /// The amount of seconds until an active session will be declared dead/inactive. Default value is 60 (for 1 minute).
-        /// </summary>
-        [System.ComponentModel.DefaultValue(60)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public uint DefaultSessionTimeout { get; set; }
-    }
-
-    public struct ConfigAccountDefaults
-    {
-        public bool OverrideCharacterPermissions { get; set; }
-
-        public uint DefaultAccessLevel { get; set; }
-    }
-
-    public struct ConfigServer
-    {
-        public string WorldName { get; set; }
-
-        public string Welcome { get; set; }
-
-        public ConfigServerNetwork Network { get; set; }
-
-        public ConfigAccountDefaults Accounts { get; set; }
-
-        public string DatFilesDirectory { get; set; }
-
-        /// <summary>
-        /// The ammount of seconds to wait before turning off the server. Default value is 60 (for 1 minute).
-        /// </summary>
-        [System.ComponentModel.DefaultValue(60)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public uint ShutdownInterval { get; set; }
-    }
-
-    public struct ConfigMySqlDatabase
-    {
-        public string Host { get; set; }
-
-        public uint Port { get; set; }
-
-        public string Database { get; set; }
-
-        public string Username { get; set; }
-
-        public string Password { get; set; }
-    }
-
-    public struct ConfigMySql
-    {
-        public ConfigMySqlDatabase Authentication { get; set; }
-
-        public ConfigMySqlDatabase Shard { get; set; }
-
-        public ConfigMySqlDatabase World { get; set; }
-    }
-
-    public struct Config
-    {
-        public ConfigServer Server { get; set; }
-
-        public ConfigMySql MySql { get; set; }
-    }
-
     public static class ConfigManager
     {
-        public static Config Config { get; private set; }
+        public static MasterConfiguration Config { get; private set; }
 
-        public static void Initialize()
+        /// <summary>
+        /// initializes from a preloaded configuration
+        /// </summary>
+        public static void Initialize(MasterConfiguration configuration)
+        {
+            Config = configuration;
+        }
+
+        /// <summary>
+        /// initializes from a config.json file specified by the path
+        /// </summary>
+        public static void Initialize(string path = @"Config.json")
         {
             try
             {
-                Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@"Config.json"));
+                Config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText(path));
             }
             catch (Exception exception)
             {

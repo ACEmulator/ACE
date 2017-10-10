@@ -11,10 +11,12 @@ namespace ACE.Database
 
         void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel);
 
-        Task<Account> GetAccountByName(string accountName);
+        Account GetAccountByName(string accountName);
 
-        uint GetMaxId();
+        Account GetAccountById(uint accountId);
 
         void GetAccountIdByName(string accountName, out uint id);
+
+        void UpdateAccount(Account account);
     }
 }

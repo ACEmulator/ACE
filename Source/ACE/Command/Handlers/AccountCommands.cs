@@ -19,10 +19,11 @@ namespace ACE.Command.Handlers
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
-            uint accountId                  = DatabaseManager.Authentication.GetMaxId() + 1;
-            string account                  = parameters[0].ToLower();
-            string salt                     = SHA2.Hash(SHA2Type.SHA256, Path.GetRandomFileName());
-            string password                 = SHA2.Hash(SHA2Type.SHA256, parameters[1]);
+            Account newAccount = new Account();
+            newAccount.Name = parameters[0].ToLower();
+            newAccount.DisplayName = newAccount.Name; // default to this for command-line created accounts
+            newAccount.SetPassword(parameters[1]);
+            
             AccessLevel accessLevel         = AccessLevel.Player;
             AccessLevel defaultAccessLevel  = (AccessLevel)Common.ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
 
@@ -39,11 +40,19 @@ namespace ACE.Command.Handlers
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
 
-            Account acc = new Account(accountId, account, accessLevel, salt, password);
+            newAccount.AccessLevel = accessLevel;
+            DatabaseManager.Authentication.CreateAccount(newAccount);
 
-            DatabaseManager.Authentication.CreateAccount(acc);
+            Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+        }
 
-            Console.WriteLine("Account successfully created for " + account + " with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+        [CommandHandler("accountget", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1,
+            "Gets an account.",
+            "username")]
+        public static void HandleAccountGet(Session session, params string[] parameters)
+        {
+            var account = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
+            Console.WriteLine($"User: {account.Name}, ID: {account.AccountId}");
         }
 
         // set-accountaccess accountname (accesslevel)

@@ -64,6 +64,7 @@
     <Compile Include="AbilityRegenAttribute.cs" />
     <Compile Include="AbilityVitalAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AccountByName.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
     <Compile Include="AceObjectPropertiesSpellBarPositions.cs" />
