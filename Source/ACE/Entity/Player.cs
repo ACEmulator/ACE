@@ -51,16 +51,6 @@ namespace ACE.Entity
         private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
         /// <summary>
-        /// Used to store money during a transaction in progress.
-        /// </summary>
-        private uint escrowCoin = 0;
-
-        /// <summary>
-        /// Temp Escrowed Objects of vendors / trade / containers.. needed for id / maybe more.
-        /// </summary>
-        private List<WorldObject> escrowWorldObjects = new List<WorldObject>();
-
-        /// <summary>
         /// Amount of times this character has left a portal this session
         /// </summary>
         public uint PortalIndex { get; set; } = 1u;
@@ -1100,7 +1090,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Fired from the client / client is sending us a Buy transaction
+        /// Fired from the client / client is sending us a Buy transaction to vendor
         /// </summary>
         /// <param name="vendorId"></param>
         /// <param name="items"></param>
@@ -1109,52 +1099,32 @@ namespace ACE.Entity
             ActionChain chain = new ActionChain();
             CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
             {
-                (vdr as Vendor).BuyItemsStartTransaction(vendorId, items, this);
+                (vdr as Vendor).BuyValidateTransaction(vendorId, items, this);
             });
             chain.EnqueueChain();
         }
 
-        public void HandleActionBuyStartTransaction(WorldObject vendor, List<WorldObject> purchaselist, uint cost)
-        {
-            new ActionChain(this, () =>
-            {
-                // todo: check inventoy space.
-
-                if (CoinValue - cost > 0)
-                {
-                    // Escrow coin for pending transaction
-                    escrowCoin = cost;
-                    // Send Items to Vendor for processing..
-                    ActionChain vendorchain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
-                    {
-                        (vdr as Vendor).BuyItemsValidateTransaction(this, purchaselist);
-                    });
-                    vendorchain.EnqueueChain();
-                }
-                else
-                {
-                    // todo: You dont have enough money to buy this + check for inventory space.
-                }
-            }).EnqueueChain();
-        }
-
-        public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid)
+        /// <summary>
+        /// Vendor has validated the transactions and sent a list of items for processing.
+        /// </summary>
+        /// <param name="vendor"></param>
+        /// <param name="purchaselist"></param>
+        /// <param name="valid"></param>
+        /// <param name="goldcost"></param>
+        public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid, uint goldcost)
         {
             new ActionChain(this, () =>
             {
                 if (valid)
                 {
-                    if (CoinValue - escrowCoin >= 0)
+                    if (CoinValue - goldcost >= 0)
                     {
                         // this is there the money is spent!
-                        if (SpendCoin(escrowCoin))
+                        if (SpendCoin(goldcost))
                         {
-                            escrowCoin = 0;
                             // todo: handle unique stock items.
                             foreach (WorldObject wo in purchaselist)
                             {
-                                // todo: check for inventory space.
                                 wo.ContainerId = Guid.Full;
                                 wo.Placement = 0;
                                 AddToInventory(wo);
@@ -1164,18 +1134,15 @@ namespace ACE.Entity
                         }
                     }
                     else
-                    {
-                        escrowCoin = 0;
                         valid = false;
-                    }
                 }
                 else
                 {
                     // vendor said no go!
-                    escrowCoin = 0;
                     valid = false;
                 }
 
+                // send items back to vendor with result
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
                 {
@@ -1186,7 +1153,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Client Calls this when buy is clicked.
+        /// Client Calls this when Sell is clicked.
         /// </summary>
         /// <param name="items"></param>
         /// <param name="vendorId"></param>
@@ -1196,7 +1163,7 @@ namespace ACE.Entity
             {
                 List<WorldObject> purchaselist = new List<WorldObject>();
                 // Player is selling items..
-                // check players inventory for items..
+                // check players inventory for items and move items to purchase list.
                 foreach (ItemProfile item in items)
                 {
                     // check to see if item is in players inventory.
@@ -1205,45 +1172,11 @@ namespace ACE.Entity
                         purchaselist.Add(wo);          
                 }
 
-                // Send Items to sale to Vendor for processing..
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
-                {
-                    (vdr as Vendor).SellItemsStartTransaction(purchaselist, this);
-                });
-                vendorchain.EnqueueChain();
-            }).EnqueueChain();
-        }
-
-        public void HandleActionSellStartTransaction(List<WorldObject> items, ObjectGuid vendorId)
-        {
-            new ActionChain(this, () =>
-            {
-                // validate all items are in inventory
-                bool trust = true;
-                foreach (WorldObject item in items)
-                {
-                    if (GetInventoryItem(item.Guid) == null)
-                        trust = false;
-                }
-
-                if (trust)
-                {
-                    escrowWorldObjects.Clear();
-                    foreach (WorldObject item in items)
-                    {
-                        // check to see if item is in players inventory.
-                        WorldObject wo = GetInventoryItem(item.Guid);
-                        DestroyInventoryItem(wo);
-                        escrowWorldObjects.Add(wo);
-                    }
-                }
-
                 // Send Items to Vendor for processing..
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
                 {
-                    (vdr as Vendor).SellItemsValidateTransaction(this, escrowWorldObjects);
+                    (vdr as Vendor).SellItemsValidateTransaction(this, purchaselist);
                 });
                 vendorchain.EnqueueChain();
             }).EnqueueChain();
@@ -1253,28 +1186,30 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
+                // make sure player has all items in their inventory
+                foreach (WorldObject item in purchaselist)
+                {
+                    if (GetInventoryItem(item.Guid) == null)
+                        valid = false;
+                }
+
                 if (valid)
                 {
                     // payout..
                     AddCoin(payout);
-
-                    // todo: need to remove objects players clothes, armor, etc appearence
-
-                    // Send Items to Vendor for Final processing..
-                    ActionChain vendorchain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
-                    {
-                        (vdr as Vendor).SellItemsFinalTransaction(this, purchaselist);
-                    });
-                    vendorchain.EnqueueChain();
                 }
-                else
+
+                // Send Items to Vendor for Final processing..
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
                 {
-                    // todo: handle canceled transaction
-                }
+                    (vdr as Vendor).SellItemsFinalTransaction(this, purchaselist, valid);
+                });
+                vendorchain.EnqueueChain();
             }).EnqueueChain();
         }
 #endregion
+
         public void HandleAddToInventory(WorldObject wo)
         {
             new ActionChain(this, () =>

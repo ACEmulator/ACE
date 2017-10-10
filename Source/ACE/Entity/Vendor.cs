@@ -18,11 +18,9 @@ namespace ACE.Entity
     /// ** Usage Data Flow **
     ///     HandleActionApproachVendor
     /// ** Buy Data Flow **
-    /// Player.HandleActionBuy->Vendor.BuyItemsStartTransaction->Player.HandleActionBuyStartTransaction
-    /// ->Vendor.BuyItemsValidateTransaction->Player.HandleActionBuyFinalTransaction->Vendor.BuyItemsFinalTransaction
+    /// Player.HandleActionBuy->Vendor.BuyItemsValidateTransaction->Player.HandleActionBuyFinalTransaction->Vendor.BuyItemsFinalTransaction
     /// ** Sell Data Flow **
-    /// Player.HandleActionSell->Vendor.SellItemsStartTransaction->Player.HandleActionSellStartTransaction
-    /// ->Vendor.SellItemsValidateTransaction->Player.HandleActionSellFinalTransaction->Vendor.SellItemsFinalTransaction
+    /// Player.HandleActionSell->Vendor.SellItemsValidateTransaction->Player.HandleActionSellFinalTransaction->Vendor.SellItemsFinalTransaction
     /// </summary>
     public class Vendor : WorldObject
     {
@@ -88,7 +86,7 @@ namespace ACE.Entity
             if (!inventoryloaded)
             {
                 List<VendorItems> items = new List<VendorItems>();
-                items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId);
+                items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId, DestinationType.Shop);
                 foreach (VendorItems item in items)
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -124,11 +122,12 @@ namespace ACE.Entity
 
         /// <summary>
         /// Player has started a buy transaction
+        /// Create objects, send object to player for final validation.
         /// </summary>
         /// <param name="vendorid">GUID of Vendor</param>
         /// <param name="items">Item Profile, Ammount and ID</param>
         /// <param name="player"></param>
-        public void BuyItemsStartTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void BuyValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
             // que transactions.
             List<ItemProfile> filteredlist = new List<ItemProfile>();
@@ -190,29 +189,21 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        // single item with no stack options.
-                        fitem.Amount = 0;
-                        wo.StackSize = null;
-                        goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) + 0.1);
-                        purchaselist.Add(wo);
+                        // if there multiple items of the same  type.. 
+                        if (fitem.Amount > 0)
+                        {
+                            // single item with no stack options. 
+                            fitem.Amount = fitem.Amount - 1;
+                            wo.StackSize = null;
+                            goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) + 0.1);
+                            purchaselist.Add(wo);
+                        }
                     }
                 }
             }
             
             // send transaction to player for further processing and.
-            player.HandleActionBuyStartTransaction(this, purchaselist, goldcost);
-        }
-
-        /// <summary>
-        /// Items have been purchased from vendor by player but we need to validate it.
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="items"></param>
-        public void BuyItemsValidateTransaction(Player player, List<WorldObject> items)
-        {
-            // todo: add logic for temp stock items.
-            // remove items, if transaction fails then move temp stock items back into temp stock
-            player.HandleActionBuyFinalTransaction(this, items, true);
+            player.HandleActionSellFinalTransaction(this, purchaselist, true, goldcost);
         }
 
         /// <summary>
@@ -243,11 +234,6 @@ namespace ACE.Entity
         #endregion
 
         #region Sell Transactions
-        public void SellItemsStartTransaction(List<WorldObject> items, Player player)
-        {
-            // todo: filter out items vendor does not purchase.
-            player.HandleActionSellStartTransaction(items, Guid);
-        }
 
         public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
         {
@@ -263,7 +249,7 @@ namespace ACE.Entity
             player.HandleActionSellFinalTransaction(this, items, true, payout);
         }
 
-        public void SellItemsFinalTransaction(Player player, List<WorldObject> items)
+        public void SellItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
         {
             // todo Add logic to add unique items to vendor list.
             List<WorldObject> vendorlist = new List<WorldObject>();

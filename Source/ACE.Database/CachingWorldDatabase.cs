@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Entity;
 using System.Collections.Concurrent;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
@@ -73,9 +74,9 @@ namespace ACE.Database
             return _wrappedDatabase.GetAllRecipes();
         }
 
-        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId)
+        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId, DestinationType desType)
         {
-            return _wrappedDatabase.GetVendorWeenieInventoryById(aceObjectId);
+            return _wrappedDatabase.GetVendorWeenieInventoryById(aceObjectId, desType);
         }
     }
 }
