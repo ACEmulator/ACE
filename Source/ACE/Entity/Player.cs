@@ -1197,6 +1197,11 @@ namespace ACE.Entity
                 {
                     // payout..
                     AddCoin(payout);
+
+                    foreach (WorldObject item in purchaselist)
+                    {
+                        DestroyInventoryItem(item);
+                    }
                 }
 
                 // Send Items to Vendor for Final processing..

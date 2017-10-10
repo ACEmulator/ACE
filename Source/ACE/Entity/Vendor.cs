@@ -203,7 +203,7 @@ namespace ACE.Entity
             }
             
             // send transaction to player for further processing and.
-            player.HandleActionSellFinalTransaction(this, purchaselist, true, goldcost);
+            player.HandleActionBuyFinalTransaction(this, purchaselist, true, goldcost);
         }
 
         /// <summary>
