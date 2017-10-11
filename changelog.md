@@ -1,9 +1,9 @@
 # ACEmulator Change Log
-### 2017-10-10
+### 2017-10-11
 [StackOverflow]
-* Unique Vendor Items Basic Working
-[StackOverflow]
-* Vendor Improvements / Filtering.
+* Added support for unique Vendor Items.
+* Added a new Debug Cmd, @setcoin value for testing purposes.
+* Major Vendor Code refractor, vendor now only load items for sale and not items they should be wielding.
 
 ### 2017-10-06
 [Immortalbob]
