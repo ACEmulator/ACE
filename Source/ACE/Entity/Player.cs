@@ -1075,16 +1075,9 @@ namespace ACE.Entity
 
         #region VendorTransactions
 
-        public void HandleActionVendorTransferItem(List<ObjectGuid> itemGuids, ObjectGuid vendorId)
-        {
-
-        }
-
         /// <summary>
         /// Sends updated network packets to client / vendor item list.
         /// </summary>
-        /// <param name="vendor"></param>
-        /// <param name="itemsForSale"></param>
         public void HandleActionApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
         {
             new ActionChain(this, () =>
