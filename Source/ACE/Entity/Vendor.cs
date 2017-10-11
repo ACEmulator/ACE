@@ -102,8 +102,11 @@ namespace ACE.Entity
             }
         }
 
-        // todo add unique items in here somehow..
-        // todo: alternate path for purchasing actual items, not just weenie-based items (like spell comps)
+        /// <summary>
+        /// Used to convert Weenie based objects / not used for unique items
+        /// </summary>
+        /// <param name="itemprofile"></param>
+        /// <returns></returns>
         private List<WorldObject> ItemProfileToWorldObjects(ItemProfile itemprofile)
         {
             List<WorldObject> worldobjects = new List<WorldObject>();
@@ -190,13 +193,14 @@ namespace ACE.Entity
                     item.WeenieClassId = defaultItemsForSale[item.Guid].WeenieClassId;
                     filteredlist.Add(item);
                 }
-                // check unique items / add unique items to list
+                // check unique items / add unique items to purchaselist / remove from vendor list
                 if (uniqueItemsForSale.ContainsKey(item.Guid))
                 {
                     WorldObject wo;
                     if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
                     {
                         purchaselist.Add(wo);
+                        uniqueItemsForSale.Remove(wo.Guid);
                     }
                 }
             }
@@ -225,24 +229,14 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void BuyItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
         {
-            if (valid) // remove unique temp stock items.
-            {
-                foreach (WorldObject wo in items)
-                {
-                    if (uniqueItemsForSale.ContainsKey(wo.Guid))
-                        uniqueItemsForSale.Remove(wo.Guid);
-                }
-            }
-            else // re-add unique temp stock items on failed transaction.
+            if (!valid) // re-add unique temp stock items.
             {
                 foreach (WorldObject wo in items)
                 {
                     if (!defaultItemsForSale.ContainsKey(wo.Guid))
-                        if (uniqueItemsForSale.ContainsKey(wo.Guid))
-                            uniqueItemsForSale.Remove(wo.Guid);
+                        uniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
-
             ApproachVendor(player);
         }
         #endregion
@@ -251,33 +245,32 @@ namespace ACE.Entity
 
         public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
         {
-            // todo: calculate payment based on multipliers correctly
+            // todo: filter rejected / accepted send item spec result back to player
             uint payout = 0;
 
             foreach (WorldObject wo in items)
             {
                 // payout scaled by the vendor's buy rate
                 payout = payout + (uint)Math.Floor(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
+
+                if (!defaultItemsForSale.ContainsKey(wo.Guid))
+                {
+                    wo.Location = null;
+                    wo.ContainerId = Guid.Full;
+                    wo.Placement = null;
+                    wo.WielderId = null;
+                    wo.CurrentWieldedLocation = null;
+                    // TODO: create enum for this once we understand this better.
+                    // This is needed to make items lay flat on the ground.
+                    wo.AnimationFrame = 0x65;
+                    uniqueItemsForSale.Add(wo.Guid, wo);
+                }
             }
 
+            ApproachVendor(player);
             player.HandleActionSellFinalTransaction(this, true, items, payout);
         }
 
-        public void SellItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
-        {
-            if (valid)
-            {
-                foreach (WorldObject wo in items)
-                {
-                    if (!defaultItemsForSale.ContainsKey(wo.Guid))
-                    {
-                        wo.ContainerId = Guid.Full;
-                        uniqueItemsForSale.Add(wo.Guid, wo);
-                    }                
-                }
-            }
-            ApproachVendor(player);
-        }
         #endregion
     }
 }

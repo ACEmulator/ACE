@@ -1077,54 +1077,7 @@ namespace ACE.Entity
 
         public void HandleActionVendorTransferItem(List<ObjectGuid> itemGuids, ObjectGuid vendorId)
         {
-            ActionChain chain = new ActionChain();
 
-            chain.AddAction(this, () =>
-            {
-                List<WorldObject> purchaselist = new List<WorldObject>();
-                foreach (ObjectGuid itemGuid in itemGuids)
-                {
-                    WorldObject item = GetInventoryItem(itemGuid);
-                    if (item == null)
-                    {
-                        // check to see if this item is wielded
-                        if (!WieldedObjects.TryGetValue(itemGuid, out item))
-                            return;
-                        RemoveFromWieldedObjects(itemGuid);
-                        UpdateAppearance(this);
-                        ObjectGuid clearWielder = new ObjectGuid(0);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
-                    }
-                    else
-                    {
-                        RemoveFromInventory(InventoryObjects, itemGuid);
-                    }
-
-                    // SetInventoryForWorld(item);
-
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
-                    ObjectGuid clearContainer = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
-
-                    // clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-
-                    purchaselist.Add(item);
-                }
-
-                // Send Items to Vendor for processing.. 
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
-                {
-                    (vdr as Vendor).SellItemsValidateTransaction(this, purchaselist);
-                });
-                vendorchain.EnqueueChain();
-            });
-            chain.EnqueueChain();
         }
 
         /// <summary>
@@ -1167,40 +1120,37 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
+                // vendor accepted the transaction
                 if (valid)
                 {
-                    if (CoinValue - goldcost >= 0)
-                    {
-                        // this is where the money is spent!
-                        if (SpendCoin(goldcost))
+                    if (SpendCoin(goldcost))
+                    {  // player is has enough cash to buy items
+                        foreach (WorldObject wo in purchaselist)
                         {
-                            // todo: handle unique stock items.
-                            foreach (WorldObject wo in purchaselist)
-                            {
-                                wo.ContainerId = Guid.Full;
-                                wo.Placement = 0;
-                                AddToInventory(wo);
-                                TrackObject(wo);
-                                UpdatePlayerBurden();
-                            }
+                            wo.ContainerId = Guid.Full;
+                            wo.Placement = 0;
+                            AddToInventory(wo);
+                            TrackObject(wo);
+                            UpdatePlayerBurden();
                         }
                     }
-                    else
-                        valid = false;
-                }
-                else
-                {
-                    // vendor said no go!
+                    // not enough cash.
                     valid = false;
                 }
+                else
+                    // vendor said no..
+                    valid = false;
 
-                // send items back to vendor with result
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                // send items back to vendor the transaction failed
+                if (!valid)
                 {
-                    (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
-                });
-                vendorchain.EnqueueChain();
+                    ActionChain vendorchain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                    {
+                        (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
+                    });
+                    vendorchain.EnqueueChain();
+                }
             }).EnqueueChain();
         }
 
@@ -1209,18 +1159,54 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="items"></param>
         /// <param name="vendorId"></param>
-        public void HandleActionSell(List<ItemProfile> items, ObjectGuid vendorId)
+        public void HandleActionSell(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
         {
-            new ActionChain(this, () =>
+            ActionChain chain = new ActionChain();
+
+            chain.AddAction(this, () =>
             {
-                List<ObjectGuid> objectGuids = new List<ObjectGuid>();
-                foreach (ItemProfile item in items)
+                List<WorldObject> purchaselist = new List<WorldObject>();
+                foreach (ItemProfile profile in itemprofiles)
                 {
-                    objectGuids.Add(item.Guid);
+                    WorldObject item = GetInventoryItem(profile.Guid);
+                    if (item == null)
+                    {
+                        // check to see if this item is wielded
+                        if (!WieldedObjects.TryGetValue(profile.Guid, out item))
+                            return;
+                        RemoveFromWieldedObjects(profile.Guid);
+                        UpdateAppearance(this);
+                        ObjectGuid clearWielder = new ObjectGuid(0);
+                        Session.Network.EnqueueSend(
+                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    }
+                    else
+                    {
+                        RemoveFromInventory(InventoryObjects, profile.Guid);
+                    }
+
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+                    ObjectGuid clearContainer = new ObjectGuid(0);
+                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, clearContainer, PropertyInstanceId.Container));
+
+                    // clean up the shard database.
+                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+
+                    purchaselist.Add(item);
                 }
-                // sends items to vendor effectivly gone until vendor says done.s
-                HandleActionVendorTransferItem(objectGuids, vendorId);
-            }).EnqueueChain();
+
+                // Send Items to Vendor for processing.. 
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).SellItemsValidateTransaction(this, purchaselist);
+                });
+                vendorchain.EnqueueChain();
+            });
+            chain.EnqueueChain();
         }
 
         public void HandleActionSellFinalTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
@@ -1229,14 +1215,6 @@ namespace ACE.Entity
             {
                 if (valid)
                     AddCoin(payout);
-
-                // Send Items to Vendor for Final processing..
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
-                {
-                    (vdr as Vendor).SellItemsFinalTransaction(this, purchaselist, valid);
-                });
-                vendorchain.EnqueueChain();
             }).EnqueueChain();
         }
 #endregion
