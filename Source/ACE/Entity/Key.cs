@@ -48,7 +48,6 @@ namespace ACE.Entity
                         {
                             case Entity.Door.UnlockDoorResults.UnlockSuccess:
                                 Structure--;
-                                uint objectGuid = this.Guid.Full;
                                 SendPartialUpdates(player.Session, _updateStructure);
                                 if (Structure < 1)
                                 {
@@ -75,7 +74,7 @@ namespace ACE.Entity
                     }
                     else if (target.WeenieType == WeenieType.Chest)
                     {
-                        var message = new GameMessageSystemChat($"Unlocking {target.Name} has not been implemented, yet!}.", ChatMessageType.System);
+                        var message = new GameMessageSystemChat($"Unlocking {target.Name} has not been implemented, yet!", ChatMessageType.System);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
                     }
                     else
