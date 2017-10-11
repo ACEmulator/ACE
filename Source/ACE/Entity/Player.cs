@@ -1134,16 +1134,13 @@ namespace ACE.Entity
                     // vendor said no..
                     valid = false;
 
-                // send items back to vendor the transaction failed
-                if (!valid)
-                {
+                    // send results back to vendor the transaction failed
                     ActionChain vendorchain = new ActionChain();
                     CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
                     {
                         (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
                     });
                     vendorchain.EnqueueChain();
-                }
             }).EnqueueChain();
         }
 
