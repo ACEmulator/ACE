@@ -44,6 +44,8 @@ namespace ACE.Entity
 
         protected internal Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; set; }
 
+        protected internal Dictionary<ObjectGuid, WorldObject> ContainerObjects { get; set; } = new Dictionary<ObjectGuid, WorldObject>();
+
         protected internal Dictionary<ObjectGuid, AceObject> Inventory
         {
             get { return AceObject.Inventory; }

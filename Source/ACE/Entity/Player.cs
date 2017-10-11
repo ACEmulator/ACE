@@ -437,7 +437,7 @@ namespace ACE.Entity
             AddCharacterBaseModelData();
 
             UpdateAppearance(this);
-            Burden = UpdateBurden();
+            ////Burden = UpdateBurden();
 
             // Save the the LoginTimestamp
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
@@ -1148,20 +1148,20 @@ namespace ACE.Entity
                     if (CoinValue - escrowCoin >= 0)
                     {
                         // this is there the money is spent!
-                        if (SpendCoin(escrowCoin))
-                        {
-                            escrowCoin = 0;
-                            // todo: handle unique stock items.
-                            foreach (WorldObject wo in purchaselist)
-                            {
-                                // todo: check for inventory space.
-                                wo.ContainerId = Guid.Full;
-                                wo.Placement = 0;
-                                AddToInventory(wo);
-                                TrackObject(wo);
-                                UpdatePlayerBurden();
-                            }
-                        }
+                        ////if (SpendCoin(escrowCoin))
+                        ////{
+                        ////    escrowCoin = 0;
+                        ////    // todo: handle unique stock items.
+                        ////    foreach (WorldObject wo in purchaselist)
+                        ////    {
+                        ////        // todo: check for inventory space.
+                        ////        wo.ContainerId = Guid.Full;
+                        ////        wo.Placement = 0;
+                        ////        AddToInventory(wo);
+                        ////        TrackObject(wo);
+                        ////        ////UpdatePlayerBurden();
+                        ////    }
+                        ////}
                     }
                     else
                     {
@@ -1256,7 +1256,7 @@ namespace ACE.Entity
                 if (valid)
                 {
                     // payout..
-                    AddCoin(payout);
+                    ////AddCoin(payout);
 
                     // todo: need to remove objects players clothes, armor, etc appearence
 
@@ -1281,7 +1281,7 @@ namespace ACE.Entity
             {
                 AddToInventory(wo);
                 TrackObject(wo);
-                UpdatePlayerBurden();
+                ////UpdatePlayerBurden();
             }).EnqueueChain();
         }
 
@@ -1297,7 +1297,7 @@ namespace ACE.Entity
             wo.Placement = 0;
             AddToInventory(wo);
             TrackObject(wo);
-            UpdatePlayerBurden();
+            ////UpdatePlayerBurden();
 
             return wo;
         }
@@ -1772,14 +1772,14 @@ namespace ACE.Entity
             }
         }
 
-        public void UpdatePlayerBurden()
-        {
-            Session.Player.Burden = UpdateBurden();
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(
-                                            Session.Player.Sequences,
-                                            PropertyInt.EncumbranceVal,
-                                            Session.Player.Burden ?? 0u));
-        }
+        ////public void UpdatePlayerBurden()
+        ////{
+        ////    Session.Player.Burden = UpdateBurden();
+        ////    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(
+        ////                                    Session.Player.Sequences,
+        ////                                    PropertyInt.EncumbranceVal,
+        ////                                    Session.Player.Burden ?? 0u));
+        ////}
 
         /// <summary>
         /// Tracks Interacive world object you are have interacted with recently.  this should be
@@ -2181,7 +2181,19 @@ namespace ACE.Entity
         /// <param name="currentWieldedLocation">What wield location are we going into</param>
         private void AddToWieldedObjects(ref WorldObject item, WorldObject wielder, EquipMask currentWieldedLocation)
         {
-            RemoveFromInventory(InventoryObjects, item.Guid);
+            ////RemoveFromInventory(InventoryObjects, item.Guid);
+
+            ////Container pack;
+            ////if (item != null && containerGuid != ObjectGuid.Invalid)
+            ////{
+            ////    ////RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+            ////    ////ContainerObjects.TryGetValue(containerGuid, out pack);
+            ////    pack = (Container)GetInventoryItem(containerGuid);
+
+            ////    ////pack.RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+            ////    RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+            ////}
+
             // Unset container fields
             item.Placement = null;
             item.ContainerId = null;
@@ -2190,7 +2202,11 @@ namespace ACE.Entity
             item.CurrentWieldedLocation = currentWieldedLocation;
 
             if (!wielder.WieldedObjects.ContainsKey(item.Guid))
+            {
                 wielder.WieldedObjects.Add(item.Guid, item);
+
+                Burden += item.Burden;
+            }
         }
 
         /// <summary>
@@ -2201,7 +2217,10 @@ namespace ACE.Entity
         private void RemoveFromWieldedObjects(ObjectGuid itemGuid)
         {
             if (WieldedObjects.ContainsKey(itemGuid))
+            {
+                Burden -= WieldedObjects[itemGuid].Burden;
                 WieldedObjects.Remove(itemGuid);
+            }
         }
 
         /// <summary>
@@ -2272,7 +2291,13 @@ namespace ACE.Entity
 
             inContainerChain.AddAction(this, () =>
             {
-                AddToInventory(item, placement);
+                if (container.Guid != Guid)
+                {
+                    container.AddToInventory(item, placement);
+                    Burden += item.Burden;
+                }
+                else
+                    AddToInventory(item, placement);
             });
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
@@ -2316,6 +2341,12 @@ namespace ACE.Entity
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
             container.AddToInventory(item, placement);
+            if (item.ContainerId != Guid.Full)
+            {
+                Burden += item.Burden ?? 0;
+                if (item.WeenieType == WeenieType.Coin)
+                    CoinValue += item.Value ?? 0;
+            }
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                 new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
@@ -2459,6 +2490,30 @@ namespace ACE.Entity
                 // If success, the item is in our inventory:
                 WorldObject item = GetInventoryItem(itemGuid);
 
+                if (item.ContainerId != Guid.Full)
+                {
+                    Burden += item.Burden ?? 0;
+
+                    if (item.WeenieType == WeenieType.Coin)
+                    {
+                        CoinValue += item.Value ?? 0;
+                    }
+                }
+
+                if (item.WeenieType == WeenieType.Container)
+                {
+                    ////Session.Network.EnqueueSend(
+                    ////        ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
+                    ////        new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                    ////        new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
+                    ////        new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, item.SnapShotOfAceObject()));
+                    foreach (var packItem in item.InventoryObjects)
+                    {
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                    }
+                }
+
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
@@ -2468,7 +2523,7 @@ namespace ACE.Entity
                     if (iidPropertyId == PropertyInstanceId.Container)
                     {
                         Session.Network.EnqueueSend(
-                            new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
+                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
                             new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
@@ -2649,9 +2704,39 @@ namespace ACE.Entity
                 {
                     ObjectGuid itemGuid = new ObjectGuid(itemId);
                     WorldObject item = GetInventoryItem(itemGuid);
+                    WorldObject packItem;
 
                     if (item != null)
                     {
+                        ObjectGuid containerGuid = ObjectGuid.Invalid;
+                        var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                        foreach (var subpack in containers)
+                        {
+                            if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
+                            {
+                                containerGuid = subpack.Value.Guid;
+                                break;
+                            }
+                        }
+
+                        Container pack;
+                        ////ContainerObjects.TryGetValue(containerGuid, out pack);
+                        if (item != null && containerGuid != ObjectGuid.Invalid)
+                        {
+                            ////RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                            ////ContainerObjects.TryGetValue(containerGuid, out pack);
+                            pack = (Container)GetInventoryItem(containerGuid);
+
+                            ////pack.RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                            RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                            ////Burden -= item.Burden;
+                        }
+                        else
+                        {
+                            if (item != null)
+                                RemoveFromInventory(InventoryObjects, itemGuid);
+                        }
+
                         AddToWieldedObjects(ref item, container, (EquipMask)placement);
 
                         if ((EquipMask)placement == EquipMask.MissileAmmo)
@@ -2762,31 +2847,31 @@ namespace ACE.Entity
         {
             RemoveFromInventory(InventoryObjects, wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+            ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
 
-        private bool SpendCoin(uint value)
-        {
-            if (coinValue - value <= 0)
-                return false;
-            else
-            {
-                coinValue = coinValue - value;
-                SetCoin(coinValue);
-                return true;
-            }
-        }
+        ////private bool SpendCoin(uint value)
+        ////{
+        ////    if (coinValue - value <= 0)
+        ////        return false;
+        ////    else
+        ////    {
+        ////        coinValue = coinValue - value;
+        ////        SetCoin(coinValue);
+        ////        return true;
+        ////    }
+        ////}
 
-        public void AddCoin(uint value)
-        {
-            coinValue = coinValue + value;
-            SetCoin(coinValue);
-        }
+        ////public void AddCoin(uint value)
+        ////{
+        ////    coinValue = coinValue + value;
+        ////    SetCoin(coinValue);
+        ////}
 
-        private void SetCoin(uint value)
-        {
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
-        }
+        ////private void SetCoin(uint value)
+        ////{
+        ////    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
+        ////}
 
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
@@ -2800,23 +2885,80 @@ namespace ACE.Entity
                 if (item == null)
                 {
                     // check to see if this item is wielded
-                    if (!WieldedObjects.TryGetValue(itemGuid, out item))
-                        return;
-                    RemoveFromWieldedObjects(itemGuid);
-                    UpdateAppearance(this);
-                    ObjectGuid clearWielder = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(
-                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                        new GameMessageObjDescEvent(this),
-                        new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    ////if (!WieldedObjects.TryGetValue(itemGuid, out item))
+                    ////    return;
+                    ////RemoveFromWieldedObjects(itemGuid);
+                    ////UpdateAppearance(this);
+                    ////ObjectGuid clearWielder = new ObjectGuid(0);
+                    ////Session.Network.EnqueueSend(
+                    ////    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                    ////    new GameMessageObjDescEvent(this),
+                    ////    new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    WieldedObjects.TryGetValue(itemGuid, out item);
+                    if (item != null)
+                    {
+                        RemoveFromWieldedObjects(itemGuid);
+                        UpdateAppearance(this);
+                        ObjectGuid clearWielder = new ObjectGuid(0);
+                        Session.Network.EnqueueSend(
+                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    }
+                    ////else
+                    ////{
+                    ////    ////WorldObject item = null;
+                    ////    ObjectGuid containerGuid = ObjectGuid.Invalid;
+                    ////    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                    ////    foreach (var container in containers)
+                    ////    {
+                    ////        if (container.Value.InventoryObjects.TryGetValue(itemGuid, out item))
+                    ////        {
+                    ////            containerGuid = container.Value.Guid;
+                    ////            break;
+                    ////        }
+                    ////    }
+
+                    ////    if (item != null && containerGuid != ObjectGuid.Invalid)
+                    ////        RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                    ////}
                 }
                 else
                 {
-                    RemoveFromInventory(InventoryObjects, itemGuid);
+                    ////RemoveFromInventory(InventoryObjects, itemGuid);
+                    ////WorldObject item = null;
+                    ObjectGuid containerGuid = ObjectGuid.Invalid;
+                    WorldObject packItem;
+                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                    foreach (var container in containers)
+                    {
+                        if (container.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
+                        {
+                            containerGuid = container.Value.Guid;
+                            break;
+                        }
+                    }
+
+                    Container pack;
+                    ////ContainerObjects.TryGetValue(containerGuid, out pack);
+                    if (item != null && containerGuid != ObjectGuid.Invalid)
+                    {
+                        ////RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                        ////ContainerObjects.TryGetValue(containerGuid, out pack);
+                        pack = (Container)GetInventoryItem(containerGuid);
+
+                        ////pack.RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                        RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                    }
+                    else
+                    {
+                        if (item != null)
+                            RemoveFromInventory(InventoryObjects, itemGuid);
+                    }
                 }
 
                 SetInventoryForWorld(item);
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+                ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
 
                 UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
@@ -3302,6 +3444,29 @@ namespace ACE.Entity
                         Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
                 }
             }
+        }
+
+        private ushort burden = 0;
+        public override ushort? Burden
+        {
+            get { return burden; }
+            set
+            {
+                if (value != burden)
+                {
+                    base.Burden = value;
+                    burden = (ushort)value;
+                    if (FirstEnterWorldDone)
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, burden));
+                }
+            }
+        }
+
+        private uint value = 0;
+        public override uint? Value
+        {
+            get { return value; }
+            set { base.Value = 0; }
         }
     }
 }
