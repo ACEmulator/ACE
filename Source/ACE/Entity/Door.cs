@@ -274,12 +274,11 @@ namespace ACE.Entity
             if (ResistLockpick == 0)
                 return UnlockDoorResults.CannotBePicked;
 
-            if (!IsLocked)
-                return UnlockDoorResults.AlreadyUnlocked;
-
             if (playerLockpickSkillLvl >= ResistLockpick)
             {
-                // LastUnlocker = 
+                if (!IsLocked)
+                    return UnlockDoorResults.AlreadyUnlocked;
+
                 IsLocked = false;
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
@@ -293,12 +292,11 @@ namespace ACE.Entity
         /// </summary>
         public UnlockDoorResults UnlockDoor(string keyCode)
         {
-            if (!IsLocked)
-                return UnlockDoorResults.AlreadyUnlocked;
-
             if (keyCode == LockCode)
             {
-                // LastUnlocker = 
+                if (!IsLocked)
+                    return UnlockDoorResults.AlreadyUnlocked;
+
                 IsLocked = false;
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
