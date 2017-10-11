@@ -14,7 +14,8 @@ namespace ACE.Entity
             PickLockFailed  = 1,
             IncorrectKey    = 2,
             AlreadyUnlocked = 3,
-            CannotBePicked  = 4
+            CannotBePicked  = 4,
+            DoorOpen        = 5
         }
 
         private static readonly MovementData movementOpen = new MovementData();
@@ -292,6 +293,9 @@ namespace ACE.Entity
         /// </summary>
         public UnlockDoorResults UnlockDoor(string keyCode)
         {
+            if (IsOpen)
+                return UnlockDoorResults.DoorOpen;
+
             if (keyCode == LockCode)
             {
                 if (!IsLocked)

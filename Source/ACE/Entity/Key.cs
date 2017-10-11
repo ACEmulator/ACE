@@ -39,32 +39,49 @@ namespace ACE.Entity
                     player.DoMoveTo(target);
                 else
                 {
-                    Door door = target as Door;
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    Door.UnlockDoorResults results = door.UnlockDoor(KeyCode);
-                    switch (results)
+                    if (target.WeenieType == WeenieType.Door)
                     {
-                        case Entity.Door.UnlockDoorResults.UnlockSuccess:
-                            Structure--;
-                            uint objectGuid = this.Guid.Full;
-                            SendPartialUpdates(player.Session, _updateStructure);
-                            if (Structure < 1)
-                            {
-                                // Remove item from players
-                                player.DestroyInventoryItem(this);
-                                // Clean up the shard database.
-                                DatabaseManager.Shard.DeleteObject(SnapShotOfAceObject(), null);
-                            }
-                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                            break;
-                        case Entity.Door.UnlockDoorResults.AlreadyUnlocked:
-                            var messageAlreadyUnlocked = new GameMessageSystemChat($"The {target.Name} is already unlocked.", ChatMessageType.System);
-                            player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
-                            break;
-                        default:
-                            var message = new GameMessageSystemChat($"The {Name} cannot be used on the {target.Name}.", ChatMessageType.System);
-                            player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
-                            break;
+                        Door door = target as Door;
+                        Door.UnlockDoorResults results = door.UnlockDoor(KeyCode);
+                        switch (results)
+                        {
+                            case Entity.Door.UnlockDoorResults.UnlockSuccess:
+                                Structure--;
+                                uint objectGuid = this.Guid.Full;
+                                SendPartialUpdates(player.Session, _updateStructure);
+                                if (Structure < 1)
+                                {
+                                    // Remove item from players
+                                    player.DestroyInventoryItem(this);
+                                    // Clean up the shard database.
+                                    DatabaseManager.Shard.DeleteObject(SnapShotOfAceObject(), null);
+                                }
+                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                break;
+                            case Entity.Door.UnlockDoorResults.DoorOpen:
+                                var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0481);
+                                player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
+                                break;
+                            case Entity.Door.UnlockDoorResults.AlreadyUnlocked:
+                                var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04B2);
+                                player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
+                                break;
+                            default:
+                                var messageIncorrectKey = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04B2);
+                                player.Session.Network.EnqueueSend(sendUseDoneEvent, messageIncorrectKey);
+                                break;
+                        }
+                    }
+                    else if (target.WeenieType == WeenieType.Chest)
+                    {
+                        var message = new GameMessageSystemChat($"Unlocking {target.Name} has not been implemented, yet!}.", ChatMessageType.System);
+                        player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
+                    }
+                    else
+                    {
+                        var message = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0480);
+                        player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
                     }
                 }
             });
