@@ -8,6 +8,15 @@ namespace ACE.Entity
 {
     public class Door : WorldObject
     {
+        public enum UnlockDoorResults : ushort
+        {
+            UnlockSuccess   = 0,
+            PickLockFailed  = 1,
+            IncorrectKey    = 2,
+            AlreadyUnlocked = 3,
+            CannotBePicked  = 4
+        }
+
         private static readonly MovementData movementOpen = new MovementData();
         private static readonly MovementData movementClosed = new MovementData();
 
@@ -68,8 +77,8 @@ namespace ACE.Entity
 
         private bool IsLocked
         {
-            get;
-            set;
+            get { return AceObject.Locked ?? false; }
+            set { AceObject.Locked = value; }
         }
 
         private bool DefaultLocked
@@ -260,33 +269,42 @@ namespace ACE.Entity
         /// Used for unlocking a door via lockpick, so contains a skill check
         /// player.Skills[Skill.Lockpick].ActiveValue should be sent for the skill check
         /// </summary>
-        public bool UnlockDoor(uint playerLockpickSkillLvl)
+        public UnlockDoorResults UnlockDoor(uint playerLockpickSkillLvl)
         {
+            if (ResistLockpick == 0)
+                return UnlockDoorResults.CannotBePicked;
+
+            if (!IsLocked)
+                return UnlockDoorResults.AlreadyUnlocked;
+
             if (playerLockpickSkillLvl >= ResistLockpick)
             {
                 // LastUnlocker = 
                 IsLocked = false;
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
-                return true;
+                return UnlockDoorResults.UnlockSuccess;
             }
             else
-                return false;
+                return UnlockDoorResults.PickLockFailed;
         }
 
         /// <summary>
         /// Used for unlocking a door via a key
         /// </summary>
-        public bool UnlockDoor(string keyCode)
+        public UnlockDoorResults UnlockDoor(string keyCode)
         {
+            if (!IsLocked)
+                return UnlockDoorResults.AlreadyUnlocked;
+
             if (keyCode == LockCode)
             {
                 // LastUnlocker = 
                 IsLocked = false;
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
-                return true;
+                return UnlockDoorResults.UnlockSuccess;
             }
             else
-                return false;
+                return UnlockDoorResults.IncorrectKey;
         }
     }
 }

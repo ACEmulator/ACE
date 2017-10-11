@@ -1,14 +1,17 @@
-﻿using ACE.Entity.Enum;
+﻿using System.Collections.Generic;
+using ACE.Database;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
-using ACE.Common;
 
 namespace ACE.Entity
 {
     public class Key : WorldObject
     {
+        private static List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
+
         private string KeyCode
         {
             get;
@@ -36,26 +39,33 @@ namespace ACE.Entity
                     player.DoMoveTo(target);
                 else
                 {
-                    if (Structure == 0)
+                    Door door = target as Door;
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    Door.UnlockDoorResults results = door.UnlockDoor(KeyCode);
+                    switch (results)
                     {
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    }
-                    else
-                    {
-                        Door door = target as Door;
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        if (door.UnlockDoor(KeyCode))
-                        {
+                        case Entity.Door.UnlockDoorResults.UnlockSuccess:
                             Structure--;
+                            uint objectGuid = this.Guid.Full;
+                            SendPartialUpdates(player.Session, _updateStructure);
+                            if (Structure < 1)
+                            {
+                                // Remove item from players
+                                player.DestroyInventoryItem(this);
+                                // Clean up the shard database.
+                                DatabaseManager.Shard.DeleteObject(SnapShotOfAceObject(), null);
+                            }
                             player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                        }
-                        else
-                        {
+                            break;
+                        case Entity.Door.UnlockDoorResults.AlreadyUnlocked:
+                            var messageAlreadyUnlocked = new GameMessageSystemChat($"The {target.Name} is already unlocked.", ChatMessageType.System);
+                            player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
+                            break;
+                        default:
                             var message = new GameMessageSystemChat($"The {Name} cannot be used on the {target.Name}.", ChatMessageType.System);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
-                        }
-                   }
+                            break;
+                    }
                 }
             });
             chain.EnqueueChain();
