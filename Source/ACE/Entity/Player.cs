@@ -1127,20 +1127,17 @@ namespace ACE.Entity
                             UpdatePlayerBurden();
                         }
                     }
-                    // not enough cash.
-                    valid = false;
+                    else // not enough cash.
+                        valid = false;
                 }
-                else
-                    // vendor said no..
-                    valid = false;
 
-                    // send results back to vendor the transaction failed
-                    ActionChain vendorchain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
-                    {
-                        (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
-                    });
-                    vendorchain.EnqueueChain();
+                // send results back to vendor the transaction failed
+                ActionChain vendorchain = new ActionChain();
+                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                {
+                    (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
+                });
+                vendorchain.EnqueueChain();
             }).EnqueueChain();
         }
 

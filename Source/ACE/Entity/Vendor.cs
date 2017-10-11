@@ -200,7 +200,7 @@ namespace ACE.Entity
                     if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
                     {
                         purchaselist.Add(wo);
-                        uniqueItemsForSale.Remove(wo.Guid);
+                        uniqueItemsForSale.Remove(item.Guid);
                     }
                 }
             }
