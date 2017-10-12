@@ -1,12 +1,13 @@
 # ACEmulator Change Log
 
-### 2017-10-11
+### 2017-10-12
 [Ripley]
 * Added Burden tracking to Players and Containers.
 * Added CoinValue tracking via objects of WeenieType.Coin to Players and Containers.
 * Added Value tracking to Containers.
 * Commented out areas related to above changes that were not implemented correctly.
 * TODO: Update Value/Burden and track changes as StackSize adjustments occur.
+* TODO FIXME: Vendors code need to be adjusted to work with pyreal objects, not CoinValue direct.
 
 ### 2017-10-11
 [StackOverflow]
