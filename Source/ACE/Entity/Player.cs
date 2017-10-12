@@ -2243,6 +2243,8 @@ namespace ACE.Entity
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                 new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
                     container.Guid));
+
+            Session.SaveSession();
         }
 
         /// <summary>
@@ -2825,6 +2827,7 @@ namespace ACE.Entity
             });
 
                 chain.EnqueueChain();
+                Session.SaveSession();
             });
 
             dropChain.EnqueueChain();
