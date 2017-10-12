@@ -255,7 +255,7 @@ namespace ACE.Entity
                 // payout scaled by the vendor's buy rate
                 payout = payout + (uint)Math.Floor(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
 
-                if (!wo.MaxStackSize.HasValue)
+                if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
                 {
                     wo.Location = null;
                     wo.ContainerId = Guid.Full;
