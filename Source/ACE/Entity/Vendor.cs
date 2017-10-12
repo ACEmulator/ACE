@@ -247,13 +247,15 @@ namespace ACE.Entity
         {
             // todo: filter rejected / accepted send item spec result back to player
             uint payout = 0;
+            List<WorldObject> accepted = new List<WorldObject>();
+            List<WorldObject> rejected = new List<WorldObject>();
 
             foreach (WorldObject wo in items)
             {
                 // payout scaled by the vendor's buy rate
                 payout = payout + (uint)Math.Floor(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
 
-                if (!defaultItemsForSale.ContainsKey(wo.Guid))
+                if (!wo.MaxStackSize.HasValue)
                 {
                     wo.Location = null;
                     wo.ContainerId = Guid.Full;
@@ -265,10 +267,11 @@ namespace ACE.Entity
                     wo.AnimationFrame = 0x65;
                     uniqueItemsForSale.Add(wo.Guid, wo);
                 }
+                accepted.Add(wo);
             }
 
             ApproachVendor(player);
-            player.HandleActionSellFinalTransaction(this, true, items, payout);
+            player.HandleActionSellFinalTransaction(this, true, accepted, payout);
         }
 
         #endregion
