@@ -106,7 +106,7 @@ namespace ACE.Entity
             }
 
             Burden += inventoryItem.Burden;
-            System.Diagnostics.Debug.WriteLine($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
+            log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
 
             Value += inventoryItem.Value;
         }
