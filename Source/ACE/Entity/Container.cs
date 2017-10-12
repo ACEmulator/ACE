@@ -11,25 +11,6 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        ////public override ushort? Burden
-        ////{
-        ////    // FIXME : this is a temp fix, it works, but we need to refactor burden correctly.   It should only be
-        ////    // persisted when burden is actually changed ie via application of salvage.   All burden for containers should be a sum of
-        ////    // burden.  For example a pack is 65 bu.   It should always be 65 bu empty or full.   However we should report burden as below calculation
-        ////    // base burden + burden of contents as calculation. Og II
-        ////    get { return (ushort?)(base.Burden + UpdateBurden()) ?? (ushort?)0; }
-        ////}
-
-        ////public Container(AceObject aceObject, ObjectGuid guid, string name, ushort weenieClassId, ObjectDescriptionFlag descriptionFlag, WeenieHeaderFlag weenieFlag, Position position)
-        ////    : this(aceObject)
-        ////{
-        ////    Name = name;
-        ////    DescriptionFlags = descriptionFlag;
-        ////    WeenieFlags = weenieFlag;
-        ////    Location = position;
-        ////    WeenieClassId = weenieClassId;
-        ////}
-
         private uint coinValue = 0;
         public override uint? CoinValue
         {
@@ -40,8 +21,6 @@ namespace ACE.Entity
                 {
                     coinValue = (uint)value;
                     base.CoinValue = value;
-                    ////if (FirstEnterWorldDone)
-                    ////    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
                 }
             }
         }
@@ -54,40 +33,6 @@ namespace ACE.Entity
             {
                 if (value != burden)
                 {
-                    ////base.Burden = value;
-                    ////burden = (ushort)value;
-                    ////if (FirstEnterWorldDone)
-                    ////    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, burden));
-                    ////if (Guid.IsPlayer())
-                    ////{
-                    ////    ////base.Burden = value;
-                    ////    ////burden = (ushort)value;
-                    ////    ////if (value > burden)
-                    ////    ////{
-                    ////    ////    burden += (ushort)value;
-                    ////    ////    ////base.Burden += burden;
-                    ////    ////}
-                    ////    ////else
-                    ////    ////{
-                    ////    ////    burden -= (ushort)value;
-                    ////    ////    ////base.Burden -= burden;
-                    ////    ////}
-                    ////}
-                    ////else
-                    ////{
-                    // base.Burden = value;
-                    // burden = (ushort)value;
-                    ////if (value > burden)
-                    ////{
-                    ////    burden += (ushort)value;
-                    ////    ////base.Burden += burden;
-                    ////}
-                    ////else
-                    ////{
-                    ////    burden -= (ushort)value;
-                    ////    ////base.Burden -= burden;
-                    ////}
-                    ////}
                     burden = (ushort)value;
                     base.Burden = burden;
                 }
@@ -101,16 +46,14 @@ namespace ACE.Entity
         public Container(AceObject aceObject)
             : base(aceObject)
         {
-            ContainerObjects.Add(Guid, this);
-
             CoinValue = 0;
-            System.Diagnostics.Debug.WriteLine($"{aceObject.Name} CoinValue initialized to {CoinValue}");
+            log.Debug($"{aceObject.Name} CoinValue initialized to {CoinValue}");
 
             Burden = 0;
-            System.Diagnostics.Debug.WriteLine($"{aceObject.Name} Burden initialized to {Burden}");
+            log.Debug($"{aceObject.Name} Burden initialized to {Burden}");
 
             Burden += Weenie.EncumbranceVal ?? 0;
-            System.Diagnostics.Debug.WriteLine($"{aceObject.Name}'s weenie id is {Weenie.WeenieClassId} and its base burden is {Weenie.EncumbranceVal}, added to burden, Burden = {Burden}");
+            log.Debug($"{aceObject.Name}'s weenie id is {Weenie.WeenieClassId} and its base burden is {Weenie.EncumbranceVal}, added to burden, Burden = {Burden}");
 
             Value = 0;
             Value += Weenie.Value ?? 0;
@@ -122,7 +65,7 @@ namespace ACE.Entity
                 WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
 
                 Burden += wieldedItem.Value.EncumbranceVal;
-                System.Diagnostics.Debug.WriteLine($"{aceObject.Name} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
+                log.Debug($"{aceObject.Name} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
 
                 Value += wieldedItem.Value.Value;
             }
@@ -135,33 +78,14 @@ namespace ACE.Entity
                 InventoryObjects.Add(woGuid, wo);
 
                 Burden += wo.Burden ?? 0;
-                System.Diagnostics.Debug.WriteLine($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
+                log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
 
                 Value += wo.Value ?? 0;
-
-                ////if (InventoryObjects[woGuid].WeenieType == WeenieType.Container)
-                ////{
-                ////    InventoryObjects[woGuid].InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
-                ////    foreach (var item in Inventory[woGuid].Inventory)
-                ////    {
-                ////        ObjectGuid cwoGuid = new ObjectGuid(item.Value.AceObjectId);
-                ////        InventoryObjects[woGuid].InventoryObjects.Add(cwoGuid, WorldObjectFactory.CreateWorldObject(item.Value));
-
-                ////        Burden += item.Value.EncumbranceVal;
-
-                ////        Value += item.Value.Value;
-
-                ////        if (InventoryObjects[woGuid].WeenieType == WeenieType.Coin)
-                ////        {
-                ////            CoinValue += item.Value.Value ?? 0;
-                ////        }
-                ////    }
-                ////}
 
                 if (wo.WeenieType == WeenieType.Coin)
                 {
                     CoinValue += wo.Value ?? 0;
-                    System.Diagnostics.Debug.WriteLine($"{aceObject.Name} is has {wo.Name} in inventory, of WeenieType.Coin, adding {wo.Value}, current CoinValue = {CoinValue}");
+                    log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, of WeenieType.Coin, adding {wo.Value}, current CoinValue = {CoinValue}");
                 }
             }
         }
@@ -260,19 +184,12 @@ namespace ACE.Entity
             }
 
             Burden -= inv[itemGuid].Burden;
-            System.Diagnostics.Debug.WriteLine($"Remove {inv[itemGuid].Name} in inventory, removing {inv[itemGuid].Burden}, current Burden = {Burden}");
+            log.Debug($"Remove {inv[itemGuid].Name} in inventory, removing {inv[itemGuid].Burden}, current Burden = {Burden}");
 
             Value -= inv[itemGuid].Value;
 
             inv.Remove(itemGuid);
         }
-
-        ////public ushort UpdateBurden()
-        ////{
-        ////    // TODO: reimplement this.   Og II
-        ////    ushort calculatedBurden = 0;
-        ////    return calculatedBurden;
-        ////}
 
         /// <summary>
         /// This method is used to get anything in our posession.   Inventory in main or any packs,

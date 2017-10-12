@@ -138,7 +138,6 @@
     <Compile Include="Entity\StarterItem.cs" />
     <Compile Include="Entity\StarterSpell.cs" />
     <Compile Include="Entity\Vendor.cs" />
-    <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
