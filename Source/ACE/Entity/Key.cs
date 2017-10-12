@@ -10,8 +10,6 @@ namespace ACE.Entity
 {
     public class Key : WorldObject
     {
-        private static List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
-
         private string KeyCode
         {
             get;
@@ -48,7 +46,6 @@ namespace ACE.Entity
                         {
                             case Entity.Door.UnlockDoorResults.UnlockSuccess:
                                 Structure--;
-                                SendPartialUpdates(player.Session, _updateStructure);
                                 if (Structure < 1)
                                 {
                                     // Remove item from players
@@ -57,13 +54,14 @@ namespace ACE.Entity
                                     DatabaseManager.Shard.DeleteObject(SnapShotOfAceObject(), null);
                                 }
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this.Sequences, Guid, PropertyInt.Structure, (uint)Structure));
                                 break;
                             case Entity.Door.UnlockDoorResults.DoorOpen:
-                                var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0481);
+                                var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0481); // TODO: Messages are not quiet right. Need to find right one.
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
                                 break;
                             case Entity.Door.UnlockDoorResults.AlreadyUnlocked:
-                                var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04B2);
+                                var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04B2); // TODO: Messages are not quiet right. Need to find right one.
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
                                 break;
                             default:

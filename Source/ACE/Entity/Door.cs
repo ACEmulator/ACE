@@ -1,6 +1,9 @@
-﻿using ACE.Entity.Enum;
+﻿using System.Collections.Generic;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Common;
 
@@ -8,6 +11,8 @@ namespace ACE.Entity
 {
     public class Door : WorldObject
     {
+        private static List<AceObjectPropertyId> _updateLocked = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyBool.Locked, AceObjectPropertyType.PropertyBool) };
+
         public enum UnlockDoorResults : ushort
         {
             UnlockSuccess   = 0,
@@ -230,6 +235,8 @@ namespace ACE.Entity
             CurrentMotionState = motionStateOpen;
             Ethereal = true;
             IsOpen = true;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (opener.Full > 0)
                 UseTimestamp++;
         }
@@ -243,6 +250,8 @@ namespace ACE.Entity
             CurrentMotionState = motionStateClosed;
             Ethereal = false;
             IsOpen = false;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (closer.Full > 0)
                 UseTimestamp++;
         }
@@ -258,6 +267,8 @@ namespace ACE.Entity
                 if (DefaultLocked)
                 {
                     IsLocked = true;
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                    // CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess); // TODO: need to find the lock sound
                 }
             }
             else
@@ -281,6 +292,7 @@ namespace ACE.Entity
                     return UnlockDoorResults.AlreadyUnlocked;
 
                 IsLocked = false;
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
@@ -302,6 +314,7 @@ namespace ACE.Entity
                     return UnlockDoorResults.AlreadyUnlocked;
 
                 IsLocked = false;
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }

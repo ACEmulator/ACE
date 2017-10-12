@@ -262,7 +262,10 @@
     <Compile Include="Network\GameMessages\Messages\GameMessageBootAccount.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageFellowshipFullUpdate.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageFellowshipQuit.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyDouble.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyInt.cs" />
+	<Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyBool.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePropertyBool.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSoulEmote.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageObjDescEvent.cs" />
