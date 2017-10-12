@@ -1102,19 +1102,18 @@ namespace ACE.Entity
                 // vendor accepted the transaction
                 if (valid)
                 {
-                    if (SpendCoin(goldcost))
-                    {  // player is has enough cash to buy items
-                        foreach (WorldObject wo in purchaselist)
-                        {
-                            wo.ContainerId = Guid.Full;
-                            wo.Placement = 0;
-                            AddToInventory(wo);
-                            TrackObject(wo);
-                            UpdatePlayerBurden();
-                        }
-                    }
-                    else // not enough cash.
-                        valid = false;
+                    ////if (SpendCoin(goldcost))
+                    ////{  // player is has enough cash to buy items
+                    ////    foreach (WorldObject wo in purchaselist)
+                    ////    {
+                    ////        wo.ContainerId = Guid.Full;
+                    ////        wo.Placement = 0;
+                    ////        AddToInventory(wo);
+                    ////        TrackObject(wo);
+                    ////    }
+                    ////}
+                    ////else // not enough cash.
+                    ////    valid = false;
                 }
 
                 // send results back to vendor the transaction failed
@@ -1186,8 +1185,8 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (valid)
-                    AddCoin(payout);
+                ////if (valid)
+                ////    AddCoin(payout);
             }).EnqueueChain();
         }
 #endregion
@@ -2765,35 +2764,6 @@ namespace ACE.Entity
             RemoveFromInventory(InventoryObjects, wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
-        }
-
-        private bool SpendCoin(uint value)
-        {
-            if (coinValue - value < 0)
-                return false;
-            else
-            {
-                coinValue = coinValue - value;
-                SetCoin(coinValue);
-                return true;
-            }
-        }
-
-        public void AddCoin(uint value)
-        {
-            coinValue = coinValue + value;
-            SetCoin(coinValue);
-        }
-
-        public void SetCoinValue(uint value)
-        {
-            coinValue = value;
-            SetCoin(coinValue);
-        }
-
-        private void SetCoin(uint value)
-        {
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
         }
 
         public void HandleActionDropItem(ObjectGuid itemGuid)
