@@ -100,6 +100,11 @@ namespace ACE.Entity
                 CoinValue += inventoryItem.Value ?? 0;
             }
 
+            if (inventoryItem.WeenieType == WeenieType.Container)
+            {
+                CoinValue += inventoryItem.CoinValue ?? 0;
+            }
+
             Burden += inventoryItem.Burden;
             System.Diagnostics.Debug.WriteLine($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
 
@@ -181,6 +186,11 @@ namespace ACE.Entity
             if (inv[itemGuid].WeenieType == WeenieType.Coin)
             {
                 CoinValue -= inv[itemGuid].Value ?? 0;
+            }
+
+            if (inv[itemGuid].WeenieType == WeenieType.Container)
+            {
+                CoinValue -= inv[itemGuid].CoinValue ?? 0;
             }
 
             Burden -= inv[itemGuid].Burden;
