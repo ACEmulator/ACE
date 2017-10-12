@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+### 2017-10-11
+[StackOverflow]
+* Added support for unique Vendor Items.
+* Added a new Debug Cmd, @setcoin value for testing purposes.
+* Major Vendor Code refractor, vendor now only load items for sale and not items they should be wielding.
+
 ### 2017-10-06
 [Jyrus]
 * Moved WeenieType keys into their own class and implemented unlocking doors via keys

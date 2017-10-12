@@ -18,15 +18,15 @@ namespace ACE.Entity
     /// ** Usage Data Flow **
     ///     HandleActionApproachVendor
     /// ** Buy Data Flow **
-    /// Player.HandleActionBuy->Vendor.BuyItemsStartTransaction->Player.HandleActionBuyStartTransaction
-    /// ->Vendor.BuyItemsValidateTransaction->Player.HandleActionBuyFinalTransaction->Vendor.BuyItemsFinalTransaction
+    /// Player.HandleActionBuy->Vendor.BuyItemsValidateTransaction->Player.HandleActionBuyFinalTransaction->Vendor.BuyItemsFinalTransaction
     /// ** Sell Data Flow **
-    /// Player.HandleActionSell->Vendor.SellItemsStartTransaction->Player.HandleActionSellStartTransaction
-    /// ->Vendor.SellItemsValidateTransaction->Player.HandleActionSellFinalTransaction->Vendor.SellItemsFinalTransaction
+    /// Player.HandleActionSell->Vendor.SellItemsValidateTransaction->Player.HandleActionSellFinalTransaction->Vendor.SellItemsFinalTransaction
     /// </summary>
     public class Vendor : WorldObject
     {
         private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+        private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+
         private bool inventoryloaded = false;
 
         // todo : SO : Turning to player movement states  - looks at @og
@@ -88,7 +88,7 @@ namespace ACE.Entity
             if (!inventoryloaded)
             {
                 List<VendorItems> items = new List<VendorItems>();
-                items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId);
+                items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId, DestinationType.Shop);
                 foreach (VendorItems item in items)
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -103,18 +103,66 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Used to convert Weenie based objects / not used for unique items
+        /// </summary>
+        /// <param name="itemprofile"></param>
+        /// <returns></returns>
+        private List<WorldObject> ItemProfileToWorldObjects(ItemProfile itemprofile)
+        {
+            List<WorldObject> worldobjects = new List<WorldObject>();
+            while (itemprofile.Amount > 0)
+            {
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(itemprofile.WeenieClassId);
+                // can we stack this ?
+                if (wo.MaxStackSize.HasValue)
+                {
+                    if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= itemprofile.Amount))
+                    {
+                        wo.StackSize = wo.MaxStackSize.Value;
+                        worldobjects.Add(wo);
+                        itemprofile.Amount = itemprofile.Amount - wo.MaxStackSize.Value;
+                    }
+                    else // we cant stack this but its not a single item
+                    {
+                        wo.StackSize = (ushort)itemprofile.Amount;
+                        worldobjects.Add(wo);
+                        itemprofile.Amount = itemprofile.Amount - itemprofile.Amount;
+                    }
+                }
+                else
+                {
+                    // if there multiple items of the same  type.. 
+                    if (itemprofile.Amount > 0)
+                    {
+                        // single item with no stack options. 
+                        itemprofile.Amount = itemprofile.Amount - 1;
+                        wo.StackSize = null;
+                        worldobjects.Add(wo);
+                    }
+                }
+            }
+            return worldobjects;
+        }
+
+        /// <summary>
         /// Sends Vendor Inventory to player
         /// </summary>
         /// <param name="player"></param>
         private void ApproachVendor(Player player)
         {
+            // default inventory
             List<WorldObject> vendorlist = new List<WorldObject>();
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
             {
                 vendorlist.Add(wo.Value);
             }
 
-            // todo: send more then default items.
+            // unique inventory - itmes sold by other players
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in uniqueItemsForSale)
+            {
+                vendorlist.Add(wo.Value);
+            }
+
             player.TrackInteractiveObjects(vendorlist);
             player.HandleActionApproachVendor(this, vendorlist);
         }
@@ -124,11 +172,12 @@ namespace ACE.Entity
 
         /// <summary>
         /// Player has started a buy transaction
+        /// Create objects, send object to player for final validation.
         /// </summary>
         /// <param name="vendorid">GUID of Vendor</param>
         /// <param name="items">Item Profile, Ammount and ID</param>
         /// <param name="player"></param>
-        public void BuyItemsStartTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void BuyValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
             // que transactions.
             List<ItemProfile> filteredlist = new List<ItemProfile>();
@@ -144,75 +193,32 @@ namespace ACE.Entity
                     item.WeenieClassId = defaultItemsForSale[item.Guid].WeenieClassId;
                     filteredlist.Add(item);
                 }
-                // todo: check stock
-            }
-
-            // convert profile to wold objects / stack logic
-            foreach (ItemProfile fitem in filteredlist)
-            {
-                // todo: refactor this loop and just create enough of the items in a tighter loop, then do
-                // whatever calculations are necessary outside it
-                while (fitem.Amount > 0)
+                // check unique items / add unique items to purchaselist / remove from vendor list
+                if (uniqueItemsForSale.ContainsKey(item.Guid))
                 {
-                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(fitem.WeenieClassId);
-
-                    // todo: alternate path for purchasing actual items, not just weenie-based items (like spell comps)
-
-                    // can we stack this ?
-                    if (wo.MaxStackSize.HasValue)
+                    WorldObject wo;
+                    if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
                     {
-                        if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= fitem.Amount))
-                        {
-                            wo.StackSize = wo.MaxStackSize.Value;
-                            purchaselist.Add(wo);
-                            fitem.Amount = fitem.Amount - wo.MaxStackSize.Value;
-                        }
-                        // else we cant stack but its not a single item.
-                        else
-                        {
-                            // client automatically scales the price on it's end for the cost, but we need
-                            // to scale it here to make sure the player has the right amount of pyreals
-
-                            if (fitem.Amount > 0)
-                            {
-                                // pile on the stacks before rounding
-                                goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) * fitem.Amount + 0.1);
-                            }
-                            else
-                            {
-                                fitem.Amount = 0;
-                                goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) + 0.1);
-                            }
-                            wo.StackSize = (ushort)fitem.Amount;
-                            purchaselist.Add(wo);
-                            fitem.Amount = fitem.Amount - fitem.Amount;
-                        }
-                    }
-                    else
-                    {
-                        // single item with no stack options.
-                        fitem.Amount = 0;
-                        wo.StackSize = null;
-                        goldcost = goldcost + (uint)Math.Floor(SellRate * (wo.Value ?? 0) + 0.1);
                         purchaselist.Add(wo);
+                        uniqueItemsForSale.Remove(item.Guid);
                     }
                 }
             }
+
+            // convert profile to wold objects / stack logic does not include unique items.
+            foreach (ItemProfile fitem in filteredlist)
+            {
+                purchaselist.AddRange(ItemProfileToWorldObjects(fitem));
+            }
+
+            // calculate price. (both unique and item profile)
+            foreach (WorldObject wo in purchaselist)
+            {
+                goldcost = goldcost + (uint)Math.Ceiling(SellRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+            }
             
             // send transaction to player for further processing and.
-            player.HandleActionBuyStartTransaction(this, purchaselist, goldcost);
-        }
-
-        /// <summary>
-        /// Items have been purchased from vendor by player but we need to validate it.
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="items"></param>
-        public void BuyItemsValidateTransaction(Player player, List<WorldObject> items)
-        {
-            // todo: add logic for temp stock items.
-            // remove items, if transaction fails then move temp stock items back into temp stock
-            player.HandleActionBuyFinalTransaction(this, items, true);
+            player.HandleActionBuyFinalTransaction(this, purchaselist, true, goldcost);
         }
 
         /// <summary>
@@ -223,56 +229,51 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void BuyItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
         {
-            List<WorldObject> vendorlist = new List<WorldObject>();
-
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
+            if (!valid) // re-add unique temp stock items.
             {
-                vendorlist.Add(wo.Value);
+                foreach (WorldObject wo in items)
+                {
+                    if (!defaultItemsForSale.ContainsKey(wo.Guid))
+                        uniqueItemsForSale.Add(wo.Guid, wo);
+                }
             }
-
-            if (valid)
-            {
-                // todo: remove unique temp stock items.
-            }
-            else
-            {
-                // todo: re-add unique temp stock items.
-            }
-            player.HandleActionApproachVendor(this, vendorlist);
+            ApproachVendor(player);
         }
         #endregion
 
         #region Sell Transactions
-        public void SellItemsStartTransaction(List<WorldObject> items, Player player)
-        {
-            // todo: filter out items vendor does not purchase.
-            player.HandleActionSellStartTransaction(items, Guid);
-        }
 
         public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
         {
-            // todo: calculate payment based on multipliers correctly
+            // todo: filter rejected / accepted send item spec result back to player
             uint payout = 0;
+            List<WorldObject> accepted = new List<WorldObject>();
+            List<WorldObject> rejected = new List<WorldObject>();
 
             foreach (WorldObject wo in items)
             {
                 // payout scaled by the vendor's buy rate
-                payout = payout + (uint)Math.Ceiling(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+                payout = payout + (uint)Math.Floor(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
+
+                if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
+                {
+                    wo.Location = null;
+                    wo.ContainerId = Guid.Full;
+                    wo.Placement = null;
+                    wo.WielderId = null;
+                    wo.CurrentWieldedLocation = null;
+                    // TODO: create enum for this once we understand this better.
+                    // This is needed to make items lay flat on the ground.
+                    wo.AnimationFrame = 0x65;
+                    uniqueItemsForSale.Add(wo.Guid, wo);
+                }
+                accepted.Add(wo);
             }
-            
-            player.HandleActionSellFinalTransaction(this, items, true, payout);
+
+            ApproachVendor(player);
+            player.HandleActionSellFinalTransaction(this, true, accepted, payout);
         }
 
-        public void SellItemsFinalTransaction(Player player, List<WorldObject> items)
-        {
-            // todo Add logic to add unique items to vendor list.
-            List<WorldObject> vendorlist = new List<WorldObject>();
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
-            {
-                vendorlist.Add(wo.Value);
-            }
-            player.HandleActionApproachVendor(this, vendorlist);
-        }
         #endregion
     }
 }
