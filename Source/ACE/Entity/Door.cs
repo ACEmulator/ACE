@@ -1,6 +1,9 @@
-﻿using ACE.Entity.Enum;
+﻿using System.Collections.Generic;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Common;
 
@@ -8,6 +11,18 @@ namespace ACE.Entity
 {
     public class Door : WorldObject
     {
+        private static List<AceObjectPropertyId> _updateLocked = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyBool.Locked, AceObjectPropertyType.PropertyBool) };
+
+        public enum UnlockDoorResults : ushort
+        {
+            UnlockSuccess   = 0,
+            PickLockFailed  = 1,
+            IncorrectKey    = 2,
+            AlreadyUnlocked = 3,
+            CannotBePicked  = 4,
+            DoorOpen        = 5
+        }
+
         private static readonly MovementData movementOpen = new MovementData();
         private static readonly MovementData movementClosed = new MovementData();
 
@@ -41,6 +56,7 @@ namespace ACE.Entity
             IsLocked = AceObject.Locked ?? false;
             ResetInterval = AceObject.ResetInterval ?? 30.0f;
             ResistLockpick = AceObject.ResistLockpick ?? 0;
+            LockCode = AceObject.LockCode ?? "";
 
             // If we had the base weenies this would be the way to go
             ////if (DefaultLocked)
@@ -67,8 +83,8 @@ namespace ACE.Entity
 
         private bool IsLocked
         {
-            get;
-            set;
+            get { return AceObject.Locked ?? false; }
+            set { AceObject.Locked = value; }
         }
 
         private bool DefaultLocked
@@ -219,6 +235,8 @@ namespace ACE.Entity
             CurrentMotionState = motionStateOpen;
             Ethereal = true;
             IsOpen = true;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (opener.Full > 0)
                 UseTimestamp++;
         }
@@ -232,6 +250,8 @@ namespace ACE.Entity
             CurrentMotionState = motionStateClosed;
             Ethereal = false;
             IsOpen = false;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (closer.Full > 0)
                 UseTimestamp++;
         }
@@ -242,11 +262,64 @@ namespace ACE.Entity
                 return;
 
             if (!DefaultOpen)
+            {
                 Close(ObjectGuid.Invalid);
+                if (DefaultLocked)
+                {
+                    IsLocked = true;
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                    // CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess); // TODO: need to find the lock sound
+                }
+            }
             else
                 Open(ObjectGuid.Invalid);
 
             ResetTimestamp++;
+        }
+
+        /// <summary>
+        /// Used for unlocking a door via lockpick, so contains a skill check
+        /// player.Skills[Skill.Lockpick].ActiveValue should be sent for the skill check
+        /// </summary>
+        public UnlockDoorResults UnlockDoor(uint playerLockpickSkillLvl)
+        {
+            if (ResistLockpick == 0)
+                return UnlockDoorResults.CannotBePicked;
+
+            if (playerLockpickSkillLvl >= ResistLockpick)
+            {
+                if (!IsLocked)
+                    return UnlockDoorResults.AlreadyUnlocked;
+
+                IsLocked = false;
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
+                return UnlockDoorResults.UnlockSuccess;
+            }
+            else
+                return UnlockDoorResults.PickLockFailed;
+        }
+
+        /// <summary>
+        /// Used for unlocking a door via a key
+        /// </summary>
+        public UnlockDoorResults UnlockDoor(string keyCode)
+        {
+            if (IsOpen)
+                return UnlockDoorResults.DoorOpen;
+
+            if (keyCode == LockCode)
+            {
+                if (!IsLocked)
+                    return UnlockDoorResults.AlreadyUnlocked;
+
+                IsLocked = false;
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
+                return UnlockDoorResults.UnlockSuccess;
+            }
+            else
+                return UnlockDoorResults.IncorrectKey;
         }
     }
 }

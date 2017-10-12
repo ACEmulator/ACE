@@ -63,6 +63,8 @@ namespace ACE.Factories
                     return new Vendor(aceO);
                 case WeenieType.Coin:
                     return new Coin(aceO);
+                case WeenieType.Key:
+                    return new Key(aceO);
                 default:
                     return new GenericObject(aceO);
             }

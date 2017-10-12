@@ -1,5 +1,8 @@
 # ACEmulator Change Log
 ### 2017-10-06
+[Jyrus]
+* Moved WeenieType keys into their own class and implemented unlocking doors via keys
+
 [Immortalbob]
 * Added equipmentset.cs to house the equipment set enums for future use.
 
@@ -7,7 +10,6 @@
 [Immortalbob]
 * Identified unknown enums 381 382 383 384 387 388 389 and updated acecharacter.cs and propertyint.cs.
 
-### 2017-10-05
 [Mogwai]
 * Modified vendor stuff to use buy and sell rates from DoubleProperties
 

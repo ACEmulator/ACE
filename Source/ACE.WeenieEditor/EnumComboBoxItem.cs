@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace ACE.WeenieEditor
 {
     public class EnumComboBoxItem : IComparable<EnumComboBoxItem>
-
     {
         public EnumComboBoxItem(int key, string value)
         {
