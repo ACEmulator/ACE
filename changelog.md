@@ -8,7 +8,16 @@
 * Commented out areas related to above changes that were not implemented correctly.
 * TODO: Update Value/Burden and track changes as StackSize adjustments occur.
 
+### 2017-10-11
+[StackOverflow]
+* Added support for unique Vendor Items.
+* Added a new Debug Cmd, @setcoin value for testing purposes.
+* Major Vendor Code refractor, vendor now only load items for sale and not items they should be wielding.
+
 ### 2017-10-06
+[Jyrus]
+* Moved WeenieType keys into their own class and implemented unlocking doors via keys
+
 [Immortalbob]
 * Added equipmentset.cs to house the equipment set enums for future use.
 
@@ -16,7 +25,6 @@
 [Immortalbob]
 * Identified unknown enums 381 382 383 384 387 388 389 and updated acecharacter.cs and propertyint.cs.
 
-### 2017-10-05
 [Mogwai]
 * Modified vendor stuff to use buy and sell rates from DoubleProperties
 

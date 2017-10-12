@@ -1,4 +1,5 @@
 ﻿using ACE.Entity;
+using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,6 @@ namespace ACE.Database
 
         List<Recipe> GetAllRecipes();
 
-        List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId);
+        List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId, DestinationType desType);
     }
 }

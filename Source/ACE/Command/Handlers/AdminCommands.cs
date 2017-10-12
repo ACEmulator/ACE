@@ -1504,21 +1504,38 @@ namespace ACE.Command.Handlers
             // TODO: output
         }
 
-        ////// AddCoin [value]
-        ////[CommandHandler("addcoin", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
-        ////    "Gives player.",
-        ////    "money (int)")]
-        ////public static void HandleAddCoin(Session session, params string[] parameters)
-        ////{
-        ////    try
-        ////    {
-        ////        uint money = uint.Parse(parameters[0]);
-        ////        session.Player.AddCoin(money);
-        ////    }
-        ////    catch (Exception)
-        ////    {
-        ////        // Do Nothing
-        ////    }
-        ////}
+        // AddCoin [value]
+        [CommandHandler("addcoin", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
+            "Gives player.",
+            "money (int)")]
+        public static void HandleAddCoin(Session session, params string[] parameters)
+        {
+            try
+            {
+                uint money = uint.Parse(parameters[0]);
+                session.Player.AddCoin(money);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
+            }
+        }
+
+        // SetCoin [value]
+        [CommandHandler("setcoin", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
+            "Sets players exact amount of coins.",
+            "money (int)")]
+        public static void HandleSetCoin(Session session, params string[] parameters)
+        {
+            try
+            {
+                uint money = uint.Parse(parameters[0]);
+                session.Player.SetCoinValue(money);
+            }
+            catch (Exception)
+            {
+                // Do Nothing
+            }
+        }
     }
 }
