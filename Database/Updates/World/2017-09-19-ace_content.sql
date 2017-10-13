@@ -1,88 +1,73 @@
-/*
-SQLyog Community
-MySQL - 10.2.8-MariaDB : Database - ace_world
-*********************************************************************
-*/
-
-/*!40101 SET NAMES utf8 */;
-
-/*!40101 SET SQL_MODE=''*/;
-
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-/*Table structure for table `ace_content` */
-
+DROP TABLE IF EXISTS `ace_content_weenie`;
+DROP TABLE IF EXISTS `ace_content_resource`;
+DROP TABLE IF EXISTS `ace_content_landblock`;
+DROP TABLE IF EXISTS `ace_content_link`;
 DROP TABLE IF EXISTS `ace_content`;
+DROP VIEW IF EXISTS `vw_weenie_search`;
 
 CREATE TABLE `ace_content` (
-  `contentId` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `contentName` text NOT NULL,
-  `contentType` int(3) unsigned NOT NULL COMMENT 'ACE.Entity.Enum.ContentType',
-  PRIMARY KEY (`contentId`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `ace_content` */
-
-/*Table structure for table `ace_content_landblock` */
-
-DROP TABLE IF EXISTS `ace_content_landblock`;
+  `contentGuid` BINARY(16) NOT NULL,
+  `contentName` TEXT NOT NULL,
+  `contentType` INT(3) UNSIGNED NULL COMMENT 'ACE.Entity.Enum.ContentType',
+  `userModified` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`contentGuid`)
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `ace_content_landblock` (
-  `contentId` int(10) unsigned NOT NULL,
-  `landblockId` int(10) unsigned NOT NULL COMMENT '0x####0000.  lower word should be all 0s.',
-  `comment` text DEFAULT NULL,
-  PRIMARY KEY (`contentId`,`landblockId`),
-  CONSTRAINT `ace_content_landblock_ibfk_1` FOREIGN KEY (`contentId`) REFERENCES `ace_content` (`contentId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `ace_content_landblock` */
-
-/*Table structure for table `ace_content_link` */
-
-DROP TABLE IF EXISTS `ace_content_link`;
+  `contentLandblockGuid` BINARY(16) NOT NULL,
+  `contentGuid` BINARY(16) NOT NULL,
+  `landblockId` INT(10) UNSIGNED NOT NULL COMMENT '0x####0000.  lower word should be all 0s.',
+  `comment` TEXT DEFAULT NULL,
+  PRIMARY KEY (`contentLandblockGuid`),
+  KEY (`contentGuid`,`landblockId`),
+  CONSTRAINT `ace_content_landblock_ibfk_1` FOREIGN KEY (`contentGuid`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `ace_content_link` (
-  `contentId1` int(10) unsigned NOT NULL,
-  `contentId2` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`contentId1`,`contentId2`),
-  KEY `ace_content_link_ibfk_2` (`contentId2`),
-  CONSTRAINT `ace_content_link_ibfk_1` FOREIGN KEY (`contentId1`) REFERENCES `ace_content` (`contentId`) ON DELETE CASCADE,
-  CONSTRAINT `ace_content_link_ibfk_2` FOREIGN KEY (`contentId2`) REFERENCES `ace_content` (`contentId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `ace_content_link` */
-
-/*Table structure for table `ace_content_resource` */
-
-DROP TABLE IF EXISTS `ace_content_resource`;
+  `contentGuid1` BINARY(16) NOT NULL,
+  `contentGuid2` BINARY(16) NOT NULL,
+  PRIMARY KEY (`contentGuid1`,`contentGuid2`),
+  KEY `ace_content_link_ibfk_2` (`contentGuid2`),
+  CONSTRAINT `ace_content_link_ibfk_1` FOREIGN KEY (`contentGuid1`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE,
+  CONSTRAINT `ace_content_link_ibfk_2` FOREIGN KEY (`contentGuid2`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `ace_content_resource` (
-  `contentId` int(10) unsigned NOT NULL,
-  `resourceUri` text NOT NULL,
-  `comment` text DEFAULT NULL,
-  KEY `contentId` (`contentId`),
-  CONSTRAINT `ace_content_resource_ibfk_1` FOREIGN KEY (`contentId`) REFERENCES `ace_content` (`contentId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `ace_content_resource` */
-
-/*Table structure for table `ace_content_weenie` */
-
-DROP TABLE IF EXISTS `ace_content_weenie`;
+  `contentResourceGuid` BINARY(16) NOT NULL,
+  `contentGuid` BINARY(16) NOT NULL,
+  `name` TEXT NOT NULL,
+  `resourceUri` TEXT NOT NULL,
+  `comment` TEXT DEFAULT NULL,
+  PRIMARY KEY (`contentResourceGuid`),
+  CONSTRAINT `ace_content_resource_ibfk_1` FOREIGN KEY (`contentGuid`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `ace_content_weenie` (
-  `contentId` int(10) unsigned NOT NULL,
-  `weenieId` int(10) unsigned NOT NULL,
-  `comment` text DEFAULT NULL,
-  PRIMARY KEY (`contentId`,`weenieId`),
-  KEY `weenieId` (`weenieId`),
-  CONSTRAINT `ace_content_weenie_ibfk_1` FOREIGN KEY (`contentId`) REFERENCES `ace_content` (`contentId`) ON DELETE CASCADE,
+  `contentWeenieGuid` BINARY(16) NOT NULL,
+  `contentGuid` BINARY(16) NOT NULL,
+  `weenieId` INT(10) UNSIGNED NOT NULL,
+  `comment` TEXT DEFAULT NULL,
+  PRIMARY KEY (`contentWeenieGuid`),
+  CONSTRAINT `ace_content_weenie_ibfk_1` FOREIGN KEY (`contentGuid`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE,
   CONSTRAINT `ace_content_weenie_ibfk_2` FOREIGN KEY (`weenieId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
-/*Data for the table `ace_content_weenie` */
+ALTER TABLE `ace_world`.`ace_object`   
+  ADD COLUMN `userModified` TINYINT(1) DEFAULT 0 NOT NULL COMMENT 'flag indicating whether or not this has record has been altered since deployment' AFTER `weenieClassId`;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+ALTER TABLE `ace_world`.`ace_recipe`   
+  ADD COLUMN `userModified` TINYINT(1) DEFAULT 0 NOT NULL COMMENT 'flag indicating whether or not this has record has been altered since deployment' AFTER `recipeType`;
+
+
+CREATE VIEW `ace_world`.`vw_weenie_search` 
+    AS
+(SELECT AO.aceObjectId, AO.userModified, AO.weenieClassId, WC.weenieClassDescription, `names`.propertyValue `name`, `itemType`.propertyValue `itemType`, `weenieType`.propertyValue `weenieType`
+FROM `ace_object` AO
+    LEFT JOIN `ace_weenie_class` WC ON AO.aceObjectId = WC.weenieClassId
+    LEFT JOIN ace_object_properties_string `names` ON AO.aceObjectId = `names`.aceObjectId AND `names`.strPropertyId = 1
+    LEFT JOIN ace_object_properties_int `weenieType` ON AO.aceObjectId = `weenieType`.aceObjectId AND `weenieType`.intPropertyId = 9007
+    LEFT JOIN ace_object_properties_int `itemType` ON AO.aceObjectId = `itemType`.aceObjectId AND `itemType`.intPropertyId = 1
+    LEFT JOIN ace_content_weenie `cw` ON AO.aceObjectId = `cw`.weenieId
+WHERE AO.aceObjectId = AO.weenieClassId`vw_weenie_search`
+);
+`ace_shard`

@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Entity.Enum
+namespace ACE.Api.Controllers
 {
-    public enum ContentType
+    public class WeenieSearchRequest
     {
-        Patch = 1,
-
-        Quest = 2
     }
 }

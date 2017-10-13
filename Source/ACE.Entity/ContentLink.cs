@@ -8,18 +8,35 @@ using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
 {
-    public class ContentLink
+    /// <summary>
+    /// a 1-way association of content.  if a 2-way link is desired, it will have to be added
+    /// in both places explicitly
+    /// </summary>
+    [DbTable("ace_content_link")]
+    public class ContentLink : ChangeTrackedObject
     {
         /// <summary>
         /// content identifier
         /// </summary>
-        [DbField("contentId1", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
-        public uint ContentId { get; set; }
+        public Guid ContentGuid { get; set; }
+
+        [DbField("contentGuid1", (int)MySqlDbType.Binary, ListGet = true, ListDelete = true)]
+        public byte[] ContentGuid_Binder
+        {
+            get { return ContentGuid.ToByteArray(); }
+            set { ContentGuid = new Guid(value); }
+        }
 
         /// <summary>
-        /// content identifier
+        /// associated content identifier
         /// </summary>
-        [DbField("contentId2", (int)MySqlDbType.UInt32, ListGet = true, ListDelete = true)]
-        public uint AssociatedContentId { get; set; }
+        public Guid AssociatedContentGuid { get; set; }
+
+        [DbField("contentGuid2", (int)MySqlDbType.Binary)]
+        public byte[] AssociatedContentGuid_Binder
+        {
+            get { return AssociatedContentGuid.ToByteArray(); }
+            set { AssociatedContentGuid = new Guid(value); }
+        }
     }
 }

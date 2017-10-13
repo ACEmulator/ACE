@@ -52,9 +52,7 @@ namespace ACE.Database
                 Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
                 // Oh goody, its reflection time
                 var propertyInfo = GetPropertyCache(typeof(T2));
-
-                uint statementId = Convert.ToUInt32(id);
-
+                
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
                 {
@@ -105,7 +103,7 @@ namespace ACE.Database
                 }
             }
 
-            public void AddPreparedInsertStatement<T1, T2>(T1 id, object instance)
+            public void AddPreparedInsertStatement<T1, T2>(T1 id, T2 instance)
             {
                 // Debug.Assert(typeof(T1) == preparedStatementType);
 
@@ -130,7 +128,7 @@ namespace ACE.Database
                 return;
             }
 
-            public void AddPreparedUpdateStatement<T1, T2>(T1 id, object instance)
+            public void AddPreparedUpdateStatement<T1, T2>(T1 id, T2 instance)
             {
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -247,7 +245,7 @@ namespace ACE.Database
             }
         }
 
-        private string connectionString;
+        protected string connectionString;
         private readonly Dictionary<uint, StoredPreparedStatement> preparedStatements = new Dictionary<uint, StoredPreparedStatement>();
 
         protected virtual Type PreparedStatementType { get; }
@@ -591,6 +589,9 @@ namespace ACE.Database
                 case ConstructedStatementType.Update:
                     query = $"UPDATE `{tableName}` SET {updateList} WHERE {whereList}";
                     break;
+                case ConstructedStatementType.Delete:
+                    query = $"DELETE `{tableName}` WHERE {whereList}";
+                    break;
             }
 #if DBDEBUG
             log.Debug("Id: " + Convert.ToUInt32(id) + "Query: " + query);
@@ -662,8 +663,6 @@ namespace ACE.Database
         public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
         {
             var results = new List<T2>();
-            // TODO: Object Overhaul - testing this now.
-            uint statementId = Convert.ToUInt32(id);
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -859,6 +858,39 @@ namespace ACE.Database
             return false;
         }
 
+        public bool ExecuteConstructedDeleteStatement<T1>(T1 id, Type type, Dictionary<string, object> criteria)
+        {
+            StoredPreparedStatement preparedStatement;
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            {
+                Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
+                return false;
+            }
+
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    using (var command = new MySqlCommand(preparedStatement.Query, connection))
+                    {
+                        var properties = GetPropertyCache(type);
+                        properties.Where(p => p.Item2.IsCriteria).ToList().ForEach(p => command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName]);
+                        
+                        connection.Open();
+                        return command.ExecuteNonQuery() > 0;
+                    }
+                }
+            }
+            catch (MySqlException exception)
+            {
+                log.Error($"An exception occured while executing prepared statement {id}!");
+                log.Error($"Exception: {exception.Message}");
+                throw;
+            }
+
+            return false;
+        }
+
         protected void ExecutePreparedStatement<T>(T id, params object[] parameters)
         {
             ExecutePreparedStatement(false, id, parameters);
@@ -1010,7 +1042,7 @@ namespace ACE.Database
             return null;
         }
 
-        private static List<Tuple<PropertyInfo, DbFieldAttribute>> GetPropertyCache(Type t)
+        protected static List<Tuple<PropertyInfo, DbFieldAttribute>> GetPropertyCache(Type t)
         {
             if (propertyCache.ContainsKey(t))
                 return propertyCache[t].ToList(); // always return a copy
@@ -1056,7 +1088,7 @@ namespace ACE.Database
             }
         }
 
-        private DbTableAttribute GetDbTableAttribute(Type type)
+        protected DbTableAttribute GetDbTableAttribute(Type type)
         {
             if (!dbTableCache.ContainsKey(type))
             {

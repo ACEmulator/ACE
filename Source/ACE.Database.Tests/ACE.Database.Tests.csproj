@@ -73,8 +73,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ContentTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConstructedStatementTests.cs" />
+    <Compile Include="WeenieSearchTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
@@ -84,6 +86,10 @@
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
       <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
       <Name>ACE.Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
+      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
+      <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

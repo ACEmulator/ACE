@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using System.Diagnostics;
 
 namespace ACE.Database
 {
@@ -45,8 +47,37 @@ namespace ACE.Database
             GetAceObjectPropertiesSkills,
             GetAceObjectPropertiesBook,
             GetWeenieInstancesByLandblock,
+            GetVendorWeenieInventoryById,
+
             GetAllRecipes,
-            GetVendorWeenieInventoryById
+            CreateRecipe,
+            UpdateRecipe,
+            DeleteRecipe,
+
+            GetAllContent,
+            GetContent,
+            CreateContent,
+            UpdateContent,
+            DeleteContent,
+
+            GetContentWeenies,
+            CreateContentWeenie,
+            UpdateContentWeenie,
+            DeleteContentWeenie,
+
+            GetContentLandblocks,
+            CreateContentLandblock,
+            UpdateContentLandblock,
+            DeleteContentLandblock,
+
+            GetAssociatedContent,
+            CreateAssociatedContent,
+            DeleteAssociatedContent,
+
+            GetContentResources,
+            CreateContentResource,
+            UpdateContentResource,
+            DeleteContentResource
         }
 
         protected override Type PreparedStatementType => typeof(WorldPreparedStatement);
@@ -93,9 +124,39 @@ namespace ACE.Database
 
             ConstructGetListStatement(WorldPreparedStatement.GetWeenieInstancesByLandblock, typeof(WeenieObjectInstance), criteria2);
 
-            ConstructGetListStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), new HashSet<string>());
-
             ConstructGetListStatement(WorldPreparedStatement.GetVendorWeenieInventoryById, typeof(VendorItems), new HashSet<string> { "aceObjectId", "destinationType" });
+
+            // recipes
+            ConstructStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.CreateRecipe, typeof(Recipe), ConstructedStatementType.Insert);
+            ConstructStatement(WorldPreparedStatement.UpdateRecipe, typeof(Recipe), ConstructedStatementType.Update);
+            ConstructStatement(WorldPreparedStatement.DeleteRecipe, typeof(Recipe), ConstructedStatementType.Delete);
+
+            // content
+            ConstructStatement(WorldPreparedStatement.GetAllContent, typeof(Content), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetContent, typeof(Content), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.CreateContent, typeof(Content), ConstructedStatementType.Insert);
+            ConstructStatement(WorldPreparedStatement.UpdateContent, typeof(Content), ConstructedStatementType.Update);
+            ConstructStatement(WorldPreparedStatement.DeleteContent, typeof(Content), ConstructedStatementType.Delete);
+
+            ConstructStatement(WorldPreparedStatement.GetContentWeenies, typeof(ContentWeenie), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.CreateContentWeenie, typeof(ContentWeenie), ConstructedStatementType.Insert);
+            ConstructStatement(WorldPreparedStatement.UpdateContentWeenie, typeof(ContentWeenie), ConstructedStatementType.Update);
+            ConstructStatement(WorldPreparedStatement.DeleteContentWeenie, typeof(ContentWeenie), ConstructedStatementType.Delete);
+
+            ConstructStatement(WorldPreparedStatement.GetContentLandblocks, typeof(ContentLandblock), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.CreateContentLandblock, typeof(ContentLandblock), ConstructedStatementType.Insert);
+            ConstructStatement(WorldPreparedStatement.UpdateContentLandblock, typeof(ContentLandblock), ConstructedStatementType.Update);
+            ConstructStatement(WorldPreparedStatement.DeleteContentLandblock, typeof(ContentLandblock), ConstructedStatementType.Delete);
+
+            ConstructStatement(WorldPreparedStatement.GetAssociatedContent, typeof(ContentLink), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.CreateAssociatedContent, typeof(ContentLink), ConstructedStatementType.InsertList);
+            ConstructStatement(WorldPreparedStatement.DeleteAssociatedContent, typeof(ContentLink), ConstructedStatementType.DeleteList);
+
+            ConstructStatement(WorldPreparedStatement.GetContentResources, typeof(ContentResource), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.CreateContentResource, typeof(ContentResource), ConstructedStatementType.Insert);
+            ConstructStatement(WorldPreparedStatement.UpdateContentResource, typeof(ContentResource), ConstructedStatementType.Update);
+            ConstructStatement(WorldPreparedStatement.DeleteContentResource, typeof(ContentResource), ConstructedStatementType.Delete);
         }
 
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
@@ -112,7 +173,7 @@ namespace ACE.Database
                 r = rnd.Next(weenieList.Count);
             }
             return randomWeenieList;
-        }      
+        }
 
         public List<AceObject> GetObjectsByLandblock(ushort landblock)
         {
@@ -168,8 +229,8 @@ namespace ACE.Database
                 ao.BookProperties = GetAceObjectPropertiesBook(ao.AceObjectId).ToDictionary(x => x.Page);
 
                 // Set the object's current location for this instance.
-                ao.Location = new Position(instance.LandblockRaw, 
-                    instance.PositionX, instance.PositionY, instance.PositionZ, 
+                ao.Location = new Position(instance.LandblockRaw,
+                    instance.PositionX, instance.PositionY, instance.PositionZ,
                     instance.RotationX, instance.RotationY, instance.RotationZ, instance.RotationW);
 
                 // Use the guid recorded by the PCAP.
@@ -254,7 +315,6 @@ namespace ACE.Database
             var bao = new AceObject();
 
             // We can do this because aceObjectId = WeenieClassId for all baseAceObjects.
-            // TODO: Ask Mogwai how would you query on a secondary key?
             var criteria = new Dictionary<string, object> { { "aceObjectId", weenieClassId } };
             if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), criteria, bao))
                 return null;
@@ -384,13 +444,7 @@ namespace ACE.Database
             return objects;
         }
 
-        public Task<bool> SaveObject(AceObject aceObject)
-        {
-            // Temp took out async until we implement this to kill the warning.
-            throw new NotImplementedException();
-        }
-
-        private uint GetMaxGuid(WorldPreparedStatement id, uint min, uint max)
+        private uint GetMaxId(WorldPreparedStatement id, uint min, uint max)
         {
             object[] critera = new object[] { min, max };
             MySqlResult res = SelectPreparedStatement<WorldPreparedStatement>(id, critera);
@@ -405,7 +459,7 @@ namespace ACE.Database
 
         public uint GetCurrentId(uint min, uint max)
         {
-            return GetMaxGuid(WorldPreparedStatement.GetMaxId, min, max);
+            return GetMaxId(WorldPreparedStatement.GetMaxId, min, max);
         }
 
         public List<Recipe> GetAllRecipes()
@@ -419,6 +473,215 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId }, { "destinationType", desType } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, VendorItems>(WorldPreparedStatement.GetVendorWeenieInventoryById, criteria);
             return objects;
+        }
+
+        public List<Content> GetAllContent()
+        {
+            var results = ExecuteConstructedGetListStatement<WorldPreparedStatement, Content>(WorldPreparedStatement.GetAllContent, new Dictionary<string, object>());
+
+            results.ForEach(c =>
+            {
+                var criteria = new Dictionary<string, object>();
+                criteria.Add("contentGuid", c.ContentGuid.ToByteArray());  // used for ContentWeenie, ContentResource, and ContentLandblock
+                criteria.Add("contentGuid1", c.ContentGuid.ToByteArray()); // ContentLink uses contentGuid1
+                c.AssociatedContent = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentLink>(WorldPreparedStatement.GetAssociatedContent, criteria);
+                c.Weenies = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentWeenie>(WorldPreparedStatement.GetContentWeenies, criteria);
+                c.ExternalResources = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentResource>(WorldPreparedStatement.GetContentResources, criteria);
+                c.AssociatedLandblocks = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentLandblock>(WorldPreparedStatement.GetContentLandblocks, criteria);
+            });
+
+            results.ForEach(r => r.ClearDirtyFlags());
+            return results;
+        }
+
+        public void CreateRecipe(Recipe recipe)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateRecipe(Recipe recipe)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteRecipe(Guid recipeGuid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CreateContent(Content content)
+        {
+            DatabaseTransaction transaction = BeginTransaction();
+
+            transaction.AddPreparedInsertStatement<WorldPreparedStatement, Content>(WorldPreparedStatement.CreateContent, content);
+
+            // forcibly propagate the content id
+            content.Weenies.ForEach(w => w.ContentGuid = content.ContentGuid);
+            content.ExternalResources.ForEach(r => r.ContentGuid = content.ContentGuid);
+            content.AssociatedLandblocks.ForEach(l => l.ContentGuid = content.ContentGuid);
+            content.AssociatedContent.ForEach(c => c.ContentGuid = content.ContentGuid);
+
+            content.Weenies.ForEach(w => transaction.AddPreparedInsertStatement(WorldPreparedStatement.CreateContentWeenie, w));
+            content.ExternalResources.ForEach(r => transaction.AddPreparedInsertStatement(WorldPreparedStatement.CreateContentResource, r));
+            content.AssociatedLandblocks.ForEach(l => transaction.AddPreparedInsertStatement(WorldPreparedStatement.CreateContentLandblock, l));
+            transaction.AddPreparedInsertListStatement(WorldPreparedStatement.CreateAssociatedContent, content.AssociatedContent);
+
+            transaction.Commit().Wait();
+
+            content.ClearDirtyFlags();
+        }
+
+        public void UpdateContent(Content content)
+        {
+            DatabaseTransaction transaction = BeginTransaction();
+
+            transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContent, content);
+
+            // forcibly propagate the content id
+            content.Weenies.ForEach(w => w.ContentGuid = content.ContentGuid);
+            content.ExternalResources.ForEach(r => r.ContentGuid = content.ContentGuid);
+            content.AssociatedLandblocks.ForEach(l => l.ContentGuid = content.ContentGuid);
+            content.AssociatedContent.ForEach(c => c.ContentGuid = content.ContentGuid);
+
+            content.Weenies.Where(o => o.IsDirty).ToList().ForEach(w => transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContentWeenie, w));
+            content.ExternalResources.Where(o => o.IsDirty).ToList().ForEach(r => transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContentResource, r));
+            content.AssociatedLandblocks.Where(o => o.IsDirty).ToList().ForEach(l => transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContentLandblock, l));
+
+            // content resources are weak entities that cannot be updated.  always delete and reinsert the list
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("contentGuid1", content.ContentGuid.ToByteArray());
+            transaction.AddPreparedDeleteListStatement<WorldPreparedStatement, ContentLink>(WorldPreparedStatement.DeleteAssociatedContent, criteria);
+            transaction.AddPreparedInsertListStatement(WorldPreparedStatement.DeleteAssociatedContent, content.AssociatedContent);
+
+            transaction.Commit().Wait();
+
+            content.ClearDirtyFlags();
+        }
+
+        public void DeleteContent(Guid contentGuid)
+        {
+            // content cascades in the database by design.  no need to force it here.
+
+            var criteria = new Dictionary<string, object>();
+            criteria.Add("contentGuid", contentGuid.ToByteArray());
+            var result = ExecuteConstructedDeleteStatement(WorldPreparedStatement.DeleteContent, typeof(Content), criteria);
+        }
+
+        public void UpdateWeenie(AceObject weenie)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CreateWeenie(AceObject weenie)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteWeenie(uint weenieId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria)
+        {
+            List<WeenieSearchResult> results = new List<WeenieSearchResult>();
+            List<MySqlParameter> mysqlParams = new List<MySqlParameter>();
+            
+            var properties = GetPropertyCache(typeof(WeenieSearchResult));
+            var dbTable = GetDbTableAttribute(typeof(WeenieSearchResult));
+            string sql = "SELECT " + string.Join(", ", properties.Select(p => p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName;
+            string where = null;
+
+            if (criteria?.ContentGuid != null)
+            {
+                where = where != null ? where + " AND " : "";
+                where += "aceObjectId IN (SELECT weenieId FROM ace_content_weenie WHERE contentGuid = ?)";
+                var p = new MySqlParameter("", MySqlDbType.Binary);
+                p.Value = criteria.ContentGuid.Value.ToByteArray();
+                mysqlParams.Add(p);
+            }
+
+            if (criteria?.ItemType != null)
+            {
+                where = where != null ? where + " AND " : "";
+                where += "`itemType` = ?";
+                var p = new MySqlParameter("", MySqlDbType.UInt32);
+                p.Value = (uint)criteria.ItemType.Value;
+                mysqlParams.Add(p);
+            }
+
+            if (criteria?.WeenieType != null)
+            {
+                where = where != null ? where + " AND " : "";
+                where += "`weenieType` = ?";
+                var p = new MySqlParameter("", MySqlDbType.UInt32);
+                p.Value = (uint)criteria.WeenieType.Value;
+                mysqlParams.Add(p);
+            }
+
+            if (criteria?.WeenieClassId != null)
+            {
+                where = where != null ? where + " AND " : "";
+                where += "aceObjectId = ?";
+                var p = new MySqlParameter("", MySqlDbType.UInt32);
+                p.Value = (uint)criteria.WeenieClassId.Value;
+                mysqlParams.Add(p);
+            }
+
+            if (criteria?.UserModified != null)
+            {
+                where = where != null ? where + " AND " : "";
+                where += "userModified = ?";
+                var p = new MySqlParameter("", MySqlDbType.Bit);
+                p.Value = criteria.UserModified.Value;
+                mysqlParams.Add(p);
+            }
+
+            if (!string.IsNullOrWhiteSpace(criteria?.PartialName))
+            {
+                where = where != null ? where + " AND " : "";
+                where += "`name` LIKE ?";
+                var p = new MySqlParameter("", MySqlDbType.Text);
+                p.Value = "%" + criteria.PartialName + "%";
+                mysqlParams.Add(p);
+            }
+
+            if (where != null)
+                sql += " WHERE " + where;
+
+            sql += " ORDER BY aceObjectId";
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    mysqlParams.ForEach(p => command.Parameters.Add(p));
+
+                    connection.Open();
+                    using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                    {
+                        while (commandReader.Read())
+                        {
+                            WeenieSearchResult o = new WeenieSearchResult();
+                            foreach (var p in properties)
+                            {
+                                var assignable = commandReader[p.Item2.DbFieldName];
+                                if (Convert.IsDBNull(assignable))
+                                {
+                                    p.Item1.SetValue(o, null);
+                                }
+                                else
+                                {
+                                    p.Item1.SetValue(o, assignable);
+                                }
+                            }
+                            results.Add(o);
+                        }
+                    }
+                }
+            }
+
+            return results;
         }
     }
 }
