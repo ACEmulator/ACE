@@ -1109,6 +1109,7 @@ namespace ACE.Entity
                             wo.ContainerId = Guid.Full;
                             wo.Placement = 0;
                             AddToInventory(wo);
+                            UpdatePlayerBurden();
                             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
                             Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                         }
@@ -1118,6 +1119,7 @@ namespace ACE.Entity
                             wo.ContainerId = Guid.Full;
                             wo.Placement = 0;
                             AddToInventory(wo);
+                            UpdatePlayerBurden(); ;
                             Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                         }
                     }
