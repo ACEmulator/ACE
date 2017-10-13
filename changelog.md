@@ -4,8 +4,7 @@
 [Og II]
 * Added processing for item inscription. Implemented Set Inscription and Inscription Response messages. 
 * Inscriptions persist to the database and can be removed.  
-* Not sure if they still had the check that only the inscriber could change and inscription, I did not implement that game logic yet
-* if it is still in the game.   I will ask Bob or HellsWrath and add it at a later date.
+* Implemented first pass of same inscriber check. Sends error message and does not update the item. This may need to be revisited, I * * thought it blocked you from changing it - not sure if that was a weenie error sent to client - I did not see a fail inscribe in live * pcaps. It does check the inscribable flag and will prevent any pre-inscribed items (quest items with inscriptions from being altered. * Thanks @LtRipley36706 for pointing that out.
 
 ### 2017-10-11
 [StackOverflow]
