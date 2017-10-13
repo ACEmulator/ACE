@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-10-13
+[StackOverflow]
+* Fixeed Vendor Bug with Sell / Buy / Resell of same item.
+
 ### 2017-10-11
 [StackOverflow]
 * Added support for unique Vendor Items.
