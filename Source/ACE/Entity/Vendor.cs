@@ -240,7 +240,7 @@ namespace ACE.Entity
             {
                 foreach (WorldObject wo in uqlist)
                 {
-                    if (!uniqueItemsForSale.ContainsKey(wo.Guid))
+                    if (!defaultItemsForSale.ContainsKey(wo.Guid))
                         uniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }

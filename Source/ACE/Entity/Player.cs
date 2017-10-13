@@ -1121,6 +1121,8 @@ namespace ACE.Entity
                             AddToInventory(wo);
                             UpdatePlayerBurden();
                             Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                            if (wo.WeenieType == WeenieType.Container)
+                                Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
                         }
                     }
                     else // not enough cash.
