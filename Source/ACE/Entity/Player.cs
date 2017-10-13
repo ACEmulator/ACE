@@ -2864,16 +2864,24 @@ namespace ACE.Entity
             new ActionChain(this, () =>
             {
                 WorldObject iwo = GetInventoryItem(itemGuid);
-                if (iwo != null)
+                if (iwo == null) return;
+                if (iwo.Inscribable && iwo.ScribeName != "prewritten")
                 {
-                    if (iwo.Inscribable)
+                    if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
                     {
-                        if (iwo.Inscription != null)
+                        ChatPacket.SendServerMessage(Session,
+                            "Only the original scribe may alter this without the use of an uninscription stone.",
+                            ChatMessageType.Broadcast);
+                    }
+                    else
+                    {
+                        if (inscriptionText != "")
                         {
                             iwo.Inscription = inscriptionText;
                             iwo.ScribeName = this.Name;
                             iwo.ScribeAccount = this.Character.ScribeAccount ?? "";
-                            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full, iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
+                            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
+                                iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
                         }
                         else
                         {
@@ -2882,14 +2890,14 @@ namespace ACE.Entity
                             iwo.ScribeAccount = null;
                         }
                     }
-                    else
-                    {
-                        // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
-                        // I could not find a pcap of a failed inscription. Og II
-                        ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
-                    }
                 }
-        }).EnqueueChain();
+                else
+                {
+                    // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
+                    // I could not find a pcap of a failed inscription. Og II
+                    ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
+                }
+            }).EnqueueChain();
     }
 
     public void HandleActionApplySoundEffect(Sound sound)
