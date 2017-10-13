@@ -1,4 +1,12 @@
 # ACEmulator Change Log
+
+### 2017-10-13
+[Og II]
+* Added processing for item inscription. Implemented Set Inscription and Inscription Response messages. 
+* Inscriptions persist to the database and can be removed.  
+* Not sure if they still had the check that only the inscriber could change and inscription, I did not implement that game logic yet
+* if it is still in the game.   I will ask Bob or HellsWrath and add it at a later date.
+
 ### 2017-10-11
 [StackOverflow]
 * Added support for unique Vendor Items.
