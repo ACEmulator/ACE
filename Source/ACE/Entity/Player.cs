@@ -2879,6 +2879,8 @@ namespace ACE.Entity
                         {
                             iwo.Inscription = inscriptionText;
                             iwo.ScribeName = this.Name;
+                            // TODO: the character scribe account is always null, once this is understood, this should work fine.
+                            // does not impact functionaly now.
                             iwo.ScribeAccount = this.Character.ScribeAccount ?? "";
                             Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
                                 iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
