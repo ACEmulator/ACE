@@ -1513,6 +1513,8 @@ namespace ACE.Entity
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 
+                AceObject.ClearDirtyFlags();
+
                 // FIXME : the issue is here - I still have the inventory in two dictionaries after clone.   I am missing something Og II
 #if DEBUG
                 if (Session.Player != null)
