@@ -2,6 +2,7 @@
 ### 2017-10-13
 [StackOverflow]
 * Fixeed Vendor Bug with Sell / Buy / Resell of same item.
+* Fixed Packs, you can now purchase them from a vendor and they work without relog.
 
 ### 2017-10-11
 [StackOverflow]
