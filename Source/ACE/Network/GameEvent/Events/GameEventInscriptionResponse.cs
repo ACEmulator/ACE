@@ -13,7 +13,7 @@
         public GameEventInscriptionResponse(Session session, uint objectID, string inscriptionText, string scribeName, string scribeAccount)
                 : base(GameEventType.GetInscriptionResponse, GameMessageGroup.Group09, session)
         {
-            //TODO: This message is not currently described correctly in our XML.   Need to let @Zegeger know the correct format. Og II
+            // TODO: This message is not currently described correctly in our XML.   Need to let @Zegeger know the correct format. Og II
             Writer.Write(objectID);
             Writer.WriteString16L(inscriptionText);
             Writer.Write(session.Player.Guid.Full);
