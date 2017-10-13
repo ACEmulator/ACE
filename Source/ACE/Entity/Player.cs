@@ -1119,7 +1119,7 @@ namespace ACE.Entity
                             wo.ContainerId = Guid.Full;
                             wo.Placement = 0;
                             AddToInventory(wo);
-                            UpdatePlayerBurden(); ;
+                            UpdatePlayerBurden();
                             Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                         }
                     }
