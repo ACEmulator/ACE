@@ -65,7 +65,7 @@ namespace ACE.Network.GameEvent.Events
                 foreach (var uintProperty in notNull)
                 {
                     Writer.Write((uint)uintProperty.PropertyId);
-                    Debug.Assert(uintProperty.PropertyValue != null, "uintProperty.PropertyValue != null");
+                    Debug.Assert(uintProperty.PropertyValue != null, $"uintProperty.PropertyValue != null | {uintProperty.PropertyId}");
                     Writer.Write(uintProperty.PropertyValue.Value);
                 }
             }
