@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-10-13
+[Og II]
+* Added processing for item inscription. Implemented Set Inscription and Inscription Response messages. 
+* Inscriptions persist to the database and can be removed.  
+* Implemented first pass of same inscriber check. Sends error message and does not update the item. This may need to be revisited, I * * thought it blocked you from changing it - not sure if that was a weenie error sent to client - I did not see a fail inscribe in live * pcaps. It does check the inscribable flag and will prevent any pre-inscribed items (quest items with inscriptions from being altered. * Thanks @LtRipley36706 for pointing that out.
+
 ### 2017-10-12
 [Ripley]
 * Added Burden tracking to Players and Containers.

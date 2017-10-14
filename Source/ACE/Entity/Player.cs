@@ -1170,7 +1170,7 @@ namespace ACE.Entity
                     purchaselist.Add(item);
                 }
 
-                // Send Items to Vendor for processing.. 
+                // Send Items to Vendor for processing..
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
                 {
@@ -1475,26 +1475,26 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary> 
-        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot 
-        /// of the aceObjects from the current list of inventory world objects by container. Og II 
-        /// </summary> 
+        /// <summary>
+        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
+        /// of the aceObjects from the current list of inventory world objects by container. Og II
+        /// </summary>
        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
-        { 
-            Inventory.Clear(); 
+        {
+            Inventory.Clear();
             foreach (var wo in InventoryObjects)
              {
-                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags)); 
+                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
                 if (wo.Value.WeenieType == WeenieType.Container)
                 {
                     wo.Value.Inventory.Clear();
                     foreach (var item in wo.Value.InventoryObjects)
-                    { 
+                    {
                         wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
                     }
                 }
             }
-        } 
+        }
 
         /// <summary>
         /// Internal save character functionality
@@ -1933,7 +1933,7 @@ namespace ACE.Entity
             ActionChain mpChain = new ActionChain();
             mpChain.AddAction(this, () => HandleActionTeleToMarketplaceInternal());
 
-            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s 
+            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
             // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
             // mpChain.AddDelaySeconds(mpAnimationLength);
             mpChain.AddDelaySeconds(14);
@@ -2903,7 +2903,54 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void HandleActionApplySoundEffect(Sound sound)
+        /// <summary>
+        /// This method handles inscription.   If you remove the inscription, it will remove the data from the object and
+        /// remove it from the shard database - all inscriptions are stored in ace_object_properties_string Og II
+        /// </summary>
+        /// <param name="itemGuid">This is the object that we are trying to inscribe</param>
+        /// <param name="inscriptionText">This is our inscription</param>
+        public void HandleActionSetInscription(ObjectGuid itemGuid, string inscriptionText)
+        {
+            new ActionChain(this, () =>
+            {
+                WorldObject iwo = GetInventoryItem(itemGuid);
+                if (iwo == null) return;
+                if (iwo.Inscribable && iwo.ScribeName != "prewritten")
+                {
+                    if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
+                    {
+                        ChatPacket.SendServerMessage(Session,
+                            "Only the original scribe may alter this without the use of an uninscription stone.",
+                            ChatMessageType.Broadcast);
+                    }
+                    else
+                    {
+                        if (inscriptionText != "")
+                        {
+                            iwo.Inscription = inscriptionText;
+                            iwo.ScribeName = this.Name;
+                            iwo.ScribeAccount = Session.Account;
+                            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
+                                iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
+                        }
+                        else
+                        {
+                            iwo.Inscription = null;
+                            iwo.ScribeName = null;
+                            iwo.ScribeAccount = null;
+                        }
+                    }
+                }
+                else
+                {
+                    // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
+                    // I could not find a pcap of a failed inscription. Og II
+                    ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
+                }
+            }).EnqueueChain();
+    }
+
+    public void HandleActionApplySoundEffect(Sound sound)
         {
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }

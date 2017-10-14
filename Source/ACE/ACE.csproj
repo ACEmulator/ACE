@@ -186,6 +186,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionGetAndWieldItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToLifestone.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionDie.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSetInscription.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionUseItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChangeCombatMode.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
@@ -223,6 +224,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventInscriptionResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
