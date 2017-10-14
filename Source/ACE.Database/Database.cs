@@ -1099,5 +1099,18 @@ namespace ACE.Database
 
             return dbTableCache[type];
         }
+
+        protected string EscapeStringLiteral(string input)
+        {
+            string result = input.Replace(@"\", @"\\");
+            result = result.Replace("'", @"\'");
+            result = result.Replace("\"", "\\\"");
+            result = result.Replace("%", "\\%");
+            result = result.Replace("_", "\\_");
+            result = result.Replace("\n", "\\n");
+            result = result.Replace("\r", "\\r");
+            result = result.Replace("\0", ""); // just remove null characters
+            return result;
+        }
     }
 }

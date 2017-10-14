@@ -1,5 +1,7 @@
 ﻿using ACE.Common;
 using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -85,6 +87,22 @@ namespace ACE.Database.Tests
             var results = worldDb.SearchWeenies(criteria);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.Count > 0, "no lifestones (itemtype) in the database is bad.");
+        }
+
+        [TestMethod]
+        public void WeenieSearch_ByFloatProperty_ReturnsObject()
+        {
+            SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();
+            criteria.PartialName = "Peerless Healing Kit";
+            criteria.PropertyCriteria.Add(new SearchWeenieProperty()
+            {
+                PropertyType = AceObjectPropertyType.PropertyDouble,
+                PropertyId = (uint)PropertyDouble.HealkitMod,
+                PropertyValue = "1.75"
+            });
+            var results = worldDb.SearchWeenies(criteria);
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.Count > 0, "no Peerless Healing Kit in the database is bad.");
         }
     }
 }

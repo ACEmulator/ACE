@@ -8,13 +8,13 @@ using ACE.Entity;
 
 namespace ACE.Api.Controllers
 {
-    public class WeenieController : ApiController
+    public class WeenieController : BaseController
     {
         [HttpPost]
-        [Authorize]
-        public List<AceObject> Search(WeenieSearchRequest request)
+        // [Authorize]
+        public List<WeenieSearchResult> Search([FromBody] SearchWeeniesCriteria request)
         {
-            return new List<AceObject>();
+            return WorldDb.SearchWeenies(request);
         }
     }
 }

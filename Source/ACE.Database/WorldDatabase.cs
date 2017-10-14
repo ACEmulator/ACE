@@ -586,16 +586,16 @@ namespace ACE.Database
         {
             List<WeenieSearchResult> results = new List<WeenieSearchResult>();
             List<MySqlParameter> mysqlParams = new List<MySqlParameter>();
-            
+
             var properties = GetPropertyCache(typeof(WeenieSearchResult));
             var dbTable = GetDbTableAttribute(typeof(WeenieSearchResult));
-            string sql = "SELECT " + string.Join(", ", properties.Select(p => p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName;
+            string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v` ";
             string where = null;
 
             if (criteria?.ContentGuid != null)
             {
                 where = where != null ? where + " AND " : "";
-                where += "aceObjectId IN (SELECT weenieId FROM ace_content_weenie WHERE contentGuid = ?)";
+                where += "`v`.aceObjectId IN (SELECT weenieId FROM ace_content_weenie WHERE contentGuid = ?)";
                 var p = new MySqlParameter("", MySqlDbType.Binary);
                 p.Value = criteria.ContentGuid.Value.ToByteArray();
                 mysqlParams.Add(p);
@@ -622,7 +622,7 @@ namespace ACE.Database
             if (criteria?.WeenieClassId != null)
             {
                 where = where != null ? where + " AND " : "";
-                where += "aceObjectId = ?";
+                where += "`v`.aceObjectId = ?";
                 var p = new MySqlParameter("", MySqlDbType.UInt32);
                 p.Value = (uint)criteria.WeenieClassId.Value;
                 mysqlParams.Add(p);
@@ -631,7 +631,7 @@ namespace ACE.Database
             if (criteria?.UserModified != null)
             {
                 where = where != null ? where + " AND " : "";
-                where += "userModified = ?";
+                where += "`v`.userModified = ?";
                 var p = new MySqlParameter("", MySqlDbType.Bit);
                 p.Value = criteria.UserModified.Value;
                 mysqlParams.Add(p);
@@ -640,17 +640,80 @@ namespace ACE.Database
             if (!string.IsNullOrWhiteSpace(criteria?.PartialName))
             {
                 where = where != null ? where + " AND " : "";
-                where += "`name` LIKE ?";
-                var p = new MySqlParameter("", MySqlDbType.Text);
-                p.Value = "%" + criteria.PartialName + "%";
-                mysqlParams.Add(p);
+                where += "`v`.`name` LIKE '%" + EscapeStringLiteral(criteria.PartialName) + "%'";
             }
+
+            int index = 0;
+            if (criteria?.PropertyCriteria != null)
+            {
+                foreach (var prop in criteria.PropertyCriteria)
+                {
+                    // this should be the 99% use case
+                    switch (prop.PropertyType)
+                    {
+                        case AceObjectPropertyType.PropertyBool:
+                            sql += $" INNER JOIN ace_object_properties_bool `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.boolPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue = {bool.Parse(prop.PropertyValue)}";
+                            break;
+                        case AceObjectPropertyType.PropertyString:
+                            sql += $" INNER JOIN ace_object_properties_string `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.strPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue like '%{EscapeStringLiteral(prop.PropertyValue)}%'";
+                            break;
+                        case AceObjectPropertyType.PropertyDouble:
+                            float fnum = float.Parse(prop.PropertyValue);
+                            sql += $" INNER JOIN ace_object_properties_double `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.dblPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue = {fnum}";
+                            break;
+                        case AceObjectPropertyType.PropertyDataId:
+                            uint did = uint.Parse(prop.PropertyValue);
+                            sql += $" INNER JOIN ace_object_properties_did `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.didPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue = {did}";
+                            break;
+                        case AceObjectPropertyType.PropertyInstanceId:
+                            uint iid = uint.Parse(prop.PropertyValue);
+                            sql += $" INNER JOIN ace_object_properties_iid `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.iidPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue = {iid}";
+                            break;
+                        case AceObjectPropertyType.PropertyInt:
+                            uint id = uint.Parse(prop.PropertyValue);
+                            sql += $" INNER JOIN ace_object_properties_int `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.intPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue = {id}";
+                            break;
+                        case AceObjectPropertyType.PropertyInt64:
+                            ulong id64 = ulong.Parse(prop.PropertyValue);
+                            sql += $" INNER JOIN ace_object_properties_int `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
+                                                                                              $"AND `prop{index}`.intPropertyId = {prop.PropertyId} " +
+                                                                                              $"AND `prop{index}`.propertyValue = {id64}";
+                            break;
+                        case AceObjectPropertyType.PropertyBook:
+                            // TODO: implement
+                            break;
+
+                        case AceObjectPropertyType.PropertyPosition:
+                            // TODO: implement.  this will look up the static weenie mappings of where things are supposed to be spawned
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    index++;
+                }
+            }
+
+            // note, "sql" may have had additional joins done on it with criteria
 
             if (where != null)
                 sql += " WHERE " + where;
 
             sql += " ORDER BY aceObjectId";
-
+            
             using (var connection = new MySqlConnection(connectionString))
             {
                 using (var command = new MySqlCommand(sql, connection))
