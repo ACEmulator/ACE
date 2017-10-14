@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net;
 using ACE.Factories;
+using System.Diagnostics;
+using ACE.Entity.Actions;
+using ACE.Entity.Enum.Properties;
+using ACE.Network;
+using ACE.Network.GameMessages.Messages;
 using ACE.Database;
 
 namespace ACE.Entity
@@ -164,12 +169,12 @@ namespace ACE.Entity
 
             uint placement = inv[itemGuid].Placement ?? 0u;
             inv.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
+            // Removed some unused code.   Og II
 
-            Container pack;
             ObjectGuid containerGuid = new ObjectGuid((uint)inv[itemGuid].ContainerId);
             if (!containerGuid.IsPlayer())
             {
-                pack = (Container)GetInventoryItem(containerGuid);
+                Container pack = (Container)GetInventoryItem(containerGuid);
 
                 pack.Burden -= inv[itemGuid].Burden;
                 pack.Value -= inv[itemGuid].Value;
@@ -228,6 +233,60 @@ namespace ACE.Entity
                 WieldedObjects.TryGetValue(objectGuid, out item);
 
             return item;
+        }
+
+        /// <summary>
+        /// This method processes the Stackable Merge Game Action (F7B1) Stackable Merge (0x0054)
+        /// </summary>
+        /// <param name="session">Session is used for sequence and target</param>
+        /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
+        /// <param name="mergeToGuid">Guid of the item we are merging into</param>
+        /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
+        public void HandleActionStackableMerge(Session session, ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, uint amount)
+        {
+            new ActionChain(this, () =>
+            {
+                WorldObject fromWo = GetInventoryItem(mergeFromGuid);
+                WorldObject toWo = GetInventoryItem(mergeToGuid);
+                if (fromWo == null || toWo == null) return;
+
+                Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
+                if (toWo.MaxStackSize >= (ushort)(toWo.StackSize + amount))
+                {
+                    // unless we have a data issue, these are valid asserts Og II
+                    Debug.Assert(toWo.Value != null, "toWo.Value != null");
+                    Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
+                    Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
+                    Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
+                    Debug.Assert(toWo.Burden != null, "toWo.Burden != null");
+                    Debug.Assert(fromWo.Burden != null, "fromWo.Burden != null");
+
+                    uint newValue = (uint)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
+                    uint newBurden = (uint)(toWo.Burden + ((fromWo.Burden / fromWo.StackSize) * amount));
+
+                    int oldStackSize = (int)toWo.StackSize;
+                    toWo.StackSize += (ushort)amount;
+                    toWo.Value = newValue;
+                    toWo.Burden = (ushort)newBurden;
+
+                    // Build the needed messages to the client.
+                    GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.Value, newValue);
+                    GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.Placement ?? 0u);
+                    Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
+                    GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
+
+                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgPutObjectInContainer, msgAdjustNewStackSize);
+
+                    // Ok did we merge it all?   If so, let's destroy the from item.
+                    if (fromWo.StackSize == amount)
+                    {
+                        session.Player.RemoveFromInventory(InventoryObjects, fromWo.Guid);
+                        GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
+                        CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);
+                        DatabaseManager.Shard.DeleteObject(fromWo.SnapShotOfAceObject(), null);
+                    }
+                }
+            }).EnqueueChain();
         }
     }
 }

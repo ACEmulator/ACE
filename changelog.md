@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2017-10-14
+[Og II]
+* Added processing for merge items.
+* Added script to update the burden, value and stack size of the weenie for MMD notes I used in testing.   20630 - value 250,000 burden 5 and stacksize 1
+
 ### 2017-10-13
 [Og II]
 * Added processing for item inscription. Implemented Set Inscription and Inscription Response messages. 

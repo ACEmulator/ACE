@@ -2763,10 +2763,11 @@ namespace ACE.Entity
                 else
                 {
                     ObjectGuid containerGuid = ObjectGuid.Invalid;
-                    WorldObject packItem;
+                    // Removed unused code Og II
                     var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
                     foreach (var container in containers)
                     {
+                        WorldObject packItem;
                         if (container.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
                         {
                             containerGuid = container.Value.Guid;
@@ -2774,17 +2775,13 @@ namespace ACE.Entity
                         }
                     }
 
-                    Container pack;
-                    if (item != null && containerGuid != ObjectGuid.Invalid)
+                    if (containerGuid != ObjectGuid.Invalid)
                     {
-                        pack = (Container)GetInventoryItem(containerGuid);
-
                         RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
                     }
                     else
                     {
-                        if (item != null)
-                            RemoveFromInventory(InventoryObjects, itemGuid);
+                        RemoveFromInventory(InventoryObjects, itemGuid);
                     }
                 }
 
@@ -2817,6 +2814,7 @@ namespace ACE.Entity
                 new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
 
                 // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                Debug.Assert(item != null, "item != null");
                 item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
@@ -2829,7 +2827,8 @@ namespace ACE.Entity
             });
 
                 chain.EnqueueChain();
-                Session.SaveSession();
+                // Removed SaveSession - this was causing items that were dropped to not be removed
+                // from inventory.   If this causes a problem with vendor, we need to fix vendor.  Og II
             });
 
             dropChain.EnqueueChain();
@@ -2950,7 +2949,7 @@ namespace ACE.Entity
             }).EnqueueChain();
     }
 
-    public void HandleActionApplySoundEffect(Sound sound)
+        public void HandleActionApplySoundEffect(Sound sound)
         {
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }
