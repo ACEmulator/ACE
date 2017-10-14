@@ -6,6 +6,15 @@
 * Inscriptions persist to the database and can be removed.  
 * Implemented first pass of same inscriber check. Sends error message and does not update the item. This may need to be revisited, I * * thought it blocked you from changing it - not sure if that was a weenie error sent to client - I did not see a fail inscribe in live * pcaps. It does check the inscribable flag and will prevent any pre-inscribed items (quest items with inscriptions from being altered. * Thanks @LtRipley36706 for pointing that out.
 
+### 2017-10-12
+[Ripley]
+* Added Burden tracking to Players and Containers.
+* Added CoinValue tracking via objects of WeenieType.Coin to Players and Containers.
+* Added Value tracking to Containers.
+* Commented out areas related to above changes that were not implemented correctly.
+* TODO: Update Value/Burden and track changes as StackSize adjustments occur.
+* TODO FIXME: Vendors code need to be adjusted to work with pyreal objects, not CoinValue direct.
+
 ### 2017-10-11
 [StackOverflow]
 * Added support for unique Vendor Items.
@@ -87,7 +96,6 @@
 * Merged updates into WorldBase.
 * Fixed saving books to the Shard database.
 * Characters now equip items on world entry. (This will reveal bugs in clothing layer priority and model change issues)
-
 
 ### 2017-09-25
 [Og II]

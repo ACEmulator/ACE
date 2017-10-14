@@ -809,7 +809,7 @@ namespace ACE.Command.Handlers
 
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
-                    session.Player.UpdatePlayerBurden();
+                    ////session.Player.UpdatePlayerBurden();
                     session.Network.EnqueueSend(
                         new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
                         new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
@@ -838,7 +838,7 @@ namespace ACE.Command.Handlers
                     session.Player.AddToInventory(loot);
                     session.Player.TrackObject(loot);
                     chain.AddDelaySeconds(0.25);
-                    session.Player.UpdatePlayerBurden();
+                    ////session.Player.UpdatePlayerBurden();
                     session.Network.EnqueueSend(
                         new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
                         new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
