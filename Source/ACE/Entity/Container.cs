@@ -12,7 +12,6 @@ using ACE.Database;
 
 namespace ACE.Entity
 {
-
     public class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
