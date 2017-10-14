@@ -2108,7 +2108,7 @@ namespace ACE.Entity
         /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II
         /// </summary>
         /// <param name="itemGuid">Guid of the item to be unwielded.</param>
-        private void RemoveFromWieldedObjects(ObjectGuid itemGuid)
+        public void RemoveFromWieldedObjects(ObjectGuid itemGuid)
         {
             if (WieldedObjects.ContainsKey(itemGuid))
             {
