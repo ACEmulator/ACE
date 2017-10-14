@@ -13,10 +13,10 @@ namespace ACE.Api.Controllers
     [AllowAnonymous]
     public class AuthController : BaseController
     {
-        [HttpGet]
-        public string GetToken(string username, string password)
+        [HttpPost]
+        public string GetToken([FromBody] AuthRequest request)
         {
-            var account = CheckUser(username, password);
+            var account = CheckUser(request.Username, request.Password);
             if (account != null)
             {
                 return JwtManager.GenerateToken(account);

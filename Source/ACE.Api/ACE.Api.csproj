@@ -119,6 +119,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\AuthRequest.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="SwaggerConfig.cs" />
     <Compile Include="Controllers\AuthController.cs" />
