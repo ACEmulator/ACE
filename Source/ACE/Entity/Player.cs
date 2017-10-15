@@ -413,7 +413,7 @@ namespace ACE.Entity
             AddCharacterBaseModelData();
 
             UpdateAppearance(this);
-            Burden = UpdateBurden();
+            ////Burden = UpdateBurden();
 
             // Save the the LoginTimestamp
             Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
@@ -1172,7 +1172,7 @@ namespace ACE.Entity
                         RemoveFromInventory(InventoryObjects, profile.Guid);
                     }
 
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+                    ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
                     ObjectGuid clearContainer = new ObjectGuid(0);
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, clearContainer, PropertyInstanceId.Container));
 
@@ -1183,7 +1183,7 @@ namespace ACE.Entity
                     purchaselist.Add(item);
                 }
 
-                // Send Items to Vendor for processing.. 
+                // Send Items to Vendor for processing..
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
                 {
@@ -1198,8 +1198,8 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                if (valid)
-                    AddCoin(payout);
+                ////if (valid)
+                ////    AddCoin(payout);
             }).EnqueueChain();
         }
 #endregion
@@ -1210,7 +1210,6 @@ namespace ACE.Entity
             {
                 AddToInventory(wo);
                 TrackObject(wo);
-                UpdatePlayerBurden();
             }).EnqueueChain();
         }
 
@@ -1226,7 +1225,6 @@ namespace ACE.Entity
             wo.Placement = 0;
             AddToInventory(wo);
             TrackObject(wo);
-            UpdatePlayerBurden();
 
             return wo;
         }
@@ -1490,26 +1488,26 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary> 
-        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot 
-        /// of the aceObjects from the current list of inventory world objects by container. Og II 
-        /// </summary> 
+        /// <summary>
+        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
+        /// of the aceObjects from the current list of inventory world objects by container. Og II
+        /// </summary>
        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
-        { 
-            Inventory.Clear(); 
+        {
+            Inventory.Clear();
             foreach (var wo in InventoryObjects)
              {
-                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags)); 
+                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
                 if (wo.Value.WeenieType == WeenieType.Container)
                 {
                     wo.Value.Inventory.Clear();
                     foreach (var item in wo.Value.InventoryObjects)
-                    { 
+                    {
                         wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
                     }
                 }
             }
-        } 
+        }
 
         /// <summary>
         /// Internal save character functionality
@@ -1527,6 +1525,8 @@ namespace ACE.Entity
                 SnapshotInventoryItems();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
+
+                AceObject.ClearDirtyFlags();
 
                 // FIXME : the issue is here - I still have the inventory in two dictionaries after clone.   I am missing something Og II
 #if DEBUG
@@ -1699,15 +1699,6 @@ namespace ACE.Entity
             {
                 return (List<ObjectGuid>)clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
             }
-        }
-
-        public void UpdatePlayerBurden()
-        {
-            Session.Player.Burden = UpdateBurden();
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(
-                                            Session.Player.Sequences,
-                                            PropertyInt.EncumbranceVal,
-                                            Session.Player.Burden ?? 0u));
         }
 
         /// <summary>
@@ -1955,7 +1946,7 @@ namespace ACE.Entity
             ActionChain mpChain = new ActionChain();
             mpChain.AddAction(this, () => HandleActionTeleToMarketplaceInternal());
 
-            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s 
+            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
             // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
             // mpChain.AddDelaySeconds(mpAnimationLength);
             mpChain.AddDelaySeconds(14);
@@ -2110,7 +2101,6 @@ namespace ACE.Entity
         /// <param name="currentWieldedLocation">What wield location are we going into</param>
         private void AddToWieldedObjects(ref WorldObject item, WorldObject wielder, EquipMask currentWieldedLocation)
         {
-            RemoveFromInventory(InventoryObjects, item.Guid);
             // Unset container fields
             item.Placement = null;
             item.ContainerId = null;
@@ -2119,7 +2109,11 @@ namespace ACE.Entity
             item.CurrentWieldedLocation = currentWieldedLocation;
 
             if (!wielder.WieldedObjects.ContainsKey(item.Guid))
+            {
                 wielder.WieldedObjects.Add(item.Guid, item);
+
+                Burden += item.Burden;
+            }
         }
 
         /// <summary>
@@ -2130,7 +2124,10 @@ namespace ACE.Entity
         private void RemoveFromWieldedObjects(ObjectGuid itemGuid)
         {
             if (WieldedObjects.ContainsKey(itemGuid))
+            {
+                Burden -= WieldedObjects[itemGuid].Burden;
                 WieldedObjects.Remove(itemGuid);
+            }
         }
 
         /// <summary>
@@ -2201,7 +2198,13 @@ namespace ACE.Entity
 
             inContainerChain.AddAction(this, () =>
             {
-                AddToInventory(item, placement);
+                if (container.Guid != Guid)
+                {
+                    container.AddToInventory(item, placement);
+                    Burden += item.Burden;
+                }
+                else
+                    AddToInventory(item, placement);
             });
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
@@ -2245,10 +2248,18 @@ namespace ACE.Entity
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
             container.AddToInventory(item, placement);
+            if (item.ContainerId != Guid.Full)
+            {
+                Burden += item.Burden ?? 0;
+                if (item.WeenieType == WeenieType.Coin)
+                    CoinValue += item.Value ?? 0;
+            }
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                 new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
                     container.Guid));
+
+            Session.SaveSession();
         }
 
         /// <summary>
@@ -2388,6 +2399,25 @@ namespace ACE.Entity
                 // If success, the item is in our inventory:
                 WorldObject item = GetInventoryItem(itemGuid);
 
+                if (item.ContainerId != Guid.Full)
+                {
+                    Burden += item.Burden ?? 0;
+
+                    if (item.WeenieType == WeenieType.Coin)
+                    {
+                        CoinValue += item.Value ?? 0;
+                    }
+                }
+
+                if (item.WeenieType == WeenieType.Container)
+                {
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, item.SnapShotOfAceObject()));
+                    foreach (var packItem in item.InventoryObjects)
+                    {
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                    }
+                }
+
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
@@ -2397,7 +2427,7 @@ namespace ACE.Entity
                     if (iidPropertyId == PropertyInstanceId.Container)
                     {
                         Session.Network.EnqueueSend(
-                            new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
+                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
                             new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
@@ -2578,9 +2608,34 @@ namespace ACE.Entity
                 {
                     ObjectGuid itemGuid = new ObjectGuid(itemId);
                     WorldObject item = GetInventoryItem(itemGuid);
+                    WorldObject packItem;
 
                     if (item != null)
                     {
+                        ObjectGuid containerGuid = ObjectGuid.Invalid;
+                        var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                        foreach (var subpack in containers)
+                        {
+                            if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
+                            {
+                                containerGuid = subpack.Value.Guid;
+                                break;
+                            }
+                        }
+
+                        Container pack;
+                        if (item != null && containerGuid != ObjectGuid.Invalid)
+                        {
+                            pack = (Container)GetInventoryItem(containerGuid);
+
+                            RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                        }
+                        else
+                        {
+                            if (item != null)
+                                RemoveFromInventory(InventoryObjects, itemGuid);
+                        }
+
                         AddToWieldedObjects(ref item, container, (EquipMask)placement);
 
                         if ((EquipMask)placement == EquipMask.MissileAmmo)
@@ -2691,36 +2746,7 @@ namespace ACE.Entity
         {
             RemoveFromInventory(InventoryObjects, wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
-        }
-
-        private bool SpendCoin(uint value)
-        {
-            if (coinValue - value < 0)
-                return false;
-            else
-            {
-                coinValue = coinValue - value;
-                SetCoin(coinValue);
-                return true;
-            }
-        }
-
-        public void AddCoin(uint value)
-        {
-            coinValue = coinValue + value;
-            SetCoin(coinValue);
-        }
-
-        public void SetCoinValue(uint value)
-        {
-            coinValue = value;
-            SetCoin(coinValue);
-        }
-
-        private void SetCoin(uint value)
-        {
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CoinValue, value));
+            ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
 
         public void HandleActionDropItem(ObjectGuid itemGuid)
@@ -2735,23 +2761,47 @@ namespace ACE.Entity
                 if (item == null)
                 {
                     // check to see if this item is wielded
-                    if (!WieldedObjects.TryGetValue(itemGuid, out item))
-                        return;
-                    RemoveFromWieldedObjects(itemGuid);
-                    UpdateAppearance(this);
-                    ObjectGuid clearWielder = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(
-                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                        new GameMessageObjDescEvent(this),
-                        new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    WieldedObjects.TryGetValue(itemGuid, out item);
+                    if (item != null)
+                    {
+                        RemoveFromWieldedObjects(itemGuid);
+                        UpdateAppearance(this);
+                        ObjectGuid clearWielder = new ObjectGuid(0);
+                        Session.Network.EnqueueSend(
+                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                    }
                 }
                 else
                 {
-                    RemoveFromInventory(InventoryObjects, itemGuid);
+                    ObjectGuid containerGuid = ObjectGuid.Invalid;
+                    WorldObject packItem;
+                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                    foreach (var container in containers)
+                    {
+                        if (container.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
+                        {
+                            containerGuid = container.Value.Guid;
+                            break;
+                        }
+                    }
+
+                    Container pack;
+                    if (item != null && containerGuid != ObjectGuid.Invalid)
+                    {
+                        pack = (Container)GetInventoryItem(containerGuid);
+
+                        RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                    }
+                    else
+                    {
+                        if (item != null)
+                            RemoveFromInventory(InventoryObjects, itemGuid);
+                    }
                 }
 
                 SetInventoryForWorld(item);
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
 
                 UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
@@ -2792,6 +2842,7 @@ namespace ACE.Entity
             });
 
                 chain.EnqueueChain();
+                Session.SaveSession();
             });
 
             dropChain.EnqueueChain();
@@ -2865,7 +2916,54 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void HandleActionApplySoundEffect(Sound sound)
+        /// <summary>
+        /// This method handles inscription.   If you remove the inscription, it will remove the data from the object and
+        /// remove it from the shard database - all inscriptions are stored in ace_object_properties_string Og II
+        /// </summary>
+        /// <param name="itemGuid">This is the object that we are trying to inscribe</param>
+        /// <param name="inscriptionText">This is our inscription</param>
+        public void HandleActionSetInscription(ObjectGuid itemGuid, string inscriptionText)
+        {
+            new ActionChain(this, () =>
+            {
+                WorldObject iwo = GetInventoryItem(itemGuid);
+                if (iwo == null) return;
+                if (iwo.Inscribable && iwo.ScribeName != "prewritten")
+                {
+                    if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
+                    {
+                        ChatPacket.SendServerMessage(Session,
+                            "Only the original scribe may alter this without the use of an uninscription stone.",
+                            ChatMessageType.Broadcast);
+                    }
+                    else
+                    {
+                        if (inscriptionText != "")
+                        {
+                            iwo.Inscription = inscriptionText;
+                            iwo.ScribeName = this.Name;
+                            iwo.ScribeAccount = Session.Account;
+                            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
+                                iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
+                        }
+                        else
+                        {
+                            iwo.Inscription = null;
+                            iwo.ScribeName = null;
+                            iwo.ScribeAccount = null;
+                        }
+                    }
+                }
+                else
+                {
+                    // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
+                    // I could not find a pcap of a failed inscription. Og II
+                    ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
+                }
+            }).EnqueueChain();
+    }
+
+    public void HandleActionApplySoundEffect(Sound sound)
         {
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }
@@ -3247,6 +3345,29 @@ namespace ACE.Entity
                         Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
                 }
             }
+        }
+
+        private ushort burden = 0;
+        public override ushort? Burden
+        {
+            get { return burden; }
+            set
+            {
+                if (value != burden)
+                {
+                    base.Burden = value;
+                    burden = (ushort)value;
+                    if (FirstEnterWorldDone)
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, burden));
+                }
+            }
+        }
+
+        private uint value = 0;
+        public override uint? Value
+        {
+            get { return value; }
+            set { base.Value = 0; }
         }
     }
 }

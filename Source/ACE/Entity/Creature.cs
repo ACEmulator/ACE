@@ -145,25 +145,25 @@ namespace ACE.Entity
         {
             ActionChain createCorpseChain = new ActionChain(this, () =>
             {
-                // Create Corspe and set a location on the ground
-                // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-                var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                // FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
-                corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
-                corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
+                ////// Create Corspe and set a location on the ground
+                ////// TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
+                ////var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+                ////// FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
+                ////corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
+                ////corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
 
-                // Corpses stay on the ground for 5 * player level but minimum 1 hour
-                // corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-                // corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-                float despawnTime = GetCorpseSpawnTime();
+                ////// Corpses stay on the ground for 5 * player level but minimum 1 hour
+                ////// corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+                ////// corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+                ////float despawnTime = GetCorpseSpawnTime();
 
-                // Create corpse
-                CurrentLandblock.AddWorldObject(corpse);
-                // Create corpse decay
-                ActionChain despawnChain = new ActionChain();
-                despawnChain.AddDelaySeconds(despawnTime);
-                despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
-                despawnChain.EnqueueChain();
+                ////// Create corpse
+                ////CurrentLandblock.AddWorldObject(corpse);
+                ////// Create corpse decay
+                ////ActionChain despawnChain = new ActionChain();
+                ////despawnChain.AddDelaySeconds(despawnTime);
+                ////despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
+                ////despawnChain.EnqueueChain();
             });
             return createCorpseChain;
         }

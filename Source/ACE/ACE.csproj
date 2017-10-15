@@ -95,7 +95,7 @@
     <Compile Include="Entity\Actions\ActionEventBase.cs" />
     <Compile Include="Entity\Actions\ActionEventDelegate.cs" />
     <Compile Include="Entity\Actions\ActionQueue.cs" />
-    <Compile Include="Entity\Actions\ActonChain.cs" />
+    <Compile Include="Entity\Actions\ActionChain.cs" />
     <Compile Include="Entity\Actions\ConditionalAction.cs" />
     <Compile Include="Entity\Actions\DelayAction.cs" />
     <Compile Include="Entity\Actions\DelayManager.cs" />
@@ -138,7 +138,6 @@
     <Compile Include="Entity\StarterItem.cs" />
     <Compile Include="Entity\StarterSpell.cs" />
     <Compile Include="Entity\Vendor.cs" />
-    <Compile Include="Factories\CorpseObjectFactory.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
@@ -187,6 +186,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionGetAndWieldItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionTeleToLifestone.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionDie.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionSetInscription.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionUseItem.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChangeCombatMode.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionIdentifyObject.cs" />
@@ -224,6 +224,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventInscriptionResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelIndex.cs" />
@@ -265,7 +266,7 @@
     <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyDouble.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyInt64.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyInt.cs" />
-	<Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyBool.cs" />
+    <Compile Include="Network\GameMessages\Messages\GameMessagePublicUpdatePropertyBool.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageUpdatePropertyBool.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageSoulEmote.cs" />
     <Compile Include="Network\GameMessages\Messages\GameMessageObjDescEvent.cs" />
