@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using ACE.Database;
 using ACE.Entity;
+using System.Net.Http;
 
 namespace ACE.Api.Controllers
 {
     public class ContentController : ApiController
     {
         [HttpGet]
-        [Authorize]
-        public List<Content> GetAllContent()
+        [AceAuthorize]
+        public HttpResponseMessage GetAllContent()
         {
             return null;
         }

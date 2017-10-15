@@ -31,7 +31,7 @@ namespace ACE.Api.Controllers
 
             throw new HttpResponseException(HttpStatusCode.Unauthorized);
         }
-
+        
         private Account CheckUser(string username, string password)
         {
             var account = AuthDb.GetAccountByName(username);

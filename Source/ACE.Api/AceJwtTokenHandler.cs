@@ -94,6 +94,8 @@ namespace ACE.Api
                 throw new AuthenticationException($"Invalid audience '{jwtAudience}'.  Expected '{JwtManager.AceAudience}'.");
 
             string name = (string)bodyData["unique_name"];
+            
+            /// TODO: Convert to SecurityLevel instead of AccessLevel
             AccessLevel thisGuy = AccessLevel.Player;
             List<string> roles = new List<string>();
             if (Enum.TryParse((string)bodyData["role"], out thisGuy))
