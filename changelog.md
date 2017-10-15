@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2017-10-13
+[StackOverflow]
+* Fixed Vendor Bug with Sell / Buy / Resell of same item.
+* Fixed Packs, you can now purchase them from a vendor and they work without relog.
+
 [Og II]
 * Added processing for item inscription. Implemented Set Inscription and Inscription Response messages. 
 * Inscriptions persist to the database and can be removed.  
