@@ -100,7 +100,7 @@ namespace ACE.Api
             List<string> roles = new List<string>();
             if (Enum.TryParse((string)bodyData["role"], out thisGuy))
             {
-                foreach(AccessLevel level in Enum.GetValues(typeof(AccessLevel)))
+                foreach (AccessLevel level in Enum.GetValues(typeof(AccessLevel)))
                 {
                     if (thisGuy >= level)
                         roles.Add(level.ToString());

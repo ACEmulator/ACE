@@ -8,7 +8,7 @@ namespace ACE.Api
 {
     internal class JwtUtil
     {
-        //convert a unix timestamp (seconds past the epoch) to a UTC DateTime
+        // convert a unix timestamp (seconds past the epoch) to a UTC DateTime
         public static DateTime ConvertFromUnixTimestamp(long timestamp)
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);

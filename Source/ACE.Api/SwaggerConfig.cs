@@ -2,6 +2,7 @@ using System.Web.Http;
 using WebActivatorEx;
 using ACE.Api;
 using Swashbuckle.Application;
+using System.Diagnostics.CodeAnalysis;
 
 [assembly: PreApplicationStartMethod(typeof(SwaggerConfig), "Register")]
 
@@ -9,6 +10,7 @@ namespace ACE.Api
 {
     public class SwaggerConfig
     {
+        [SuppressMessage("Microsoft.StyleCop.CSharp.Spacing", "SA1005:SingleLineCommentsMustBeginWithSingleSpace")]
         public static void Register(HttpConfiguration config)
         {
             var thisAssembly = typeof(SwaggerConfig).Assembly;

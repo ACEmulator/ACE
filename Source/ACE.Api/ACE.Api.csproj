@@ -122,7 +122,7 @@
     <Compile Include="Controllers\AuthRequest.cs" />
     <Compile Include="Controllers\AuthResponse.cs" />
     <Compile Include="Controllers\BaseController.cs" />
-    <Compile Include="JwtUitl.cs" />
+    <Compile Include="JwtUtil.cs" />
     <Compile Include="SwaggerConfig.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\ContentController.cs" />
