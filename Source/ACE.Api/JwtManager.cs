@@ -7,10 +7,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ACE.Entity;
-// using Microsoft.IdentityModel.Tokens;
-using System.Web.SessionState;
-using JwtAuthForWebAPI;
-using System.Security.Principal;
 using System.IdentityModel.Tokens;
 using System.IdentityModel.Protocols.WSTrust;
 
@@ -18,10 +14,15 @@ namespace ACE.Api
 {
     public class JwtManager
     {
+        public const string AceIssuerName = "ACE";
+        public const string AceAudience = "http://auth.acemulator.org/";
+
         /// <summary>
         /// jwt hmac secret, base64 encoded
         /// </summary>
         public static string Secret { get; private set; }
+
+        private static SigningCredentials signingCreds;
 
         static JwtManager()
         {
@@ -40,25 +41,31 @@ namespace ACE.Api
             {
                 Secret = File.ReadAllText(path);
             }
+
+            var symmetricKey = Convert.FromBase64String(Secret);
+
+            signingCreds = new SigningCredentials(new InMemorySymmetricSecurityKey(symmetricKey), 
+                                                  "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", 
+                                                  "http://www.w3.org/2001/04/xmlenc#sha256");
         }
 
-        public static string GenerateToken(Account account, int expireMinutes = 20)
+        public static string GenerateToken(Account account, int expireMinutes = 120)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var symmetricKey = Convert.FromBase64String(Secret);
             var now = DateTime.UtcNow;
 
-            var tokenDescriptor = new System.IdentityModel.Tokens.SecurityTokenDescriptor
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, account.Name),
-                    new Claim(ClaimTypes.Role, account.AccessLevel.ToString()),
-                    new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString())
+                    new Claim(ClaimTypes.Name, account.Name), // unique_name
+                    new Claim(ClaimTypes.Role, account.AccessLevel.ToString()), // role
+                    new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()) // nameid
                 }),
-                TokenIssuerName = "ACE",
+                TokenIssuerName = AceIssuerName,
+                AppliesToAddress = AceAudience,
                 Lifetime = new Lifetime(now, now.AddMinutes(expireMinutes)),
-                SigningCredentials = new SigningCredentials(new InMemorySymmetricSecurityKey(symmetricKey), "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", "http://www.w3.org/2001/04/xmlenc#sha256")
+                SigningCredentials = signingCreds
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

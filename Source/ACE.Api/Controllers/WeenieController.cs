@@ -11,7 +11,7 @@ namespace ACE.Api.Controllers
     public class WeenieController : BaseController
     {
         [HttpPost]
-        // [Authorize]
+        [Authorize]
         public List<WeenieSearchResult> Search([FromBody] SearchWeeniesCriteria request)
         {
             return WorldDb.SearchWeenies(request);
