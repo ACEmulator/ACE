@@ -1236,9 +1236,6 @@ namespace ACE.Entity
                 // add money to player inventory.
                 foreach (WorldObject wo in payout)
                 {
-                    wo.ContainerId = Guid.Full;
-                    wo.Placement = 0;
-                    AddToInventory(wo);
                     HandleAddNewWorldObjectToInventory(wo);
                 }
             }).EnqueueChain();
@@ -1343,8 +1340,8 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Adds a new object to the player's inventory of the specified weenie class.  intended use case: giving items to players
-        /// while they are playing.  this calls all the necessary helper functions to have the item be tracked and sent to the client.
+        /// Adds a new object to the 's inventory of the specified weenie class.  intended use case: giving items to players
+        /// while they are plaplayerying.  this calls all the necessary helper functions to have the item be tracked and sent to the client.
         /// </summary>
         /// <returns>the object created</returns>
         public WorldObject AddNewItemToInventory(uint weenieClassId)
