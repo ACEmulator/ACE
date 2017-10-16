@@ -17,6 +17,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -49,6 +50,11 @@ namespace ACE.Entity
         /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
         /// </summary>
         private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
+
+        /// <summary>
+        /// Track Containers
+        /// </summary>
+        private Dictionary<ObjectGuid, Container> containerWorldObjects = new Dictionary<ObjectGuid, Container>();
 
         /// <summary>
         /// Amount of times this character has left a portal this session
@@ -1103,28 +1109,22 @@ namespace ACE.Entity
                 // vendor accepted the transaction
                 if (valid)
                 {
-                    foreach (WorldObject wo in uqlist)
+                    if (SpendCurrency(goldcost, WeenieType.Coin))
                     {
-                        wo.ContainerId = Guid.Full;
-                        wo.Placement = 0;
-                        AddToInventory(wo);
-                        Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
-                        Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
+                        foreach (WorldObject wo in uqlist)
+                        {
+                            wo.ContainerId = Guid.Full;
+                            wo.Placement = 0;
+                            AddToInventory(wo);
+                            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
+                            Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
+                        }
+                        HandleAddNewWorldObjectsToInventory(genlist);
                     }
-                    // these are new items genated by vendor.
-                    foreach (WorldObject wo in genlist)
+                    else // not enough cash.
                     {
-                        wo.ContainerId = Guid.Full;
-                        wo.Placement = 0;
-                        AddToInventory(wo);
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                        if (wo.WeenieType == WeenieType.Container)
-                            Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+                        valid = false;
                     }
-                }
-                else // not enough cash.
-                {
-                    valid = false;
                 }
 
                 // send results back to vendor the transaction failed
@@ -1196,18 +1196,150 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                // todo payout
+                // pay player in voinds
+                if (valid)
+                    CreateCurrancy(WeenieType.Coin, payout);
             }).EnqueueChain();
         }
-#endregion
+        #endregion
 
-        public void HandleAddToInventory(WorldObject wo)
+        public bool CreateCurrancy(WeenieType type, uint amount)
         {
             new ActionChain(this, () =>
             {
-                AddToInventory(wo);
-                TrackObject(wo);
+                // todo: we need to look up this object to understand it by its weenie id.
+                // todo: support more then hard coded coin.
+                WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(273);
+                ushort maxstacksize = wochk.MaxStackSize.Value;
+                wochk = null;
+
+                List<WorldObject> payout = new List<WorldObject>();
+
+                while (amount > 0)
+                {
+                    WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(273);
+                    // payment contains a max stack
+                    if (maxstacksize <= amount)
+                    {
+                        currancystack.StackSize = maxstacksize;
+                        payout.Add(currancystack);
+                        amount = amount - maxstacksize;
+                    }
+                    else // not a full stack
+                    {
+                        currancystack.StackSize = (ushort)amount;
+                        payout.Add(currancystack);
+                        amount = amount - amount;
+                    }
+                }
+
+                // add money to player inventory.
+                foreach (WorldObject wo in payout)
+                {
+                    wo.ContainerId = Guid.Full;
+                    wo.Placement = 0;
+                    AddToInventory(wo);
+                    HandleAddNewWorldObjectToInventory(wo);
+                }
             }).EnqueueChain();
+            return true;
+        }
+
+        /// <summary>
+        /// used for debugging only! it sets the coin value of the character and the player.
+        /// used to correct mixmatch of pyreals/coin value during development bugs - so
+        /// </summary>
+        /// <param name="coin"></param>
+        public void Debugsetcoin(uint coin)
+        {
+            CoinValue = coin;
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coin));
+        }
+
+        private bool SpendCurrency(uint amount, WeenieType type)
+        {
+            if (CoinValue - amount >= 0)
+            {
+                List<WorldObject> currency = new List<WorldObject>();
+                currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
+                currency = currency.OrderBy(o => o.Value).ToList();
+
+                List<WorldObject> cost = new List<WorldObject>();
+                uint payment = 0;
+
+                WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject(273);
+                uint change = 0;
+
+                foreach (WorldObject wo in currency)
+                {
+                    if (payment + wo.StackSize.Value <= amount)
+                    {
+                        // add to payment
+                        payment = payment + wo.StackSize.Value;
+                        cost.Add(wo);
+                        if (payment == amount)
+                            break;
+                    }
+                    else if (payment + wo.StackSize.Value > amount)
+                    {
+                        // add payment
+                        payment = payment + wo.StackSize.Value;
+                        cost.Add(wo);
+                        // calculate change
+                        change = payment - amount;
+                        // add new change object. 
+                        changeobj.StackSize = (ushort)change;
+                        break;
+                    }
+                }
+
+                // destroy all stacks of currency required / sale
+                foreach (WorldObject wo in cost)
+                {
+                    RemoveFromInventory(InventoryObjects, wo.Guid);
+                    ObjectGuid clearContainer = new ObjectGuid(0);
+                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
+
+                    // clean up the shard database.
+                    DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(wo));
+                }
+
+                // if there is change - readd - do this at the end to try to prevent exploiting
+                if (change > 0)
+                {
+                    HandleAddNewWorldObjectToInventory(changeobj);
+                }
+
+                return true;
+            }
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Call this to add any new World Objects to inventory
+        /// </summary>
+        /// <param name="wo"></param>
+        public void HandleAddNewWorldObjectsToInventory(List<WorldObject> wolist)
+        {
+            foreach (WorldObject wo in wolist)
+            {
+                HandleAddNewWorldObjectToInventory(wo);
+            }
+        }
+
+        /// <summary>
+        /// Add New WorldObject to Inventory
+        /// </summary>
+        /// <param name="wo"></param>
+        public void HandleAddNewWorldObjectToInventory(WorldObject wo)
+        {
+                wo.ContainerId = Guid.Full;
+                AddToInventory(wo);
+                Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                if (wo.WeenieType == WeenieType.Container)
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
         }
 
         /// <summary>
@@ -1222,7 +1354,6 @@ namespace ACE.Entity
             wo.Placement = 0;
             AddToInventory(wo);
             TrackObject(wo);
-
             return wo;
         }
 

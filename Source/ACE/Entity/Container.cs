@@ -1,4 +1,4 @@
-using ACE.Entity.Enum;
+﻿using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
@@ -234,6 +234,32 @@ namespace ACE.Entity
                 WieldedObjects.TryGetValue(objectGuid, out item);
 
             return item;
+        }
+
+        /// <summary>
+        /// This method is used to get all inventory items of Coin in this container (example of usage get all items of coin on player)
+        /// </summary>
+        /// <param name="objectGuid"></param>
+        /// <returns></returns>
+        public virtual List<WorldObject> GetInventoryItemsOfTypeWeenieType(WeenieType type)
+        {
+            List<WorldObject> items = new List<WorldObject>();
+
+            // first search me / add all items of type.
+            var localInventory = InventoryObjects.Where(wo => wo.Value.WeenieType == type).ToList();
+            foreach (var wo in localInventory)
+            {
+                items.Add(wo.Value);
+            }
+
+            // next search all containers for coin.. run function again for each container.
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in containers)
+            {
+                items.AddRange((container.Value as Container).GetInventoryItemsOfTypeWeenieType(type));
+            }
+
+            return items;
         }
 
         /// <summary>

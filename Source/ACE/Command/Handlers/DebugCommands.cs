@@ -874,6 +874,23 @@ namespace ACE.Command.Handlers
             chain.EnqueueChain();
         }
 
+        [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        "Set Coin display debug only useage")]
+        public static void HandleSetCoin(Session session, params string[] parameters)
+        {
+            uint coins;
+            try
+            {
+                coins = Convert.ToUInt32(parameters[0]);
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
+                return;
+            }
+            session.Player.Debugsetcoin(coins);
+        }
+
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
