@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ACE.Database;
+using ACE.Factories;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum.Properties;
@@ -23,6 +24,17 @@ namespace ACE.Entity
     public sealed class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Enum used for the DoEatOrDrink() method
+        /// </summary>
+        public enum ConsumableBuffType : uint
+        {
+            Spell = 0,
+            Health = 2,
+            Stamina = 4,
+            Mana = 6
+        }
 
         // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
         private static readonly Position MarketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
@@ -2310,7 +2322,7 @@ namespace ACE.Entity
 
                     // Ok we are in business
 
-                    WorldObject newStack = new GenericObject(stack.NewAceObjectFromCopy()); // This should probably be figuring out what the weenietype of an object is and returning that, yeah?
+                    WorldObject newStack = WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
                     container.AddToInventory(newStack);
                     var valuePerItem = stack.Value / stack.StackSize;
                     var burdenPerItem = stack.Burden / stack.StackSize;
@@ -2340,6 +2352,76 @@ namespace ACE.Entity
                         msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
                 });
             splitItemsChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method is used to remove X number of items from a stack, including 
+        /// If amount to remove is greater or equal to the current stacksize, item will be removed.
+        /// </summary>
+        /// <param name="stackId">Guid.Full of the stacked item</param>
+        /// <param name="containerId">Guid.Full of the container that contains the item</param>
+        /// <param name="amount">Amount taken out of the stack</param>
+        /// <returns></returns>
+        public void HandleActionRemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
+        {
+            ActionChain removeItemsChain = new ActionChain();
+            removeItemsChain.AddAction(this, () =>
+            {
+                Container container;
+                if (containerId == Guid.Full)
+                    container = this;
+                else
+                    container = (Container)GetInventoryItem(new ObjectGuid(containerId));
+
+                if (container == null)
+                {
+                    log.InfoFormat("Asked to remove an item {0} in container {1} - the container was not found",
+                        stackId,
+                        containerId);
+                    return;
+                }
+
+                WorldObject item = container.GetInventoryItem(new ObjectGuid(stackId));
+                if (item == null)
+                {
+                    log.InfoFormat("Asked to remove an item {0} in container {1} - the item was not found",
+                        stackId,
+                        containerId);
+                    return;
+                }
+
+                if (amount >= item.StackSize)
+                    amount = (ushort)item.StackSize;
+
+                ushort oldStackSize = (ushort)item.StackSize;
+                ushort newStackSize = (ushort)(oldStackSize - amount);
+
+                if (newStackSize < 1)
+                {
+                    // Remove item from inventory
+                    DestroyInventoryItem(item);
+                    // Clean up the shard database.
+                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                }
+                else
+                {
+                    var valuePerItem = item.Value / item.StackSize;
+                    var burdenPerItem = item.Burden / item.StackSize;
+
+                    item.StackSize = newStackSize;
+                    item.Value = item.StackSize * valuePerItem;
+                    item.Burden = (ushort)(item.StackSize * burdenPerItem);
+
+                    GameMessagePrivateUpdatePropertyInt msgUpdateValue =
+                    new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, 1);
+                    Debug.Assert(item.StackSize != null, "stack.StackSize != null");
+                    Debug.Assert(item.Value != null, "stack.Value != null");
+                    GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(item.Sequences,
+                        item.Guid, (int)item.StackSize, oldStackSize);
+                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgAdjustOldStackSize);
+                }
+            });
+            removeItemsChain.EnqueueChain();
         }
 
         /// <summary>
@@ -3364,6 +3446,87 @@ namespace ACE.Entity
         {
             get { return value; }
             set { base.Value = 0; }
+        }
+
+        /// <summary>
+        /// Method used to perform the animation, sound, and vital update on consumption of food or potions
+        /// </summary>
+        /// <param name="consumableName">Name of the consumable</param>
+        /// <param name="sound">Either Sound.Eat1 or Sound.Drink1</param>
+        /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
+        /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
+        /// <param name="spellId">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
+        public void DoEatOrDrink(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellId)
+        {
+            GameMessageSystemChat buffMessage;
+            MotionCommand motionCommand;
+
+            if (sound == Sound.Eat1)
+                motionCommand = MotionCommand.Eat;
+            else
+                motionCommand = MotionCommand.Drink;
+
+            var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
+            var motion = new UniversalMotion(MotionStance.Standing, new MotionItem(motionCommand));
+
+            DoMotion(motion);
+
+            if (buffType == ConsumableBuffType.Spell)
+            {
+                // Null check for safety
+                if (spellId == null)
+                    spellId = 0;
+
+                // TODO: Handle spell cast
+                buffMessage = new GameMessageSystemChat($"Consuming {consumableName} not yet fully implemented.", ChatMessageType.System);
+            }
+            else
+            {
+                CreatureVital creatureVital;
+                string vitalName;
+
+                // Null check for safety
+                if (boostAmount == null)
+                    boostAmount = 0;
+
+                switch (buffType)
+                {
+                    case ConsumableBuffType.Health:
+                        creatureVital = Health;
+                        vitalName = "Health";
+                        break;
+                    case ConsumableBuffType.Mana:
+                        creatureVital = Mana;
+                        vitalName = "Mana";
+                        break;
+                    default:
+                        creatureVital = Stamina;
+                        vitalName = "Stamina";
+                        break;
+                }
+
+                uint updatedVitalAmount = creatureVital.Current + (uint)boostAmount;
+
+                if (updatedVitalAmount > creatureVital.MaxValue)
+                    updatedVitalAmount = creatureVital.MaxValue;
+
+                boostAmount = updatedVitalAmount - creatureVital.Current;
+
+                UpdateVital(creatureVital, updatedVitalAmount);
+
+                buffMessage = new GameMessageSystemChat($"You regain {boostAmount} {vitalName}.", ChatMessageType.Craft);
+            }
+
+            Session.Network.EnqueueSend(soundEvent, buffMessage);
+
+            // Wait for animation
+            ActionChain motionChain = new ActionChain();
+            float motionAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Eat);
+            motionChain.AddDelaySeconds(motionAnimationLength);
+
+            // Return to standing position after the animation delay
+            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.Standing)));
+            motionChain.EnqueueChain();
         }
     }
 }
