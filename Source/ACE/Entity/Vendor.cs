@@ -181,7 +181,9 @@ namespace ACE.Entity
         {
             // que transactions.
             List<ItemProfile> filteredlist = new List<ItemProfile>();
-            List<WorldObject> purchaselist = new List<WorldObject>();
+            List<WorldObject> uqlist = new List<WorldObject>();
+            List<WorldObject> genlist = new List<WorldObject>();
+
             uint goldcost = 0;
 
             // filter items out vendor no longer has in stock or never had in stock
@@ -199,7 +201,7 @@ namespace ACE.Entity
                     WorldObject wo;
                     if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
                     {
-                        purchaselist.Add(wo);
+                        uqlist.Add(wo);
                         uniqueItemsForSale.Remove(item.Guid);
                     }
                 }
@@ -208,17 +210,22 @@ namespace ACE.Entity
             // convert profile to wold objects / stack logic does not include unique items.
             foreach (ItemProfile fitem in filteredlist)
             {
-                purchaselist.AddRange(ItemProfileToWorldObjects(fitem));
+                genlist.AddRange(ItemProfileToWorldObjects(fitem));
             }
 
             // calculate price. (both unique and item profile)
-            foreach (WorldObject wo in purchaselist)
+            foreach (WorldObject wo in uqlist)
             {
                 goldcost = goldcost + (uint)Math.Ceiling(SellRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
             }
-            
+
+            foreach (WorldObject wo in genlist)
+            {
+                goldcost = goldcost + (uint)Math.Ceiling(SellRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+            }
+
             // send transaction to player for further processing and.
-            player.HandleActionBuyFinalTransaction(this, purchaselist, true, goldcost);
+            player.HandleActionBuyFinalTransaction(this, uqlist, genlist, true, goldcost);
         }
 
         /// <summary>
@@ -227,11 +234,11 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="player"></param>
         /// <param name="items"></param>
-        public void BuyItemsFinalTransaction(Player player, List<WorldObject> items, bool valid)
+        public void BuyItemsFinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
         {
             if (!valid) // re-add unique temp stock items.
             {
-                foreach (WorldObject wo in items)
+                foreach (WorldObject wo in uqlist)
                 {
                     if (!defaultItemsForSale.ContainsKey(wo.Guid))
                         uniqueItemsForSale.Add(wo.Guid, wo);

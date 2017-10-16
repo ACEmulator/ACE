@@ -1095,32 +1095,43 @@ namespace ACE.Entity
         /// <param name="purchaselist"></param>
         /// <param name="valid"></param>
         /// <param name="goldcost"></param>
-        public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> purchaselist, bool valid, uint goldcost)
+        public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
         {
             new ActionChain(this, () =>
             {
+                // to do process payment - its all free!
                 // vendor accepted the transaction
                 if (valid)
                 {
-                    ////if (SpendCoin(goldcost))
-                    ////{  // player is has enough cash to buy items
-                    ////    foreach (WorldObject wo in purchaselist)
-                    ////    {
-                    ////        wo.ContainerId = Guid.Full;
-                    ////        wo.Placement = 0;
-                    ////        AddToInventory(wo);
-                    ////        TrackObject(wo);
-                    ////    }
-                    ////}
-                    ////else // not enough cash.
-                    ////    valid = false;
+                    foreach (WorldObject wo in uqlist)
+                    {
+                        wo.ContainerId = Guid.Full;
+                        wo.Placement = 0;
+                        AddToInventory(wo);
+                        Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
+                        Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
+                    }
+                    // these are new items genated by vendor.
+                    foreach (WorldObject wo in genlist)
+                    {
+                        wo.ContainerId = Guid.Full;
+                        wo.Placement = 0;
+                        AddToInventory(wo);
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                        if (wo.WeenieType == WeenieType.Container)
+                            Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+                    }
+                }
+                else // not enough cash.
+                {
+                    valid = false;
                 }
 
                 // send results back to vendor the transaction failed
                 ActionChain vendorchain = new ActionChain();
                 CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
                 {
-                    (vdr as Vendor).BuyItemsFinalTransaction(this, purchaselist, valid);
+                    (vdr as Vendor).BuyItemsFinalTransaction(this, uqlist, valid);
                 });
                 vendorchain.EnqueueChain();
             }).EnqueueChain();
@@ -1185,8 +1196,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                ////if (valid)
-                ////    AddCoin(payout);
+                // todo payout
             }).EnqueueChain();
         }
 #endregion
