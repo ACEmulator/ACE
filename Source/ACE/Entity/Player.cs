@@ -1099,34 +1099,32 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
+                // to do process payment - its all free!
                 // vendor accepted the transaction
                 if (valid)
                 {
-                    if (SpendCoin(goldcost))
-                    {  // player has enough cash to buy items
-                        foreach (WorldObject wo in uqlist)
-                        {
-                            wo.ContainerId = Guid.Full;
-                            wo.Placement = 0;
-                            AddToInventory(wo);
-                            UpdatePlayerBurden();
-                            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
-                            Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
-                        }
-                        // these are new items genated by vendor.
-                        foreach (WorldObject wo in genlist)
-                        {
-                            wo.ContainerId = Guid.Full;
-                            wo.Placement = 0;
-                            AddToInventory(wo);
-                            UpdatePlayerBurden();
-                            Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                            if (wo.WeenieType == WeenieType.Container)
-                                Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
-                        }
+                    foreach (WorldObject wo in uqlist)
+                    {
+                        wo.ContainerId = Guid.Full;
+                        wo.Placement = 0;
+                        AddToInventory(wo);
+                        Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
+                        Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                     }
-                    else // not enough cash.
-                        valid = false;
+                    // these are new items genated by vendor.
+                    foreach (WorldObject wo in genlist)
+                    {
+                        wo.ContainerId = Guid.Full;
+                        wo.Placement = 0;
+                        AddToInventory(wo);
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                        if (wo.WeenieType == WeenieType.Container)
+                            Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+                    }
+                }
+                else // not enough cash.
+                {
+                    valid = false;
                 }
 
                 // send results back to vendor the transaction failed
@@ -1198,8 +1196,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                ////if (valid)
-                ////    AddCoin(payout);
+                // todo payout
             }).EnqueueChain();
         }
 #endregion
