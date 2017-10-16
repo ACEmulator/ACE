@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-10-16
+[StackOverflow]
+* Made all vendors free as long as you have some money in your pack
+* Prepping for real pyreal transactions.
+* Fixed Packs, you can now buy packs and use them without the need to relog
 
 ### 2017-10-13
 [Og II]
