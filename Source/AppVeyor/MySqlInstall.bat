@@ -19,4 +19,5 @@ appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/
 
 REM execute Update Scripts for World Database
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\06-06-30-2017-generator-chains-testdata.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\10-14-2017-fix-weenie-mmd-20630.sql
 
