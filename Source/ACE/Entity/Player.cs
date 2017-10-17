@@ -2413,12 +2413,12 @@ namespace ACE.Entity
                     item.Burden = (ushort)(item.StackSize * burdenPerItem);
 
                     GameMessagePrivateUpdatePropertyInt msgUpdateValue =
-                    new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, 1);
+                        new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, 1);
                     Debug.Assert(item.StackSize != null, "stack.StackSize != null");
                     Debug.Assert(item.Value != null, "stack.Value != null");
                     GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(item.Sequences,
                         item.Guid, (int)item.StackSize, oldStackSize);
-                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgAdjustOldStackSize);
+                    Session.Network.EnqueueSend(msgUpdateValue, msgAdjustOldStackSize);
                 }
             });
             removeItemsChain.EnqueueChain();
@@ -3456,7 +3456,7 @@ namespace ACE.Entity
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
         /// <param name="spellId">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void DoEatOrDrink(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellId)
+        public void DoEatOrDrink(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
             GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
@@ -3474,8 +3474,8 @@ namespace ACE.Entity
             if (buffType == ConsumableBuffType.Spell)
             {
                 // Null check for safety
-                if (spellId == null)
-                    spellId = 0;
+                if (spellDID == null)
+                    spellDID = 0;
 
                 // TODO: Handle spell cast
                 buffMessage = new GameMessageSystemChat($"Consuming {consumableName} not yet fully implemented.", ChatMessageType.System);

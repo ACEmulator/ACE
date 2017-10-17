@@ -1570,6 +1570,18 @@ namespace ACE.Entity
             set { AceObject.Boost = value; }
         }
 
+        public uint? SpellDID
+        {
+            get { return AceObject.SpellDID ?? null; }
+            set { AceObject.SpellDID = value; }
+        }
+
+        public uint? BoostEnum
+        {
+            get { return AceObject.BoostEnum ?? 0; }
+            set { AceObject.BoostEnum = value; }
+        }
+
         public double? HealkitMod
         {
             get { return AceObject.HealkitMod; }

@@ -9,18 +9,6 @@ namespace ACE.Entity
 {
     public class Food : WorldObject
     {
-        public uint? SpellId
-        {
-            get { return AceObject.SpellDID ?? null; }
-            set { AceObject.SpellDID = value; }
-        }
-
-        public uint? BoostEnum
-        {
-            get { return AceObject.BoostEnum ?? 0; }
-            set { AceObject.BoostEnum = value; }
-        }
-
         public Food(AceObject aceObject)
             : base(aceObject)
         {
@@ -59,7 +47,7 @@ namespace ACE.Entity
             else
                 buffType = Entity.Player.ConsumableBuffType.Spell;
 
-            session.Player.DoEatOrDrink(Name, FoodOrDrink(Name), buffType, (uint)Boost, SpellId);
+            session.Player.DoEatOrDrink(Name, FoodOrDrink(Name), buffType, (uint)Boost, SpellDID);
 
             session.Player.HandleActionRemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
 
