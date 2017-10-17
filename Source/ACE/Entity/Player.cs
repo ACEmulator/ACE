@@ -1020,12 +1020,13 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        ActionChain idChain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                        {
-                            cwo.QueryItemMana(Session);
-                        });
-                        idChain.EnqueueChain();
+                        // todo replace with interavtive items.... this creates crashing!
+                        // ActionChain idChain = new ActionChain();
+                        // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                        // {
+                        //    cwo.QueryItemMana(Session);
+                        // });
+                        // idChain.EnqueueChain();
                     }
                 }
             });
@@ -2382,23 +2383,13 @@ namespace ACE.Entity
         /// <param name="placement">what is my slot position within that container</param>
         private void HandleMove(ref WorldObject item, Container container, uint placement)
         {
-            if (item.ContainerId != null && item.ContainerId != container.Guid.Full)
-            {
-                // We are changing containers
-                if (item.ContainerId != this.Guid.Full)
-                {
-                    // The old container was not our main pack, the old container had to be in our inventory.
-                    ObjectGuid priorContainerGuid = new ObjectGuid((uint)item.ContainerId);
-                    // RemoveFromInventory(InventoryObjects[priorContainerGuid].InventoryObjects, item.Guid);
-                    RemoveWorldObjectFromInventory(priorContainerGuid);
-                }
-                else
-                    RemoveWorldObjectFromInventory(item.Guid);
-            }
+            RemoveCreatureInventoryItem(item.Guid);
 
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
+
             container.AddToInventory(item, placement);
+
             if (item.ContainerId != Guid.Full)
             {
                 Burden += item.Burden ?? 0;
@@ -2861,9 +2852,8 @@ namespace ACE.Entity
                         else
                         {
                             // Ok I am going into player pack - not the main pack.
-
                             // TODO pick up here - I have a generic object for a container, need to find out why.
-                            container = (Container)GetInventoryItem(containerGuid);
+                            container = (Container)GetCreatureInventoryItem(containerGuid);
                         }
 
                         // is this something I already have? If not, it has to be a pickup - do the pickup and out.

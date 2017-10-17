@@ -190,6 +190,12 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// This method is used to get anything in our posession.   Inventory in main or any packs,
+        /// as well as wielded items.   If we have it, this will return it.
+        /// </summary>
+        /// <param name="objectGuid"></param>
+        /// <returns></returns>
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
@@ -222,35 +228,6 @@ namespace ACE.Entity
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// This method is used to get anything in our posession.   Inventory in main or any packs,
-        /// as well as wielded items.   If we have it, this will return it.
-        /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns></returns>
-        public virtual WorldObject OLD_GetInventoryItem(ObjectGuid objectGuid)
-        {
-            WorldObject inventoryItem;
-            if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
-                return inventoryItem;
-
-            WorldObject item = null;
-            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-            foreach (var container in containers)
-            {
-                if (container.Value.InventoryObjects.TryGetValue(objectGuid, out item))
-                {
-                    break;
-                }
-            }
-
-            // It is not in inventory - main pack or container - last check the wielded items.
-            if (item == null)
-                WieldedObjects.TryGetValue(objectGuid, out item);
-
-            return item;
         }
 
         /// <summary>
