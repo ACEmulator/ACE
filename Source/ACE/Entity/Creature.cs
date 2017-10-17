@@ -301,6 +301,23 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// GetWilded Items
+        /// </summary>
+        /// <param name="objectGuid"></param>
+        /// <returns>WorldObject</returns>
+        public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
+        {
+            // check wielded objects
+            WorldObject inventoryItem;
+            if (WieldedObjects.ContainsKey(objectGuid))
+            {
+                if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
+                    return inventoryItem;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Returns a inventory item by its objectGuid from any creature pack.
         /// </summary>
         /// <param name="objectGuid"></param>

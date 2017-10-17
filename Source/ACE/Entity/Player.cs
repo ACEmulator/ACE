@@ -938,32 +938,37 @@ namespace ACE.Entity
             // First check the player
             examineChain.AddAction(this, () =>
             {
+                // search packs
                 WorldObject wo = GetCreatureInventoryItem(examinationId);
+                
+                // search wielded items
+                if (wo == null)
+                    wo = GetWieldedItem(examinationId);
+
+                // search interactive objects
+                if (wo == null)
+                {
+                    if (interactiveWorldObjects.ContainsKey(examinationId))
+                        wo = interactiveWorldObjects[examinationId];
+                }
+
+                // if its local examine it
                 if (wo != null)
                 {
                     wo.Examine(Session);
                 }
                 else
                 {
-                    // We could be wielded - let's check that next.
-                    if (WieldedObjects.TryGetValue(examinationId, out wo))
+                    // examine item on land block
+                    ActionChain chain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(
+                    chain,
+                    examinationId,
+                    (WorldObject cwo) =>
                     {
-                        wo.Examine(Session);
-                    }
-                    if (interactiveWorldObjects.ContainsKey(examinationId))
-                        interactiveWorldObjects[examinationId].Examine(Session);
-                    else
-                    {
-                        ActionChain chain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(
-                            chain,
-                            examinationId,
-                            (WorldObject cwo) =>
-                                {
-                                    cwo.Examine(Session);
-                                });
-                        chain.EnqueueChain();
-                    }
+                        cwo.Examine(Session);
+                    });
+                chain.EnqueueChain();
                 }
             });
             examineChain.EnqueueChain();
@@ -2867,6 +2872,10 @@ namespace ACE.Entity
                         // Ok, I know my container and I know I must have the item so let's get it.
                         WorldObject item = GetCreatureInventoryItem(itemGuid);
 
+                        // check wilded.
+                        if (item == null)
+                            item = GetWieldedItem(itemGuid);
+
                         // Was I equiped?   If so, lets take care of that and unequip
                         if (item.WielderId != null)
                         {
@@ -2898,11 +2907,12 @@ namespace ACE.Entity
             // First start drop animation
             dropChain.AddAction(this, () =>
             {
+                // check packs of item.
                 WorldObject item = GetCreatureInventoryItem(itemGuid);
                 if (item == null)
                 {
                     // check to see if this item is wielded
-                    WieldedObjects.TryGetValue(itemGuid, out item);
+                    item = GetWieldedItem(itemGuid);
                     if (item != null)
                     {
                         RemoveFromWieldedObjects(itemGuid);
@@ -2916,6 +2926,7 @@ namespace ACE.Entity
                 }
                 else
                 {
+                    // SO - NO CLUE WHAT THIS DOES -- LOOKS AT OG!
                     ObjectGuid containerGuid = ObjectGuid.Invalid;
                     // Removed unused code Og II
                     var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
@@ -2960,7 +2971,7 @@ namespace ACE.Entity
                 // Play drop sound
                 // Put item on landblock
                 chain.AddAction(this, () =>
-            {
+                {
                 motion = new UniversalMotion(MotionStance.Standing);
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),

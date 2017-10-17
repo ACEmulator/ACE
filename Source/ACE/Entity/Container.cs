@@ -173,6 +173,10 @@ namespace ACE.Entity
                 InventoryObjects[objectguid].Placement = null;
 
                 Burden -= InventoryObjects[objectguid].Burden;
+
+                if (InventoryObjects[objectguid].WeenieType == WeenieType.Coin)
+                    CoinValue -= InventoryObjects[objectguid].StackSize;
+
                 log.Debug($"Remove {InventoryObjects[objectguid].Name} in inventory, removing {InventoryObjects[objectguid].Burden}, current Burden = {Burden}");
 
                 // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
@@ -190,26 +194,18 @@ namespace ACE.Entity
             }
         }
 
-        /// <summary>
-        /// This method is used to get anything in our posession.   Inventory in main or any packs,
-        /// as well as wielded items.   If we have it, this will return it.
-        /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns></returns>
-        public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
+    /// <summary>
+    /// This method is used to get anything in our posession.   Inventory in main or any packs,
+    /// </summary>
+    /// <param name="objectGuid"></param>
+    /// <returns></returns>
+    public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
             WorldObject inventoryItem;
             if (InventoryObjects.ContainsKey(objectGuid))
             {
                 if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
-                    return inventoryItem;
-            }
-            // check wielded objects
-            // todo SO - refractor wilded objects.
-            if (WieldedObjects.ContainsKey(objectGuid))
-            {
-                if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
                     return inventoryItem;
             }
 
