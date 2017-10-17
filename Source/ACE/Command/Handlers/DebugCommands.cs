@@ -875,7 +875,7 @@ namespace ACE.Command.Handlers
         }
 
         [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-        "Set Coin display debug only useage")]
+        "Set Coin display debug only usage")]
         public static void HandleSetCoin(Session session, params string[] parameters)
         {
             uint coins;
