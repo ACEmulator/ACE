@@ -157,54 +157,71 @@ namespace ACE.Entity
             return containers.Any(cnt => (cnt.Value).InventoryObjects.ContainsKey(itemGuid));
         }
 
-        /// <summary>
-        /// Remove item from inventory directory.   Also, defragment the placement values.
-        /// </summary>
-        /// <param name="inv"></param>
-        /// <param name="itemGuid"></param>
-        public virtual void RemoveFromInventory(Dictionary<ObjectGuid, WorldObject> inv, ObjectGuid itemGuid)
+        public virtual void RemoveWorldObjectFromInventory(ObjectGuid objectguid)
         {
-            if (!inv.ContainsKey(itemGuid))
-                return;
-
-            uint placement = inv[itemGuid].Placement ?? 0u;
-            inv.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
-            // Removed some unused code.   Og II
-
-            ObjectGuid containerGuid = new ObjectGuid((uint)inv[itemGuid].ContainerId);
-            if (!containerGuid.IsPlayer())
+            // first search me / add all items of type.
+            if (InventoryObjects.ContainsKey(objectguid))
             {
-                Container pack = (Container)GetInventoryItem(containerGuid);
+                // defrag the pack
+                uint placement = InventoryObjects[objectguid].Placement ?? 0u;
+                InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
 
-                pack.Burden -= inv[itemGuid].Burden;
-                pack.Value -= inv[itemGuid].Value;
+                // todo calculate burdon / value / container properly
 
-                if (inv[itemGuid].WeenieType == WeenieType.Coin)
+                // clear objects out maybe for db ?
+                InventoryObjects[objectguid].ContainerId = null;
+                InventoryObjects[objectguid].Placement = null;
+
+                Burden -= InventoryObjects[objectguid].Burden;
+                log.Debug($"Remove {InventoryObjects[objectguid].Name} in inventory, removing {InventoryObjects[objectguid].Burden}, current Burden = {Burden}");
+
+                // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
+                Value -= InventoryObjects[objectguid].Value;
+                InventoryObjects.Remove(objectguid);
+
+                return;
+            }
+
+            // next search all containers for item.. run function again for each container.
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in containers)
+            {
+                (container.Value as Container).RemoveWorldObjectFromInventory(objectguid);
+            }
+        }
+
+        public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
+        {
+            // first search me for this item..
+            WorldObject inventoryItem;
+            if (InventoryObjects.ContainsKey(objectGuid))
+            {
+                if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
+                    return inventoryItem;
+            }
+            // check wielded objects
+            // todo SO - refractor wilded objects.
+            if (WieldedObjects.ContainsKey(objectGuid))
+            {
+                if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
+                    return inventoryItem;
+            }
+
+            // continue searching other packs..
+            // next search all containers for item.. run function again for each container.
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in containers)
+            {
+                if ((container.Value as Container).GetInventoryItem(objectGuid) != null)
                 {
-                    pack.CoinValue -= inv[itemGuid].Value ?? 0;
+                    if ((container.Value as Container).GetInventoryItem(objectGuid) != null)
+                    {
+                        return (container.Value as Container).GetInventoryItem(objectGuid);
+                    }
                 }
             }
 
-            inv[itemGuid].ContainerId = null;
-            inv[itemGuid].Placement = null;
-
-            if (inv[itemGuid].WeenieType == WeenieType.Coin)
-            {
-                CoinValue -= inv[itemGuid].Value ?? 0;
-            }
-
-            if (inv[itemGuid].WeenieType == WeenieType.Container)
-            {
-                CoinValue -= inv[itemGuid].CoinValue ?? 0;
-            }
-
-            Burden -= inv[itemGuid].Burden;
-            log.Debug($"Remove {inv[itemGuid].Name} in inventory, removing {inv[itemGuid].Burden}, current Burden = {Burden}");
-
-            // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
-            Value -= inv[itemGuid].Value;
-
-            inv.Remove(itemGuid);
+            return null;
         }
 
         /// <summary>
@@ -213,7 +230,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="objectGuid"></param>
         /// <returns></returns>
-        public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
+        public virtual WorldObject OLD_GetInventoryItem(ObjectGuid objectGuid)
         {
             WorldObject inventoryItem;
             if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
@@ -341,7 +358,7 @@ namespace ACE.Entity
         public void RemoveWorldObject(Session session, WorldObject fromWo)
         {
             if (HasItem(fromWo.Guid))
-                session.Player.RemoveFromInventory(InventoryObjects, fromWo.Guid);
+                session.Player.RemoveCreatureInventoryItem(fromWo.Guid);
             else
                session.Player.RemoveFromWieldedObjects(fromWo.Guid);
             GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
