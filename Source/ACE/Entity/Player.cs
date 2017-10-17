@@ -2404,8 +2404,6 @@ namespace ACE.Entity
 
                 item.StackSize = newStackSize;
 
-                // Burden = (ushort)(Burden - burdenPerItem);
-
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
 
                 if (newStackSize < 1)
