@@ -52,11 +52,6 @@ namespace ACE.Entity
         private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
         /// <summary>
-        /// Track Containers
-        /// </summary>
-        private Dictionary<ObjectGuid, Container> containerWorldObjects = new Dictionary<ObjectGuid, Container>();
-
-        /// <summary>
         /// Amount of times this character has left a portal this session
         /// </summary>
         public uint PortalIndex { get; set; } = 1u;
@@ -1242,17 +1237,6 @@ namespace ACE.Entity
             return true;
         }
 
-        /// <summary>
-        /// used for debugging only! it sets the coin value of the character and the player.
-        /// used to correct mixmatch of pyreals/coin value during development bugs - so
-        /// </summary>
-        /// <param name="coin"></param>
-        public void Debugsetcoin(uint coin)
-        {
-            CoinValue = coin;
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coin));
-        }
-
         private bool SpendCurrency(uint amount, WeenieType type)
         {
             if (CoinValue - amount >= 0)
@@ -1274,8 +1258,6 @@ namespace ACE.Entity
                         // add to payment
                         payment = payment + wo.StackSize.Value;
                         cost.Add(wo);
-                        if (payment == amount)
-                            break;
                     }
                     else if (payment + wo.StackSize.Value > amount)
                     {
@@ -1283,11 +1265,16 @@ namespace ACE.Entity
                         payment = payment + wo.StackSize.Value;
                         cost.Add(wo);
                         // calculate change
-                        change = payment - amount;
-                        // add new change object. 
-                        changeobj.StackSize = (ushort)change;
+                        if (payment > amount)
+                        {
+                            change = payment - amount;
+                            // add new change object. 
+                            changeobj.StackSize = (ushort)change;
+                        }
                         break;
                     }
+                    else if (payment == amount)
+                        break;
                 }
 
                 // destroy all stacks of currency required / sale

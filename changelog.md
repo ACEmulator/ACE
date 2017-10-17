@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 ### 2017-10-16
 [StackOverflow]
+* Added Currency - Vendors now Require pyreals and pay in stacks of them
+* Known issues with inventory will be addressed soon regarding moving pyreals around packs.
+[StackOverflow]
 * Made all vendors free as long as you have some money in your pack
 * Prepping for real pyreal transactions.
 * Fixed Packs, you can now buy packs and use them without the need to relog
