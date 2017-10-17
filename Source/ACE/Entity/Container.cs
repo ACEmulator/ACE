@@ -9,6 +9,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Database;
+using System;
 
 namespace ACE.Entity
 {
@@ -43,6 +44,9 @@ namespace ACE.Entity
                 }
             }
         }
+
+        private ushort usedpackslots = 0;
+        private ushort maxpackslots = 15;
 
         /// <summary>
         /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
@@ -92,6 +96,9 @@ namespace ACE.Entity
                     CoinValue += wo.Value ?? 0;
                     log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, of WeenieType.Coin, adding {wo.Value}, current CoinValue = {CoinValue}");
                 }
+                // increase pack counter if item is not a container!
+                if (wo.WeenieType != WeenieType.Container)
+                    usedpackslots += 1;
             }
         }
 
@@ -114,6 +121,7 @@ namespace ACE.Entity
             log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
 
             Value += inventoryItem.Value;
+            usedpackslots += 1;
         }
 
         /// <summary>
@@ -182,6 +190,7 @@ namespace ACE.Entity
                 // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
                 Value -= InventoryObjects[objectguid].Value;
                 InventoryObjects.Remove(objectguid);
+                usedpackslots -= 1;
 
                 return;
             }
@@ -224,6 +233,30 @@ namespace ACE.Entity
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets Free Pack
+        /// </summary>
+        /// <returns></returns>
+        public virtual uint GetFreePackLocation()
+        {
+            // do I have enough space ?
+            if (usedpackslots <= maxpackslots)
+            {
+                return Guid.Full;
+            }
+
+            // do any of my other containers have enough space ?
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in containers)
+            {
+                if ((container.Value as Container).GetFreePackLocation() != 0)
+                {
+                    return (container.Value as Container).GetFreePackLocation();
+                }
+            }
+            return 0;
         }
 
         /// <summary>

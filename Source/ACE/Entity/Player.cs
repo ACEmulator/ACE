@@ -1363,11 +1363,20 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         public void HandleAddNewWorldObjectToInventory(WorldObject wo)
         {
-                wo.ContainerId = Guid.Full;
+            // Get Next Avalibale Pack Location.
+            // uint packid = GetCreatureInventoryFreePack();
+
+            // default player until I get above code to work!
+            uint packid = Guid.Full;
+
+            if (packid != 0)
+            {
+                wo.ContainerId = packid;
                 AddToInventory(wo);
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                 if (wo.WeenieType == WeenieType.Container)
                     Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+            }
         }
 
         /// <summary>

@@ -317,6 +317,11 @@ namespace ACE.Entity
             return null;
         }
 
+        public uint GetCreatureInventoryFreePack()
+        {
+            return GetFreePackLocation();
+        }
+
         /// <summary>
         /// Returns a inventory item by its objectGuid from any creature pack.
         /// </summary>
