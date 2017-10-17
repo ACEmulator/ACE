@@ -1193,18 +1193,19 @@ namespace ACE.Entity
             {
                 // pay player in voinds
                 if (valid)
-                    CreateCurrancy(WeenieType.Coin, payout);
+                    CreateCurrency(WeenieType.Coin, payout);
             }).EnqueueChain();
         }
         #endregion
 
-        public bool CreateCurrancy(WeenieType type, uint amount)
+        public bool CreateCurrency(WeenieType type, uint amount)
         {
             new ActionChain(this, () =>
             {
                 // todo: we need to look up this object to understand it by its weenie id.
                 // todo: support more then hard coded coin.
-                WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(273);
+                const uint coinWeenieId = 273;
+                WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
                 ushort maxstacksize = wochk.MaxStackSize.Value;
                 wochk = null;
 
@@ -1212,7 +1213,7 @@ namespace ACE.Entity
 
                 while (amount > 0)
                 {
-                    WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(273);
+                    WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
                     // payment contains a max stack
                     if (maxstacksize <= amount)
                     {
