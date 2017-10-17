@@ -117,7 +117,7 @@
     <Compile Include="Entity\ItemProfile.cs" />
     <Compile Include="Entity\Coin.cs" />
     <Compile Include="Entity\Key.cs" />
-	<Compile Include="Entity\Food.cs" />
+    <Compile Include="Entity\Food.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
@@ -226,6 +226,7 @@
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTracker.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventInscriptionResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />

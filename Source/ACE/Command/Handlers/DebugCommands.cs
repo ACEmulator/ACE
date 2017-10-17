@@ -236,6 +236,19 @@ namespace ACE.Command.Handlers
             return;
         }
 
+        [CommandHandler("sendcontract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Send a contract to yourself.",
+            "uint\n" +
+            "@sendcontract 100 is a sample contract")]
+        public static void HandleSendContract(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0)) return;
+            uint contractId;
+            if (!uint.TryParse(parameters[0], out contractId)) return;
+            var contractMsg = new GameEventSendClientContractTracker(session, 0, contractId, 1, 0, 0, 0, 0);
+            session.Network.EnqueueSend(contractMsg);
+        }
+
         // grantxp ulong
         [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "sets your current health to a specific value.",
