@@ -2339,7 +2339,7 @@ namespace ACE.Entity
                     stack.Burden = (ushort)(stack.StackSize * burdenPerItem);
 
                     GameMessagePrivateUpdatePropertyInt msgUpdateValue =
-                        new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, 1);
+                        new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)stack.Value);
                     GameMessagePutObjectInContainer msgPutObjectInContainer =
                         new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
                     Debug.Assert(stack.StackSize != null, "stack.StackSize != null");
@@ -2396,6 +2396,18 @@ namespace ACE.Entity
                 ushort oldStackSize = (ushort)item.StackSize;
                 ushort newStackSize = (ushort)(oldStackSize - amount);
 
+                Debug.Assert(item.StackSize != null, "stack.StackSize != null");
+                Debug.Assert(item.Value != null, "stack.Value != null");
+
+                var valuePerItem = item.Value / item.StackSize;
+                ushort burdenPerItem = (ushort)(item.Burden / item.StackSize);
+
+                item.StackSize = newStackSize;
+
+                // Burden = (ushort)(Burden - burdenPerItem);
+
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
+
                 if (newStackSize < 1)
                 {
                     // Remove item from inventory
@@ -2405,20 +2417,12 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    var valuePerItem = item.Value / item.StackSize;
-                    var burdenPerItem = item.Burden / item.StackSize;
-
-                    item.StackSize = newStackSize;
                     item.Value = item.StackSize * valuePerItem;
                     item.Burden = (ushort)(item.StackSize * burdenPerItem);
 
-                    GameMessagePrivateUpdatePropertyInt msgUpdateValue =
-                        new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, 1);
-                    Debug.Assert(item.StackSize != null, "stack.StackSize != null");
-                    Debug.Assert(item.Value != null, "stack.Value != null");
-                    GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(item.Sequences,
-                        item.Guid, (int)item.StackSize, oldStackSize);
-                    Session.Network.EnqueueSend(msgUpdateValue, msgAdjustOldStackSize);
+                    Burden = (ushort)(Burden - burdenPerItem);
+
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)item.Value));
                 }
             });
             removeItemsChain.EnqueueChain();

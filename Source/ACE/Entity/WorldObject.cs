@@ -1632,6 +1632,8 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
+
+            Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
         }
 
         protected WorldObject(AceObject aceObject)
