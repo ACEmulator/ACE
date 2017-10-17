@@ -47,12 +47,8 @@ namespace ACE.Entity
                             case Entity.Door.UnlockDoorResults.UnlockSuccess:
                                 Structure--;
                                 if (Structure < 1)
-                                {
-                                    // Remove item from players
-                                    player.DestroyInventoryItem(this);
-                                    // Clean up the shard database.
-                                    DatabaseManager.Shard.DeleteObject(SnapShotOfAceObject(), null);
-                                }
+                                    player.HandleActionRemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
+
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
                                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this.Sequences, Guid, PropertyInt.Structure, (uint)Structure));
                                 break;

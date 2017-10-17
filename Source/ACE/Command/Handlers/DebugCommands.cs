@@ -974,5 +974,21 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine();
         }
+
+        /// <summary>
+        /// Debug command to set player vitals to 1
+        /// </summary>
+        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HarmSelf(Session session, params string[] parameters)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(session.Player, () =>
+            {
+                session.Player.UpdateVital(session.Player.Health, 1);
+                session.Player.UpdateVital(session.Player.Stamina, 1);
+                session.Player.UpdateVital(session.Player.Mana, 1);
+            });
+            chain.EnqueueChain();
+        }
     }
 }
