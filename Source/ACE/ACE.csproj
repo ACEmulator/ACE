@@ -117,6 +117,7 @@
     <Compile Include="Entity\ItemProfile.cs" />
     <Compile Include="Entity\Coin.cs" />
     <Compile Include="Entity\Key.cs" />
+	<Compile Include="Entity\Food.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />

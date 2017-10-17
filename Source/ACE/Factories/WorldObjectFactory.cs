@@ -65,6 +65,8 @@ namespace ACE.Factories
                     return new Coin(aceO);
                 case WeenieType.Key:
                     return new Key(aceO);
+                case WeenieType.Food:
+                    return new Food(aceO);
                 default:
                     return new GenericObject(aceO);
             }
