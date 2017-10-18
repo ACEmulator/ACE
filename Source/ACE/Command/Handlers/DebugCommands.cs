@@ -7,19 +7,15 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Factories;
-using System.Globalization;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
 using System.Collections.Generic;
-using ACE.Database;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
-    using global::ACE.DatLoader;
-    using global::ACE.DatLoader.Entity;
-
     internal enum TestWeenieClassIds : uint
     {
         Pants        = 120,
