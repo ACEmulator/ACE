@@ -2354,6 +2354,12 @@ namespace ACE.Entity
             splitItemsChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// This method is part of the contract tracking functions.   This is used to remove or abandon a contract.
+        /// The method validates the id passed from the client against the portal.dat file, then sends the appropriate
+        /// response to the client to remove the item from the quest panel. Og II
+        /// </summary>
+        /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
         public void HandleActionAbandonContract(uint contractId)
         {
             ActionChain abandonContractChain = new ActionChain();
