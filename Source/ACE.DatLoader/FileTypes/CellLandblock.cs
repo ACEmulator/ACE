@@ -41,7 +41,6 @@ namespace ACE.DatLoader.FileTypes
         /// Loads the structure of a CellLandblock from the client_cell.dat
         /// </summary>
         /// <param name="landblockId">Either a full int of the landblock or just the short of the cell itself</param>
-        /// <returns></returns>
         public static CellLandblock ReadFromDat(uint landblockId)
         {
             CellLandblock c = new CellLandblock();

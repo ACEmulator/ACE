@@ -128,8 +128,6 @@ namespace ACE.DatLoader.FileTypes
         /// <summary>
         /// Generates a hash based on the string. Used to decrypt spell formulas and calculate taper rotation for players.
         /// </summary>
-        /// <param name="strToHash"></param>
-        /// <returns></returns>
         private static uint ComputeHash(string strToHash)
         {
             uint result = 0;

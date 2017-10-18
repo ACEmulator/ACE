@@ -14,7 +14,6 @@ namespace ACE.Entity.Enum
         /// </summary>
         /// <typeparam name="T">Enum to list by NOT [ServerOnly]</typeparam>
         /// <typeparam name="TResult">Type of the results</typeparam>
-        /// <returns></returns>
         private static List<TResult> GetValues<T, TResult>()
         {
             return typeof(T).GetFields().Select(x => new

@@ -2605,8 +2605,6 @@ namespace ACE.Entity
         /// <summary>
         /// Prepare new action to run on this object
         /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
         public LinkedListNode<IAction> EnqueueAction(IAction action)
         {
             return actionQueue.EnqueueAction(action);

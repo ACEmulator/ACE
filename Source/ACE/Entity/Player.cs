@@ -2402,11 +2402,6 @@ namespace ACE.Entity
         /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting
         /// item. Og II
         /// </summary>
-        /// <param name="stackId"></param>
-        /// <param name="containerId"></param>
-        /// <param name="place"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
         {
             // TODO: add the complementary method to combine items Og II
@@ -2485,7 +2480,6 @@ namespace ACE.Entity
         /// <param name="stackId">Guid.Full of the stacked item</param>
         /// <param name="containerId">Guid.Full of the container that contains the item</param>
         /// <param name="amount">Amount taken out of the stack</param>
-        /// <returns></returns>
         public void HandleActionRemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
         {
             ActionChain removeItemsChain = new ActionChain();
