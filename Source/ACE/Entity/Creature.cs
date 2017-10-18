@@ -288,7 +288,7 @@ namespace ACE.Entity
             HeldItem mEquipedAmmo = Children.Find(s => s.EquipMask == EquipMask.MissileAmmo);
 
             if (mEquipedAmmo != null)
-                ammo = GetCreatureInventoryItem(new ObjectGuid(mEquipedAmmo.Guid));
+                ammo = GetInventoryItem(new ObjectGuid(mEquipedAmmo.Guid));
 
             if (oldCombatMode == CombatMode.Missile)
             {
@@ -322,7 +322,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="objectGuid"></param>
         /// <returns>WorldObject</returns>
-        public WorldObject GetInventoryItem(ObjectGuid objectGuid)
+        public override WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             return GetInventoryItem(objectGuid);
         }
@@ -331,7 +331,7 @@ namespace ACE.Entity
         /// Removes a inventory item by its objectGuid from any creature pack
         /// </summary>
         /// <param name="objectGuid"></param>
-        public void RemoveWorldObjectFromInventory(ObjectGuid objectGuid)
+        public override void RemoveWorldObjectFromInventory(ObjectGuid objectGuid)
         {
             RemoveWorldObjectFromInventory(objectGuid);
         }
@@ -364,7 +364,7 @@ namespace ACE.Entity
             HeldItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
             if (mEquipedMissile?.Guid != null)
             {
-                WorldObject missileWeapon = GetCreatureInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
+                WorldObject missileWeapon = GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
                 if (missileWeapon == null)
                 {
                     log.InfoFormat("Changing combat mode for {0} - could not locate wielded weapon {1}", Guid, mEquipedMissile.Guid);
@@ -422,7 +422,7 @@ namespace ACE.Entity
             HeldItem mEquipedShieldSlot = Children.Find(s => s.EquipMask == EquipMask.Shield);
             if (mEquipedShieldSlot != null)
             {
-                WorldObject itemInShieldSlot = GetCreatureInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
+                WorldObject itemInShieldSlot = GetInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
                 if (itemInShieldSlot != null)
                 {
                     if (itemInShieldSlot.ItemType == ItemType.Armor)
@@ -448,7 +448,7 @@ namespace ACE.Entity
 
             if (mEquipedTwoHanded != null)
             {
-                WorldObject twoHandedWeapon = GetCreatureInventoryItem(new ObjectGuid(mEquipedTwoHanded.Guid));
+                WorldObject twoHandedWeapon = GetInventoryItem(new ObjectGuid(mEquipedTwoHanded.Guid));
                 if (twoHandedWeapon.DefaultCombatStyle != null)
                     ms = twoHandedWeapon.DefaultCombatStyle.Value;
             }
@@ -456,7 +456,7 @@ namespace ACE.Entity
             // Let's see if we are melee single handed / two handed with our without shield as appropriate.
             if (mEquipedMelee?.Guid != null && ms != MotionStance.DualWieldAttack)
             {
-                WorldObject meleeWeapon = GetCreatureInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+                WorldObject meleeWeapon = GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
 
                 if (meleeWeapon == null)
                 {

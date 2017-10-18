@@ -178,7 +178,7 @@ namespace ACE.Entity
                 var removeObjMessage = new GameMessageRemoveObject(this);
                 var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);
                 readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(destroyMessage, removeObjMessage));
-                readScrollChain.AddAction(session.Player, () => session.Player.RemoveCreatureInventoryItem(Guid));
+                readScrollChain.AddAction(session.Player, () => session.Player.RemoveWorldObjectFromInventory(Guid));
             }
             else
             {

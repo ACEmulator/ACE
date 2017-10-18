@@ -951,7 +951,7 @@ namespace ACE.Entity
             examineChain.AddAction(this, () =>
             {
                 // search packs
-                WorldObject wo = GetCreatureInventoryItem(examinationId);
+                WorldObject wo = GetInventoryItem(examinationId);
                 
                 // search wielded items
                 if (wo == null)
@@ -1022,7 +1022,7 @@ namespace ACE.Entity
             chain.AddAction(this, () =>
             {
                 // the object could be in the world or on the player, first check player
-                WorldObject wo = GetCreatureInventoryItem(queryId);
+                WorldObject wo = GetInventoryItem(queryId);
                 if (wo != null)
                 {
                     wo.QueryItemMana(Session);
@@ -1062,7 +1062,7 @@ namespace ACE.Entity
             chain.AddAction(this, () =>
             {
                 // the object could be in the world or on the player, first check player
-                WorldObject wo = GetCreatureInventoryItem(queryId);
+                WorldObject wo = GetInventoryItem(queryId);
                 if (wo != null)
                 {
                     wo.QueryItemMana(Session);
@@ -1097,7 +1097,7 @@ namespace ACE.Entity
             // First check the player
             bookChain.AddAction(this, () =>
             {
-                WorldObject wo = GetCreatureInventoryItem(bookId);
+                WorldObject wo = GetInventoryItem(bookId);
                 // book is in the player's inventory...
                 if (wo != null)
                 {
@@ -1202,7 +1202,7 @@ namespace ACE.Entity
                 List<WorldObject> purchaselist = new List<WorldObject>();
                 foreach (ItemProfile profile in itemprofiles)
                 {
-                    WorldObject item = GetCreatureInventoryItem(profile.Guid);
+                    WorldObject item = GetInventoryItem(profile.Guid);
                     if (item == null)
                     {
                         // check to see if this item is wielded
@@ -1218,7 +1218,7 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        RemoveCreatureInventoryItem(profile.Guid);
+                        RemoveWorldObjectFromInventory(profile.Guid);
                     }
 
                     ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
@@ -1337,7 +1337,7 @@ namespace ACE.Entity
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    RemoveCreatureInventoryItem(wo.Guid);
+                    RemoveWorldObjectFromInventory(wo.Guid);
                     ObjectGuid clearContainer = new ObjectGuid(0);
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
 
@@ -2240,7 +2240,7 @@ namespace ACE.Entity
             ActionChain objDescChain = new ActionChain();
             objDescChain.AddAction(this, () =>
             {
-                WorldObject wo = GetCreatureInventoryItem(item);
+                WorldObject wo = GetInventoryItem(item);
                 if (wo != null)
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                         new GameMessageObjDescEvent(wo));
@@ -2410,7 +2410,7 @@ namespace ACE.Entity
         /// <param name="placement">what is my slot position within that container</param>
         private void HandleMove(ref WorldObject item, Container container, uint placement)
         {
-            RemoveCreatureInventoryItem(item.Guid);
+            RemoveWorldObjectFromInventory(item.Guid);
 
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
@@ -2636,7 +2636,7 @@ namespace ACE.Entity
             pickUpItemChain.AddAction(this, () =>
             {
                 // If success, the item is in our inventory:
-                WorldObject item = GetCreatureInventoryItem(itemGuid);
+                WorldObject item = GetInventoryItem(itemGuid);
 
                 if (item.ContainerId != Guid.Full)
                 {
@@ -2846,7 +2846,7 @@ namespace ACE.Entity
             wieldChain.AddAction(this, () =>
                 {
                     ObjectGuid itemGuid = new ObjectGuid(itemId);
-                    WorldObject item = GetCreatureInventoryItem(itemGuid);
+                    WorldObject item = GetInventoryItem(itemGuid);
                     WorldObject packItem;
 
                     if (item != null)
@@ -2867,12 +2867,12 @@ namespace ACE.Entity
                         {
                             pack = (Container)GetInventoryItem(containerGuid);
 
-                            RemoveCreatureInventoryItem(itemGuid);
+                            RemoveWorldObjectFromInventory(itemGuid);
                         }
                         else
                         {
                             if (item != null)
-                                RemoveCreatureInventoryItem(itemGuid);
+                                RemoveWorldObjectFromInventory(itemGuid);
                         }
 
                         AddToWieldedObjects(ref item, container, (EquipMask)placement);
@@ -2951,7 +2951,7 @@ namespace ACE.Entity
                             // Ok I am going into player pack - not the main pack.
 
                             // TODO pick up here - I have a generic object for a container, need to find out why.
-                            container = (Container)GetCreatureInventoryItem(containerGuid);
+                            container = (Container)GetInventoryItem(containerGuid);
                         }
 
                         // is this something I already have? If not, it has to be a pickup - do the pickup and out.
@@ -2963,7 +2963,7 @@ namespace ACE.Entity
                         }
 
                         // Ok, I know my container and I know I must have the item so let's get it.
-                        WorldObject item = GetCreatureInventoryItem(itemGuid);
+                        WorldObject item = GetInventoryItem(itemGuid);
 
                         // check wilded.
                         if (item == null)
@@ -2987,7 +2987,7 @@ namespace ACE.Entity
         /// </summary>
         public void DestroyInventoryItem(WorldObject wo)
         {
-            RemoveCreatureInventoryItem(wo.Guid);
+            RemoveWorldObjectFromInventory(wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
@@ -3001,7 +3001,7 @@ namespace ACE.Entity
             dropChain.AddAction(this, () =>
             {
                 // check packs of item.
-                WorldObject item = GetCreatureInventoryItem(itemGuid);
+                WorldObject item = GetInventoryItem(itemGuid);
                 if (item == null)
                 {
                     // check to see if this item is wielded
@@ -3035,7 +3035,7 @@ namespace ACE.Entity
 
                     if (containerGuid != ObjectGuid.Invalid)
                     {
-                        RemoveCreatureInventoryItem(itemGuid);
+                        RemoveWorldObjectFromInventory(itemGuid);
                     }
                     else
                     {
@@ -3136,7 +3136,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                WorldObject iwo = GetCreatureInventoryItem(usedItemId);
+                WorldObject iwo = GetInventoryItem(usedItemId);
                 if (iwo != null)
                 {
                     iwo.OnUse(Session);
@@ -3170,7 +3170,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                WorldObject iwo = GetCreatureInventoryItem(itemGuid);
+                WorldObject iwo = GetInventoryItem(itemGuid);
                 if (iwo == null) return;
                 if (iwo.Inscribable && iwo.ScribeName != "prewritten")
                 {
