@@ -45,8 +45,8 @@ namespace ACE.Entity
             }
         }
 
-        private ushort usedpackslots = 0;
-        private ushort maxpackslots = 15;
+        private ushort usedPackSlots = 0;
+        private ushort maxPackSlots = 15;
 
         /// <summary>
         /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
@@ -98,7 +98,7 @@ namespace ACE.Entity
                 }
                 // increase pack counter if item is not a container!
                 if (wo.WeenieType != WeenieType.Container)
-                    usedpackslots += 1;
+                    usedPackSlots += 1;
             }
         }
 
@@ -121,7 +121,7 @@ namespace ACE.Entity
             log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
 
             Value += inventoryItem.Value;
-            usedpackslots += 1;
+            usedPackSlots += 1;
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace ACE.Entity
                 // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
                 Value -= InventoryObjects[objectguid].Value;
                 InventoryObjects.Remove(objectguid);
-                usedpackslots -= 1;
+                usedPackSlots -= 1;
 
                 return;
             }
@@ -238,11 +238,11 @@ namespace ACE.Entity
         /// <summary>
         /// Gets Free Pack
         /// </summary>
-        /// <returns></returns>
+        /// <returns>uint</returns>
         public virtual uint GetFreePackLocation()
         {
             // do I have enough space ?
-            if (usedpackslots <= maxpackslots)
+            if (usedPackSlots <= maxPackSlots)
             {
                 return Guid.Full;
             }
