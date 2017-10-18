@@ -1118,7 +1118,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                // to do process payment - its all free!
+                // todo research packets more for both buy and sell. ripley thinks buy is update..
                 // vendor accepted the transaction
                 if (valid)
                 {
@@ -1129,6 +1129,7 @@ namespace ACE.Entity
                             wo.ContainerId = Guid.Full;
                             wo.Placement = 0;
                             AddToInventory(wo);
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
                             Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                         }
@@ -1175,10 +1176,11 @@ namespace ACE.Entity
                             RemoveFromWieldedObjects(item.Guid);
                             UpdateAppearance(this);
                             Session.Network.EnqueueSend(
-                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                new GameMessageObjDescEvent(this),
-                                new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
-                        }
+                               new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                               new GameMessageObjDescEvent(this),
+                               new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
+                               new GameMessagePublicUpdatePropertyInt(Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0));
+                        }   
                     }
                     else
                     {
@@ -1193,8 +1195,7 @@ namespace ACE.Entity
                     // clean up the shard database.
                     DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
 
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-
+                    Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
                     purchaselist.Add(item);
                 }
 
