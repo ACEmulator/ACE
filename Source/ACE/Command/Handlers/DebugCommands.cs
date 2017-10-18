@@ -242,29 +242,22 @@ namespace ACE.Command.Handlers
             if (!(parameters?.Length > 0)) return;
             uint contractId;
             if (!uint.TryParse(parameters[0], out contractId)) return;
-            ContractTable.ReadFromDat();
-            ContractTable contractInfo = ContractTable.ReadFromDat();
-            Contract contractdata;
 
-            const uint contractStage        = 0;
-            const ulong timeWhenDone        = 0;
-            const ulong timeWhenRepeats     = 0;
-            const uint deleteContract       = 0; // used as a flag - protocol calls for uint
-            const uint setAsDisplayContract = 1; // used as a flag - protocol calls for uint
-
-            if (contractInfo.Contracts.TryGetValue(contractId, out contractdata))
+            ContractTracker contractTracker = new ContractTracker(contractId)
             {
-                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session,
-                                                                 contractdata.Version,
-                                                                 contractId,
-                                                                 contractStage,
-                                                                 timeWhenDone,
-                                                                 timeWhenRepeats,
-                                                                 deleteContract,
-                                                                 setAsDisplayContract);
-                session.Network.EnqueueSend(contractMsg);
-                ChatPacket.SendServerMessage(session, "You just added " + contractdata.ContractName, ChatMessageType.Broadcast);
-            }
+                Stage                = 0,
+                TimeWhenDone         = 0,
+                TimeWhenRepeats      = 0,
+                DeleteContract       = 0,
+                SetAsDisplayContract = 1
+            };
+
+            if (!session.Player.TrackedContracts.ContainsKey(contractId))
+                session.Player.TrackedContracts.Add(contractId, contractTracker);
+
+            GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session, contractTracker);
+            session.Network.EnqueueSend(contractMsg);
+            ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
 
         // grantxp ulong

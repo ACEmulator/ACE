@@ -18,7 +18,6 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
-using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -63,20 +62,7 @@ namespace ACE.Entity
         /// </summary>
         private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
-        /// <summary>
-        /// Amount of times this character has left a portal this session
-        /// </summary>
-        public uint PortalIndex { get; set; } = 1u;
-
-        /// <summary>
-        /// tick-stamp for the server time of the last time the player changed state (combat state?)
-        /// </summary>
-        public double LastStateChangeTicks { get; set; }
-
-        /// <summary>
-        /// Last Streaming Object change tick
-        /// </summary>
-        public double LastStreamingObjectChange { get; set; }
+        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
 
         /// <summary>
         /// Level of the player
@@ -343,6 +329,8 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+
+            TrackedContracts = new Dictionary<uint, ContractTracker>();
         }
 
         /// <summary>
@@ -1332,11 +1320,11 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         public void HandleAddNewWorldObjectToInventory(WorldObject wo)
         {
-                wo.ContainerId = Guid.Full;
-                AddToInventory(wo);
-                Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                if (wo.WeenieType == WeenieType.Container)
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+            wo.ContainerId = Guid.Full;
+            AddToInventory(wo);
+            Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+            if (wo.WeenieType == WeenieType.Container)
+                Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
         }
 
         /// <summary>
@@ -2479,31 +2467,20 @@ namespace ACE.Entity
             ActionChain abandonContractChain = new ActionChain();
             abandonContractChain.AddAction(this, () =>
             {
-                ContractTable.ReadFromDat();
-                ContractTable contractInfo = ContractTable.ReadFromDat();
-                Contract contractdata;
-
-                const uint contractStage        = 0;
-                const ulong timeWhenDone        = 0;
-                const ulong timeWhenRepeats     = 0;
-                const uint deleteContract       = 1; // used as a flag - protocol calls for uint
-                const uint setAsDisplayContract = 0; // used as a flag - protocol calls for uint
-
-                if (contractInfo.Contracts.TryGetValue(contractId, out contractdata))
+                ContractTracker contractTracker = new ContractTracker(contractId)
                 {
-                    GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(
-                        Session,
-                        contractdata.Version,
-                        contractId,
-                        contractStage,
-                        timeWhenDone,
-                        timeWhenRepeats,
-                        deleteContract,
-                        setAsDisplayContract);
-                    Session.Network.EnqueueSend(contractMsg);
-                }
-                else
-                    log.InfoFormat("Asked to abandon quest from quest tracker {0} - the quest specified was not found in the portal.dat file", contractId);
+                    Stage = 0,
+                    TimeWhenDone = 0,
+                    TimeWhenRepeats = 0,
+                    DeleteContract = 1,
+                    SetAsDisplayContract = 0
+                };
+
+                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
+
+                TrackedContracts.Remove(contractId);
+
+                Session.Network.EnqueueSend(contractMsg);
             });
             abandonContractChain.EnqueueChain();
         }

@@ -1,4 +1,6 @@
-﻿namespace ACE.Network.GameEvent.Events
+﻿using ACE.Entity;
+
+namespace ACE.Network.GameEvent.Events
 {
     public class GameEventSendClientContractTracker : GameEventMessage
     {
@@ -9,23 +11,18 @@
         /// you got in the message from the client and pass back a 1 in the deleteContract parameter. Og II
         /// </summary>
         /// <param name="session">Our player session used for getting message recipient guid and the correct message sequence.</param>
-        /// <param name="version">Version of the contract.   So far I have only seen 0, but I have not done an exhaustive search.</param>
-        /// <param name="contractId">Id of the contract.   This is the index into the contract table in the portal.dat file</param>
-        /// <param name="contractStage">Where are we in the quest - progress.   Starts at 0 on initial add to quest tracker</param>
-        /// <param name="timeWhenDone">This is used for timed quests - kill so many within an hour</param>
-        /// <param name="timeWhenRepeats">When is my quest timer up so I can do the quest again.  This will be tracked in the greater quest system.</param>
-        /// <param name="deleteContract">delete flag 0 is false, 1 is true - delete the contract</param>
-        /// <param name="setAsDisplayContract">flag to display details of the quest and not just the list of contracts in the quest panel.</param>
-        public GameEventSendClientContractTracker(Session session, uint version, uint contractId, uint contractStage, ulong timeWhenDone, ulong timeWhenRepeats, uint deleteContract, uint setAsDisplayContract)
+        /// <param name="contactTracker">This class contains all of the information we need to send the client about the contract. </param>
+
+        public GameEventSendClientContractTracker(Session session, ContractTracker contactTracker)
                 : base(GameEventType.SendClientContractTracker, GameMessageGroup.Group09, session)
         {
-            Writer.Write(version);
-            Writer.Write(contractId);
-            Writer.Write(contractStage);
-            Writer.Write(timeWhenDone);
-            Writer.Write(timeWhenRepeats);
-            Writer.Write(deleteContract);
-            Writer.Write(setAsDisplayContract);
+            Writer.Write(contactTracker.Version);
+            Writer.Write(contactTracker.ContractId);
+            Writer.Write(contactTracker.Stage);
+            Writer.Write(contactTracker.TimeWhenDone);
+            Writer.Write(contactTracker.TimeWhenRepeats);
+            Writer.Write(contactTracker.DeleteContract);
+            Writer.Write(contactTracker.SetAsDisplayContract);
         }
     }
 }
