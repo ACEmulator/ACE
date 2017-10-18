@@ -135,4 +135,3 @@
         private System.Windows.Forms.TextBox txtDetail;
     }
 }
-

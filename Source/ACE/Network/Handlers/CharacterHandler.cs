@@ -594,7 +594,7 @@ namespace ACE.Network.Handlers
             character.Name = reader.ReadString16L();
             character.DisplayName = character.Name; // unsure
 
-            // currently not used
+            // Index used to determine the starting location
             uint startArea = reader.ReadUInt32();
 
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
@@ -611,7 +611,7 @@ namespace ACE.Network.Handlers
                 character.AccountId = session.Id;
 
                 CharacterCreateSetDefaultCharacterOptions(character);
-                CharacterCreateSetDefaultCharacterPositions(character);
+                CharacterCreateSetDefaultCharacterPositions(character, startArea);
 
                 // We must await here -- 
                 DatabaseManager.Shard.SaveObject(character, ((bool saveSuccess) =>
@@ -666,9 +666,9 @@ namespace ACE.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
-        public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character)
+        public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character, uint startArea)
         {
-            character.Location = CharacterPositionExtensions.StartingPosition();
+            character.Location = CharacterPositionExtensions.StartingPosition(startArea);
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

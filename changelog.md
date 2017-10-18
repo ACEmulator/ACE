@@ -1,12 +1,21 @@
 # ACEmulator Change Log
+
+### 2017-10-17
+[Jyrus]
+* Reconfigured and renamed functions to account for Potions being included in class Food
+* Wired up applying the chosen starting town to the Training Academy path used
+
+[StackOverflow]
+* Vendors are no longer free!
+* Pyreals as currency has been added.
+* @setcoin added for debugging of sync of coinValue gets away during dev.
+
 ### 2017-10-16
 [Jyrus]
 * Implemented Food class for consuming food items
 * Stub created for handling Buffing food but implementation is not complete, as spellcasting has not been completed, yet
 * Implemented a method for removing an item from inventory that also handles item stacks.
 * Included a fix for stack splitting to create proper WorldObject, instead of defaulting everything to GenericObjects
-
-### 2017-10-16
 [StackOverflow]
 * Made all vendors free as long as you have some money in your pack
 * Prepping for real pyreal transactions.
