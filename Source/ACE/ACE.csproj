@@ -179,6 +179,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionSellItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableMerge.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSoulEmote.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAbandonContract.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableSplitToContainer.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />

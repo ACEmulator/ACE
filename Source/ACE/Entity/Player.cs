@@ -1211,7 +1211,7 @@ namespace ACE.Entity
                 // todo payout
             }).EnqueueChain();
         }
-#endregion
+        #endregion
 
         public void HandleAddToInventory(WorldObject wo)
         {
@@ -1501,11 +1501,11 @@ namespace ACE.Entity
         /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
         /// of the aceObjects from the current list of inventory world objects by container. Og II
         /// </summary>
-       public void SnapshotInventoryItems(bool clearDirtyFlags = false)
+        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
         {
             Inventory.Clear();
             foreach (var wo in InventoryObjects)
-             {
+            {
                 Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
                 if (wo.Value.WeenieType == WeenieType.Container)
                 {
@@ -2276,10 +2276,10 @@ namespace ACE.Entity
         /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting
         /// item. Og II
         /// </summary>
-        /// <param name="stackId"></param>
-        /// <param name="containerId"></param>
-        /// <param name="place"></param>
-        /// <param name="amount"></param>
+        /// <param name="stackId">This is the guild of the item we are spliting</param>
+        /// <param name="containerId">The guid of the container</param>
+        /// <param name="place">Place is the slot in the container we are spliting into.   Range 0-MaxCapacity</param>
+        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
         /// <returns></returns>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
         {
@@ -2354,8 +2354,42 @@ namespace ACE.Entity
             splitItemsChain.EnqueueChain();
         }
 
+        public void HandleActionAbandonContract(uint contractId)
+        {
+            ActionChain abandonContractChain = new ActionChain();
+            abandonContractChain.AddAction(this, () =>
+            {
+                ContractTable.ReadFromDat();
+                ContractTable contractInfo = ContractTable.ReadFromDat();
+                Contract contractdata;
+
+                const uint contractStage        = 0;
+                const ulong timeWhenDone        = 0;
+                const ulong timeWhenRepeats     = 0;
+                const uint deleteContract       = 1; // used as a flag - protocol calls for uint
+                const uint setAsDisplayContract = 0; // used as a flag - protocol calls for uint
+
+                if (contractInfo.Contracts.TryGetValue(contractId, out contractdata))
+                {
+                    GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(
+                        Session,
+                        contractdata.Version,
+                        contractId,
+                        contractStage,
+                        timeWhenDone,
+                        timeWhenRepeats,
+                        deleteContract,
+                        setAsDisplayContract);
+                    Session.Network.EnqueueSend(contractMsg);
+                }
+                else
+                    log.InfoFormat("Asked to abandon quest from quest tracker {0} - the quest specified was not found in the portal.dat file", contractId);
+            });
+            abandonContractChain.EnqueueChain();
+        }
+
         /// <summary>
-        /// This method is used to remove X number of items from a stack, including 
+        /// This method is used to remove X number of items from a stack, including
         /// If amount to remove is greater or equal to the current stacksize, item will be removed.
         /// </summary>
         /// <param name="stackId">Guid.Full of the stacked item</param>
@@ -3041,7 +3075,7 @@ namespace ACE.Entity
                     ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
                 }
             }).EnqueueChain();
-    }
+        }
 
         public void HandleActionApplySoundEffect(Sound sound)
         {
