@@ -594,7 +594,7 @@ namespace ACE.Network.Handlers
             character.Name = reader.ReadString16L();
             character.DisplayName = character.Name; // unsure
 
-            // currently not used
+            // Index used to determine the starting location
             uint startArea = reader.ReadUInt32();
 
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
