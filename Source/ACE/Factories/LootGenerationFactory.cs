@@ -5,6 +5,7 @@ using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Entity.Enum;
+using System.Collections.Generic;
 
 namespace ACE.Factories
 {
@@ -29,14 +30,13 @@ namespace ACE.Factories
         public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)
         {
             var weenieList = DatabaseManager.World.GetRandomWeeniesOfType(typeId, numItems);
+            List<WorldObject> items = new List<WorldObject>();
             for (int i = 0; i < numItems; i++)
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(weenieList[i].WeenieClassId);
-                if (wo.WeenieType == WeenieType.Container)
-                    player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, wo.SnapShotOfAceObject()));
-                wo.ContainerId = player.Guid.Full;
-                player.HandleAddToInventory(wo);
+                items.Add(wo);
             }
+            player.HandleAddNewWorldObjectsToInventory(items);
         }
     }
 }
