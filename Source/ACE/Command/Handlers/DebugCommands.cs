@@ -254,6 +254,19 @@ namespace ACE.Command.Handlers
             return;
         }
 
+        [CommandHandler("sendcontract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Send a contract to yourself.",
+            "uint\n" +
+            "@sendcontract 100 is a sample contract")]
+        public static void HandleSendContract(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0)) return;
+            uint contractId;
+            if (!uint.TryParse(parameters[0], out contractId)) return;
+            var contractMsg = new GameEventSendClientContractTracker(session, 0, contractId, 1, 0, 0, 0, 0);
+            session.Network.EnqueueSend(contractMsg);
+        }
+
         // grantxp ulong
         [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "sets your current health to a specific value.",
@@ -973,6 +986,22 @@ namespace ACE.Command.Handlers
                 Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
             }
             Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Debug command to set player vitals to 1
+        /// </summary>
+        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HarmSelf(Session session, params string[] parameters)
+        {
+            ActionChain chain = new ActionChain();
+            chain.AddAction(session.Player, () =>
+            {
+                session.Player.UpdateVital(session.Player.Health, 1);
+                session.Player.UpdateVital(session.Player.Stamina, 1);
+                session.Player.UpdateVital(session.Player.Mana, 1);
+            });
+            chain.EnqueueChain();
         }
     }
 }

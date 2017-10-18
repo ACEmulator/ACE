@@ -1329,6 +1329,12 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.BoostValue, value); }
         }
 
+        public uint? BoostEnum
+        {
+            get { return GetIntProperty(PropertyInt.BoosterEnum); }
+            set { SetIntProperty(PropertyInt.BoosterEnum, value); }
+        }
+
         public double? HealkitMod
         {
             get { return GetDoubleProperty(PropertyDouble.HealkitMod); }

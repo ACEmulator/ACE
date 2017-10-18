@@ -31,6 +31,8 @@
         PublicUpdatePropertyDouble            = 25,
         PublicUpdatePropertyDataID            = 26,
         PublicUpdatePropertyInstanceId        = 27,
-        PublicUpdatePropertyString            = 28
+        PublicUpdatePropertyString            = 28,
+
+        SetStackSize                          = 29
     }
 }
