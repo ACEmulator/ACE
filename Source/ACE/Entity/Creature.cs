@@ -317,17 +317,12 @@ namespace ACE.Entity
             return null;
         }
 
-        public uint GetCreatureInventoryFreePack()
-        {
-            return GetFreePackLocation();
-        }
-
         /// <summary>
         /// Returns a inventory item by its objectGuid from any creature pack.
         /// </summary>
         /// <param name="objectGuid"></param>
         /// <returns>WorldObject</returns>
-        public WorldObject GetCreatureInventoryItem(ObjectGuid objectGuid)
+        public WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             return GetInventoryItem(objectGuid);
         }
@@ -336,7 +331,7 @@ namespace ACE.Entity
         /// Removes a inventory item by its objectGuid from any creature pack
         /// </summary>
         /// <param name="objectGuid"></param>
-        public void RemoveCreatureInventoryItem(ObjectGuid objectGuid)
+        public void RemoveWorldObjectFromInventory(ObjectGuid objectGuid)
         {
             RemoveWorldObjectFromInventory(objectGuid);
         }
