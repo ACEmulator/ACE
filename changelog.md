@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+### 2017-10-18
+[StackOverflow]
+* Vendors - Fixed bug with sell of item from wielded locations
+* Inventory - Major Refractor of Code. (many conditional bugs fixed)
+* Fixed server crash bug on dropping wielded items (items now drop to ground np)
+* Fixed bug with dropping clothing / armor to landblock
 
 ### 2017-10-17
 [Jyrus]
