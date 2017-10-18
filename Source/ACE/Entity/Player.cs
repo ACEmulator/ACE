@@ -2995,8 +2995,9 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    // remove item from inventory.
                     RemoveWorldObjectFromInventory(itemGuid);
+                    if (item.WeenieType == WeenieType.Coin)
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
                 }
 
                 SetInventoryForWorld(item);
