@@ -1,9 +1,6 @@
-﻿using ACE.Database;
-using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+﻿using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
@@ -25,8 +22,6 @@ namespace ACE.Entity
 
         public override void OnUse(Session session)
         {
-            ushort origStackSize = (ushort)StackSize;
-
             Entity.Player.ConsumableBuffType buffType;
 
             if (Food == true)
@@ -47,7 +42,7 @@ namespace ACE.Entity
             else
                 buffType = Entity.Player.ConsumableBuffType.Spell;
 
-            session.Player.DoEatOrDrink(Name, FoodOrDrink(Name), buffType, (uint)Boost, SpellDID);
+            session.Player.ApplyComsumable(Name, SolidOrLiquid(), buffType, (uint)Boost, SpellDID);
 
             session.Player.HandleActionRemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
 
@@ -55,9 +50,17 @@ namespace ACE.Entity
             session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
-        private Sound FoodOrDrink(string name)
+        private Sound SolidOrLiquid()
         {
-            if ((name.ToLower().Contains("ale")) || (name.ToLower().Contains("lager")) || (name.ToLower().Contains("water")) || (name.ToLower().Contains("milk")))
+            if ((Name.ToLower().Contains("ale")) || (Name.ToLower().Contains("lager"))
+                || (Name.ToLower().Contains("water")) || (Name.ToLower().Contains("milk"))
+                || (Name.ToLower().Contains("potion")) || (Name.ToLower().Contains("elixir"))
+                || (Name.ToLower().Contains("mead")) || (Name.ToLower().Contains("draught"))
+                || (Name.ToLower().Contains("infusion")) || (Name.ToLower().Contains("tonic"))
+                || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
+                || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
+                || (Name.ToLower().Contains("acidic rejuvenation")) || (Name.ToLower().Contains("tea"))
+                || (Name.ToLower().Contains("saliva invigorator")))
                 return Sound.Drink1;
             else
                 return Sound.Eat1;

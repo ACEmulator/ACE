@@ -286,6 +286,30 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// This method is used to get all inventory items of Coin in this container (example of usage get all items of coin on player)
+        /// </summary>
+        public virtual List<WorldObject> GetInventoryItemsOfTypeWeenieType(WeenieType type)
+        {
+            List<WorldObject> items = new List<WorldObject>();
+
+            // first search me / add all items of type.
+            var localInventory = InventoryObjects.Where(wo => wo.Value.WeenieType == type).ToList();
+            foreach (var wo in localInventory)
+            {
+                items.Add(wo.Value);
+            }
+
+            // next search all containers for coin.. run function again for each container.
+            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in containers)
+            {
+                items.AddRange((container.Value as Container).GetInventoryItemsOfTypeWeenieType(type));
+            }
+
+            return items;
+        }
+
+        /// <summary>
         /// This method handles the first part of the merge - split out for code reuse.  It calculates
         /// the updated values for stack size, value and burden, creates the needed client messages
         /// and sends them.   This must be called from within an action chain. Og II
