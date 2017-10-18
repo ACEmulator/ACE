@@ -1,9 +1,9 @@
 # ACEmulator Change Log
 ### 2017-10-17
 [StackOverflow]
-Vendors are no longer free!
-Pyreals as currency has been added.
-@setcoin added for debugging of sync of coinValue gets away during dev.
+* Vendors are no longer free!
+* Pyreals as currency has been added.
+* @setcoin added for debugging of sync of coinValue gets away during dev.
 
 ### 2017-10-16
 [Jyrus]
