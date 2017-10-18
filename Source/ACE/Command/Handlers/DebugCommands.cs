@@ -17,6 +17,9 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
+    using global::ACE.DatLoader;
+    using global::ACE.DatLoader.Entity;
+
     internal enum TestWeenieClassIds : uint
     {
         Pants        = 120,
@@ -173,7 +176,22 @@ namespace ACE.Command.Handlers
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Location;
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+        }
+
+        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+          "Read Contract From DAT file.")]
+        public static void HandleDebugContract(Session session, params string[] parameters)
+        {
+            uint contractId;
+            if (!uint.TryParse(parameters[0], out contractId))
+                return;
+            ContractTable.ReadFromDat();
+            ContractTable contractInfo = ContractTable.ReadFromDat();
+            var contract = new Contract();
+            contractInfo.Contracts.TryGetValue(contractId, out contract);
+
+            // ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
         }
 
         // telexyz cell x y z qx qy qz qw
