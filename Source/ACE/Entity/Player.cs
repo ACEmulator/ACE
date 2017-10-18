@@ -1202,31 +1202,35 @@ namespace ACE.Entity
                 List<WorldObject> purchaselist = new List<WorldObject>();
                 foreach (ItemProfile profile in itemprofiles)
                 {
+                    // check packs of item.
                     WorldObject item = GetInventoryItem(profile.Guid);
                     if (item == null)
                     {
                         // check to see if this item is wielded
-                        if (!WieldedObjects.TryGetValue(profile.Guid, out item))
-                            return;
-                        RemoveFromWieldedObjects(profile.Guid);
-                        UpdateAppearance(this);
-                        ObjectGuid clearWielder = new ObjectGuid(0);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                        item = GetWieldedItem(profile.Guid);
+                        if (item != null)
+                        {
+                            RemoveFromWieldedObjects(item.Guid);
+                            UpdateAppearance(this);
+                            Session.Network.EnqueueSend(
+                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                new GameMessageObjDescEvent(this),
+                                new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
+                        }
                     }
                     else
                     {
+                        // remove item from inventory.
                         RemoveWorldObjectFromInventory(profile.Guid);
                     }
 
-                    ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
-                    ObjectGuid clearContainer = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, clearContainer, PropertyInstanceId.Container));
+                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, new ObjectGuid(0), PropertyInstanceId.Container));
+
+                    SetInventoryForVendor(item);
 
                     // clean up the shard database.
                     DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
 
                     purchaselist.Add(item);
@@ -3010,46 +3014,23 @@ namespace ACE.Entity
                     {
                         RemoveFromWieldedObjects(itemGuid);
                         UpdateAppearance(this);
-                        ObjectGuid clearWielder = new ObjectGuid(0);
                         Session.Network.EnqueueSend(
                             new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                             new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                            new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                     }
                 }
                 else
                 {
-                    // SO - NO CLUE WHAT THIS DOES -- LOOKS AT OG!
-                    ObjectGuid containerGuid = ObjectGuid.Invalid;
-                    // Removed unused code Og II
-                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-                    foreach (var container in containers)
-                    {
-                        WorldObject packItem;
-                        if (container.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
-                        {
-                            containerGuid = container.Value.Guid;
-                            break;
-                        }
-                    }
-
-                    if (containerGuid != ObjectGuid.Invalid)
-                    {
-                        RemoveWorldObjectFromInventory(itemGuid);
-                    }
-                    else
-                    {
-                        RemoveWorldObjectFromInventory(itemGuid);
-                    }
+                    // remove item from inventory.
+                    RemoveWorldObjectFromInventory(itemGuid);
                 }
 
                 SetInventoryForWorld(item);
 
                 UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                ObjectGuid clearContainer = new ObjectGuid(0);
-                Session.Network.EnqueueSend(
-                    new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
+                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
                 // Set drop motion
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
@@ -3069,7 +3050,7 @@ namespace ACE.Entity
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
                 new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
+                new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
                 // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                 Debug.Assert(item != null, "item != null");

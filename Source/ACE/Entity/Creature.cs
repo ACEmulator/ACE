@@ -324,7 +324,7 @@ namespace ACE.Entity
         /// <returns>WorldObject</returns>
         public override WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
-            return GetInventoryItem(objectGuid);
+            return base.GetInventoryItem(objectGuid);
         }
 
         /// <summary>
@@ -333,7 +333,7 @@ namespace ACE.Entity
         /// <param name="objectGuid"></param>
         public override void RemoveWorldObjectFromInventory(ObjectGuid objectGuid)
         {
-            RemoveWorldObjectFromInventory(objectGuid);
+            base.RemoveWorldObjectFromInventory(objectGuid);
         }
 
         /// <summary>

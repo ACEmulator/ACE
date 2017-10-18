@@ -1676,6 +1676,19 @@ namespace ACE.Entity
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
 
+        internal void SetInventoryForVendor(WorldObject inventoryItem)
+        {
+            inventoryItem.Location = null;
+            inventoryItem.PositionFlag = UpdatePositionFlag.None;
+            inventoryItem.ContainerId = null;
+            inventoryItem.Placement = null;
+            inventoryItem.WielderId = null;
+            inventoryItem.CurrentWieldedLocation = null;
+            // TODO: create enum for this once we understand this better.
+            // This is needed to make items lay flat on the ground.
+            inventoryItem.AnimationFrame = 0x65;
+        }
+
         internal void SetInventoryForWorld(WorldObject inventoryItem)
         {
             inventoryItem.Location = Location.InFrontOf(1.1f);
