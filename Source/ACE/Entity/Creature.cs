@@ -197,9 +197,6 @@ namespace ACE.Entity
         /// <summary>
         /// Updates a vital, returns true if vital is now < max
         /// </summary>
-        /// <param name="vital"></param>
-        /// <param name="quantity"></param>
-        /// <returns></returns>
         public void UpdateVital(CreatureVital vital, uint newVal)
         {
             EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
@@ -303,8 +300,6 @@ namespace ACE.Entity
         /// <summary>
         /// GetWilded Items
         /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns>WorldObject</returns>
         public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
         {
             // check wielded objects
@@ -320,8 +315,6 @@ namespace ACE.Entity
         /// <summary>
         /// Returns a inventory item by its objectGuid from any creature pack.
         /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns>WorldObject</returns>
         public override WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             return base.GetInventoryItem(objectGuid);
@@ -330,7 +323,6 @@ namespace ACE.Entity
         /// <summary>
         /// Removes a inventory item by its objectGuid from any creature pack
         /// </summary>
-        /// <param name="objectGuid"></param>
         public override void RemoveWorldObjectFromInventory(ObjectGuid objectGuid)
         {
             base.RemoveWorldObjectFromInventory(objectGuid);
