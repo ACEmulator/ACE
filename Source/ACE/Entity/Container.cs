@@ -88,17 +88,6 @@ namespace ACE.Entity
 
                 Burden += wo.Burden ?? 0;
                 log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
-
-                Value += wo.Value ?? 0;
-
-                if (wo.WeenieType == WeenieType.Coin)
-                {
-                    CoinValue += wo.Value ?? 0;
-                    log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, of WeenieType.Coin, adding {wo.Value}, current CoinValue = {CoinValue}");
-                }
-                // increase pack counter if item is not a container!
-                if (wo.WeenieType != WeenieType.Container)
-                    usedPackSlots += 1;
             }
         }
 
@@ -107,21 +96,10 @@ namespace ACE.Entity
         {
             AddToInventoryEx(inventoryItem, placement);
 
-            if (inventoryItem.WeenieType == WeenieType.Coin)
-            {
-                CoinValue += inventoryItem.Value ?? 0;
-            }
-
-            if (inventoryItem.WeenieType == WeenieType.Container)
-            {
-                CoinValue += inventoryItem.CoinValue ?? 0;
-            }
-
             Burden += inventoryItem.Burden;
             log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
 
             Value += inventoryItem.Value;
-            usedPackSlots += 1;
         }
 
         /// <summary>
@@ -182,16 +160,16 @@ namespace ACE.Entity
 
                 Burden -= InventoryObjects[objectguid].Burden;
 
-                if (InventoryObjects[objectguid].WeenieType == WeenieType.Coin)
-                    CoinValue -= InventoryObjects[objectguid].StackSize;
-
                 log.Debug($"Remove {InventoryObjects[objectguid].Name} in inventory, removing {InventoryObjects[objectguid].Burden}, current Burden = {Burden}");
 
                 // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
                 Value -= InventoryObjects[objectguid].Value;
-                InventoryObjects.Remove(objectguid);
-                usedPackSlots -= 1;
 
+                // decrease pack counter if item is not a container!
+                if (InventoryObjects[objectguid].WeenieType != WeenieType.Container)
+                    usedPackSlots -= 1;
+
+                InventoryObjects.Remove(objectguid);
                 return;
             }
 

@@ -1257,8 +1257,23 @@ namespace ACE.Entity
                 {
                     HandleAddNewWorldObjectToInventory(wo);
                 }
+                UpdateCurrencyClientCalculations(WeenieType.Coin);
             }).EnqueueChain();
             return true;
+        }
+
+        // todo re-think how this works..
+        private void UpdateCurrencyClientCalculations(WeenieType type)
+        {
+            uint coins = 0;
+            List<WorldObject> currency = new List<WorldObject>();
+            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
+            foreach (WorldObject wo in currency)
+            {
+                coins += wo.StackSize.Value;
+            }
+            // send packet to client letthing them know
+            CoinValue = coins;
         }
 
         private bool SpendCurrency(uint amount, WeenieType type)
@@ -1310,7 +1325,7 @@ namespace ACE.Entity
 
                     // clean up the shard database.
                     DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(wo));
+                    Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
                 }
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
@@ -1319,6 +1334,7 @@ namespace ACE.Entity
                     HandleAddNewWorldObjectToInventory(changeobj);
                 }
 
+                UpdateCurrencyClientCalculations(WeenieType.Coin);
                 return true;
             }
             else
