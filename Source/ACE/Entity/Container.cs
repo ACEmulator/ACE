@@ -237,8 +237,6 @@ namespace ACE.Entity
         /// <summary>
         /// This method is used to get all inventory items of Coin in this container (example of usage get all items of coin on player)
         /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns>List<WorldObject></returns>
         public virtual List<WorldObject> GetInventoryItemsOfTypeWeenieType(WeenieType type)
         {
             List<WorldObject> items = new List<WorldObject>();
