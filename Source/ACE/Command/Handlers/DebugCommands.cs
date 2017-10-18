@@ -7,12 +7,11 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Factories;
-using System.Globalization;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
 using System.Collections.Generic;
-using ACE.Database;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
@@ -173,7 +172,7 @@ namespace ACE.Command.Handlers
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Location;
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -236,17 +235,36 @@ namespace ACE.Command.Handlers
             return;
         }
 
-        [CommandHandler("sendcontract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Send a contract to yourself.",
-            "uint\n" +
-            "@sendcontract 100 is a sample contract")]
-        public static void HandleSendContract(Session session, params string[] parameters)
+        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
+        public static void HandleContract(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0)) return;
             uint contractId;
             if (!uint.TryParse(parameters[0], out contractId)) return;
-            var contractMsg = new GameEventSendClientContractTracker(session, 0, contractId, 1, 0, 0, 0, 0);
-            session.Network.EnqueueSend(contractMsg);
+            ContractTable.ReadFromDat();
+            ContractTable contractInfo = ContractTable.ReadFromDat();
+            Contract contractdata;
+
+            const uint contractStage        = 0;
+            const ulong timeWhenDone        = 0;
+            const ulong timeWhenRepeats     = 0;
+            const uint deleteContract       = 0; // used as a flag - protocol calls for uint
+            const uint setAsDisplayContract = 1; // used as a flag - protocol calls for uint
+
+            if (contractInfo.Contracts.TryGetValue(contractId, out contractdata))
+            {
+                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session,
+                                                                 contractdata.Version,
+                                                                 contractId,
+                                                                 contractStage,
+                                                                 timeWhenDone,
+                                                                 timeWhenRepeats,
+                                                                 deleteContract,
+                                                                 setAsDisplayContract);
+                session.Network.EnqueueSend(contractMsg);
+                ChatPacket.SendServerMessage(session, "You just added " + contractdata.ContractName, ChatMessageType.Broadcast);
+            }
         }
 
         // grantxp ulong
