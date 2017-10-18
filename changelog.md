@@ -1,5 +1,5 @@
 # ACEmulator Change Log
-### 2017-10-16
+### 2017-10-17
 [Jyrus]
 * Reconfigured and renamed functions to account for Potions being included in class Food
 * Wired up applying the chosen starting town to the Training Academy path used
