@@ -2342,8 +2342,6 @@ namespace ACE.Entity
                         new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)stack.Value);
                     GameMessagePutObjectInContainer msgPutObjectInContainer =
                         new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
-                    Debug.Assert(stack.StackSize != null, "stack.StackSize != null");
-                    Debug.Assert(stack.Value != null, "stack.Value != null");
                     GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
                         stack.Guid, (int)stack.StackSize, oldStackSize);
 
@@ -3458,7 +3456,7 @@ namespace ACE.Entity
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
         /// <param name="spellId">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void DoEatOrDrink(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public void ApplyComsumable(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
             GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;

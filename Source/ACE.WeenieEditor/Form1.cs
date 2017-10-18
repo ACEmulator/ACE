@@ -41,7 +41,7 @@ namespace ACE.WeenieEditor
 
         private void searchToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            // Empty function
         }
 
         private void databaseConnectionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -58,7 +58,7 @@ namespace ACE.WeenieEditor
                 db.Initialize(config.ServerIp, uint.Parse(config.ServerPort), config.RootUsername, config.RootPassword, config.WorldDatabaseName, false);
                 MessageBox.Show(this, "Connection to database successful!", "ACE", MessageBoxButtons.OK);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error connecting to database." + Environment.NewLine + ex, "ACE", MessageBoxButtons.OK);
             }
@@ -86,7 +86,7 @@ namespace ACE.WeenieEditor
 
         private void byNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            // Empty function
         }
 
         private void LoadWeenie()

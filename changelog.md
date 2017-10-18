@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 ### 2017-10-16
 [Jyrus]
+* Reconfigured and renamed functions to account for Potions being included in class Food
+* Wired up applying the chosen starting town to the Training Academy path used
+
+### 2017-10-16
+[Jyrus]
 * Implemented Food class for consuming food items
 * Stub created for handling Buffing food but implementation is not complete, as spellcasting has not been completed, yet
 * Implemented a method for removing an item from inventory that also handles item stacks.
