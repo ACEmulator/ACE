@@ -211,8 +211,6 @@ namespace ACE.Entity
         /// This method is used to get anything in our posession.   Inventory in main or any packs,
         /// as well as wielded items.   If we have it, this will return it.
         /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns></returns>
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             WorldObject inventoryItem;
