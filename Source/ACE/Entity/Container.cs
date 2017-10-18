@@ -206,8 +206,6 @@ namespace ACE.Entity
     /// <summary>
     /// This method is used to get anything in our posession.   Inventory in main or any packs,
     /// </summary>
-    /// <param name="objectGuid"></param>
-    /// <returns></returns>
     public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
@@ -238,7 +236,6 @@ namespace ACE.Entity
         /// <summary>
         /// Gets Free Pack
         /// </summary>
-        /// <returns>uint</returns>
         public virtual uint GetFreePackLocation()
         {
             // do I have enough space ?
@@ -262,8 +259,6 @@ namespace ACE.Entity
         /// <summary>
         /// This method is used to get all inventory items of Coin in this container (example of usage get all items of coin on player)
         /// </summary>
-        /// <param name="objectGuid"></param>
-        /// <returns>List<WorldObject></returns>
         public virtual List<WorldObject> GetInventoryItemsOfTypeWeenieType(WeenieType type)
         {
             List<WorldObject> items = new List<WorldObject>();

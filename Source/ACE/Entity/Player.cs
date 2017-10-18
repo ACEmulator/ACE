@@ -1037,51 +1037,13 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        // todo replace with interavtive items.... this creates crashing!
+                        // todo replace with interactive items.... this creates crashing!
                         // ActionChain idChain = new ActionChain();
                         // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
                         // {
                         //    cwo.QueryItemMana(Session);
                         // });
                         // idChain.EnqueueChain();
-                    }
-                }
-            });
-            chain.EnqueueChain();
-        }
-
-        public void OLD_HandleActionQueryItemMana(ObjectGuid queryId)
-        {
-            if (queryId.Full == 0)
-            {
-                // Do nothing if the queryID is 0
-                return;
-            }
-
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () =>
-            {
-                // the object could be in the world or on the player, first check player
-                WorldObject wo = GetInventoryItem(queryId);
-                if (wo != null)
-                {
-                    wo.QueryItemMana(Session);
-                }
-                else
-                {
-                    // We could be wielded - let's check that next.
-                    if (WieldedObjects.TryGetValue(queryId, out wo))
-                    {
-                        wo.QueryItemMana(Session);
-                    }
-                    else
-                    {
-                        ActionChain idChain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                        {
-                            cwo.QueryItemMana(Session);
-                        });
-                        idChain.EnqueueChain();
                     }
                 }
             });
