@@ -331,6 +331,20 @@ namespace ACE.Entity
             ListeningRadius = 5f;
 
             TrackedContracts = new Dictionary<uint, ContractTracker>();
+            // Load the persisted tracked contracts into the working dictionary on player object.
+            foreach (var trackedContract in AceObject.TrackedContracts)
+            {
+                ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId)
+                {
+                    DeleteContract       = trackedContract.Value.DeleteContract,
+                    SetAsDisplayContract = trackedContract.Value.SetAsDisplayContract,
+                    Stage                = trackedContract.Value.Stage,
+                    TimeWhenDone         = trackedContract.Value.TimeWhenDone,
+                    TimeWhenRepeats      = trackedContract.Value.TimeWhenRepeats
+                };
+
+                TrackedContracts.Add(trackedContract.Key, loadContract);
+            }
         }
 
         /// <summary>
@@ -1295,7 +1309,7 @@ namespace ACE.Entity
                         if (payment > amount)
                         {
                             change = payment - amount;
-                            // add new change object. 
+                            // add new change object.
                             changeobj.StackSize = (ushort)change;
                         }
                         break;
@@ -1749,6 +1763,8 @@ namespace ACE.Entity
                                         new GameMessageCreateObject(this));
 
             SendInventoryAndWieldedItems(Session);
+
+            SendContractTrackerTable();
         }
 
         public void Teleport(Position newPosition)
@@ -2312,6 +2328,14 @@ namespace ACE.Entity
                 }
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
+        }
+
+        /// <summary>
+        /// This method is used to take our persisted tracked contracts and send them on to the client. Pg II
+        /// </summary>
+        public void SendContractTrackerTable()
+        {
+            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
         }
 
         /// <summary>

@@ -66,6 +66,7 @@
     <Compile Include="Account.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
+    <Compile Include="AceContractTracker.cs" />
     <Compile Include="AceObjectPropertiesSpellBarPositions.cs" />
     <Compile Include="AceObjectPropertiesSpell.cs" />
     <Compile Include="AceObjectPropertiesSkill.cs" />

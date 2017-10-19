@@ -1872,6 +1872,8 @@ namespace ACE.Entity
 
         public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
+        public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         // uint references the page
