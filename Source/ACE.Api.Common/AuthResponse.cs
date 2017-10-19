@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Api.Controllers
+namespace ACE.Api.Common
 {
     public class AuthResponse
     {
-        [JsonProperty("token")]
-        public string Token { get; set; }
+        [JsonProperty("authToken")]
+        public string AuthToken { get; set; }
     }
 }

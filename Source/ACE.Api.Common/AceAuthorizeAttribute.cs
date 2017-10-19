@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 
-namespace ACE.Api
+namespace ACE.Api.Common
 {
     /// <summary>
     /// TODO: Convert to SecurityLevel instead of AccessLevel

@@ -565,10 +565,10 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
 
-        public uint? AccountIID
+        public uint? SubscriptionId
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Subscription); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
         }
 
         public bool? IsDeleted

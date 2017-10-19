@@ -2,6 +2,7 @@
 using Owin;
 using System.IdentityModel.Tokens;
 using System.Web.Http;
+using ACE.Api.Common;
 
 namespace ACE.Api
 {
@@ -16,7 +17,7 @@ namespace ACE.Api
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
-                routeTemplate: "{controller}/{id}",
+                routeTemplate: "{controller}/{action}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
             

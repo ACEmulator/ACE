@@ -45,7 +45,7 @@
             }
 
             window.swashbuckleConfig = {
-                rootUrl: 'http://localhost:8000',
+                rootUrl: window.location.protocol + '//' + window.location.host,
                 discoveryPaths: arrayFrom('swagger/docs/v1'),
                 booleanValues: arrayFrom('true|false'),
                 validatorUrl: stringOrNullFrom(''),
@@ -160,7 +160,7 @@
         // console.log('attempting jquery post: ' + postData);
         $.ajax({
             type: "POST",
-            url: "/Auth",
+            url: "/Account/Authenticate",
             data: postData,
             datatype: "json",
             contentType: "application/json",

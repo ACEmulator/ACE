@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Api
+namespace ACE.Api.Common
 {
     internal class JwtUtil
     {

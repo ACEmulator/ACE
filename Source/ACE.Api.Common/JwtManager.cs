@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using ACE.Entity;
 using System.IdentityModel.Tokens;
 using System.IdentityModel.Protocols.WSTrust;
+using ACE.Entity.Enum;
 
-namespace ACE.Api
+namespace ACE.Api.Common
 {
     public class JwtManager
     {
@@ -27,10 +28,18 @@ namespace ACE.Api
         static JwtManager()
         {
             // see if we have a secret
-            string path = "secret.txt";
+            string debugPath = @"..\..\..\..\ACE\secret.txt"; // default path for debug
+            string path = "secret.txt"; // default path for user installations
+
+            if (!File.Exists(path) && File.Exists(debugPath))
+                path = debugPath;
 
             if (!File.Exists(path))
             {
+                string currentPath = Directory.GetCurrentDirectory();
+                if (currentPath.EndsWith("Debug") || currentPath.EndsWith("Release"))
+                    path = debugPath;
+
                 // no secret file exists, so generate one randomly
                 var hmac = new HMACSHA256();
                 var key = Convert.ToBase64String(hmac.Key);
@@ -53,14 +62,16 @@ namespace ACE.Api
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var now = DateTime.UtcNow;
-
+            
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, account.Name), // unique_name
-                    new Claim(ClaimTypes.Role, account.AccessLevel.ToString()), // role
-                    new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()) // nameid
+                    new Claim("account_name", account.Name),
+                    new Claim("account_guid", account.AccountGuid.ToString()),
+                    new Claim("account_id", account.AccountId.ToString())
+
+                    // TODO: Iterate claims for each subscription
                 }),
                 TokenIssuerName = AceIssuerName,
                 AppliesToAddress = AceAudience,

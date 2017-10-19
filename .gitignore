@@ -290,3 +290,4 @@ __pycache__/
 
 # ACEmulator specific files
 /Source/ACE/config.json
+/Source/ACE/secret.txt

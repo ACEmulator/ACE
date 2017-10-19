@@ -138,10 +138,10 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
 
-        public uint AccountId
+        public uint SubscriptionId
         {
-            get { return (uint)GetInstanceIdProperty(PropertyInstanceId.Account); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
+            get { return (uint)GetInstanceIdProperty(PropertyInstanceId.Subscription); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
         }
 
         public bool Deleted

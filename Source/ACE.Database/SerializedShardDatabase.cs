@@ -113,11 +113,11 @@ namespace ACE.Database
             }));
         }
 
-        public void GetCharacters(uint accountId, Action<List<CachedCharacter>> callback)
+        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCharacters(accountId);
+                var result = _wrappedDatabase.GetCharacters(subscriptionId);
                 if (callback != null)
                     callback.Invoke(result);
             }));

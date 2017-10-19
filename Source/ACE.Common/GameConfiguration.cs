@@ -25,5 +25,7 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(60)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint ShutdownInterval { get; set; }
+
+        public string AuthServer { get; set; }
     }
 }

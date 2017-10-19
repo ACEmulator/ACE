@@ -6,7 +6,7 @@ namespace ACE.Database
 {
     internal interface IShardDatabase : ICommonDatabase
     {
-        List<CachedCharacter> GetCharacters(uint accountId);
+        List<CachedCharacter> GetCharacters(uint subscriptionId);
 
         /// <summary>
         /// Loads an object by name.  Primary use case: characters.

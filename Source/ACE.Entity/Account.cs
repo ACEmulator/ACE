@@ -42,31 +42,22 @@ namespace ACE.Entity
         /// <summary>
         /// login name of the account.  for now, this is immutable.
         /// </summary>
-        [DbField("accountName", (int)MySqlDbType.VarChar, Update = false)]
+        [DbField("accountName", (int)MySqlDbType.Text, Update = false)]
         public string Name { get; set; }
 
-        [DbField("displayName", (int)MySqlDbType.VarChar)]
+        [DbField("displayName", (int)MySqlDbType.Text)]
         public string DisplayName { get; set; }
         
-        public AccessLevel AccessLevel { get; set; }
-
-        [DbField("accessLevel", (int)MySqlDbType.UInt32)]
-        public uint AccessLevel_Binder
-        {
-            get { return (uint)AccessLevel; }
-            set { AccessLevel = (AccessLevel)value; }
-        }
-
         /// <summary>
         /// base64 encoded version of the salt.  salts may not be changed for an account.
         /// </summary>
-        [DbField("passwordSalt", (int)MySqlDbType.VarChar, Update = false)]
+        [DbField("passwordSalt", (int)MySqlDbType.Text, Update = false)]
         public string Salt { get; set; }
 
         /// <summary>
         /// the base64 encoded, hashed, nonrecoverable password
         /// </summary>
-        [DbField("passwordHash", (int)MySqlDbType.VarChar)]
+        [DbField("passwordHash", (int)MySqlDbType.Text)]
         public string PasswordHash { get; set; }
 
         public void SetPassword(string value)
@@ -96,16 +87,16 @@ namespace ACE.Entity
             return Convert.ToBase64String(hash);
         }
 
-        [DbField("email", (int)MySqlDbType.VarChar)]
+        [DbField("email", (int)MySqlDbType.Text)]
         public string Email { get; set; }
 
-        [DbField("githubSshKey", (int)MySqlDbType.VarChar)]
+        [DbField("githubSshKey", (int)MySqlDbType.Text)]
         public string GithubSshKey { get; set; }
 
-        [DbField("githubEmail", (int)MySqlDbType.VarChar)]
+        [DbField("githubEmail", (int)MySqlDbType.Text)]
         public string GithubEmail { get; set; }
 
-        [DbField("githubProviderKey", (int)MySqlDbType.VarChar)]
+        [DbField("githubProviderKey", (int)MySqlDbType.Text)]
         public string GithubProviderKey { get; set; }
     }
 }

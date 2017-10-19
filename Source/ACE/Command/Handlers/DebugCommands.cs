@@ -769,7 +769,7 @@ namespace ACE.Command.Handlers
             string message = "";
             foreach (Session playerSession in WorldManager.GetAll(false))
             {
-                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
+                message += $"{playerSession.Player.Name} : {(uint)playerSession.SubscriptionId}\n";
                 playerCounter++;
             }
             message += $"Total connected Players: {playerCounter}\n";

@@ -13,7 +13,8 @@
             "DefaultAccessLevel": 0
         },
       "DatFilesDirectory": "c:\\ACE\\",
-      "ShutdownInterval":  "60"
+      "ShutdownInterval": "60",
+      "AuthServer": "http://localhost:8001"
     },
     "MySql": {
         "Authentication": {

@@ -117,17 +117,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AceAuthorizeAttribute.cs" />
-    <Compile Include="AceJwtTokenHandler.cs" />
-    <Compile Include="Controllers\AuthRequest.cs" />
-    <Compile Include="Controllers\AuthResponse.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\SubscriptionController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
-    <Compile Include="JwtUtil.cs" />
     <Compile Include="SwaggerConfig.cs" />
-    <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\ContentController.cs" />
     <Compile Include="Controllers\WeenieController.cs" />
-    <Compile Include="JwtManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -137,6 +132,10 @@
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ACE.Api.Common\ACE.Api.Common.csproj">
+      <Project>{b2ea4504-0ee8-4f3e-a395-6ea0bfce9d99}</Project>
+      <Name>ACE.Api.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
       <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
       <Name>ACE.Common</Name>

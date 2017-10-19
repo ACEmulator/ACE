@@ -11,7 +11,7 @@ namespace ACE.Network.Packets
     {
         public uint Timestamp { get; }
 
-        public string Account { get; }
+        public string ClientAccountString { get; }
 
         /// <summary>
         /// formerly the GLS ticket.  We don't have GLS, so we're going to use Jwt.
@@ -25,8 +25,10 @@ namespace ACE.Network.Packets
             packet.Payload.ReadUInt32();
             packet.Payload.ReadUInt32();
             Timestamp = packet.Payload.ReadUInt32();
-            Account = packet.Payload.ReadString16L();
+            ClientAccountString = packet.Payload.ReadString16L();
             packet.Payload.ReadUInt32();
+            // there's 2 more byte before the next string actually starts
+            packet.Payload.ReadBytes(2);
             JwtToken = packet.Payload.ReadString32L();
         }
     }

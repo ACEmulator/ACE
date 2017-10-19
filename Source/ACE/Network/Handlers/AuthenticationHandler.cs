@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
+using ACE.Api.Common;
+using System.Security.Principal;
 
 namespace ACE.Network.Handlers
 {
@@ -28,51 +30,66 @@ namespace ACE.Network.Handlers
         {
             PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
 
+            // validate the token
+            Guid accountGuid;
+
+            try
+            {
+                var principal = AceJwtTokenHandler.ValidateAndGetClaims(loginRequest.JwtToken);
+                accountGuid = Guid.Parse(principal.Identity.Name);
+            }
+            catch (Exception ex)
+            {
+                log.Info("Error in HandleLoginRequest validating the ticket.", ex);
+                session.SendCharacterError(CharacterError.AccountInvalid);
+                return;
+            }
+
             Task t = new Task(() =>
             {
                 try
                 {
-                    var account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
-                    AccountSelectCallback(account, session);
+                    Guid subscriptionGuid = Guid.Parse(loginRequest.ClientAccountString);
+                    var subs = DatabaseManager.Authentication.GetSubscriptionsByAccount(accountGuid);
+                    var sub = subs.Find(s => s.SubscriptionGuid == subscriptionGuid);
+                    log.Info($"new client connected: {loginRequest.ClientAccountString}. setting session properties");
+                    SubscriptionSelectCallback(sub, session, loginRequest.ClientAccountString);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    AccountSelectCallback(null, session);
+                    log.Info("Error in HandleLoginRequest trying to find the subscription.", ex);
+                    SubscriptionSelectCallback(null, session, null);
                 }
             });
+
+            t.Start();
 
             await t;
         }
 
-        private static void AccountSelectCallback(Account account, Session session)
+        private static void SubscriptionSelectCallback(Subscription subscription, Session session, string clientAccountString)
         {
-            log.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
-            var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
-
-            session.Network.EnqueueSend(connectRequest);
-
-            if (account == null)
+            if (subscription == null)
             {
+                log.Info("subscription null in SubscriptionSelectCallback.");
                 session.SendCharacterError(CharacterError.AccountDoesntExist);
                 return;
             }
 
-            if (WorldManager.Find(account.Name) != null)
+            var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
+            session.Network.EnqueueSend(connectRequest);
+
+            if (WorldManager.Find(subscription.SubscriptionId) != null)
             {
-                var foundSession = WorldManager.Find(account.Name);
+                var foundSession = WorldManager.Find(subscription.SubscriptionId);
+                log.Info($"found session for {subscription.SubscriptionGuid}");
 
                 if (foundSession.State == SessionState.AuthConnected)
                     session.SendCharacterError(CharacterError.AccountInUse);
                 return;
             }
-
-            /*if (glsTicket != digest)
-            {
-            }*/
-
-            // TODO: check for account bans
-
-            session.SetAccount(account.AccountId, account.Name, account.AccessLevel);
+            
+            session.SetSubscription(subscription, clientAccountString);
             session.State = SessionState.AuthConnectResponse;
         }
 
@@ -80,12 +97,12 @@ namespace ACE.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+            DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
             {
                 result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
                 session.UpdateCachedCharacters(result);
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
+                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.ClientAccountString);
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 

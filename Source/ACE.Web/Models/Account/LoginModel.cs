@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Web;
 
-namespace ACE.Api.Controllers
+namespace ACE.Web.Models.Account
 {
-    public class AuthRequest
+    public class LoginModel
     {
         public string Username { get; set; }
 

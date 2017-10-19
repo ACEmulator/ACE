@@ -7,6 +7,7 @@ using System.Web.Http;
 using ACE.Database;
 using ACE.Entity;
 using System.Net.Http;
+using ACE.Api.Common;
 
 namespace ACE.Api.Controllers
 {

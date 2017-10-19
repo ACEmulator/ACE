@@ -100,6 +100,7 @@
     <Compile Include="ContentResource.cs" />
     <Compile Include="ContentWeenie.cs" />
     <Compile Include="SearchWeenieProperty.cs" />
+    <Compile Include="Subscription.cs" />
     <Compile Include="WeenieSearchResult.cs" />
     <Compile Include="Recipe.cs" />
     <Compile Include="SearchWeeniesCriteria.cs" />

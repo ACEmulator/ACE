@@ -15,7 +15,7 @@ namespace ACE.Database
 
         void DeleteObject(AceObject aceObject, Action<bool> callback);
 
-        void GetCharacters(uint accountId, Action<List<CachedCharacter>> callback);
+        void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback);
 
         /// <summary>
         /// Loads an object by name.  Primary use case: characters.

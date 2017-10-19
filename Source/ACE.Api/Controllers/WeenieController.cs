@@ -9,6 +9,7 @@ using System.Net.Http;
 using ACE.Entity.Enum;
 using Swashbuckle.Swagger.Annotations;
 using System.Net;
+using ACE.Api.Common;
 
 namespace ACE.Api.Controllers
 {

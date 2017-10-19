@@ -39,13 +39,19 @@ namespace ACE.Command.Handlers
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
-
-            newAccount.AccessLevel = accessLevel;
+            
             DatabaseManager.Authentication.CreateAccount(newAccount);
 
+            // also create a default subscription with new accounts
+            Subscription s = new Subscription();
+            s.AccessLevel = accessLevel;
+            s.AccountGuid = newAccount.AccountGuid;
+            s.Name = "Automatic subscription";
+            DatabaseManager.Authentication.CreateSubscription(s);
+            
             Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
         }
-
+        
         [CommandHandler("accountget", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1,
             "Gets an account.",
             "username")]
@@ -99,7 +105,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             else
-                DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
+                DatabaseManager.Authentication.UpdateSubscriptionAccessLevel(accountId, accessLevel);
 
             if (session == null)
                 Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");

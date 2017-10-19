@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ACE.Api
+namespace ACE.Api.Common
 {
     /// <summary>
     /// this class exists because the alternative is playing version detection and management in about a dozen nuget packages
@@ -55,7 +55,7 @@ namespace ACE.Api
             }
         }
 
-        private IPrincipal ValidateAndGetClaims(string token)
+        public static IPrincipal ValidateAndGetClaims(string token)
         {
             var parts = token.Split('.');
             var headerBase64 = parts[0];
@@ -93,7 +93,7 @@ namespace ACE.Api
             if (jwtAudience != JwtManager.AceAudience)
                 throw new AuthenticationException($"Invalid audience '{jwtAudience}'.  Expected '{JwtManager.AceAudience}'.");
 
-            string name = (string)bodyData["unique_name"];
+            string name = (string)bodyData["account_name"];
             
             /// TODO: Convert to SecurityLevel instead of AccessLevel
             AccessLevel thisGuy = AccessLevel.Player;
@@ -107,9 +107,9 @@ namespace ACE.Api
                 }
             }
 
-            uint accountId = uint.Parse((string)bodyData["nameid"]);
+            Guid accountGuid = Guid.Parse((string)bodyData["account_guid"]);
 
-            return new GenericPrincipal(new GenericIdentity(name, authenticationType), roles.ToArray());
+            return new GenericPrincipal(new GenericIdentity(accountGuid.ToString(), authenticationType), roles.ToArray());
         }
 
         private static byte[] GetBytes(string value)

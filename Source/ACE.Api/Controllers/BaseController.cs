@@ -1,5 +1,6 @@
 ﻿using ACE.Common;
 using ACE.Database;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,10 +19,9 @@ namespace ACE.Api.Controllers
 
         static BaseController()
         {
-            // copy config.json
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
-
-            ConfigManager.Initialize();
+            var config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText("..\\..\\..\\..\\ACE\\Config.json"));
+            ConfigManager.Initialize(config);
+            
             WorldDb = new WorldDatabase();
             WorldDb.Initialize(ConfigManager.Config.MySql.World.Host,
                           ConfigManager.Config.MySql.World.Port,

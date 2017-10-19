@@ -3140,7 +3140,7 @@ namespace ACE.Entity
                         {
                             iwo.Inscription = inscriptionText;
                             iwo.ScribeName = this.Name;
-                            iwo.ScribeAccount = Session.Account;
+                            iwo.ScribeAccount = Session.SubscriptionId.ToString();
                             Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
                                 iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
                         }
