@@ -313,22 +313,6 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Returns a inventory item by its objectGuid from any creature pack.
-        /// </summary>
-        public override WorldObject GetInventoryItem(ObjectGuid objectGuid)
-        {
-            return base.GetInventoryItem(objectGuid);
-        }
-
-        /// <summary>
-        /// Removes a inventory item by its objectGuid from any creature pack
-        /// </summary>
-        public override void RemoveWorldObjectFromInventory(ObjectGuid objectGuid)
-        {
-            base.RemoveWorldObjectFromInventory(objectGuid);
-        }
-
-        /// <summary>
         /// This method sets us into peace mode.   It checks our current state to see if we have missle ammo equipped
         /// it will make the call to hid the "ammo" as we switch to peace mode.   It will then send the message switch our stance. Og II
         /// </summary>
