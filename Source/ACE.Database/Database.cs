@@ -887,8 +887,6 @@ namespace ACE.Database
                 log.Error($"Exception: {exception.Message}");
                 throw;
             }
-
-            return false;
         }
 
         protected void ExecutePreparedStatement<T>(T id, params object[] parameters)

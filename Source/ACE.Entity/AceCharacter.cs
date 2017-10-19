@@ -137,13 +137,7 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
-
-        public uint SubscriptionId
-        {
-            get { return (uint)GetInstanceIdProperty(PropertyInstanceId.Subscription); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
-        }
-
+        
         public bool Deleted
         {
             get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }

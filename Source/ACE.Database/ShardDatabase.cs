@@ -285,9 +285,9 @@ namespace ACE.Database
             return true;
         }
 
-        public List<CachedCharacter> GetCharacters(uint accountId)
+        public List<CachedCharacter> GetCharacters(uint subscriptionId)
         {
-            var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
+            var criteria = new Dictionary<string, object> { { "subscriptionId", subscriptionId }, { "deleted", 0 } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
 
             return objects;

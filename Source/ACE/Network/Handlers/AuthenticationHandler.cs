@@ -97,6 +97,7 @@ namespace ACE.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
+            log.Info($"Getting characters for subscription id {session.SubscriptionId}");
             DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
             {
                 result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
@@ -106,6 +107,7 @@ namespace ACE.Network.Handlers
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
+                log.Info($"sending {result.Count} characters to {session.ClientAccountString} for {ConfigManager.Config.Server.WorldName}");
                 session.Network.EnqueueSend(characterListMessage, serverNameMessage);
                 session.Network.EnqueueSend(dddInterrogation);
 
