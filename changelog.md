@@ -1,11 +1,15 @@
 # ACEmulator Change Log
 
-### 2017-10-18
+### 2017-10-19
 [Og II]
 * Added processing for contract management add / abandon.
 * Removed update script I added back on 10/14 to fix the burden of the weenie for the MMD note.   This is no lonager needed - use Dereth v0.2.4 or greater the issue has been 
 * resolved in the data and the script is no longer needed.
 * Minor code cleanup and improved some method documentation.
+* Added new table to store persisted tracked contracts (quests)
+* Implemented two new game events / SendClientContractTrackerTable and SendClientContractTracker
+* Implemented abandon quest - Game action - Social_AbandonContract
+* Documeted methods and updated trello.
 
 ### 2017-10-17
 [Jyrus]
