@@ -289,11 +289,6 @@ namespace ACE.Entity
         /// <summary>
         /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
-        /// <param name="playerGuid"></param>
-        /// <param name="targetGuid"></param>
-        /// <param name="arrivedRadiusSquared"></param>
-        /// <param name="arrivedRadiusSquared"></param>
-        /// <returns></returns>
         public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
         {
             var playerPosition = GetWorldObjectPosition(playerGuid);
@@ -386,9 +381,6 @@ namespace ACE.Entity
         /// <summary>
         /// Gets all landblocks in range of a position.  (for indoors positions that is just this landblock)
         /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="distance"></param>
-        /// <returns></returns>
         private List<Landblock> GetLandblocksInRange(Position pos, float distance)
         {
             List<Landblock> inRange = new List<Landblock>();
@@ -701,9 +693,6 @@ namespace ACE.Entity
         /// <summary>
         /// Should only be called by the physics engine / WorldManager!
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="distance"></param>
-        /// <returns></returns>
         public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance)
         {
             return GetWorldObjectsInRange(wo, distance);

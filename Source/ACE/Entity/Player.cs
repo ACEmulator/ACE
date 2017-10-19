@@ -949,32 +949,37 @@ namespace ACE.Entity
             // First check the player
             examineChain.AddAction(this, () =>
             {
+                // search packs
                 WorldObject wo = GetInventoryItem(examinationId);
+                
+                // search wielded items
+                if (wo == null)
+                    wo = GetWieldedItem(examinationId);
+
+                // search interactive objects
+                if (wo == null)
+                {
+                    if (interactiveWorldObjects.ContainsKey(examinationId))
+                        wo = interactiveWorldObjects[examinationId];
+                }
+
+                // if its local examine it
                 if (wo != null)
                 {
                     wo.Examine(Session);
                 }
                 else
                 {
-                    // We could be wielded - let's check that next.
-                    if (WieldedObjects.TryGetValue(examinationId, out wo))
+                    // examine item on land block
+                    ActionChain chain = new ActionChain();
+                    CurrentLandblock.ChainOnObject(
+                    chain,
+                    examinationId,
+                    (WorldObject cwo) =>
                     {
-                        wo.Examine(Session);
-                    }
-                    if (interactiveWorldObjects.ContainsKey(examinationId))
-                        interactiveWorldObjects[examinationId].Examine(Session);
-                    else
-                    {
-                        ActionChain chain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(
-                            chain,
-                            examinationId,
-                            (WorldObject cwo) =>
-                                {
-                                    cwo.Examine(Session);
-                                });
-                        chain.EnqueueChain();
-                    }
+                        cwo.Examine(Session);
+                    });
+                chain.EnqueueChain();
                 }
             });
             examineChain.EnqueueChain();
@@ -1004,7 +1009,6 @@ namespace ACE.Entity
             });
             chain.EnqueueChain();
         }
-
         public void HandleActionQueryItemMana(ObjectGuid queryId)
         {
             if (queryId.Full == 0)
@@ -1022,6 +1026,7 @@ namespace ACE.Entity
                 {
                     wo.QueryItemMana(Session);
                 }
+
                 else
                 {
                     // We could be wielded - let's check that next.
@@ -1031,12 +1036,13 @@ namespace ACE.Entity
                     }
                     else
                     {
-                        ActionChain idChain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                        {
-                            cwo.QueryItemMana(Session);
-                        });
-                        idChain.EnqueueChain();
+                        // todo replace with interactive items.... this creates crashing!
+                        // ActionChain idChain = new ActionChain();
+                        // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                        // {
+                        //    cwo.QueryItemMana(Session);
+                        // });
+                        // idChain.EnqueueChain();
                     }
                 }
             });
@@ -1111,7 +1117,7 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
-                // to do process payment - its all free!
+                // todo research packets more for both buy and sell. ripley thinks buy is update..
                 // vendor accepted the transaction
                 if (valid)
                 {
@@ -1122,6 +1128,7 @@ namespace ACE.Entity
                             wo.ContainerId = Guid.Full;
                             wo.Placement = 0;
                             AddToInventory(wo);
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                             Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
                             Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                         }
@@ -1157,33 +1164,37 @@ namespace ACE.Entity
                 List<WorldObject> purchaselist = new List<WorldObject>();
                 foreach (ItemProfile profile in itemprofiles)
                 {
+                    // check packs of item.
                     WorldObject item = GetInventoryItem(profile.Guid);
                     if (item == null)
                     {
                         // check to see if this item is wielded
-                        if (!WieldedObjects.TryGetValue(profile.Guid, out item))
-                            return;
-                        RemoveFromWieldedObjects(profile.Guid);
-                        UpdateAppearance(this);
-                        ObjectGuid clearWielder = new ObjectGuid(0);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                        item = GetWieldedItem(profile.Guid);
+                        if (item != null)
+                        {
+                            RemoveFromWieldedObjects(item.Guid);
+                            UpdateAppearance(this);
+                            Session.Network.EnqueueSend(
+                               new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                               new GameMessageObjDescEvent(this),
+                               new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
+                               new GameMessagePublicUpdatePropertyInt(Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0));
+                        }   
                     }
                     else
                     {
-                        RemoveFromInventory(InventoryObjects, profile.Guid);
+                        // remove item from inventory.
+                        RemoveWorldObjectFromInventory(profile.Guid);
                     }
 
-                    ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
-                    ObjectGuid clearContainer = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, clearContainer, PropertyInstanceId.Container));
+                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, new ObjectGuid(0), PropertyInstanceId.Container));
+
+                    SetInventoryForVendor(item);
 
                     // clean up the shard database.
                     DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
 
+                    Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
                     purchaselist.Add(item);
                 }
 
@@ -1245,8 +1256,23 @@ namespace ACE.Entity
                 {
                     HandleAddNewWorldObjectToInventory(wo);
                 }
+                UpdateCurrencyClientCalculations(WeenieType.Coin);
             }).EnqueueChain();
             return true;
+        }
+
+        // todo re-think how this works..
+        private void UpdateCurrencyClientCalculations(WeenieType type)
+        {
+            uint coins = 0;
+            List<WorldObject> currency = new List<WorldObject>();
+            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
+            foreach (WorldObject wo in currency)
+            {
+                coins += wo.StackSize.Value;
+            }
+            // send packet to client letthing them know
+            CoinValue = coins;
         }
 
         private bool SpendCurrency(uint amount, WeenieType type)
@@ -1292,13 +1318,13 @@ namespace ACE.Entity
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    RemoveFromInventory(InventoryObjects, wo.Guid);
+                    RemoveWorldObjectFromInventory(wo.Guid);
                     ObjectGuid clearContainer = new ObjectGuid(0);
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
 
                     // clean up the shard database.
                     DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(wo));
+                    Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
                 }
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
@@ -1307,6 +1333,7 @@ namespace ACE.Entity
                     HandleAddNewWorldObjectToInventory(changeobj);
                 }
 
+                UpdateCurrencyClientCalculations(WeenieType.Coin);
                 return true;
             }
             else
@@ -1331,11 +1358,20 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         public void HandleAddNewWorldObjectToInventory(WorldObject wo)
         {
-                wo.ContainerId = Guid.Full;
+            // Get Next Avalibale Pack Location.
+            // uint packid = GetCreatureInventoryFreePack();
+
+            // default player until I get above code to work!
+            uint packid = Guid.Full;
+
+            if (packid != 0)
+            {
+                wo.ContainerId = packid;
                 AddToInventory(wo);
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                 if (wo.WeenieType == WeenieType.Container)
                     Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+            }
         }
 
         /// <summary>
@@ -2356,22 +2392,13 @@ namespace ACE.Entity
         /// <param name="placement">what is my slot position within that container</param>
         private void HandleMove(ref WorldObject item, Container container, uint placement)
         {
-            if (item.ContainerId != null && item.ContainerId != container.Guid.Full)
-            {
-                // We are changing containers
-                if (item.ContainerId != this.Guid.Full)
-                {
-                    // The old container was not our main pack, the old container had to be in our inventory.
-                    ObjectGuid priorContainerGuid = new ObjectGuid((uint)item.ContainerId);
-                    RemoveFromInventory(InventoryObjects[priorContainerGuid].InventoryObjects, item.Guid);
-                }
-                else
-                    RemoveFromInventory(this.InventoryObjects, item.Guid);
-            }
+            RemoveWorldObjectFromInventory(item.Guid);
 
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
+
             container.AddToInventory(item, placement);
+
             if (item.ContainerId != Guid.Full)
             {
                 Burden += item.Burden ?? 0;
@@ -2391,11 +2418,6 @@ namespace ACE.Entity
         /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting
         /// item. Og II
         /// </summary>
-        /// <param name="stackId"></param>
-        /// <param name="containerId"></param>
-        /// <param name="place"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
         {
             // TODO: add the complementary method to combine items Og II
@@ -2474,7 +2496,6 @@ namespace ACE.Entity
         /// <param name="stackId">Guid.Full of the stacked item</param>
         /// <param name="containerId">Guid.Full of the container that contains the item</param>
         /// <param name="amount">Amount taken out of the stack</param>
-        /// <returns></returns>
         public void HandleActionRemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
         {
             ActionChain removeItemsChain = new ActionChain();
@@ -2822,12 +2843,12 @@ namespace ACE.Entity
                         {
                             pack = (Container)GetInventoryItem(containerGuid);
 
-                            RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
+                            RemoveWorldObjectFromInventory(itemGuid);
                         }
                         else
                         {
                             if (item != null)
-                                RemoveFromInventory(InventoryObjects, itemGuid);
+                                RemoveWorldObjectFromInventory(itemGuid);
                         }
 
                         AddToWieldedObjects(ref item, container, (EquipMask)placement);
@@ -2920,6 +2941,10 @@ namespace ACE.Entity
                         // Ok, I know my container and I know I must have the item so let's get it.
                         WorldObject item = GetInventoryItem(itemGuid);
 
+                        // check wilded.
+                        if (item == null)
+                            item = GetWieldedItem(itemGuid);
+
                         // Was I equiped?   If so, lets take care of that and unequip
                         if (item.WielderId != null)
                         {
@@ -2938,7 +2963,7 @@ namespace ACE.Entity
         /// </summary>
         public void DestroyInventoryItem(WorldObject wo)
         {
-            RemoveFromInventory(InventoryObjects, wo.Guid);
+            RemoveWorldObjectFromInventory(wo.Guid);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
@@ -2951,54 +2976,34 @@ namespace ACE.Entity
             // First start drop animation
             dropChain.AddAction(this, () =>
             {
+                // check packs of item.
                 WorldObject item = GetInventoryItem(itemGuid);
                 if (item == null)
                 {
                     // check to see if this item is wielded
-                    WieldedObjects.TryGetValue(itemGuid, out item);
+                    item = GetWieldedItem(itemGuid);
                     if (item != null)
                     {
                         RemoveFromWieldedObjects(itemGuid);
                         UpdateAppearance(this);
-                        ObjectGuid clearWielder = new ObjectGuid(0);
                         Session.Network.EnqueueSend(
                             new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                             new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, clearWielder, PropertyInstanceId.Wielder));
+                            new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                     }
                 }
                 else
                 {
-                    ObjectGuid containerGuid = ObjectGuid.Invalid;
-                    // Removed unused code Og II
-                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-                    foreach (var container in containers)
-                    {
-                        WorldObject packItem;
-                        if (container.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
-                        {
-                            containerGuid = container.Value.Guid;
-                            break;
-                        }
-                    }
-
-                    if (containerGuid != ObjectGuid.Invalid)
-                    {
-                        RemoveFromInventory(InventoryObjects[containerGuid].InventoryObjects, itemGuid);
-                    }
-                    else
-                    {
-                        RemoveFromInventory(InventoryObjects, itemGuid);
-                    }
+                    RemoveWorldObjectFromInventory(itemGuid);
+                    if (item.WeenieType == WeenieType.Coin)
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
                 }
 
                 SetInventoryForWorld(item);
 
                 UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                ObjectGuid clearContainer = new ObjectGuid(0);
-                Session.Network.EnqueueSend(
-                    new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
+                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
                 // Set drop motion
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
@@ -3013,12 +3018,12 @@ namespace ACE.Entity
                 // Play drop sound
                 // Put item on landblock
                 chain.AddAction(this, () =>
-            {
+                {
                 motion = new UniversalMotion(MotionStance.Standing);
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
                 new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                new GameMessageUpdateInstanceId(itemGuid, clearContainer, PropertyInstanceId.Container));
+                new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
                 // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                 Debug.Assert(item != null, "item != null");

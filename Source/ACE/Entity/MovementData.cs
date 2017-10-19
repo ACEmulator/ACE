@@ -47,8 +47,6 @@ namespace ACE.Entity
         /// To fix, we need to use negative speeds with right motions when the client requests a left motion.
         /// FIXME: Need to dig through client to figure out how to calculate value passed to client based on run
         /// </summary>
-        /// <param name="holdKey"></param>
-        /// <returns></returns>
         public MovementData ConvertToClientAccepted(uint holdKey, CreatureSkill run)
         {
             MovementData md = new MovementData();

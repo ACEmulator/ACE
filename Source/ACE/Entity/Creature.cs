@@ -197,9 +197,6 @@ namespace ACE.Entity
         /// <summary>
         /// Updates a vital, returns true if vital is now < max
         /// </summary>
-        /// <param name="vital"></param>
-        /// <param name="quantity"></param>
-        /// <returns></returns>
         public void UpdateVital(CreatureVital vital, uint newVal)
         {
             EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
@@ -298,6 +295,21 @@ namespace ACE.Entity
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(ammo));
                 }
             }
+        }
+
+        /// <summary>
+        /// GetWilded Items
+        /// </summary>
+        public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
+        {
+            // check wielded objects
+            WorldObject inventoryItem;
+            if (WieldedObjects.ContainsKey(objectGuid))
+            {
+                if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
+                    return inventoryItem;
+            }
+            return null;
         }
 
         /// <summary>

@@ -105,8 +105,6 @@ namespace ACE.Entity
         /// <summary>
         /// Used to convert Weenie based objects / not used for unique items
         /// </summary>
-        /// <param name="itemprofile"></param>
-        /// <returns></returns>
         private List<WorldObject> ItemProfileToWorldObjects(ItemProfile itemprofile)
         {
             List<WorldObject> worldobjects = new List<WorldObject>();
