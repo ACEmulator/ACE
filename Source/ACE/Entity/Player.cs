@@ -18,7 +18,6 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
-using ACE.Factories;
 
 namespace ACE.Entity
 {
