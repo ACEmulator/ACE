@@ -1,5 +1,4 @@
-﻿using ACE.DatLoader.Entity;
-using ACE.DatLoader.FileTypes;
+﻿using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -8,7 +7,7 @@ namespace ACE.Entity
     /// </summary>
     public class ContractTracker
     {
-        public Contract ContractDetails { get; }
+        public DatLoader.Entity.Contract ContractDetails { get; }
         /// <summary>
         /// Version of the contract.   So far I have only seen 0, but I have not done an exhaustive search.
         /// </summary>
@@ -52,9 +51,9 @@ namespace ACE.Entity
         /// This is called in initilization and gets us all of the infromation from the dat file about this quest.
         /// </summary>
         /// <returns>Contract - this class has all of the infomation from the dat file about the quest.</returns>
-        public Contract GetContractDetails()
+        public DatLoader.Entity.Contract GetContractDetails()
         {
-            Contract contractData;
+            DatLoader.Entity.Contract contractData;
             ContractTable contractTable = ContractTable.ReadFromDat();
             return contractTable.Contracts.TryGetValue(ContractId, out contractData) ? contractData : null;
         }

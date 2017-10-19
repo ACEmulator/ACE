@@ -285,6 +285,12 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
+        public uint? UseCreateContractId
+        {
+            get { return GetIntProperty(PropertyInt.UseCreatesContractId); }
+            set { SetIntProperty(PropertyInt.UseCreatesContractId, value); }
+        }
+
         public uint? ItemUseable
         {
             get { return GetIntProperty(PropertyInt.ItemUseable); }

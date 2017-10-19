@@ -60,9 +60,20 @@ namespace ACE.Entity
         /// <summary>
         /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
         /// </summary>
-        private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
+        private readonly Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
         public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
+
+        /// <summary>
+        /// This dictionary is used to keep track of the last use of any item that implemented sharedcooldown.
+        /// It is session specific.   I think (could be wrong) cooldowns reset if you logged out and back in.
+        /// This is a different mechanic than quest repeat timers and rare item use timers.
+        /// example - contacts have a shared cooldown key value 100 so each time a player uses an item that has
+        /// a shared cooldown we just add to the dictonary 100, datetime.now()   The check becomes trivial at that
+        /// point if on a subsequent use, now() minus the last use value from the dictionary
+        /// is greater than or equal to the cooldown, we can do the use - if not you must wait message.   Og II
+        /// </summary>
+        public Dictionary<uint, DateTime> LastUseTracker { get; set; }
 
         /// <summary>
         /// Level of the player
@@ -954,7 +965,7 @@ namespace ACE.Entity
             {
                 // search packs
                 WorldObject wo = GetInventoryItem(examinationId);
-                
+
                 // search wielded items
                 if (wo == null)
                     wo = GetWieldedItem(examinationId);
@@ -1182,7 +1193,7 @@ namespace ACE.Entity
                                new GameMessageObjDescEvent(this),
                                new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
                                new GameMessagePublicUpdatePropertyInt(Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0));
-                        }   
+                        }
                     }
                     else
                     {
@@ -2546,6 +2557,8 @@ namespace ACE.Entity
         /// <param name="amount">Amount taken out of the stack</param>
         public void HandleActionRemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
         {
+            // FIXME: This method has been morphed into doing a few things we either need to rename it or
+            // something.   This may or may not remove item from inventory.
             ActionChain removeItemsChain = new ActionChain();
             removeItemsChain.AddAction(this, () =>
             {
@@ -2581,12 +2594,20 @@ namespace ACE.Entity
                 Debug.Assert(item.StackSize != null, "stack.StackSize != null");
                 Debug.Assert(item.Value != null, "stack.Value != null");
 
-                var valuePerItem = item.Value / item.StackSize;
-                ushort burdenPerItem = (ushort)(item.Burden / item.StackSize);
+                uint? valuePerItem;
+                ushort burdenPerItem;
+                if (item.StackSize != 0)
+                {
+                    valuePerItem = item.Value / item.StackSize;
+                    burdenPerItem = (ushort)(item.Burden / item.StackSize);
+                }
+                else
+                {
+                    valuePerItem = item.Value;
+                    burdenPerItem = (ushort)item.Burden;
+                }
 
                 item.StackSize = newStackSize;
-
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
 
                 if (newStackSize < 1)
                 {
@@ -2601,6 +2622,9 @@ namespace ACE.Entity
                     item.Burden = (ushort)(item.StackSize * burdenPerItem);
 
                     Burden = (ushort)(Burden - burdenPerItem);
+                    // Only send this message if we are a stackable item in the first place. Og II
+                    if (item.MaxStackSize > 1)
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
 
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)item.Value));
                 }
