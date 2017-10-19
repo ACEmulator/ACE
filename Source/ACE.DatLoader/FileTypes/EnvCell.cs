@@ -32,7 +32,6 @@ namespace ACE.DatLoader.FileTypes
         /// Load the EnvCell (Dungeon/Interior Block) from the client_cell.dat
         /// </summary>
         /// <param name="landblockId">The full int32/dword landblock value as reported by the @loc command (e.g. 0x12345678)</param>
-        /// <returns></returns>
         public static EnvCell ReadFromDat(uint landblockId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly

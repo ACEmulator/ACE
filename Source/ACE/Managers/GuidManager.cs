@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using log4net;
 using ACE.Entity;
@@ -128,7 +128,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns New Player Guid
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NewPlayerGuid()
         {
             return new ObjectGuid(playerAlloc.Alloc());
@@ -137,7 +136,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns New Guid for NPCs, Doors, World Portals, etc
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NewStaticObjectGuid()
         {
             return new ObjectGuid(staticObjectAlloc.Alloc());
@@ -146,7 +144,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns New Guid for Monsters
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NewGeneratorGuid()
         {
             return new ObjectGuid(generatorAlloc.Alloc());
@@ -155,7 +152,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns New Guid for Monsters
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NewNonStaticGuid()
         {
             return new ObjectGuid(nonStaticAlloc.Alloc());
@@ -164,7 +160,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns New Guid for Items / Player Items
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NewItemGuid()
         {
             return new ObjectGuid(itemAlloc.Alloc());
@@ -173,7 +168,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Items / Player Items, to be used only for informational purposes.
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NextItemGuid()
         {
             return new ObjectGuid(itemAlloc.Current());
@@ -182,7 +176,6 @@ namespace ACE.Managers
         /// <summary>
         /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Players, to be used only for informational purposes.
         /// </summary>
-        /// <returns></returns>
         public static ObjectGuid NextPlayerGuid()
         {
             return new ObjectGuid(playerAlloc.Current());
