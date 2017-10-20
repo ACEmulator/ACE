@@ -391,8 +391,13 @@ namespace ACE.Entity
 
         public virtual uint? Value
         {
-            get { return AceObject.Value; }
+            get { return (StackUnitValue * (StackSize ?? 1)); }
             set { AceObject.Value = value; }
+        }
+
+        public virtual uint? StackUnitValue
+        {
+            get { return Weenie.Value ?? 0; }
         }
 
         public Usable? Usable
@@ -541,8 +546,13 @@ namespace ACE.Entity
 
         public virtual ushort? Burden
         {
-            get { return AceObject.EncumbranceVal; }
+            get { return (ushort)(StackUnitBurden * (StackSize ?? 1)); }
             set { AceObject.EncumbranceVal = value; }
+        }
+
+        public virtual ushort? StackUnitBurden
+        {
+            get { return Weenie.EncumbranceVal ?? 0; }
         }
 
         public Spell? Spell

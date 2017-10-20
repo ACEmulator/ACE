@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-10-19
+[Jyrus]
+* Created WO.StackUnitValue and WO.StackUnitBurden to be initialized by Weenie.{Value,EncumbranceVal}, with builtin null to zero initialization
+* Moved WorldObject value and encumbrance calculations down to the WO class based upon WO.StackUnitValue and WO.StackUnitBurden vs WO.StackSize
+
 ### 2017-10-18
 [StackOverflow]
 * Vendors - Fixed bug with sell of item from wielded locations
