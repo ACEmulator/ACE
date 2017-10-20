@@ -65,11 +65,11 @@ namespace ACE.Entity
         public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
 
         /// <summary>
-        /// This dictionary is used to keep track of the last use of any item that implemented sharedcooldown.
+        /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
         /// It is session specific.   I think (could be wrong) cooldowns reset if you logged out and back in.
         /// This is a different mechanic than quest repeat timers and rare item use timers.
         /// example - contacts have a shared cooldown key value 100 so each time a player uses an item that has
-        /// a shared cooldown we just add to the dictonary 100, datetime.now()   The check becomes trivial at that
+        /// a shared cooldown we just add to the dictionary 100, datetime.now()   The check becomes trivial at that
         /// point if on a subsequent use, now() minus the last use value from the dictionary
         /// is greater than or equal to the cooldown, we can do the use - if not you must wait message.   Og II
         /// </summary>
@@ -127,7 +127,7 @@ namespace ACE.Entity
 
         /// <summary>
         /// FIXME(ddevec): This is the only object that need be locked in the player under the new model.
-        ///   It must be locked because of how we handle obect updates -- We can clean this up in the future
+        ///   It must be locked because of how we handle object updates -- We can clean this up in the future
         /// </summary>
         private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
@@ -356,6 +356,8 @@ namespace ACE.Entity
 
                 TrackedContracts.Add(trackedContract.Key, loadContract);
             }
+
+            LastUseTracker = new Dictionary<uint, DateTime>();
         }
 
         /// <summary>
