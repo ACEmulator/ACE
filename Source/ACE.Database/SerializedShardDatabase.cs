@@ -82,7 +82,7 @@ namespace ACE.Database
                     callback.Invoke();
             }));
         }
-        
+
         public void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -222,13 +222,13 @@ namespace ACE.Database
             }));
         }
 
-        void ISerializedShardDatabase.DeleteContract(uint characterId, uint contractId, Action callback)
+        public void DeleteContract(uint characterId, uint contractId, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                _wrappedDatabase.DeleteContract(characterId, contractId);
+               var result =_wrappedDatabase.DeleteContract(characterId, contractId);
                 if (callback != null)
-                    callback.Invoke();
+                    callback.Invoke(result);
             }));
         }
     }

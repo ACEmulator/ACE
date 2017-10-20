@@ -2557,7 +2557,15 @@ namespace ACE.Entity
 
                 TrackedContracts.Remove(contractId);
 
-                DatabaseManager.Shard.DeleteContract(Guid.Full, contractId, null);
+                // FIXME: This should work, I am getting a reflection error that I have no clue how to debug.
+                
+                ////DatabaseManager.Shard.DeleteContract((uint)Guid.Full, contractId,  deleteSuccess =>
+                ////{
+                ////    if (deleteSuccess)
+                ////        log.Info($"ContractId {contractId:X} successfully deleted");
+                ////    else
+                ////        log.Error($"Unable to delete contractId {contractId:X} ");
+                ////});
 
                 Session.Network.EnqueueSend(contractMsg);
             });

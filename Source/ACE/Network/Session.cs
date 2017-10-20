@@ -124,17 +124,17 @@ namespace ACE.Network
                     if (Time.GetUnixTime() > character.DeleteTime)
                     {
                         character.Deleted = true;
-                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, ((bool deleteSuccess) =>
+                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, deleteSuccess =>
                         {
                             if (deleteSuccess)
                             {
-                                log.Info($"Character {character.Guid.Full.ToString("X")} successfully marked as deleted");
+                                log.Info($"Character {character.Guid.Full:X} successfully marked as deleted");
                             }
                             else
                             {
-                                log.Error($"Unable to mark character {character.Guid.Full.ToString("X")} as deleted");
+                                log.Error($"Unable to mark character {character.Guid.Full:X} as deleted");
                             }
-                        }));
+                        });
                         continue;
                     }
                 }

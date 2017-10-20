@@ -87,6 +87,8 @@ namespace ACE.Entity
                     Duration = CooldownId.Value,
                     DegradeModifier = 0,
                     DegradeLimit = -666,
+                    MetaSpellId = 32768 + (uint)UseCreateContractId
+                    // We will need to create a set of constants for each contract - I may be overloading this.
                 };
                 // session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase));
 
