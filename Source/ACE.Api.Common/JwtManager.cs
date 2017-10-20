@@ -175,7 +175,7 @@ namespace ACE.Api.Common
 
         public static TokenInfo ParseRemoteToken(string rawToken)
         {
-            TokenInfo ti = ParseToken(rawToken, false);
+             TokenInfo ti = ParseToken(rawToken, false);
 
             // check game config to see if the issuing server is allowed
             if (!ConfigManager.Config.Server.AllowedAuthServers.Contains(ti.IssuingServer))

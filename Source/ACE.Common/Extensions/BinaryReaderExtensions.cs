@@ -4,12 +4,21 @@ namespace ACE.Common.Extensions
 {
     public static class BinaryReaderExtensions
     {
-        private static uint CalculatePadMultiple(uint length, uint multiple) { return multiple * ((length + multiple - 1u) / multiple) - length; }
+        private static uint CalculatePadMultiple(uint length, uint multiple)
+        {
+            return multiple * ((length + multiple - 1u) / multiple) - length;
+        }
 
         public static string ReadString32L(this BinaryReader reader)
         {
             uint length = reader.ReadUInt32();
-            return length != 0u ? new string(reader.ReadChars((int)length)) : string.Empty;
+            // return length != 0u ? new string(reader.ReadChars((int)length)) : string.Empty;
+
+            string rdrStr = (length != 0 ? new string(reader.ReadChars((int)length)) : string.Empty);
+
+            // client pads string length to be a multiple of 4 including the 4 bytes for length
+            reader.Skip(CalculatePadMultiple(sizeof(uint) + length, 4u));
+            return rdrStr;
         }
 
         public static string ReadString16L(this BinaryReader reader)

@@ -135,6 +135,8 @@ namespace ACE.CmdLineLauncher
                 }
             }
 
+            Console.WriteLine($"ticket length: {authToken.Length}");
+
             if (subscriptionId != null)
             {
                 string exe = ConfigurationManager.AppSettings["ClientExe"];

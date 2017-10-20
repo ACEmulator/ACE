@@ -20,15 +20,21 @@ namespace ACE.Network.Packets
 
         public PacketInboundLoginRequest(ClientPacket packet)
         {
-            string someString = packet.Payload.ReadString16L();
-            packet.Payload.ReadUInt32(); // data length left in packet including ticket
-            packet.Payload.ReadUInt32();
-            packet.Payload.ReadUInt32();
+            string someString = packet.Payload.ReadString16L(); // always "1802"
+            uint len = packet.Payload.ReadUInt32(); // data length left in packet including ticket
+            uint unknown1 = packet.Payload.ReadUInt32();
+            uint unknown2 = packet.Payload.ReadUInt32();
             Timestamp = packet.Payload.ReadUInt32();
             ClientAccountString = packet.Payload.ReadString16L();
-            packet.Payload.ReadUInt32();
-            // there's 2 more byte before the next string actually starts
-            packet.Payload.ReadBytes(2);
+            string unknown3 = packet.Payload.ReadString16L();
+            
+            // int consumed = (someString.Length + 2) + 4 * sizeof(uint) + (ClientAccountString.Length + 2) + (unknown3.Length + 2);
+            
+            // this packet header has 2 bytes that are proving hard to decipher.  sometimes they occur
+            // before the length DWORD at the start of the 32L string, sometimes they are after, in which
+            // case the string len is increased by 2 and the 2 bytes are prepended to the string (as
+            // garbage and possibly invalid input)
+
             JwtToken = packet.Payload.ReadString32L();
         }
     }
