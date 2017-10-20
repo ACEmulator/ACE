@@ -17,7 +17,6 @@ namespace ACE.CmdLineLauncher
         {
             string username;
             string password;
-            string subscription;
 
             if (args.Length > 0)
                 username = args[0];
@@ -51,6 +50,7 @@ namespace ACE.CmdLineLauncher
             if (authResponse.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 // show the error
+                Console.WriteLine("Error logging in");
                 Console.WriteLine(authResponse.Content);
                 Console.ReadLine();
                 return;
@@ -68,6 +68,7 @@ namespace ACE.CmdLineLauncher
             if (subsResponse.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 // show the error
+                Console.WriteLine("Error getting subscriptions:");
                 Console.WriteLine(subsResponse.Content);
                 Console.ReadLine();
                 return;

@@ -19,9 +19,6 @@ namespace ACE.Api.Controllers
 
         static BaseController()
         {
-            var config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText("..\\..\\..\\..\\ACE\\Config.json"));
-            ConfigManager.Initialize(config);
-            
             WorldDb = new WorldDatabase();
             WorldDb.Initialize(ConfigManager.Config.MySql.World.Host,
                           ConfigManager.Config.MySql.World.Port,

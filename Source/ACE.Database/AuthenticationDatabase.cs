@@ -7,6 +7,8 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 
 using MySql.Data.MySqlClient;
+using System.Linq;
+using System.Data;
 
 namespace ACE.Database
 {
@@ -73,7 +75,7 @@ namespace ACE.Database
         {
             Account ret = new Account();
             var criteria = new Dictionary<string, object> { { "accountId", accountId } };
-            bool success = ExecuteConstructedGetStatement(AuthenticationPreparedStatement.AccountSelect, typeof(Account), criteria, ret);
+            bool success = ExecuteConstructedGetStatement<Account, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelect, criteria, ret);
             return ret;
         }
 
@@ -81,8 +83,39 @@ namespace ACE.Database
         {
             Subscription ret = new Subscription();
             var criteria = new Dictionary<string, object> { { "subscriptionId", subscriptionId } };
-            bool success = ExecuteConstructedGetStatement(AuthenticationPreparedStatement.SubscriptionGet, typeof(Subscription), criteria, ret);
+            bool success = ExecuteConstructedGetStatement<Subscription, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.SubscriptionGet, criteria, ret);
             return ret;
+        }
+
+        public Subscription GetSubscriptionByGuid(Guid subscriptionGuid)
+        {
+            Subscription ret = new Subscription();
+
+            List<MySqlParameter> mysqlParams = new List<MySqlParameter>();
+            var properties = GetPropertyCache(typeof(Subscription));
+            var dbTable = GetDbTableAttribute(typeof(Subscription));
+            string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v` WHERE subscriptionGuid = ?";
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.Add("", MySqlDbType.Binary).Value = subscriptionGuid.ToByteArray();
+
+                    connection.Open();
+                    using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                    {
+                        if (commandReader.Read())
+                        {
+                            return ReadObject<Subscription>(commandReader);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
         }
 
         public List<Subscription> GetSubscriptionsByAccount(Guid accountGuid)
@@ -96,7 +129,7 @@ namespace ACE.Database
         {
             AccountByName ret = new AccountByName();
             var criteria = new Dictionary<string, object> { { "accountName", accountName } };
-            bool success = ExecuteConstructedGetStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), criteria, ret);
+            bool success = ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
 
             if (success)
             {
@@ -110,7 +143,7 @@ namespace ACE.Database
         {
             AccountByName ret = new AccountByName();
             var criteria = new Dictionary<string, object> { { "accountName", accountName } };
-            ExecuteConstructedGetStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), criteria, ret);
+            ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
             id = ret.AccountId;
         }
     }

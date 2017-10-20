@@ -46,7 +46,7 @@ namespace ACE.Command.Handlers
             Subscription s = new Subscription();
             s.AccessLevel = accessLevel;
             s.AccountGuid = newAccount.AccountGuid;
-            s.Name = "Automatic subscription";
+            s.Name = "auto";
             DatabaseManager.Authentication.CreateSubscription(s);
             
             Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");

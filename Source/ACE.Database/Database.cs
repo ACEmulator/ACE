@@ -603,7 +603,7 @@ namespace ACE.Database
             PrepareStatement(Convert.ToUInt32(id), query, types);
         }
 
-        public bool ExecuteConstructedGetStatement<T1>(T1 id, Type type, Dictionary<string, object> criteria, object instance)
+        public bool ExecuteConstructedGetStatement<T1, T2>(T2 id, Dictionary<string, object> criteria, object instance) where T1:class
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
@@ -620,7 +620,7 @@ namespace ACE.Database
                 {
                     using (var command = new MySqlCommand(preparedStatement.Query, connection))
                     {
-                        var properties = GetPropertyCache(type);
+                        var properties = GetPropertyCache(typeof(T1));
                         foreach (var p in properties)
                         {
                             if (p.Item2.IsCriteria)
@@ -637,13 +637,7 @@ namespace ACE.Database
                         {
                             if (commandReader.Read())
                             {
-                                foreach (var p in properties)
-                                {
-                                    if (commandReader[p.Item2.DbFieldName] == DBNull.Value)
-                                        p.Item1.SetValue(instance, null);
-                                    else
-                                        p.Item1.SetValue(instance, commandReader[p.Item2.DbFieldName]);
-                                }
+                                ReadObject<T1>(commandReader, instance as T1);
 
                                 return true;
                             }
@@ -660,7 +654,7 @@ namespace ACE.Database
             return false;
         }
 
-        public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
+        public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria) where T2:class
         {
             var results = new List<T2>();
 
@@ -691,20 +685,7 @@ namespace ACE.Database
                         {
                             while (commandReader.Read())
                             {
-                                T2 o = Activator.CreateInstance<T2>();
-                                foreach (var p in properties)
-                                {
-                                    var assignable = commandReader[p.Item2.DbFieldName];
-                                    if (Convert.IsDBNull(assignable))
-                                    {
-                                        p.Item1.SetValue(o, null);
-                                    }
-                                    else
-                                    {
-                                        p.Item1.SetValue(o, assignable);
-                                    }
-                                }
-                                results.Add(o);
+                                results.Add(ReadObject<T2>(commandReader));
                             }
                         }
                     }
@@ -717,6 +698,28 @@ namespace ACE.Database
             }
 
             return results;
+        }
+
+        protected T ReadObject<T>(MySqlDataReader commandReader, T o = null) where T:class
+        {
+            var properties = GetPropertyCache(typeof(T));
+
+            if (o == null)
+                o = Activator.CreateInstance<T>();
+
+            foreach (var p in properties)
+            {
+                var assignable = commandReader[p.Item2.DbFieldName];
+                if (Convert.IsDBNull(assignable))
+                {
+                    p.Item1.SetValue(o, null);
+                }
+                else
+                {
+                    p.Item1.SetValue(o, assignable);
+                }
+            }
+            return o;
         }
 
         public T3 ExecuteConstructedGetAggregateStatement<T1, T2, T3>(T1 id)

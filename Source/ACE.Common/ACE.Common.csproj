@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountDefaults.cs" />
+    <Compile Include="AuthServerConfiguration.cs" />
     <Compile Include="DatabaseConfiguration.cs" />
     <Compile Include="MasterConfiguration.cs" />
     <Compile Include="GameConfiguration.cs" />

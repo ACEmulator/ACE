@@ -17,9 +17,6 @@ namespace ACE.AuthApi.Controllers
 
         static BaseController()
         {
-            var config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText("..\\..\\..\\..\\ACE\\Config.json"));
-            ConfigManager.Initialize(config);
-
             AuthDb = new AuthenticationDatabase();
             AuthDb.Initialize(ConfigManager.Config.MySql.Authentication.Host,
                           ConfigManager.Config.MySql.Authentication.Port,

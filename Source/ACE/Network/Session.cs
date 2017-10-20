@@ -23,6 +23,8 @@ namespace ACE.Network
 
         public string ClientAccountString { get; private set; }
 
+        public string LoggingIdentifier { get; private set; } = "Unverified";
+
         public AccessLevel AccessLevel { get; private set; }
 
         public SessionState State { get; set; }
@@ -106,11 +108,12 @@ namespace ACE.Network
             GameEventSequence = 0;
         }
 
-        public void SetSubscription(Subscription sub, string clientAccountString)
+        public void SetSubscription(Subscription sub, string clientAccountString, string loggingIdentifier)
         {
             log.Info($"setting subscription information for {sub.SubscriptionGuid}, clientAccountString {clientAccountString}");
             SubscriptionId = sub.SubscriptionId;
             ClientAccountString = clientAccountString;
+            LoggingIdentifier = loggingIdentifier;
             AccessLevel = sub.AccessLevel;
         }
 

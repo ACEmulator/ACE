@@ -1,3 +1,6 @@
+ALTER TABLE `ace_world`.`ace_recipe`   
+  CHANGE `recipeId` `recipeGuid` BINARY(16) NOT NULL COMMENT 'surrogate key';
+
 DROP TABLE IF EXISTS `ace_content_weenie`;
 DROP TABLE IF EXISTS `ace_content_resource`;
 DROP TABLE IF EXISTS `ace_content_landblock`;

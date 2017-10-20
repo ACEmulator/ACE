@@ -1,15 +1,9 @@
-﻿using ACE.Entity.Enum;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +36,7 @@ namespace ACE.Api.Common
                 var headerBase64 = parts[0];
                 var headerJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(headerBase64));
                 var headerData = JObject.Parse(headerJson);
-                var principal = ValidateAndGetClaims(jwtToken);
+                var principal = JwtManager.GetPrincipal(jwtToken);
                 
                 // setup context principal
                 request.GetRequestContext().Principal = principal;
@@ -55,66 +49,5 @@ namespace ACE.Api.Common
             }
         }
 
-        public static IPrincipal ValidateAndGetClaims(string token)
-        {
-            var parts = token.Split('.');
-            var headerBase64 = parts[0];
-            var bodyBase64 = parts[1];
-            var signature = parts[2];
-
-            // parse the header and body into objects
-            var headerJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(headerBase64));
-            var headerData = JObject.Parse(headerJson);
-            var bodyJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(bodyBase64));
-            var bodyData = JObject.Parse(bodyJson);
-
-            // verify algorithm
-            var algorithm = (string)headerData["alg"];
-            if (algorithm != "HS256")
-                throw new NotSupportedException("Only HS256 is supported for this algorithm.");
-
-            // verify signature
-            byte[] bytesToSign = GetBytes(string.Join(".", headerBase64, bodyBase64));
-            var alg = new HMACSHA256(Convert.FromBase64String(JwtManager.Secret));
-            var hash = alg.ComputeHash(bytesToSign);
-            var computedSig = JwtUtil.Base64UrlEncode(hash);
-
-            if (computedSig != signature)
-                throw new AuthenticationException("Invalid JWT signature");
-
-            // verify expiration
-            var expirationUtc = JwtUtil.ConvertFromUnixTimestamp((long)bodyData["exp"]);
-            if (DateTime.UtcNow > expirationUtc)
-                throw new AuthenticationException("Token has expired");
-
-            // verify audience
-            var jwtAudience = (string)bodyData["aud"];
-
-            if (jwtAudience != JwtManager.AceAudience)
-                throw new AuthenticationException($"Invalid audience '{jwtAudience}'.  Expected '{JwtManager.AceAudience}'.");
-
-            string name = (string)bodyData["account_name"];
-            
-            /// TODO: Convert to SecurityLevel instead of AccessLevel
-            AccessLevel thisGuy = AccessLevel.Player;
-            List<string> roles = new List<string>();
-            if (Enum.TryParse((string)bodyData["role"], out thisGuy))
-            {
-                foreach (AccessLevel level in Enum.GetValues(typeof(AccessLevel)))
-                {
-                    if (thisGuy >= level)
-                        roles.Add(level.ToString());
-                }
-            }
-
-            Guid accountGuid = Guid.Parse((string)bodyData["account_guid"]);
-
-            return new GenericPrincipal(new GenericIdentity(accountGuid.ToString(), authenticationType), roles.ToArray());
-        }
-
-        private static byte[] GetBytes(string value)
-        {
-            return Encoding.UTF8.GetBytes(value);
-        }
     }
 }

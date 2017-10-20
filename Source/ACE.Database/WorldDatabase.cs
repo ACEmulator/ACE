@@ -248,7 +248,7 @@ namespace ACE.Database
         {
             AceObject ret = new AceObject();
             var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
-            bool success = ExecuteConstructedGetStatement<WorldPreparedStatement>(WorldPreparedStatement.GetAceObject, typeof(AceObject), criteria, ret);
+            bool success = ExecuteConstructedGetStatement<AceObject, WorldPreparedStatement>(WorldPreparedStatement.GetAceObject, criteria, ret);
             if (!success)
             {
                 return null;
@@ -316,7 +316,7 @@ namespace ACE.Database
 
             // We can do this because aceObjectId = WeenieClassId for all baseAceObjects.
             var criteria = new Dictionary<string, object> { { "aceObjectId", weenieClassId } };
-            if (!ExecuteConstructedGetStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), criteria, bao))
+            if (!ExecuteConstructedGetStatement<AceObject, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, bao))
                 return null;
             bao.DataIdProperties = GetAceObjectPropertiesDid(bao.AceObjectId);
             bao.InstanceIdProperties = GetAceObjectPropertiesIid(bao.AceObjectId);
@@ -725,20 +725,7 @@ namespace ACE.Database
                     {
                         while (commandReader.Read())
                         {
-                            WeenieSearchResult o = new WeenieSearchResult();
-                            foreach (var p in properties)
-                            {
-                                var assignable = commandReader[p.Item2.DbFieldName];
-                                if (Convert.IsDBNull(assignable))
-                                {
-                                    p.Item1.SetValue(o, null);
-                                }
-                                else
-                                {
-                                    p.Item1.SetValue(o, assignable);
-                                }
-                            }
-                            results.Add(o);
+                            results.Add(ReadObject<WeenieSearchResult>(commandReader));
                         }
                     }
                 }

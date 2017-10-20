@@ -25,7 +25,7 @@ namespace ACE.Api.Controllers
             var account = CheckUser(request.Username, request.Password);
             if (account != null)
             {
-                return Request.CreateResponse(HttpStatusCode.OK, new AuthResponse() { AuthToken = JwtManager.GenerateToken(account) });
+                return Request.CreateResponse(HttpStatusCode.OK, new AuthResponse() { AuthToken = JwtManager.GenerateToken(account, JwtManager.HmacSigning) });
             }
 
             throw new HttpResponseException(HttpStatusCode.Unauthorized);

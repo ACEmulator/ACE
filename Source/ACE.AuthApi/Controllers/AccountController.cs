@@ -25,7 +25,7 @@ namespace ACE.AuthApi.Controllers
             var account = CheckUser(request.Username, request.Password);
             if (account != null)
             {
-                return Request.CreateResponse(HttpStatusCode.OK, new AuthResponse() { AuthToken = JwtManager.GenerateToken(account) });
+                return Request.CreateResponse(HttpStatusCode.OK, new AuthResponse() { AuthToken = JwtManager.GenerateToken(account, JwtManager.HmacSigning) });
             }
 
             throw new HttpResponseException(HttpStatusCode.Unauthorized);
@@ -77,10 +77,12 @@ namespace ACE.AuthApi.Controllers
         /// </summary>
         [HttpGet]
         [AceAuthorize]
-        [SwaggerResponse(HttpStatusCode.OK, Type = typeof(Account))]
+        [SwaggerResponse(HttpStatusCode.OK, "ticket is valid")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "ticket is invalid")]
         public HttpResponseMessage Validate()
         {
-            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+            // "AceAuthorize bit handles the 401s.  if we made it here it must be ok.
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
     }
 }

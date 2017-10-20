@@ -27,6 +27,8 @@ namespace ACE.Database
 
         Subscription GetSubscriptionById(uint subscriptionId);
 
+        Subscription GetSubscriptionByGuid(Guid subscriptionGuid);
+
         List<Subscription> GetSubscriptionsByAccount(Guid accountGuid);
     }
 }

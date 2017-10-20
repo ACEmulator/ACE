@@ -3,6 +3,9 @@ using Owin;
 using System.IdentityModel.Tokens;
 using System.Web.Http;
 using ACE.Api.Common;
+using Newtonsoft.Json;
+using ACE.Common;
+using System.IO;
 
 namespace ACE.Api
 {
@@ -24,6 +27,15 @@ namespace ACE.Api
             config.MessageHandlers.Add(new AceJwtTokenHandler());
             
             app.UseWebApi(config);
+
+            string debugPath = @"..\..\..\..\ACE\Config.json"; // default path for debug
+            string path = "Config.json"; // default path for user installations
+
+            if (!File.Exists(path) && File.Exists(debugPath))
+                path = debugPath;
+
+            var serverConfig = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText(path));
+            ConfigManager.Initialize(serverConfig);
         }
     }
 }

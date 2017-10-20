@@ -32,46 +32,140 @@ namespace ACE.Network.Handlers
 
             // validate the token
             Guid accountGuid;
+            string accountName;
+            string loggingIdentifier;
+            Guid subscriptionGuid;
+            Subscription sub;
 
-            try
-            {
-                var principal = AceJwtTokenHandler.ValidateAndGetClaims(loginRequest.JwtToken);
-                accountGuid = Guid.Parse(principal.Identity.Name);
-            }
-            catch (Exception ex)
-            {
-                log.Info("Error in HandleLoginRequest validating the ticket.", ex);
-                session.SendCharacterError(CharacterError.AccountInvalid);
-                return;
-            }
+            // Task t = new Task(() =>
+            // {
+                if (ConfigManager.Config.Server.SecureAuthentication)
+                {
+                    try
+                    {
+                        var tokenInfo = JwtManager.ParseRemoteToken(loginRequest.JwtToken);
+                        if (tokenInfo == null)
+                            throw new UnauthorizedAccessException($"improper token used for login {loginRequest.ClientAccountString}, token {loginRequest.JwtToken}");
 
-            Task t = new Task(() =>
-            {
+                        accountName = tokenInfo.Name;
+                        accountGuid = tokenInfo.AccountGuid;
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Info("Error in HandleLoginRequest validating the ticket.", ex);
+                        session.SendCharacterError(CharacterError.AccountInvalid);
+                        return;
+                    }
+
+                    if (!Guid.TryParse(loginRequest.ClientAccountString, out subscriptionGuid))
+                    {
+                        // if it's not a guid, it's an account name.  verify it matches the ticket
+                        if (accountName != loginRequest.ClientAccountString)
+                        {
+                            log.Info("Error in HandleLoginRequest validating the ticket.");
+                            session.SendCharacterError(CharacterError.AccountInvalid);
+                            return;
+                        }
+                        else
+                        {
+                            // look for subscriptions
+                            var subs = DatabaseManager.Authentication.GetSubscriptionsByAccount(accountGuid);
+                            if (subs.Count < 1)
+                            {
+                                // go go gadget dynamic subscription creation
+                                sub = new Subscription()
+                                {
+                                    AccessLevel = Entity.Enum.AccessLevel.Player,
+                                    Name = "auto",
+                                    AccountGuid = accountGuid
+                                };
+                                DatabaseManager.Authentication.CreateSubscription(sub);
+                            }
+                            else
+                            {
+                                // already have a subscription, just pull it
+                                sub = subs[0];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var subs = DatabaseManager.Authentication.GetSubscriptionsByAccount(accountGuid);
+                        sub = subs.Find(s => s.SubscriptionGuid == subscriptionGuid);
+                    }
+
+                    loggingIdentifier = $"{accountName}.{sub.Name}";
+                }
+                else
+                {
+                    // insecure mode.  we have no token of value, and only the ClientAccountString.
+                    if (!Guid.TryParse(loginRequest.ClientAccountString, out subscriptionGuid))
+                    {
+                        // client account string is not a guid. assume it is an account name
+                        var account = DatabaseManager.Authentication.GetAccountByName(loginRequest.ClientAccountString);
+
+                        if (account == null)
+                        {
+                            // no account, dynamically create one
+                            account = new Account();
+                            account.Name = loginRequest.ClientAccountString;
+                            account.DisplayName = loginRequest.ClientAccountString;
+                            account.SetPassword("");
+                            DatabaseManager.Authentication.CreateAccount(account);
+                        }
+
+                        // look for subscriptions
+                        var subs = DatabaseManager.Authentication.GetSubscriptionsByAccount(account.AccountGuid);
+                        if (subs.Count < 1)
+                        {
+                            // go go gadget dynamic subscription creation
+                            sub = new Subscription()
+                            {
+                                AccessLevel = Entity.Enum.AccessLevel.Player,
+                                Name = "default",
+                                AccountGuid = account.AccountGuid
+                            };
+                            DatabaseManager.Authentication.CreateSubscription(sub);
+                        }
+                        else
+                        {
+                            // already have a subscription, just pull it
+                            sub = subs[0];
+                        }
+
+                        loggingIdentifier = $"{account.Name}.{sub.Name}";
+                    }
+                    else
+                    {
+                        // subscription guid provided
+                        sub = DatabaseManager.Authentication.GetSubscriptionByGuid(subscriptionGuid);
+
+                        loggingIdentifier = $"Unknown.{sub.Name}";
+                    }
+                }
+
                 try
                 {
-                    Guid subscriptionGuid = Guid.Parse(loginRequest.ClientAccountString);
-                    var subs = DatabaseManager.Authentication.GetSubscriptionsByAccount(accountGuid);
-                    var sub = subs.Find(s => s.SubscriptionGuid == subscriptionGuid);
                     log.Info($"new client connected: {loginRequest.ClientAccountString}. setting session properties");
-                    SubscriptionSelectCallback(sub, session, loginRequest.ClientAccountString);
+                    SubscriptionSelectCallback(sub, session, loginRequest.ClientAccountString, loggingIdentifier);
                 }
                 catch (Exception ex)
                 {
                     log.Info("Error in HandleLoginRequest trying to find the subscription.", ex);
-                    SubscriptionSelectCallback(null, session, null);
+                    SubscriptionSelectCallback(null, session, null, null);
                 }
-            });
+            // });
 
-            t.Start();
+            // t.Start();
 
-            await t;
+            // await t;
         }
 
-        private static void SubscriptionSelectCallback(Subscription subscription, Session session, string clientAccountString)
+        private static void SubscriptionSelectCallback(Subscription subscription, Session session, string clientAccountString, string loggingIdentifier)
         {
             if (subscription == null)
             {
-                log.Info("subscription null in SubscriptionSelectCallback.");
+                log.Debug("subscription null in SubscriptionSelectCallback.");
                 session.SendCharacterError(CharacterError.AccountDoesntExist);
                 return;
             }
@@ -82,14 +176,14 @@ namespace ACE.Network.Handlers
             if (WorldManager.Find(subscription.SubscriptionId) != null)
             {
                 var foundSession = WorldManager.Find(subscription.SubscriptionId);
-                log.Info($"found session for {subscription.SubscriptionGuid}");
+                log.Debug($"found session for {subscription.SubscriptionGuid}");
 
                 if (foundSession.State == SessionState.AuthConnected)
                     session.SendCharacterError(CharacterError.AccountInUse);
                 return;
             }
-            
-            session.SetSubscription(subscription, clientAccountString);
+
+            session.SetSubscription(subscription, clientAccountString, loggingIdentifier);
             session.State = SessionState.AuthConnectResponse;
         }
 
@@ -97,7 +191,7 @@ namespace ACE.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            log.Info($"Getting characters for subscription id {session.SubscriptionId}");
+            log.Debug($"Getting characters for subscription id {session.SubscriptionId}");
             DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
             {
                 result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
@@ -107,7 +201,7 @@ namespace ACE.Network.Handlers
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-                log.Info($"sending {result.Count} characters to {session.ClientAccountString} for {ConfigManager.Config.Server.WorldName}");
+                log.Debug($"sending {result.Count} characters to {session.ClientAccountString} for {ConfigManager.Config.Server.WorldName}");
                 session.Network.EnqueueSend(characterListMessage, serverNameMessage);
                 session.Network.EnqueueSend(dddInterrogation);
 
