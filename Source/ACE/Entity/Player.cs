@@ -65,7 +65,7 @@ namespace ACE.Entity
         /// <summary>
         /// This tracks the contract tracker objects
         /// </summary>
-        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }        
+        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
 
         /// <summary>
         /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
@@ -490,7 +490,7 @@ namespace ACE.Entity
 
         public AceObject GetSavableCharacter()
         {
-            // Clone Character            
+            // Clone Character
             AceObject obj = (AceObject)Character.Clone();
 
             // These don't usually get saved back to the object so setting here for now.
@@ -1688,6 +1688,14 @@ namespace ACE.Entity
             }
         }
 
+        public void SnapShotTrackedContracts()
+        {
+            foreach (var tc in TrackedContracts)
+            {
+                AceObject.SetTrackedContract(tc.Key, tc.Value.SnapShotOfAceContractTracker());
+            }
+        }
+
         /// <summary>
         /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
@@ -1699,9 +1707,10 @@ namespace ACE.Entity
                 // Save the current position to persistent storage, only during the server update interval
                 SetPhysicalCharacterPosition();
 
-                // Let's get a snapshot of our wielded items prior to save.
+                // Let's get a snapshot of our object lists prior to save.
                 SnapshotWieldedItems();
                 SnapshotInventoryItems();
+                SnapShotTrackedContracts();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 
@@ -2547,6 +2556,8 @@ namespace ACE.Entity
                 GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
 
                 TrackedContracts.Remove(contractId);
+
+                DatabaseManager.Shard.DeleteContract(Guid.Full, contractId, null);
 
                 Session.Network.EnqueueSend(contractMsg);
             });

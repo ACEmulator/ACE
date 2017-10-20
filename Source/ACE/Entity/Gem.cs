@@ -1,4 +1,6 @@
-﻿using ACE.Entity.Actions;
+﻿using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
+using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
@@ -35,10 +37,10 @@ namespace ACE.Entity
             if (UseCreateContractId == null) return;
             ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, session.Player.Guid.Full)
             {
-                Stage                = 0,
-                TimeWhenDone         = 0,
-                TimeWhenRepeats      = 0,
-                DeleteContract       = 0,
+                Stage = 0,
+                TimeWhenDone = 0,
+                TimeWhenRepeats = 0,
+                DeleteContract = 0,
                 SetAsDisplayContract = 1
             };
 
@@ -76,6 +78,17 @@ namespace ACE.Entity
                 // TODO: Add sending the 02C2 message UpdateEnchantment.   They added a second use to this existing system
                 // so they could show the delay on the client side - it is not really an enchantment but the they overloaded the use. Og II
                 // Thanks Slushnas for letting me know about this as well as an awesome pcap that shows it all in action.
+
+                // TODO: there is a lot of work to do here.   I am stubbing this in for now to send the right message.   Lots of magic numbers at the moment.
+                SpellBase spellBase = new SpellBase
+                {
+                    Category = (uint)(EnchantmentTypeFlags.Cooldown | EnchantmentTypeFlags.Additive),
+                    Power = 0,
+                    Duration = CooldownId.Value,
+                    DegradeModifier = 0,
+                    DegradeLimit = -666,
+                };
+                // session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.

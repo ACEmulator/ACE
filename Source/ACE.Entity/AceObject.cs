@@ -1516,7 +1516,7 @@ namespace ACE.Entity
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
         #endregion
-        
+
         public double? BuyRate
         {
             get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
@@ -1528,7 +1528,7 @@ namespace ACE.Entity
             get { return GetDoubleProperty(PropertyDouble.SellPrice); }
             set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
         }
-        
+
         protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
@@ -1913,6 +1913,18 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesPositions, positionType, value);
         }
 
+        public void SetTrackedContract(uint contractId, AceContractTracker value)
+        {
+            SetProperty(TrackedContracts, contractId, value);
+        }
+
+        public AceContractTracker GetTrackedContract(uint contractId)
+        {
+            AceContractTracker ret;
+            bool success = TrackedContracts.TryGetValue(contractId, out ret);
+            return !success ? null : ret;
+        }
+
         public object Clone()
         {
             AceObject ret = new AceObject
@@ -1943,6 +1955,7 @@ namespace ACE.Entity
                 BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
                 WieldedItems = CloneDict(WieldedItems),
+                TrackedContracts = CloneDict(TrackedContracts)
             };
             return ret;
         }

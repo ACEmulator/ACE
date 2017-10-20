@@ -89,6 +89,7 @@
     <Compile Include="Enum\DestinationType.cs" />
     <Compile Include="Enum\EmoteCategory.cs" />
     <Compile Include="Enum\EmoteType.cs" />
+    <Compile Include="Enum\EnchantmentTypeFlags.cs" />
     <Compile Include="Enum\RecipeResult.cs" />
     <Compile Include="Enum\RecipeType.cs" />
     <Compile Include="Enum\SurfaceType.cs" />
