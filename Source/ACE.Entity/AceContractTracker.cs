@@ -5,8 +5,11 @@ using MySql.Data.MySqlClient;
 namespace ACE.Entity
 {
     [DbTable("ace_contract_tracker")]
-    public class AceContractTracker : BaseAceProperty, ICloneable
+    public class AceContractTracker : ICloneable
     {
+        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true, Update = false)]
+        public uint AceObjectId { get; set; }
+
         [DbField("contractId", (int)MySqlDbType.UInt32, IsCriteria = true, Update = false)]
         public uint ContractId { get; set; }
 

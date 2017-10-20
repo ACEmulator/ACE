@@ -33,7 +33,7 @@ namespace ACE.Entity
         public override void OnUse(Session session)
         {
             if (UseCreateContractId == null) return;
-            ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId)
+            ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, session.Player.Guid.Full)
             {
                 Stage                = 0,
                 TimeWhenDone         = 0,

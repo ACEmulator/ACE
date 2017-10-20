@@ -62,7 +62,10 @@ namespace ACE.Entity
         /// </summary>
         private readonly Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
-        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
+        /// <summary>
+        /// This tracks the contract tracker objects
+        /// </summary>
+        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }        
 
         /// <summary>
         /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
@@ -345,7 +348,7 @@ namespace ACE.Entity
             // Load the persisted tracked contracts into the working dictionary on player object.
             foreach (var trackedContract in AceObject.TrackedContracts)
             {
-                ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId)
+                ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId, Guid.Full)
                 {
                     DeleteContract       = trackedContract.Value.DeleteContract,
                     SetAsDisplayContract = trackedContract.Value.SetAsDisplayContract,
@@ -487,7 +490,7 @@ namespace ACE.Entity
 
         public AceObject GetSavableCharacter()
         {
-            // Clone Character
+            // Clone Character            
             AceObject obj = (AceObject)Character.Clone();
 
             // These don't usually get saved back to the object so setting here for now.
@@ -2532,7 +2535,7 @@ namespace ACE.Entity
             ActionChain abandonContractChain = new ActionChain();
             abandonContractChain.AddAction(this, () =>
             {
-                ContractTracker contractTracker = new ContractTracker(contractId)
+                ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
                 {
                     Stage = 0,
                     TimeWhenDone = 0,

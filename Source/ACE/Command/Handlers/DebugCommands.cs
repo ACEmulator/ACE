@@ -243,7 +243,7 @@ namespace ACE.Command.Handlers
             uint contractId;
             if (!uint.TryParse(parameters[0], out contractId)) return;
 
-            ContractTracker contractTracker = new ContractTracker(contractId)
+            ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
             {
                 Stage                = 0,
                 TimeWhenDone         = 0,

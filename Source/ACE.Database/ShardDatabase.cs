@@ -182,6 +182,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpell, typeof(AceObjectPropertiesSpell), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.DeleteList);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertiesBook, typeof(AceObjectPropertiesBook), ConstructedStatementType.DeleteList);
+            ConstructStatement(ShardPreparedStatement.DeleteAceContractTracker, typeof(AceContractTracker), ConstructedStatementType.DeleteList);
 
             // Insert statements
             ConstructStatement(ShardPreparedStatement.InsertAceObjectPropertiesInt, typeof(AceObjectPropertiesInt), ConstructedStatementType.InsertList);
@@ -228,8 +229,7 @@ namespace ACE.Database
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyPosition, typeof(AceObjectPropertiesPosition), ConstructedStatementType.Delete);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertySkill, typeof(AceObjectPropertiesSkill), ConstructedStatementType.Delete);
             ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute, typeof(AceObjectPropertiesAttribute), ConstructedStatementType.Delete);
-            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.Delete);
-            ConstructStatement(ShardPreparedStatement.DeleteAceContractTracker, typeof(AceContractTracker), ConstructedStatementType.Delete);
+            ConstructStatement(ShardPreparedStatement.DeleteAceObjectPropertyAttribute2nd, typeof(AceObjectPropertiesAttribute2nd), ConstructedStatementType.Delete);            
 
             // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
             ConstructMaxQueryStatement(ShardPreparedStatement.GetCurrentId, "ace_object", "aceObjectId");
@@ -696,6 +696,9 @@ namespace ACE.Database
 
         private bool DeleteObjectInternal(DatabaseTransaction transaction, AceObject aceObject)
         {
+            // TODO: Database is designed to cascade delete so in reality we only need to call DeleteAceObjectBase
+            // We need to decide to either let the db do the work or if we are going to keep doing it on the application side
+            // should we remove the cascade deletes? Og II
             DeleteAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             DeleteAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             DeleteAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
@@ -713,6 +716,7 @@ namespace ACE.Database
             DeleteAceObjectPropertiesSkill(transaction, aceObject.AceObjectId);
             DeleteAceObjectPropertiesSpells(transaction, aceObject.AceObjectId);
             DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
+            DeleteAceContractTracker(transaction, aceObject.AceObjectId);
 
             DeleteAceObjectBase(transaction, aceObject);
 
@@ -755,6 +759,9 @@ namespace ACE.Database
 
             DeleteAceObjectPropertiesBook(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesBook(transaction, aceObject.AceObjectId, aceObject.BookProperties);
+
+            DeleteAceContractTracker(transaction, aceObject.AceObjectId);
+            SaveAceContractTracker(transaction, aceObject.AceObjectId, aceObject.TrackedContracts.Select(x => x.Value).ToList());
 
             // positions are special.  the object is actually fully replaced, so we can't do dirty tracking on it (for now)
             // as a result, we delete them all then reinsert them all
@@ -809,7 +816,7 @@ namespace ACE.Database
             return true;
         }
 
-        private bool SaveAceObjectPropertiesBigInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt64> properties)
+      private bool SaveAceObjectPropertiesBigInt(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesInt64> properties)
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
@@ -1124,6 +1131,13 @@ namespace ACE.Database
             return true;
         }
 
+        private bool SaveAceContractTracker(DatabaseTransaction transaction, uint aceObjectId, List<AceContractTracker> properties)
+        {
+            properties.ForEach(a => a.AceObjectId = aceObjectId);
+            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.InsertAceContractTracker, properties);
+            return true;
+        }
+
         private bool DeleteAceObjectBase(DatabaseTransaction transaction, AceObject obj)
         {
             transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceObject>(ShardPreparedStatement.DeleteAceObject, obj);
@@ -1248,6 +1262,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesBook>(ShardPreparedStatement.DeleteAceObjectPropertiesBook, criteria);
+            return true;
+        }
+
+        private bool DeleteAceContractTracker(DatabaseTransaction transaction, uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteAceContractTracker, criteria);
             return true;
         }
     }
