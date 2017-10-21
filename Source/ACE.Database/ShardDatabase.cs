@@ -265,10 +265,10 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public bool DeleteContract(uint characterId, uint contractId)
+        public bool DeleteContract(AceContractTracker contract)
         {
             DatabaseTransaction transaction = BeginTransaction();
-            DeleteAceContractTracker(transaction, characterId, contractId);
+            DeleteAceContractTracker(transaction, contract);
             return transaction.Commit().Result;
         }
 
@@ -1282,11 +1282,9 @@ namespace ACE.Database
             return true;
         }
 
-        private bool DeleteAceContractTracker(DatabaseTransaction transaction, uint aceObjectId, uint contractId)
+        private void DeleteAceContractTracker(DatabaseTransaction transaction, AceContractTracker contract)
         {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId }, { "contractId", contractId } };
-            transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteAceContractTracker, criteria);
-            return true;
+            transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteAceContractTracker, contract);
         }
     }
 }

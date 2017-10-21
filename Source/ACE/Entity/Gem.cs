@@ -8,6 +8,7 @@ using ACE.Network.GameEvent.Events;
 namespace ACE.Entity
 {
     using System;
+    using System.Diagnostics;
 
     public class Gem : WorldObject
     {
@@ -47,7 +48,7 @@ namespace ACE.Entity
             DateTime lastUse;
             if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out lastUse))
             {
-                TimeSpan timeRemaining = lastUse.AddSeconds(CooldownDuration + 600.00 ?? 0.00).Subtract(DateTime.Now);
+                TimeSpan timeRemaining = lastUse.AddSeconds(CooldownDuration ?? 0.00).Subtract(DateTime.Now);
                 if (timeRemaining.Seconds > 0)
                 {
                     ChatPacket.SendServerMessage(session, "You cannot use another contract for " + timeRemaining.Seconds + " seconds", ChatMessageType.Broadcast);
@@ -80,9 +81,10 @@ namespace ACE.Entity
                 // Thanks Slushnas for letting me know about this as well as an awesome pcap that shows it all in action.
 
                 // TODO: there is a lot of work to do here.   I am stubbing this in for now to send the right message.   Lots of magic numbers at the moment.
+                Debug.Assert(CooldownId != null, "CooldownId != null");
                 SpellBase spellBase = new SpellBase
                 {
-                    Category = (uint)(EnchantmentTypeFlags.Cooldown | EnchantmentTypeFlags.Additive),
+                    Category = (uint)EnchantmentTypeFlags.Additive,
                     Power = 0,
                     Duration = CooldownId.Value,
                     DegradeModifier = 0,
@@ -90,7 +92,7 @@ namespace ACE.Entity
                     MetaSpellId = 32768 + (uint)UseCreateContractId
                     // We will need to create a set of constants for each contract - I may be overloading this.
                 };
-                // session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase));
+                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.

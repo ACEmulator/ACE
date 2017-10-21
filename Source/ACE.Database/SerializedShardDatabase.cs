@@ -222,14 +222,15 @@ namespace ACE.Database
             }));
         }
 
-        public void DeleteContract(uint characterId, uint contractId, Action<bool> callback)
+        public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
-            {
-               var result =_wrappedDatabase.DeleteContract(characterId, contractId);
-                if (callback != null)
-                    callback.Invoke(result);
+                {
+                    bool result = _wrappedDatabase.DeleteContract(contract);
+                    if (callback != null)
+                        callback.Invoke(result);
             }));
+            return true;
         }
     }
 }

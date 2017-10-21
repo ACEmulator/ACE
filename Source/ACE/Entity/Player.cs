@@ -2555,17 +2555,21 @@ namespace ACE.Entity
 
                 GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
 
-                TrackedContracts.Remove(contractId);
+                AceContractTracker contract = new AceContractTracker();
+                if (TrackedContracts.ContainsKey(contractId))
+                    contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
 
-                // FIXME: This should work, I am getting a reflection error that I have no clue how to debug.
-                
-                ////DatabaseManager.Shard.DeleteContract((uint)Guid.Full, contractId,  deleteSuccess =>
-                ////{
-                ////    if (deleteSuccess)
-                ////        log.Info($"ContractId {contractId:X} successfully deleted");
-                ////    else
-                ////        log.Error($"Unable to delete contractId {contractId:X} ");
-                ////});
+                TrackedContracts.Remove(contractId);
+                LastUseTracker.Remove(contractId);
+                AceObject.TrackedContracts.Remove(contractId);
+
+                DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
+               {
+                   if (deleteSuccess)
+                       log.Info($"ContractId {contractId:X} successfully deleted");
+                   else
+                       log.Error($"Unable to delete contractId {contractId:X} ");
+               });
 
                 Session.Network.EnqueueSend(contractMsg);
             });
