@@ -52,7 +52,7 @@ namespace ACE.Database
                 Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
                 // Oh goody, its reflection time
                 var propertyInfo = GetPropertyCache(typeof(T2));
-                
+
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
                 {
@@ -535,7 +535,7 @@ namespace ACE.Database
             foreach (var p in properties)
             {
 #if DBDEBUG
-                log.Debug("P1: " + p.Item1  + " P2: " + p.Item2);
+                log.Debug("P1: " + p.Item1 + " P2: " + p.Item2);
 #endif
                 if (p.Item2.Get)
                 {
@@ -603,7 +603,7 @@ namespace ACE.Database
             PrepareStatement(Convert.ToUInt32(id), query, types);
         }
 
-        public bool ExecuteConstructedGetStatement<T1, T2>(T2 id, Dictionary<string, object> criteria, object instance) where T1:class
+        public bool ExecuteConstructedGetStatement<T1, T2>(T2 id, Dictionary<string, object> criteria, object instance) where T1 : class
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
@@ -654,7 +654,7 @@ namespace ACE.Database
             return false;
         }
 
-        public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria) where T2:class
+        public List<T2> ExecuteConstructedGetListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria) where T2 : class
         {
             var results = new List<T2>();
 
@@ -700,7 +700,7 @@ namespace ACE.Database
             return results;
         }
 
-        protected T ReadObject<T>(MySqlDataReader commandReader, T o = null) where T:class
+        protected T ReadObject<T>(MySqlDataReader commandReader, T o = null) where T : class
         {
             var properties = GetPropertyCache(typeof(T));
 
@@ -878,7 +878,7 @@ namespace ACE.Database
                     {
                         var properties = GetPropertyCache(type);
                         properties.Where(p => p.Item2.IsCriteria).ToList().ForEach(p => command.Parameters.Add("", (MySqlDbType)p.Item2.DbFieldType).Value = criteria[p.Item2.DbFieldName]);
-                        
+
                         connection.Open();
                         return command.ExecuteNonQuery() > 0;
                     }
@@ -1114,7 +1114,7 @@ namespace ACE.Database
             return result;
         }
 
-        protected T ExecuteDynamicGet<T>(Dictionary<string, MySqlParameter> criteria) where T:class
+        protected T ExecuteDynamicGet<T>(Dictionary<string, MySqlParameter> criteria) where T : class
         {
             var properties = GetPropertyCache(typeof(T));
             var dbTable = GetDbTableAttribute(typeof(T));
@@ -1122,7 +1122,7 @@ namespace ACE.Database
 
             string where = null;
 
-            foreach(var p in criteria)
+            foreach (var p in criteria)
             {
                 where = where == null ? " WHERE " : where + " AND ";
                 where += $"`{p.Value}`= ?";

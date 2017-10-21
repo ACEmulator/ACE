@@ -79,6 +79,7 @@
     <Compile Include="Subscription.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="launcher_config.json.example" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
