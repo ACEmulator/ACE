@@ -2505,29 +2505,19 @@ namespace ACE.Entity
 
                     WorldObject newStack = WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
                     container.AddToInventory(newStack);
-                    var valuePerItem = stack.Value / stack.StackSize;
-                    var burdenPerItem = stack.Burden / stack.StackSize;
+
                     ushort oldStackSize = (ushort)stack.StackSize;
-                    ushort newStackSize = (ushort)stack.StackSize;
-                    newStackSize = (ushort)(newStackSize - amount);
+                    stack.StackSize = (ushort)(oldStackSize - amount);
 
                     newStack.StackSize = amount;
-                    newStack.Value = newStack.StackSize * valuePerItem;
-                    newStack.Burden = (ushort)(newStack.StackSize * burdenPerItem);
 
-                    stack.StackSize = newStackSize;
-                    stack.Value = stack.StackSize * valuePerItem;
-                    stack.Burden = (ushort)(stack.StackSize * burdenPerItem);
-
-                    GameMessagePrivateUpdatePropertyInt msgUpdateValue =
-                        new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)stack.Value);
                     GameMessagePutObjectInContainer msgPutObjectInContainer =
                         new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
                     GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
-                        stack.Guid, (int)stack.StackSize, oldStackSize);
-
+                        stack.Guid, (int)stack.StackSize, (int)stack.Value);
                     GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
-                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue,
+
+                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                         msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
                 });
             splitItemsChain.EnqueueChain();
@@ -2619,23 +2609,12 @@ namespace ACE.Entity
                 ushort oldStackSize = (ushort)item.StackSize;
                 ushort newStackSize = (ushort)(oldStackSize - amount);
 
-                Debug.Assert(item.StackSize != null, "stack.StackSize != null");
-                Debug.Assert(item.Value != null, "stack.Value != null");
-
-                uint? valuePerItem;
-                ushort burdenPerItem;
-                if (item.StackSize != 0)
-                {
-                    valuePerItem = item.Value / item.StackSize;
-                    burdenPerItem = (ushort)(item.Burden / item.StackSize);
-                }
-                else
-                {
-                    valuePerItem = item.Value;
-                    burdenPerItem = (ushort)item.Burden;
-                }
+                if (newStackSize < 1)
+                    newStackSize = 0;
 
                 item.StackSize = newStackSize;
+
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, (int)item.Value));
 
                 if (newStackSize < 1)
                 {
@@ -2645,17 +2624,7 @@ namespace ACE.Entity
                     DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
                 }
                 else
-                {
-                    item.Value = item.StackSize * valuePerItem;
-                    item.Burden = (ushort)(item.StackSize * burdenPerItem);
-
-                    Burden = (ushort)(Burden - burdenPerItem);
-                    // Only send this message if we are a stackable item in the first place. Og II
-                    if (item.MaxStackSize > 1)
-                        Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
-
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)item.Value));
-                }
+                    Burden = (ushort)(Burden - (item.StackUnitBurden * amount));
             });
             removeItemsChain.EnqueueChain();
         }

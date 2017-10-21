@@ -1,10 +1,13 @@
 # ACEmulator Change Log
-
 ### 2017-10-20
 [Mogwai]
 * Authentication overhaul is done.  Please note there are significant changes to the Readme file.
 
 ### 2017-10-19
+[Jyrus]
+* Created WO.StackUnitValue and WO.StackUnitBurden to be initialized by Weenie.{Value,EncumbranceVal}, with builtin null to zero initialization
+* Moved WorldObject value and encumbrance calculations down to the WO class based upon WO.StackUnitValue and WO.StackUnitBurden vs WO.StackSize
+
 [Og II]
 * Added processing for contract management add / abandon.
 * Removed update script I added back on 10/14 to fix the burden of the weenie for the MMD note.   This is no lonager needed - use Dereth v0.2.4 or greater the issue has been 

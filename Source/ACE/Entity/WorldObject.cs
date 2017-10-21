@@ -390,8 +390,13 @@ namespace ACE.Entity
 
         public virtual uint? Value
         {
-            get { return AceObject.Value; }
+            get { return (StackUnitValue * (StackSize ?? 1)); }
             set { AceObject.Value = value; }
+        }
+
+        public virtual uint? StackUnitValue
+        {
+            get { return Weenie.Value ?? 0; }
         }
 
         public Usable? Usable
@@ -540,17 +545,13 @@ namespace ACE.Entity
 
         public virtual ushort? Burden
         {
-            get
-            {
-                // This is a workaround that Ripley suggested - we have items that should
-                // have a 0 burden but they do not have that property set in our database
-                // Some items should report unknown burnder ie null others should report 0
-                // I have and continue to advocate that we actually put in the 0 encumbrance
-                // records in the world database for those items that should have it.   Og II
-                if (AceObject.EncumbranceVal == null && Stuck) return null;
-                return AceObject.EncumbranceVal ?? 0;
-            }
+            get { return (ushort)(StackUnitBurden * (StackSize ?? 1)); }
             set { AceObject.EncumbranceVal = value; }
+        }
+
+        public virtual ushort? StackUnitBurden
+        {
+            get { return Weenie.EncumbranceVal ?? 0; }
         }
 
         public Spell? Spell
