@@ -106,6 +106,7 @@
     <Compile Include="Entity\Actions\NestedActionQueue.cs" />
     <Compile Include="Entity\Adjacency.cs" />
     <Compile Include="Entity\Container.cs" />
+    <Compile Include="Entity\ContractTracker.cs" />
     <Compile Include="Entity\Creature.cs" />
     <Compile Include="Entity\Cow.cs" />
     <Compile Include="Entity\Door.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Entity\Coin.cs" />
     <Compile Include="Entity\Key.cs" />
     <Compile Include="Entity\Food.cs" />
+    <Compile Include="Entity\Gem.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
@@ -179,6 +181,7 @@
     <Compile Include="Network\GameAction\Actions\GameActionSellItems.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableMerge.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionSoulEmote.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionAbandonContract.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionStackableSplitToContainer.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelIndex.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionChannelList.cs" />
@@ -226,6 +229,9 @@
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventMagicUpdateEnchantment.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTrackerTable.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTracker.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventInscriptionResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookPageDataResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventChannelBroadcast.cs" />

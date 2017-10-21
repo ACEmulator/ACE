@@ -221,5 +221,16 @@ namespace ACE.Database
                     callback.Invoke(result);
             }));
         }
+
+        public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+                {
+                    bool result = _wrappedDatabase.DeleteContract(contract);
+                    if (callback != null)
+                        callback.Invoke(result);
+            }));
+            return true;
+        }
     }
 }

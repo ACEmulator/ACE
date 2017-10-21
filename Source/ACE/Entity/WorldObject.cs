@@ -10,7 +10,6 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
-using ACE.Entity;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -541,7 +540,16 @@ namespace ACE.Entity
 
         public virtual ushort? Burden
         {
-            get { return AceObject.EncumbranceVal; }
+            get
+            {
+                // This is a workaround that Ripley suggested - we have items that should
+                // have a 0 burden but they do not have that property set in our database
+                // Some items should report unknown burnder ie null others should report 0
+                // I have and continue to advocate that we actually put in the 0 encumbrance
+                // records in the world database for those items that should have it.   Og II
+                if (AceObject.EncumbranceVal == null && Stuck) return null;
+                return AceObject.EncumbranceVal ?? 0;
+            }
             set { AceObject.EncumbranceVal = value; }
         }
 

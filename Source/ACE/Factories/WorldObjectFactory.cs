@@ -67,6 +67,8 @@ namespace ACE.Factories
                     return new Key(aceO);
                 case WeenieType.Food:
                     return new Food(aceO);
+                case WeenieType.Gem:
+                    return new Gem(aceO);
                 default:
                     return new GenericObject(aceO);
             }
