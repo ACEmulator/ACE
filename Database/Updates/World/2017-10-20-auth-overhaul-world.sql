@@ -69,5 +69,5 @@ FROM `ace_object` AO
     LEFT JOIN ace_object_properties_string `names` ON AO.aceObjectId = `names`.aceObjectId AND `names`.strPropertyId = 1
     LEFT JOIN ace_object_properties_int `weenieType` ON AO.aceObjectId = `weenieType`.aceObjectId AND `weenieType`.intPropertyId = 9007
     LEFT JOIN ace_object_properties_int `itemType` ON AO.aceObjectId = `itemType`.aceObjectId AND `itemType`.intPropertyId = 1
-WHERE AO.aceObjectId = AO.weenieClassId`vw_weenie_search`
+WHERE AO.aceObjectId = AO.weenieClassId
 );
