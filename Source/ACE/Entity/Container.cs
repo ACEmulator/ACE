@@ -177,7 +177,7 @@ namespace ACE.Entity
             var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
             foreach (var container in containers)
             {
-                (container.Value as Container).RemoveWorldObjectFromInventory(objectguid);
+                ((Container)container.Value).RemoveWorldObjectFromInventory(objectguid);
             }
         }
 

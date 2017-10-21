@@ -7,12 +7,11 @@ using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Factories;
-using System.Globalization;
 using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using System.Linq;
 using System.Collections.Generic;
-using ACE.Database;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
@@ -173,7 +172,7 @@ namespace ACE.Command.Handlers
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Location;
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
         }
 
         // telexyz cell x y z qx qy qz qw
@@ -234,6 +233,31 @@ namespace ACE.Command.Handlers
             }
             ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
             return;
+        }
+
+        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
+        public static void HandleContract(Session session, params string[] parameters)
+        {
+            if (!(parameters?.Length > 0)) return;
+            uint contractId;
+            if (!uint.TryParse(parameters[0], out contractId)) return;
+
+            ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
+            {
+                Stage                = 0,
+                TimeWhenDone         = 0,
+                TimeWhenRepeats      = 0,
+                DeleteContract       = 0,
+                SetAsDisplayContract = 1
+            };
+
+            if (!session.Player.TrackedContracts.ContainsKey(contractId))
+                session.Player.TrackedContracts.Add(contractId, contractTracker);
+
+            GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session, contractTracker);
+            session.Network.EnqueueSend(contractMsg);
+            ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
 
         // grantxp ulong

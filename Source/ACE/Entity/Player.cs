@@ -60,22 +60,23 @@ namespace ACE.Entity
         /// <summary>
         /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
         /// </summary>
-        private Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
+        private readonly Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
         /// <summary>
-        /// Amount of times this character has left a portal this session
+        /// This tracks the contract tracker objects
         /// </summary>
-        public uint PortalIndex { get; set; } = 1u;
+        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
 
         /// <summary>
-        /// tick-stamp for the server time of the last time the player changed state (combat state?)
+        /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
+        /// It is session specific.   I think (could be wrong) cooldowns reset if you logged out and back in.
+        /// This is a different mechanic than quest repeat timers and rare item use timers.
+        /// example - contacts have a shared cooldown key value 100 so each time a player uses an item that has
+        /// a shared cooldown we just add to the dictionary 100, datetime.now()   The check becomes trivial at that
+        /// point if on a subsequent use, now() minus the last use value from the dictionary
+        /// is greater than or equal to the cooldown, we can do the use - if not you must wait message.   Og II
         /// </summary>
-        public double LastStateChangeTicks { get; set; }
-
-        /// <summary>
-        /// Last Streaming Object change tick
-        /// </summary>
-        public double LastStreamingObjectChange { get; set; }
+        public Dictionary<uint, DateTime> LastUseTracker { get; set; }
 
         /// <summary>
         /// Level of the player
@@ -129,7 +130,7 @@ namespace ACE.Entity
 
         /// <summary>
         /// FIXME(ddevec): This is the only object that need be locked in the player under the new model.
-        ///   It must be locked because of how we handle obect updates -- We can clean this up in the future
+        ///   It must be locked because of how we handle object updates -- We can clean this up in the future
         /// </summary>
         private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
@@ -342,6 +343,24 @@ namespace ACE.Entity
 
             // radius for object updates
             ListeningRadius = 5f;
+
+            TrackedContracts = new Dictionary<uint, ContractTracker>();
+            // Load the persisted tracked contracts into the working dictionary on player object.
+            foreach (var trackedContract in AceObject.TrackedContracts)
+            {
+                ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId, Guid.Full)
+                {
+                    DeleteContract       = trackedContract.Value.DeleteContract,
+                    SetAsDisplayContract = trackedContract.Value.SetAsDisplayContract,
+                    Stage                = trackedContract.Value.Stage,
+                    TimeWhenDone         = trackedContract.Value.TimeWhenDone,
+                    TimeWhenRepeats      = trackedContract.Value.TimeWhenRepeats
+                };
+
+                TrackedContracts.Add(trackedContract.Key, loadContract);
+            }
+
+            LastUseTracker = new Dictionary<uint, DateTime>();
         }
 
         /// <summary>
@@ -951,7 +970,7 @@ namespace ACE.Entity
             {
                 // search packs
                 WorldObject wo = GetInventoryItem(examinationId);
-                
+
                 // search wielded items
                 if (wo == null)
                     wo = GetWieldedItem(examinationId);
@@ -1179,7 +1198,7 @@ namespace ACE.Entity
                                new GameMessageObjDescEvent(this),
                                new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
                                new GameMessagePublicUpdatePropertyInt(Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0));
-                        }   
+                        }
                     }
                     else
                     {
@@ -1306,7 +1325,7 @@ namespace ACE.Entity
                         if (payment > amount)
                         {
                             change = payment - amount;
-                            // add new change object. 
+                            // add new change object.
                             changeobj.StackSize = (ushort)change;
                         }
                         break;
@@ -1652,11 +1671,11 @@ namespace ACE.Entity
         /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
         /// of the aceObjects from the current list of inventory world objects by container. Og II
         /// </summary>
-       public void SnapshotInventoryItems(bool clearDirtyFlags = false)
+        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
         {
             Inventory.Clear();
             foreach (var wo in InventoryObjects)
-             {
+            {
                 Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
                 if (wo.Value.WeenieType == WeenieType.Container)
                 {
@@ -1666,6 +1685,14 @@ namespace ACE.Entity
                         wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
                     }
                 }
+            }
+        }
+
+        public void SnapShotTrackedContracts()
+        {
+            foreach (var tc in TrackedContracts)
+            {
+                AceObject.SetTrackedContract(tc.Key, tc.Value.SnapShotOfAceContractTracker());
             }
         }
 
@@ -1680,9 +1707,10 @@ namespace ACE.Entity
                 // Save the current position to persistent storage, only during the server update interval
                 SetPhysicalCharacterPosition();
 
-                // Let's get a snapshot of our wielded items prior to save.
+                // Let's get a snapshot of our object lists prior to save.
                 SnapshotWieldedItems();
                 SnapshotInventoryItems();
+                SnapShotTrackedContracts();
 
                 DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
 
@@ -1760,6 +1788,8 @@ namespace ACE.Entity
                                         new GameMessageCreateObject(this));
 
             SendInventoryAndWieldedItems(Session);
+
+            SendContractTrackerTable();
         }
 
         public void Teleport(Position newPosition)
@@ -2326,6 +2356,14 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// This method is used to take our persisted tracked contracts and send them on to the client. Pg II
+        /// </summary>
+        public void SendContractTrackerTable()
+        {
+            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
+        }
+
+        /// <summary>
         /// This method is called in response to a put item in container message.  It is used when the item going
         /// into a container was wielded.   It sets the appropriate properties, sends out response messages
         /// and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
@@ -2418,6 +2456,12 @@ namespace ACE.Entity
         /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting
         /// item. Og II
         /// </summary>
+        /// <param name="stackId">This is the guild of the item we are spliting</param>
+        /// <param name="containerId">The guid of the container</param>
+        /// <param name="place">Place is the slot in the container we are spliting into.   Range 0-MaxCapacity</param>
+        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
+        /// <returns></returns>
+
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
         {
             // TODO: add the complementary method to combine items Og II
@@ -2490,7 +2534,50 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// This method is used to remove X number of items from a stack, including 
+        /// This method is part of the contract tracking functions.   This is used to remove or abandon a contract.
+        /// The method validates the id passed from the client against the portal.dat file, then sends the appropriate
+        /// response to the client to remove the item from the quest panel. Og II
+        /// </summary>
+        /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
+        public void HandleActionAbandonContract(uint contractId)
+        {
+            ActionChain abandonContractChain = new ActionChain();
+            abandonContractChain.AddAction(this, () =>
+            {
+                ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
+                {
+                    Stage = 0,
+                    TimeWhenDone = 0,
+                    TimeWhenRepeats = 0,
+                    DeleteContract = 1,
+                    SetAsDisplayContract = 0
+                };
+
+                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
+
+                AceContractTracker contract = new AceContractTracker();
+                if (TrackedContracts.ContainsKey(contractId))
+                    contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
+
+                TrackedContracts.Remove(contractId);
+                LastUseTracker.Remove(contractId);
+                AceObject.TrackedContracts.Remove(contractId);
+
+                DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
+               {
+                   if (deleteSuccess)
+                       log.Info($"ContractId {contractId:X} successfully deleted");
+                   else
+                       log.Error($"Unable to delete contractId {contractId:X} ");
+               });
+
+                Session.Network.EnqueueSend(contractMsg);
+            });
+            abandonContractChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method is used to remove X number of items from a stack, including
         /// If amount to remove is greater or equal to the current stacksize, item will be removed.
         /// </summary>
         /// <param name="stackId">Guid.Full of the stacked item</param>
@@ -2498,6 +2585,8 @@ namespace ACE.Entity
         /// <param name="amount">Amount taken out of the stack</param>
         public void HandleActionRemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
         {
+            // FIXME: This method has been morphed into doing a few things we either need to rename it or
+            // something.   This may or may not remove item from inventory.
             ActionChain removeItemsChain = new ActionChain();
             removeItemsChain.AddAction(this, () =>
             {
@@ -2533,12 +2622,20 @@ namespace ACE.Entity
                 Debug.Assert(item.StackSize != null, "stack.StackSize != null");
                 Debug.Assert(item.Value != null, "stack.Value != null");
 
-                var valuePerItem = item.Value / item.StackSize;
-                ushort burdenPerItem = (ushort)(item.Burden / item.StackSize);
+                uint? valuePerItem;
+                ushort burdenPerItem;
+                if (item.StackSize != 0)
+                {
+                    valuePerItem = item.Value / item.StackSize;
+                    burdenPerItem = (ushort)(item.Burden / item.StackSize);
+                }
+                else
+                {
+                    valuePerItem = item.Value;
+                    burdenPerItem = (ushort)item.Burden;
+                }
 
                 item.StackSize = newStackSize;
-
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
 
                 if (newStackSize < 1)
                 {
@@ -2553,6 +2650,9 @@ namespace ACE.Entity
                     item.Burden = (ushort)(item.StackSize * burdenPerItem);
 
                     Burden = (ushort)(Burden - burdenPerItem);
+                    // Only send this message if we are a stackable item in the first place. Og II
+                    if (item.MaxStackSize > 1)
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, oldStackSize));
 
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container.Sequences, PropertyInt.Value, (uint)item.Value));
                 }
@@ -3159,7 +3259,7 @@ namespace ACE.Entity
                     ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
                 }
             }).EnqueueChain();
-    }
+        }
 
         public void HandleActionApplySoundEffect(Sound sound)
         {

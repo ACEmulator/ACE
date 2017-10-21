@@ -15,6 +15,8 @@ namespace ACE.Database
 
         void DeleteFriend(uint characterId, uint friendCharacterId);
 
+        bool DeleteContract(AceContractTracker contract);
+
         void AddFriend(uint characterId, uint friendCharacterId);
 
         void RemoveAllFriends(uint characterId);

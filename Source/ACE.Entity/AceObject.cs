@@ -296,6 +296,12 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
+        public uint? UseCreateContractId
+        {
+            get { return GetIntProperty(PropertyInt.UseCreatesContractId); }
+            set { SetIntProperty(PropertyInt.UseCreatesContractId, value); }
+        }
+
         public uint? ItemUseable
         {
             get { return GetIntProperty(PropertyInt.ItemUseable); }
@@ -1521,7 +1527,7 @@ namespace ACE.Entity
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
         #endregion
-        
+
         public double? BuyRate
         {
             get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
@@ -1533,7 +1539,7 @@ namespace ACE.Entity
             get { return GetDoubleProperty(PropertyDouble.SellPrice); }
             set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
         }
-        
+
         protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
@@ -1883,6 +1889,8 @@ namespace ACE.Entity
 
         public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
+        public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         // uint references the page
@@ -1916,6 +1924,18 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesPositions, positionType, value);
         }
 
+        public void SetTrackedContract(uint contractId, AceContractTracker value)
+        {
+            SetProperty(TrackedContracts, contractId, value);
+        }
+
+        public AceContractTracker GetTrackedContract(uint contractId)
+        {
+            AceContractTracker ret;
+            bool success = TrackedContracts.TryGetValue(contractId, out ret);
+            return !success ? null : ret;
+        }
+
         public object Clone()
         {
             AceObject ret = new AceObject
@@ -1946,6 +1966,7 @@ namespace ACE.Entity
                 BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
                 WieldedItems = CloneDict(WieldedItems),
+                TrackedContracts = CloneDict(TrackedContracts)
             };
             return ret;
         }
