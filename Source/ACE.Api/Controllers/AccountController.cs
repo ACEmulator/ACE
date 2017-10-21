@@ -12,6 +12,10 @@ using System.Web.Http;
 
 namespace ACE.Api.Controllers
 {
+    /// <summary>
+    /// allows for authenticating directly to the server instead of the login server.  warning, this is
+    /// subject to deprecation without warning.
+    /// </summary>
     public class AccountController : BaseController
     {
         /// <summary>

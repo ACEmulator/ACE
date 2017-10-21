@@ -11,6 +11,8 @@ namespace ACE.Common
     {
         public string WorldName { get; set; }
 
+        public string Description { get; set; }
+        
         public string Welcome { get; set; }
 
         public NetworkSettings Network { get; set; }
@@ -26,8 +28,18 @@ namespace ACE.Common
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint ShutdownInterval { get; set; }
 
+        /// <summary>
+        /// whether or not this server requires secure authentication.  for backwards compatibility, this is false
+        /// by default.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool SecureAuthentication { get; set; }
 
+        /// <summary>
+        /// list of LoginServers that this server will accept tokens from.  If you are running
+        /// your own Login Server, you will need to make sure it is in this list.
+        /// </summary>
         public List<string> AllowedAuthServers { get; set; } = new List<string>();
     }
 }

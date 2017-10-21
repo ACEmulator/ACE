@@ -8,16 +8,20 @@ using ACE.Database;
 using ACE.Entity;
 using System.Net.Http;
 using ACE.Api.Common;
+using Swashbuckle.Swagger.Annotations;
+using System.Net;
 
 namespace ACE.Api.Controllers
 {
-    public class ContentController : ApiController
+    public class ContentController : BaseController
     {
         [HttpGet]
         [AceAuthorize]
+        [SwaggerResponse(HttpStatusCode.OK, Type = typeof(List<Content>))]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
         public HttpResponseMessage GetAllContent()
         {
-            return null;
+            return Request.CreateResponse(HttpStatusCode.OK, WorldDb.GetAllContent());
         }
     }
 }

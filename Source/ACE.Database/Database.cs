@@ -1113,5 +1113,41 @@ namespace ACE.Database
             result = result.Replace("\0", ""); // just remove null characters
             return result;
         }
+
+        protected T ExecuteDynamicGet<T>(Dictionary<string, MySqlParameter> criteria) where T:class
+        {
+            var properties = GetPropertyCache(typeof(T));
+            var dbTable = GetDbTableAttribute(typeof(T));
+            string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v`";
+
+            string where = null;
+
+            foreach(var p in criteria)
+            {
+                where = where == null ? " WHERE " : where + " AND ";
+                where += $"`{p.Value}`= ?";
+            }
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    criteria.Values.ToList().ForEach(p => command.Parameters.Add(p));
+
+                    connection.Open();
+                    using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                    {
+                        if (commandReader.Read())
+                        {
+                            return ReadObject<T>(commandReader);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

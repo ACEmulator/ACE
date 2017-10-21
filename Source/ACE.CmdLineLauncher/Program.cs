@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -13,7 +12,75 @@ namespace ACE.CmdLineLauncher
 {
     class Program
     {
+        private static LauncherConfig config = LauncherConfig.Load();
+
         static void Main(string[] args)
+        {
+            string command = null;
+            
+            while (command != "1")
+            {
+                Console.WriteLine("Options:");
+                Console.WriteLine("1) Exit");
+                Console.WriteLine("2) Authenticated Login");
+                Console.WriteLine("3) No-Auth Login");
+                Console.WriteLine("4) Help");
+                Console.Write("> ");
+                command = Console.ReadLine();
+
+                switch (command)
+                {
+                    case "2":
+                        AuthenticatedLogin(args);
+                        break;
+                    case "3":
+                        NoAuthLogin(args);
+                        break;
+                    case "4":
+                        Help();
+                        break;
+                }
+
+                args = new string[0];
+            }
+        }
+
+        static void Help()
+        {
+            Console.WriteLine("Authenticated Login:");
+            Console.WriteLine("   Prompts for username and password.  if more than 1 subscriptions exists, you will");
+            Console.WriteLine("   also be prompted to select one.  if no subscriptions exists, one will be created");
+            Console.WriteLine("   for you.  this works regardless of server security settings as the auth token is");
+            Console.WriteLine("   ignored and not validated.");
+            Console.WriteLine("");
+            Console.WriteLine("No-Auth Login:");
+            Console.WriteLine("   This requires the server to allow unsecure connections.  Your characters and items");
+            Console.WriteLine("   are subject to being taken by anybody that can access this server and guess/discover");
+            Console.WriteLine("   your username.");
+            Console.WriteLine("");
+        }
+
+        static void NoAuthLogin(string[] args)
+        {
+            string username;
+            if (args.Length > 0)
+                username = args[0];
+            else
+            {
+                Console.Write("Username: ");
+                username = Console.ReadLine();
+            }
+
+            string exe = config.ClientExe;
+            string gameServer = config.GameServer;
+            string gameArgs = $"-a {username} -h {gameServer} -glsticketdirect null";
+            ProcessStartInfo psi = new ProcessStartInfo(exe, gameArgs);
+            Console.WriteLine($"Game Args: {gameArgs}");
+            psi.WorkingDirectory = System.IO.Path.GetDirectoryName(exe);
+            Process.Start(psi);
+        }
+
+        static void AuthenticatedLogin(string[] args)
         {
             string username;
             string password;
@@ -41,7 +108,7 @@ namespace ACE.CmdLineLauncher
                 return;
 
             // attempt to log in with the password
-            RestClient authClient = new RestClient(ConfigurationManager.AppSettings["LoginServer"]);
+            RestClient authClient = new RestClient(config.LoginServer);
             var authRequest = new RestRequest("/Account/Authenticate", Method.POST);
             authRequest.AddJsonBody(new { Username = username, Password = password });
             var authResponse = authClient.Execute(authRequest);
@@ -60,7 +127,7 @@ namespace ACE.CmdLineLauncher
             JObject response = JObject.Parse(authResponse.Content);
             authToken = (string)response.SelectToken("authToken");
 
-            RestClient subClient = new RestClient(ConfigurationManager.AppSettings["GameApi"]);
+            RestClient subClient = new RestClient(config.GameApi);
             var subsRequest = new RestRequest("/Subscription/Get", Method.GET);
             subsRequest.AddHeader("Authorization", "Bearer " + authToken);
             var subsResponse = subClient.Execute(subsRequest);
@@ -128,7 +195,7 @@ namespace ACE.CmdLineLauncher
                     Console.WriteLine($"{i}) {subs[i].Name}");
 
                 string selectedSub = Console.ReadLine();
-                
+
                 if (int.TryParse(selectedSub, out subIndex) && subIndex < subs.Count)
                 {
                     subscriptionId = subs[subIndex].SubscriptionGuid.ToString();
@@ -139,16 +206,13 @@ namespace ACE.CmdLineLauncher
 
             if (subscriptionId != null)
             {
-                string exe = ConfigurationManager.AppSettings["ClientExe"];
-                string gameServer = ConfigurationManager.AppSettings["GameServer"];
+                string exe = config.ClientExe;
+                string gameServer = config.GameServer;
                 string gameArgs = $"-a {subscriptionId} -h {gameServer} -glsticketdirect {authToken}";
                 ProcessStartInfo psi = new ProcessStartInfo(exe, gameArgs);
                 Console.WriteLine($"Game Args: {gameArgs}");
                 psi.WorkingDirectory = System.IO.Path.GetDirectoryName(exe);
                 Process.Start(psi);
-
-                Console.WriteLine("Press enter to close.");
-                Console.ReadLine();
             }
         }
     }

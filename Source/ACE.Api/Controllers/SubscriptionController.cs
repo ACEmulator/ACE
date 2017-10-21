@@ -23,6 +23,7 @@ namespace ACE.Api.Controllers
         [HttpGet]
         [AceAuthorize]
         [SwaggerResponse(HttpStatusCode.OK, Type = typeof(List<Subscription>))]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
         public HttpResponseMessage Get()
         {
             var principal = Request.GetRequestContext().Principal;
@@ -38,6 +39,7 @@ namespace ACE.Api.Controllers
         [HttpPost]
         [AceAuthorize]
         [SwaggerResponse(HttpStatusCode.OK, Type = typeof(Subscription))]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
         public HttpResponseMessage Create(string subscriptionName)
         {
             var principal = Request.GetRequestContext().Principal;

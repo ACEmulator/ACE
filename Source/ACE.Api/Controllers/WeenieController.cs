@@ -21,7 +21,7 @@ namespace ACE.Api.Controllers
         [HttpPost]
         [AceAuthorize]
         [SwaggerResponse(HttpStatusCode.OK, Type = typeof(List<WeenieSearchResult>))]
-        [SwaggerResponse(HttpStatusCode.Unauthorized)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
         public HttpResponseMessage Search([FromBody] SearchWeeniesCriteria request)
         {
             return Request.CreateResponse(HttpStatusCode.OK, WorldDb.SearchWeenies(request));
@@ -29,7 +29,7 @@ namespace ACE.Api.Controllers
 
         [HttpPost]
         [AceAuthorize(AccessLevel.Developer)]
-        [SwaggerResponse(HttpStatusCode.Unauthorized)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
         public HttpResponseMessage UpdateWeenie([FromBody] object request)
         {
             return Request.CreateResponse(HttpStatusCode.NotImplemented);

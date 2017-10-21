@@ -11,9 +11,9 @@ namespace ACE.Api.Host
     {
         public static void Main(string[] args)
         {
-            // Start OWIN host 
-            var server = WebApp.Start<ACE.Api.Startup>(url: "http://localhost:8000/");
-            Console.WriteLine("ACE API listening at http://localhost:8000/");
+            // TODO: move port to be configuration driven
+            var server = WebApp.Start<ACE.Api.Startup>(url: "http://*:8000/");
+            Console.WriteLine("ACE API listening at http://*:8000/");
             
             Console.ReadLine();
         }

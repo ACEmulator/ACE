@@ -12,9 +12,9 @@ namespace ACE.AuthApi.Host
     {
         static void Main(string[] args)
         {
-            // Start OWIN host 
-            var server = WebApp.Start<Startup>(url: "http://localhost:8001/");
-            Console.WriteLine("ACE Auth API listening at http://localhost:8001/");
+            // TODO: move port to be configuration driven
+            var server = WebApp.Start<Startup>(url: "http://*:8001/");
+            Console.WriteLine("ACE Auth API listening at http://*:8001/");
 
             Console.ReadLine();
         }

@@ -89,33 +89,9 @@ namespace ACE.Database
 
         public Subscription GetSubscriptionByGuid(Guid subscriptionGuid)
         {
-            Subscription ret = new Subscription();
-
-            List<MySqlParameter> mysqlParams = new List<MySqlParameter>();
-            var properties = GetPropertyCache(typeof(Subscription));
-            var dbTable = GetDbTableAttribute(typeof(Subscription));
-            string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v` WHERE subscriptionGuid = ?";
-
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.Parameters.Add("", MySqlDbType.Binary).Value = subscriptionGuid.ToByteArray();
-
-                    connection.Open();
-                    using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
-                    {
-                        if (commandReader.Read())
-                        {
-                            return ReadObject<Subscription>(commandReader);
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-                }
-            }
+            Dictionary<string, MySqlParameter> criteria = new Dictionary<string, MySqlParameter>();
+            criteria.Add("subscriptionGuid", new MySqlParameter("", MySqlDbType.Binary) { Value = subscriptionGuid.ToByteArray() });
+            return ExecuteDynamicGet<Subscription>(criteria);
         }
 
         public List<Subscription> GetSubscriptionsByAccount(Guid accountGuid)
