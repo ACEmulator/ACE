@@ -82,17 +82,17 @@ namespace ACE.Entity
 
                 // TODO: there is a lot of work to do here.   I am stubbing this in for now to send the right message.   Lots of magic numbers at the moment.
                 Debug.Assert(CooldownId != null, "CooldownId != null");
+                Debug.Assert(CooldownDuration != null, "CooldownDuration != null");
+                const uint layer = 0x10000; // FIXME: we need to track how many layers of the exact same spell we have in effect.
+                const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 SpellBase spellBase = new SpellBase
                 {
-                    Category = (uint)EnchantmentTypeFlags.Additive,
                     Power = 0,
-                    Duration = CooldownId.Value,
+                    Duration = CooldownDuration.Value,
                     DegradeModifier = 0,
-                    DegradeLimit = -666,
-                    MetaSpellId = 32768 + (uint)UseCreateContractId
-                    // We will need to create a set of constants for each contract - I may be overloading this.
-                };
-                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase));
+                    DegradeLimit = -666
+            };
+                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase, layer, spellCategory, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
