@@ -10,7 +10,6 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
-using ACE.Entity;
 using log4net;
 using System;
 using System.Collections.Generic;

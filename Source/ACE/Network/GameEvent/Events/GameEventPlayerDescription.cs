@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using System.Diagnostics;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Network.GameEvent.Events
 {

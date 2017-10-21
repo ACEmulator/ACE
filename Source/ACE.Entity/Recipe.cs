@@ -12,8 +12,25 @@ namespace ACE.Entity
     [DbTable("ace_recipe")]
     public class Recipe
     {
-        [DbField("recipeId", (int)MySqlDbType.UInt32)]
-        public uint RecipeId { get; set; }
+        public Guid RecipeGuid { get; set; }
+
+        [DbField("recipeGuid", (int)MySqlDbType.Binary, IsCriteria = true, Update = false)]
+        public byte[] RecipeGuid_Binder
+        {
+            get { return RecipeGuid.ToByteArray(); }
+            set { RecipeGuid = new Guid(value); }
+        }
+
+        /// <summary>
+        /// This is a mocked property that will set a flag in the database any time this object is altered.  this flag
+        /// will allow us to detect objects that have changed post-installation and generate changesetss
+        /// </summary>
+        [DbField("userModified", (int)MySqlDbType.Bit)]
+        public virtual bool UserModified
+        {
+            get { return true; }
+            set { } // method intentionally not implemented
+        }
 
         /// <summary>
         /// enum RecipeType

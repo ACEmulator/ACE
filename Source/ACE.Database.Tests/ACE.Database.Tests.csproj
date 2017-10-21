@@ -48,13 +48,13 @@
       <HintPath>..\packages\MySql.Data.6.9.9\lib\net45\MySql.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.4.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -73,8 +73,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ContentTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConstructedStatementTests.cs" />
+    <Compile Include="WeenieSearchTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
@@ -84,6 +86,10 @@
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
       <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
       <Name>ACE.Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
+      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
+      <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

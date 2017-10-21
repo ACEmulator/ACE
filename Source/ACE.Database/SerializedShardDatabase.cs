@@ -113,11 +113,11 @@ namespace ACE.Database
             }));
         }
 
-        public void GetCharacters(uint accountId, Action<List<CachedCharacter>> callback)
+        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCharacters(accountId);
+                var result = _wrappedDatabase.GetCharacters(subscriptionId);
                 if (callback != null)
                     callback.Invoke(result);
             }));
@@ -220,6 +220,17 @@ namespace ACE.Database
                 if (callback != null)
                     callback.Invoke(result);
             }));
+        }
+
+        public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+                {
+                    bool result = _wrappedDatabase.DeleteContract(contract);
+                    if (callback != null)
+                        callback.Invoke(result);
+            }));
+            return true;
         }
     }
 }

@@ -6,7 +6,7 @@
     public enum AccountLookupType
     {
         Undef,
-        Account,
+        Subscription,
         Character,
         Iid,
     }

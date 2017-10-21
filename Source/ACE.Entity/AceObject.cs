@@ -35,6 +35,17 @@ namespace ACE.Entity
         public bool HasEverBeenSavedToDatabase { get; set; } = false;
 
         /// <summary>
+        /// This is a mocked property that will set a flag in the database any time this object is altered.  this flag
+        /// will allow us to detect objects that have changed post-installation and generate changesetss
+        /// </summary>
+        [DbField("userModified", (int)MySqlDbType.Bit)]
+        public virtual bool UserModified
+        {
+            get { return true; }
+            set { } // method intentionally not implemented
+        }
+
+        /// <summary>
         /// Table field Primary Key
         /// </summary>
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
@@ -283,6 +294,12 @@ namespace ACE.Entity
         {
             get { return GetIntProperty(PropertyInt.Value); }
             set { SetIntProperty(PropertyInt.Value, value); }
+        }
+
+        public uint? UseCreateContractId
+        {
+            get { return GetIntProperty(PropertyInt.UseCreatesContractId); }
+            set { SetIntProperty(PropertyInt.UseCreatesContractId, value); }
         }
 
         public uint? ItemUseable
@@ -554,10 +571,10 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
 
-        public uint? AccountIID
+        public uint? SubscriptionId
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Subscription); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
         }
 
         public bool? IsDeleted
@@ -1510,7 +1527,7 @@ namespace ACE.Entity
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
         #endregion
-        
+
         public double? BuyRate
         {
             get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
@@ -1522,7 +1539,7 @@ namespace ACE.Entity
             get { return GetDoubleProperty(PropertyDouble.SellPrice); }
             set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
         }
-        
+
         protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
@@ -1872,6 +1889,8 @@ namespace ACE.Entity
 
         public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
+        public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();
+
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         // uint references the page
@@ -1905,6 +1924,18 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesPositions, positionType, value);
         }
 
+        public void SetTrackedContract(uint contractId, AceContractTracker value)
+        {
+            SetProperty(TrackedContracts, contractId, value);
+        }
+
+        public AceContractTracker GetTrackedContract(uint contractId)
+        {
+            AceContractTracker ret;
+            bool success = TrackedContracts.TryGetValue(contractId, out ret);
+            return !success ? null : ret;
+        }
+
         public object Clone()
         {
             AceObject ret = new AceObject
@@ -1935,6 +1966,7 @@ namespace ACE.Entity
                 BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
                 WieldedItems = CloneDict(WieldedItems),
+                TrackedContracts = CloneDict(TrackedContracts)
             };
             return ret;
         }

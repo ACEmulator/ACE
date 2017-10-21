@@ -78,5 +78,69 @@ namespace ACE.Database
         {
             return _wrappedDatabase.GetVendorWeenieInventoryById(aceObjectId, desType);
         }
+
+        public void CreateRecipe(Recipe recipe)
+        {
+            _wrappedDatabase.CreateRecipe(recipe);
+        }
+
+        public void UpdateRecipe(Recipe recipe)
+        {
+            _wrappedDatabase.UpdateRecipe(recipe);
+        }
+
+        public void DeleteRecipe(Guid recipeGuid)
+        {
+            _wrappedDatabase.DeleteRecipe(recipeGuid);
+        }
+
+        public List<Content> GetAllContent()
+        {
+            return _wrappedDatabase.GetAllContent();
+        }
+
+        public void CreateContent(Content content)
+        {
+            _wrappedDatabase.CreateContent(content);
+        }
+
+        public void UpdateContent(Content content)
+        {
+            _wrappedDatabase.UpdateContent(content);
+        }
+
+        public void DeleteContent(Guid contentGuid)
+        {
+            _wrappedDatabase.DeleteContent(contentGuid);
+        }
+
+        public void UpdateWeenie(AceObject weenie)
+        {
+            if (_weenieCache.ContainsKey(weenie.WeenieClassId))
+                _weenieCache[weenie.WeenieClassId] = weenie;
+
+            _wrappedDatabase.UpdateWeenie(weenie);
+        }
+
+        public void CreateWeenie(AceObject weenie)
+        {
+            _weenieCache.TryAdd(weenie.WeenieClassId, weenie);
+
+            _wrappedDatabase.CreateWeenie(weenie);
+        }
+
+        public void DeleteWeenie(uint weenieId)
+        {
+            AceObject weenie;
+            if (_weenieCache.ContainsKey(weenieId))
+                _weenieCache.TryRemove(weenieId, out weenie);
+
+            _wrappedDatabase.DeleteWeenie(weenieId);
+        }
+
+        public List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria)
+        {
+            return _wrappedDatabase.SearchWeenies(criteria);
+        }
     }
 }

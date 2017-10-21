@@ -44,8 +44,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MySql.Data.6.9.9\lib\net45\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="StyleCop, Version=5.0.0.0, Culture=neutral, PublicKeyToken=f904653c63bc2738, processorArchitecture=MSIL">
@@ -54,8 +54,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.4.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -64,8 +64,10 @@
     <Compile Include="AbilityRegenAttribute.cs" />
     <Compile Include="AbilityVitalAttribute.cs" />
     <Compile Include="Account.cs" />
+    <Compile Include="AccountByName.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
+    <Compile Include="AceContractTracker.cs" />
     <Compile Include="AceObjectPropertiesSpellBarPositions.cs" />
     <Compile Include="AceObjectPropertiesSpell.cs" />
     <Compile Include="AceObjectPropertiesSkill.cs" />
@@ -82,16 +84,28 @@
     <Compile Include="AceObjectPropertyId.cs" />
     <Compile Include="BaseAceProperty.cs" />
     <Compile Include="CachedWieldedObject.cs" />
+    <Compile Include="ChangeTrackedObject.cs" />
+    <Compile Include="ContentLandblock.cs" />
+    <Compile Include="ContentLink.cs" />
     <Compile Include="Enum\BSPType.cs" />
     <Compile Include="Enum\ClientProperties.cs" />
     <Compile Include="Enum\AceObjectPropertyType.cs" />
     <Compile Include="Enum\DestinationType.cs" />
+    <Compile Include="Enum\ContentType.cs" />
     <Compile Include="Enum\EmoteCategory.cs" />
     <Compile Include="Enum\EmoteType.cs" />
+    <Compile Include="Enum\EnchantmentTypeFlags.cs" />
     <Compile Include="Enum\RecipeResult.cs" />
     <Compile Include="Enum\RecipeType.cs" />
     <Compile Include="Enum\SurfaceType.cs" />
+    <Compile Include="Content.cs" />
+    <Compile Include="ContentResource.cs" />
+    <Compile Include="ContentWeenie.cs" />
+    <Compile Include="SearchWeenieProperty.cs" />
+    <Compile Include="Subscription.cs" />
+    <Compile Include="WeenieSearchResult.cs" />
     <Compile Include="Recipe.cs" />
+    <Compile Include="SearchWeeniesCriteria.cs" />
     <Compile Include="ServerOnlyAttribute.cs" />
     <Compile Include="VendorItems.cs" />
     <Compile Include="WeenieObjectInstance.cs" />

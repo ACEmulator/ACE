@@ -15,7 +15,7 @@ namespace ACE.Database
 
         void DeleteObject(AceObject aceObject, Action<bool> callback);
 
-        void GetCharacters(uint accountId, Action<List<CachedCharacter>> callback);
+        void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback);
 
         /// <summary>
         /// Loads an object by name.  Primary use case: characters.
@@ -23,6 +23,8 @@ namespace ACE.Database
         void GetObjectInfoByName(string name, Action<ObjectInfo> callback);
 
         void DeleteFriend(uint characterId, uint friendCharacterId, Action callback);
+
+        bool DeleteContract(AceContractTracker contract, Action<bool> callback);
 
         void AddFriend(uint characterId, uint friendCharacterId, Action callback);
 

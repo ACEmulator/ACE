@@ -18,10 +18,12 @@ namespace ACE.Network
     public class Session
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public uint SubscriptionId { get; private set; }
 
-        public uint Id { get; private set; }
+        public string ClientAccountString { get; private set; }
 
-        public string Account { get; private set; }
+        public string LoggingIdentifier { get; private set; } = "Unverified";
 
         public AccessLevel AccessLevel { get; private set; }
 
@@ -106,11 +108,13 @@ namespace ACE.Network
             GameEventSequence = 0;
         }
 
-        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
+        public void SetSubscription(Subscription sub, string clientAccountString, string loggingIdentifier)
         {
-            Id = accountId;
-            Account = account;
-            AccessLevel = accountAccesslevel;
+            log.Info($"setting subscription information for {sub.SubscriptionGuid}, clientAccountString {clientAccountString}");
+            SubscriptionId = sub.SubscriptionId;
+            ClientAccountString = clientAccountString;
+            LoggingIdentifier = loggingIdentifier;
+            AccessLevel = sub.AccessLevel;
         }
 
         public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
@@ -124,17 +128,17 @@ namespace ACE.Network
                     if (Time.GetUnixTime() > character.DeleteTime)
                     {
                         character.Deleted = true;
-                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, ((bool deleteSuccess) =>
+                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, deleteSuccess =>
                         {
                             if (deleteSuccess)
                             {
-                                log.Info($"Character {character.Guid.Full.ToString("X")} successfully marked as deleted");
+                                log.Info($"Character {character.Guid.Full:X} successfully marked as deleted");
                             }
                             else
                             {
-                                log.Error($"Unable to mark character {character.Guid.Full.ToString("X")} as deleted");
+                                log.Error($"Unable to mark character {character.Guid.Full:X} as deleted");
                             }
-                        }));
+                        });
                         continue;
                     }
                 }
@@ -276,10 +280,10 @@ namespace ACE.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(Id, ((List<CachedCharacter> result) =>
+            DatabaseManager.Shard.GetCharacters(SubscriptionId, ((List<CachedCharacter> result) =>
             {
                 UpdateCachedCharacters(result);
-                Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+                Network.EnqueueSend(new GameMessageCharacterList(result, ClientAccountString));
 
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
                 Network.EnqueueSend(serverNameMessage);
@@ -297,6 +301,7 @@ namespace ACE.Network
             // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
             Network.EnqueueSend(new GameMessageBootAccount(this));
         }
+
         /// <summary>
         /// Sends a broadcast message to the player
         /// </summary>
