@@ -1,10 +1,4 @@
 # ACEmulator Change Log
-### 2017-10-18
-[StackOverflow]
-* Vendors - Fixed bug with sell of item from wielded locations
-* Inventory - Major Refractor of Code. (many conditional bugs fixed)
-* Fixed server crash bug on dropping wielded items (items now drop to ground np)
-* Fixed bug with dropping clothing / armor to landblock
 
 ### 2017-10-19
 [Og II]
@@ -16,6 +10,15 @@
 * Implemented two new game events / SendClientContractTrackerTable and SendClientContractTracker
 * Implemented abandon quest - Game action - Social_AbandonContract
 * Documeted methods and updated trello.
+* To test @ci 44163 -create a contract.   Use the contract and you are now tracking that quest.   You can create any contract using ci or buy one from a vendor if they are In
+* did not check vendors.   You can abandon the contract.   All management and the cooldown delay of 2 seconds is respected.
+
+### 2017-10-18
+[StackOverflow]
+* Vendors - Fixed bug with sell of item from wielded locations
+* Inventory - Major Refractor of Code. (many conditional bugs fixed)
+* Fixed server crash bug on dropping wielded items (items now drop to ground np)
+* Fixed bug with dropping clothing / armor to landblock
 
 ### 2017-10-17
 [Jyrus]
