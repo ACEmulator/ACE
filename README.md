@@ -76,7 +76,7 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 > 3) Run the following command  and you'll be able to see the popup triggering the build failure.  
    `vstest.console /inIsolation "ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64`
 
-#### 3. Startup projects are not settings
+#### 3. Startup projects are not set / working
 * _Problem_
 > When you first load the solution and try to "run" the server, you may get a popup that says "A project with Output Type of Class Library cannot be started directly."
 * _Solution_
