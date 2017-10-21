@@ -172,7 +172,7 @@ namespace ACE.Managers
             // skill will be null since the difficulty is calculated manually
             if (recipe.SkillId == null)
             {
-                log.Warn($"healing recipe has null skill id (should almost certainly be healing, but who knows).  recipe id {recipe.RecipeId}.");
+                log.Warn($"healing recipe has null skill id (should almost certainly be healing, but who knows).  recipe id {recipe.RecipeGuid}.");
                 player.SendUseDoneEvent();
                 return;
             }

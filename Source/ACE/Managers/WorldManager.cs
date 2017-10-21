@@ -143,12 +143,12 @@ namespace ACE.Managers
             }
         }
 
-        public static Session Find(string account)
+        public static Session Find(uint subscriptionId)
         {
             sessionLock.EnterReadLock();
             try
             {
-                return sessions.SingleOrDefault(s => s.Account == account);
+                return sessions.SingleOrDefault(s => s.SubscriptionId == subscriptionId);
             }
             finally
             {

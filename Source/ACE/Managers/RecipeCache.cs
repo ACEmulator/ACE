@@ -23,7 +23,7 @@ namespace ACE.Managers
                 if (!_cache[recipe.SourceWcid].ContainsKey(recipe.TargetWcid))
                     _cache[recipe.SourceWcid].Add(recipe.TargetWcid, recipe);
                 else
-                    log.Debug("duplicate/unusable recipe detected: " + recipe.RecipeId);
+                    log.Debug("duplicate/unusable recipe detected: " + recipe.RecipeGuid);
             }
         }
 

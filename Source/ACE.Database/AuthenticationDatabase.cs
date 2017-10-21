@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -6,6 +7,8 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 
 using MySql.Data.MySqlClient;
+using System.Linq;
+using System.Data;
 
 namespace ACE.Database
 {
@@ -14,58 +17,110 @@ namespace ACE.Database
         private enum AuthenticationPreparedStatement
         {
             AccountInsert,
-            AccountMaxIndex,
             AccountSelect,
-            AccountUpdateAccessLevel
+            AccountUpdate,
+            AccountSelectByName,
+
+            SubscriptionInsert,
+            SubscriptionSelect,
+            SubscriptionUpdate,
+            SubscriptionGet,
+            SubscriptionGetByAccount
         }
 
         protected override Type PreparedStatementType => typeof(AuthenticationPreparedStatement);
 
         protected override void InitializePreparedStatements()
         {
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `accesslevel`, `password`, `salt`) VALUES (?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `accesslevel`, `password`, `salt` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, "UPDATE `account` SET `accesslevel` = ? WHERE `id` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
-        }
+            ConstructStatement(AuthenticationPreparedStatement.AccountSelect, typeof(Account), ConstructedStatementType.Get);
+            ConstructStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), ConstructedStatementType.Insert);
+            ConstructStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), ConstructedStatementType.Update);
+            ConstructStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), ConstructedStatementType.Get);
 
-        public uint GetMaxId()
-        {
-            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex);
-            Debug.Assert(result != null, "Invalid prepared statement value.");
-            return result.Read<uint>(0, "MAX(`id`)") + 1;
+            ConstructStatement(AuthenticationPreparedStatement.SubscriptionInsert, typeof(Subscription), ConstructedStatementType.Insert);
+            ConstructStatement(AuthenticationPreparedStatement.SubscriptionSelect, typeof(Subscription), ConstructedStatementType.Get);
+            ConstructStatement(AuthenticationPreparedStatement.SubscriptionUpdate, typeof(Subscription), ConstructedStatementType.Update);
+            ConstructStatement(AuthenticationPreparedStatement.SubscriptionGet, typeof(Subscription), ConstructedStatementType.Get);
+            ConstructStatement(AuthenticationPreparedStatement.SubscriptionGetByAccount, typeof(Subscription), ConstructedStatementType.GetList);
         }
-
+        
         public void CreateAccount(Account account)
         {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.AccessLevel, account.Digest, account.Salt);
+            ExecuteConstructedInsertStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), account);
         }
 
-        public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
+        public void CreateSubscription(Subscription sub)
         {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
+            ExecuteConstructedInsertStatement(AuthenticationPreparedStatement.SubscriptionInsert, typeof(Subscription), sub);
         }
 
-        public async Task<Account> GetAccountByName(string accountName)
+        public void UpdateSubscriptionAccessLevel(uint subscriptionId, AccessLevel accessLevel)
         {
-            var result = await SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, accountName);
-
-            uint id = result.Read<uint>(0, "id");
-            string name = result.Read<string>(0, "account");
-            uint accessLevel = result.Read<uint>(0, "accesslevel");
-            string password = result.Read<string>(0, "password");
-            string salt = result.Read<string>(0, "salt");
-
-            Account account = new Account(id, name, (AccessLevel)accessLevel, salt, password);
-            return account;
+            var sub = GetSubscriptionById(subscriptionId);
+            sub.AccessLevel = accessLevel;
+            UpdateSubscription(sub);
         }
 
+        public void UpdateAccount(Account account)
+        {
+            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), account);
+        }
+
+        public void UpdateSubscription(Subscription sub)
+        {
+            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.SubscriptionUpdate, typeof(Subscription), sub);
+        }
+
+        public Account GetAccountById(uint accountId)
+        {
+            Account ret = new Account();
+            var criteria = new Dictionary<string, object> { { "accountId", accountId } };
+            bool success = ExecuteConstructedGetStatement<Account, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelect, criteria, ret);
+            return ret;
+        }
+
+        public Subscription GetSubscriptionById(uint subscriptionId)
+        {
+            Subscription ret = new Subscription();
+            var criteria = new Dictionary<string, object> { { "subscriptionId", subscriptionId } };
+            bool success = ExecuteConstructedGetStatement<Subscription, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.SubscriptionGet, criteria, ret);
+            return ret;
+        }
+
+        public Subscription GetSubscriptionByGuid(Guid subscriptionGuid)
+        {
+            Dictionary<string, MySqlParameter> criteria = new Dictionary<string, MySqlParameter>();
+            criteria.Add("subscriptionGuid", new MySqlParameter("", MySqlDbType.Binary) { Value = subscriptionGuid.ToByteArray() });
+            return ExecuteDynamicGet<Subscription>(criteria);
+        }
+
+        public List<Subscription> GetSubscriptionsByAccount(Guid accountGuid)
+        {
+            var criteria = new Dictionary<string, object> { { "accountGuid", accountGuid.ToByteArray() } };
+            var result = ExecuteConstructedGetListStatement<AuthenticationPreparedStatement, Subscription>(AuthenticationPreparedStatement.SubscriptionGetByAccount, criteria);
+            return result;
+        }
+
+        public Account GetAccountByName(string accountName)
+        {
+            AccountByName ret = new AccountByName();
+            var criteria = new Dictionary<string, object> { { "accountName", accountName } };
+            bool success = ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
+
+            if (success)
+            {
+                return GetAccountById(ret.AccountId);
+            }
+
+            return null;
+        }
+        
         public void GetAccountIdByName(string accountName, out uint id)
         {
-            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountSelect, accountName);
-            Debug.Assert(result != null, "Invalid prepared statement value.");
-
-            id = result.Read<uint>(0, "id");
+            AccountByName ret = new AccountByName();
+            var criteria = new Dictionary<string, object> { { "accountName", accountName } };
+            ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
+            id = ret.AccountId;
         }
     }
 }

@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-10-20
+[Mogwai]
+* Authentication overhaul is done.  Please note there are significant changes to the Readme file.
+
 ### 2017-10-19
 [Og II]
 * Added processing for contract management add / abandon.

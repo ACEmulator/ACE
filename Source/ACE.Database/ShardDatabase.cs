@@ -303,9 +303,9 @@ namespace ACE.Database
             return true;
         }
 
-        public List<CachedCharacter> GetCharacters(uint accountId)
+        public List<CachedCharacter> GetCharacters(uint subscriptionId)
         {
-            var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
+            var criteria = new Dictionary<string, object> { { "subscriptionId", subscriptionId }, { "deleted", 0 } };
             var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
 
             return objects;
@@ -573,7 +573,7 @@ namespace ACE.Database
         {
             AceObject ret = new AceObject();
             var criteria = new Dictionary<string, object> { { "aceObjectId", objId } };
-            bool success = ExecuteConstructedGetStatement<ShardPreparedStatement>(ShardPreparedStatement.GetAceObject, typeof(AceObject), criteria, ret);
+            bool success = ExecuteConstructedGetStatement<AceObject, ShardPreparedStatement>(ShardPreparedStatement.GetAceObject, criteria, ret);
             if (!success)
             {
                 return null;
@@ -617,7 +617,7 @@ namespace ACE.Database
         {
             var cc = new CachedCharacter();
             var criteria = new Dictionary<string, object> { { "name", name } };
-            return !(ExecuteConstructedGetStatement(ShardPreparedStatement.IsCharacterNameAvailable, typeof(CachedCharacter), criteria, cc));
+            return !(ExecuteConstructedGetStatement<CachedCharacter, ShardPreparedStatement>(ShardPreparedStatement.IsCharacterNameAvailable, criteria, cc));
         }
 
         public uint RenameCharacter(string currentName, string newName)

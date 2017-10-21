@@ -98,7 +98,7 @@ namespace ACE.Command.Handlers
         /// </remarks>
         [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
             "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
-            "{ account | char | iid } who")]
+            "{ subscriptionId | char | iid } who")]
         public static void HandleBoot(Session session, params string[] parameters)
         {
             // usage: @boot { account, char, iid} who
@@ -131,16 +131,14 @@ namespace ACE.Command.Handlers
             if (selectorType != AccountLookupType.Undef)
             {
                 // Extract the name from the parameters and get the name from the first parameter
-                if (selectorType == AccountLookupType.Account || selectorType == AccountLookupType.Character)
+                if (selectorType == AccountLookupType.Subscription || selectorType == AccountLookupType.Character)
                     bootName = Common.Extensions.CharacterNameExtensions.StringArrayToCharacterName(parameters, 1);
 
                 switch (selectorType)
                 {
-                    case AccountLookupType.Account:
+                    case AccountLookupType.Subscription:
                         {
-                            playerSession = WorldManager.Find(bootName);
-                            if (playerSession != null)
-                                bootId = playerSession.Player.Guid.Low;
+                            throw new NotImplementedException();
                             break;
                         }
                     case AccountLookupType.Character:

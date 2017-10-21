@@ -35,6 +35,17 @@ namespace ACE.Entity
         public bool HasEverBeenSavedToDatabase { get; set; } = false;
 
         /// <summary>
+        /// This is a mocked property that will set a flag in the database any time this object is altered.  this flag
+        /// will allow us to detect objects that have changed post-installation and generate changesetss
+        /// </summary>
+        [DbField("userModified", (int)MySqlDbType.Bit)]
+        public virtual bool UserModified
+        {
+            get { return true; }
+            set { } // method intentionally not implemented
+        }
+
+        /// <summary>
         /// Table field Primary Key
         /// </summary>
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
@@ -560,10 +571,10 @@ namespace ACE.Entity
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
 
-        public uint? AccountIID
+        public uint? SubscriptionId
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Subscription); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
         }
 
         public bool? IsDeleted

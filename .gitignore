@@ -290,3 +290,5 @@ __pycache__/
 
 # ACEmulator specific files
 /Source/ACE/config.json
+/Source/ACE/hmac_key.txt
+/Source/ACE.CmdLineLauncher/launcher_config.json

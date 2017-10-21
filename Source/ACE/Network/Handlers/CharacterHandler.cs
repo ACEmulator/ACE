@@ -32,9 +32,9 @@ namespace ACE.Network.Handlers
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
-            string account = message.Payload.ReadString16L();
+            string clientString = message.Payload.ReadString16L();
 
-            if (account != session.Account)
+            if (clientString != session.ClientAccountString)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
@@ -59,10 +59,10 @@ namespace ACE.Network.Handlers
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
         public static void CharacterDelete(ClientMessage message, Session session)
         {
-            string account = message.Payload.ReadString16L();
+            string clientString = message.Payload.ReadString16L();
             uint characterSlot = message.Payload.ReadUInt32();
-
-            if (account != session.Account)
+            
+            if (clientString != session.ClientAccountString)
             {
                 session.SendCharacterError(CharacterError.Delete);
                 return;
@@ -83,10 +83,10 @@ namespace ACE.Network.Handlers
             {
                 if (deleteOrRestoreSuccess)
                 {
-                    DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+                    DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
                     {
                         session.UpdateCachedCharacters(result);
-                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.ClientAccountString));
                     }));
                 }
                 else
@@ -127,8 +127,8 @@ namespace ACE.Network.Handlers
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
         public static void CharacterCreate(ClientMessage message, Session session)
         {
-            string account = message.Payload.ReadString16L();
-            if (account != session.Account)
+            string clientString = message.Payload.ReadString16L();
+            if (clientString != session.ClientAccountString)
                 return;
 
             uint id = GuidManager.NewPlayerGuid().Full;
@@ -608,7 +608,7 @@ namespace ACE.Network.Handlers
                     return;
                 }
 
-                character.AccountId = session.Id;
+                character.SubscriptionId = session.SubscriptionId;
 
                 CharacterCreateSetDefaultCharacterOptions(character);
                 CharacterCreateSetDefaultCharacterPositions(character, startArea);

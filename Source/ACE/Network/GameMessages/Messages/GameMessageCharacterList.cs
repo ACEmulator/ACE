@@ -7,7 +7,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageCharacterList : GameMessage
     {
-        public GameMessageCharacterList(List<CachedCharacter> characters, string account) : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
+        public GameMessageCharacterList(List<CachedCharacter> characters, string clientAccountString) : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
         {
             // Remove any deleted characters from results
             List<CachedCharacter> charactersTrimmed = new List<CachedCharacter>();
@@ -30,7 +30,7 @@ namespace ACE.Network.GameMessages.Messages
 
             Writer.Write(0u);
             Writer.Write(11u /*slotCount*/);
-            Writer.WriteString16L(account);
+            Writer.WriteString16L(clientAccountString);
             Writer.Write(1u /*useTurbineChat*/);
             Writer.Write(1u /*hasThroneOfDestiny*/);
         }
