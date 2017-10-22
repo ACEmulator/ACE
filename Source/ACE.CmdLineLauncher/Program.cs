@@ -16,33 +16,37 @@ namespace ACE.CmdLineLauncher
 
         static void Main(string[] args)
         {
-            string command = null;
-            
-            while (command != "1")
+            if (config != null)
             {
-                Console.WriteLine("Options:");
-                Console.WriteLine("1) Exit");
-                Console.WriteLine("2) Authenticated Login");
-                Console.WriteLine("3) No-Auth Login");
-                Console.WriteLine("4) Help");
-                Console.Write("> ");
-                command = Console.ReadLine();
+                string command = null;
 
-                switch (command)
+                while (command != "1")
                 {
-                    case "2":
-                        AuthenticatedLogin(args);
-                        break;
-                    case "3":
-                        NoAuthLogin(args);
-                        break;
-                    case "4":
-                        Help();
-                        break;
-                }
+                    Console.WriteLine("Options:");
+                    Console.WriteLine("1) Exit");
+                    Console.WriteLine("2) Authenticated Login");
+                    Console.WriteLine("3) No-Auth Login");
+                    Console.WriteLine("4) Help");
+                    Console.Write("> ");
+                    command = Console.ReadLine();
 
-                args = new string[0];
-            }
+                    switch (command)
+                    {
+                        case "2":
+                            AuthenticatedLogin(args);
+                            break;
+                        case "3":
+                            NoAuthLogin(args);
+                            break;
+                        case "4":
+                            Help();
+                            break;
+                    }
+
+                    args = new string[0];
+                }
+            } else
+                Console.WriteLine("Please check your launcher_config.json file for errors.");
         }
 
         static void Help()

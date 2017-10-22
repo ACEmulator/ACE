@@ -1,4 +1,13 @@
 # ACEmulator Change Log
+### 2017-20-22
+[fantoms]
+* Added lines too Copy `Config.json` too the `Api Host` and `Auth Host` build target directoriess.
+* Changed `*` to `+`, on the Api.Host and Api.Auth.Host startup for non-admins.
+* Added simple service configurations for the Api services, `service_config.json` now requires 2 fields.
+* Updated README.md to include the required instructions for Api host support.
+* Added a few null checks to prevent crashes.
+* Added a config error check on the cmd line launcher
+
 ### 2017-10-20
 [Mogwai]
 * Authentication overhaul is done.  Please note there are significant changes to the Readme file.

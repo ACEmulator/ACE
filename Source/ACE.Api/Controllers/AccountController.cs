@@ -31,16 +31,18 @@ namespace ACE.Api.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new AuthResponse() { AuthToken = JwtManager.GenerateToken(account, JwtManager.HmacSigning) });
             }
-
             throw new HttpResponseException(HttpStatusCode.Unauthorized);
+            //return Request.CreateResponse(HttpStatusCode.Unauthorized, "Incorrect username or password.");
         }
 
         private Account CheckUser(string username, string password)
         {
             var account = AuthDb.GetAccountByName(username);
-            if (!account.PasswordMatches(password))
-                account = null;
-
+            if (account?.Name.Length > 0)
+            {
+                if (!account.PasswordMatches(password))
+                    account = null;
+            }
             return account;
         }
     }

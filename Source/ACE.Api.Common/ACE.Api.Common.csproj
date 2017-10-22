@@ -96,6 +96,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ServiceConfig.cs" />
     <Compile Include="TokenInfo.cs" />
     <Compile Include="AceAuthorizeAttribute.cs" />
     <Compile Include="AceJwtTokenHandler.cs" />
