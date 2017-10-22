@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ACE.Common;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,37 +10,18 @@ using System.Threading.Tasks;
 
 namespace ACE.Api.Common
 {
-    public class ServiceConfig
-    {
-        public ServiceConfig()
+    public static class ServiceConfig {
+        public static void LoadServiceConfig()
         {
-        }
+            string debugPath = @"..\..\..\..\ACE\Config.json"; // default path for debug
+            string path = "Config.json"; // default path for user installations
 
-        public string ApiBindAddress { get; set; }
+            if (!File.Exists(path) && File.Exists(debugPath))
+                path = debugPath;
 
-        public string ApiBindPort { get; set; }
+            var config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText(path));
 
-        public static ServiceConfig Load()
-        {
-            var currentLocation = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "service_config.json"));
-            if (File.Exists(currentLocation))
-            {
-#if DEBUG
-                Console.WriteLine($"Reading config from: {currentLocation}");
-#endif
-                ServiceConfig config = null;
-                string content = System.IO.File.ReadAllText(currentLocation);
-                try
-                {
-                    config = JsonConvert.DeserializeObject<ServiceConfig>(content);
-                }
-                catch (JsonException jsonError)
-                {
-                    Console.WriteLine($"Error in Config, please check: {jsonError.Message}");
-                }
-                return config;
-            }
-            return null;
+            ConfigManager.Initialize(config);
         }
     }
 }

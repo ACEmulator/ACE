@@ -27,15 +27,6 @@ namespace ACE.Api
             config.MessageHandlers.Add(new AceJwtTokenHandler());
             
             app.UseWebApi(config);
-
-            string debugPath = @"..\..\..\..\ACE\Config.json"; // default path for debug
-            string path = "Config.json"; // default path for user installations
-
-            if (!File.Exists(path) && File.Exists(debugPath))
-                path = debugPath;
-
-            var serverConfig = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText(path));
-            ConfigManager.Initialize(serverConfig);
         }
     }
 }
