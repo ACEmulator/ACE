@@ -1288,7 +1288,7 @@ namespace ACE.Entity
             currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
             foreach (WorldObject wo in currency)
             {
-                if (wo.WeenieType == WeenieType.Coin )
+                if (wo.WeenieType == WeenieType.Coin)
                     coins += wo.StackSize.Value;
             }
             // send packet to client letthing them know
