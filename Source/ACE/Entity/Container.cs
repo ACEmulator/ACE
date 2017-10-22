@@ -361,8 +361,16 @@ namespace ACE.Entity
         {
             new ActionChain(this, () =>
             {
+                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                if (!HasItem(mergeFromGuid))
+                {
+                    // This is a pickup into our main pack.
+                    session.Player.HandleActionPutItemInContainer(mergeFromGuid, session.Player.Guid);
+                }
+
                 WorldObject fromWo = GetInventoryItem(mergeFromGuid);
                 WorldObject toWo = GetInventoryItem(mergeToGuid);
+
                 if (fromWo == null || toWo == null) return;
 
                 // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
