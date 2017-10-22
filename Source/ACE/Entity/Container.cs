@@ -86,6 +86,9 @@ namespace ACE.Entity
                 WorldObject wo = WorldObjectFactory.CreateWorldObject(inventoryItem.Value);
                 InventoryObjects.Add(woGuid, wo);
 
+                if (wo.WeenieType == WeenieType.Coin)
+                    CoinValue += wo.Value ?? 0;
+
                 Burden += wo.Burden ?? 0;
                 log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
             }

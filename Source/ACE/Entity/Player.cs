@@ -1275,17 +1275,17 @@ namespace ACE.Entity
                 {
                     HandleAddNewWorldObjectToInventory(wo);
                 }
-                UpdateCurrencyClientCalculations(WeenieType.Coin);
+                UpdateCurrencyClientCalculations();
             }).EnqueueChain();
             return true;
         }
 
         // todo re-think how this works..
-        private void UpdateCurrencyClientCalculations(WeenieType type)
+        private void UpdateCurrencyClientCalculations()
         {
             uint coins = 0;
             List<WorldObject> currency = new List<WorldObject>();
-            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
+            currency.AddRange(GetInventoryItemsOfTypeWeenieType(WeenieType.Coin));
             foreach (WorldObject wo in currency)
             {
                 coins += wo.StackSize.Value;
@@ -1352,7 +1352,7 @@ namespace ACE.Entity
                     HandleAddNewWorldObjectToInventory(changeobj);
                 }
 
-                UpdateCurrencyClientCalculations(WeenieType.Coin);
+                UpdateCurrencyClientCalculations();
                 return true;
             }
             else
@@ -2441,7 +2441,7 @@ namespace ACE.Entity
             {
                 Burden += item.Burden ?? 0;
                 if (item.WeenieType == WeenieType.Coin)
-                    CoinValue += item.Value ?? 0;
+                    UpdateCurrencyClientCalculations();
             }
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
@@ -2519,6 +2519,9 @@ namespace ACE.Entity
 
                     CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                         msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
+
+                    if (stack.WeenieType == WeenieType.Coin)
+                        UpdateCurrencyClientCalculations();
                 });
             splitItemsChain.EnqueueChain();
         }
@@ -2689,7 +2692,7 @@ namespace ACE.Entity
 
                     if (item.WeenieType == WeenieType.Coin)
                     {
-                        CoinValue += item.Value ?? 0;
+                        UpdateCurrencyClientCalculations();
                     }
                 }
 
@@ -2699,6 +2702,7 @@ namespace ACE.Entity
                     foreach (var packItem in item.InventoryObjects)
                     {
                         Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                        UpdateCurrencyClientCalculations();
                     }
                 }
 
@@ -3064,8 +3068,8 @@ namespace ACE.Entity
                 else
                 {
                     RemoveWorldObjectFromInventory(itemGuid);
-                    if (item.WeenieType == WeenieType.Coin)
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
+                    if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
+                        UpdateCurrencyClientCalculations();
                 }
 
                 SetInventoryForWorld(item);
