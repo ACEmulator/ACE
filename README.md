@@ -83,6 +83,7 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 > 1) Right click the Solution in Visual Studio ("Solution 'ACE' (16 projects)"), and select "Set StartUp Projects".
 > 2) The following projects should have "Start" in the "Action" column: ACE, ACE.Api.Host, ACE.CmdLineLauncher.  If your server is configured to use secure authentication, also set ACE.AuthApi.Host to "Start".
 
+#### 4. API.Host applications throw "Access is denied" errors
 * _Problem_ When you first load the API Host or Auth Host applications, you may get an error message:
 ```cs
 Unhandled Exception: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.Net.HttpListenerException: Access is denied
