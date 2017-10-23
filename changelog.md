@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-10-21
+[Jyrus]
+* Add the initial set of CoinValue in Container.cs to the value of contained Coins
+* Modified item move, drop, and pickup methods to account for pyreal changes using StackOverflow's UpdateCurrencyClientCalculations();
+
 ### 2017-10-20
 [Mogwai]
 * Authentication overhaul is done.  Please note there are significant changes to the Readme file.
