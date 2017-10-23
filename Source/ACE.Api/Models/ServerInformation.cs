@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE.Api.Controllers
+namespace ACE.Api.Models
 {
     public class ServerInformation
     {

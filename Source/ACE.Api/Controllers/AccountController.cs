@@ -34,7 +34,7 @@ namespace ACE.Api.Controllers
             throw new HttpResponseException(HttpStatusCode.Unauthorized);
             //return Request.CreateResponse(HttpStatusCode.Unauthorized, "Incorrect username or password.");
         }
-
+        
         private Account CheckUser(string username, string password)
         {
             var account = AuthDb.GetAccountByName(username);
