@@ -1288,7 +1288,8 @@ namespace ACE.Entity
             currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
             foreach (WorldObject wo in currency)
             {
-                coins += wo.StackSize.Value;
+                if (wo.WeenieType == WeenieType.Coin)
+                    coins += wo.StackSize.Value;
             }
             // send packet to client letthing them know
             CoinValue = coins;
@@ -2441,7 +2442,7 @@ namespace ACE.Entity
             {
                 Burden += item.Burden ?? 0;
                 if (item.WeenieType == WeenieType.Coin)
-                    CoinValue += item.Value ?? 0;
+                    UpdateCurrencyClientCalculations(WeenieType.Coin);
             }
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
@@ -2519,6 +2520,9 @@ namespace ACE.Entity
 
                     CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                         msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
+
+                    if (stack.WeenieType == WeenieType.Coin)
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
                 });
             splitItemsChain.EnqueueChain();
         }
@@ -2689,7 +2693,7 @@ namespace ACE.Entity
 
                     if (item.WeenieType == WeenieType.Coin)
                     {
-                        CoinValue += item.Value ?? 0;
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
                     }
                 }
 
@@ -2699,6 +2703,7 @@ namespace ACE.Entity
                     foreach (var packItem in item.InventoryObjects)
                     {
                         Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
                     }
                 }
 
@@ -3064,7 +3069,7 @@ namespace ACE.Entity
                 else
                 {
                     RemoveWorldObjectFromInventory(itemGuid);
-                    if (item.WeenieType == WeenieType.Coin)
+                    if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                         UpdateCurrencyClientCalculations(WeenieType.Coin);
                 }
 

@@ -1,4 +1,5 @@
 # ACEmulator Change Log
+
 ### 2017-20-22
 [fantoms]
 * Changed build output path for Api.Host and AuthApi.Host projects, in an attempt to share the server config for debug and build.
@@ -7,6 +8,11 @@
 * Added a few null checks to prevent crashes in the AuthApi login function.
 * Added a config error check on the cmd line launcher, for ease of use.
 * Added config examples that are open to the world.
+
+### 2017-10-21
+[Jyrus]
+* Add the initial set of CoinValue in Container.cs to the value of contained Coins
+* Modified item move, drop, and pickup methods to account for pyreal changes using StackOverflow's UpdateCurrencyClientCalculations();
 
 ### 2017-10-20
 [Mogwai]

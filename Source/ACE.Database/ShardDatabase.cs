@@ -272,7 +272,6 @@ namespace ACE.Database
             return transaction.Commit().Result;
         }
 
-
         public void RemoveAllFriends(uint characterId)
         {
             throw new NotImplementedException();
