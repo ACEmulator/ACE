@@ -83,6 +83,18 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 > 1) Right click the Solution in Visual Studio ("Solution 'ACE' (16 projects)"), and select "Set StartUp Projects".
 > 2) The following projects should have "Start" in the "Action" column: ACE, ACE.Api.Host, ACE.CmdLineLauncher.  If your server is configured to use secure authentication, also set ACE.AuthApi.Host to "Start".
 
+* _Problem_ When you first load the API Host or Auth Host applications, you may get an error message:
+```cs
+Unhandled Exception: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.Net.HttpListenerException: Access is denied
+```
+* _Solution_
+In an administrative Windows command prompt add both port 8000 and 8001 to netsh's urlacl table: 
+```powershell
+netsh http add urlacl url=http://+:8000/ user=<YOUR USER ACCOUNT>
+netsh http add urlacl url=http://+:8001/ user=<YOUR USER ACCOUNT>
+```
+
+
 ## Other Resources
 * [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Recommended)
 * [Zegeger Protocol documentation](http://www.zegeger.net/decal/protocol/Protocol.php) (At times, this link may be more recently updated)

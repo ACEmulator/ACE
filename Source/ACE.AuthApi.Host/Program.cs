@@ -5,18 +5,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ACE.Common;
+using ACE.Api.Common;
 
 namespace ACE.AuthApi.Host
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            // TODO: move port to be configuration driven
-            var server = WebApp.Start<Startup>(url: "http://*:8001/");
-            Console.WriteLine("ACE Auth API listening at http://*:8001/");
-
-            Console.ReadLine();
+            ServiceConfig.LoadServiceConfig();
+            if (ConfigManager.Config.AuthServer != null && ConfigManager.Config.AuthServer.Url?.Length > 0)
+            {
+                // Get the bind address and port from config:
+                var server = WebApp.Start<ACE.Api.Startup>(url: ConfigManager.Config.AuthServer.Url);
+                Console.WriteLine($"ACE API listening at {ConfigManager.Config.AuthServer.Url}");
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine("There was an error in your configuration.");
+            }
         }
     }
 }

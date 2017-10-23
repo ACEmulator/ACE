@@ -10,6 +10,8 @@ namespace ACE.Common
     {
         public GameConfiguration Server { get; set; }
 
+        public ApiServerConfiguration ApiServer { get; set; }
+
         public AuthServerConfiguration AuthServer { get; set; }
 
         public DatabaseConfiguration MySql { get; set; }

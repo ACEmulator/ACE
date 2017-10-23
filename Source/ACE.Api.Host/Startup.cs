@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin.Hosting;
+using ACE.Api.Common;
+using ACE.Common;
 
 namespace ACE.Api.Host
 {
@@ -11,11 +13,16 @@ namespace ACE.Api.Host
     {
         public static void Main(string[] args)
         {
-            // TODO: move port to be configuration driven
-            var server = WebApp.Start<ACE.Api.Startup>(url: "http://*:8000/");
-            Console.WriteLine("ACE API listening at http://*:8000/");
-            
-            Console.ReadLine();
+            ServiceConfig.LoadServiceConfig();
+            if(ConfigManager.Config.ApiServer != null && ConfigManager.Config.ApiServer.Url?.Length > 0)
+            {
+                // Get the bind address and port from config:
+                var server = WebApp.Start<ACE.Api.Startup>(url: ConfigManager.Config.ApiServer.Url);
+                Console.WriteLine($"ACE API listening at {ConfigManager.Config.ApiServer.Url}");
+                Console.ReadLine();
+            } else {
+                Console.WriteLine("There was an error in your configuration.");
+            }
         }
     }
 }

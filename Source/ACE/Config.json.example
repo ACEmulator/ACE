@@ -20,8 +20,11 @@
       "http://acemulator.org"
     ]
   },
+  "ApiServer": {
+    "Url": "http://+:8000"
+  },
   "AuthServer": {
-    "Url": "http://localhost:8001"
+    "Url": "http://+:8001"
   },
   "MySql": {
     "Authentication": {

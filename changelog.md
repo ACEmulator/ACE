@@ -1,4 +1,14 @@
 # ACEmulator Change Log
+
+### 2017-20-22
+[fantoms]
+* Changed build output path for Api.Host and AuthApi.Host projects, in an attempt to share the server config for debug and build.
+* Added simple service configuration function to Api.Common, to load the initial config for Api host apps.
+* Updated README.md to include additional instructions for Api host support.
+* Added a few null checks to prevent crashes in the AuthApi login function.
+* Added a config error check on the cmd line launcher, for ease of use.
+* Added config examples that are open to the world.
+
 ### 2017-10-21
 [Jyrus]
 * Add the initial set of CoinValue in Container.cs to the value of contained Coins
