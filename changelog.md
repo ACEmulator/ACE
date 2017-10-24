@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2017-20-23
+[Jyrus]
+* Fix a typeo in ACE.AuthApi.Host, as it was attempting to start the API host in place of the AuthAPI host
 
 ### 2017-20-22
 [fantoms]

@@ -1,10 +1,5 @@
-﻿using ACE.Api;
-using Microsoft.Owin.Hosting;
+﻿using Microsoft.Owin.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ACE.Common;
 using ACE.Api.Common;
 
@@ -18,8 +13,8 @@ namespace ACE.AuthApi.Host
             if (ConfigManager.Config.AuthServer != null && ConfigManager.Config.AuthServer.Url?.Length > 0)
             {
                 // Get the bind address and port from config:
-                var server = WebApp.Start<ACE.Api.Startup>(url: ConfigManager.Config.AuthServer.Url);
-                Console.WriteLine($"ACE API listening at {ConfigManager.Config.AuthServer.Url}");
+                var server = WebApp.Start<Startup>(url: ConfigManager.Config.AuthServer.Url);
+                Console.WriteLine($"ACE Auth API listening at {ConfigManager.Config.AuthServer.Url}");
                 Console.ReadLine();
             }
             else
