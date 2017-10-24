@@ -12,7 +12,7 @@ namespace ACE.Common
 
         public ApiServerConfiguration ApiServer { get; set; }
 
-        public AuthServerConfiguration AuthServer { get; set; }
+        public ApiServerConfiguration AuthServer { get; set; }
 
         public DatabaseConfiguration MySql { get; set; }
     }

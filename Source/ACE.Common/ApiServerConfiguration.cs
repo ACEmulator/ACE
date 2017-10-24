@@ -9,10 +9,16 @@ namespace ACE.Common
     public class ApiServerConfiguration
     {
         /// <summary>
-        /// this is the url that is included in tickets coming from the auth server.  it should
-        /// be reachable by anyone connecting to your server.  if this says "localhost", only your
-        /// computer will be able to reach it.
+        /// This is the URL that the AuthServer will listen to requests on.
+        /// By default, http://*:8001 will listen on all addresses and would be best left unchanged.
         /// </summary>
-        public string Url { get; set; }
+        public string ListenUrl { get; set; }
+
+        /// <summary>
+        /// This is the URL that anyone connecting to your server for authorization uses.
+        /// Tickets issued by this AuthServer will point to this address.
+        /// If this address is not publically accessible on the internet, you're going to have a bad time.
+        /// </summary>
+        public string PublicUrl { get; set; }
     }
 }
