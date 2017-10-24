@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -13,10 +14,19 @@ namespace ACE.Entity
     /// </summary>
     public class ChangeTrackedObject : IDirty
     {
+        [JsonProperty("isDirty")]
         public virtual bool IsDirty { get; set; } = false;
 
+        [JsonIgnore]
         public virtual bool HasEverBeenSavedToDatabase { get; set; } = false;
-        
+
+        [JsonProperty("isNew")]
+        public bool IsNew
+        {
+            get { return !HasEverBeenSavedToDatabase; }
+            set { HasEverBeenSavedToDatabase = !value; }
+        }
+
         public virtual void ClearDirtyFlags()
         {
             this.IsDirty = false;

@@ -19,30 +19,33 @@ namespace ACE.Entity
     {
         public Content()
         {
-            ContentGuid = Guid.NewGuid();
         }
 
         /// <summary>
-        /// content identifier
+        /// content identifier.
         /// </summary>
-        public Guid ContentGuid { get; set; }
+        [JsonProperty("contentGuid")]
+        public Guid? ContentGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentGuid", (int)MySqlDbType.Binary, Update = false, IsCriteria = true)]
         public byte[] ContentId_Binder
         {
-            get { return ContentGuid.ToByteArray(); }
+            get { return ContentGuid.Value.ToByteArray(); }
             set { ContentGuid = new Guid(value); }
         }
 
         /// <summary>
         /// user-defined name for the content that is searchable
         /// </summary>
+        [JsonProperty("contentName")]
         [DbField("contentName", (int)MySqlDbType.Text)]
         public string ContentName { get; set; }
 
         /// <summary>
         /// logical grouping for what type of content this is
         /// </summary>
+        [JsonProperty("contentType")]
         public ContentType? ContentType { get; set; }
 
         [JsonIgnore]
@@ -57,6 +60,7 @@ namespace ACE.Entity
         /// This is a mocked property that will set a flag in the database any time this object is altered.  this flag
         /// will allow us to detect objects that have changed post-installation and generate changesetss
         /// </summary>
+        [JsonIgnore]
         [DbField("userModified", (int)MySqlDbType.Bit)]
         public virtual bool UserModified
         {
@@ -68,6 +72,7 @@ namespace ACE.Entity
         /// list of landblock upper words (ie, landblock x/y) containing dungeons associated with this quest.  please note, other content
         /// may be associated with them as well
         /// </summary>
+        [JsonProperty("associatedLandblocks")]
         public List<ContentLandblock> AssociatedLandblocks { get; set; } = new List<ContentLandblock>();
 
         /// <summary>
@@ -75,16 +80,19 @@ namespace ACE.Entity
         /// involved in this quest.  could also be traps, levers, or other static objects in the dungeon.
         /// also includes spawn generators associated with the quests.
         /// </summary>
+        [JsonProperty("weenies")]
         public List<ContentWeenie> Weenies { get; set; } = new List<ContentWeenie>();
 
         /// <summary>
         /// list of URLs linking the content in other places (acpedia, asheron.wikia, etc)
         /// </summary>
+        [JsonProperty("externalResources")]
         public List<ContentResource> ExternalResources { get; set; } = new List<ContentResource>();
 
         /// <summary>
         /// list of associated content
         /// </summary>
+        [JsonProperty("associatedContent")]
         public List<ContentLink> AssociatedContent { get; set; } = new List<ContentLink>();
         
         public override void SetDirtyFlags()
