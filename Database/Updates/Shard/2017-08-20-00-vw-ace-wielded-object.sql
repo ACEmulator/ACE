@@ -1,3 +1,4 @@
+use ace_shard;
 DELIMITER $$
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_ace_wielded_object` AS (
