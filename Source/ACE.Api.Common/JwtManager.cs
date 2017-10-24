@@ -83,7 +83,7 @@ namespace ACE.Api.Common
                     new Claim("account_name", account.Name),
                     new Claim("account_guid", account.AccountGuid.ToString()),
                     new Claim("account_id", account.AccountId.ToString()),
-                    new Claim("issuing_server", ConfigManager.Config.AuthServer.Url)
+                    new Claim("issuing_server", ConfigManager.Config.AuthServer.PublicUrl)
                 }),
                 TokenIssuerName = AceIssuerName,
                 AppliesToAddress = AceAudience,
