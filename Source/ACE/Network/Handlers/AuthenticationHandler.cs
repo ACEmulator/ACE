@@ -38,6 +38,8 @@ namespace ACE.Network.Handlers
             else
             {
                 log.Info("Login request has an empty JwtToken.");
+                Task t = new Task(() => DoLogin(session, loginRequest));
+                t.Start();
             }
         }
 
