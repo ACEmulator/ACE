@@ -1,5 +1,8 @@
 # ACEmulator Change Log
 ### 2017-10-24
+[Mogwai]
+* API Host Updates for consistency and messaging.
+
 [Ripley]
 * @Slushnas found WebApp.Start error in ACE.AuthApi.Host: Changed ACE.Api.Startup to ACE.AuthApi.Startup to fix domain error.
 * AuthServer Changes:

@@ -29,7 +29,6 @@ namespace ACE.Network.Handlers
         public static void HandleLoginRequest(ClientPacket packet, Session session)
         {
             PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
-            log.Info($"First 2 of token: {Convert.ToByte(loginRequest.JwtToken[0])}, {Convert.ToByte(loginRequest.JwtToken[1])})");
             Task t = new Task(() => DoLogin(session, loginRequest));
             t.Start();
         }
