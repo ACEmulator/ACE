@@ -2,6 +2,9 @@
 ### 2017-10-24
 [Mogwai]
 * API Host Updates for consistency and messaging.
+* Defined and implemented Content API.
+* Started the Weenie API definition.
+* removed the old/unused web project.
 
 [Ripley]
 * @Slushnas found WebApp.Start error in ACE.AuthApi.Host: Changed ACE.Api.Startup to ACE.AuthApi.Startup to fix domain error.
