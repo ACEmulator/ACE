@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Owin.Hosting;
 using ACE.Api.Common;
 using ACE.Common;
@@ -17,7 +13,7 @@ namespace ACE.Api.Host
             if(ConfigManager.Config.ApiServer != null && ConfigManager.Config.ApiServer.Url?.Length > 0)
             {
                 // Get the bind address and port from config:
-                var server = WebApp.Start<ACE.Api.Startup>(url: ConfigManager.Config.ApiServer.Url);
+                var server = WebApp.Start<Api.Startup>(url: ConfigManager.Config.ApiServer.Url);
                 Console.WriteLine($"ACE API listening at {ConfigManager.Config.ApiServer.Url}");
                 Console.ReadLine();
             } else {

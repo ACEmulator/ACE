@@ -1,5 +1,4 @@
 # ACEmulator Change Log
-
 ### 2017-10-24
 [Ripley]
 * @Slushnas found WebApp.Start error in ACE.AuthApi.Host: Changed ACE.Api.Startup to ACE.AuthApi.Startup to fix domain error.
@@ -12,6 +11,10 @@
     * The externally accessible address of the AuthServer so that clients from the internet can authenticate.
     or
     * localhost or the internal lan address so only those inside the local network/local machine can authenticate.
+
+### 2017-10-23
+[Jyrus]
+* Fix a typeo in ACE.AuthApi.Host, as it was attempting to start the API host in place of the AuthAPI host
 
 ### 2017-10-22
 [fantoms]
