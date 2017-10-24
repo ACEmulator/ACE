@@ -29,9 +29,18 @@ namespace ACE.Network.Handlers
         public static void HandleLoginRequest(ClientPacket packet, Session session)
         {
             PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
-            log.Info($"First 2 of token: {Convert.ToByte(loginRequest.JwtToken[0])}, {Convert.ToByte(loginRequest.JwtToken[1])})");
-            Task t = new Task(() => DoLogin(session, loginRequest));
-            t.Start();
+            if (!string.IsNullOrEmpty(loginRequest.JwtToken))
+            {
+                log.Info($"First 2 of token: {Convert.ToByte(loginRequest.JwtToken[0])}, {Convert.ToByte(loginRequest.JwtToken[1])})");
+                Task t = new Task(() => DoLogin(session, loginRequest));
+                t.Start();
+            }
+            else
+            {
+                log.Info("Login request has an empty JwtToken.");
+                Task t = new Task(() => DoLogin(session, loginRequest));
+                t.Start();
+            }
         }
 
         private static void DoLogin(Session session, PacketInboundLoginRequest loginRequest)
