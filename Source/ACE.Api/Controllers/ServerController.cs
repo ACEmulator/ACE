@@ -25,7 +25,7 @@ namespace ACE.Api.Controllers
             info.Name = ConfigManager.Config.Server.WorldName;
             info.RequiresAuthentication = ConfigManager.Config.Server.SecureAuthentication;
             if (info.RequiresAuthentication)
-                info.LoginServer = ConfigManager.Config.AuthServer.Url;
+                info.LoginServer = ConfigManager.Config.AuthServer.PublicUrl;
 
             return Request.CreateResponse(HttpStatusCode.OK, info);
         }
