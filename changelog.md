@@ -1,5 +1,8 @@
 # ACEmulator Change Log
 ### 2017-10-24
+[OptimShi]
+* Fixed bug with Equipment Mask enum that was causing Greaves/Lower Leg Armor not to appear on character
+
 [Mogwai]
 * API Host Updates for consistency and messaging.
 
