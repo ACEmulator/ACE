@@ -1,9 +1,9 @@
 # ACEmulator Change Log
-### 2017-20-23
+### 2017-10-23
 [Jyrus]
 * Fix a typeo in ACE.AuthApi.Host, as it was attempting to start the API host in place of the AuthAPI host
 
-### 2017-20-22
+### 2017-10-22
 [fantoms]
 * Changed build output path for Api.Host and AuthApi.Host projects, in an attempt to share the server config for debug and build.
 * Added simple service configuration function to Api.Common, to load the initial config for Api host apps.
