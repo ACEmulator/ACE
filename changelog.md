@@ -1,5 +1,8 @@
 # ACEmulator Change Log
 ### 2017-10-24
+[Jyrus]
+* Implemented phase one of enabling ACE to support running as a Windows service
+
 [OptimShi]
 * Fixed bug with Equipment Mask enum that was causing Greaves/Lower Leg Armor not to appear on character
 
