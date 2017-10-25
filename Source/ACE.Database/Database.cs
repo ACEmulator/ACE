@@ -1125,8 +1125,10 @@ namespace ACE.Database
             foreach (var p in criteria)
             {
                 where = where == null ? " WHERE " : where + " AND ";
-                where += $"`{p.Value}`= ?";
+                where += $"`{p.Key}`= ?";
             }
+
+            sql += (where ?? "");
 
             using (var connection = new MySqlConnection(connectionString))
             {
