@@ -122,6 +122,8 @@
     <Compile Include="Controllers\ServerInformation.cs" />
     <Compile Include="Controllers\SubscriptionController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Models\RedeployRequest.cs" />
+    <Compile Include="Models\SimpleMessage.cs" />
     <Compile Include="SwaggerConfig.cs" />
     <Compile Include="Controllers\ContentController.cs" />
     <Compile Include="Controllers\WeenieController.cs" />

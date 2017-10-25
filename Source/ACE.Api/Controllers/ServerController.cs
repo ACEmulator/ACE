@@ -1,4 +1,7 @@
-﻿using ACE.Common;
+﻿using ACE.Api.Common;
+using ACE.Api.Models;
+using ACE.Common;
+using ACE.Entity.Enum;
 using Swashbuckle.Swagger.Annotations;
 using System;
 using System.Collections.Generic;
@@ -28,6 +31,26 @@ namespace ACE.Api.Controllers
                 info.LoginServer = ConfigManager.Config.AuthServer.PublicUrl;
 
             return Request.CreateResponse(HttpStatusCode.OK, info);
+        }
+
+        /// <summary>
+        /// Redeploys the world database from the current contents of your ACE-World repository.  all changes that
+        /// have not already been exported WILL BE LOST, and `user_modified` flags will all be reset to false.
+        /// TODO: fantom implement
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Redeploy successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
+        public HttpResponseMessage RedeployWorldDatabase(RedeployRequest request)
+        {
+            // Download the database from Github:
+            //RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
+            // Download the latest ACE-World release archive, extract contents into database dir, remove downloaded zip
+            // Run all scripts, in the correct sequences.
+            return Request.CreateResponse(HttpStatusCode.OK, "You win!");
         }
     }
 }
