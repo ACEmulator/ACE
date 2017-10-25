@@ -103,6 +103,8 @@
     <Compile Include="ContentWeenie.cs" />
     <Compile Include="SearchWeenieProperty.cs" />
     <Compile Include="Subscription.cs" />
+    <Compile Include="AceMatrix4X4.cs" />
+    <Compile Include="Vector3.cs" />
     <Compile Include="WeenieSearchResult.cs" />
     <Compile Include="Recipe.cs" />
     <Compile Include="SearchWeeniesCriteria.cs" />
@@ -210,7 +212,7 @@
     <Compile Include="TextureMapOverride.cs" />
     <Compile Include="TupleExtensions.cs" />
     <Compile Include="AceObject.cs" />
-    <Compile Include="Vector3.cs" />
+    <Compile Include="AceMath3d.cs" />
     <Compile Include="Weenie.cs" />
     <Compile Include="AceCharacter.cs" />
   </ItemGroup>
