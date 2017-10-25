@@ -1,7 +1,7 @@
-﻿using ACE.Api.Common;
-using ACE.Api.Models;
+using ACE.Api.Common;
 using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Api.Models;
 using Swashbuckle.Swagger.Annotations;
 using System;
 using System.Collections.Generic;
@@ -41,16 +41,48 @@ namespace ACE.Api.Controllers
         [HttpGet]
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
-        [SwaggerResponse(HttpStatusCode.OK, "Redeploy successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.OK, "Redeploy successful.  Return message contains the sql log." ,typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
         public HttpResponseMessage RedeployWorldDatabase(RedeployRequest request)
         {
+
             // Download the database from Github:
             //RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
             // Download the latest ACE-World release archive, extract contents into database dir, remove downloaded zip
             // Run all scripts, in the correct sequences.
             return Request.CreateResponse(HttpStatusCode.OK, "You win!");
+        }
+
+        /// <summary>
+        /// exports anything in your database with a `user_modified` value of true.
+        /// TODO: Mogwai implement
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Export successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        public HttpResponseMessage ExportCurrentChanges()
+        {
+            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
+        /// creates new scripts of anything that currently has an exported script.  this is used in the event of
+        /// table changes that render some or all current scripts invalid.
+        /// TODO: Mogwai implement
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Rebase successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        public HttpResponseMessage RebaseAllScripts()
+        {
+            // this method will have to identify all weenies currently exported in ACE-World\Database\7-ApiContent
+            // and then regenerate the scripts for them.
+            return Request.CreateResponse(HttpStatusCode.NotImplemented);
         }
     }
 }

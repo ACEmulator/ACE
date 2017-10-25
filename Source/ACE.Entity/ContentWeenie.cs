@@ -14,25 +14,28 @@ namespace ACE.Entity
     {
         public ContentWeenie()
         {
-            ContentWeenieGuid = Guid.NewGuid();
             IsDirty = true;
             HasEverBeenSavedToDatabase = false;
         }
         
-        public Guid ContentWeenieGuid { get; set; }
+        [JsonProperty("contentWeenieGuid")]
+        public Guid? ContentWeenieGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentWeenieGuid", (int)MySqlDbType.Binary, Update = false, IsCriteria = true)]
         public byte[] ContentWeenieGuid_Binder
         {
-            get { return ContentWeenieGuid.ToByteArray(); }
+            get { return ContentWeenieGuid.Value.ToByteArray(); }
             set { ContentWeenieGuid = new Guid(value); }
         }
 
         /// <summary>
         /// content identifier
         /// </summary>
+        [JsonIgnore]
         public Guid ContentGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentGuid", (int)MySqlDbType.Binary, Update = false, ListGet = true, ListDelete = true)]
         public byte[] ContentGuid_Binder
         {
@@ -43,11 +46,13 @@ namespace ACE.Entity
         /// <summary>
         /// this value is functionally immutable.  do not set expecting it to be updated in the database, only ever inserted.
         /// </summary>
+        [JsonProperty("weenieId")]
         [DbField("weenieId", (int)MySqlDbType.UInt32, Update = false)]
         public uint WeenieId { get; set; }
 
         private string _comment;
-
+        
+        [JsonProperty("comment")]
         [DbField("comment", (int)MySqlDbType.Text)]
         public string Comment
         {
