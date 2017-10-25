@@ -41,7 +41,7 @@ namespace ACE.Entity.Enum
         SigilTwo            = 0x20000000,
         SigilThree          = 0x40000000,
         Clothing            = 0x80000000 | HeadWear | ChestWear | AbdomenWear | UpperArmWear | LowerArmWear | HandWear | UpperLegWear | LowerLegWear | FootWear,
-        Armor               = ChestArmor | AbdomenArmor | UpperArmArmor | LowerArmArmor | UpperLegArmor | LowerLegWear | FootWear,
+        Armor               = ChestArmor | AbdomenArmor | UpperArmArmor | LowerArmArmor | UpperLegArmor | LowerLegArmor | FootWear,
         Jewelry             = NeckWear | WristWearLeft | WristWearRight | FingerWearLeft | FingerWearRight | TrinketOne | Cloak | SigilOne | SigilTwo | SigilThree,
         WristWear           = WristWearLeft | WristWearRight,
         FingerWear          = FingerWearLeft | FingerWearRight,
