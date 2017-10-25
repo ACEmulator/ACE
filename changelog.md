@@ -1,6 +1,31 @@
 # ACEmulator Change Log
+### 2017-10-24
+[OptimShi]
+* Fixed bug with Equipment Mask enum that was causing Greaves/Lower Leg Armor not to appear on character
 
-### 2017-20-22
+[Mogwai]
+* API Host Updates for consistency and messaging.
+* Defined and implemented Content API.
+* Started the Weenie API definition.
+* removed the old/unused web project.
+
+[Ripley]
+* @Slushnas found WebApp.Start error in ACE.AuthApi.Host: Changed ACE.Api.Startup to ACE.AuthApi.Startup to fix domain error.
+* AuthServer Changes:
+  - AuthServer needs a publicly accessible address to point connecting clients if you're trying to use the server outside of a localhost/internal lan only environment.
+  - The current defaults basically point everything to "http://+:8001" which fails to resolve. So the following changes have been made..
+  - Changed AuthServer.Url to AuthServer.ListenUrl
+  - Added AuthServer.PublicUrl
+  - Typically, you'll leave the AuthServer.ListenUrl to the default, but you'll want to change AuthServer.PublicUrl to either of the following: 
+    * The externally accessible address of the AuthServer so that clients from the internet can authenticate.
+    or
+    * localhost or the internal lan address so only those inside the local network/local machine can authenticate.
+
+### 2017-10-23
+[Jyrus]
+* Fix a typeo in ACE.AuthApi.Host, as it was attempting to start the API host in place of the AuthAPI host
+
+### 2017-10-22
 [fantoms]
 * Changed build output path for Api.Host and AuthApi.Host projects, in an attempt to share the server config for debug and build.
 * Added simple service configuration function to Api.Common, to load the initial config for Api host apps.

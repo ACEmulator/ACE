@@ -21,10 +21,12 @@
     ]
   },
   "ApiServer": {
-    "Url": "http://+:8000"
+    "ListenUrl": "http://*:8000",
+    "PublicUrl": "http://localhost:8000"
   },
   "AuthServer": {
-    "Url": "http://+:8001"
+    "ListenUrl": "http://*:8001",
+    "PublicUrl": "http://localhost:8001"
   },
   "MySql": {
     "Authentication": {
