@@ -482,8 +482,8 @@ namespace ACE.Database
             results.ForEach(c =>
             {
                 var criteria = new Dictionary<string, object>();
-                criteria.Add("contentGuid", c.ContentGuid.ToByteArray());  // used for ContentWeenie, ContentResource, and ContentLandblock
-                criteria.Add("contentGuid1", c.ContentGuid.ToByteArray()); // ContentLink uses contentGuid1
+                criteria.Add("contentGuid", c.ContentGuid.Value.ToByteArray());  // used for ContentWeenie, ContentResource, and ContentLandblock
+                criteria.Add("contentGuid1", c.ContentGuid.Value.ToByteArray()); // ContentLink uses contentGuid1
                 c.AssociatedContent = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentLink>(WorldPreparedStatement.GetAssociatedContent, criteria);
                 c.Weenies = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentWeenie>(WorldPreparedStatement.GetContentWeenies, criteria);
                 c.ExternalResources = ExecuteConstructedGetListStatement<WorldPreparedStatement, ContentResource>(WorldPreparedStatement.GetContentResources, criteria);
@@ -512,14 +512,15 @@ namespace ACE.Database
         public void CreateContent(Content content)
         {
             DatabaseTransaction transaction = BeginTransaction();
+            content.ContentGuid = content.ContentGuid ?? Guid.NewGuid();
 
             transaction.AddPreparedInsertStatement<WorldPreparedStatement, Content>(WorldPreparedStatement.CreateContent, content);
 
             // forcibly propagate the content id
-            content.Weenies.ForEach(w => w.ContentGuid = content.ContentGuid);
-            content.ExternalResources.ForEach(r => r.ContentGuid = content.ContentGuid);
-            content.AssociatedLandblocks.ForEach(l => l.ContentGuid = content.ContentGuid);
-            content.AssociatedContent.ForEach(c => c.ContentGuid = content.ContentGuid);
+            content.Weenies.ForEach(w => w.ContentGuid = content.ContentGuid.Value);
+            content.ExternalResources.ForEach(r => r.ContentGuid = content.ContentGuid.Value);
+            content.AssociatedLandblocks.ForEach(l => l.ContentGuid = content.ContentGuid.Value);
+            content.AssociatedContent.ForEach(c => c.ContentGuid = content.ContentGuid.Value);
 
             content.Weenies.ForEach(w => transaction.AddPreparedInsertStatement(WorldPreparedStatement.CreateContentWeenie, w));
             content.ExternalResources.ForEach(r => transaction.AddPreparedInsertStatement(WorldPreparedStatement.CreateContentResource, r));
@@ -533,15 +534,18 @@ namespace ACE.Database
 
         public void UpdateContent(Content content)
         {
+            if (content?.ContentGuid == null)
+                throw new ArgumentNullException("content", "Cannot update null content or content with a null ContentGuid.");
+
             DatabaseTransaction transaction = BeginTransaction();
 
             transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContent, content);
 
             // forcibly propagate the content id
-            content.Weenies.ForEach(w => w.ContentGuid = content.ContentGuid);
-            content.ExternalResources.ForEach(r => r.ContentGuid = content.ContentGuid);
-            content.AssociatedLandblocks.ForEach(l => l.ContentGuid = content.ContentGuid);
-            content.AssociatedContent.ForEach(c => c.ContentGuid = content.ContentGuid);
+            content.Weenies.ForEach(w => w.ContentGuid = content.ContentGuid.Value);
+            content.ExternalResources.ForEach(r => r.ContentGuid = content.ContentGuid.Value);
+            content.AssociatedLandblocks.ForEach(l => l.ContentGuid = content.ContentGuid.Value);
+            content.AssociatedContent.ForEach(c => c.ContentGuid = content.ContentGuid.Value);
 
             content.Weenies.Where(o => o.IsDirty).ToList().ForEach(w => transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContentWeenie, w));
             content.ExternalResources.Where(o => o.IsDirty).ToList().ForEach(r => transaction.AddPreparedUpdateStatement(WorldPreparedStatement.UpdateContentResource, r));
@@ -549,7 +553,7 @@ namespace ACE.Database
 
             // content resources are weak entities that cannot be updated.  always delete and reinsert the list
             var criteria = new Dictionary<string, object>();
-            criteria.Add("contentGuid1", content.ContentGuid.ToByteArray());
+            criteria.Add("contentGuid1", content.ContentGuid.Value.ToByteArray());
             transaction.AddPreparedDeleteListStatement<WorldPreparedStatement, ContentLink>(WorldPreparedStatement.DeleteAssociatedContent, criteria);
             transaction.AddPreparedInsertListStatement(WorldPreparedStatement.DeleteAssociatedContent, content.AssociatedContent);
 

@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using Swashbuckle.Swagger.Annotations;
 using System.Net;
 using ACE.Api.Common;
+using ACE.Api.Models;
 
 namespace ACE.Api.Controllers
 {
@@ -27,10 +28,50 @@ namespace ACE.Api.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, WorldDb.SearchWeenies(request));
         }
 
+        /// <summary>
+        /// fetches a single weenie object.  this method is not implemented yet.  do not code against it.
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.OK, "success", typeof(AceObject))]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        public HttpResponseMessage Get(uint weenieId)
+        {
+            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
+        /// updates a weenie.  this method is not implemented yet.  do not code against it.
+        /// </summary>
         [HttpPost]
         [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.OK, "weenie updated", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
-        public HttpResponseMessage UpdateWeenie([FromBody] object request)
+        public HttpResponseMessage Update([FromBody] AceObject request)
+        {
+            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
+        /// creates a new weenie.  this method is not implemented yet.  do not code against it.
+        /// </summary>
+        [HttpPost]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.OK, "weenie created", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        public HttpResponseMessage Create([FromBody] AceObject request)
+        {
+            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+        }
+
+        /// <summary>
+        /// deletes a weenie.  this method is not implemented yet.  do not code against it.
+        /// </summary>
+        [HttpDelete]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.OK, "weenie deleted", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        public HttpResponseMessage Delete([FromBody] AceObject request)
         {
             return Request.CreateResponse(HttpStatusCode.NotImplemented);
         }

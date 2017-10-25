@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -18,8 +19,10 @@ namespace ACE.Entity
         /// <summary>
         /// content identifier
         /// </summary>
+        [JsonIgnore]
         public Guid ContentGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentGuid1", (int)MySqlDbType.Binary, ListGet = true, ListDelete = true)]
         public byte[] ContentGuid_Binder
         {
@@ -30,8 +33,10 @@ namespace ACE.Entity
         /// <summary>
         /// associated content identifier
         /// </summary>
+        [JsonProperty("associatedContentGuid")]
         public Guid AssociatedContentGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentGuid2", (int)MySqlDbType.Binary)]
         public byte[] AssociatedContentGuid_Binder
         {

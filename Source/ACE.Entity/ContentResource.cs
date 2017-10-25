@@ -14,25 +14,28 @@ namespace ACE.Entity
     {
         public ContentResource()
         {
-            ContentResourceGuid = Guid.NewGuid();
             IsDirty = true;
             HasEverBeenSavedToDatabase = false;
         }
 
-        public Guid ContentResourceGuid { get; set; }
+        [JsonProperty("contentResourceGuid")]
+        public Guid? ContentResourceGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentResourceGuid", (int)MySqlDbType.Binary, Update = false, IsCriteria = true)]
         public byte[] ContentResourceGuid_Binder
         {
-            get { return ContentResourceGuid.ToByteArray(); }
+            get { return ContentResourceGuid.Value.ToByteArray(); }
             set { ContentResourceGuid = new Guid(value); }
         }
 
         /// <summary>
         /// content identifier
         /// </summary>
+        [JsonIgnore]
         public Guid ContentGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentGuid", (int)MySqlDbType.Binary, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
         public byte[] ContentId_Binder
         {
@@ -42,6 +45,7 @@ namespace ACE.Entity
 
         private string _name;
 
+        [JsonProperty("name")]
         [DbField("name", (int)MySqlDbType.Text)]
         public string Name
         {
@@ -51,6 +55,7 @@ namespace ACE.Entity
 
         private string _resourceUri;
 
+        [JsonProperty("resourceUri")]
         [DbField("resourceUri", (int)MySqlDbType.Text)]
         public string ResourceUri
         {
@@ -60,6 +65,7 @@ namespace ACE.Entity
 
         private string _comment;
 
+        [JsonProperty("comment")]
         [DbField("comment", (int)MySqlDbType.Text)]
         public string Comment
         {

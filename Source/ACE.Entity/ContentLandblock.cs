@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -18,20 +19,24 @@ namespace ACE.Entity
             HasEverBeenSavedToDatabase = false;
         }
 
-        public Guid ContentLandblockGuid { get; set; }
-
+        [JsonProperty("contentLandblockGuid")]
+        public Guid? ContentLandblockGuid { get; set; }
+        
+        [JsonIgnore]
         [DbField("contentLandblockGuid", (int)MySqlDbType.Binary, Update = false, IsCriteria = true)]
         public byte[] ContentLandblockGuid_Binder
         {
-            get { return ContentLandblockGuid.ToByteArray(); }
+            get { return ContentLandblockGuid.Value.ToByteArray(); }
             set { ContentLandblockGuid = new Guid(value); }
         }
 
         /// <summary>
         /// content identifier
         /// </summary>
+        [JsonIgnore]
         public Guid ContentGuid { get; set; }
 
+        [JsonIgnore]
         [DbField("contentGuid", (int)MySqlDbType.Binary, Update = false, ListGet = true, ListDelete = true)]
         public byte[] ContentGuid_Binder
         {
@@ -39,11 +44,13 @@ namespace ACE.Entity
             set { ContentGuid = new Guid(value); }
         }
 
+        [JsonIgnore]
         public LandblockId LandblockId { get; set; }
 
         /// <summary>
         /// this value is functionally immutable.  do not set expecting it to be updated in the database, only ever inserted.
         /// </summary>
+        [JsonProperty("landblockId")]
         [DbField("landblockId", (int)MySqlDbType.UInt32, Update = false)]
         public uint LandblockId_Binder
         {
@@ -53,6 +60,7 @@ namespace ACE.Entity
 
         private string _comment;
 
+        [JsonProperty("comment")]
         [DbField("comment", (int)MySqlDbType.Text)]
         public string Comment
         {
