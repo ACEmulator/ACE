@@ -46,7 +46,12 @@ namespace ACE.Api.Controllers
         [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
         public HttpResponseMessage RedeployWorldDatabase(RedeployRequest request)
         {
-            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+
+            // Download the database from Github:
+            //RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
+            // Download the latest ACE-World release archive, extract contents into database dir, remove downloaded zip
+            // Run all scripts, in the correct sequences.
+            return Request.CreateResponse(HttpStatusCode.OK, "You win!");
         }
 
         /// <summary>
