@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     // The order of quickness and coordination corresponds to the client
     public enum PropertyAttribute : ushort
@@ -13,5 +15,14 @@
         Health       = 7,
         Stamina      = 8,
         Mana         = 9
+    }
+
+    public static class PropertyAttributeExtensions
+    {
+        public static string GetDescription(this PropertyAttribute prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
     }
 }

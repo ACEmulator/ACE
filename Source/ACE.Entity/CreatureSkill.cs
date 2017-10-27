@@ -1,6 +1,8 @@
 ﻿using System;
 using ACE.Entity.Enum;
 using ACE.Entity;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace ACE.Entity
 {
@@ -13,7 +15,8 @@ namespace ACE.Entity
         // so we can calculate.  this could be refactored into a better pattern, but it will
         // do for now.
         private ICreatureStats character;
-
+        
+        [JsonProperty("skillId")]
         public Skill Skill
         {
             get { return (Skill)_backer.SkillId; }
@@ -23,6 +26,8 @@ namespace ACE.Entity
             }
         }
 
+        [JsonProperty("skillStatus")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public SkillStatus Status
         {
             get { return (SkillStatus)_backer.SkillStatus; }
@@ -33,6 +38,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonProperty("ranks")]
         public uint Ranks
         {
             get { return _backer.SkillPoints; }
@@ -41,8 +47,9 @@ namespace ACE.Entity
                 _backer.SkillPoints = (ushort)value;
                 _backer.IsDirty = true;
             }
-        } 
-        
+        }
+
+        [JsonProperty("baseValue")]
         public uint UnbuffedValue
         {
             get
@@ -68,6 +75,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonProperty("experienceSpent")]
         public uint ExperienceSpent
         {
             get { return _backer.SkillXpSpent; }
@@ -78,6 +86,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public uint ActiveValue
         {
             // FIXME(ddevec) -- buffs?:
