@@ -85,9 +85,11 @@
     <Compile Include="AceObjectPropertyId.cs" />
     <Compile Include="BaseAceProperty.cs" />
     <Compile Include="CachedWieldedObject.cs" />
+    <Compile Include="CBSPNode.cs" />
     <Compile Include="ChangeTrackedObject.cs" />
     <Compile Include="ContentLandblock.cs" />
     <Compile Include="ContentLink.cs" />
+    <Compile Include="Enum\BSPNodeType.cs" />
     <Compile Include="Enum\BSPType.cs" />
     <Compile Include="Enum\ClientProperties.cs" />
     <Compile Include="Enum\AceObjectPropertyType.cs" />
@@ -105,6 +107,7 @@
     <Compile Include="SearchWeenieProperty.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="AceMatrix4X4.cs" />
+    <Compile Include="CBSPTree.cs" />
     <Compile Include="Vector3.cs" />
     <Compile Include="WeenieSearchResult.cs" />
     <Compile Include="Recipe.cs" />

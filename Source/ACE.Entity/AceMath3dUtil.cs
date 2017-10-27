@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 
 // public const double M_PI = (3.1415926535897932384626433832795);
@@ -37,6 +38,35 @@ namespace ACE.Entity
         {
             if (!(-1.0f < fValue)) return ((float) Math.PI);
             return fValue < 1.0f ? (float) Math.Acos(fValue) : 0.0f;
+        }
+
+        public class SPHERE_DEF
+        {
+            public Vector3 pos = new Vector3(); // pos of center
+            public float radius; // needs to be > 0.0f
+        }
+
+        // Upright capped cylinder (Z-aligned)
+        public class CYLINDER_DEF
+        {
+            public Vector3 pos = new Vector3(); // pos of cylinder at (x,y,z0), pos.z not used.
+            public float z0;
+            public float z1;
+            public float radius;
+        }
+
+        // AABB (axis-aligned bounding box) ('BBox' class in AC)
+        public class AABB_DEF
+        {
+            public Vector3 p0 = new Vector3();
+            public Vector3 p1 = new Vector3();
+        }
+
+        public class CIRCLE_DEF
+        {
+            public float x;
+            public float y;
+            public float radius;
         }
     }
 }
