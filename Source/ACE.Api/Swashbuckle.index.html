@@ -165,9 +165,9 @@
             datatype: "json",
             contentType: "application/json",
             success: function (response) {
-                // console.log("raw: " + response);
-                // console.log("response.token: " + response.token);
-                $('#jwt_token').val(response.token);
+                console.log("raw: " + response);
+                console.log("response.authToken: " + response.authToken);
+                $('#jwt_token').val(response.authToken);
                 $('#username_wrapper').hide();
                 $('#password_wrapper').hide();
                 $('#ace-login').hide();
