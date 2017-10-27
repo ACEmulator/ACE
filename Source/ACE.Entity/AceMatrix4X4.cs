@@ -27,18 +27,10 @@ namespace ACE.Entity
     public class AceMatrix4X4
     {
         /// <summary>
-        /// 4x4 matrix - internally stored as column-major (i.e. OpenGL style, float[x][y])
-        /// </summary>
-        public class mat4x4t
-        {
-            public float[,] m4x4 = new float[4, 4];
-        }
-
-        /// <summary>
         /// Gets the multiplicative identity matrix. x,y (col major)
         /// </summary>
         /// <param name="matrix">matrix by ref. x,y (col major)</param>
-        public static void Matrix4X4Identity(ref mat4x4t matrix)
+        public static void Mat4_Identity(ref AceMath3dUtil.mat4x4t matrix)
         {
             // x,y (col major)
             matrix.m4x4[0, 0] = 1.0f;
@@ -66,7 +58,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="fromMatrix">matrix we are copying from</param>
         /// <param name="toMatrix">matrix we are copying to passed by ref</param>
-        public static void Matrix4X4Copy(mat4x4t fromMatrix, ref mat4x4t toMatrix)
+        public static void Mat4_Copy(AceMath3dUtil.mat4x4t fromMatrix, ref AceMath3dUtil.mat4x4t toMatrix)
         {
             fromMatrix.m4x4.CopyTo(toMatrix.m4x4, 0);
         }
@@ -75,9 +67,9 @@ namespace ACE.Entity
         /// Transposes the rows and columns of a matrix.
         /// </summary>
         /// <param name="matrix">matrix to transpose</param>
-        public static void Matrix4X4Transpose(ref mat4x4t matrix)
+        public static void Mat4_Transpose(ref AceMath3dUtil.mat4x4t matrix)
         {
-            mat4x4t temp = new mat4x4t();
+            AceMath3dUtil.mat4x4t temp = new AceMath3dUtil.mat4x4t();
 
             for (int i = 0; i < 4; i++)
             {
@@ -87,7 +79,7 @@ namespace ACE.Entity
                 temp.m4x4[i, 3] = matrix.m4x4[3, i];
             }
 
-            Matrix4X4Copy(matrix, ref temp);
+            Mat4_Copy(matrix, ref temp);
         }
 
         /// <summary>
@@ -95,7 +87,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">matrix by ref</param>
         /// <param name="b">matrix</param>
-        public static void Matrix4X4Add(ref mat4x4t a, mat4x4t b)
+        public static void Mat4_Add(ref AceMath3dUtil.mat4x4t a, AceMath3dUtil.mat4x4t b)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -111,7 +103,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">matrix by ref</param>
         /// <param name="b">matrix</param>
-        public static void Matrix4X4Sub(ref mat4x4t a, mat4x4t b)
+        public static void Mat4_Sub(ref AceMath3dUtil.mat4x4t a, AceMath3dUtil.mat4x4t b)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -127,7 +119,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">matrix by ref</param>
         /// <param name="s">scaler value</param>
-        public static void Matrix4X4Scale(ref mat4x4t a, float s)
+        public static void Mat4_Scale(ref AceMath3dUtil.mat4x4t a, float s)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -145,9 +137,9 @@ namespace ACE.Entity
         /// <param name="x">x scaler</param>
         /// <param name="y">y scaler</param>
         /// <param name="z">z scaler</param>
-        public static void Matrix4X4Scale(ref mat4x4t m, float x, float y, float z)
+        public static void Mat4_Scale(ref AceMath3dUtil.mat4x4t m, float x, float y, float z)
         {
-            Matrix4X4Identity(ref m);
+            Mat4_Identity(ref m);
             m.m4x4[0, 0] = x;
             m.m4x4[1, 1] = y;
             m.m4x4[2, 2] = z;
@@ -163,9 +155,9 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">matrix by ref</param>
         /// <param name="b">maxtrix to multiply by a*=b</param>
-        public static void Matrix4X4MultiplyMatrix4X4(ref mat4x4t a, mat4x4t b)
+        public static void Mat4_MultiplyMat4_(ref AceMath3dUtil.mat4x4t a, AceMath3dUtil.mat4x4t b)
         {
-            mat4x4t temp = new mat4x4t();
+            AceMath3dUtil.mat4x4t temp = new AceMath3dUtil.mat4x4t();
 
             for (int col = 0; col < 4; col++)
             {
@@ -179,7 +171,7 @@ namespace ACE.Entity
                 }
             }
             //TODO: Verify this is correct - I changed the order on the copy. Og II
-            Matrix4X4Copy(temp, ref a);
+            Mat4_Copy(temp, ref a);
         }
 
         /// <summary>
@@ -189,7 +181,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="v">vector4</param>
         /// <param name="m">matrix</param>
-        public static void Matrix4X4MultiplyVector4(Vector4 v, ref mat4x4t m)
+        public static void Mat4_MultiplyVector4(Vector4 v, ref AceMath3dUtil.mat4x4t m)
         {
             float[] temp = new float[4];
             //float accum;
@@ -213,10 +205,10 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="v3">Vector3</param>
         /// <param name="m">matrix by ref</param>
-        public static void Matrix4X4MultiplyVector3(Vector3 v3, ref mat4x4t m)
+        public static void Mat4_MultiplyVector3(Vector3 v3, ref AceMath3dUtil.mat4x4t m)
         {
             Vector4 v4 = new Vector4(v3, 1.0f);
-            Matrix4X4MultiplyVector4(v4, ref m);
+            Mat4_MultiplyVector4(v4, ref m);
 
             v3.X = v4.X;
             v3.Y = v4.Y;
@@ -231,9 +223,9 @@ namespace ACE.Entity
         /// <param name="x">x coord</param>
         /// <param name="y">y coord</param>
         /// <param name="z">z coord</param>
-        public static void Matrix4X4Translate(ref mat4x4t m, float x, float y, float z)
+        public static void Mat4_Translate(ref AceMath3dUtil.mat4x4t m, float x, float y, float z)
         {
-            Matrix4X4Identity(ref m);
+            Mat4_Identity(ref m);
             m.m4x4[3, 0] = x;
             m.m4x4[3, 1] = y;
             m.m4x4[3, 2] = z;
@@ -244,9 +236,9 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="m">Matrix by ref</param>
         /// <param name="s">scaler value</param>
-        public static void Matrix4X4ScaleUniform(ref mat4x4t m, float s)
+        public static void Mat4_ScaleUniform(ref AceMath3dUtil.mat4x4t m, float s)
         {
-            Matrix4X4Scale(ref m, s, s, s);
+            Mat4_Scale(ref m, s, s, s);
         }
 
         /// <summary>
@@ -258,7 +250,7 @@ namespace ACE.Entity
         /// <param name="m">matrix by ref</param>
         /// <param name="angle">angle in radians</param>
         /// <param name="axis">axis of rotation Vector3</param>
-        public static void Matrix4X4Rotate(ref mat4x4t m, float angle, Vector3 axis)
+        public static void Mat4_Rotate(ref AceMath3dUtil.mat4x4t m, float angle, Vector3 axis)
         {
             float x = axis.X;
             float y = axis.Y;
@@ -267,7 +259,7 @@ namespace ACE.Entity
             float c = (float)Math.Cos(angle);
             float ci = 1.0f - c;
 
-            Matrix4X4Identity(ref m);
+            Mat4_Identity(ref m);
 
             m.m4x4[0, 0] = (x * x * ci) + c;
             m.m4x4[1, 0] = (x * y * ci) - (z * s);
@@ -287,9 +279,9 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="m">matrix by ref</param>
         /// <returns></returns>
-        public static bool Matrix4X4Invert(ref mat4x4t m)
+        public static bool Mat4_Invert(ref AceMath3dUtil.mat4x4t m)
         {
-            mat4x4t temp = new mat4x4t();
+            AceMath3dUtil.mat4x4t temp = new AceMath3dUtil.mat4x4t();
             float[] s = new float[6];
             float[] c = new float[6];
 
@@ -309,7 +301,7 @@ namespace ACE.Entity
 
             var det = (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-            if (Math.Abs(det) < AceMath3d.FloatTolerance)
+            if (Math.Abs(det) < AceMath3dUtil.FloatTolerance)
                 return false;
 
             var idet = 1.0f / det;
@@ -335,7 +327,7 @@ namespace ACE.Entity
             temp.m4x4[3, 3] = (m.m4x4[2, 0] * s[3] - m.m4x4[2, 1] * s[1] + m.m4x4[2, 2] * s[0]) * idet;
 
             //TODO: Verify this is correct - I changed the order on the copy. Og II
-            Matrix4X4Copy(temp, ref m);
+            Mat4_Copy(temp, ref m);
             return true;
         }
     }

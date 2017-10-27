@@ -65,6 +65,7 @@
     <Compile Include="AbilityVitalAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="AccountByName.cs" />
+    <Compile Include="AceQuaternion.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
     <Compile Include="AceContractTracker.cs" />
@@ -212,7 +213,7 @@
     <Compile Include="TextureMapOverride.cs" />
     <Compile Include="TupleExtensions.cs" />
     <Compile Include="AceObject.cs" />
-    <Compile Include="AceMath3d.cs" />
+    <Compile Include="AceMath3dUtil.cs" />
     <Compile Include="Weenie.cs" />
     <Compile Include="AceCharacter.cs" />
   </ItemGroup>

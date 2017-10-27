@@ -20,10 +20,10 @@ using System.Numerics;
 // USE: public static Vector3 Vector3.Netate(Vector3 value) : Vector3 negVector = Vector3.Negate(value);
 
 // void Vec3_Scale(vec3t &a, float s);
-// USE:  public static Vector3 Vector3Scale(Vector3 a, float s) : Vector3 scaledVector = Vector3Scale(value, s);
+// USE:  public static Vector3 Vector3Scale(Vector3 a, float s) : Vector3 scaledVector = Vect_Scale(value, s);
 
 // float Vec3_MagnitudeSQ(vec3t &a);
-// USE:  public static float Vector3LengthSquared(Vector3 a) : float vectorLengthSq = Vector3LengthSquared(a);
+// USE:  public static float Vector3LengthSquared(Vector3 a) : float vectorLengthSq = Vec3_MagnitudeSQ(a);
 
 // float Vec3_Magnitude(vec3t &a);
 // USE:  public float Length() : Vector3 aVector.Length();
@@ -92,7 +92,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">The length of the vector squared.</param>
         /// <returns></returns>
-        public static float Vector3LengthSquared(Vector3 a)
+        public static float Vec3_MagnitudeSQ(Vector3 a)
         {
             return ((a.X * a.X) + (a.Y * a.Y) + (a.Z * a.Z));
         }
@@ -102,9 +102,9 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">Vector3 you want to compare to zero.</param>
         /// <returns></returns>
-        public static bool Vector3EqualZero(Vector3 a)
+        public static bool Vec3_EqZero(Vector3 a)
         {
-            return (AceMath3d.FloatCompareEqual(a.X, 0.0f) && AceMath3d.FloatCompareEqual(a.Y, 0.0f) && AceMath3d.FloatCompareEqual(a.Z, 0.0f));
+            return (AceMath3dUtil.FloatCompareEqual(a.X, 0.0f) && AceMath3dUtil.FloatCompareEqual(a.Y, 0.0f) && AceMath3dUtil.FloatCompareEqual(a.Z, 0.0f));
         }
 
         public void Update(float x, float y, float z)
