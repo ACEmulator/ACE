@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyDouble : ushort
     {
@@ -182,5 +184,14 @@
         WeaponAuraDefense              = 169,
         WeaponAuraElemental            = 170,
         WeaponAuraManaConv             = 171
+    }
+
+    public static class PropertyDoubleExtensions
+    {
+        public static string GetDescription(this PropertyDouble prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
     }
 }

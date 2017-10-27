@@ -5,7 +5,7 @@ namespace ACE.Network
 {
     public abstract class Packet
     {
-        public static uint MaxPacketSize { get; } = 484u;
+        public static uint MaxPacketSize { get; } = 1024;
 
         public static uint MaxPacketDataSize { get; } = 464u;
 

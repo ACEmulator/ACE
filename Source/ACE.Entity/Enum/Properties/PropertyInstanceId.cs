@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyInstanceId : ushort
     {
@@ -58,5 +60,14 @@
         // values over 9000 are ones that we have added and should not be sent to the client
         Subscription                     = 9001,
         Friend                           = 9002
+    }
+
+    public static class PropertyInstanceIdExtensions
+    {
+        public static string GetDescription(this PropertyInstanceId prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
     }
 }

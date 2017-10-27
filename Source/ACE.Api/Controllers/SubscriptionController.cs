@@ -19,7 +19,7 @@ namespace ACE.Api.Controllers
     {
         /// <summary>
         /// gets a list of all subscriptions for the authenticated user.
-        /// </summary>/returns>
+        /// </summary>
         [HttpGet]
         [AceAuthorize]
         [SwaggerResponse(HttpStatusCode.OK, Type = typeof(List<Subscription>))]

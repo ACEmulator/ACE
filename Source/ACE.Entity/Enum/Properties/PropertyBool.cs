@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyBool : ushort
     {
@@ -140,5 +142,14 @@
         AutowieldLeft                    = 130,
         [ServerOnly]
         IsDeleted                        = 9001
+    }
+
+    public static class PropertyBoolExtensions
+    {
+        public static string GetDescription(this PropertyBool prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
     }
 }
