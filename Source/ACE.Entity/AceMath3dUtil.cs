@@ -1,5 +1,8 @@
-﻿using System.Numerics;
-using System;
+﻿using System;
+
+
+// public const double M_PI = (3.1415926535897932384626433832795);
+// USE: Math.PI
 
 namespace ACE.Entity
 {
@@ -19,20 +22,10 @@ namespace ACE.Entity
 
         public const double FloatTolerance = (1e-3f);
 
-        internal static bool FloatCompareEqual(float a, float b)
+        internal static bool Fl_CmpEQ(float a, float b)
         {
             float delta = Math.Abs(a - b);
             return (delta < FloatTolerance);
-        }
-
-        /// <summary>
-        /// Compare to see if a vector is 0 within a given fault tolerance.
-        /// </summary>
-        /// <param name="a">Vector3 you want to compare to zero.</param>
-        /// <returns></returns>
-        public static bool Vector3EqualZero(Vector3 a)
-        {
-            return (FloatCompareEqual(a.X, 0.0f) && FloatCompareEqual(a.Y, 0.0f) && FloatCompareEqual(a.Z, 0.0f));
         }
 
         internal static float InvSqrt(float f)

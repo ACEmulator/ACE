@@ -155,7 +155,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="a">matrix by ref</param>
         /// <param name="b">maxtrix to multiply by a*=b</param>
-        public static void Mat4_MultiplyMat4_(ref AceMath3dUtil.mat4x4t a, AceMath3dUtil.mat4x4t b)
+        public static void Mat4_Mult_Mat4(ref AceMath3dUtil.mat4x4t a, AceMath3dUtil.mat4x4t b)
         {
             AceMath3dUtil.mat4x4t temp = new AceMath3dUtil.mat4x4t();
 
@@ -181,7 +181,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="v">vector4</param>
         /// <param name="m">matrix</param>
-        public static void Mat4_MultiplyVector4(Vector4 v, ref AceMath3dUtil.mat4x4t m)
+        public static void Mat4_Mult_Vec4(Vector4 v, ref AceMath3dUtil.mat4x4t m)
         {
             float[] temp = new float[4];
             //float accum;
@@ -205,10 +205,10 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="v3">Vector3</param>
         /// <param name="m">matrix by ref</param>
-        public static void Mat4_MultiplyVector3(Vector3 v3, ref AceMath3dUtil.mat4x4t m)
+        public static void Mat4_Mult_Vec3(Vector3 v3, ref AceMath3dUtil.mat4x4t m)
         {
             Vector4 v4 = new Vector4(v3, 1.0f);
-            Mat4_MultiplyVector4(v4, ref m);
+            Mat4_Mult_Vec4(v4, ref m);
 
             v3.X = v4.X;
             v3.Y = v4.Y;

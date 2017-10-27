@@ -50,12 +50,7 @@ using System.Numerics;
 // resulting vector in r.
 
 // bool Vec3_EqZero(vec3t &a, float tolerance);
-// USE:  public static bool Vector3EqualZero(Vector3 a) : bool isZero = Vector3EqualZero(vector);
-
-// public const double M_PI = (3.1415926535897932384626433832795);
-// USE: Math.PI
-
-
+// USE:  public static bool Vector3EqualZero(Vector3 a) : bool isZero = Vec3_EqZero(vector);
 
 
 namespace ACE.Entity
@@ -104,7 +99,7 @@ namespace ACE.Entity
         /// <returns></returns>
         public static bool Vec3_EqZero(Vector3 a)
         {
-            return (AceMath3dUtil.FloatCompareEqual(a.X, 0.0f) && AceMath3dUtil.FloatCompareEqual(a.Y, 0.0f) && AceMath3dUtil.FloatCompareEqual(a.Z, 0.0f));
+            return (AceMath3dUtil.Fl_CmpEQ(a.X, 0.0f) && AceMath3dUtil.Fl_CmpEQ(a.Y, 0.0f) && AceMath3dUtil.Fl_CmpEQ(a.Z, 0.0f));
         }
 
         public void Update(float x, float y, float z)
