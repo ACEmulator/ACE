@@ -1,4 +1,9 @@
 # ACEmulator Change Log
+### 2017-10-27
+[Mogwai]
+* Loads of new JSON property renaming
+* New API definitions stubbed, some implemented
+
 ### 2017-10-25
 [fantoms]
 * Changed an exception in AuthApi, to prevent the server from crashing on a bad account.
