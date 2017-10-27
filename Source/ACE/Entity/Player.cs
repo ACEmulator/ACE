@@ -2815,10 +2815,10 @@ namespace ACE.Entity
             if (SetupTableId != null)
             {
                 SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
-                for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+                for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                        AddModel(i, baseSetup.SubObjectIds[i]);
+                        AddModel(i, baseSetup.Parts[i]);
                 }
             }
         }
@@ -3397,10 +3397,10 @@ namespace ACE.Entity
 
                 // Add the "naked" body parts. These are the ones not already covered.
                 SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
-                for (byte i = 0; i < baseSetup.SubObjectIds.Count; i++)
+                for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
-                        AddModel(i, baseSetup.SubObjectIds[i]);
+                        AddModel(i, baseSetup.Parts[i]);
                 }
 
                 var objDescEvent = new GameMessageObjDescEvent(this);

@@ -16,14 +16,13 @@ namespace ACE.DatLoader.FileTypes
     public class SetupModel
     {
         public uint ModelId { get; set; }
-        public uint TypeId { get; set; }
-        public bool Type4 { get; set; }
-        public bool Type8 { get; set; }
-        public List<uint> SubObjectIds { get; set; } = new List<uint>();
-        public List<uint> ObjectUnks { get; set; } = new List<uint>();
-        public List<AceVector3> ObjectScales { get; set; } = new List<AceVector3>();
-        public int LT94Count { get; set; }
-        public int LT98Count { get; set; }
+        public uint Bitfield { get; set; }
+        public List<uint> Parts { get; set; } = new List<uint>();
+        public List<uint> ParentIndex { get; set; } = new List<uint>();
+        public List<AceVector3> DefaultScale { get; set; } = new List<AceVector3>();
+        public Dictionary<int, LocationType> HoldingLocations { get; set; } = new Dictionary<int, LocationType>();
+        public Dictionary<int, LocationType> ConnectionPoints { get; set; } = new Dictionary<int, LocationType>();
+        public Dictionary<int, PlacementType> PlacementFrames { get; set; } = new Dictionary<int, PlacementType>();
         public List<CylSphere> CylSpheres { get; set; } = new List<CylSphere>();
         public List<CSphere> Spheres { get; set; } = new List<CSphere>();
         public float Height { get; set; }
@@ -32,6 +31,7 @@ namespace ACE.DatLoader.FileTypes
         public float StepUpHeight { get; set; }
         public CSphere SortingSphere { get; set; } = new CSphere();
         public CSphere SelectionSphere { get; set; } = new CSphere();
+        public Dictionary<int, LightInfo> Lights { get; set; } = new Dictionary<int, LightInfo>();
         public uint DefaultAnimation { get; set; }
         public uint DefaultScript { get; set; }
         public uint DefaultMotionTable { get; set; }
@@ -51,59 +51,53 @@ namespace ACE.DatLoader.FileTypes
                 SetupModel m = new SetupModel();
                 m.ModelId = datReader.ReadUInt32();
 
-                m.TypeId = datReader.ReadUInt32();
-
-                if ((m.TypeId & 4) == 1)
-                    m.Type4 = true;
-                else
-                    m.Type4 = false;
-
-                if ((m.TypeId & 8) == 1)
-                    m.Type8 = true;
-                else
-                    m.Type8 = false;
+                m.Bitfield = datReader.ReadUInt32();
 
                 // Get all the GraphicsObjects in this SetupModel. These are all the 01-types.
-                uint numSubObjects = datReader.ReadUInt32();
-                for (int i = 0; i < numSubObjects; i++)
+                uint numParts = datReader.ReadUInt32();
+                for (int i = 0; i < numParts; i++)
                 {
-                    m.SubObjectIds.Add(datReader.ReadUInt32());
+                    m.Parts.Add(datReader.ReadUInt32());
                 }
 
-                if ((m.TypeId & 1) > 0)
+                if ((m.Bitfield & 1) > 0)
                 {
-                    for (int i = 0; i < numSubObjects; i++)
+                    for (int i = 0; i < numParts; i++)
                     {
-                        m.ObjectUnks.Add(datReader.ReadUInt32());
+                        m.ParentIndex.Add(datReader.ReadUInt32());
                     }
                 }
 
-                if ((m.TypeId & 2) > 0)
+                if ((m.Bitfield & 2) > 0)
                 {
-                    for (int i = 0; i < numSubObjects; i++)
+                    for (int i = 0; i < numParts; i++)
                     {
-                        m.ObjectScales.Add(new AceVector3(datReader.ReadSingle(), datReader.ReadSingle(), datReader.ReadSingle()));
+                        m.DefaultScale.Add(new AceVector3(datReader.ReadSingle(), datReader.ReadSingle(), datReader.ReadSingle()));
                     }
                 }
 
-                m.LT94Count = datReader.ReadInt32();
-                datReader.Offset += (9 * 4 * m.LT94Count); // skip over the LT94 Objects. Some sort of location/positional data.
+               int numHoldingLocations = datReader.ReadInt32();
+               if(numHoldingLocations > 0)
+                    for (int i=0; i < numHoldingLocations; i++)
+                    {
+                        int key = datReader.ReadInt32();
+                        m.HoldingLocations.Add(key, LocationType.Read(datReader)); 
+                    }
 
-                m.LT98Count = datReader.ReadInt32();
-                datReader.Offset += (9 * 4 * m.LT98Count); // skip over the LT98 Objects. Some other sort of location/positional data.
+                int numConnectionPoints = datReader.ReadInt32();
+                if (numConnectionPoints > 0)
+                    for (int i = 0; i < numConnectionPoints; i++)
+                    {
+                        int key = datReader.ReadInt32();
+                        m.ConnectionPoints.Add(key, LocationType.Read(datReader));
+                    }
 
                 int placementsCount = datReader.ReadInt32();
                 for (int i = 0; i < placementsCount; i++)
                 {
-                    uint key = datReader.ReadUInt32();
-                    // there is a frame for each SubObject
-                    datReader.Offset += m.SubObjectIds.Count * 7 * 4; // This is frame data. Vector3 + Quaternion.
-
-                    uint hookCount = datReader.ReadUInt32();
-                    for (int j = 0; i < hookCount; j++)
-                    {
-                        // TODO: Handle this! HOWEVER, no objects appear to actually use this. At least none currently parsed as of 2017-03-29.
-                    }
+                    int key = datReader.ReadInt32();
+                    // there is a frame for each Part
+                    m.PlacementFrames.Add(key, PlacementType.Read(m.Parts.Count, datReader));
                 }
 
                 int cylinderSphereCount = datReader.ReadInt32();
@@ -130,9 +124,13 @@ namespace ACE.DatLoader.FileTypes
                 m.SortingSphere = new CSphere(new AceVector3(datReader.ReadSingle(), datReader.ReadSingle(), datReader.ReadSingle()), datReader.ReadSingle());
                 m.SelectionSphere = new CSphere(new AceVector3(datReader.ReadSingle(), datReader.ReadSingle(), datReader.ReadSingle()), datReader.ReadSingle());
 
-                int lightCount = datReader.ReadInt32();
-                // Light is made up of a Int32 uknown, Frame (Vector3 + Quaternion), int32 RGBColor, float unknown, float uknown and int32 unknown
-                datReader.Offset += 12 * 4 * lightCount;
+                int numLights = datReader.ReadInt32();
+                if(numLights > 0)
+                    for (int i = 0; i < numLights; i++)
+                    {
+                        int key = datReader.ReadInt32();
+                        m.Lights.Add(key, LightInfo.Read(datReader));
+                    }
 
                 m.DefaultAnimation = datReader.ReadUInt32();
                 m.DefaultScript = datReader.ReadUInt32();
@@ -142,6 +140,7 @@ namespace ACE.DatLoader.FileTypes
 
                 // Store this object in the FileCache
                 DatManager.PortalDat.FileCache[fileId] = m;
+
                 return m;
             }
         }

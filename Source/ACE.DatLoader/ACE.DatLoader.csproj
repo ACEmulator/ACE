@@ -88,6 +88,9 @@
     <Compile Include="Entity\CellStruct.cs" />
     <Compile Include="Entity\CombatManeuver.cs" />
     <Compile Include="Entity\Contract.cs" />
+    <Compile Include="Entity\LightInfo.cs" />
+    <Compile Include="Entity\LocationType.cs" />
+    <Compile Include="Entity\PlacementType.cs" />
     <Compile Include="Entity\Plane.cs" />
     <Compile Include="Entity\Polygon.cs" />
     <Compile Include="Entity\PortalPoly.cs" />
