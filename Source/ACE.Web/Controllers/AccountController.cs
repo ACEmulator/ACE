@@ -23,15 +23,11 @@ namespace ACE.Web.Controllers
             if (ModelState.IsValid)
             {
                 var newUser = new object(); // attempt the login here
+                string token = "jwt here";
 
                 if (newUser != null)
                 {
-                    string jwt = "get it from the user";
-                    FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(1, model.Username, DateTime.UtcNow, DateTime.UtcNow.AddDays(1), true, jwt);
-                    string formsTicket = FormsAuthentication.Encrypt(ticket);
-                    HttpCookie formsAuthCookie = new HttpCookie(FormsAuthentication.FormsCookieName, formsTicket);
-                    Response.Cookies.Set(formsAuthCookie);
-
+                    JwtCookieManager.SetCookie(token);
                     return RedirectToAction("Index", "Home", null);
                 }
             }
@@ -39,6 +35,13 @@ namespace ACE.Web.Controllers
             return View(model);
         }
         
+        [HttpGet]
+        public ActionResult LogOff()
+        {
+            JwtCookieManager.SignOut();
+            return RedirectToAction("Index", "Home", null);
+        }
+
         [HttpGet]
         public ActionResult Register()
         {
