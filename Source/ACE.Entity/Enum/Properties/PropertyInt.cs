@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyInt : ushort
     {
@@ -421,5 +423,14 @@
         GeneratorProbability                     = 9006,
         [ServerOnly]
         WeenieType                               = 9007
+    }
+
+    public static class PropertyIntExtensions
+    {
+        public static string GetDescription(this PropertyInt prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using ACE.Common;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -11,9 +12,11 @@ namespace ACE.Entity
         private ushort _ranks = 0;
         private ushort _base = 0;
 
+        [JsonProperty("attributeId")]
         [DbField("attributeId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort AttributeId { get; set; }
 
+        [JsonProperty("baseValue")]
         [DbField("attributeBase", (int)MySqlDbType.UInt16)]
         public ushort AttributeBase
         {
@@ -28,6 +31,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonProperty("ranks")]
         [DbField("attributeRanks", (int)MySqlDbType.UInt16)]
         public ushort AttributeRanks
         {
@@ -42,6 +46,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonProperty("experienceSpent")]
         [DbField("attributeXpSpent", (int)MySqlDbType.UInt32)]
         public uint AttributeXpSpent
         {
@@ -56,6 +61,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public uint ActiveValue
         {
             get

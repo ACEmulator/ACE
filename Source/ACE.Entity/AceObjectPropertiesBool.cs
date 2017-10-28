@@ -2,6 +2,7 @@
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -9,13 +10,16 @@ namespace ACE.Entity
     public class AceObjectPropertiesBool : BaseAceProperty, ICloneable
     {
         private bool? _value = false;
-        
+
+        [JsonProperty("boolPropertyId")]
         [DbField("boolPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public override uint PropertyId { get; set; }
 
+        [JsonProperty("index")]
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
         public byte Index { get; set; } = 0;
 
+        [JsonProperty("value")]
         [DbField("propertyValue", (int)MySqlDbType.Bit)]
 
         public bool? PropertyValue
@@ -31,6 +35,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public override AceObjectPropertyType PropertyType
         { get { return AceObjectPropertyType.PropertyBool; } }
 

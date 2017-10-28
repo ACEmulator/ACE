@@ -4,13 +4,16 @@ using ACE.Entity.Enum;
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
     public class Position : ICloneable
     {
+        [JsonProperty("landblockId")]
         private LandblockId landblockId;
 
+        [JsonIgnore]
         public LandblockId LandblockId
         {
             get { return landblockId.Raw != 0 ? landblockId : new LandblockId(Cell); }
@@ -21,20 +24,28 @@ namespace ACE.Entity
         }
 
         // TODO: This is just named wrong needs to be fixed.
+        [JsonIgnore]
         public uint Cell { get; set; }
 
+        [JsonProperty("positionX")]
         public float PositionX { get; set; }
 
+        [JsonProperty("positionY")]
         public float PositionY { get; set; }
 
+        [JsonProperty("positionZ")]
         public float PositionZ { get; set; }
 
+        [JsonProperty("rotationW")]
         public float RotationW { get; set; }
 
+        [JsonProperty("rotationX")]
         public float RotationX { get; set; }
 
+        [JsonProperty("rotationY")]
         public float RotationY { get; set; }
 
+        [JsonProperty("rotationZ")]
         public float RotationZ { get; set; }
 
         private const float xyMidPoint = 96f;
@@ -64,6 +75,7 @@ namespace ACE.Entity
 
             return false;
         }
+
         public Position InFrontOf(double distanceInFront = 3.0f)
         {
             float qw = RotationW; // north

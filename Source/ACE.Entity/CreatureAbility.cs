@@ -1,5 +1,7 @@
 ﻿using System;
 using ACE.Entity.Enum;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace ACE.Entity
 {
@@ -7,6 +9,8 @@ namespace ACE.Entity
     {
         private AceObjectPropertiesAttribute _backer;
 
+        [JsonProperty("ability")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public Ability Ability
         {
             get { return (Ability)_backer.AttributeId; }
@@ -15,10 +19,11 @@ namespace ACE.Entity
                 _backer.AttributeId = (ushort)value;
             }
         }
-
+        
         /// <summary>
         /// Returns the Base Value for a Creature's Ability, for Players this is set durring Character Creation 
         /// </summary>
+        [JsonProperty("startingValue")]
         public uint Base
         {
             get { return _backer.AttributeBase; }
@@ -32,6 +37,7 @@ namespace ACE.Entity
         /// <summary>
         /// Returns the Current Rank for a Creature's Ability
         /// </summary>
+        [JsonProperty("ranks")]
         public uint Ranks
         {
             get { return _backer.AttributeRanks; }
@@ -42,6 +48,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public uint Current
         {
             get { return UnbuffedValue; }
@@ -51,6 +58,7 @@ namespace ACE.Entity
         /// For Primary Abilities, Returns the Base Value Plus the Ranked Value
         /// For Secondary Abilities, Returns the adjusted Value depending on the current Abiliy formula
         /// </summary>
+        [JsonProperty("baseValue")]
         public uint UnbuffedValue
         {
             get
@@ -63,6 +71,7 @@ namespace ACE.Entity
         /// <summary>
         /// Returns the MaxValue of an ability, UnbuffedValue + Additional
         /// </summary>
+        [JsonIgnore]
         public uint MaxValue
         {
             get
@@ -77,6 +86,7 @@ namespace ACE.Entity
         /// <summary>
         /// Total Experience Spent on an ability
         /// </summary>
+        [JsonProperty("experienceSpent")]
         public uint ExperienceSpent
         {
             get { return _backer.AttributeXpSpent; }

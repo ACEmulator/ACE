@@ -1,7 +1,12 @@
 # ACEmulator Change Log
+
 ### 2017-10-27
 [OptimShi]
 * Updated DatLoader.FileTypes.SetupModel to more closely represent what is in the client. Also added additional structures to this to fully read the file.
+
+[Mogwai]
+* Loads of new JSON property renaming
+* New API definitions stubbed, some implemented
 
 ### 2017-10-25
 [fantoms]
