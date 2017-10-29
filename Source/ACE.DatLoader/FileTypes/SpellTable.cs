@@ -55,15 +55,15 @@ namespace ACE.DatLoader.FileTypes
 
                     switch (newSpell.MetaSpellType)
                     {
-                        case SpellType.Enchantment_SpellType:
-                        case SpellType.FellowEnchantment_SpellType:
+                        case SpellType.Enchantment:
+                        case SpellType.FellowEnchantment:
                             {
                                 newSpell.Duration = datReader.ReadDouble();
                                 newSpell.DegradeModifier = datReader.ReadSingle();
                                 newSpell.DegradeLimit = datReader.ReadSingle();
                                 break;
                             }
-                        case SpellType.PortalSummon_SpellType:
+                        case SpellType.PortalSummon:
                             {
                                 newSpell.PortalLifetime = datReader.ReadDouble();
                                 break;
