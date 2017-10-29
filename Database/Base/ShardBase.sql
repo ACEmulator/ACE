@@ -362,7 +362,7 @@ CREATE TABLE `ace_object_properties_int` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `intPropertyId` smallint(5) unsigned NOT NULL DEFAULT '0',
   `propertyIndex` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `propertyValue` int(10) unsigned NOT NULL DEFAULT '0',
+  `propertyValue` int(10) NOT NULL DEFAULT '0',
   UNIQUE KEY `ace_object__property_int_id` (`aceObjectId`,`intPropertyId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Int_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
