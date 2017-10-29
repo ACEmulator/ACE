@@ -3,6 +3,7 @@
 ### 2017-10-29
 [Ripley]
 * Updated EmoteCategory, EmoteType, and SpellType enums.
+* Add CombatStyle enum.
 
 ### 2017-10-27
 [OptimShi]
