@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum.Properties
+﻿using System.ComponentModel;
+
+namespace ACE.Entity.Enum.Properties
 {
     public enum PropertyDataId : ushort
     {
@@ -73,5 +75,14 @@
         HairTexture                = 9001,
         [ServerOnly]
         DefaultHairTexture         = 9002,
+    }
+
+    public static class PropertyDataIdExtensions
+    {
+        public static string GetDescription(this PropertyDataId prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
     }
 }

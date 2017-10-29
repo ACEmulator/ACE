@@ -1,6 +1,8 @@
 ﻿using System;
 
 using ACE.Entity.Enum;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace ACE.Entity
 {
@@ -14,8 +16,11 @@ namespace ACE.Entity
 
         private double lastTick = double.NegativeInfinity;
 
+        [JsonIgnore]
         public double RegenRate { set; get; }
 
+        [JsonProperty("ability")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public Ability Ability
         {
             get { return (Ability)_backer.Attribute2ndId; }
@@ -24,9 +29,11 @@ namespace ACE.Entity
                 _backer.Attribute2ndId = (ushort)value;
             }
         }
-        
+
+        [JsonProperty("startingValue")]
         public uint Base { get; set; }
 
+        [JsonProperty("ranks")]
         public uint Ranks
         {
             get { return _backer.Attribute2ndRanks; }
@@ -40,6 +47,7 @@ namespace ACE.Entity
         /// <summary>
         /// Total Experience Spent on an ability
         /// </summary>
+        [JsonProperty("experienceSpent")]
         public uint ExperienceSpent
         {
             get { return _backer.Attribute2ndXpSpent; }
@@ -50,6 +58,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonProperty("baseValue")]
         public uint UnbuffedValue
         {
             get
@@ -82,11 +91,13 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public uint MaxValue { get { return UnbuffedValue; } }
 
         /// <summary>
         /// only applies to Health/Stam/Mana
         /// </summary>
+        [JsonIgnore]
         public uint Current
         {
             get { return _backer.Attribute2ndValue; }
@@ -97,6 +108,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public double NextTickTime {
             get
             {

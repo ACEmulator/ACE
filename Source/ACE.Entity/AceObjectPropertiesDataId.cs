@@ -2,6 +2,7 @@
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -9,16 +10,19 @@ namespace ACE.Entity
     public class AceObjectPropertiesDataId : BaseAceProperty, ICloneable
     {
         private uint? _value = 0;
-        
+
+        [JsonProperty("dataIdPropertyId")]
         [DbField("didPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public override uint PropertyId { get; set; }
 
+        [JsonProperty("index")]
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
         public byte Index { get; set; } = 0;
 
         /// <summary>
         /// set to null to delete.  do not directly remove.
         /// </summary>
+        [JsonProperty("value")]
         [DbField("propertyValue", (int)MySqlDbType.UInt32)]
         public uint? PropertyValue
         {
@@ -33,6 +37,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public override AceObjectPropertyType PropertyType
         { get { return AceObjectPropertyType.PropertyDataId; } }
 

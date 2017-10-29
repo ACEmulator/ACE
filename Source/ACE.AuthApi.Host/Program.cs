@@ -13,8 +13,9 @@ namespace ACE.AuthApi.Host
             if (!string.IsNullOrWhiteSpace(ConfigManager.Config.AuthServer?.ListenUrl))
             {
                 // Get the bind address and port from config
-                var server = WebApp.Start<Startup>(url: ConfigManager.Config.AuthServer.ListenUrl);
-                Console.WriteLine($"ACE Auth API listening at {ConfigManager.Config.AuthServer.ListenUrl}");
+                var url = ConfigManager.Config.AuthServer.ListenUrl;
+                var server = WebApp.Start<Startup>(url);
+                Console.WriteLine($"ACE Auth API listening at {url}");
                 Console.ReadLine();
             }
             else

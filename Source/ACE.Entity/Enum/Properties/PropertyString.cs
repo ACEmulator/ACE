@@ -63,7 +63,20 @@ namespace ACE.Entity.Enum.Properties
         KillQuest2                      = 49,
         KillQuest3                      = 50,
         UseSendsSignal                  = 51,
+
+        [Description("Gear Plating Name")]
         GearPlatingName                 = 52
         // values over 9000 are ones that we have added and should not be sent to the client
     }
+
+    public static class PropertyStringExtensions
+    {
+        public static string GetDescription(this PropertyString prop)
+        {
+            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            return description?.Description ?? prop.ToString();
+        }
+    }
 }
+
+

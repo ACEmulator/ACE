@@ -1,4 +1,19 @@
 # ACEmulator Change Log
+
+### 2017-10-27
+[OptimShi]
+* Updated DatLoader.FileTypes.SetupModel to more closely represent what is in the client. Also added additional structures to this to fully read the file.
+
+[Mogwai]
+* Loads of new JSON property renaming
+* New API definitions stubbed, some implemented
+
+### 2017-10-25
+[fantoms]
+* Changed an exception in AuthApi, to prevent the server from crashing on a bad account.
+* API Updates for roles in token, you should now be closer to using the correct `[AceAuthorize(AccessLevel)]` reflection with Api functions.
+ - Api will take the first subscription's accesslevel, when checking roles; this should probably be set to take the highest level. AccessLevel of Player (0) is used when a subscription is missing.
+
 ### 2017-10-24
 [OptimShi]
 * Fixed bug with Equipment Mask enum that was causing Greaves/Lower Leg Armor not to appear on character

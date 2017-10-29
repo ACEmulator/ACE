@@ -118,7 +118,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\PropertyController.cs" />
+    <Compile Include="Controllers\ResourceController.cs" />
     <Compile Include="Controllers\ServerController.cs" />
+    <Compile Include="Models\AceModel.cs" />
+    <Compile Include="Models\AceProperty.cs" />
+    <Compile Include="Models\Image.cs" />
     <Compile Include="Models\RedeployRequest.cs" />
     <Compile Include="Models\ServerInformation.cs" />
     <Compile Include="Controllers\SubscriptionController.cs" />

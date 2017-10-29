@@ -1,16 +1,20 @@
 ﻿using ACE.Common;
 using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
     public abstract class BaseAceProperty : IDirty
     {
+        [JsonIgnore]
         [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true, Update = false)]
         public uint AceObjectId { get; set; }
 
+        [JsonIgnore]
         public bool IsDirty { get; set; } = false;
 
+        [JsonIgnore]
         public bool HasEverBeenSavedToDatabase { get; set; } = false;
 
         public void ClearDirtyFlags()
@@ -25,8 +29,10 @@ namespace ACE.Entity
             this.HasEverBeenSavedToDatabase = false;
         }
 
+        [JsonIgnore]
         public virtual uint PropertyId { get; set; }
 
+        [JsonIgnore]
         public virtual AceObjectPropertyType PropertyType { get; }
     }
 }

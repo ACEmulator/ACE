@@ -2,6 +2,7 @@
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum;
+using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
@@ -9,13 +10,16 @@ namespace ACE.Entity
     public class AceObjectPropertiesDouble : BaseAceProperty, ICloneable
     {
         private double? _value = 0;
-        
+
+        [JsonProperty("doublePropertyId")]
         [DbField("dblPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public new ushort PropertyId { get; set; }
 
+        [JsonProperty("index")]
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
         public byte Index { get; set; } = 0;
 
+        [JsonProperty("value")]
         [DbField("propertyValue", (int)MySqlDbType.Double)]
         public double? PropertyValue
         {
@@ -30,6 +34,7 @@ namespace ACE.Entity
             }
         }
 
+        [JsonIgnore]
         public override AceObjectPropertyType PropertyType
         { get { return AceObjectPropertyType.PropertyDouble; } }
 
