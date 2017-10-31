@@ -11,6 +11,7 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 
 REM execute Update Scripts for Shard Database
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2017-08-20-00-vw-ace-wielded-object.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2017-10-18-00-create-ace-object-tracker.sql
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2017-10-20-00-auth-overhaul-shard.sql
 
 REM execute Update Scripts for Auth Database
@@ -23,6 +24,6 @@ appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/
 
 REM execute Update Scripts for World Database
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-06-30-00-generator-chains-testdata.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2017-10-18-00-create-ace-object-tracker.sql
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-10-20-00-auth-overhaul-world.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-10-30-00-weenie-updates.sql
 

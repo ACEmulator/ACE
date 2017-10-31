@@ -37,13 +37,7 @@ namespace ACE.Database
         void UpdateContent(Content content);
 
         void DeleteContent(Guid contentGuid);
-
-        void UpdateWeenie(AceObject weenie);
-
-        void CreateWeenie(AceObject weenie);
-
-        void DeleteWeenie(uint weenieId);
-
+        
         /// <summary>
         /// gets any matching weenie objects, only very shallowly populated.  this is not
         /// a full object.  to get the full object, call GetWeenie on the resulting weenie id.

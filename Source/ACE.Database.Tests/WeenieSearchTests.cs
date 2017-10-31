@@ -104,5 +104,15 @@ namespace ACE.Database.Tests
             Assert.IsNotNull(results);
             Assert.IsTrue(results.Count > 0, "no Peerless Healing Kit in the database is bad.");
         }
+
+        [TestMethod]
+        public void GetAndSaveWeenie_ById_DoesNotThrow()
+        {
+            var mote = worldDb.GetObject(6353);
+
+            mote.IsDirty = true;
+
+            worldDb.SaveObject(mote);
+        }
     }
 }

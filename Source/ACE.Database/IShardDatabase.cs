@@ -34,9 +34,5 @@ namespace ACE.Database
         uint GetCurrentId(uint min, uint max);
 
         AceCharacter GetCharacter(uint id);
-
-        bool SaveObject(AceObject aceObject);
-
-        bool DeleteObject(AceObject aceObject);
     }
 }

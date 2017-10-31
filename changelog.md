@@ -1,6 +1,9 @@
 # ACEmulator Change Log
+### 2017-10-30
+[Mogwai]
+* implemented updating of weenies in ace-world necessary for crowd-sourced content creation
+* added database unit tests to AppVeyor build
 
-### 2017-10-27
 [OptimShi]
 * Updated DatLoader.FileTypes.SetupModel to more closely represent what is in the client. Also added additional structures to this to fully read the file.
 

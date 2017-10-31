@@ -35,7 +35,7 @@ namespace ACE.Database
 
             public void AddPreparedStatement<T>(T id, params object[] parameters)
             {
-                Debug.Assert(typeof(T) == database.PreparedStatementType, "Invalid prepared statement type.");
+                // Debug.Assert(typeof(T) == database.PreparedStatementType, "Invalid prepared statement type.");
 
                 StoredPreparedStatement preparedStatement;
                 if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -49,8 +49,8 @@ namespace ACE.Database
 
             public void AddPreparedDeleteListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
             {
-                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
-                // Oh goody, its reflection time
+                // Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 StoredPreparedStatement preparedStatement;
@@ -77,8 +77,8 @@ namespace ACE.Database
 
             public void AddPreparedInsertListStatement<T1, T2>(T1 id, List<T2> info)
             {
-                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
-                // Oh goody, its reflection time
+                // Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
@@ -151,8 +151,8 @@ namespace ACE.Database
 
             public void AddPreparedDeleteStatement<T1, T2>(T1 id, object instance)
             {
-                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
-                // Oh goody, its reflection time
+                // Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
@@ -296,7 +296,7 @@ namespace ACE.Database
 
         protected void AddPreparedStatement<T>(T id, string query, params MySqlDbType[] types)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
             Debug.Assert(types.Length == query.Count(c => c == '?'), "Invalid prepared statement parameter length.");
 
             try
@@ -904,7 +904,7 @@ namespace ACE.Database
 
         private async void ExecutePreparedStatement<T>(bool async, T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -958,7 +958,7 @@ namespace ACE.Database
 
         protected MySqlResult SelectPreparedStatement<T>(T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
@@ -1000,7 +1000,7 @@ namespace ACE.Database
 
         protected async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
             StoredPreparedStatement preparedStatement;
             if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
