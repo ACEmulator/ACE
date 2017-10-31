@@ -13,7 +13,7 @@ namespace ACE.Entity
 
         [JsonProperty("int64PropertyId")]
         [DbField("bigIntPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
-        public override uint PropertyId { get; set; }
+        public new uint PropertyId { get; set; }
 
         [JsonProperty("index")]
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]

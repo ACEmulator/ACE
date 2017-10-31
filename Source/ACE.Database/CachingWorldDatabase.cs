@@ -135,5 +135,13 @@ namespace ACE.Database
         {
             return _wrappedDatabase.SearchWeenies(criteria);
         }
+
+        public bool ReplaceObject(AceObject aceObject)
+        {
+            if (_weenieCache.ContainsKey(aceObject.WeenieClassId))
+                _weenieCache[aceObject.WeenieClassId] = aceObject;
+
+            return _wrappedDatabase.ReplaceObject(aceObject);
+        }
     }
 }

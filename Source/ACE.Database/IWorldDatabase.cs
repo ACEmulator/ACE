@@ -43,5 +43,10 @@ namespace ACE.Database
         /// a full object.  to get the full object, call GetWeenie on the resulting weenie id.
         /// </summary>
         List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria);
+
+        /// <summary>
+        /// does a full object replacement, deleting all properties prior to insertion
+        /// </summary>
+        bool ReplaceObject(AceObject aceObject);
     }
 }

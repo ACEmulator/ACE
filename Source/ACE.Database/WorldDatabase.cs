@@ -126,6 +126,14 @@ namespace ACE.Database
             ConstructStatement(WorldPreparedStatement.DeleteContentResource, typeof(ContentResource), ConstructedStatementType.Delete);
         }
 
+        /// <summary>
+        /// does a full object replacement, deleting all properties prior to insertion
+        /// </summary>
+        public bool ReplaceObject(AceObject aceObject)
+        {
+            return SaveOrReplaceObject(aceObject, true);
+        }
+
         public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
         {
             var criteria = new Dictionary<string, object> { { "itemType", itemType } };

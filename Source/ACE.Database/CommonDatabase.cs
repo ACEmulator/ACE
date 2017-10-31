@@ -207,9 +207,14 @@ namespace ACE.Database
 
         public bool SaveObject(AceObject aceObject)
         {
+            return SaveOrReplaceObject(aceObject);
+        }
+
+        protected bool SaveOrReplaceObject(AceObject aceObject, bool replace = false)
+        {
             DatabaseTransaction transaction = BeginTransaction();
 
-            SaveObjectInternal(transaction, aceObject);
+            SaveObjectInternal(transaction, aceObject, replace);
 
             // Do we have any inventory to save - if not, we are done here?
             if (aceObject.Inventory.Count > 0)
@@ -349,17 +354,30 @@ namespace ACE.Database
             return true;
         }
 
-        private bool SaveObjectInternal(DatabaseTransaction transaction, AceObject aceObject)
+        private bool SaveObjectInternal(DatabaseTransaction transaction, AceObject aceObject, bool replace = false)
         {
             // Update the character table -- save the AceObject to ace_object.
             SaveAceObjectBase(transaction, aceObject);
 
+            if (replace) DeleteAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
             SaveAceObjectPropertiesInt(transaction, aceObject.AceObjectId, aceObject.IntProperties);
+
+            if (replace) DeleteAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
             SaveAceObjectPropertiesBigInt(transaction, aceObject.AceObjectId, aceObject.Int64Properties);
+            
+            if (replace) DeleteAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
             SaveAceObjectPropertiesBool(transaction, aceObject.AceObjectId, aceObject.BoolProperties);
+
+            if (replace) DeleteAceObjectPropertiesDouble(transaction, aceObject.AceObjectId, aceObject.DoubleProperties);
             SaveAceObjectPropertiesDouble(transaction, aceObject.AceObjectId, aceObject.DoubleProperties);
+
+            if (replace) DeleteAceObjectPropertiesString(transaction, aceObject.AceObjectId, aceObject.StringProperties);
             SaveAceObjectPropertiesString(transaction, aceObject.AceObjectId, aceObject.StringProperties);
+
+            if (replace) DeleteAceObjectPropertiesIid(transaction, aceObject.AceObjectId, aceObject.InstanceIdProperties);
             SaveAceObjectPropertiesIid(transaction, aceObject.AceObjectId, aceObject.InstanceIdProperties);
+
+            if (replace) DeleteAceObjectPropertiesDid(transaction, aceObject.AceObjectId, aceObject.DataIdProperties);
             SaveAceObjectPropertiesDid(transaction, aceObject.AceObjectId, aceObject.DataIdProperties);
 
             DeleteAceObjectTextureMaps(transaction, aceObject.AceObjectId, aceObject.TextureOverrides);
@@ -374,10 +392,13 @@ namespace ACE.Database
             DeleteAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
             SaveAceObjectPalettes(transaction, aceObject.AceObjectId, aceObject.PaletteOverrides);
 
+            if (replace) DeleteAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesAttributes(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes);
-
+            
+            if (replace) DeleteAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesAttribute2nd(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesAttributes2nd);
 
+            if (replace) DeleteAceObjectPropertiesSkill(transaction, aceObject.AceObjectId);
             SaveAceObjectPropertiesSkill(transaction, aceObject.AceObjectId, aceObject.AceObjectPropertiesSkills);
 
             DeleteAceObjectPropertiesBook(transaction, aceObject.AceObjectId);
@@ -584,9 +605,9 @@ namespace ACE.Database
             if (obj.IsDirty)
             {
                 if (!obj.HasEverBeenSavedToDatabase)
-                    transaction.AddPreparedInsertStatement<AceObjectPreparedStatement, AceObject>(AceObjectPreparedStatement.SaveAceObject, obj);
+                    transaction.AddPreparedInsertStatement(AceObjectPreparedStatement.SaveAceObject, obj);
                 else
-                    transaction.AddPreparedUpdateStatement<AceObjectPreparedStatement, AceObject>(AceObjectPreparedStatement.UpdateAceObject, obj);
+                    transaction.AddPreparedUpdateStatement(AceObjectPreparedStatement.UpdateAceObject, obj);
             }
 
             return true;
@@ -597,6 +618,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -611,12 +633,12 @@ namespace ACE.Database
                     else
                     {
                         // update it
-                        transaction.AddPreparedUpdateStatement<AceObjectPreparedStatement, AceObjectPropertiesInt>(AceObjectPreparedStatement.UpdateAceObjectPropertyInt, prop);
+                        transaction.AddPreparedUpdateStatement(AceObjectPreparedStatement.UpdateAceObjectPropertyInt, prop);
                     }
                 }
                 else if (prop.PropertyValue != null)
                 {
-                    transaction.AddPreparedInsertStatement<AceObjectPreparedStatement, AceObjectPropertiesInt>(AceObjectPreparedStatement.InsertAceObjectPropertiesInt, prop);
+                    transaction.AddPreparedInsertStatement(AceObjectPreparedStatement.InsertAceObjectPropertiesInt, prop);
                 }
             }
 
@@ -627,6 +649,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -657,6 +680,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -687,6 +711,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -717,6 +742,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -747,6 +773,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -777,6 +804,7 @@ namespace ACE.Database
         {
             // calling ToList forces the enumerable evaluation so that we can call .Remove from within the loop
             var theDirtyOnes = properties.Where(p => p.IsDirty).ToList();
+            theDirtyOnes.ForEach(p => p.AceObjectId = aceObjectId);
 
             foreach (var prop in theDirtyOnes)
             {
@@ -833,6 +861,7 @@ namespace ACE.Database
 
         private bool SaveAceObjectPropertiesPositions(DatabaseTransaction transaction, uint aceObjectId, List<AceObjectPropertiesPosition> properties)
         {
+            properties.ForEach(p => p.AceObjectId = aceObjectId);
             transaction.AddPreparedInsertListStatement<AceObjectPreparedStatement, AceObjectPropertiesPosition>(AceObjectPreparedStatement.InsertAceObjectPropertiesPositions, properties);
             return true;
         }
