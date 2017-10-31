@@ -267,7 +267,7 @@ namespace ACE.Entity
                 UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
                 mm.MovementData.CurrentStyle = (uint)MotionStance.Spellcasting;
                 SetMotionState(this, mm);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.Magic));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (int)CombatMode.Magic));
             }
             else
                 log.InfoFormat("Changing combat mode for {0} - could not locate a wielded magic caster", Guid);
@@ -330,7 +330,7 @@ namespace ACE.Entity
             mm.MovementData.CurrentStyle = (uint)MotionStance.Standing;
             SetMotionState(this, mm);
             var mEquipedAmmo = WieldedObjects.FirstOrDefault(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.NonCombat));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
             if (mEquipedAmmo != null)
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
         }
@@ -383,7 +383,7 @@ namespace ACE.Entity
                     combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
                     // CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)); // used for debugging
                 }
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.Missile));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (int)CombatMode.Missile));
             }
         }
 
@@ -470,7 +470,7 @@ namespace ACE.Entity
                 UniversalMotion mm = new UniversalMotion(ms);
                 mm.MovementData.CurrentStyle = (ushort)ms;
                 SetMotionState(this, mm);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (uint)CombatMode.Melee));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (int)CombatMode.Melee));
             }
             else
                 log.InfoFormat("Changing combat mode for {0} - wielded item {1} has not be assigned a default combat style", Guid, mEquipedMelee?.Guid ?? mEquipedTwoHanded?.Guid);

@@ -12,7 +12,7 @@ namespace ACE.Entity
         public Book(AceObject aceO)
             : base(aceO)
         {
-            Pages = (uint)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
+            Pages = (int)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
             MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
         }
 
@@ -52,8 +52,8 @@ namespace ACE.Entity
         /// <param name="session"></param>
         private void BookUseHandler(Session session)
         {
-            uint maxChars = MaxCharactersPerPage ?? 1000;
-            uint maxPages = MaxPages ?? 1;
+            int maxChars = MaxCharactersPerPage ?? 1000;
+            int maxPages = MaxPages ?? 1;
 
             string authorName;
             if (ScribeName != null)

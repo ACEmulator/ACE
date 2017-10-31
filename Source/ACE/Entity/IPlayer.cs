@@ -16,6 +16,6 @@ namespace ACE.Entity
 
         WorldObject AddNewItemToInventory(uint weenieClassId);
 
-        void AddToInventoryEx(WorldObject inventoryItem, uint placement = 0);
+        void AddToInventoryEx(WorldObject inventoryItem, int placement = 0);
     }
 }

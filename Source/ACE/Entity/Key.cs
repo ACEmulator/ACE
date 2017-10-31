@@ -50,7 +50,7 @@ namespace ACE.Entity
                                     player.HandleActionRemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
 
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this.Sequences, Guid, PropertyInt.Structure, (uint)Structure));
+                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this.Sequences, Guid, PropertyInt.Structure, (int)Structure));
                                 break;
                             case Entity.Door.UnlockDoorResults.DoorOpen:
                                 var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0481); // TODO: Messages are not quiet right. Need to find right one.

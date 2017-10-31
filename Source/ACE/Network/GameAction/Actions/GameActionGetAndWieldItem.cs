@@ -6,7 +6,7 @@
         public static void Handle(ClientMessage message, Session session)
         {
             uint itemGuid = message.Payload.ReadUInt32();
-            uint location = message.Payload.ReadUInt32();
+            int location = message.Payload.ReadInt32();
             session.Player.HandleActionWieldItem(session.Player, itemGuid, location);
         }
     }

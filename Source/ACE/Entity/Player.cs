@@ -76,12 +76,12 @@ namespace ACE.Entity
         /// point if on a subsequent use, now() minus the last use value from the dictionary
         /// is greater than or equal to the cooldown, we can do the use - if not you must wait message.   Og II
         /// </summary>
-        public Dictionary<uint, DateTime> LastUseTracker { get; set; }
+        public Dictionary<int, DateTime> LastUseTracker { get; set; }
 
         /// <summary>
         /// Level of the player
         /// </summary>
-        public uint Level
+        public int Level
         {
             get { return Character.Level; }
         }
@@ -111,12 +111,12 @@ namespace ACE.Entity
             }
         }
 
-        public void SetCharacterOptions1(uint options1)
+        public void SetCharacterOptions1(int options1)
         {
             Character.CharacterOptions1Mapping = options1;
         }
 
-        public void SetCharacterOptions2(uint options2)
+        public void SetCharacterOptions2(int options2)
         {
             Character.CharacterOptions2Mapping = options2;
         }
@@ -316,7 +316,7 @@ namespace ACE.Entity
             set { Character.IsPsr = value; }
         }
 
-        public uint TotalLogins
+        public int TotalLogins
         {
             get { return Character.TotalLogins; }
             set { Character.TotalLogins = value; }
@@ -360,7 +360,7 @@ namespace ACE.Entity
                 TrackedContracts.Add(trackedContract.Key, loadContract);
             }
 
-            LastUseTracker = new Dictionary<uint, DateTime>();
+            LastUseTracker = new Dictionary<int, DateTime>();
         }
 
         /// <summary>
@@ -376,7 +376,7 @@ namespace ACE.Entity
 
         public bool FirstEnterWorldDone = false;
 
-        public uint Age
+        public int Age
         { get { return Character.Age; } }
 
         public uint CreationTimestamp
@@ -537,7 +537,7 @@ namespace ACE.Entity
         /// </remarks>
         /// <param name="skill"></param>
         /// <param name="creditsSpent"></param>
-        public void TrainSkill(Skill skill, uint creditsSpent)
+        public void TrainSkill(Skill skill, int creditsSpent)
         {
             if (Character.AvailableSkillCredits >= creditsSpent)
             {
@@ -1283,7 +1283,7 @@ namespace ACE.Entity
         // todo re-think how this works..
         private void UpdateCurrencyClientCalculations(WeenieType type)
         {
-            uint coins = 0;
+            int coins = 0;
             List<WorldObject> currency = new List<WorldObject>();
             currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
             foreach (WorldObject wo in currency)
@@ -1766,10 +1766,10 @@ namespace ACE.Entity
             foreach (WorldObject wieldedObject in WieldedObjects.Values)
             {
                 WorldObject wo = wieldedObject;
-                uint placementId;
-                uint childLocation;
+                int placementId;
+                int childLocation;
                 if ((wo.CurrentWieldedLocation != null) && (((EquipMask)wo.CurrentWieldedLocation & EquipMask.Selectable) != 0))
-                    SetChild(this, wo, (uint)wo.CurrentWieldedLocation, out placementId, out childLocation);
+                    SetChild(this, wo, (int)wo.CurrentWieldedLocation, out placementId, out childLocation);
                 else
                     log.Debug($"Error - item set as child that should not be set - no currentWieldedLocation {wo.Name} - {wo.Guid.Full:X}");
             }
@@ -2348,9 +2348,9 @@ namespace ACE.Entity
                 WorldObject item = wieldedObject;
                 if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
                 {
-                    uint placementId;
-                    uint childLocation;
-                    session.Player.SetChild(this, item, (uint)item.CurrentWieldedLocation, out placementId, out childLocation);
+                    int placementId;
+                    int childLocation;
+                    session.Player.SetChild(this, item, (int)item.CurrentWieldedLocation, out placementId, out childLocation);
                 }
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
@@ -2374,7 +2374,7 @@ namespace ACE.Entity
         /// <param name="item"></param>
         /// <param name="placement"></param>
         /// <param name="inContainerChain"></param>
-        private void HandleUnwieldItem(Container container, WorldObject item, uint placement, ActionChain inContainerChain)
+        private void HandleUnwieldItem(Container container, WorldObject item, int placement, ActionChain inContainerChain)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
@@ -2429,7 +2429,7 @@ namespace ACE.Entity
         /// <param name="item">the item we are moving</param>
         /// <param name="container">what container are we going in</param>
         /// <param name="placement">what is my slot position within that container</param>
-        private void HandleMove(ref WorldObject item, Container container, uint placement)
+        private void HandleMove(ref WorldObject item, Container container, int placement)
         {
             RemoveWorldObjectFromInventory(item.Guid);
 
@@ -2463,7 +2463,7 @@ namespace ACE.Entity
         /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
         /// <returns></returns>
 
-        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint place, ushort amount)
+        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int place, ushort amount)
         {
             // TODO: add the complementary method to combine items Og II
             ActionChain splitItemsChain = new ActionChain();
@@ -2554,7 +2554,7 @@ namespace ACE.Entity
                     contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
 
                 TrackedContracts.Remove(contractId);
-                LastUseTracker.Remove(contractId);
+                LastUseTracker.Remove((int)contractId);
                 AceObject.TrackedContracts.Remove(contractId);
 
                 DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
@@ -2643,7 +2643,7 @@ namespace ACE.Entity
         /// <param name="itemGuid"></param>
         /// <param name="placement"></param>
         /// <param name="iidPropertyId"></param>
-        private void HandlePickupItem(Container container, ObjectGuid itemGuid, uint placement, PropertyInstanceId iidPropertyId)
+        private void HandlePickupItem(Container container, ObjectGuid itemGuid, int placement, PropertyInstanceId iidPropertyId)
         {
             // Logical operations:
             // !! FIXME: How to handle repeat on condition?
@@ -2833,7 +2833,7 @@ namespace ACE.Entity
         /// <param name="placement">Where is this on the parent - where is it equipped</param>
         /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
         /// <param name="childLocation">out parameter - this is another part of the orientation data for correct visual display</param>
-        public void SetChild(Container container, WorldObject item, uint placement, out uint placementId, out uint childLocation)
+        public void SetChild(Container container, WorldObject item, int placement, out int placementId, out int childLocation)
         {
             placementId = 0;
             childLocation = 0;
@@ -2890,7 +2890,7 @@ namespace ACE.Entity
             item.AnimationFrame = placementId;
         }
 
-        public void HandleActionWieldItem(Container container, uint itemId, uint placement)
+        public void HandleActionWieldItem(Container container, uint itemId, int placement)
         {
             ActionChain wieldChain = new ActionChain();
             wieldChain.AddAction(this, () =>
@@ -2934,8 +2934,8 @@ namespace ACE.Entity
                         {
                             if (((EquipMask)placement & EquipMask.Selectable) != 0)
                             {
-                                uint placementId;
-                                uint childLocation;
+                                int placementId;
+                                int childLocation;
                                 SetChild(container, item, placement, out placementId, out childLocation);
 
                                 UpdateAppearance(container);
@@ -2985,7 +2985,7 @@ namespace ACE.Entity
             wieldChain.EnqueueChain();
         }
 
-        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, uint placement = 0)
+        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
         {
             ActionChain inContainerChain = new ActionChain();
             inContainerChain.AddAction(
@@ -3603,8 +3603,8 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
 
-        private uint coinValue = 0;
-        public override uint? CoinValue
+        private int coinValue = 0;
+        public override int? CoinValue
         {
             get { return coinValue; }
             set
@@ -3612,7 +3612,7 @@ namespace ACE.Entity
                 if (value != coinValue)
                 {
                     base.CoinValue = value;
-                    coinValue = (uint)value;
+                    coinValue = (int)value;
                     if (FirstEnterWorldDone)
                         Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
                 }
@@ -3635,8 +3635,8 @@ namespace ACE.Entity
             }
         }
 
-        private uint value = 0;
-        public override uint? Value
+        private int value = 0;
+        public override int? Value
         {
             get { return value; }
             set { base.Value = 0; }

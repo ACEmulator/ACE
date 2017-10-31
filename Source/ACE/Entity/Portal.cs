@@ -133,17 +133,17 @@ namespace ACE.Entity
             get;
         }
 
-        public uint MinimumLevel
+        public int MinimumLevel
         {
             get;
         }
 
-        public uint MaximumLevel
+        public int MaximumLevel
         {
             get;
         }
 
-        public uint SocietyId
+        public int SocietyId
         {
             get { return 0; }
         }

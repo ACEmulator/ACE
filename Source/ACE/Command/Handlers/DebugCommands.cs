@@ -902,10 +902,10 @@ namespace ACE.Command.Handlers
         "Set Coin display debug only usage")]
         public static void HandleSetCoin(Session session, params string[] parameters)
         {
-            uint coins;
+            int coins;
             try
             {
-                coins = Convert.ToUInt32(parameters[0]);
+                coins = Convert.ToInt32(parameters[0]);
             }
             catch (Exception)
             {

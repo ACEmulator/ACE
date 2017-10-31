@@ -80,31 +80,31 @@ namespace ACE.Entity
             set { AceObject.ChestClearedWhenClosed = value; }
         }
 
-        public uint GeneratorTimeType
+        public int GeneratorTimeType
         {
             get { return AceObject.GeneratorTimeType ?? 0; }
             set { AceObject.GeneratorTimeType = value; }
         }
 
-        public uint GeneratorProbability
+        public int GeneratorProbability
         {
             get { return AceObject.GeneratorProbability ?? 0; }
             set { AceObject.GeneratorProbability = value; }
         }
 
-        public uint MaxGeneratedObjects
+        public int MaxGeneratedObjects
         {
             get { return AceObject.MaxGeneratedObjects ?? 0; }
             set { AceObject.MaxGeneratedObjects = value; }
         }
 
-        public uint GeneratorType
+        public int GeneratorType
         {
             get { return AceObject.GeneratorType ?? 0; }
             set { AceObject.GeneratorType = value; }
         }
 
-        public uint ActivationCreateClass
+        public int ActivationCreateClass
         {
             get { return AceObject.ActivationCreateClass ?? 0; }
             set { AceObject.ActivationCreateClass = value; }

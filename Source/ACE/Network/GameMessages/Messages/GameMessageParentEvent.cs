@@ -5,7 +5,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessageParentEvent : GameMessage
     {
-        public GameMessageParentEvent(WorldObject player, WorldObject targetItem, uint childLocation, uint placementId)
+        public GameMessageParentEvent(WorldObject player, WorldObject targetItem, int childLocation, int placementId)
             : base(GameMessageOpcode.ParentEvent, GameMessageGroup.Group0A)
         {
             // Fix File Name

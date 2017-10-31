@@ -5,6 +5,7 @@
 * Updated EmoteCategory, EmoteType, and SpellType enums.
 * Add CombatStyle enum.
 * Rebased SQL scripts.
+* Changed all PropertyInt properties from uint to int.
 
 ### 2017-10-27
 [OptimShi]
