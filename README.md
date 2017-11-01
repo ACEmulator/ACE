@@ -32,7 +32,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
 * Download from [ACE-World](https://github.com/ACEmulator/ACE-World) the [latest release](https://github.com/ACEmulator/ACE-World/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE-World minimum required version - 0.2.7+](https://github.com/ACEmulator/ACE-World/releases/latest)
+  - [ACE-World minimum required version - 0.3.0+](https://github.com/ACEmulator/ACE-World/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Copy `ACE.CmdLineLauncher\launcher_config.json.example` to `launcher_config.json` and modify your launcher settings to correspond with your ACE\config.json settings.
