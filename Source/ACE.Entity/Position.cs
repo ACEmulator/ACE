@@ -168,7 +168,7 @@ namespace ACE.Entity
             RotationZ = aoPos.RotationZ;
         }
 
-        public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, uint animationFrame, bool writeLandblock = true)
+        public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, int animationFrame, bool writeLandblock = true)
         {
             payload.Write((uint)updatePositionFlags);
 

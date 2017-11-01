@@ -92,6 +92,7 @@
     <Compile Include="Enum\AceObjectPropertyType.cs" />
     <Compile Include="Enum\DestinationType.cs" />
     <Compile Include="Enum\ContentType.cs" />
+    <Compile Include="Enum\CombatStyle.cs" />
     <Compile Include="Enum\EmoteCategory.cs" />
     <Compile Include="Enum\EmoteType.cs" />
     <Compile Include="Enum\EnchantmentTypeFlags.cs" />

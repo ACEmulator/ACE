@@ -15,8 +15,14 @@ using ACE.Entity.Enum;
 
 namespace ACE.Api.Controllers
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class ContentController : BaseController
     {
+        /// <summary>
+        ///
+        /// </summary>
         [HttpGet]
         [AceAuthorize]
         [SwaggerResponse(HttpStatusCode.OK, Type = typeof(List<Content>))]
@@ -26,6 +32,9 @@ namespace ACE.Api.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, WorldDb.GetAllContent());
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         [HttpPost]
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Request invalid.", typeof(SimpleMessage))]
@@ -49,6 +58,9 @@ namespace ACE.Api.Controllers
 
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         [HttpPost]
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Request invalid.", typeof(SimpleMessage))]
@@ -75,6 +87,9 @@ namespace ACE.Api.Controllers
 
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         [HttpDelete]
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Request invalid.", typeof(SimpleMessage))]

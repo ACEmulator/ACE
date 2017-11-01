@@ -4,7 +4,7 @@ namespace ACE.Network.GameMessages.Messages
 {
     public class GameMessagePutObjectInContainer : GameMessage
     {
-        public GameMessagePutObjectInContainer(Session session, ObjectGuid containerGuid, WorldObject item, uint placement)
+        public GameMessagePutObjectInContainer(Session session, ObjectGuid containerGuid, WorldObject item, int placement)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
         {
             Writer.Write(session.Player.Guid.Full);

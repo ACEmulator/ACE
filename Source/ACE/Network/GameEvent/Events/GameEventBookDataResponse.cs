@@ -6,7 +6,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventBookDataResponse : GameEventMessage
     {
-        public GameEventBookDataResponse(Session session, uint bookID, uint maxChars, uint maxPages, List<PageData> pageData, string inscription, uint authorId, string authorName, bool ignoreAuthor)
+        public GameEventBookDataResponse(Session session, uint bookID, int maxChars, int maxPages, List<PageData> pageData, string inscription, uint authorId, string authorName, bool ignoreAuthor)
             : base(GameEventType.BookDataResponse, GameMessageGroup.Group09, session)
         {
             Writer.Write(bookID);

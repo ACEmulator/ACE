@@ -77,8 +77,8 @@ namespace ACE.DatLoader.FileTypes
                 }
 
                int numHoldingLocations = datReader.ReadInt32();
-               if(numHoldingLocations > 0)
-                    for (int i=0; i < numHoldingLocations; i++)
+                if (numHoldingLocations > 0)
+                    for (int i = 0; i < numHoldingLocations; i++)
                     {
                         int key = datReader.ReadInt32();
                         m.HoldingLocations.Add(key, LocationType.Read(datReader)); 
@@ -125,7 +125,7 @@ namespace ACE.DatLoader.FileTypes
                 m.SelectionSphere = new CSphere(new AceVector3(datReader.ReadSingle(), datReader.ReadSingle(), datReader.ReadSingle()), datReader.ReadSingle());
 
                 int numLights = datReader.ReadInt32();
-                if(numLights > 0)
+                if (numLights > 0)
                     for (int i = 0; i < numLights; i++)
                     {
                         int key = datReader.ReadInt32();

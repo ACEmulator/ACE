@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace ACE.AuthApi.Controllers
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class ServerInfo
     {
         /// <summary>
@@ -15,9 +18,15 @@ namespace ACE.AuthApi.Controllers
         [JsonProperty("hostName")]
         public string HostName { get; set; }
 
+        /// <summary>
+        ///
+        /// </summary>
         [JsonProperty("gameServerPort")]
         public int GameServerPort { get; set; }
 
+        /// <summary>
+        ///
+        /// </summary>
         [JsonProperty("apiPort")]
         public int ApiPort { get; set; }
 

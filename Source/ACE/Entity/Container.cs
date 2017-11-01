@@ -17,15 +17,15 @@ namespace ACE.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private uint coinValue = 0;
-        public override uint? CoinValue
+        private int coinValue = 0;
+        public override int? CoinValue
         {
             get { return coinValue; }
             set
             {
                 if (value != coinValue)
                 {
-                    coinValue = (uint)value;
+                    coinValue = (int)value;
                     base.CoinValue = value;
                 }
             }
@@ -95,7 +95,7 @@ namespace ACE.Entity
         }
 
         // Inventory Management Functions
-        public virtual void AddToInventory(WorldObject inventoryItem, uint placement = 0)
+        public virtual void AddToInventory(WorldObject inventoryItem, int placement = 0)
         {
             AddToInventoryEx(inventoryItem, placement);
 
@@ -109,7 +109,7 @@ namespace ACE.Entity
         /// Adds a new item to the inventory collection AND NOTHING ELSE.  will not send updates to the client.  The
         /// primary use case here is as a helper function or for adding items prior to login (ie, char gen)
         /// </summary>
-        public virtual void AddToInventoryEx(WorldObject inventoryItem, uint placement = 0)
+        public virtual void AddToInventoryEx(WorldObject inventoryItem, int placement = 0)
         {
             if (InventoryObjects.ContainsKey(inventoryItem.Guid))
             {
@@ -152,7 +152,7 @@ namespace ACE.Entity
             if (InventoryObjects.ContainsKey(objectguid))
             {
                 // defrag the pack
-                uint placement = InventoryObjects[objectguid].Placement ?? 0u;
+                int placement = InventoryObjects[objectguid].Placement ?? 0;
                 InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
 
                 // todo calculate burdon / value / container properly
@@ -270,7 +270,7 @@ namespace ACE.Entity
         /// <param name="fromWo">World object of the item are we merging from</param>
         /// <param name="toWo">World object of the item we are merging into</param>
         /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        public void UpdateToStack(Session session, WorldObject fromWo, WorldObject toWo, uint amount)
+        public void UpdateToStack(Session session, WorldObject fromWo, WorldObject toWo, int amount)
         {
             // unless we have a data issue, these are valid asserts Og II
             Debug.Assert(toWo.Value != null, "toWo.Value != null");
@@ -280,7 +280,7 @@ namespace ACE.Entity
             Debug.Assert(toWo.Burden != null, "toWo.Burden != null");
             Debug.Assert(fromWo.Burden != null, "fromWo.Burden != null");
 
-            uint newValue = (uint)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
+            int newValue = (int)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
             uint newBurden = (uint)(toWo.Burden + ((fromWo.Burden / fromWo.StackSize) * amount));
 
             int oldStackSize = (int)toWo.StackSize;
@@ -290,7 +290,7 @@ namespace ACE.Entity
 
             // Build the needed messages to the client.
             GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
-            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.Placement ?? 0u);
+            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.Placement ?? 0);
             Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
             GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
 
@@ -305,7 +305,7 @@ namespace ACE.Entity
         /// <param name="session">Session is used for sequence and target</param>
         /// <param name="fromWo">World object of the item are we merging from</param>
         /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        public void UpdateFromStack(Session session, WorldObject fromWo,  uint amount)
+        public void UpdateFromStack(Session session, WorldObject fromWo,  int amount)
         {
             // ok, there are some left, we need up update the stack size, value and burden of the fromWo
             // unless we have a data issue, these are valid asserts Og II
@@ -314,7 +314,7 @@ namespace ACE.Entity
             Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
             Debug.Assert(fromWo.Burden != null, "fromWo.Burden != null");
 
-            uint newFromValue = (uint)(fromWo.Value + ((fromWo.Value / fromWo.StackSize) * -amount));
+            int newFromValue = (int)(fromWo.Value + ((fromWo.Value / fromWo.StackSize) * -amount));
             uint newFromBurden = (uint)(fromWo.Burden + ((fromWo.Burden / fromWo.StackSize) * -amount));
 
             int oldFromStackSize = (int)fromWo.StackSize;
@@ -357,7 +357,7 @@ namespace ACE.Entity
         /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
         /// <param name="mergeToGuid">Guid of the item we are merging into</param>
         /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
-        public void HandleActionStackableMerge(Session session, ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, uint amount)
+        public void HandleActionStackableMerge(Session session, ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
         {
             new ActionChain(this, () =>
             {
@@ -392,7 +392,7 @@ namespace ACE.Entity
                 {
                     // ok we have more than the max stack size on the to object, just add what we can and adjust both.
                     Debug.Assert(toWo.MaxStackSize != null, "toWo.MaxStackSize != null");
-                    uint amtToFill = (uint)(toWo.MaxStackSize - toWo.StackSize);
+                    int amtToFill = (int)(toWo.MaxStackSize - toWo.StackSize);
                     UpdateToStack(session, fromWo, toWo, amtToFill);
                     UpdateFromStack(session, toWo, amtToFill);
                 }

@@ -143,9 +143,9 @@ namespace ACE.Network.Handlers
             AceCharacter character = new AceCharacter(id);
 
             reader.Skip(4);   /* Unknown constant (1) */
-            character.Heritage = reader.ReadUInt32();
+            character.Heritage = (int)reader.ReadUInt32();
             character.HeritageGroup = cg.HeritageGroups[(int)character.Heritage].Name;
-            character.Gender = reader.ReadUInt32();
+            character.Gender = (int)reader.ReadUInt32();
             if (character.Gender == 1)
                 character.Sex = "Male";
             else
@@ -468,7 +468,7 @@ namespace ACE.Network.Handlers
             string templateName = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Name;
             character.Title = templateName;
             character.Template = templateName;
-            character.CharacterTitleId = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title;
+            character.CharacterTitleId = (int)cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title;
             character.NumCharacterTitles = 1;
 
             // stats
@@ -503,7 +503,7 @@ namespace ACE.Network.Handlers
             character.Mana.Current = character.Mana.MaxValue;
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
-            character.AvailableSkillCredits = cg.HeritageGroups[(int)character.Heritage].SkillCredits;
+            character.AvailableSkillCredits = (int)cg.HeritageGroups[(int)character.Heritage].SkillCredits;
 
             uint numOfSkills = reader.ReadUInt32();
             Skill skill;

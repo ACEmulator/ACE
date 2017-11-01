@@ -28,10 +28,10 @@ namespace ACE.Entity
             {
                 switch (BoostEnum)
                 {
-                    case (uint)Entity.Player.ConsumableBuffType.Health:
+                    case (int)Entity.Player.ConsumableBuffType.Health:
                         buffType = Entity.Player.ConsumableBuffType.Health;
                         break;
-                    case (uint)Entity.Player.ConsumableBuffType.Mana:
+                    case (int)Entity.Player.ConsumableBuffType.Mana:
                         buffType = Entity.Player.ConsumableBuffType.Mana;
                         break;
                     default:
