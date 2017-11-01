@@ -11,8 +11,14 @@ using System.Web.Http;
 
 namespace ACE.AuthApi.Controllers
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class BaseController : ApiController
     {
+        /// <summary>
+        ///
+        /// </summary>
         public static AuthenticationDatabase AuthDb { get; private set; }
 
         static BaseController()

@@ -1385,9 +1385,9 @@ namespace ACE.Entity
             }
         }
 
-        public MotionStance? DefaultCombatStyle
+        public CombatStyle? DefaultCombatStyle
         {
-            get { return (MotionStance?)AceObject.DefaultCombatStyle; }
+            get { return (CombatStyle?)AceObject.DefaultCombatStyle; }
             set { AceObject.DefaultCombatStyle = (int?)value; }
         }
 

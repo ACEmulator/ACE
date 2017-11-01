@@ -1,11 +1,13 @@
 # ACEmulator Change Log
 
-### 2017-10-29
+### 2017-11-01
 [Ripley]
 * Updated EmoteCategory, EmoteType, and SpellType enums.
 * Add CombatStyle enum.
 * Rebased SQL scripts.
 * Changed all PropertyInt properties from uint to int.
+* Todo/Fixme: Combat Stances don't work properly due to GetInventoryItem issue.
+* Cleaned up StyleCop issues.
 
 ### 2017-10-27
 [OptimShi]

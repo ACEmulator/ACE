@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ACE.Api.Models
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class AceModel
     {
     }

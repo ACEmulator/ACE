@@ -337,6 +337,7 @@ namespace ACE.Entity
 
         public void HandleSwitchToMissileCombatMode(ActionChain combatModeChain)
         {
+            // TODO and FIXME: GetInventoryItem doesn't work for this so this function is effectively broke
             HeldItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
             if (mEquipedMissile?.Guid != null)
             {
@@ -350,13 +351,27 @@ namespace ACE.Entity
                 var mEquipedAmmo = WieldedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
 
                 MotionStance ms;
+                CombatStyle cs;
 
                 if (missileWeapon.DefaultCombatStyle != null)
-                    ms = (MotionStance)missileWeapon.DefaultCombatStyle;
+                    cs = missileWeapon.DefaultCombatStyle.Value;
                 else
                 {
                     log.InfoFormat("Changing combat mode for {0} - wielded item {1} has not be assigned a default combat style", Guid, mEquipedMissile.Guid);
                     return;
+                }
+
+                switch (cs)
+                {
+                    case CombatStyle.Bow:
+                        ms = MotionStance.BowAttack;
+                        break;
+                    case CombatStyle.Crossbow:
+                        ms = MotionStance.CrossBowAttack;
+                        break;
+                    default:
+                        ms = MotionStance.Invalid;
+                        break;
                 }
 
                 UniversalMotion mm = new UniversalMotion(ms);
@@ -389,6 +404,7 @@ namespace ACE.Entity
 
         public void HandleSwitchToMeleeCombatMode(CombatMode olCombatMode)
         {
+            // TODO and FIXME: GetInventoryItem doesn't work for this so this function is effectively broke
             bool shieldEquiped = false;
             bool weaponInShieldSlot = false;
 
@@ -411,6 +427,7 @@ namespace ACE.Entity
             HeldItem mEquipedMelee = Children.Find(s => s.EquipMask == EquipMask.MeleeWeapon);
             HeldItem mEquipedTwoHanded = Children.Find(s => s.EquipMask == EquipMask.TwoHanded);
             MotionStance ms = MotionStance.Invalid;
+            CombatStyle cs = CombatStyle.Undef;
             // are we unarmed?   If so, do we have a shield?
             if (mEquipedMelee == null && mEquipedTwoHanded == null && !weaponInShieldSlot)
             {
@@ -426,7 +443,20 @@ namespace ACE.Entity
             {
                 WorldObject twoHandedWeapon = GetInventoryItem(new ObjectGuid(mEquipedTwoHanded.Guid));
                 if (twoHandedWeapon.DefaultCombatStyle != null)
-                    ms = twoHandedWeapon.DefaultCombatStyle.Value;
+                {
+                    cs = twoHandedWeapon.DefaultCombatStyle.Value;
+                    // ms = MotionStance.TwoHandedSwordAttack;
+                    // ms = MotionStance.TwoHandedStaffAttack; ?
+                    switch (cs)
+                    {
+                        // case CombatStyle.???
+                        // ms = MotionStance.TwoHandedStaffAttack;
+                        // break;
+                        default:
+                            ms = MotionStance.TwoHandedSwordAttack;
+                            break;
+                    }
+                }
             }
 
             // Let's see if we are melee single handed / two handed with our without shield as appropriate.
@@ -443,21 +473,43 @@ namespace ACE.Entity
                 if (!shieldEquiped)
                 {
                     if (meleeWeapon.DefaultCombatStyle != null)
-                        ms = meleeWeapon.DefaultCombatStyle.Value;
+                    {
+                        cs = meleeWeapon.DefaultCombatStyle.Value;
+                        switch (cs)
+                        {
+                            case CombatStyle.Atlatl:
+                                ms = MotionStance.AtlatlCombat;
+                                break;
+                            case CombatStyle.Sling:
+                                ms = MotionStance.SlingAttack;
+                                break;
+                            case CombatStyle.ThrownWeapon:
+                                ms = MotionStance.ThrownWeaponAttack;
+                                break;
+                            default:
+                                ms = MotionStance.MeleeNoShieldAttack;
+                                break;
+                        }
+                    }
                 }
                 else
                 {
                     switch (meleeWeapon.DefaultCombatStyle)
                     {
-                        case MotionStance.MeleeNoShieldAttack:
+                        case CombatStyle.Unarmed:
+                        case CombatStyle.OneHanded:
+                        case CombatStyle.OneHandedAndShield:
+                        case CombatStyle.TwoHanded:
+                        case CombatStyle.DualWield:
+                        case CombatStyle.Melee:
                             ms = MotionStance.MeleeShieldAttack;
                             break;
-                        case MotionStance.ThrownWeaponAttack:
+                        case CombatStyle.ThrownWeapon:
                             ms = MotionStance.ThrownShieldCombat;
                             break;
-                        case MotionStance.UaNoShieldAttack:
-                            ms = MotionStance.MeleeShieldAttack;
-                            break;
+                        ////case CombatStyle.Unarmed:
+                        ////    ms = MotionStance.MeleeShieldAttack;
+                        ////    break;
                         default:
                             log.InfoFormat(
                                 "Changing combat mode for {0} - unable to determine correct combat stance for weapon {1}", Guid, mEquipedMelee.Guid);

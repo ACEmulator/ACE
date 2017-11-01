@@ -78,5 +78,3 @@ namespace ACE.Entity.Enum.Properties
         }
     }
 }
-
-

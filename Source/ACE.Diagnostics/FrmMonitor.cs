@@ -2,6 +2,7 @@
 using ACE.Entity.Enum;
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -9,6 +10,9 @@ using System.Windows.Forms;
 
 namespace ACE.Diagnostics
 {
+    [SuppressMessage("Microsoft.StyleCop.CSharp.Naming", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "form designer code")]
+    [SuppressMessage("Microsoft.StyleCop.CSharp.Naming", "SA1306:FieldNamesMustBeginWithLowerCaseLetter", Justification = "form designer code")]
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "*", Justification = "Reviewed. Suppression is OK here.")]
     public partial class FrmMonitor : Form
     {
         public FrmMonitor()

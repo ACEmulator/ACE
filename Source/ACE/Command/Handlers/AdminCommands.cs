@@ -139,7 +139,7 @@ namespace ACE.Command.Handlers
                     case AccountLookupType.Subscription:
                         {
                             throw new NotImplementedException();
-                            break;
+                            // break;
                         }
                     case AccountLookupType.Character:
                         {

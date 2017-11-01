@@ -7,6 +7,9 @@ using Newtonsoft.Json;
 
 namespace ACE.Api.Models
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class Image
     {
         /// <summary>
@@ -15,6 +18,9 @@ namespace ACE.Api.Models
         [JsonProperty("contentType")]
         public string ContentType { get; set; }
 
+        /// <summary>
+        ///
+        /// </summary>
         [JsonProperty("data")]
         public byte[] Data { get; set; }
     }

@@ -2842,9 +2842,12 @@ namespace ACE.Entity
             {
                 case EquipMask.MissileWeapon:
                     {
-                        if (item.DefaultCombatStyle == MotionStance.BowAttack ||
-                            item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
-                            item.DefaultCombatStyle == MotionStance.AtlatlCombat)
+                        ////if (item.DefaultCombatStyle == MotionStance.BowAttack ||
+                        ////    item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
+                        ////    item.DefaultCombatStyle == MotionStance.AtlatlCombat)
+                        if (item.DefaultCombatStyle == CombatStyle.Atlatl ||
+                            item.DefaultCombatStyle == CombatStyle.Bow ||
+                            item.DefaultCombatStyle == CombatStyle.Crossbow)
                         {
                             childLocation = 2;
                             placementId = 3;

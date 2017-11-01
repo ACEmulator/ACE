@@ -811,12 +811,12 @@ namespace ACE.Command.Handlers
             "Creates testing items in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            // HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
 
-            HashSet<uint> weaponsTest = new HashSet<uint>() { (uint)TestWeenieClassIds.Pants,
-                                                              (uint)TestWeenieClassIds.Tunic,
-                                                              (uint)TestWeenieClassIds.TrainingWand,
-                                                              (uint)TestWeenieClassIds.ColoBackpack };
+            ////HashSet<uint> weaponsTest = new HashSet<uint>() { (uint)TestWeenieClassIds.Pants,
+            ////                                                  (uint)TestWeenieClassIds.Tunic,
+            ////                                                  (uint)TestWeenieClassIds.TrainingWand,
+            ////                                                  (uint)TestWeenieClassIds.ColoBackpack };
             ActionChain chain = new ActionChain();
 
             chain.AddAction(session.Player, () =>
