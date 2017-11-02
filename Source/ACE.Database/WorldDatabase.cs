@@ -173,6 +173,9 @@ namespace ACE.Database
                 // Create a new AceObject from Weenie.
                 AceObject ao = GetObject(instance.WeenieClassId);
 
+                // Set the object's current location for this instance.
+                ao.Location = new Position(instance.LandblockRaw, instance.PositionX, instance.PositionY, instance.PositionZ, instance.RotationX, instance.RotationY, instance.RotationZ, instance.RotationW);
+
                 // Use the guid recorded by the PCAP.
                 // This step could eventually be removed if we want to let the GuidManager handle assigning guids for static objects, ignoring the recorded guids.
                 string cmsClone = ao.CurrentMotionState; // Make a copy of the CurrentMotionState for cloning
