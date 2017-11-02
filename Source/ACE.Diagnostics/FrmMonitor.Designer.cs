@@ -1,6 +1,10 @@
-﻿namespace ACE.Diagnostics
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace ACE.Diagnostics
 {
-    partial class FrmMonitor
+    [SuppressMessage("Microsoft.StyleCop.CSharp.Naming", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "form designer code")]
+    [SuppressMessage("Microsoft.StyleCop.CSharp.Naming", "SA1306:FieldNamesMustBeginWithLowerCaseLetter", Justification = "form designer code")]
+    public partial class FrmMonitor
     {
         /// <summary>
         /// Required designer variable.

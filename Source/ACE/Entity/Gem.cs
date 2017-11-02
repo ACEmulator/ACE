@@ -15,7 +15,7 @@ namespace ACE.Entity
         /// <summary>
         /// This is ace_object_property_int #349.   It links a contract weenie with the quest that it will add to your quest panel.
         /// </summary>
-        public uint? UseCreateContractId
+        public int? UseCreateContractId
         {
             get { return AceObject.UseCreateContractId; }
             set { AceObject.UseCreateContractId = value; }

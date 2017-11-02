@@ -22,14 +22,17 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 ## Getting Started
 
 **For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
-* Install MySQL (MariaDB is preferred, but either will work)
-  - [MySQL minimum required version 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
-  - [MariaDB minimum required version 10.2+](https://mariadb.org/download/)
-* Create three databases named `ace_auth`, `ace_shard`, and `ace_world`.
-* Load AuthenticationBase.sql, ShardBase.sql, and WorldBase.sql for their respective databases. 
+* Install MySQL
+  - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
+  - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
+* Create two databases named `ace_auth`, `ace_shard`.
+* Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
 * Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest.
 * Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest.
+* Create a final database named `ace_world`.
+* Load WorldBase.sql to initialize the ace_world database. 
 * Download from [ACE-World](https://github.com/ACEmulator/ACE-World) the [latest release](https://github.com/ACEmulator/ACE-World/releases/latest) of world data, extract and load into your ace_world database.
+  - [ACE-World minimum required version - 0.3.0+](https://github.com/ACEmulator/ACE-World/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Copy `ACE.CmdLineLauncher\launcher_config.json.example` to `launcher_config.json` and modify your launcher settings to correspond with your ACE\config.json settings.

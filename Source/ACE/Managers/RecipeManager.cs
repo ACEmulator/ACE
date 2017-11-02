@@ -240,7 +240,7 @@ namespace ACE.Managers
                 if (player.CombatMode != CombatMode.NonCombat && player.CombatMode != CombatMode.Undef)
                     difficulty *= 1.1;
                 
-                uint boost = source.Boost ?? 0;
+                int boost = source.Boost ?? 0;
                 double multiplier = source.HealkitMod ?? 1;
 
                 double playerSkill = skill.ActiveValue + boost;

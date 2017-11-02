@@ -9,8 +9,14 @@ using System.IO;
 
 namespace ACE.AuthApi
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        ///
+        /// </summary>
         public void Configuration(IAppBuilder app)
         {
             // Configure Web API for self-host. 

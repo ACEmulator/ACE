@@ -9,11 +9,11 @@ namespace ACE.DatLoader.Entity
 {
     public class LightInfo
     {
-        Position ViewerspaceLocation { get; set; }
-        uint Color { get; set; } // _RGB Color. Red is bytes 3-4, Green is bytes 5-6, Blue is bytes 7-8. Bytes 1-2 are always FF (?)
-        float Intensity { get; set; }
-        float Falloff { get; set; }
-        float ConeAngle { get; set; }
+        public Position ViewerspaceLocation { get; set; }
+        public uint Color { get; set; } // _RGB Color. Red is bytes 3-4, Green is bytes 5-6, Blue is bytes 7-8. Bytes 1-2 are always FF (?)
+        public float Intensity { get; set; }
+        public float Falloff { get; set; }
+        public float ConeAngle { get; set; }
 
         public static LightInfo Read(DatReader datReader)
         {
@@ -27,6 +27,5 @@ namespace ACE.DatLoader.Entity
 
             return obj;
         }
-
     }
 }

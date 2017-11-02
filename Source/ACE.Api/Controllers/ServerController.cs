@@ -19,6 +19,9 @@ namespace ACE.Api.Controllers
     /// </summary>
     public class ServerController : BaseController
     {
+        /// <summary>
+        ///
+        /// </summary>
         [HttpGet]
         [SwaggerResponse(HttpStatusCode.OK, Type = typeof(ServerInformation))]
         public HttpResponseMessage Information()
@@ -48,7 +51,7 @@ namespace ACE.Api.Controllers
         {
 
             // Download the database from Github:
-            //RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
+            // RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
             // Download the latest ACE-World release archive, extract contents into database dir, remove downloaded zip
             // Run all scripts, in the correct sequences.
             return Request.CreateResponse(HttpStatusCode.OK, "You win!");

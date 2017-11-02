@@ -14,6 +14,9 @@ using ACE.Api.Models;
 
 namespace ACE.Api.Controllers
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class WeenieController : BaseController
     {
         /// <summary>

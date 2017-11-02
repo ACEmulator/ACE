@@ -8,8 +8,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ACE.Api
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class SwaggerConfig
     {
+        /// <summary>
+        ///
+        /// </summary>
         [SuppressMessage("Microsoft.StyleCop.CSharp.Spacing", "SA1005:SingleLineCommentsMustBeginWithSingleSpace")]
         public static void Register(HttpConfiguration config)
         {

@@ -4,7 +4,6 @@ namespace ACE.DatLoader.Entity
 {
     public class LocationType
     {
-
         public uint PartId;
         public Position Frame;
 

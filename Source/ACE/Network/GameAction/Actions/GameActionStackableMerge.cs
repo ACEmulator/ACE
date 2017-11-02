@@ -14,7 +14,7 @@ namespace ACE.Network.GameAction.Actions
         {
             uint mergeFromId = message.Payload.ReadUInt32();
             uint mergeToId = message.Payload.ReadUInt32();
-            uint amount = message.Payload.ReadUInt32();
+            int amount = message.Payload.ReadInt32();
             session.Player.HandleActionStackableMerge(session, new ObjectGuid(mergeFromId), new ObjectGuid(mergeToId), amount);
         }
     }

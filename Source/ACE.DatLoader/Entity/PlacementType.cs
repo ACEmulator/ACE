@@ -8,7 +8,7 @@ namespace ACE.DatLoader.Entity
 {
     public class PlacementType
     {
-        AnimationFrame AnimFrame { get; set; }
+        public AnimationFrame AnimFrame { get; set; }
 
         public static PlacementType Read(int numParts, DatReader datReader)
         {

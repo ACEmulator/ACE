@@ -17,8 +17,8 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.SetCharacterOptions)]
         public static void Handle(ClientMessage message, Session session)
         {
-            uint characterOptions1Flag = 0;
-            uint characterOptions2Flag = 0;
+            int characterOptions1Flag = 0;
+            int characterOptions2Flag = 0;
             uint spellbookFilters = 0;
             uint[] tab1Spells;
             Dictionary<uint, int> desiredComponents = new Dictionary<uint, int>();
@@ -28,7 +28,7 @@ namespace ACE.Network.GameAction.Actions
             // Flags
             uint flags = message.Payload.ReadUInt32();
 
-            characterOptions1Flag = message.Payload.ReadUInt32();
+            characterOptions1Flag = message.Payload.ReadInt32();
             session.Player.SetCharacterOptions1(characterOptions1Flag);
 
             // TODO: Read shortcuts into object so it's available in the Handle method.
@@ -109,7 +109,7 @@ namespace ACE.Network.GameAction.Actions
 
             if ((flags & (uint)CharacterOptionDataFlag.CharacterOptions2) != 0)
             {
-                characterOptions2Flag = message.Payload.ReadUInt32();
+                characterOptions2Flag = message.Payload.ReadInt32();
                 session.Player.SetCharacterOptions2(characterOptions2Flag);
             }
 

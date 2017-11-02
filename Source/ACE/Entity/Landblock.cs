@@ -785,7 +785,7 @@ namespace ACE.Entity
             }
         }
 
-        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, uint placement = 0)
+        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, int placement = 0)
         {
             // Find owner of wo
             Landblock lb = GetOwner(wo);
@@ -801,7 +801,7 @@ namespace ACE.Entity
             }
         }
 
-        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container, uint placement = 0)
+        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container, int placement = 0)
         {
             WorldObject wo = GetObject(woGuid);
 
@@ -818,7 +818,7 @@ namespace ACE.Entity
             container.AddToInventory(wo, placement);
         }
 
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, uint placement = 0)
+        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
         {
             Container container = GetObject(containerGuid) as Container;
 

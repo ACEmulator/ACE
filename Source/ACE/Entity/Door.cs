@@ -156,13 +156,13 @@ namespace ACE.Entity
             set;
         }
 
-        private uint? ResistLockpick
+        private int? ResistLockpick
         {
             get;
             set;
         }
 
-        private uint? AppraisalLockpickSuccessPercent
+        private int? AppraisalLockpickSuccessPercent
         {
             get;
             set;

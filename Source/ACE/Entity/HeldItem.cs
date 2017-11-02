@@ -11,11 +11,11 @@ namespace ACE.Entity
     {
         public uint Guid { get; }
 
-        public uint LocationId { get; }
+        public int LocationId { get; }
 
         public EquipMask EquipMask { get; }
 
-        public HeldItem(uint guid, uint locationId, EquipMask equipmask)
+        public HeldItem(uint guid, int locationId, EquipMask equipmask)
         {
             Guid = guid;
             EquipMask = equipmask;
