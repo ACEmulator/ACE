@@ -1,8 +1,8 @@
 # ACEmulator Change Log
-### 2017-10-30
-[Mogwai]
-* implemented updating of weenies in ace-world necessary for crowd-sourced content creation
-* added database unit tests to AppVeyor build
+
+### 2017-11-02
+[Ripley]
+* Fix Landblock loading of weenie instance position data.
 
 ### 2017-11-01
 [Ripley]
@@ -14,6 +14,11 @@
 * Todo/Fixme: Combat Stances don't work properly due to GetInventoryItem issue.
 * Cleaned up StyleCop issues.
 * Updated README with ACE-World requirement.
+
+### 2017-10-30
+[Mogwai]
+* implemented updating of weenies in ace-world necessary for crowd-sourced content creation
+* added database unit tests to AppVeyor build
 
 ### 2017-10-27
 [OptimShi]
