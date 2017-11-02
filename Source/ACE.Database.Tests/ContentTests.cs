@@ -34,6 +34,7 @@ namespace ACE.Database.Tests
         public void CreateContent_NoChildData_SavesContent()
         {
             Content c = new Content();
+            c.ContentGuid = Guid.NewGuid();
             c.ContentName = "CreateContent_NoChildData_SavesContent " + c.ContentGuid.Value.ToString();
                 
             worldDb.CreateContent(c);
@@ -46,6 +47,7 @@ namespace ACE.Database.Tests
         public void UpdateContent_NoChildData_SavesContent()
         {
             Content c = new Content();
+            c.ContentGuid = Guid.NewGuid();
             c.ContentName = "UpdateContent_NoChildData_SavesContent 1  " + c.ContentGuid.Value.ToString();
 
             worldDb.CreateContent(c);
@@ -68,6 +70,7 @@ namespace ACE.Database.Tests
         public void CreateContent_WithWeenieData_SavesContent()
         {
             Content c = new Content();
+            c.ContentGuid = Guid.NewGuid();
             c.ContentName = "CreateContent_WithWeenieData_SavesContent " + c.ContentGuid.Value.ToString();
             c.ContentType = Entity.Enum.ContentType.Patch;
             c.Weenies.Add(new ContentWeenie() { ContentWeenieGuid = Guid.NewGuid(), WeenieId = 6353, Comment = "Pyreal Mote" });
@@ -88,6 +91,7 @@ namespace ACE.Database.Tests
         public void CreateContent_WithLandblock_SavesContent()
         {
             Content c = new Content();
+            c.ContentGuid = Guid.NewGuid();
             c.ContentName = "CreateContent_WithLandblock_SavesContent " + c.ContentGuid.Value.ToString();
             c.ContentType = Entity.Enum.ContentType.Patch;
             c.AssociatedLandblocks.Add(new ContentLandblock() { ContentLandblockGuid = Guid.NewGuid(), LandblockId = new LandblockId(5, 5), Comment = "a landblock" });
@@ -107,11 +111,13 @@ namespace ACE.Database.Tests
         public void CreateContent_WithAssociatedContent_SavesContent()
         {
             Content c1 = new Content();
+            c1.ContentGuid = Guid.NewGuid();
             c1.ContentName = "CreateContent_WithAssociatedContent_SavesContent 1 " + c1.ContentGuid.Value.ToString();
             c1.ContentType = Entity.Enum.ContentType.Patch;
             worldDb.CreateContent(c1);
 
             Content c2 = new Content();
+            c2.ContentGuid = Guid.NewGuid();
             c2.ContentName = "CreateContent_WithAssociatedContent_SavesContent 2 " + c2.ContentGuid.Value.ToString();
             c2.ContentType = Entity.Enum.ContentType.Quest;
             c2.AssociatedContent.Add(new ContentLink() { AssociatedContentGuid = c1.ContentGuid.Value });
@@ -134,6 +140,7 @@ namespace ACE.Database.Tests
         public void CreateContent_WithExternalResource_SavesContent()
         {
             Content c = new Content();
+            c.ContentGuid = Guid.NewGuid();
             c.ContentName = "CreateContent_WithExternalResource_SavesContent " + c.ContentGuid.Value.ToString();
             c.ContentType = Entity.Enum.ContentType.Patch;
             c.ExternalResources.Add(new ContentResource() { ContentResourceGuid = Guid.NewGuid(), Name = "ACPedia link", ResourceUri = "http://acpedia.com/something" });

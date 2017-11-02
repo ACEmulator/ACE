@@ -114,33 +114,34 @@ namespace ACE.Database
             _wrappedDatabase.DeleteContent(contentGuid);
         }
 
-        public void UpdateWeenie(AceObject weenie)
+        public bool SaveObject(AceObject weenie)
         {
             if (_weenieCache.ContainsKey(weenie.WeenieClassId))
                 _weenieCache[weenie.WeenieClassId] = weenie;
 
-            _wrappedDatabase.UpdateWeenie(weenie);
+            return _wrappedDatabase.SaveObject(weenie);
         }
-
-        public void CreateWeenie(AceObject weenie)
-        {
-            _weenieCache.TryAdd(weenie.WeenieClassId, weenie);
-
-            _wrappedDatabase.CreateWeenie(weenie);
-        }
-
-        public void DeleteWeenie(uint weenieId)
+        
+        public bool DeleteObject(AceObject aceObject)
         {
             AceObject weenie;
-            if (_weenieCache.ContainsKey(weenieId))
-                _weenieCache.TryRemove(weenieId, out weenie);
+            if (_weenieCache.ContainsKey(aceObject.WeenieClassId))
+                _weenieCache.TryRemove(aceObject.WeenieClassId, out weenie);
 
-            _wrappedDatabase.DeleteWeenie(weenieId);
+            return _wrappedDatabase.DeleteObject(aceObject);
         }
 
         public List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria)
         {
             return _wrappedDatabase.SearchWeenies(criteria);
+        }
+
+        public bool ReplaceObject(AceObject aceObject)
+        {
+            if (_weenieCache.ContainsKey(aceObject.WeenieClassId))
+                _weenieCache[aceObject.WeenieClassId] = aceObject;
+
+            return _wrappedDatabase.ReplaceObject(aceObject);
         }
     }
 }

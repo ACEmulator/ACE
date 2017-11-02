@@ -38,9 +38,15 @@ namespace ACE.Api.Controllers
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.OK, "success", typeof(AceObject))]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "requested weenie id not found")]
         public HttpResponseMessage Get(uint weenieId)
         {
-            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+            var weenie = WorldDb.GetObject(weenieId);
+
+            if (weenie != null)
+                return Request.CreateResponse(HttpStatusCode.OK, weenie);
+            else
+                return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         /// <summary>
@@ -50,9 +56,16 @@ namespace ACE.Api.Controllers
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.OK, "weenie updated", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "unable to save changes.")]
         public HttpResponseMessage Update([FromBody] AceObject request)
         {
-            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+            // force this to true, as we're explicitly doing an update
+            request.HasEverBeenSavedToDatabase = true;
+
+            if (WorldDb.ReplaceObject(request))
+                return Request.CreateResponse(HttpStatusCode.OK, new { message = "changes saved." });
+            else
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Unable to save changes." });
         }
 
         /// <summary>
@@ -62,9 +75,13 @@ namespace ACE.Api.Controllers
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.OK, "weenie created", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "unable to save changes.")]
         public HttpResponseMessage Create([FromBody] AceObject request)
         {
-            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+            if (WorldDb.SaveObject(request))
+                return Request.CreateResponse(HttpStatusCode.OK, new { message = "changes saved." });
+            else
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Unable to save changes." });
         }
 
         /// <summary>
@@ -74,9 +91,13 @@ namespace ACE.Api.Controllers
         [AceAuthorize(AccessLevel.Developer)]
         [SwaggerResponse(HttpStatusCode.OK, "weenie deleted", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "missing or invalid authorization header.")]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "unable to save changes.")]
         public HttpResponseMessage Delete([FromBody] AceObject request)
         {
-            return Request.CreateResponse(HttpStatusCode.NotImplemented);
+            if (WorldDb.DeleteObject(request))
+                return Request.CreateResponse(HttpStatusCode.OK, new { message = "object deleted" });
+            else
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Unable to save changes." });
         }
     }
 }

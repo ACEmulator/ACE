@@ -28,7 +28,7 @@ namespace ACE.Entity
             this.IsDirty = true;
             this.HasEverBeenSavedToDatabase = false;
         }
-
+        
         [JsonIgnore]
         public virtual uint PropertyId { get; set; }
 

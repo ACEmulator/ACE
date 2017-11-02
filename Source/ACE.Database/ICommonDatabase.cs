@@ -12,6 +12,10 @@ namespace ACE.Database
     {
         List<AceObject> GetObjectsByLandblock(ushort landblock);
 
-        AceObject GetObject(uint aceObjectId);
+        bool SaveObject(AceObject aceObject);
+
+        bool DeleteObject(AceObject aceObject);
+
+        AceObject GetObject(uint objId);
     }
 }

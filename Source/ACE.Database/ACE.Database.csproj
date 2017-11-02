@@ -75,6 +75,7 @@
     <Compile Include="MySqlResult.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="CommonDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializedShardDatabase.cs" />
     <Compile Include="ShardDatabase.cs" />

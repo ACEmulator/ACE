@@ -13,3 +13,4 @@ build:
   verbosity: minimal
 test_script:
 - cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64
+- cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Database.Tests\bin\x64\Debug\ACE.Database.Tests.dll" /Platform:x64
